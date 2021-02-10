@@ -93,26 +93,4 @@ def call() {
             }
         }
     }
-
-
-}// end call()
-
-
-
-
-
-
-Closure copyFiles = {
-  stage('call Function') {                        
-            steps {
-                    sh '''
-                        pwd
-                        pipelineFilesDirectory="$(basename $PWD)"
-                        pipelinePureName=$(echo $pipelineFilesDirectory | cut  -d'@' -f 1)
-                        cp "../${pipelinePureName}@libs/odoojenkinspipelines/build.py" "../${pipelinePureName}/build.py"
-                        cp "../${pipelinePureName}@libs/odoojenkinspipelines/build.sh" "../${pipelinePureName}/build.sh"
-                    '''
-            }
-        }
 }
-

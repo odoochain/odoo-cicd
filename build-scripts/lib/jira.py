@@ -1,4 +1,3 @@
-
 class JiraWrapper(object):
     def __init__(self, url, username, password):
         self.username = username
@@ -31,6 +30,8 @@ class JiraWrapper(object):
         :return: The whole object that contains all of the issues properties
         :rtype: object
         '''
+        if not self.url:
+            return {}
 
         return self._jira().search_issues("key=" + self._transform_key(storyKey), maxResults=1)[0].fields
 
@@ -41,9 +42,13 @@ class JiraWrapper(object):
 
         :rtype: object or None
         '''
+        if not self.url:
+            return {}
         return self.infos(storyKey).customfield_10800
 
     def comment(self, storyKey, message):
+        if not self.url:
+            return
         try:
             self._jira().add_comment(self._transform_key(storyKey), message)
         except Exception:
