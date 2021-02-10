@@ -55,6 +55,7 @@ def _notify_instance_updated(context, instance, update_time):
 def _make_instance_docker_configs(context, instance):
     instance_name = instance['name']
     file = context.odoo_settings / f'docker-compose.{instance_name}.yml'
+    file.parent.mkdir(exist_ok=True)
     file.write_text("""
 services:
     proxy:
@@ -64,7 +65,29 @@ networks:
     cicd_network:
         external:
             name: {}
-    """.format(os.environ["CICD_NETWORK"]))
+    """.format(os.environ["CICD_NETWORK_NAME"]))
+
+    (context.odoo_settings / f'settings.{instance_name}').write_text("""
+DEVMODE=1
+DUMPS_PATH={}
+RUN_PROXY_PUBLISHED=0
+RUN_ODOO_CRONJOBS=0
+RUN_ODOO_QUEUEJOBS=0
+RUN_CRONJOBS=0
+RUN_CUPS=0
+RUN_POSTGRES=0
+
+DB_HOST={}
+DB_USER={}
+DB_PWD={}
+DB_PORT={}
+""".format(
+        os.environ['DUMPS_PATH'],
+        os.environ['DB_HOST'],
+        os.environ['DB_USER'],
+        os.environ['DB_PASSWORD'],
+        os.environ['DB_PORT'],
+    ))
 
 def augment_instance(context, instance):
     title = 'n/a'

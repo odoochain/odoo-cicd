@@ -1,26 +1,30 @@
 version: '3.7'
 services:
   cicd_delegator:
+    container_name: cicd_delegator
     build: ./cicd_delegator
     ports:
         - ${CICD_BINDING}:80
     networks:
         - cicd_delegator
     environment:
-        REGISTRY_SITES: /registry_sites
-    volumes:
-        - ./registry.json:/registry.json
-        - ./registry_sites:/registry_sites
+        INDEX_HOST: cicd_index.${CICD_NETWORK_NAME}
     restart: "unless-stopped"
+  tester:
+      build: tester
+      networks:
+        - cicd_delegator
   cicd_index:
+    container_name: cicd_index
     build: ./cicd_index
     networks:
         - cicd_delegator
         - internal
     restart: "unless-stopped"
+    expose:
+        - 5000
     environment:
         FLASK_ENV: development
-        REGISTRY_SITES: /registry_sites
         DISPLAY_TIMEZONE: Europe/Berlin
         DATE_FORMAT: '_d._m._Y _H:_M:_S'
         MONGO_HOST: mongo
@@ -32,22 +36,20 @@ services:
         JENKINS_USER: ${JENKINS_USER}
         JENKINS_PASSWORD: ${JENKINS_PASSWORD}
     volumes:
-        - ./registry.json:/registry.json
-        - ./registry_sites:/registry_sites
         - /var/run/docker.sock:/var/run/docker.sock
         - /var/lib/jenkins/workspace:/jenkins_workspaces
   cicd_postgres:
-        container_name: cicd_postgres
-        image: postgres:12
-        restart: 'unless-stopped'
-        command: postgres -c 'max_connections=1000'
-        environment:
-            POSTGRES_PASSWORD: cicd_is_cool
-            POSTGRES_USER: cicd
-        volumes:
-            - ./data:/var/lib/postgresql/data
-        ports:
-            - "0.0.0.0:5432:5432"
+    container_name: cicd_postgres
+    image: postgres:12
+    restart: 'unless-stopped'
+    command: postgres -c 'max_connections=1000'
+    environment:
+        POSTGRES_PASSWORD: ${DB_PASSWORD}
+        POSTGRES_USER: ${DB_USER}
+    volumes:
+        - ./data:/var/lib/postgresql/data
+    ports:
+        - "${DB_HOST}:${DB_PORT}:5432"
   mongo:
     image: mongo
     restart: "unless-stopped"
@@ -56,8 +58,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: 1
-      #volumes:
-      #  - ./mongo/data:/data/db
 
   mongo-express:
     image: mongo-express

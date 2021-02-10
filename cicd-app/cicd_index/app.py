@@ -145,7 +145,8 @@ def register_site():
             for key in ['description', 'author']:
                 if site.get(key):
                     update[key] = site[key]
-            db.sites.update_one({'_id': sites[0]['_id']}, {'$set': update}, upsert=False)
+            if update:
+                db.sites.update_one({'_id': sites[0]['_id']}, {'$set': update}, upsert=False)
         return jsonify(result)
 
     raise Exception("only POST")

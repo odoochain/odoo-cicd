@@ -71,6 +71,7 @@ def build(jira, key, dump_name):
     else:
         raise NotImplementedError()
 
+    instance['key'] = key
     instance['git_sha'] = sha
     instance['git_branch'] = os.environ['GIT_BRANCH']
     augment_instance(context, instance)
@@ -93,7 +94,10 @@ class Context(object):
     def __init__(self, use_jira):
         self.jira_wrapper = _get_jira_wrapper(use_jira)
         self.env = env
-        self.cicd_url = os.environ['CICD_BINDING']
+        self.cicd_url = os.environ['CICD_URL']
+        if self.cicd_url.endswith("/"):
+            self.cicd_url = self.cicd_url[:-1]
+        self.cicd_url += '/cicd'
         self.odoo_settings = Path(os.path.expanduser("~")) / '.odoo'
 
 
@@ -102,8 +106,8 @@ if __name__ == '__main__':
         env_file = Path(sys.path[0]).parent / 'cicd-app' / '.env'
         load_dotenv(env_file)
 
-        if not os.getenv("CICD_BINDING"):
-            os.environ['CICD_BINDING'] = 'http://127.0.0.1:9999'
+        if not os.getenv("CICD_URL"):
+            os.environ['CICD_URL'] = 'http://127.0.0.1:9999'
     _get_env()
 
     cli()
