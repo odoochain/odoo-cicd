@@ -35,13 +35,8 @@ branch = os.environ['GIT_BRANCH'].lower().replace("-", "_")
 
 # -----------------------------------------------------------------
 
-@cli.command()
-@click.option("-k", "--key", type=click.Choice(['kept', 'live', 'demo']), required=True)
-@click.option("-j", "--jira", is_flag=True)
-@click.option("--dump-name", help="Name of the dump, that is restored")
-def build(jira, key, dump_name):
-    print(f"BUILDING for {branch} and key={key}")
-    if jira:
+def _get_jira_wrapper(use_jira):
+    if use_jira:
         jira_wrapper = JiraWrapper(
             os.environ['JIRA_URL'],
             os.environ['JIRA_USER'],
@@ -49,11 +44,15 @@ def build(jira, key, dump_name):
         )
     else:
         jira_wrapper = JiraWrapper("", "", "")
-    context = Context(
-        env,
-        jira_wrapper,
-        Path(os.path.expanduser("~")) / '.odoo'
-    )
+    return jira_wrapper
+
+@cli.command()
+@click.option("-k", "--key", type=click.Choice(['kept', 'live', 'demo']), required=True)
+@click.option("-j", "--jira", is_flag=True)
+@click.option("--dump-name", help="Name of the dump, that is restored")
+def build(jira, key, dump_name):
+    print(f"BUILDING for {branch} and key={key}")
+    context = Context(jira)
 
     # if not any(re.match(allowed, branch, re.IGNORECASE) for allowed in allowed):
     #    return
@@ -91,11 +90,11 @@ def build(jira, key, dump_name):
         raise NotImplementedError(key)
 
 class Context(object):
-    def __init__(self, env, jira_wrapper, odoo_settings_file):
-        self.jira_wrapper = jira_wrapper
+    def __init__(self, use_jira):
+        self.jira_wrapper = _get_jira_wrapper(use_jira)
         self.env = env
-        self.cicd_url = os.environ['CICD_URL']
-        self.odoo_settings = odoo_settings_file
+        self.cicd_url = os.environ['CICD_BINDING']
+        self.odoo_settings = Path(os.path.expanduser("~")) / '.odoo'
 
 
 if __name__ == '__main__':
@@ -103,8 +102,8 @@ if __name__ == '__main__':
         env_file = Path(sys.path[0]).parent / 'cicd-app' / '.env'
         load_dotenv(env_file)
 
-        if not os.getenv("CICD_URL"):
-            os.environ['CICD_URL'] = 'http://127.0.0.1:9999'
+        if not os.getenv("CICD_BINDING"):
+            os.environ['CICD_BINDING'] = 'http://127.0.0.1:9999'
     _get_env()
 
     cli()
