@@ -21,10 +21,22 @@ from lib.build import augment_instance
 def cli():
     pass
 
+def _export_git_values():
+
+    def g(v):
+        git = ['/usr/bin/git', 'show', '-s']
+        return subprocess.check_output(git + [f'--pretty={v}']).decode('utf-8').strip()
+
+    os.environ['GIT_AUTHOR_NAME'] = g("%an")
+    os.environ['GIT_DESC'] = g("%s")
+    os.environ['GIT_SHA'] = g("%H")
+
 
 # -----------------------------------------------------------------
 # From Environment
+_export_git_values()
 env = os.environ.copy()
+env['NO_PROXY'] = "*"
 env['DOCKER_CLIENT_TIMEOUT'] = "600"
 env['COMPOSE_HTTP_TIMEOUT'] = "600"
 env['PSYCOPG_TIMEOUT'] = "120"
@@ -34,6 +46,7 @@ sha = os.getenv("GIT_SHA")
 branch = os.environ['GIT_BRANCH'].lower().replace("-", "_")
 
 # -----------------------------------------------------------------
+
 
 def _get_jira_wrapper(use_jira):
     if use_jira:
@@ -102,6 +115,7 @@ class Context(object):
 
 
 if __name__ == '__main__':
+
     def _get_env():
         env_file = Path(sys.path[0]).parent / 'cicd-app' / '.env'
         load_dotenv(env_file)

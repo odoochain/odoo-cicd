@@ -47,7 +47,7 @@ def _notify_instance_updated(context, instance, update_time):
         'update_time': update_time,
     }).json()
     requests.get(context.cicd_url + '/set_updating', params={'name': name, 'value': 0})
-    context['jira_wrapper'].comment(
+    context.jira_wrapper.comment(
         instance['git_branch'],
         f"Instance updated {name} in {update_time} seconds."
     )
@@ -118,8 +118,7 @@ def update_instance(context, instance, dump_name):
         started = arrow.get()
         _exec(context, ["--project-name", instance['name'], "update", "--no-dangling-check", "--since-git-sha", last_sha['sha']])
         _notify_instance_updated(
-            context, instance['name'], (arrow.get() - started).total_seconds(),
-            instance['git_branch'], instance['git_sha']
+            context, instance, (arrow.get() - started).total_seconds(),
         )
 
 def make_instance(context, instance, use_dump, use_previous_db=False):
