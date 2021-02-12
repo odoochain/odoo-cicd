@@ -276,6 +276,42 @@ def _get_docker_state(name):
     states = set(map(lambda x: x.status, containers))
     return 'running' in states
 
+def format_date(dt):
+    DATE_FORMAT = os.environ['DATE_FORMAT'].replace("_", "%")
+    tz = os.environ['DISPLAY_TIMEZONE']
+    arrow.get(dt)
+    return arrow.get(dt).to(tz).strftime(DATE_FORMAT)
+
+@app.route("/data/instances", methods=["GET", "POST"])
+def data_instances():
+    sites = list(db.sites.find({'enabled': True}))
+
+    for site in sites:
+        for k in site:
+            if not isinstance(site[k], str):
+                continue
+            try:
+                site[k] = format_date(arrow.get(site[k]))
+            except arrow.parser.ParserError:
+                continue
+    sites = sorted(sites, key=lambda x: x.get('updated', x.get('last_access', arrow.get('1980-04-04'))), reverse=True)
+    for site in sites:
+        site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
+
+    sites_grouped = defaultdict(list)
+    for site in sites:
+        sites_grouped[site['git_branch']].append(site)
+    for site in sites_grouped:
+        sites_grouped[site] = sorted(sites_grouped[site], key=lambda x: x['index'], reverse=True)
+    for site in sites:
+        site['recid'] = site['name']
+
+    return jsonify({
+        "status": "success",
+        "total": len(sites),
+        "records": sites
+    })
+
 @app.route('/')
 def index_func():
 

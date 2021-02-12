@@ -36,6 +36,7 @@ services:
         JENKINS_USER: ${JENKINS_USER}
         JENKINS_PASSWORD: ${JENKINS_PASSWORD}
     volumes:
+        - ./cicd_index:/code
         - /var/run/docker.sock:/var/run/docker.sock
         - /var/lib/jenkins/workspace:/jenkins_workspaces
   cicd_postgres:
