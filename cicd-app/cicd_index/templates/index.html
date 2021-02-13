@@ -14,33 +14,91 @@
     {% endif %}
 
     <body>
-        <div id="grid" style="width: 100%; height: 250px;">
+        <div id="layout" style="width: 100%; height: 600px;">
+
         </div>
     </body>
 
     <script>
         $(document).ready(function() {
+            yesno = [
+                {'id': 'y', 'text': 'Yes'},
+                {'id': 'n', 'text': 'No'},
+            ]
 
-            $(function () {
-                $('#grid').w2grid({
-                    name: 'grid',
-                    header: 'Feature Branches',
-                    url: 'cicd/data/instances',
-                    columns: [
-                        { field: 'name', caption: 'Name', size: '10%'},
-                        { field: 'git_branch', caption: 'Git Branch', size: '10%'},
-                        { field: 'desc', caption: 'Description', size: '30%'},
-                        { field: 'author', caption: 'Author', size: '10%' },
-                        { field: 'date_registered', caption: 'Started', size: '10%' },
-                        { field: 'updated', caption: 'Updated', size: '10%' },
-                        { field: 'last_access', caption: 'Last Access', size: '10%' },
-                    ],
-                    onClick: function(ev) {
-                        window.location = "/cicd/start?name=" + ev.recid;
-                    },
+            $.get("/cicd/possible_dumps", function(dumps) {
+
+                $(function () {
+                    var pstyle = 'border: 1px solid #dfdfdf; padding: 5px;';
+                    $('#layout').w2layout({
+                        name: 'layout',
+                        panels: [
+                            { type: 'main', style: pstyle, resiable: true, content: '<div id="grid"></div>', size: '50%' },
+                            { type: 'bottom', style: pstyle, resizable: true, content: '<div id="grid_instances"></div>', size: '50%' }
+                        ]
+                    });
+
+                    $("#grid").w2grid({
+                        name: 'grid',
+                        header: 'Feature Branches',
+                        method: 'GET',
+                        url: 'cicd/data/branches',
+                        show: {
+                            header: true,
+                            toolbar : true,
+                            toolbarSave: true,
+                            footer: true,
+                            expandColumn: false
+                        },
+                        columns: [
+                            { field: 'git_branch', caption: 'Git Branch', size: '10%', sortable: true, },
+                            { field: 'ignore_updates', caption: 'Ignore Updates', size: '10%', editable: { type: 'checkbox', style: 'text-align: center' }},
+                            { field: 'limit_instances', caption: 'Limit Instances', size: '10%', editable: { type: 'int' }},
+                            { field: 'note', caption: 'Note', size: '30%', editable: { type: 'text' }},
+                            { field: 'desc', caption: 'Description', size: '30%'},
+                            { field: 'author', caption: 'Author', size: '10%' },
+                            { field: 'dump', caption: 'Dump', size: '10%',
+                                editable: { type: 'list', items: dumps, showAll: true },
+                                render: function (record, index, col_index) {
+                                    var html = this.getCellValue(index, col_index);
+                                    return html || '';
+                                }
+                            }
+                        ],
+                        onClick: function (event) {
+                            var grid = this;
+                            w2ui['grid_instances'].url = 'cicd/data/instances?git_branch=' + event.recid;
+                            w2ui['grid_instances'].reload();
+                        },
+                    });
+
+                    $("#grid_instances").w2grid({
+                        name: 'grid_instances',
+                        header: 'Instances',
+                        method: 'GET',
+                        url: 'cicd/data/instances',
+                        show: {
+                            header: true,
+                            toolbar : true,
+                            footer: true,
+                            expandColumn: false
+                        },
+                        columns: [
+                            { field: 'name', caption:  "Name", size: '10%' },
+                            { field: 'docker_state', caption:  "Machine State", size: '10%' },
+                            { field: 'updated', caption: 'Updated', size: '10%' },
+                            { field: 'last_access', caption: 'Last Access', size: '10%' },
+                        ],
+                        onClick: function (event) {
+                            window.location = "/cicd/start?name=" + event.recid;
+                        }
+                    });
+
+                    w2ui['layout'].content('main', w2ui['grid']);
+                    w2ui['layout'].content('bottom', w2ui['grid_instances']);
                 });
-            });
 
+            });
 
         })
 </script>

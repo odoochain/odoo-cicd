@@ -135,18 +135,27 @@ def register_site():
             "index": site['index'],
         }))
         result = {'result': 'ok'}
+
+        branches = db.branches.find({
+            "git_branch": site['git_branch'],
+        })
+        if not branches:
+            db.branches.insert({
+                'git_branch': site['git_branch'],
+            })
+        else:
+            for key in ['description', 'author']:
+                update = {}
+                if site.get(key):
+                    update[key] = site[key]
+                if update:
+                    db.branches.update_one({'_id': branches[0]['_id']}, {'$set': update}, upsert=False)
+
         if not sites:
             site['enabled'] = False
             db.sites.insert_one(site)
             result['existing'] = True
-        else:
-            site = sites[0]
-            update = {}
-            for key in ['description', 'author']:
-                if site.get(key):
-                    update[key] = site[key]
-            if update:
-                db.sites.update_one({'_id': sites[0]['_id']}, {'$set': update}, upsert=False)
+
         return jsonify(result)
 
     raise Exception("only POST")
@@ -282,19 +291,64 @@ def format_date(dt):
     arrow.get(dt)
     return arrow.get(dt).to(tz).strftime(DATE_FORMAT)
 
-@app.route("/data/instances", methods=["GET", "POST"])
-def data_instances():
-    sites = list(db.sites.find({'enabled': True}))
-
-    for site in sites:
-        for k in site:
-            if not isinstance(site[k], str):
+def _format_dates_in_records(records):
+    for rec in records:
+        for k in rec:
+            if not isinstance(rec[k], str):
                 continue
             try:
-                site[k] = format_date(arrow.get(site[k]))
+                rec[k] = format_date(arrow.get(rec[k]))
             except arrow.parser.ParserError:
                 continue
+    return records
+
+@app.route("/possible_dumps")
+def possible_dumps():
+    dump_names = db.config.find({})[0].get('dumps')
+    dump_names = [{'id': x, 'text': x} for x in dump_names]
+    return jsonify(dump_names)
+
+@app.route("/data/branches", methods=["GET", "POST"])
+def data_branches():
+    print(request.args)
+    data = request.args.get('request')
+    if data:
+        data = json.loads(data)
+    if data.get('cmd') == 'save':
+        for change in data.get('changes'):
+            git_branch = change['recid']
+            branches = db.branches.find({'git_branch': git_branch})
+            update = {}
+            if change.get('dump'):
+                update['dump'] = change['dump']['id']
+            for field in ['note', 'ignore_updates', 'limit_instances']:
+                if field in change:
+                    update[field] = change[field]
+            if update:
+                db.branches.update_one({'_id': branches[0]['_id']}, {'$set': update}, upsert=False)
+
+    branches = sorted(_format_dates_in_records(list(db.branches.find({}))), key=lambda x: x['git_branch'])
+    for branch in branches:
+        branch['recid'] = branch['git_branch']
+
+    return jsonify({
+        "status": "success",
+        "total": len(branches),
+        "records": branches
+    })
+
+@app.route("/data/instances", methods=["GET", "POST"])
+def data_variants():
+    if not request.args.get('git_branch'):
+        return jsonify({
+            "status": "success",
+            "total": 0,
+            "records": []
+        })
+
+    sites = _format_dates_in_records(list(db.sites.find({'enabled': True, 'git_branch': request.args['git_branch']})))
     sites = sorted(sites, key=lambda x: x.get('updated', x.get('last_access', arrow.get('1980-04-04'))), reverse=True)
+
     for site in sites:
         site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
 
