@@ -63,7 +63,7 @@
                                     var html = this.getCellValue(index, col_index);
                                     return html || '';
                                 }
-                            }
+                            },
                         ],
                         onClick: function (event) {
                             var grid = this;
@@ -88,6 +88,7 @@
                             { field: 'docker_state', caption:  "Machine State", size: '10%' },
                             { field: 'updated', caption: 'Updated', size: '10%' },
                             { field: 'last_access', caption: 'Last Access', size: '10%' },
+                            { field: 'fname', caption: 'Perma-Link', size: '200px'},
                         ],
                         onClick: function (event) {
                             window.location = "/cicd/start?name=" + event.recid;
