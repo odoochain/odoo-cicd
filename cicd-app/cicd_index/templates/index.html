@@ -75,7 +75,10 @@
                                                                     var values = this.getParentView().getFormView().getValues();
                                                                     webix.ajax().post('/cicd/update/branch', values).then(function() {
                                                                         form.hide();
-                                                                        $$('list-branches').refresh();
+                                                                        // TODO optimize
+                                                                        window.location.reload()
+                                                                        //var list = $$('list-branches');
+                                                                        //list.load(list.url);
                                                                     });
                                                                     }
                                                                 },
@@ -100,32 +103,42 @@
                         ]
                     },
                     {
-                        id: 'table-branches',
-                        view: "datatable",
-                        select: true,
-                        autoConfig: true,
-                        editable: true,
-                        data: branches,
-                        autowidth: true,
-                        autoheight: true,
-                        on: {
-                            onAfterEditStop: function(state, editor, ignoreUpdate) {
-                                var data = {};
-                                data['_id'] = $$("table-branches").getSelectedItem()._id;
-                                data[editor.column] = state.value;
-                                webix.ajax().post('/cicd/update/branch', data);
+                        rows: [
+                            {
+                                view: "template",
+                                type: "header",
+                                template: "Information about branch",
+                                height: 200,
                             },
-                        },
-                        columns:[
-                            { id: 'git_branch', header: 'Git Branch', width: 100},
-                            { id: 'ignore_updates', header: 'Ignore Updates', width: 100, editor: 'checkbox', template: "{common.checkbox()}"},
-                            { id: 'limit_instances', header: 'Limit Instances', width: 100, editor: 'text'},
-                            { id: 'note', header: 'Note', width: 300, editor: 'text'},
-                            { id: 'desc', header: 'Description', width: 300, fillspace: true},
-                            { id: 'author', header: 'Author', width: 100},
-                            { id: 'dump', header: 'Dump', width: 200, editor: 'combo', collection: dumps},
-                        ],
-                    },
+                            {
+                                id: 'table-branches',
+                                view: "datatable",
+                                select: true,
+                                autoConfig: true,
+                                editable: true,
+                                url: '/cicd/data/instances',
+                                autowidth: true,
+                                autoheight: true,
+                                on: {
+                                    onAfterEditStop: function(state, editor, ignoreUpdate) {
+                                        var data = {};
+                                        data['_id'] = $$("table-branches").getSelectedItem()._id;
+                                        data[editor.column] = state.value;
+                                        webix.ajax().post('/cicd/update/branch', data);
+                                    },
+                                },
+                                columns:[
+                                    { id: 'git_branch', header: 'Git Branch', width: 100},
+                                    { id: 'ignore_updates', header: 'Ignore Updates', width: 100, editor: 'checkbox', template: "{common.checkbox()}"},
+                                    { id: 'limit_instances', header: 'Limit Instances', width: 100, editor: 'text'},
+                                    { id: 'note', header: 'Note', width: 300, editor: 'text'},
+                                    { id: 'desc', header: 'Description', width: 300, fillspace: true},
+                                    { id: 'author', header: 'Author', width: 100},
+                                    { id: 'dump', header: 'Dump', width: 200, editor: 'combo', collection: dumps},
+                                ],
+                            },
+                        ]
+                    }
                 ]
             });
 
