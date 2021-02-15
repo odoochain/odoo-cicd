@@ -4,17 +4,21 @@ pipeline {
       BUILD_SCRIPTS='/opt/odoo-cicd-jenkins/build-scripts'
     }
     stages {
-      stage('Make Instances') {
+      stage('Instance Kept') {
         steps {
           sh '''
           "$BUILD_SCRIPTS/run.py" build --key=kept 
           '''
         }
+      }
+      stage('Instance Demo') {
         steps {
           sh '''
           "$BUILD_SCRIPTS/run.py" build --key=demo 
           '''
         }
+      }
+      stage('Instance Live') {
         steps {
           sh '''
           "$BUILD_SCRIPTS/run.py" build --key=live 
