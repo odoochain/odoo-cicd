@@ -1,6 +1,7 @@
 import shutil
 import os
 import time
+from bson import ObjectId
 from flask import redirect
 from operator import itemgetter
 import docker as Docker
@@ -305,7 +306,7 @@ def _format_dates_in_records(records):
 @app.route("/possible_dumps")
 def possible_dumps():
     dump_names = db.config.find({})[0].get('dumps')
-    dump_names = [{'id': x, 'text': x} for x in dump_names]
+    dump_names = [{'id': x, 'value': x} for x in dump_names]
     return jsonify(dump_names)
 
 @app.route("/data/branches", methods=["GET", "POST"])
@@ -314,7 +315,7 @@ def data_branches():
     data = request.args.get('request')
     if data:
         data = json.loads(data)
-    if data.get('cmd') == 'save':
+    if data and data.get('cmd') == 'save':
         for change in data.get('changes'):
             git_branch = change['recid']
             branches = db.branches.find({'git_branch': git_branch})
@@ -331,12 +332,7 @@ def data_branches():
     for branch in branches:
         branch['recid'] = branch['git_branch']
 
-    return jsonify({
-        "status": "success",
-        "total": len(branches),
-        "records": branches
-    })
-
+    return jsonify(branches)
 @app.route("/data/instances", methods=["GET", "POST"])
 def data_variants():
     if not request.args.get('git_branch'):
@@ -395,6 +391,33 @@ def index_func():
         DATE_FORMAT=os.environ['DATE_FORMAT'].replace("_", "%"),
         message=request.args.get('message'),
     )
+
+def _validate_input(data, int_fields=[]):
+    data = dict(data)
+    for int_field in int_fields:
+        if int_field in data:
+            try:
+                data[int_field] = int(data[int_field].strip())
+            except ValueError as ex:
+                print(ex)
+                data.pop(int_field)
+    for k, v in list(data.items()):
+        if v == 'true':
+            data[k] = True
+        elif v == 'false':
+            data[k] = False
+    return data
+
+@app.route('/update/branch', methods=["POST"])
+def update_branch():
+    data = _validate_input(request.form, int_fields=['limit_instances'])
+    id = ObjectId(data.pop('_id'))
+    db.branches.update_one(
+        {'_id': id},
+        {'$set': data},
+        upsert=False
+    )
+    return jsonify({'result': 'ok'})
 
 @app.route('/start')
 def start_cicd():

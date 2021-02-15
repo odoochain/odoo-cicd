@@ -6,103 +6,84 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
          <link rel="stylesheet" type="text/css" href="http://w2ui.com/src/w2ui-1.5.rc1.min.css" />
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-        <script type="text/javascript" src="http://w2ui.com/src/w2ui-1.5.rc1.min.js"></script>
+        <link rel="stylesheet" href="http://cdn.webix.com/edge/webix.css" type="text/css" charset="utf-8">
+    <script src="http://cdn.webix.com/edge/webix.js" type="text/javascript" charset="utf-8"></script>
+
     
     </head>
-    {% if message %}
-    <h2 style='color: red;'>{{message}}</h2>
-    {% endif %}
 
     <body>
-        <div id="layout" style="width: 100%; height: 600px;">
+        <div style="display: none;">
+            <div id="list-item-branch">
+                <div>
+                    <b>#git_branch#</b>
+                    <br/>
+                    #note#
+                    <br/><b>Author:</b>#initiator#
+                    
 
+                </div>
+            </div>
         </div>
-    </body>
 
-    <script>
-        $(document).ready(function() {
-            yesno = [
-                {'id': 'y', 'text': 'Yes'},
-                {'id': 'n', 'text': 'No'},
-            ]
+        <script>
+        var dumps_promise = webix.ajax().get("/cicd/possible_dumps");
+        dumps_promise.then(function(dumps) {
+            var branches = webix.ajax().get("/cicd/data/branches");
+            var dumps = dumps.json();
 
-            $.get("/cicd/possible_dumps", function(dumps) {
-
-                $(function () {
-                    var pstyle = 'border: 1px solid #dfdfdf; padding: 5px;';
-                    $('#layout').w2layout({
-                        name: 'layout',
-                        panels: [
-                            { type: 'main', style: pstyle, resiable: true, content: '<div id="grid"></div>', size: '50%' },
-                            { type: 'bottom', style: pstyle, resizable: true, content: '<div id="grid_instances"></div>', size: '50%' }
-                        ]
-                    });
-
-                    $("#grid").w2grid({
-                        name: 'grid',
-                        header: 'Feature Branches',
-                        method: 'GET',
-                        url: 'cicd/data/branches',
-                        show: {
-                            header: true,
-                            toolbar : true,
-                            toolbarSave: true,
-                            footer: true,
-                            expandColumn: false
-                        },
-                        columns: [
-                            { field: 'git_branch', caption: 'Git Branch', size: '10%', sortable: true, },
-                            { field: 'ignore_updates', caption: 'Ignore Updates', size: '10%', editable: { type: 'checkbox', style: 'text-align: center' }},
-                            { field: 'limit_instances', caption: 'Limit Instances', size: '10%', editable: { type: 'int' }},
-                            { field: 'note', caption: 'Note', size: '30%', editable: { type: 'text' }},
-                            { field: 'desc', caption: 'Description', size: '30%'},
-                            { field: 'author', caption: 'Author', size: '10%' },
-                            { field: 'dump', caption: 'Dump', size: '10%',
-                                editable: { type: 'list', items: dumps, showAll: true },
-                                render: function (record, index, col_index) {
-                                    var html = this.getCellValue(index, col_index);
-                                    return html || '';
-                                }
+            webix.ui({
+                type: 'wide',
+                cols: [
+                    {
+                        rows: [
+                            {
+                                view: "template",
+                                type: "header",
+                                template: "CICD Feature Branches"
                             },
-                        ],
-                        onClick: function (event) {
-                            var grid = this;
-                            w2ui['grid_instances'].url = 'cicd/data/instances?git_branch=' + event.recid;
-                            w2ui['grid_instances'].reload();
+                            {
+                                view: "list",
+                                type: {
+                                    height: 100,
+                                },
+                                template: "html->list-item-branch",
+                                data: branches,
+                                select: true,
+                            }
+                        ]
+                    },
+                    {
+                        id: 'table-branches',
+                        view: "datatable",
+                        select: true,
+                        autoConfig: true,
+                        editable: true,
+                        data: branches,
+                        autowidth: true,
+                        autoheight: true,
+                        on: {
+                            onAfterEditStop: function(state, editor, ignoreUpdate) {
+                                var data = {};
+                                data['_id'] = $$("table-branches").getSelectedItem()._id;
+                                data[editor.column] = state.value;
+                                webix.ajax().post('/cicd/update/branch', data);
+                            },
                         },
-                    });
-
-                    $("#grid_instances").w2grid({
-                        name: 'grid_instances',
-                        header: 'Instances',
-                        method: 'GET',
-                        url: 'cicd/data/instances',
-                        show: {
-                            header: true,
-                            toolbar : true,
-                            footer: true,
-                            expandColumn: false
-                        },
-                        columns: [
-                            { field: 'name', caption:  "Name", size: '10%' },
-                            { field: 'docker_state', caption:  "Machine State", size: '10%' },
-                            { field: 'updated', caption: 'Updated', size: '10%' },
-                            { field: 'last_access', caption: 'Last Access', size: '10%' },
-                            { field: 'fname', caption: 'Perma-Link', size: '200px'},
+                        columns:[
+                            { id: 'git_branch', header: 'Git Branch', width: 100},
+                            { id: 'ignore_updates', header: 'Ignore Updates', width: 100, editor: 'checkbox', template: "{common.checkbox()}"},
+                            { id: 'limit_instances', header: 'Limit Instances', width: 100, editor: 'text'},
+                            { id: 'note', header: 'Note', width: 300, editor: 'text'},
+                            { id: 'desc', header: 'Description', width: 300, fillspace: true},
+                            { id: 'author', header: 'Author', width: 100},
+                            { id: 'dump', header: 'Dump', width: 200, editor: 'combo', collection: dumps},
                         ],
-                        onClick: function (event) {
-                            window.location = "/cicd/start?name=" + event.recid;
-                        }
-                    });
-
-                    w2ui['layout'].content('main', w2ui['grid']);
-                    w2ui['layout'].content('bottom', w2ui['grid_instances']);
-                });
-
+                    },
+                ]
             });
 
-        })
-</script>
-
-
+        });
+    </script>
+    </body>
 </html>
