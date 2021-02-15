@@ -161,8 +161,10 @@
                                     },
                                 },
                                 columns:[
-                                    { id: 'start_instance', header: '', width: 150, template: "<a href='/cicd/start?name=#name#'>Start</a>"},
+                                    { id: 'start_instance', header: '', width: 100, template: "<a href='/cicd/start?name=#name#'>Start</a>"},
                                     // { id: 'run_console', header: '', width: 150, template: "<a href='/'>Console</a>"},
+                                    { id: 'name', header: 'Name', width: 150},
+                                    { id: 'key', header: 'Type', width: 100},
                                     { id: 'desc', header: 'Description', width: 300, fillspace: true},
                                     { id: 'author', header: 'Author', width: 100},
                                     { id: 'dump', header: 'Dump', width: 200, editor: 'combo', collection: dumps},
