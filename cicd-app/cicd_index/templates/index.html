@@ -25,9 +25,33 @@
                     </div>
                 </div>
             </div>
+            <div id="branch-details">
+                <div>
+                    <div>
+                    #title#
+                    </div>
+                    <p>
+                    #desc#
+                    </p>
+                </div>
+            </div>
         </div>
 
         <script>
+
+        function reload_sites() {
+            var branch = $$("list-branches").getSelectedItem().git_branch;
+            var table = $$("table-branches");
+            table.clearAll();
+            table.load("/cicd/data/instances?git_branch=" + branch);
+
+            webix.ajax().get('/cicd/data/branches?git_branch=' + branch).then(function(data) {
+                var template = $$('webix-branch-details');
+                template.data = data.json()[0];
+                template.refresh();
+            });
+        }
+
         var dumps_promise = webix.ajax().get("/cicd/possible_dumps");
         dumps_promise.then(function(dumps) {
             var dumps = dumps.json();
@@ -48,9 +72,15 @@
                                 view: "list",
                                 type: {
                                     height: 120,
+                                    width: 450,
                                 },
                                 template: "html->list-item-branch",
                                 select: true,
+                                on: {
+                                    onSelectChange: function () {
+                                        reload_sites();
+                                    }
+                                },
                                 onClick:
                                 {
                                     "show-settings": function(ev, id){
@@ -82,7 +112,9 @@
                                                                     });
                                                                     }
                                                                 },
-                                                                { view:"button", value:"Cancel" }
+                                                                { view:"button", value:"Cancel", click: function() {
+                                                                    form.hide();
+                                                                }}
                                                             ]
                                                         }
                                                     ],
@@ -105,9 +137,10 @@
                     {
                         rows: [
                             {
+                                id: "webix-branch-details",
                                 view: "template",
                                 type: "header",
-                                template: "Information about branch",
+                                template: "html->branch-details",
                                 height: 200,
                             },
                             {
@@ -116,7 +149,7 @@
                                 select: true,
                                 autoConfig: true,
                                 editable: true,
-                                url: '/cicd/data/instances',
+                                data: [],
                                 autowidth: true,
                                 autoheight: true,
                                 on: {
@@ -128,10 +161,8 @@
                                     },
                                 },
                                 columns:[
-                                    { id: 'git_branch', header: 'Git Branch', width: 100},
-                                    { id: 'ignore_updates', header: 'Ignore Updates', width: 100, editor: 'checkbox', template: "{common.checkbox()}"},
-                                    { id: 'limit_instances', header: 'Limit Instances', width: 100, editor: 'text'},
-                                    { id: 'note', header: 'Note', width: 300, editor: 'text'},
+                                    { id: 'start_instance', header: '', width: 150, template: "<a href='/cicd/start?name=#name#'>Start</a>"},
+                                    // { id: 'run_console', header: '', width: 150, template: "<a href='/'>Console</a>"},
                                     { id: 'desc', header: 'Description', width: 300, fillspace: true},
                                     { id: 'author', header: 'Author', width: 100},
                                     { id: 'dump', header: 'Dump', width: 200, editor: 'combo', collection: dumps},

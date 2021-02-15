@@ -342,11 +342,7 @@ def data_variants():
     for site in sites:
         site['recid'] = site['name']
 
-    return jsonify({
-        "status": "success",
-        "total": len(sites),
-        "records": sites
-    })
+    return jsonify(sites)
 
 @app.route('/')
 def index_func():
