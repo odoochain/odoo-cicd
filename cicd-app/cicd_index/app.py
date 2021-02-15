@@ -137,10 +137,10 @@ def register_site():
         }))
         result = {'result': 'ok'}
 
-        branches = db.branches.find({
+        branch = db.branches.find_one({
             "git_branch": site['git_branch'],
         })
-        if not branches:
+        if not branch:
             db.branches.insert({
                 'git_branch': site['git_branch'],
             })
@@ -150,7 +150,7 @@ def register_site():
                 if site.get(key):
                     update[key] = site[key]
                 if update:
-                    db.branches.update_one({'_id': branches[0]['_id']}, {'$set': update}, upsert=False)
+                    db.branches.update_one({'_id': branch['_id']}, {'$set': update}, upsert=False)
 
         if not sites:
             site['enabled'] = False
