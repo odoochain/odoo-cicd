@@ -19,9 +19,10 @@
                     <b>#git_branch#</b>
                     <br/>
                     #note#
-                    <br/><b>Author:</b>#initiator#
-                    
-
+                    <div>
+                        <div style="width: 50%;"><b>Author:</b>#initiator#</div>
+                        <div style="width: 50%;" class="show-settings">Settings</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -29,7 +30,6 @@
         <script>
         var dumps_promise = webix.ajax().get("/cicd/possible_dumps");
         dumps_promise.then(function(dumps) {
-            var branches = webix.ajax().get("/cicd/data/branches");
             var dumps = dumps.json();
 
             webix.ui({
@@ -43,13 +43,59 @@
                                 template: "CICD Feature Branches"
                             },
                             {
+                                id: 'list-branches',
+                                url: '/cicd/data/branches',
                                 view: "list",
                                 type: {
-                                    height: 100,
+                                    height: 120,
                                 },
                                 template: "html->list-item-branch",
-                                data: branches,
                                 select: true,
+                                onClick:
+                                {
+                                    "show-settings": function(ev, id){
+                                        webix.ajax().get('/cicd/data/branches', {'_id': this.getSelectedItem()}).then(function(data) {
+                                            data = data.json();
+                                            var form = webix.ui({
+                                                view: "window", 
+                                                position: 'center',
+                                                modal: true,
+                                                head: "Settings",
+                                                width: 550,
+                                                body: {
+                                                    view: 'form',
+                                                    complexData: true,
+                                                    elements: [
+                                                        { view:"textarea", name: 'note', label:"Note" },
+                                                        { view:"text", name: 'limit_instanes', label:"Limit Instances" },
+                                                        { view:"select", name: 'dump', label:"Dump", options: dumps },
+                                                        {
+                                                            cols:[
+                                                                { view:"button", value:"OK", css:"webix_primary", click: function() { 
+                                                                    var values = this.getParentView().getFormView().getValues();
+                                                                    webix.ajax().post('/cicd/update/branch', values).then(function() {
+                                                                        form.hide();
+                                                                        $$('list-branches').refresh();
+                                                                    });
+                                                                    }
+                                                                },
+                                                                { view:"button", value:"Cancel" }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    on: {
+                                                        'onSubmit': function() {
+                                                            debugger;
+                                                        },
+                                                    }
+                                                }
+                                            });
+                                            form.getChildViews()[1].setValues(data[0]);
+                                            form.show();
+                                        });
+                                        return false;
+                                    }
+                                },
                             }
                         ]
                     },

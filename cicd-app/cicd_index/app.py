@@ -309,30 +309,16 @@ def possible_dumps():
     dump_names = [{'id': x, 'value': x} for x in dump_names]
     return jsonify(dump_names)
 
-@app.route("/data/branches", methods=["GET", "POST"])
+@app.route("/data/branches", methods=["GET"])
 def data_branches():
-    print(request.args)
     data = request.args.get('request')
+    find = {}
     if data:
-        data = json.loads(data)
-    if data and data.get('cmd') == 'save':
-        for change in data.get('changes'):
-            git_branch = change['recid']
-            branches = db.branches.find({'git_branch': git_branch})
-            update = {}
-            if change.get('dump'):
-                update['dump'] = change['dump']['id']
-            for field in ['note', 'ignore_updates', 'limit_instances']:
-                if field in change:
-                    update[field] = change[field]
-            if update:
-                db.branches.update_one({'_id': branches[0]['_id']}, {'$set': update}, upsert=False)
+        find = _validate_input(json.loads(data))
 
-    branches = sorted(_format_dates_in_records(list(db.branches.find({}))), key=lambda x: x['git_branch'])
-    for branch in branches:
-        branch['recid'] = branch['git_branch']
-
+    branches = sorted(_format_dates_in_records(list(db.branches.find(find))), key=lambda x: x['git_branch'])
     return jsonify(branches)
+
 @app.route("/data/instances", methods=["GET", "POST"])
 def data_variants():
     if not request.args.get('git_branch'):
@@ -406,6 +392,9 @@ def _validate_input(data, int_fields=[]):
             data[k] = True
         elif v == 'false':
             data[k] = False
+
+    if '_id' in data and isinstance(data, str):
+        data['_id'] = ObjectId(data['_id'])
     return data
 
 @app.route('/update/branch', methods=["POST"])
