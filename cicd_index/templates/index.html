@@ -55,6 +55,44 @@
         dumps_promise.then(function(dumps) {
             var dumps = dumps.json();
 
+            function show_reset_form(siteid) {
+                var form_reset = webix.ui({
+                    view: "window", 
+                    position: 'center',
+                    modal: true,
+                    head: "Reset Instance",
+                    width: 550,
+                    body: {
+                        view: 'form',
+                        complexData: true,
+                        elements: [
+                            { view:"combo", name: 'dump', label:"Dump", options: dumps },
+                            {
+                                cols:[
+                                    { view:"button", value:"OK", css:"webix_primary", click: function() { 
+                                            var values = this.getParentView().getFormView().getValues();
+                                            webix.ajax().get('/cicd/trigger/rebuild', {
+                                                '_id': siteid
+                                            }).then(function(data) {
+                                                form_reset.hide();
+                                            })
+                                            }
+                                    },
+                                    { view:"button", value:"Cancel", click: function() {
+                                        form_reset.hide();
+                                    }}
+                                ]
+                            }
+                        ],
+                        on: {
+                            'onSubmit': function() {
+                            },
+                        }
+                    }
+                });
+                form_reset.show();
+            }
+
             webix.ui({
                 type: 'wide',
                 cols: [
@@ -118,7 +156,6 @@
                                                     ],
                                                     on: {
                                                         'onSubmit': function() {
-                                                            debugger;
                                                         },
                                                     }
                                                 }
@@ -162,7 +199,8 @@
                                     },
                                     onItemClick: function(id, e, trg) {
                                         if (id.column === 'do_reset') {
-                                          webix.message("Click on row: " + id.row+", column: " + id.column);
+                                            var siteid = this.getSelectedItem()._id;
+                                            show_reset_form(siteid);
                                         }
                                     }
                                 },

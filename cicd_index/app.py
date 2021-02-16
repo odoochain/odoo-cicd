@@ -21,7 +21,7 @@ from pathlib import Path
 from bson.json_util import dumps
 import threading
 import logging
-import jenkins
+# import jenkins
 import urllib
 
 
@@ -55,7 +55,7 @@ def cycle_down_apps():
             sites = db.sites.find({'enabled': True}, {'name': 1, 'last_access': 1})
             for site in sites:
                 logger.debug(f"Checking site to cycle down: {site['name']}")
-                if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 5 * 3600: # TODO configurable
+                if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
                     if _get_docker_state(site['name']) == 'running':
                         logger.info(f"Cycling down instance due to inactivity: {site['name']}")
                         _stop_instance(site['name'])
@@ -250,9 +250,7 @@ def last_success_full_sha():
     }
     assert info['name']
 
-    updates = db.updates.find(info)
-    # TODO in mongo sorting
-    updates = sorted(updates, key=lambda x: x['date'], reverse=True)
+    updates = db.updates.find(info).sort([("date", pymongo.DESCENDING)]).limit(1)
     if updates:
         return jsonify({
             'sha': updates[0]['sha']
@@ -263,20 +261,22 @@ def last_success_full_sha():
 
 def _get_jenkins():
     # res = jenkins.Jenkins('http://192.168.101.122:8080', username='admin', password='1')
-    res = jenkins.Jenkins(
+    from jenkinsapi.utils.crumb_requester import CrumbRequester
+    from jenkinsapi.jenkins import Jenkins
+    crumb_requester = CrumbRequester(
+        username=os.environ['JENKINS_USER'],
+        password=os.environ["JENKINS_PASSWORD"],
+        baseurl=os.environ["JENKINS_URL"],
+    )
+
+    res = Jenkins(
         os.environ["JENKINS_URL"],
         username=os.environ["JENKINS_USER"],
-        password=os.environ["JENKINS_PASSWORD"]
+        password=os.environ["JENKINS_PASSWORD"],
+        requester=crumb_requester # https://stackoverflow.com/questions/45199374/remotely-build-specific-jenkins-branch/45200202
     )
-    print(f"Jenkins {res.get_whoami()} and version {res.get_version()}")
+    # print(f"Jenkins {res.get_whoami()} and version {res.get_version()}")
     return res
-
-def _run_jenkins(**params):
-    jenkins = _get_jenkins()
-    jenkins.build_job(
-        os.environ['JENKINS_JOB_ACTIONS'],
-        **params
-    )
 
 def _reset_instance_in_db(name):
     info = {
@@ -285,40 +285,32 @@ def _reset_instance_in_db(name):
     db.sites.remove(info)
     db.updates.remove(info)
 
-@app.route("/instance/reset_db")
-def reset_db():
-    _run_jenkins(
-        ACTION='reset',
-        NAME=request.args['name'],
-    )
-    _reset_instance_in_db(request.args['name'])
+@app.route('/trigger/rebuild')
+def trigger_rebuild():
+    info = _validate_input({
+        '_id': request.args['_id'],
+    })
+    sites = db.sites.find_one(info)
+
+    jenkins = _get_jenkins()
+    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{sites['git_branch']}"]
+    job.invoke(build_params=None)
     return jsonify({
         'result': 'ok',
     })
 
-@app.route("/instance/restore_db")
-def restore_db():
-    _run_jenkins(
-        ACTION='restore',
-        NAME=request.args['name'],
-        DUMP_NAME=request.args['dump_name'],
-    )
-    _reset_instance_in_db(request.args['name'])
-    return jsonify({
-        'result': 'ok',
-    })
 
-@app.route("/instance/destroy")
-def destroy_instance():
-    _run_jenkins(
-        ACTION='restore',
-        NAME=request.args['name'],
-        DUMP_NAME=request.args['dump_name'],
-    )
-    _reset_instance_in_db(request.args['name'])
-    return jsonify({
-        'result': 'ok',
-    })
+# @app.route("/instance/destroy")
+# def destroy_instance():
+    # _run_jenkins(
+        # ACTION='restore',
+        # NAME=request.args['name'],
+        # DUMP_NAME=request.args['dump_name'],
+    # )
+    # _reset_instance_in_db(request.args['name'])
+    # return jsonify({
+        # 'result': 'ok',
+    # })
 
 def _get_docker_state(name):
     docker.ping()
@@ -365,6 +357,7 @@ def data_branches():
     branches = sorted(_format_dates_in_records(list(db.branches.find(find))), key=lambda x: x['git_branch'])
 
     return jsonify(branches)
+
 
 @app.route("/data/instances", methods=["GET", "POST"])
 def data_variants():
@@ -446,7 +439,7 @@ def _validate_input(data, int_fields=[]):
         elif v == 'false':
             data[k] = False
 
-    if '_id' in data and isinstance(data, str):
+    if '_id' in data and isinstance(data['_id'], str):
         data['_id'] = ObjectId(data['_id'])
     return data
 

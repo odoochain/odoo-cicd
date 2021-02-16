@@ -13,6 +13,7 @@ services:
   cicd_index:
     container_name: cicd_index
     build: ./cicd_index
+    env_file: .env
     networks:
         - cicd_delegator
         - internal
