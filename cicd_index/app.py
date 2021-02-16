@@ -305,7 +305,7 @@ def _format_dates_in_records(records):
 
 @app.route("/possible_dumps")
 def possible_dumps():
-    dump_names = db.config.find({})[0].get('dumps')
+    dump_names = sorted([x.name for x in Path("/opt/dumps").glob("*")])
     dump_names = [{'id': x, 'value': x} for x in dump_names]
     return jsonify(dump_names)
 
