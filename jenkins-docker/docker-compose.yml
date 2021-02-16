@@ -5,9 +5,9 @@ services:
     build: .
     ports:
         - '8080:8080'
-        #- '10.10.173.111:50000:50000'
     volumes:
       - ./data:/bitnami/jenkins
+        - /var/run/docker.sock:/tmp/docker.sock:ro
     deploy:
       resources:
         limits:
