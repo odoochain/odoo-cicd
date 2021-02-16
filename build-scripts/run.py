@@ -63,9 +63,12 @@ def _get_jira_wrapper(use_jira):
 @click.option("-k", "--key", type=click.Choice(['kept', 'live', 'demo']), required=True)
 @click.option("-j", "--jira", is_flag=True)
 @click.option("--dump-name", help="Name of the dump, that is restored")
-def build(jira, key, dump_name):
+@click.option("--workspace", help="Parent folder for instances")
+def build(jira, key, dump_name, workspace):
     print(f"BUILDING for {branch} and key={key}")
     context = Context(jira)
+    if workspace:
+        context.workspace = Path(workspace)
 
     # if not any(re.match(allowed, branch, re.IGNORECASE) for allowed in allowed):
     #    return
@@ -112,6 +115,7 @@ class Context(object):
             self.cicd_url = self.cicd_url[:-1]
         self.cicd_url += '/cicd'
         self.odoo_settings = Path(os.path.expanduser("~")) / '.odoo'
+        self.workspace = Path(os.getcwd()).parent
 
 
 if __name__ == '__main__':

@@ -6,8 +6,8 @@ from pathlib import Path
 import subprocess
 import os
 
-def _setup_new_working_path(instance_name):
-    new_path = Path(os.getcwd()).parent / f'cicd_instance_{instance_name}'
+def _setup_new_working_path(workspace, instance_name):
+    new_path = Path(workspace / f'cicd_instance_{instance_name}')
     new_path.mkdir(exist_ok=True) # set later False; avoids thresholing
     subprocess.check_call([
         '/usr/bin/rsync',
@@ -103,7 +103,10 @@ def augment_instance(context, instance):
 
 def update_instance(context, instance, dump_name):
     print(f"Updating instance {instance['name']}")
-    _setup_new_working_path(instance['name'])
+    _setup_new_working_path(
+        context.workspace,
+        instance['name']
+    )
     last_sha = requests.get(context.cicd_url + "/last_successful_sha", params={
         'name': instance['name'],
     }).json()
@@ -122,7 +125,7 @@ def update_instance(context, instance, dump_name):
         )
 
 def make_instance(context, instance, use_dump, use_previous_db=False):
-    _setup_new_working_path(instance['name'])
+    _setup_new_working_path(context.workspace, instance['name'])
     print(f"BUILD CONTROL: Making Instance for {instance['name']}")
     _make_instance_docker_configs(context, instance)
 
