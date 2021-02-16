@@ -94,8 +94,9 @@ def augment_instance(context, instance):
     creator = 'n/a'
     try:
         fields = context.jira_wrapper.infos(instance['git_branch'])
-        title = fields.summary
-        creator = fields.creator.displayName
+        if not isinstance(fields, dict):
+            title = fields.summary
+            creator = fields.creator.displayName
     except Exception as ex:
         print(ex)
     instance['title'] = title
