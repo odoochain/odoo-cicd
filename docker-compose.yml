@@ -10,10 +10,6 @@ services:
     environment:
         INDEX_HOST: cicd_index.${CICD_NETWORK_NAME}
     restart: "unless-stopped"
-  tester:
-      build: tester
-      networks:
-        - cicd_delegator
   cicd_index:
     container_name: cicd_index
     build: ./cicd_index

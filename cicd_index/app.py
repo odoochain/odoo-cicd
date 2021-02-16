@@ -14,7 +14,6 @@ from flask import render_template
 from flask import url_for
 from datetime import datetime
 from flask import request
-from bson import ObjectId
 from collections import defaultdict
 import pymongo
 import json
@@ -49,8 +48,6 @@ app = Flask(
 
 docker = Docker.from_env()
 
-# jenkins = jenkins.Jenkins('http://192.168.101.122:8080', username='admin', password='1')
-# print(f"Jenkins {jenkins.get_whoami()} and version {jenkins.get_version()}")
 
 def cycle_down_apps():
     while True:
@@ -225,6 +222,8 @@ def notify_instance_updated():
     assert info['sha']
     for extra_args in [
         'update_time',
+        'dump_date',
+        'dump_name',
     ]:
         info[extra_args] = request.args.get(extra_args)
 
@@ -262,20 +261,61 @@ def last_success_full_sha():
         'sha': '',
     })
 
-@app.route("/instance/destroy")
-def destroy_instance():
-    jenkins = jenkins.Jenkins(os.environ["JENKINS_URL"], username=os.environ["JENKINS_USER"], password=os.environ["JENKINS_PASSWORD"])
+def _get_jenkins():
+    # res = jenkins.Jenkins('http://192.168.101.122:8080', username='admin', password='1')
+    res = jenkins.Jenkins(
+        os.environ["JENKINS_URL"],
+        username=os.environ["JENKINS_USER"],
+        password=os.environ["JENKINS_PASSWORD"]
+    )
+    print(f"Jenkins {res.get_whoami()} and version {res.get_version()}")
+    return res
+
+def _run_jenkins(**params):
+    jenkins = _get_jenkins()
+    jenkins.build_job(
+        os.environ['JENKINS_JOB_ACTIONS'],
+        **params
+    )
+
+def _reset_instance_in_db(name):
     info = {
         'name': request.args['name'],
     }
-    for container in docker.containers.list(all=True, filters=info):
-        container.remove()
-
-    jenkins.build_job('clean_cicd_instance', info)
-
     db.sites.remove(info)
     db.updates.remove(info)
 
+@app.route("/instance/reset_db")
+def reset_db():
+    _run_jenkins(
+        ACTION='reset',
+        NAME=request.args['name'],
+    )
+    _reset_instance_in_db(request.args['name'])
+    return jsonify({
+        'result': 'ok',
+    })
+
+@app.route("/instance/restore_db")
+def restore_db():
+    _run_jenkins(
+        ACTION='restore',
+        NAME=request.args['name'],
+        DUMP_NAME=request.args['dump_name'],
+    )
+    _reset_instance_in_db(request.args['name'])
+    return jsonify({
+        'result': 'ok',
+    })
+
+@app.route("/instance/destroy")
+def destroy_instance():
+    _run_jenkins(
+        ACTION='restore',
+        NAME=request.args['name'],
+        DUMP_NAME=request.args['dump_name'],
+    )
+    _reset_instance_in_db(request.args['name'])
     return jsonify({
         'result': 'ok',
     })
@@ -305,8 +345,14 @@ def _format_dates_in_records(records):
 
 @app.route("/possible_dumps")
 def possible_dumps():
-    dump_names = sorted([x.name for x in Path("/opt/dumps").glob("*")])
-    dump_names = [{'id': x, 'value': x} for x in dump_names]
+    path = Path("/opt/dumps")
+    dump_names = sorted([x.name for x in path.glob("*")])
+
+    def _get_value(filename):
+        date = arrow.get((path / filename).stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+        return f"{filename} [{date}]"
+
+    dump_names = [{'id': x, 'value': _get_value(x)} for x in dump_names]
     return jsonify(dump_names)
 
 @app.route("/data/branches", methods=["GET"])
@@ -317,6 +363,7 @@ def data_branches():
         find = _validate_input(json.loads(data))
 
     branches = sorted(_format_dates_in_records(list(db.branches.find(find))), key=lambda x: x['git_branch'])
+
     return jsonify(branches)
 
 @app.route("/data/instances", methods=["GET", "POST"])
@@ -330,6 +377,16 @@ def data_variants():
 
     sites = _format_dates_in_records(list(db.sites.find({'enabled': True, 'git_branch': request.args['git_branch']})))
     sites = sorted(sites, key=lambda x: x.get('updated', x.get('last_access', arrow.get('1980-04-04'))), reverse=True)
+    # get last update times
+    for site in sites:
+        updates = db.updates.find({
+            'name': site['name'],
+        }).sort([("date", pymongo.DESCENDING)]).limit(1)
+        if updates:
+            site['updated'] = updates[0]['date']
+            site['duration'] = round(float(updates[0]['update_time']), 0)
+            site['dump_name'] = updates[0]['dump_name']
+            site['dump_date'] = updates[0]['dump_date']
 
     for site in sites:
         site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
@@ -398,6 +455,17 @@ def update_branch():
     data = _validate_input(request.form, int_fields=['limit_instances'])
     id = ObjectId(data.pop('_id'))
     db.branches.update_one(
+        {'_id': id},
+        {'$set': data},
+        upsert=False
+    )
+    return jsonify({'result': 'ok'})
+
+@app.route('/update/site', methods=["POST"])
+def update_site():
+    data = _validate_input(request.form, int_fields=[])
+    id = ObjectId(data.pop('_id'))
+    db.sites.update_one(
         {'_id': id},
         {'$set': data},
         upsert=False

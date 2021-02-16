@@ -59,13 +59,20 @@ def _get_jira_wrapper(use_jira):
         jira_wrapper = JiraWrapper("", "", "")
     return jira_wrapper
 
+
+@cli.command()
+@click.option("--instance-name", required=True)
+def reset_db(instance_name):
+    print("Resetting instance")
+
+
 @cli.command()
 @click.option("-k", "--key", type=click.Choice(['kept', 'live', 'demo']), required=True)
 @click.option("-j", "--jira", is_flag=True)
-@click.option("--dump-name", help="Name of the dump, that is restored")
-@click.option("--workspace", help="Parent folder for instances")
-def build(jira, key, dump_name, workspace):
-    print(f"BUILDING for {branch} and key={key}")
+def build(jira, key):
+    dump_name = os.environ['DUMP_NAME']
+    workspace = os.environ['WORKSPACE']
+    print(f"BUILDING for {branch} and key={key}; workspace: {workspace}")
     context = Context(jira)
     if workspace:
         context.workspace = Path(workspace)
@@ -121,11 +128,13 @@ class Context(object):
 if __name__ == '__main__':
 
     def _get_env():
-        env_file = Path(sys.path[0]).parent / 'cicd-app' / '.env'
+        env_file = Path(sys.path[0]).parent / '.env'
         load_dotenv(env_file)
 
         if not os.getenv("CICD_URL"):
             os.environ['CICD_URL'] = 'http://127.0.0.1:9999'
+
+        print(f"Using cicd app on {os.environ['CICD_URL']}")
     _get_env()
 
     cli()

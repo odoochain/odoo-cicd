@@ -41,7 +41,7 @@
 
         function reload_sites() {
             var branch = $$("list-branches").getSelectedItem().git_branch;
-            var table = $$("table-branches");
+            var table = $$("table-sites");
             table.clearAll();
             table.load("/cicd/data/instances?git_branch=" + branch);
 
@@ -51,7 +51,6 @@
                 template.refresh();
             });
         }
-
         var dumps_promise = webix.ajax().get("/cicd/possible_dumps");
         dumps_promise.then(function(dumps) {
             var dumps = dumps.json();
@@ -98,7 +97,6 @@
                                                     elements: [
                                                         { view:"textarea", name: 'note', label:"Note" },
                                                         { view:"text", name: 'limit_instanes', label:"Limit Instances" },
-                                                        { view:"select", name: 'dump', label:"Dump", options: dumps },
                                                         {
                                                             cols:[
                                                                 { view:"button", value:"OK", css:"webix_primary", click: function() { 
@@ -142,9 +140,12 @@
                                 type: "header",
                                 template: "html->branch-details",
                                 height: 200,
+                                hidden: function() {
+                                    return true;
+                                },
                             },
                             {
-                                id: 'table-branches',
+                                id: 'table-sites',
                                 view: "datatable",
                                 select: true,
                                 autoConfig: true,
@@ -157,17 +158,27 @@
                                         var data = {};
                                         data['_id'] = $$("table-branches").getSelectedItem()._id;
                                         data[editor.column] = state.value;
-                                        webix.ajax().post('/cicd/update/branch', data);
+                                        webix.ajax().post('/cicd/update/site', data);
                                     },
+                                    onItemClick: function(id, e, trg) {
+                                        if (id.column === 'do_reset') {
+                                          webix.message("Click on row: " + id.row+", column: " + id.column);
+                                        }
+                                    }
                                 },
                                 columns:[
-                                    { id: 'start_instance', header: '', width: 100, template: "<a href='/cicd/start?name=#name#'>Start</a>"},
+                                    { id: 'start_instance', header: '', width: 100, template: "<a href='/cicd/start?name=#name#'>Open</a>"},
                                     // { id: 'run_console', header: '', width: 150, template: "<a href='/'>Console</a>"},
                                     { id: 'name', header: 'Name', width: 150},
                                     { id: 'key', header: 'Type', width: 100},
+                                    { id: 'updated', header: 'Updated', width: 150},
+                                    { id: 'duration', header: 'Duration [s]', width: 100},
                                     { id: 'desc', header: 'Description', width: 300, fillspace: true},
                                     { id: 'author', header: 'Author', width: 100},
-                                    { id: 'dump', header: 'Dump', width: 200, editor: 'combo', collection: dumps},
+                                    { id: 'do_reset', header: '', width: 100, template:"<input class='delbtn' type='button' value='Reset'>"},
+                                    { id: 'dump_name', header: 'Dump Name', width: 270},
+                                    { id: 'dump_date', header: 'Dump Date', width: 270},
+                                    { id: 'git_sha', header: 'SHA', width: 150},
                                 ],
                             },
                         ]

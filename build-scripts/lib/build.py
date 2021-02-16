@@ -38,14 +38,20 @@ def _exec(context, cmd, needs_result=False):
     if needs_result:
         return res.decode('utf-8')
 
-def _notify_instance_updated(context, instance, update_time):
+def _notify_instance_updated(context, instance, update_time, dump_date, dump_name):
     name = instance['name']
-    print(f"notify_instance name: {name}, update_time: {update_time}, branch: {instance['git_branch']}")
-    requests.get(context.cicd_url + "/notify_instance_updated", params={
+    print(f"notify_instance name: {name}, update_time: {update_time}, branch: {instance['git_branch']}, dump: {dump_date} {dump_name}")
+
+    data = {
         'name': name,
         'sha': instance['git_sha'],
         'update_time': update_time,
-    }).json()
+    }
+    if dump_date:
+        data['dump_date'] = dump_date
+        data['dump_name'] = dump_name
+
+    requests.get(context.cicd_url + "/notify_instance_updated", params=data).json()
     requests.get(context.cicd_url + '/set_updating', params={'name': name, 'value': 0})
     context.jira_wrapper.comment(
         instance['git_branch'],
@@ -122,7 +128,7 @@ def update_instance(context, instance, dump_name):
         started = arrow.get()
         _exec(context, ["--project-name", instance['name'], "update", "--no-dangling-check", "--since-git-sha", last_sha['sha']])
         _notify_instance_updated(
-            context, instance, (arrow.get() - started).total_seconds(),
+            context, instance, (arrow.get() - started).total_seconds(), "", ""
         )
 
 def make_instance(context, instance, use_dump, use_previous_db=False):
@@ -143,10 +149,14 @@ def make_instance(context, instance, use_dump, use_previous_db=False):
     instance['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     requests.post(context.cicd_url + '/register', json=instance).raise_for_status()
 
+    dump_date, dump_name = None, None
     if use_dump:
         print(f"BUILD CONTROL: Restoring DB for {instance['name']} from {use_dump}")
         e(["restore", "odoo-db", use_dump])
         e(["remove-web-assets"])
+        dump_file = Path(os.environ['DUMPS_PATH']) / use_dump
+        dump_date = arrow.get(dump_file.stat().st_mtime).to('UTC').strftime("%Y-%m-%d %H:%M:%S")
+        dump_name = use_dump
 
     else:
         print(f"BUILD CONTROL: Resetting DB for {instance['name']}")
@@ -158,4 +168,4 @@ def make_instance(context, instance, use_dump, use_previous_db=False):
     e(["update"]) # odoo module updates
     e(["turn-into-dev", "turn-into-dev"])
     e(["set-ribbon", instance['name']])
-    _notify_instance_updated(context, instance, (arrow.get() - started).total_seconds())
+    _notify_instance_updated(context, instance, (arrow.get() - started).total_seconds(), dump_date, dump_name)
