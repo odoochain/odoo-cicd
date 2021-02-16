@@ -2,7 +2,7 @@ version: '3.7'
 services:
   jenkins:
     restart: 'unless-stopped'
-    image: 'docker.io/bitnami/jenkins:2-debian-10'
+    build: .
     ports:
         - '8080:8080'
         #- '10.10.173.111:50000:50000'
