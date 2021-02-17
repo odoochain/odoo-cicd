@@ -108,7 +108,7 @@ def augment_instance(context, instance):
     instance['title'] = title
     instance['initiator'] = creator
 
-def update_instance(context, instance, dump_name):
+def update_instance(context, instance, dump_name, force_rebuild=False):
     print(f"Updating instance {instance['name']}")
     _setup_new_working_path(
         context.workspace,
@@ -117,8 +117,11 @@ def update_instance(context, instance, dump_name):
     last_sha = requests.get(context.cicd_url + "/last_successful_sha", params={
         'name': instance['name'],
     }).json()
+    requests.get(context.cicd_url + "/notify_instance_updating", params={
+        'name': instance['name'],
+    })
     print(f"Result of asking for last_successful_sha: {last_sha}")
-    if not last_sha.get('sha'):
+    if not last_sha.get('sha') or force_rebuild:
         make_instance(context, instance, dump_name, use_previous_db=True) # TODO parametrized from jenkins
     else:
         # mark existing instance as being updated

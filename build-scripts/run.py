@@ -61,9 +61,14 @@ def _get_jira_wrapper(use_jira):
 
 
 @cli.command()
-@click.option("--instance-name", required=True)
-def reset_db(instance_name):
-    print("Resetting instance")
+def clearflags(self):
+    # clear reset-db-at-next-build
+    context = Context(False)
+    print("Clearing flags")
+    requests.get(context.cicd_url + "/update/branch", params={
+        'git_branch': branch,
+        'reset-db-at-next-build': False,
+    })
 
 
 @cli.command()
@@ -101,6 +106,16 @@ def build(jira, key):
     instance['author'] = author
     instance['desc'] = desc
 
+    # try to get build informations
+    record_branch = requests.get(context.cicd_url + "/data/branches", params={
+        'git_branch': instance['git_branch'],
+    }).json()
+    force_rebuild = False
+    if record_branch:
+        record_branch = record_branch[0]
+        if record_branch.get('reset-db-at-next-build'):
+            force_rebuild = True
+
     if key == 'demo':
         make_instance(context, instance, False)
 
@@ -108,7 +123,7 @@ def build(jira, key):
         make_instance(context, instance, dump_name) # TODO parametrized from jenkins
 
     elif key == 'kept':
-        update_instance(context, instance, dump_name)
+        update_instance(context, instance, dump_name, force_rebuild=force_rebuild)
 
     else:
         raise NotImplementedError(key)

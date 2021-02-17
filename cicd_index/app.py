@@ -212,6 +212,22 @@ def set_updating():
         'result': 'ok',
     })
 
+@app.route("/notify_instance_updating")
+def notify_instance_updating():
+    info = {
+        'name': request.args['name'],
+    }
+    recs = list(db.sites.find({'name': info['name']}).limit(1))
+    if recs:
+        db.sites.update_one({'_id': recs[0]['_id']}, {'$set': {
+            'update_in_progress': True,
+        }}, upsert=False)
+
+    return jsonify({
+        'result': 'ok',
+    })
+
+
 @app.route("/notify_instance_updated")
 def notify_instance_updated():
     info = {
@@ -236,6 +252,7 @@ def notify_instance_updated():
         raise Exception(f"site not found: {info['name']}")
     db.sites.update_one({'_id': site['_id']}, {'$set': {
         'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        'update_in_progress': False,
         'enabled': True,
     }}, upsert=False)
 
@@ -287,30 +304,38 @@ def _reset_instance_in_db(name):
 
 @app.route('/trigger/rebuild')
 def trigger_rebuild():
-    info = _validate_input({
-        '_id': request.args['_id'],
-    })
-    sites = db.sites.find_one(info)
+    branch = db.branches.find_one({'git_branch': request.args['branch']})
+    data = {
+        'reset-db-at-next-build': True
+    }
+    db.branches.update_one(
+        {'_id': branch['_id']},
+        {'$set': data},
+        upsert=False
+    )
 
     jenkins = _get_jenkins()
-    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{sites['git_branch']}"]
-    job.invoke(build_params=None)
+    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{branch['git_branch']}"]
+    job.invoke()
     return jsonify({
         'result': 'ok',
     })
 
-
-# @app.route("/instance/destroy")
-# def destroy_instance():
-    # _run_jenkins(
-        # ACTION='restore',
-        # NAME=request.args['name'],
-        # DUMP_NAME=request.args['dump_name'],
-    # )
-    # _reset_instance_in_db(request.args['name'])
-    # return jsonify({
-        # 'result': 'ok',
-    # })
+@app.route("/instance/destroy")
+def destroy_instance():
+    jenkins = _get_jenkins()
+    instance_name = request.args['name']
+    info = _validate_input({
+        'name': instance_name,
+    })
+    sites = db.sites.find_one(info)
+    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{sites['git_branch']}"]
+    # TODO test if build params work
+    job.invoke(build_params={'ACTION': 'destroy', 'NAME': instance_name})
+    _reset_instance_in_db(instance_name)
+    return jsonify({
+        'result': 'ok',
+    })
 
 def _get_docker_state(name):
     docker.ping()
@@ -446,7 +471,12 @@ def _validate_input(data, int_fields=[]):
 @app.route('/update/branch', methods=["POST"])
 def update_branch():
     data = _validate_input(request.form, int_fields=['limit_instances'])
-    id = ObjectId(data.pop('_id'))
+    if '_id' not in data and 'git_branch' in data:
+        branch_name = data.pop('git_branch')
+        branch = db.branches.find_one({'git_branch': branch_name})
+        id = branch['_id']
+    else:
+        id = ObjectId(data.pop('_id'))
     db.branches.update_one(
         {'_id': id},
         {'$set': data},

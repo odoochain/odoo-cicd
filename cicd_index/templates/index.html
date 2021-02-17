@@ -19,9 +19,10 @@
                     <b>#git_branch#</b>
                     <br/>
                     #note#
-                    <div>
-                        <div style="width: 50%;"><b>Author:</b>#initiator#</div>
-                        <div style="width: 50%;" class="show-settings">Settings</div>
+                    <div><b>Author:</b>#initiator#</div>
+                    <div style='display: flex;'>
+                        <div style="flex-basis: 50%;" class="show-settings">Settings</div>
+                        <div style="flex-basis: 50%;" class="reset">Reset</div>
                     </div>
                 </div>
             </div>
@@ -55,7 +56,7 @@
         dumps_promise.then(function(dumps) {
             var dumps = dumps.json();
 
-            function show_reset_form(siteid) {
+            function show_reset_form(branch) {
                 var form_reset = webix.ui({
                     view: "window", 
                     position: 'center',
@@ -66,13 +67,14 @@
                         view: 'form',
                         complexData: true,
                         elements: [
-                            { view:"combo", name: 'dump', label:"Dump", options: dumps },
+                            // { view:"combo", name: 'dump', label:"Dump", options: dumps },
+                            { view: 'template', template: "Jenkins is triggered to rebuild the instance. Will take some time, until instance is up again."},
                             {
                                 cols:[
                                     { view:"button", value:"OK", css:"webix_primary", click: function() { 
                                             var values = this.getParentView().getFormView().getValues();
                                             webix.ajax().get('/cicd/trigger/rebuild', {
-                                                '_id': siteid
+                                                'branch': branch,
                                             }).then(function(data) {
                                                 form_reset.hide();
                                             })
@@ -120,6 +122,11 @@
                                 },
                                 onClick:
                                 {
+                                    "reset": function() {
+                                        var branch = this.getSelectedItem().git_branch;
+                                        if (!branch) { alert("Please select a branch!") };
+                                        show_reset_form(branch);
+                                    },
                                     "show-settings": function(ev, id){
                                         webix.ajax().get('/cicd/data/branches', {'_id': this.getSelectedItem()}).then(function(data) {
                                             data = data.json();
@@ -134,7 +141,8 @@
                                                     complexData: true,
                                                     elements: [
                                                         { view:"textarea", name: 'note', label:"Note" },
-                                                        { view:"text", name: 'limit_instanes', label:"Limit Instances" },
+                                                        // { view:"text", name: 'limit_instanes', label:"Limit Instances" },
+                                                        { view:"text", name: 'dump', label:"Dump" },
                                                         {
                                                             cols:[
                                                                 { view:"button", value:"OK", css:"webix_primary", click: function() { 
@@ -177,17 +185,15 @@
                                 type: "header",
                                 template: "html->branch-details",
                                 height: 200,
-                                hidden: function() {
-                                    return true;
-                                },
                             },
                             {
                                 id: 'table-sites',
                                 view: "datatable",
                                 select: true,
-                                autoConfig: true,
+                                //autoConfig: true,
                                 editable: true,
                                 data: [],
+                                leftSplit: 2,
                                 autowidth: true,
                                 autoheight: true,
                                 on: {
@@ -197,18 +203,19 @@
                                         data[editor.column] = state.value;
                                         webix.ajax().post('/cicd/update/site', data);
                                     },
-                                    onItemClick: function(id, e, trg) {
-                                        if (id.column === 'do_reset') {
-                                            var siteid = this.getSelectedItem()._id;
-                                            show_reset_form(siteid);
-                                        }
-                                    }
+                                    //onItemClick: function(id, e, trg) {
+                                    ////    if (id.column === 'do_reset') {
+                                    //       var siteid = this.getSelectedItem()._id;
+                                    //        show_reset_form(siteid);
+                                    //    }
+                                    // }
                                 },
                                 columns:[
                                     { id: 'start_instance', header: '', width: 100, template: "<a href='/cicd/start?name=#name#'>Open</a>"},
                                     // { id: 'run_console', header: '', width: 150, template: "<a href='/'>Console</a>"},
                                     { id: 'name', header: 'Name', width: 150},
                                     { id: 'key', header: 'Type', width: 100},
+                                    { id: 'update_in_progress', header: 'Building', width: 100},
                                     { id: 'updated', header: 'Updated', width: 150},
                                     { id: 'duration', header: 'Duration [s]', width: 100},
                                     { id: 'desc', header: 'Description', width: 300, fillspace: true},
