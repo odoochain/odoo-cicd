@@ -267,7 +267,7 @@ def last_success_full_sha():
     }
     assert info['name']
 
-    updates = db.updates.find(info).sort([("date", pymongo.DESCENDING)]).limit(1)
+    updates = list(db.updates.find(info).sort([("date", pymongo.DESCENDING)]).limit(1))
     if updates:
         return jsonify({
             'sha': updates[0]['sha']
@@ -317,6 +317,9 @@ def trigger_rebuild():
     jenkins = _get_jenkins()
     job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{branch['git_branch']}"]
     job.invoke()
+    sites = list(db.sites.find({'git_branch': branch['git_branch']}))
+    for site in sites:
+        db.updates.remove({'name': site['name']})
     return jsonify({
         'result': 'ok',
     })
@@ -380,6 +383,10 @@ def data_branches():
         find = _validate_input(json.loads(data))
 
     branches = sorted(_format_dates_in_records(list(db.branches.find(find))), key=lambda x: x['git_branch'])
+    for branch in branches:
+        branch['title'] = branch.get('title') or branch['git_branch']
+        for field in ['description', 'author']:
+            branch[field] = branch.get(field, '') or ''
 
     return jsonify(branches)
 
@@ -463,6 +470,8 @@ def _validate_input(data, int_fields=[]):
             data[k] = True
         elif v == 'false':
             data[k] = False
+        elif v == 'undefined':
+            data[k] = None
 
     if '_id' in data and isinstance(data['_id'], str):
         data['_id'] = ObjectId(data['_id'])
