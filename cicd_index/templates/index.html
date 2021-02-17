@@ -21,8 +21,8 @@
                     #note#
                     <div><b>Author:</b>#initiator#</div>
                     <div style='display: flex;'>
-                        <div style="flex-basis: 50%;" class="show-settings">Settings</div>
-                        <div style="flex-basis: 50%;" class="reset">Reset</div>
+                        <div style="flex-basis: 50%;" class="show-settings"><span class="webix_icon wxi-dots"></span></div>
+                        <div style="flex-basis: 50%;" class="reset"><span class="webix_icon wxi-sync"></div>
                     </div>
                 </div>
             </div>
@@ -217,15 +217,15 @@
                                                     data[editor.column] = state.value;
                                                     webix.ajax().post('/cicd/update/site', data);
                                                 },
-                                                //onItemClick: function(id, e, trg) {
-                                                ////    if (id.column === 'do_reset') {
-                                                //       var siteid = this.getSelectedItem()._id;
-                                                //        show_reset_form(siteid);
-                                                //    }
-                                                // }
+                                                onItemClick: function(id, e, trg) {
+                                                    if (id.column === 'start_instance') {
+                                                        var name = this.getSelectedItem().name;
+                                                        window.location = "/cicd/start?name=" + name;
+                                                    }
+                                                }
                                             },
                                             columns:[
-                                                { id: 'start_instance', header: '', width: 100, template: "<a href='/cicd/start?name=#name#'>Open</a>"},
+                                                { id: 'start_instance', header: '', width: 100, template: "<span class='webix_icon wxi-folder-open'></span>"},
                                                 // { id: 'run_console', header: '', width: 150, template: "<a href='/'>Console</a>"},
                                                 { id: 'name', header: 'Name', width: 150},
                                                 { id: 'key', header: 'Type', width: 100},

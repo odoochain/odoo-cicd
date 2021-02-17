@@ -381,6 +381,8 @@ def data_branches():
     find = {}
     if data:
         find = _validate_input(json.loads(data))
+    if request.args.get('git_branch'):
+        find['git_branch'] = request.args['git_branch']
 
     branches = sorted(_format_dates_in_records(list(db.branches.find(find))), key=lambda x: x['git_branch'])
     for branch in branches:

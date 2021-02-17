@@ -28,7 +28,6 @@ services:
         MONGO_PORT: 27017
         MONGO_USERNAME: admin
         MONGO_PASSWORD: 1
-        WORKSPACES_DIR: /jenkins_workspaces
         JENKINS_URL: ${JENKINS_URL}
         JENKINS_USER: ${JENKINS_USER}
         JENKINS_PASSWORD: ${JENKINS_PASSWORD}

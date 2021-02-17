@@ -76,7 +76,11 @@ def clearflags(self):
 @click.option("-j", "--jira", is_flag=True)
 def build(jira, key):
     dump_name = os.environ['DUMP_NAME']
-    workspace = os.environ['WORKSPACE']
+    workspace = os.environ['CICD_WORKSPACE']
+    if not workspace:
+        print("Please provide CICD_WORKSPACE in environment!")
+        sys.exit(-1)
+
     print(f"BUILDING for {branch} and key={key}; workspace: {workspace}")
     context = Context(jira)
     if workspace:
@@ -106,7 +110,7 @@ def build(jira, key):
     instance['author'] = author
     instance['desc'] = desc
 
-    # try to get build informations
+    print("try to get build informations")
     record_branch = requests.get(context.cicd_url + "/data/branches", params={
         'git_branch': instance['git_branch'],
     }).json()

@@ -5,10 +5,12 @@ from functools import partial
 from pathlib import Path
 import subprocess
 import os
+import sys
 
 def _setup_new_working_path(workspace, instance_name):
     new_path = Path(workspace / f'cicd_instance_{instance_name}')
     new_path.mkdir(exist_ok=True) # set later False; avoids thresholing
+    print(f"Rsyncing {os.getcwd()}/ to {new_path}/")
     subprocess.check_call([
         '/usr/bin/rsync',
         str(os.getcwd()) + "/",
