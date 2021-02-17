@@ -28,12 +28,20 @@
             </div>
             <div id="branch-details">
                 <div>
-                    <div>
-                    #title#
-                    </div>
-                    <p>
-                    #desc#
-                    </p>
+                    <table>
+                        <tr>
+                            <th>Title:</th>
+                            <td>#title#</td>
+                        </tr>
+                        <tr>
+                            <th>Dump:</th>
+                            <td>#dump#</td>
+                        </tr>
+                        <tr>
+                            <th>Description:</th>
+                            <td>#desc#</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </div>
@@ -142,7 +150,7 @@
                                                     elements: [
                                                         { view:"textarea", name: 'note', label:"Note" },
                                                         // { view:"text", name: 'limit_instanes', label:"Limit Instances" },
-                                                        { view:"text", name: 'dump', label:"Dump" },
+                                                        { view:"combo", name: 'dump', label:"Dump", options: dumps, },
                                                         {
                                                             cols:[
                                                                 { view:"button", value:"OK", css:"webix_primary", click: function() { 
@@ -178,55 +186,63 @@
                         ]
                     },
                     {
-                        rows: [
-                            {
-                                id: "webix-branch-details",
-                                view: "template",
-                                type: "header",
-                                template: "html->branch-details",
-                                height: 200,
-                            },
-                            {
-                                id: 'table-sites',
-                                view: "datatable",
-                                select: true,
-                                //autoConfig: true,
-                                editable: true,
-                                data: [],
-                                leftSplit: 2,
-                                autowidth: true,
-                                autoheight: true,
-                                on: {
-                                    onAfterEditStop: function(state, editor, ignoreUpdate) {
-                                        var data = {};
-                                        data['_id'] = $$("table-branches").getSelectedItem()._id;
-                                        data[editor.column] = state.value;
-                                        webix.ajax().post('/cicd/update/site', data);
-                                    },
-                                    //onItemClick: function(id, e, trg) {
-                                    ////    if (id.column === 'do_reset') {
-                                    //       var siteid = this.getSelectedItem()._id;
-                                    //        show_reset_form(siteid);
-                                    //    }
-                                    // }
-                                },
-                                columns:[
-                                    { id: 'start_instance', header: '', width: 100, template: "<a href='/cicd/start?name=#name#'>Open</a>"},
-                                    // { id: 'run_console', header: '', width: 150, template: "<a href='/'>Console</a>"},
-                                    { id: 'name', header: 'Name', width: 150},
-                                    { id: 'key', header: 'Type', width: 100},
-                                    { id: 'update_in_progress', header: 'Building', width: 100},
-                                    { id: 'updated', header: 'Updated', width: 150},
-                                    { id: 'duration', header: 'Duration [s]', width: 100},
-                                    { id: 'desc', header: 'Description', width: 300, fillspace: true},
-                                    { id: 'author', header: 'Author', width: 100},
-                                    { id: 'do_reset', header: '', width: 100, template:"<input class='delbtn' type='button' value='Reset'>"},
-                                    { id: 'dump_name', header: 'Dump Name', width: 270},
-                                    { id: 'dump_date', header: 'Dump Date', width: 270},
-                                    { id: 'git_sha', header: 'SHA', width: 150},
-                                ],
-                            },
-                        ]
+                        view: 'scrollview',
+                        body: {
+                            padding: 10,
+                            type: 'clean',
+                            rows: [
+                                {
+                                    rows: [
+                                        {
+                                            id: "webix-branch-details",
+                                            view: "template",
+                                            type: "header",
+                                            template: "html->branch-details",
+                                            height: 200,
+                                        },
+                                        {
+                                            id: 'table-sites',
+                                            view: "datatable",
+                                            select: true,
+                                            //autoConfig: true,
+                                            editable: true,
+                                            data: [],
+                                            leftSplit: 2,
+                                            autowidth: true,
+                                            autoheight: true,
+                                            on: {
+                                                onAfterEditStop: function(state, editor, ignoreUpdate) {
+                                                    var data = {};
+                                                    data['_id'] = $$("table-branches").getSelectedItem()._id;
+                                                    data[editor.column] = state.value;
+                                                    webix.ajax().post('/cicd/update/site', data);
+                                                },
+                                                //onItemClick: function(id, e, trg) {
+                                                ////    if (id.column === 'do_reset') {
+                                                //       var siteid = this.getSelectedItem()._id;
+                                                //        show_reset_form(siteid);
+                                                //    }
+                                                // }
+                                            },
+                                            columns:[
+                                                { id: 'start_instance', header: '', width: 100, template: "<a href='/cicd/start?name=#name#'>Open</a>"},
+                                                // { id: 'run_console', header: '', width: 150, template: "<a href='/'>Console</a>"},
+                                                { id: 'name', header: 'Name', width: 150},
+                                                { id: 'key', header: 'Type', width: 100},
+                                                { id: 'update_in_progress', header: 'Building', width: 100},
+                                                { id: 'updated', header: 'Updated', width: 150},
+                                                { id: 'duration', header: 'Duration [s]', width: 100},
+                                                { id: 'desc', header: 'Description', width: 300, fillspace: true},
+                                                { id: 'author', header: 'Author', width: 100},
+                                                { id: 'dump_name', header: 'Dump Name', width: 270},
+                                                { id: 'dump_date', header: 'Dump Date', width: 270},
+                                                { id: 'git_sha', header: 'SHA', width: 150},
+                                            ],
+                                        },
+                                    ]
+                                }
+                            ]
+                        }
                     }
                 ]
             });

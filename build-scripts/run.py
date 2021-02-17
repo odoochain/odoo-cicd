@@ -115,6 +115,8 @@ def build(jira, key):
         record_branch = record_branch[0]
         if record_branch.get('reset-db-at-next-build'):
             force_rebuild = True
+        if record_branch.get('dump'):
+            dump_name = record_branch['dump']
 
     if key == 'demo':
         make_instance(context, instance, False)
