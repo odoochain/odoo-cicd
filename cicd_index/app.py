@@ -317,7 +317,7 @@ def trigger_rebuild():
     jenkins = _get_jenkins()
     job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{branch['git_branch']}"]
     job.invoke()
-    sites = list(db.sites.find({'git_branch': branch['git_branch']}))
+    sites = list(db.sites.find({'git_branch': branch['git_branch'], 'key': 'kept'}))
     for site in sites:
         db.updates.remove({'name': site['name']})
     return jsonify({
