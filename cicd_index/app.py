@@ -340,6 +340,17 @@ def destroy_instance():
         'result': 'ok',
     })
 
+@app.route("/restart_docker")
+def restart_docker():
+    name = request.args.get('name')
+    containers = [x for x in docker.containers.list(all=True) if name in x.name]
+    for x in containers:
+        x.restart()
+    return jsonify({
+        'result': 'ok',
+        'containers': [x.name for x in containers],
+    })
+
 def _get_docker_state(name):
     docker.ping()
     containers = docker.containers.list(all=True, filters={'name': [name]})
@@ -402,7 +413,7 @@ def data_variants():
             "records": []
         })
 
-    sites = _format_dates_in_records(list(db.sites.find({'enabled': True, 'git_branch': request.args['git_branch']})))
+    sites = _format_dates_in_records(list(db.sites.find({'git_branch': request.args['git_branch']})))
     sites = sorted(sites, key=lambda x: x.get('updated', x.get('last_access', arrow.get('1980-04-04'))), reverse=True)
     # get last update times
     for site in sites:
