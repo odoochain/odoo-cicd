@@ -43,8 +43,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     def _rewrite_path(self, header):
         url = ""
         if "cookie" in [x.lower() for x in header.keys()]:
-            cookie = ignore_case_get(header, 'Cookie')
-            cookie = SimpleCookie(header['Cookie'])
+            cookie = SimpleCookie(ignore_case_get(header, 'Cookie'))
             delegator_path = cookie.get('delegator-path', "")
             delegator_path = delegator_path and delegator_path.value
         else:
