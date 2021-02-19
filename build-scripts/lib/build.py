@@ -107,7 +107,6 @@ def update_instance(context, instance, dump_name):
     last_sha = requests.get(context.cicd_url + "/last_successful_sha", params={
         'name': instance['name'],
     }).json()
-    print(f"Result of asking for last_successful_sha: {last_sha}")
     if not last_sha.get('sha'):
         make_instance(context, instance, dump_name, use_previous_db=True) # TODO parametrized from jenkins
     else:
