@@ -36,6 +36,8 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         self.send_error(501, str(ex))
 
     def _rewrite_path(self, header):
+        import pudb
+        pudb.set_trace()
         url = ""
         if "Cookie" in header:
             cookie = SimpleCookie(header['Cookie'])
