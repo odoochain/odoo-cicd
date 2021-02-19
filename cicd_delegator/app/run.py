@@ -24,7 +24,10 @@ logger.info("Starting cicd delegator reverse-proxy")
 def ignore_case_get(dict, key):
     keys = list(dict.keys())
     lkeys = [x.lower() for x in keys]
-    return keys[lkeys.index(key.lower())]
+    idx = lkeys.index(key.lower())
+    if idx >= 0:
+        return dict[keys[idx]]
+    return None
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.0'
@@ -42,8 +45,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def _rewrite_path(self, header):
         url = ""
-        import pudb
-        pudb.set_trace()
         if "cookie" in [x.lower() for x in header.keys()]:
             cookie = SimpleCookie(ignore_case_get(header, 'Cookie'))
             delegator_path = cookie.get('delegator-path', "")
