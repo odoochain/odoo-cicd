@@ -340,6 +340,17 @@ def destroy_instance():
         'result': 'ok',
     })
 
+@app.route("/restart_docker")
+def restart_docker():
+    name = request.args.get('name')
+    containers = [x for x in docker.containers.list(all=True) if name in x.name]
+    for x in containers:
+        x.restart()
+    return jsonify({
+        'result': 'ok',
+        'containers': [x.name for x in containers],
+    })
+
 def _get_docker_state(name):
     docker.ping()
     containers = docker.containers.list(all=True, filters={'name': [name]})
