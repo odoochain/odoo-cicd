@@ -54,7 +54,7 @@ services:
     networks:
         - internal
     volumes:
-        - ./mongo_data:/data
+        - ./mongo_data:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: 1
