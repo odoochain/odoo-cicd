@@ -413,7 +413,7 @@ def data_variants():
             "records": []
         })
 
-    sites = _format_dates_in_records(list(db.sites.find({'enabled': True, 'git_branch': request.args['git_branch']})))
+    sites = _format_dates_in_records(list(db.sites.find({'git_branch': request.args['git_branch']})))
     sites = sorted(sites, key=lambda x: x.get('updated', x.get('last_access', arrow.get('1980-04-04'))), reverse=True)
     # get last update times
     for site in sites:
