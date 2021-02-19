@@ -39,7 +39,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         import pudb
         pudb.set_trace()
         url = ""
-        if "Cookie" in header:
+        if "cookie" in [x.lower() for x in header.keys()]:
             cookie = SimpleCookie(header['Cookie'])
             delegator_path = cookie.get('delegator-path', "")
             delegator_path = delegator_path and delegator_path.value
