@@ -59,13 +59,32 @@ def _get_jira_wrapper(use_jira):
         jira_wrapper = JiraWrapper("", "", "")
     return jira_wrapper
 
+
+@cli.command()
+def clearflags(self):
+    # clear reset-db-at-next-build
+    context = Context(False)
+    print("Clearing flags")
+    requests.get(context.cicd_url + "/update/branch", params={
+        'git_branch': branch,
+        'reset-db-at-next-build': False,
+    })
+
+
 @cli.command()
 @click.option("-k", "--key", type=click.Choice(['kept', 'live', 'demo']), required=True)
 @click.option("-j", "--jira", is_flag=True)
-@click.option("--dump-name", help="Name of the dump, that is restored")
-def build(jira, key, dump_name):
-    print(f"BUILDING for {branch} and key={key}")
+def build(jira, key):
+    dump_name = os.environ['DUMP_NAME']
+    workspace = os.environ['CICD_WORKSPACE']
+    if not workspace:
+        print("Please provide CICD_WORKSPACE in environment!")
+        sys.exit(-1)
+
+    print(f"BUILDING for {branch} and key={key}; workspace: {workspace}")
     context = Context(jira)
+    if workspace:
+        context.workspace = Path(workspace)
 
     # if not any(re.match(allowed, branch, re.IGNORECASE) for allowed in allowed):
     #    return
@@ -91,6 +110,18 @@ def build(jira, key, dump_name):
     instance['author'] = author
     instance['desc'] = desc
 
+    print("try to get build informations")
+    record_branch = requests.get(context.cicd_url + "/data/branches", params={
+        'git_branch': instance['git_branch'],
+    }).json()
+    force_rebuild = False
+    if record_branch:
+        record_branch = record_branch[0]
+        if record_branch.get('reset-db-at-next-build'):
+            force_rebuild = True
+        if record_branch.get('dump'):
+            dump_name = record_branch['dump']
+
     if key == 'demo':
         make_instance(context, instance, False)
 
@@ -98,7 +129,7 @@ def build(jira, key, dump_name):
         make_instance(context, instance, dump_name) # TODO parametrized from jenkins
 
     elif key == 'kept':
-        update_instance(context, instance, dump_name)
+        update_instance(context, instance, dump_name, force_rebuild=force_rebuild)
 
     else:
         raise NotImplementedError(key)
@@ -112,16 +143,19 @@ class Context(object):
             self.cicd_url = self.cicd_url[:-1]
         self.cicd_url += '/cicd'
         self.odoo_settings = Path(os.path.expanduser("~")) / '.odoo'
+        self.workspace = Path(os.getcwd()).parent
 
 
 if __name__ == '__main__':
 
     def _get_env():
-        env_file = Path(sys.path[0]).parent / 'cicd-app' / '.env'
+        env_file = Path(sys.path[0]).parent / '.env'
         load_dotenv(env_file)
 
         if not os.getenv("CICD_URL"):
             os.environ['CICD_URL'] = 'http://127.0.0.1:9999'
+
+        print(f"Using cicd app on {os.environ['CICD_URL']}")
     _get_env()
 
     cli()

@@ -1,0 +1,17 @@
+CICD_NETWORK_NAME=cicd_xxxxx_net
+CICD_BINDING=0.0.0.0:9991
+CICD_URL=http://127.0.0.1:9991
+CICD_WORKSPACE=/home/cicd/workspace
+JENKINS_URL=http://xxxxxxxxx:8080
+JENKINS_USER=admin
+JENKINS_PASSWORD=
+JENKINS_JOB_MULTIBRANCH=cicd-odoo
+JIRA_URL=
+JIRA_USER=
+JIRA_PASSWORD=
+DUMP_NAME=default_dump_duname
+DUMPS_PATH=/opt/dumps
+DB_HOST=not internal docker host, reachable from outside
+DB_USER=cicd
+DB_PASSWORD=cicd_is_cool
+DB_PORT=5433

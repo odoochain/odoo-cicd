@@ -10,13 +10,10 @@ services:
     environment:
         INDEX_HOST: cicd_index.${CICD_NETWORK_NAME}
     restart: "unless-stopped"
-  tester:
-      build: tester
-      networks:
-        - cicd_delegator
   cicd_index:
     container_name: cicd_index
     build: ./cicd_index
+    env_file: .env
     networks:
         - cicd_delegator
         - internal
@@ -31,11 +28,11 @@ services:
         MONGO_PORT: 27017
         MONGO_USERNAME: admin
         MONGO_PASSWORD: 1
-        WORKSPACES_DIR: /jenkins_workspaces
         JENKINS_URL: ${JENKINS_URL}
         JENKINS_USER: ${JENKINS_USER}
         JENKINS_PASSWORD: ${JENKINS_PASSWORD}
     volumes:
+        - ${DUMPS_PATH}:/opt/dumps
         - ./cicd_index:/code
         - /var/run/docker.sock:/var/run/docker.sock
         - /var/lib/jenkins/workspace:/jenkins_workspaces
