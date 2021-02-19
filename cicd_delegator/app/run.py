@@ -21,6 +21,11 @@ logging.getLogger().setLevel(logging.DEBUG)
 logger = logging.getLogger('')  # root handler
 logger.info("Starting cicd delegator reverse-proxy")
 
+def ignore_case_get(dict, key):
+    keys = list(dict.keys())
+    lkeys = [x.lower() for x in keys]
+    return keys[lkeys.index(key.lower())]
+
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.0'
 
