@@ -53,6 +53,8 @@ services:
     restart: "unless-stopped"
     networks:
         - internal
+    volumes:
+        - ./mongo_data:/data
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: 1
