@@ -3,8 +3,6 @@ services:
   cicd_delegator:
     container_name: cicd_delegator
     build: ./cicd_delegator
-    ports:
-        - ${CICD_BINDING}:80
     networks:
         - cicd_delegator
     environment:
@@ -69,6 +67,22 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: 1
+
+  nginx:
+    build: nginx
+    restart: unless-stopped
+    networks:
+        - cicd_delegator
+    ports:
+        - ${CICD_BINDING}:80
+
+  webssh:
+    build: webssh
+    restart: unless-stopped
+    networks:
+      - cicd_delegator
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 networks:
     cicd_delegator:
         name: ${CICD_NETWORK_NAME}
