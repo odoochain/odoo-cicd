@@ -77,9 +77,7 @@ span.webix_icon {
             }
 
             function settings(){
-                var id = $$("table-sites").getSelectedId().id
-                var name = $$("table-sites").getSelectedItem().name;
-                webix.ajax().get('/cicd/data/sites', {'_id': id}).then(function(data) {
+                webix.ajax().get('/cicd/data/sites', {'name': current_details}).then(function(data) {
                     data = data.json();
                     var dumps_promise = webix.ajax().get("/cicd/possible_dumps");
                     dumps_promise.then(function(dumps) {
@@ -104,8 +102,7 @@ span.webix_icon {
                                                 var values = this.getParentView().getFormView().getValues();
                                                 webix.ajax().post('/cicd/update/site', values).then(function() {
                                                     form.hide();
-                                                    reload_details(values['name']);
-                                                    $$('table-sites').updateItem(id, values);
+                                                    reload_table()
                                                 });
                                                 }
                                             },
@@ -128,6 +125,7 @@ span.webix_icon {
                 return false;
             }
 
+        var current_details = null;
         function reload_details(name) {
             webix.ajax().get('/cicd/data/sites?name=' + name).then(function(data) {
                 var template = $$('webix-instance-details');
@@ -135,7 +133,13 @@ span.webix_icon {
                 template.refresh();
                 template.show();
                 $$('site-toolbar').show();
+                current_details = name;
             });
+        }
+        function reload_table() {
+            var table = $$("table-sites");
+            table.clearAll()
+            table.load(table.config.url);
         }
         function show_reset_form(name) {
             var form_reset = webix.ui({
@@ -209,6 +213,9 @@ span.webix_icon {
                                     webix.ajax().post('/cicd/update/site', data);
                                 },
                                 onSelectChange:function(){
+                                    if (!this.getSelectedItem()) {
+                                        return;
+                                    }
                                     reload_details(this.getSelectedItem().name);
                                 },
                                 onItemClick: function(id, e, trg) {

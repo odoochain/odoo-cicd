@@ -372,7 +372,7 @@ def _format_dates_in_records(records):
                 continue
             try:
                 rec[k] = format_date(arrow.get(rec[k]))
-            except arrow.parser.ParserError:
+            except Exception:
                 continue
     return records
 
