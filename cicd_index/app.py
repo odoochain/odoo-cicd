@@ -52,7 +52,7 @@ docker = Docker.from_env()
 def cycle_down_apps():
     while True:
         try:
-            sites = db.sites.find({'enabled': True}, {'name': 1, 'last_access': 1})
+            sites = db.sites.find({'name': 1, 'last_access': 1})
             for site in sites:
                 logger.debug(f"Checking site to cycle down: {site['name']}")
                 if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
@@ -128,8 +128,6 @@ def register_site():
         site = dict(request.json)
         sites = list(db.sites.find({
             "git_branch": site['git_branch'],
-            "key": site['key'],
-            "index": site['index'],
         }))
         result = {'result': 'ok'}
 
@@ -149,7 +147,6 @@ def register_site():
                     db.branches.update_one({'_id': branch['_id']}, {'$set': update}, upsert=False)
 
         if not sites:
-            site['enabled'] = False
             db.sites.insert_one(site)
             result['existing'] = True
 
@@ -161,7 +158,7 @@ def register_site():
 def site():
     q = {}
     for key in [
-        'index', 'key', 'branch', 'name',
+        'branch', 'name',
     ]:
         if request.args.get(key):
             q[key] = request.args.get(key)
@@ -251,10 +248,17 @@ def notify_instance_updated():
     if not site:
         raise Exception(f"site not found: {info['name']}")
     db.sites.update_one({'_id': site['_id']}, {'$set': {
+        'duration': request.args.get('duration'),
         'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         'update_in_progress': False,
-        'enabled': True,
     }}, upsert=False)
+
+    # if there is dump information, then store at site
+    if request.args.get('dump_name'):
+        db.sites.update_one({'_id': site['_id']}, {'$set': {
+            'dump_name': request.args['dump_name'],
+            'dump_date': request.args['dump_date'],
+        }}, upsert=False)
 
     return jsonify({
         'result': 'ok'
@@ -304,22 +308,20 @@ def _reset_instance_in_db(name):
 
 @app.route('/trigger/rebuild')
 def trigger_rebuild():
-    branch = db.branches.find_one({'git_branch': request.args['branch']})
+    site = db.sites.find_one({'name': request.args['name']})
     data = {
         'reset-db-at-next-build': True
     }
-    db.branches.update_one(
-        {'_id': branch['_id']},
+    db.sites.update_one(
+        {'_id': site['_id']},
         {'$set': data},
         upsert=False
     )
 
     jenkins = _get_jenkins()
-    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{branch['git_branch']}"]
+    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{site['git_branch']}"]
     job.invoke()
-    sites = list(db.sites.find({'git_branch': branch['git_branch'], 'key': 'kept'}))
-    for site in sites:
-        db.updates.remove({'name': site['name']})
+    db.updates.remove({'name': site['name']})
     return jsonify({
         'result': 'ok',
     })
@@ -370,7 +372,7 @@ def _format_dates_in_records(records):
                 continue
             try:
                 rec[k] = format_date(arrow.get(rec[k]))
-            except arrow.parser.ParserError:
+            except Exception:
                 continue
     return records
 
@@ -386,87 +388,29 @@ def possible_dumps():
     dump_names = [{'id': x, 'value': _get_value(x)} for x in dump_names]
     return jsonify(dump_names)
 
-@app.route("/data/branches", methods=["GET"])
-def data_branches():
-    data = request.args.get('request')
-    find = {}
-    if data:
-        find = _validate_input(json.loads(data))
-    if request.args.get('git_branch'):
-        find['git_branch'] = request.args['git_branch']
 
-    branches = sorted(_format_dates_in_records(list(db.branches.find(find))), key=lambda x: x['git_branch'])
-    for branch in branches:
-        branch['title'] = branch.get('title') or branch['git_branch']
-        for field in ['description', 'author']:
-            branch[field] = branch.get(field, '') or ''
-
-    return jsonify(branches)
-
-
-@app.route("/data/instances", methods=["GET", "POST"])
+@app.route("/data/sites", methods=["GET", "POST"])
 def data_variants():
-    if not request.args.get('git_branch'):
-        return jsonify({
-            "status": "success",
-            "total": 0,
-            "records": []
-        })
+    _filter = {}
+    if request.args.get('git_branch', None):
+        _filter['git_branch'] = request.args['git_branch']
+    if request.args.get('name', None):
+        _filter['name'] = request.args['name']
 
-    sites = _format_dates_in_records(list(db.sites.find({'git_branch': request.args['git_branch']})))
-    sites = sorted(sites, key=lambda x: x.get('updated', x.get('last_access', arrow.get('1980-04-04'))), reverse=True)
-    # get last update times
-    for site in sites:
-        updates = db.updates.find({
-            'name': site['name'],
-        }).sort([("date", pymongo.DESCENDING)]).limit(1)
-        if updates:
-            site['updated'] = updates[0]['date']
-            site['duration'] = round(float(updates[0]['update_time']), 0)
-            site['dump_name'] = updates[0]['dump_name']
-            site['dump_date'] = updates[0]['dump_date']
+    sites = _format_dates_in_records(list(db.sites.find(_filter)))
+    sites = sorted(sites, key=lambda x: x.get('name'))
 
     for site in sites:
         site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
-
-    sites_grouped = defaultdict(list)
-    for site in sites:
-        sites_grouped[site['git_branch']].append(site)
-    for site in sites_grouped:
-        sites_grouped[site] = sorted(sites_grouped[site], key=lambda x: x['index'], reverse=True)
-    for site in sites:
-        site['recid'] = site['name']
 
     return jsonify(sites)
 
 @app.route('/')
 def index_func():
 
-    sites = list(db.sites.find({'enabled': True}))
-
-    for site in sites:
-        for k in site:
-            if not isinstance(site[k], str):
-                continue
-            try:
-                site[k] = arrow.get(site[k]).to(os.environ['DISPLAY_TIMEZONE'])
-            except arrow.parser.ParserError:
-                continue
-    sites = sorted(sites, key=lambda x: x.get('updated', x.get('last_access', arrow.get('1980-04-04'))), reverse=True)
-    for site in sites:
-        site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
-
-    sites_grouped = defaultdict(list)
-    for site in sites:
-        sites_grouped[site['git_branch']].append(site)
-    for site in sites_grouped:
-        sites_grouped[site] = sorted(sites_grouped[site], key=lambda x: x['index'], reverse=True)
-
     return render_template(
         'index.html',
-        sites=sites_grouped,
         DATE_FORMAT=os.environ['DATE_FORMAT'].replace("_", "%"),
-        message=request.args.get('message'),
     )
 
 def _validate_input(data, int_fields=[]):
@@ -479,9 +423,9 @@ def _validate_input(data, int_fields=[]):
                 print(ex)
                 data.pop(int_field)
     for k, v in list(data.items()):
-        if v == 'true':
+        if v in ['true', 'True']:
             data[k] = True
-        elif v == 'false':
+        elif v in ['false', 'False']:
             data[k] = False
         elif v == 'undefined':
             data[k] = None
@@ -490,26 +434,20 @@ def _validate_input(data, int_fields=[]):
         data['_id'] = ObjectId(data['_id'])
     return data
 
-@app.route('/update/branch', methods=["POST"])
-def update_branch():
-    data = _validate_input(request.form, int_fields=['limit_instances'])
+
+@app.route('/update/site', methods=["GET", "POST"])
+def update_site():
+    if request.method == 'POST':
+        data = request.form
+    else:
+        data = request.args
+    data = _validate_input(data, int_fields=[])
     if '_id' not in data and 'git_branch' in data:
         branch_name = data.pop('git_branch')
-        branch = db.branches.find_one({'git_branch': branch_name})
-        id = branch['_id']
+        site = db.sites.find_one({'git_branch': branch_name})
+        id = site['_id']
     else:
         id = ObjectId(data.pop('_id'))
-    db.branches.update_one(
-        {'_id': id},
-        {'$set': data},
-        upsert=False
-    )
-    return jsonify({'result': 'ok'})
-
-@app.route('/update/site', methods=["POST"])
-def update_site():
-    data = _validate_input(request.form, int_fields=[])
-    id = ObjectId(data.pop('_id'))
     db.sites.update_one(
         {'_id': id},
         {'$set': data},
@@ -539,3 +477,18 @@ def _start_cicd():
     response = make_response(render_template('start_cicd.html'))
     response.set_cookie('delegator-path', name)
     return response
+
+def get_setting(key, default=None):
+    config = db.config.find_one({'key': key})
+    if not config:
+        return default
+    return config['value']
+
+
+def store_setting(key, value):
+    db.sites.update_one({
+        'key': key,
+    }, {'$set': {
+        'value': value,
+    }
+    }, upsert=True)
