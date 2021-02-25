@@ -3,36 +3,24 @@ worker_processes 1;
 events { worker_connections 1024; }
  
 http {
- 
-upstream delegator {
-    server cicd_delegator:80;
-}
-upstream console {
-    server webssh:8080;
-}
-
 
  server {
         server_name localhost;
 
-        location / {
-            proxy_pass http://delegator;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_read_timeout 86400;
-        }
-        location /console {
-            rewrite /console$ / break;
-            rewrite /console/(.*)$ /$1 break;
-            proxy_pass http://console;
+        location ~ ^/console/(.*)$ {
+            rewrite ^/console/?$ / break;
+            rewrite ^/console/(.*)$ /$1 break;
+
+            proxy_pass http://webssh:8080/;
+
             proxy_http_version 1.1;
             proxy_read_timeout 300;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-            proxy_set_header Host $http_host;
+            proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Real-PORT $remote_port;
+            proxy_read_timeout 1000s;
         }
 }
 

@@ -29,3 +29,4 @@ RUN chmod a+x /root/launch.sh
 RUN echo "root:odoo" | chpasswd root
 RUN sed -i 's/\#PermitRootLogin\ prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config 
 RUN cat /etc/ssh/sshd_config |grep Permit
+EXPOSE 8080

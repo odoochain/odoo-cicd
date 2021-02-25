@@ -75,10 +75,13 @@ services:
         - cicd_delegator
     ports:
         - ${CICD_BINDING}:80
+        - 10.10.173.111:7421:80
 
   webssh:
     build: webssh
     restart: unless-stopped
+    ports:
+        - 10.10.173.111:3333:8080
     networks:
       - cicd_delegator
     volumes:
