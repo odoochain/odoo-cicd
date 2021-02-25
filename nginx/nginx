@@ -8,13 +8,12 @@ http {
         server_name localhost;
 
         location ~ ^/console/(.*)$ {
-            rewrite ^/console/?$ / break;
+            # rewrite ^/console/?$ / break;
             rewrite ^/console/(.*)$ /$1 break;
 
-            proxy_pass http://webssh:8080/;
+            proxy_pass http://webssh:8080;
 
             proxy_http_version 1.1;
-            proxy_read_timeout 300;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
             proxy_set_header Host $host;
