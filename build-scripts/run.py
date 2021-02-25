@@ -15,6 +15,11 @@ from datetime import datetime
 from lib.build import make_instance
 from lib.build import update_instance
 from lib.build import augment_instance
+import logging
+FORMAT = '[%(levelname)s] %(name) -12s %(asctime)s %(message)s'
+logging.basicConfig(format=FORMAT)
+logging.getLogger().setLevel(logging.DEBUG)
+logger = logging.getLogger('')  # root handler
 
 
 @click.group()
@@ -60,28 +65,27 @@ def _get_jira_wrapper(use_jira):
     return jira_wrapper
 
 
-@cli.command()
-def clearflags(self):
+def clearflags():
     # clear reset-db-at-next-build
+    logger.info("Clearing flags")
     context = Context(False)
-    print("Clearing flags")
-    requests.get(context.cicd_url + "/update/branch", params={
+    logger.info("Clearing flags")
+    requests.get(context.cicd_url + "/update/site", params={
         'git_branch': branch,
         'reset-db-at-next-build': False,
     })
 
 
 @cli.command()
-@click.option("-k", "--key", type=click.Choice(['kept', 'live', 'demo']), required=True)
 @click.option("-j", "--jira", is_flag=True)
-def build(jira, key):
+def build(jira):
     dump_name = os.environ['DUMP_NAME']
     workspace = os.environ['CICD_WORKSPACE']
     if not workspace:
-        print("Please provide CICD_WORKSPACE in environment!")
+        logger.warn("Please provide CICD_WORKSPACE in environment!")
         sys.exit(-1)
 
-    print(f"BUILDING for {branch} and key={key}; workspace: {workspace}")
+    logger.info(f"BUILDING for {branch}; workspace: {workspace}")
     context = Context(jira)
     if workspace:
         context.workspace = Path(workspace)
@@ -89,50 +93,32 @@ def build(jira, key):
     # if not any(re.match(allowed, branch, re.IGNORECASE) for allowed in allowed):
     #    return
 
-    if key in ['demo', 'live']:
-        instance = requests.get(context.cicd_url + "/next_instance", params={
-            'key': key,
-            'branch': branch,
-        }).json()
-        print(f"new instance name: {instance['name']}")
-    elif key == 'kept':
-        instance = {
-            'name': f"{branch}_{key}_1",
-            'index': 1,
-        }
-    else:
-        raise NotImplementedError()
+    instance = {
+        'name': f"{branch}",
+        'git_sha': sha,
+        'git_branch': os.environ['GIT_BRANCH'],
+    }
 
-    instance['key'] = key
-    instance['git_sha'] = sha
-    instance['git_branch'] = os.environ['GIT_BRANCH']
     augment_instance(context, instance)
-    instance['author'] = author
-    instance['desc'] = desc
-
-    print("try to get build informations")
-    record_branch = requests.get(context.cicd_url + "/data/branches", params={
+    instance['last_git_author'] = author
+    instance['last_git_desc'] = desc
+    record_site = requests.get(context.cicd_url + "/data/sites", params={
         'git_branch': instance['git_branch'],
     }).json()
+
+    logger.info("try to get build informations")
     force_rebuild = False
-    if record_branch:
-        record_branch = record_branch[0]
-        if record_branch.get('reset-db-at-next-build'):
+    if record_site:
+        record_site = record_site[0]
+        if record_site.get('reset-db-at-next-build'):
             force_rebuild = True
-        if record_branch.get('dump'):
-            dump_name = record_branch['dump']
+        if record_site.get('dump'):
+            dump_name = record_site['dump']
 
-    if key == 'demo':
-        make_instance(context, instance, False)
+    logger.info(f"FORCE REBUILD: {force_rebuild}")
+    update_instance(context, instance, dump_name, force_rebuild=force_rebuild)
+    clearflags()
 
-    elif key == 'live':
-        make_instance(context, instance, dump_name) # TODO parametrized from jenkins
-
-    elif key == 'kept':
-        update_instance(context, instance, dump_name, force_rebuild=force_rebuild)
-
-    else:
-        raise NotImplementedError(key)
 
 class Context(object):
     def __init__(self, use_jira):
@@ -155,7 +141,7 @@ if __name__ == '__main__':
         if not os.getenv("CICD_URL"):
             os.environ['CICD_URL'] = 'http://127.0.0.1:9999'
 
-        print(f"Using cicd app on {os.environ['CICD_URL']}")
+        logger.info(f"Using cicd app on {os.environ['CICD_URL']}")
     _get_env()
 
     cli()

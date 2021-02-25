@@ -6,11 +6,16 @@ from pathlib import Path
 import subprocess
 import os
 import sys
+import logging
+FORMAT = '[%(levelname)s] %(name) -12s %(asctime)s %(message)s'
+logging.basicConfig(format=FORMAT)
+logging.getLogger().setLevel(logging.DEBUG)
+logger = logging.getLogger('')  # root handler
 
 def _setup_new_working_path(workspace, instance_name):
     new_path = Path(workspace / f'cicd_instance_{instance_name}')
     new_path.mkdir(exist_ok=True) # set later False; avoids thresholing
-    print(f"Rsyncing {os.getcwd()}/ to {new_path}/")
+    logger.info(f"Rsyncing {os.getcwd()}/ to {new_path}/")
     subprocess.check_call([
         '/usr/bin/rsync',
         str(os.getcwd()) + "/",
@@ -18,7 +23,7 @@ def _setup_new_working_path(workspace, instance_name):
         '-ar',
         '--delete-after',
     ])
-    print(f"Changing working directory to: {new_path}")
+    logger.info(f"Changing working directory to: {new_path}")
     os.chdir(new_path)
     subprocess.check_call([
         '/usr/bin/git',
@@ -31,7 +36,7 @@ def _setup_new_working_path(workspace, instance_name):
 
 def _exec(context, cmd, needs_result=False):
     print_cmd = ' '.join(map(lambda x: f"'{x}'".format(x), cmd))
-    print(f"Executing:\ncd '{os.getcwd()}';odoo {print_cmd}")
+    logger.info(f"Executing:\ncd '{os.getcwd()}';odoo {print_cmd}")
 
     method = 'check_output' if needs_result else 'check_call'
     res = getattr(subprocess, method)([
@@ -40,14 +45,14 @@ def _exec(context, cmd, needs_result=False):
     if needs_result:
         return res.decode('utf-8')
 
-def _notify_instance_updated(context, instance, update_time, dump_date, dump_name):
+def _notify_instance_updated(context, instance, duration, dump_date, dump_name):
     name = instance['name']
-    print(f"notify_instance name: {name}, update_time: {update_time}, branch: {instance['git_branch']}, dump: {dump_date} {dump_name}")
+    logger.info(f"notify_instance name: {name}, duration: {duration}, branch: {instance['git_branch']}, dump: {dump_date} {dump_name}")
 
     data = {
         'name': name,
         'sha': instance['git_sha'],
-        'update_time': update_time,
+        'duration': duration,
     }
     if dump_date:
         data['dump_date'] = dump_date
@@ -57,7 +62,7 @@ def _notify_instance_updated(context, instance, update_time, dump_date, dump_nam
     requests.get(context.cicd_url + '/set_updating', params={'name': name, 'value': 0})
     context.jira_wrapper.comment(
         instance['git_branch'],
-        f"Instance updated {name} in {update_time} seconds."
+        f"Instance updated {name} in {duration} seconds."
     )
 
 def _make_instance_docker_configs(context, instance):
@@ -106,12 +111,12 @@ def augment_instance(context, instance):
             title = fields.summary
             creator = fields.creator.displayName
     except Exception as ex:
-        print(ex)
+        logger.warn(ex)
     instance['title'] = title
     instance['initiator'] = creator
 
 def update_instance(context, instance, dump_name, force_rebuild=False):
-    print(f"Updating instance {instance['name']}")
+    logger.info(f"Updating instance {instance['name']}")
     _setup_new_working_path(
         context.workspace,
         instance['name']
@@ -122,10 +127,12 @@ def update_instance(context, instance, dump_name, force_rebuild=False):
     requests.get(context.cicd_url + "/notify_instance_updating", params={
         'name': instance['name'],
     })
-    print(f"Result of asking for last_successful_sha: {last_sha}")
+    logger.info(f"Result of asking for last_successful_sha: {last_sha}")
     if not last_sha.get('sha') or force_rebuild:
+        logger.info(f"Make new instance: force rebuild: {force_rebuild} / last sha: {last_sha.get('sha')}")
         make_instance(context, instance, dump_name, use_previous_db=True) # TODO parametrized from jenkins
     else:
+        logger.info(f"Updating current instance")
         # mark existing instance as being updated
         requests.get(context.cicd_url + '/set_updating', params={
             'name': instance['name'], 'value': 1
@@ -138,16 +145,16 @@ def update_instance(context, instance, dump_name, force_rebuild=False):
 
 def make_instance(context, instance, use_dump, use_previous_db=False):
     _setup_new_working_path(context.workspace, instance['name'])
-    print(f"BUILD CONTROL: Making Instance for {instance['name']}")
+    logger.info(f"BUILD CONTROL: Making Instance for {instance['name']}")
     _make_instance_docker_configs(context, instance)
 
     def e(cmd, needs_result=False):
         cmd = ["-f", "--project-name", instance['name']] + cmd
         return _exec(context, cmd, needs_result)
 
-    print("Reloading...")
+    logger.info("Reloading...")
     e(["reload", '-d', instance['name'], '--headless', '--devmode'])
-    print(f"Calling register with branch {instance['git_branch']}")
+    logger.info(f"Calling register with branch {instance['git_branch']}")
 
     if not instance['git_branch']:
         raise Exception("required git branch!")
@@ -156,7 +163,7 @@ def make_instance(context, instance, use_dump, use_previous_db=False):
 
     dump_date, dump_name = None, None
     if use_dump:
-        print(f"BUILD CONTROL: Restoring DB for {instance['name']} from {use_dump}")
+        logger.info(f"BUILD CONTROL: Restoring DB for {instance['name']} from {use_dump}")
         e(["restore", "odoo-db", use_dump])
         e(["remove-web-assets"])
         dump_file = Path(os.environ['DUMPS_PATH']) / use_dump
@@ -164,7 +171,7 @@ def make_instance(context, instance, use_dump, use_previous_db=False):
         dump_name = use_dump
 
     else:
-        print(f"BUILD CONTROL: Resetting DB for {instance['name']}")
+        logger.info(f"BUILD CONTROL: Resetting DB for {instance['name']}")
         e(["db", "reset"])
 
     e(["build"]) # build containers; use new pip packages
