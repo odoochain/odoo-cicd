@@ -1,17 +1,28 @@
-worker_processes 1;
+worker_processes 100;
  
 events { worker_connections 1024; }
  
 http {
 
  server {
-        server_name localhost;
+        serer_name _;
 
         location ~ ^/console/(.*)$ {
-            # rewrite ^/console/?$ / break;
             rewrite ^/console/(.*)$ /$1 break;
 
             proxy_pass http://webssh:8080;
+
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Real-PORT $remote_port;
+            proxy_read_timeout 1000s;
+        }
+
+        location / {
+            proxy_pass http://cicd_delegator:80;
 
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
