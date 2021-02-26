@@ -60,8 +60,18 @@ span.webix_icon {
         </div>
 
         <script>
+            function show_logs(name) {
+                window.open("/cicd/show_logs?name=" + name);
+            }
+
+            function debug(name) {
+            }
+
+            function show_mails(name) {
+            }
+
             function start_instance(name) {
-                window.location = "/cicd/start?name=" + name;
+                window.open("/cicd/start?name=" + name);
             }
 
             function restart() {
@@ -201,7 +211,7 @@ span.webix_icon {
                             select: 'row',
                             autoConfig: true,
                             url: '/cicd/data/sites',
-                            editable: true,
+                            editable: false,
                             data: [],
                             leftSplit: 0,
                             scrollX: false,
@@ -226,21 +236,11 @@ span.webix_icon {
                                 }
                             },
                             columns:[
-                                //{ id: 'start_instance', header: '', template: "<span class='webix_icon wxi-folder-open'></span>"},
-                                //{ id: 'restart_docker', header: '', template: "<span class='webix_icon wxi-folder-open'>Restart</span>"},
-                                //{ id: 'reset', header: '', template: "<span class='webix_icon wxi-sync'></span>"},
-                                //{ id: 'settings', header: '', template: "<span class='webix_icon wxi-dots'></span>"},
-                                // { id: 'run_console', header: '', width: 150, template: "<a href='/'>Console</a>"},
-                                { id: 'name', header: 'Name'},
-                                { id: 'title', header: 'Title'},
+                                { id: 'name', header: 'Name', minWidth: 120},
+                                { id: 'title', header: 'Title', minWidth: 180},
                                 { id: 'update_in_progress', header: 'Building', template: "{common.checkbox()}"},
-                                //{ id: 'restart_docker', header: 'Restart Docker', template: "<span class='webix_icon wxi-sync'></span>"},
-                                { id: 'updated', header: 'Updated'},
+                                { id: 'updated', header: 'Updated', minWidth: 150,},
                                 { id: 'duration', header: 'Duration [s]'},
-                                //{ id: 'author', header: 'Author' },
-                                { id: 'dump_name', header: 'Dump Name', },
-                                { id: 'dump_date', header: 'Dump Date', minWidth: 150, },
-                                //{ id: 'git_sha', header: 'SHA', fillspace: true,},
                             ],
                         },
                     ]
@@ -256,9 +256,21 @@ span.webix_icon {
                             { view:"button", id:"settings", value:"Settings", width:100, align:"left", click: settings },
                             { view:"button", id:"restart", value:"Restart", width:100, align:"left", click: restart, },
                             { view:"button", id:"rebuild", value:"Rebuild", width:100, align:"left", click: rebuild, },
-                            { view:"button", id:"start", value:"Start", width:100, align:"right", click: function() { 
+                            { view:"button", id:"start", value:"Open UI", width:100, align:"right", click: function() { 
                                 var name = $$("table-sites").getSelectedItem().name;
                                 start_instance(name);
+                            }, },
+                            { view:"button", id:"start_mails", value:"Mails", width:100, align:"right", click: function() { 
+                                var name = $$("table-sites").getSelectedItem().name;
+                                show_mails(name);
+                            }, },
+                            { view:"button", id:"start_logging", value:"Server Log", width:100, align:"right", click: function() { 
+                                var name = $$("table-sites").getSelectedItem().name;
+                                show_logs(name);
+                            }, },
+                            { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: function() { 
+                                var name = $$("table-sites").getSelectedItem().name;
+                                debug(name);
                             }, },
                         ],
                     },
