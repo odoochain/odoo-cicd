@@ -26,7 +26,11 @@ RUN apt-get update && apt-get install -y python3.8 python3-pip && pip3 install w
 ADD launch.sh /root
 RUN chmod a+x /root/launch.sh
 # RUN useradd -ms /bin/bash console
+
+
 RUN echo "root:odoo" | chpasswd root
+
+
 RUN sed -i 's/\#PermitRootLogin\ prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config 
 RUN cat /etc/ssh/sshd_config |grep Permit
 EXPOSE 8080

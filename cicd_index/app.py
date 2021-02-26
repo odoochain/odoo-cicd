@@ -1,3 +1,4 @@
+import base64
 import shutil
 import os
 import time
@@ -492,3 +493,16 @@ def store_setting(key, value):
         'value': value,
     }
     }, upsert=True)
+
+def _get_shell_url(command):
+    pwd = base64.encodestring('odoo'.encode('utf-8')).decode('utf-8')
+    shellurl = f"/console/?hostname=127.0.0.1&username=root&password={pwd}&command="
+    shellurl += ' '.join(command)
+    return shellurl
+
+@app.route("/show_logs")
+def show_logs():
+    name = request.args.get('name')
+    name += '_odoo'
+    shell_url = _get_shell_url(["docker", "logs", "-f", name])
+    return redirect(shell_url)
