@@ -36,21 +36,45 @@ def split_set_cookie(cookie, as_simple_cookie=False):
     HttpOnly, roundcube_sessid=93gt0c9a8c7njtt5f6tpa0t1h2; path=/; HttpOnly,
     roundcube_sessauth=Od9cAxp8lkWwbsjjQ8KWMNQBRW-1614702900; path=/; HttpOnly'
     """
+    orig_cookie = cookie
+    while ' =' in cookie:
+        cookie = cookie.replace(' =', '=')
     arr = cookie.split(";")
     cookies = []
+
+    keywords = ['expires', 'max-age', 'domain', 'path', 'httponly']
+
+    def extract_keywords(s):
+        found = []
+        splitted = s.split(',')
+        filtered = []
+        for x in splitted:
+            if x.lower().strip() in keywords and '=' not in x:
+                # e.g. HttpOnly, MyCookie=123
+                found.append(x)
+                x = ""
+            else:
+                for kw in keywords:
+                    if x.lower().startswith(kw + '='):
+                        filtered.append(x)
+                        x = ""
+            if x:
+                filtered.append(x)
+        return found, ','.join(filtered)
+
     for part in arr:
-        append = []
-        if 'httponly,' in part.lower():
-            idx = part.lower().find('httponly,')
-            part = part[idx + len('httponly,'):]
-            append += ["HttpOnly"]
-            cookies.append([])
-        elif not any(part.lower().strip().replace(" =", "=").startswith(x) for x in [
-            'expires=',
-            'path=',
-            'max-age=',
-        ]):
-            cookies.append([])
+        part = part.strip()
+
+        # extract keywords and append
+        append, part = extract_keywords(part)
+
+        if '=' in part:
+            if not any(part.startswith(x) for x in [
+                'expires=',
+                'path=',
+                'max-age=',
+            ]):
+                cookies.append([])
 
         cookies[-1].append(part.strip())
         if append:
@@ -62,6 +86,7 @@ def split_set_cookie(cookie, as_simple_cookie=False):
         cookies = ';\n'.join(cookies)
         cookies = SimpleCookie(cookies)
 
+    print(f"{orig_cookie} -----------> {cookies}")
     return cookies
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -208,8 +233,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_header(key, respheaders[key])
         self.send_header('Content-Length', len(resp.content))
 
-        for morsel in cookies.values():
-            self.send_header("Set-Cookie", morsel.OutputString())
         if resp.headers.get('set-cookie'):
             for cookie in split_set_cookie(resp.headers.get('set-cookie')):
                 self.send_header("Set-Cookie", cookie)
