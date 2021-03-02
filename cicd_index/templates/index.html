@@ -83,7 +83,46 @@ span.webix_icon {
 
             }
 
+            // start live values
             setTimeout(update_from_jenkins, 0);
+
+            function backup_db(name) {
+                var form_backupdb = webix.ui({
+                    view: "window", 
+                    position: 'center',
+                    modal: true,
+                    head: "Backup Database",
+                    width: 550,
+                    body: {
+                        view: 'form',
+                        complexData: true,
+                        elements: [
+                            { view: 'template', template: "Dumping postgres."},
+                            { view: 'text', name: 'dumpname', label: "Dumpname" },
+                            {
+                                cols:[
+                                    { view:"button", value:"OK", css:"webix_primary", click: function() { 
+                                            var values = this.getParentView().getFormView().getValues();
+                                            webix.ajax().get('/cicd/dump', {
+                                                'name': name,
+                                            }).then(function(data) {
+                                                form_backupdb.hide();
+                                            })
+                                            }
+                                    },
+                                    { view:"button", value:"Cancel", click: function() {
+                                        form_backupdb.hide();
+                                    }}
+                                ]
+                            }
+                        ],
+                        on: {
+                            'onSubmit': function() {
+                            },
+                        }
+                    }
+                });
+            }
 
             function show_logs(name) {
                 window.open("/cicd/show_logs?name=" + name);
@@ -173,10 +212,10 @@ span.webix_icon {
                                 view: 'form',
                                 complexData: true,
                                 elements: [
-                                    {view: 'text', name: 'title', label: "Title" },
-                                    { view:"textarea", name: 'note', label:"Note" },
+                                    { view: 'text', name: 'title', label: "Title" },
+                                    { view: "textarea", name: 'note', label:"Note" },
                                     // { view:"text", name: 'limit_instanes', label:"Limit Instances" },
-                                    { view:"combo", name: 'dump', label:"Dump", options: dumps, },
+                                    { view: "combo", name: 'dump', label:"Dump", options: dumps, },
                                     {
                                         cols:[
                                             { view:"button", value:"OK", css:"webix_primary", click: function() { 
@@ -321,12 +360,21 @@ span.webix_icon {
                         id: 'site-toolbar',
                         hidden: true,
                         cols: [
+                            { view:"button", id:"settings", value:"Settings", width:100, align:"left", click: settings },
+                            { view:"button", id:"kill", value:"Destroy", width:100, align:"left", click: function() {
+                                var name = $$("table-sites").getSelectedItem().name;
+                                delete_instance(name);
+                            }},
+
                             { view:"button", id:"build_log", value:"Build Log", width:100, align:"left", click: function() {
                                 var name = $$("table-sites").getSelectedItem().name;
                                 build_log(name);
 
                             }},
-                            { view:"button", id:"settings", value:"Settings", width:100, align:"left", click: settings },
+                            { view:"button", id:"dump", value:"Dump", width:100, align:"left", click: function() {
+                                var name = $$("table-sites").getSelectedItem().name;
+                                backup_db(name);
+                            }},
                             { view:"button", id:"restart", value:"Restart", width:100, align:"left", click: restart, },
                             { view:"button", id:"rebuild", value:"Rebuild", width:100, align:"left", click: rebuild, },
                             { view:"button", id:"start", value:"Open UI", width:100, align:"right", click: function() { 

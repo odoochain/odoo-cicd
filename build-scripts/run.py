@@ -112,6 +112,8 @@ def build(jira):
     force_rebuild = False
     if record_site:
         record_site = record_site[0]
+    else:
+        record_site = {}
 
     if record_site.get('reset-db-at-next-build'):
         force_rebuild = True

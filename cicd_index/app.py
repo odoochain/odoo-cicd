@@ -1,3 +1,4 @@
+#TODO label in containers per project
 import base64
 import shutil
 import os
@@ -570,3 +571,12 @@ def build_log():
     )
 
 # job.get_build(x).stop()
+
+@app.route("/dump")
+def backup_db(self):
+    site = db.sites.find_one({'name': request.args['name']})
+    containers = docker.containers.list(all=True, filters={'name': [name]})
+
+    return jsonify({
+        'result': 'ok',
+    })

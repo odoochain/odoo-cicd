@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re
 from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from http.cookies import SimpleCookie
 import arrow
@@ -29,6 +30,40 @@ def ignore_case_get(dict, key):
         return dict[keys[idx]]
     return None
 
+def split_set_cookie(cookie, as_simple_cookie=False):
+    """
+    roundcube_sessauth=-del-; expires=Tue, 02-Mar-2021 16:36:26 GMT; Max-Age=0; path=/;
+    HttpOnly, roundcube_sessid=93gt0c9a8c7njtt5f6tpa0t1h2; path=/; HttpOnly,
+    roundcube_sessauth=Od9cAxp8lkWwbsjjQ8KWMNQBRW-1614702900; path=/; HttpOnly'
+    """
+    arr = cookie.split(";")
+    cookies = []
+    for part in arr:
+        append = []
+        if 'httponly,' in part.lower():
+            idx = part.lower().find('httponly,')
+            part = part[idx + len('httponly,'):]
+            append += ["HttpOnly"]
+            cookies.append([])
+        elif not any(part.lower().strip().replace(" =", "=").startswith(x) for x in [
+            'expires=',
+            'path=',
+            'max-age=',
+        ]):
+            cookies.append([])
+
+        cookies[-1].append(part.strip())
+        if append:
+            cookies[-1] += append
+            append = []
+
+    cookies = [';'.join(x) for x in cookies]
+    if as_simple_cookie:
+        cookies = ';\n'.join(cookies)
+        cookies = SimpleCookie(cookies)
+
+    return cookies
+
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.0'
 
@@ -43,11 +78,10 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         logger.error(ex)
         self.send_error(501, str(ex))
 
-    def _rewrite_path(self, header):
+    def _rewrite_path(self, header, cookies):
         url = ""
-        if "cookie" in [x.lower() for x in header.keys()]:
-            cookie = SimpleCookie(ignore_case_get(header, 'Cookie'))
-            delegator_path = cookie.get('delegator-path', "")
+        if cookies and cookies.get('delegator-path'):
+            delegator_path = cookies.get('delegator-path', "")
             delegator_path = delegator_path and delegator_path.value
         else:
             delegator_path = 'not-set'
@@ -61,7 +95,10 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         logger.debug(f"rewrite path: self.path: {self.path}, delegator_path: {delegator_path}")
 
         path = (self.path or '').split("?")[0]
-        if path in ['/index', '/index/'] or "/__start_cicd" in path or not delegator_path or path.startswith("/cicd/"):
+        if path.startswith("/mailer/") and delegator_path:
+            host = f"{delegator_path}_proxy"
+            url = f'http://{host}{path}'
+        elif path in ['/index', '/index/'] or "/__start_cicd" in path or not delegator_path or path.startswith("/cicd/"):
             path = self.path
             if path.split("/")[1] == 'index':
                 path = '/'
@@ -77,20 +114,23 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         return url
 
     def do_GET(self, body=True):
+        import pudb
+        pudb.set_trace()
         sent = False
         query_params = dict(parse.parse_qsl(parse.urlsplit(self.path).query))
         try:
-            req_header = self.parse_headers()
-            url = self._rewrite_path(req_header)
+            req_header, cookies = self.parse_headers()
+            url = self._rewrite_path(req_header, cookies)
             logger.debug(f"{url}\n{req_header}")
             resp = requests.get(
                 url, headers=req_header, verify=False,
                 allow_redirects=False, params=query_params,
+                cookies={k: v.value for k, v in cookies.items()},
             )
             sent = True
 
             self.send_response(resp.status_code)
-            self.send_resp_headers(resp)
+            self.send_resp_headers(resp, cookies)
             if body:
                 self.wfile.write(resp.content)
 
@@ -103,8 +143,8 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_error(404, 'error trying to proxy')
 
     def do_POST(self, body=True):
-        req_header = self.parse_headers()
-        url = self._rewrite_path(req_header)
+        req_header, cookies = self.parse_headers()
+        url = self._rewrite_path(req_header, cookies)
         sent = False
         try:
             content_len = int(self.headers.get('content-length', 0))
@@ -113,11 +153,12 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             resp = requests.post(
                 url, data=post_body, headers=req_header,
                 verify=False, allow_redirects=False,
+                cookies={k: v.value for k, v in cookies.items()},
             )
             sent = True
 
             self.send_response(resp.status_code)
-            self.send_resp_headers(resp)
+            self.send_resp_headers(resp, cookies)
             if body:
                 self.wfile.write(resp.content)
             return
@@ -133,8 +174,16 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 continue
             line_parts = [o.strip() for o in line.split(':', 1)]
             if len(line_parts) == 2:
+                key = line_parts[0]
+                if key.lower() == 'cookie':
+                    key = 'Cookie'
                 req_header[line_parts[0]] = line_parts[1]
-        return req_header
+
+        cookies = SimpleCookie()
+        if req_header.get('Cookie'):
+            cookies = split_set_cookie(req_header['Cookie'], as_simple_cookie=True)
+
+        return req_header, cookies
 
     def _set_cookies(self, cookie):
         logger.debug(f"Path is: {self.path}")
@@ -148,20 +197,25 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             cookie['delegator-path'] = "not-set"
             cookie['delegator-path']['path'] = '/'
 
-    def send_resp_headers(self, resp):
-        cookie = SimpleCookie()
-        self._set_cookies(cookie)
+    def send_resp_headers(self, resp, cookies):
+        self._set_cookies(cookies)
 
         respheaders = resp.headers
         logger.debug('Response Header')
         for key in respheaders:
             if (key or '').lower() not in [
-                'content-encoding', 'transfer-encoding', 'content-length'
+                'content-encoding', 'transfer-encoding', 'content-length',
+                'set-cookie',
             ]:
                 self.send_header(key, respheaders[key])
         self.send_header('Content-Length', len(resp.content))
-        for morsel in cookie.values():
+
+        for morsel in cookies.values():
             self.send_header("Set-Cookie", morsel.OutputString())
+        if resp.headers.get('set-cookie'):
+            for cookie in split_set_cookie(resp.headers.get('set-cookie')):
+                self.send_header("Set-Cookie", cookie)
+
         self.end_headers()
 
 

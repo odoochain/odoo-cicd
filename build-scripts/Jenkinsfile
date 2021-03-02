@@ -3,6 +3,7 @@ pipeline {
     environment {
       BUILD_SCRIPTS='/opt/odoo-cicd-jenkins/build-scripts'
     }
+    options { disableConcurrentBuilds() }
     stages {
       stage('Instance Kept') {
         steps {
