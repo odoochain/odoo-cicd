@@ -281,7 +281,7 @@ def last_success_full_sha():
         'sha': '',
     })
 
-def _get_jenkins():
+def _get_jenkins(crumb=True):
     # res = jenkins.Jenkins('http://192.168.101.122:8080', username='admin', password='1')
     from jenkinsapi.utils.crumb_requester import CrumbRequester
     from jenkinsapi.jenkins import Jenkins
@@ -295,10 +295,15 @@ def _get_jenkins():
         os.environ["JENKINS_URL"],
         username=os.environ["JENKINS_USER"],
         password=os.environ["JENKINS_PASSWORD"],
-        requester=crumb_requester # https://stackoverflow.com/questions/45199374/remotely-build-specific-jenkins-branch/45200202
+        requester=crumb_requester if crumb else None # https://stackoverflow.com/questions/45199374/remotely-build-specific-jenkins-branch/45200202
     )
     # print(f"Jenkins {res.get_whoami()} and version {res.get_version()}")
     return res
+
+def _get_jenkins_job(branch):
+    jenkins = _get_jenkins()
+    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{branch}"]
+    return job
 
 def _reset_instance_in_db(name):
     info = {
@@ -323,22 +328,6 @@ def trigger_rebuild():
     job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{site['git_branch']}"]
     job.invoke()
     db.updates.remove({'name': site['name']})
-    return jsonify({
-        'result': 'ok',
-    })
-
-@app.route("/instance/destroy")
-def destroy_instance():
-    jenkins = _get_jenkins()
-    instance_name = request.args['name']
-    info = _validate_input({
-        'name': instance_name,
-    })
-    sites = db.sites.find_one(info)
-    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{sites['git_branch']}"]
-    # TODO test if build params work
-    job.invoke(build_params={'ACTION': 'destroy', 'NAME': instance_name})
-    _reset_instance_in_db(instance_name)
     return jsonify({
         'result': 'ok',
     })
@@ -389,6 +378,17 @@ def possible_dumps():
     dump_names = [{'id': x, 'value': _get_value(x)} for x in dump_names]
     return jsonify(dump_names)
 
+@app.route("/data/site/jenkins")
+def site_jenkins():
+    sites = list(db.sites.find())
+    for site in sites:
+        job = _get_jenkins_job(site['git_branch'])
+        if job:
+            last_build = job.get_last_build_or_none()
+            if last_build:
+                site['last_build'] = last_build.get_status()
+    return jsonify(sites)
+
 
 @app.route("/data/sites", methods=["GET", "POST"])
 def data_variants():
@@ -398,7 +398,9 @@ def data_variants():
     if request.args.get('name', None):
         _filter['name'] = request.args['name']
 
-    sites = _format_dates_in_records(list(db.sites.find(_filter)))
+    sites = list(db.sites.find(_filter))
+
+    sites = _format_dates_in_records(sites)
     sites = sorted(sites, key=lambda x: x.get('name'))
 
     for site in sites:
@@ -506,3 +508,76 @@ def show_logs():
     name += '_odoo'
     shell_url = _get_shell_url(["docker", "logs", "-f", name])
     return redirect(shell_url)
+
+@app.route("/debug_instance")
+def debug_instance():
+    name = request.args.get('name')
+    name += '_odoo'
+    # kill existing container and start odoo with debug command
+    containers = docker.containers.list(all=True, filters={'name': [name]})
+    containers.stop()
+    shell_url = _get_shell_url(["docker", "run", name, 'debug.sh'])
+    return redirect(shell_url)
+
+@app.route("/delete")
+def delete_instance():
+    site = db.sites.find_one({'name': request.args['name']})
+    data = {
+        'kill': True
+    }
+    db.sites.update_one(
+        {'_id': site['_id']},
+        {'$set': data},
+        upsert=False
+    )
+
+    # delete docker containers
+    containers = docker.containers.list(all=True, filters={'name': [site['name']]})
+    containers.kill()
+    containers.remove(force=True)
+
+    jenkins = _get_jenkins()
+    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{site['git_branch']}"]
+    job.invoke()
+    db.updates.remove({'name': site['name']})
+    return jsonify({
+        'result': 'ok',
+    })
+
+@app.route("/show_mails")
+def show_mails():
+    name = request.args.get('name')
+    name += '_odoo'
+
+    shell_url = _get_shell_url(["docker", "logs", "-f", name])
+    return redirect(shell_url)
+
+@app.route("/is_running")
+def is_running():
+    name = request.args.get('name')
+    site = db.sites.find_one({'name': name})
+    job = _get_jenkins_job(site['git_branch'])
+    return jsonify({
+        'result': job.is_running(),
+    })
+
+@app.route("/build_log")
+def build_log():
+    name = request.args.get('name')
+    site = db.sites.find_one({'name': name})
+    job = _get_jenkins_job(site['git_branch'])
+    build = job.get_last_build_or_none()
+    return render_template(
+        'log_view.html',
+        output=build.get_console(),
+    )
+
+    #build_result_url = job.get_build_dict()[buildnr]
+    #return redirect(build_result_url)
+    #return redirect(shell_url)
+
+
+
+# job.get_build(x).get_duration().total_seconds()
+# job.get_build(x).get_status()
+# job.get_build(x).stop()

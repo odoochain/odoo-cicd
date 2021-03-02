@@ -2,6 +2,7 @@ import arrow
 from datetime import datetime
 import requests
 from functools import partial
+import shutil
 from pathlib import Path
 import subprocess
 import os
@@ -12,9 +13,13 @@ logging.basicConfig(format=FORMAT)
 logging.getLogger().setLevel(logging.DEBUG)
 logger = logging.getLogger('')  # root handler
 
-def _setup_new_working_path(workspace, instance_name):
+def _get_instance_working_path(workspace, instance_name):
     new_path = Path(workspace / f'cicd_instance_{instance_name}')
     new_path.mkdir(exist_ok=True) # set later False; avoids thresholing
+    return new_path
+
+def _setup_new_working_path(workspace, instance_name):
+    new_path = _get_instance_working_path(workspace, instance_name)
     logger.info(f"Rsyncing {os.getcwd()}/ to {new_path}/")
     subprocess.check_call([
         '/usr/bin/rsync',
@@ -142,6 +147,21 @@ def update_instance(context, instance, dump_name, force_rebuild=False):
         _notify_instance_updated(
             context, instance, (arrow.get() - started).total_seconds(), "", ""
         )
+
+def clear_instance(context, instance):
+    path = _get_instance_working_path(context.workspace, instance)
+    os.chdir(path)
+
+    def e(cmd, needs_result=False):
+        cmd = ["-f", "--project-name", instance['name']] + cmd
+        return _exec(context, cmd, needs_result)
+
+    e(['kill'])
+    e(['drop-db', instance['name']])
+
+    if path.exists():
+        logger.info(f"Removing path {path}")
+        shutil.rmtree(path)
 
 def make_instance(context, instance, use_dump, use_previous_db=False):
     _setup_new_working_path(context.workspace, instance['name'])

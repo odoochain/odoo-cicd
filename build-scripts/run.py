@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from lib.build import make_instance
 from lib.build import update_instance
+from lib.build import clear_instance
 from lib.build import augment_instance
 import logging
 FORMAT = '[%(levelname)s] %(name) -12s %(asctime)s %(message)s'
@@ -73,6 +74,7 @@ def clearflags():
     requests.get(context.cicd_url + "/update/site", params={
         'git_branch': branch,
         'reset-db-at-next-build': False,
+        'kill': False,
     })
 
 
@@ -110,13 +112,19 @@ def build(jira):
     force_rebuild = False
     if record_site:
         record_site = record_site[0]
-        if record_site.get('reset-db-at-next-build'):
-            force_rebuild = True
-        if record_site.get('dump'):
-            dump_name = record_site['dump']
 
-    logger.info(f"FORCE REBUILD: {force_rebuild}")
-    update_instance(context, instance, dump_name, force_rebuild=force_rebuild)
+    if record_site.get('reset-db-at-next-build'):
+        force_rebuild = True
+
+    if record_site.get('dump'):
+        dump_name = record_site['dump']
+
+    if record_site.get('kill'):
+        clear_instance(context, record_site)
+    else:
+        logger.info(f"FORCE REBUILD: {force_rebuild}")
+        update_instance(context, instance, dump_name, force_rebuild=force_rebuild)
+
     clearflags()
 
 

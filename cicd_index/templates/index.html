@@ -60,18 +60,78 @@ span.webix_icon {
         </div>
 
         <script>
+            var update_from_jenkins = null;
+
+            update_from_jenkins = function() {
+
+                webix.ajax().get('/cicd/data/site/jenkins').then(function(res) {
+                    console.log(res.json())
+                    setTimeout(update_from_jenkins, 1000);
+                });
+
+
+            }
+
+            setTimeout(update_from_jenkins, 0);
+
             function show_logs(name) {
                 window.open("/cicd/show_logs?name=" + name);
             }
 
             function debug(name) {
+                window.open("/cicd/debug_instance?name=" + name);
             }
 
             function show_mails(name) {
+                window.open("/cicd/show_mails?name=" + name);
             }
 
             function start_instance(name) {
                 window.open("/cicd/start?name=" + name);
+            }
+
+            function build_log(name) {
+                window.open("/cicd/build_log?name=" + name);
+            }
+
+
+            function delete_instance(name) {
+                var form_reset = webix.ui({
+                    view: "window", 
+                    position: 'center',
+                    modal: true,
+                    head: "Delete Instance",
+                    width: 550,
+                    body: {
+                        view: 'form',
+                        complexData: true,
+                        elements: [
+                            // { view:"combo", name: 'dump', label:"Dump", options: dumps },
+                            { view: 'template', template: "Jenkins will erase this instance."},
+                            {
+                                cols:[
+                                    { view:"button", value:"OK", css:"webix_primary", click: function() { 
+                                            var values = this.getParentView().getFormView().getValues();
+                                            webix.ajax().get('/cicd/trigger/delete', {
+                                                'name': name,
+                                            }).then(function(data) {
+                                                form_reset.hide();
+                                            })
+                                            }
+                                    },
+                                    { view:"button", value:"Cancel", click: function() {
+                                        form_reset.hide();
+                                    }}
+                                ]
+                            }
+                        ],
+                        on: {
+                            'onSubmit': function() {
+                            },
+                        }
+                    }
+                });
+                form_reset.show();
             }
 
             function restart() {
@@ -238,9 +298,11 @@ span.webix_icon {
                             columns:[
                                 { id: 'name', header: 'Name', minWidth: 120},
                                 { id: 'title', header: 'Title', minWidth: 180},
-                                { id: 'update_in_progress', header: 'Building', template: "{common.checkbox()}"},
+                                { id: 'last_build', header: 'Last Build', minWidth: 80},
+                                { id: 'update_in_progress', header: 'Building', template: "{common.checkbox()}", disable: true},
                                 { id: 'updated', header: 'Updated', minWidth: 150,},
                                 { id: 'duration', header: 'Duration [s]'},
+                                { id: 'delete', header: 'Delete', }
                             ],
                         },
                     ]
@@ -253,6 +315,11 @@ span.webix_icon {
                         id: 'site-toolbar',
                         hidden: true,
                         cols: [
+                            { view:"button", id:"build_log", value:"Build Log", width:100, align:"left", click: function() {
+                                var name = $$("table-sites").getSelectedItem().name;
+                                build_log(name);
+
+                            }},
                             { view:"button", id:"settings", value:"Settings", width:100, align:"left", click: settings },
                             { view:"button", id:"restart", value:"Restart", width:100, align:"left", click: restart, },
                             { view:"button", id:"rebuild", value:"Rebuild", width:100, align:"left", click: rebuild, },
