@@ -64,8 +64,19 @@ span.webix_icon {
 
             update_from_jenkins = function() {
 
-                webix.ajax().get('/cicd/data/site/jenkins').then(function(res) {
-                    console.log(res.json())
+                webix.ajax().get('/cicd/data/site/live_values').then(function(res) {
+                    var data = res.json();
+                    var $table = $$("table-sites")
+                    for (i = 0; i < data.length; i++) {
+                        var record = data[i];
+                        var item = $table.getItem(record._id);
+                        for (var key in record) {
+                            if (record.hasOwnProperty(key)) {
+                                item[key] = record[key];
+                            }
+                        }
+                        $table.updateItem(item.id, item);
+                    }
                     setTimeout(update_from_jenkins, 1000);
                 });
 
@@ -276,12 +287,6 @@ span.webix_icon {
                             leftSplit: 0,
                             scrollX: false,
                             on: {
-                                onAfterEditStop: function(state, editor, ignoreUpdate) {
-                                    var data = {};
-                                    data['_id'] = $$("table-branches").getSelectedItem()._id;
-                                    data[editor.column] = state.value;
-                                    webix.ajax().post('/cicd/update/site', data);
-                                },
                                 onSelectChange:function(){
                                     if (!this.getSelectedItem()) {
                                         return;
@@ -300,6 +305,7 @@ span.webix_icon {
                                 { id: 'title', header: 'Title', minWidth: 180},
                                 { id: 'last_build', header: 'Last Build', minWidth: 80},
                                 { id: 'update_in_progress', header: 'Building', template: "{common.checkbox()}", disable: true},
+                                { id: 'docker_state', header: 'Docker', },
                                 { id: 'updated', header: 'Updated', minWidth: 150,},
                                 { id: 'duration', header: 'Duration [s]'},
                                 { id: 'delete', header: 'Delete', }

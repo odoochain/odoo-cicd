@@ -10,9 +10,29 @@
         <script src="https://cdn.webix.com/edge/webix.js" type="text/javascript" charset="utf-8"></script>
         <script src="/cicd/static/app.js" type="text/javascript" charset="utf-8"></script>
     </head>
+    <style>
+        * { margin: 0; padding: 0; }
+        body {
+            color: #fffa29;
+            font-family: monospace;
+            background-color: #161c58;
+        }
+        .build-SUCCESS {
+            color: green;
+        }
+        .build-FAILURE {
+            color: red;
+        }
+
+    </style>
     <body>
+        <h1>Build output of {{name}}</h1>
+        <h2 class='build-{{build.get_status()}}'>State: {{build.get_status()}}</h2>
+        <h2>Duration: {{build.get_duration().total_seconds()}} seconds</h2>
         <pre>
 {{output}}
         </pre>
+        <h2 class='build-{{build.get_status()}}'>State: {{build.get_status()}}</h2>
+        <h2>Duration: {{build.get_duration().total_seconds()}} seconds</h2>
     </body>
 </html>

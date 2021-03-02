@@ -378,7 +378,7 @@ def possible_dumps():
     dump_names = [{'id': x, 'value': _get_value(x)} for x in dump_names]
     return jsonify(dump_names)
 
-@app.route("/data/site/jenkins")
+@app.route("/data/site/live_values")
 def site_jenkins():
     sites = list(db.sites.find())
     for site in sites:
@@ -387,6 +387,9 @@ def site_jenkins():
             last_build = job.get_last_build_or_none()
             if last_build:
                 site['last_build'] = last_build.get_status()
+                site['duration'] = round(last_build.get_duration().total_seconds(), 0)
+            site['update_in_progress'] = job.is_running()
+        site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
     return jsonify(sites)
 
 
@@ -404,7 +407,7 @@ def data_variants():
     sites = sorted(sites, key=lambda x: x.get('name'))
 
     for site in sites:
-        site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
+        site['id'] = site['_id']
 
     return jsonify(sites)
 
@@ -552,15 +555,6 @@ def show_mails():
     shell_url = _get_shell_url(["docker", "logs", "-f", name])
     return redirect(shell_url)
 
-@app.route("/is_running")
-def is_running():
-    name = request.args.get('name')
-    site = db.sites.find_one({'name': name})
-    job = _get_jenkins_job(site['git_branch'])
-    return jsonify({
-        'result': job.is_running(),
-    })
-
 @app.route("/build_log")
 def build_log():
     name = request.args.get('name')
@@ -569,15 +563,10 @@ def build_log():
     build = job.get_last_build_or_none()
     return render_template(
         'log_view.html',
+        name=site['name'],
+        site=site,
+        build=build,
         output=build.get_console(),
     )
 
-    #build_result_url = job.get_build_dict()[buildnr]
-    #return redirect(build_result_url)
-    #return redirect(shell_url)
-
-
-
-# job.get_build(x).get_duration().total_seconds()
-# job.get_build(x).get_status()
 # job.get_build(x).stop()
