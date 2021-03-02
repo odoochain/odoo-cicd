@@ -136,7 +136,7 @@ span.webix_icon {
             }
 
             function show_mails() {
-                window.open("/cicd/show_mails?name=" + current_details);
+                window.open("/cicd/start?initial_path=/mailer/&name=" + current_details);
             }
 
             function start_instance() {
@@ -371,10 +371,10 @@ span.webix_icon {
                             { view:"button", id:"kill", value:"Destroy", width:100, align:"left", click: delete_instance },
                             { view:"button", id:"build_log", value:"Build Log", width:100, align:"left", click: build_log },
                             { view:"button", id:"dump", value:"Dump", width:100, align:"left", click: backup_db },
-                            { view:"button", id: "restart", value:"Restart", width:100, align:"left", click: restart, },
-                            { view:"button", id: "build_again", value:"Build Again", width:100, align:"left", click: build_again, },
-                            { view:"button", id: "rebuild", value:"Rebuild", width:100, align:"left", click: rebuild, },
-                            { view:"button", id: "start", value:"Open UI", width:100, align:"right", click: start_instance },
+                            { view:"button", id:"restart", value:"Restart", width:100, align:"left", click: restart, },
+                            { view:"button", id:"build_again", value:"Build Again", width:100, align:"left", click: build_again, },
+                            { view:"button", id:"rebuild", value:"Rebuild", width:100, align:"left", click: rebuild, },
+                            { view:"button", id:"start", value:"Open UI", width:100, align:"right", click: start_instance },
                             { view:"button", id:"start_mails", value:"Mails", width:100, align:"right", click: show_mails },
                             { view:"button", id:"start_logging", value:"Server Log", width:100, align:"right", click: show_logs },
                             { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: debug },

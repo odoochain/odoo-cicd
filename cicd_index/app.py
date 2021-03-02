@@ -489,7 +489,12 @@ def _start_cicd():
                 "message": f"Please try again. Instance {name} not started within timeout.",
             }, quote_via=urllib.parse.quote_plus))
 
-    response = make_response(render_template('start_cicd.html'))
+    response = make_response(
+        render_template(
+            'start_cicd.html',
+            initial_path=request.args.get('initial_path') or '/web/login'
+        ),
+    )
     response.set_cookie('delegator-path', name)
     return response
 

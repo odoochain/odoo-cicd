@@ -75,8 +75,12 @@ def backup_dump(context, instance, dumpname):
     path = _get_instance_working_path(context.workspace, instance['name'])
     os.chdir(path)
 
+    def e(cmd, needs_result=False):
+        cmd = ["-f", "--project-name", instance['name']] + cmd
+        return _exec(context, cmd, needs_result)
+
     cmd = ["-f", "backup", "odoo-db", dumpname]
-    _exec(context, cmd)
+    e(cmd)
 
 def _make_instance_docker_configs(context, instance):
     instance_name = instance['name']
