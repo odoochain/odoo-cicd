@@ -158,8 +158,9 @@ def update_instance(context, instance, dump_name, force_rebuild=False, at_least_
         if at_least_recompose:
             reload_instance(context, instance)
             logger.info("Restarting odoo...")
-            _exec(context, ["--project-name", instance['name'], "restart", "odoo"])
+            _exec(context, ["--project-name", instance['name'], "restart"])
         _exec(context, ["--project-name", instance['name'], "update", "--no-dangling-check", "--since-git-sha", last_sha['sha']])
+        _exec(context, ["--project-name", instance['name'], "up", "-d"])
         _notify_instance_updated(
             context, instance, (arrow.get() - started).total_seconds(), "", ""
         )
@@ -216,7 +217,6 @@ def make_instance(context, instance, use_dump, use_previous_db=False):
     else:
         logger.info(f"BUILD CONTROL: Resetting DB for {instance['name']}")
         e(["db", "reset"])
-
 
     started = arrow.get()
     e(["update"]) # odoo module updates
