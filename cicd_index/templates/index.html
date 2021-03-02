@@ -86,7 +86,7 @@ span.webix_icon {
             // start live values
             setTimeout(update_from_jenkins, 0);
 
-            function backup_db(name) {
+            function backup_db() {
                 var form_backupdb = webix.ui({
                     view: "window", 
                     position: 'center',
@@ -101,14 +101,16 @@ span.webix_icon {
                             { view: 'text', name: 'dumpname', label: "Dumpname" },
                             {
                                 cols:[
-                                    { view:"button", value:"OK", css:"webix_primary", click: function() { 
+                                    {
+                                        view:"button", value:"OK", css:"webix_primary", click: function() { 
                                             var values = this.getParentView().getFormView().getValues();
                                             webix.ajax().get('/cicd/dump', {
-                                                'name': name,
+                                                'name': current_details,
+                                                'dumpname': values['dumpname'],
                                             }).then(function(data) {
                                                 form_backupdb.hide();
                                             })
-                                            }
+                                        }
                                     },
                                     { view:"button", value:"Cancel", click: function() {
                                         form_backupdb.hide();
@@ -122,30 +124,30 @@ span.webix_icon {
                         }
                     }
                 });
+                form_backupdb.show();
             }
 
-            function show_logs(name) {
-                window.open("/cicd/show_logs?name=" + name);
+            function show_logs() {
+                window.open("/cicd/show_logs?name=" + current_details);
             }
 
-            function debug(name) {
-                window.open("/cicd/debug_instance?name=" + name);
+            function debug() {
+                window.open("/cicd/debug_instance?name=" + current_details);
             }
 
-            function show_mails(name) {
-                window.open("/cicd/show_mails?name=" + name);
+            function show_mails() {
+                window.open("/cicd/show_mails?name=" + current_details);
             }
 
-            function start_instance(name) {
-                window.open("/cicd/start?name=" + name);
+            function start_instance() {
+                window.open("/cicd/start?name=" + current_details);
             }
 
-            function build_log(name) {
-                window.open("/cicd/build_log?name=" + name);
+            function build_log() {
+                window.open("/cicd/build_log?name=" + current_details);
             }
 
-
-            function delete_instance(name) {
+            function delete_instance() {
                 var form_reset = webix.ui({
                     view: "window", 
                     position: 'center',
@@ -163,7 +165,7 @@ span.webix_icon {
                                     { view:"button", value:"OK", css:"webix_primary", click: function() { 
                                             var values = this.getParentView().getFormView().getValues();
                                             webix.ajax().get('/cicd/trigger/delete', {
-                                                'name': name,
+                                                'name': current_details,
                                             }).then(function(data) {
                                                 form_reset.hide();
                                             })
@@ -184,16 +186,20 @@ span.webix_icon {
                 form_reset.show();
             }
 
+            function build_again() {
+                webix.ajax().get("/cicd/build_again?name=" + current_details).then(function(res) {
+                    webix.message("Triggered rebuild in Jenkins", "info");
+                });
+            }
+
             function restart() {
-                var name = $$('table-sites').getSelectedItem().name;
-                webix.message('Restarting ' + name + '. Reporting immediately when done.');
-                webix.ajax().get("/cicd/restart_docker?name=" + name).then(function(res) {
+                webix.message('Restarting docker containers of' + current_details + '. Reporting immediately when done.');
+                webix.ajax().get("/cicd/restart_docker?name=" + current_details).then(function(res) {
                     webix.message("Restarted: " + res.json().containers.join(','), "info");
                 });
             }
             function rebuild() {
-                var name = $$("table-sites").getSelectedItem().name;
-                show_reset_form(name);
+                show_reset_form(current_details);
             }
 
             function settings(){
@@ -216,6 +222,7 @@ span.webix_icon {
                                     { view: "textarea", name: 'note', label:"Note" },
                                     // { view:"text", name: 'limit_instanes', label:"Limit Instances" },
                                     { view: "combo", name: 'dump', label:"Dump", options: dumps, },
+                                    { view: "text", name: 'backup-db', label:"Todo Dump" },
                                     {
                                         cols:[
                                             { view:"button", value:"OK", css:"webix_primary", click: function() { 
@@ -361,38 +368,16 @@ span.webix_icon {
                         hidden: true,
                         cols: [
                             { view:"button", id:"settings", value:"Settings", width:100, align:"left", click: settings },
-                            { view:"button", id:"kill", value:"Destroy", width:100, align:"left", click: function() {
-                                var name = $$("table-sites").getSelectedItem().name;
-                                delete_instance(name);
-                            }},
-
-                            { view:"button", id:"build_log", value:"Build Log", width:100, align:"left", click: function() {
-                                var name = $$("table-sites").getSelectedItem().name;
-                                build_log(name);
-
-                            }},
-                            { view:"button", id:"dump", value:"Dump", width:100, align:"left", click: function() {
-                                var name = $$("table-sites").getSelectedItem().name;
-                                backup_db(name);
-                            }},
-                            { view:"button", id:"restart", value:"Restart", width:100, align:"left", click: restart, },
-                            { view:"button", id:"rebuild", value:"Rebuild", width:100, align:"left", click: rebuild, },
-                            { view:"button", id:"start", value:"Open UI", width:100, align:"right", click: function() { 
-                                var name = $$("table-sites").getSelectedItem().name;
-                                start_instance(name);
-                            }, },
-                            { view:"button", id:"start_mails", value:"Mails", width:100, align:"right", click: function() { 
-                                var name = $$("table-sites").getSelectedItem().name;
-                                show_mails(name);
-                            }, },
-                            { view:"button", id:"start_logging", value:"Server Log", width:100, align:"right", click: function() { 
-                                var name = $$("table-sites").getSelectedItem().name;
-                                show_logs(name);
-                            }, },
-                            { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: function() { 
-                                var name = $$("table-sites").getSelectedItem().name;
-                                debug(name);
-                            }, },
+                            { view:"button", id:"kill", value:"Destroy", width:100, align:"left", click: delete_instance },
+                            { view:"button", id:"build_log", value:"Build Log", width:100, align:"left", click: build_log },
+                            { view:"button", id:"dump", value:"Dump", width:100, align:"left", click: backup_db },
+                            { view:"button", id: "restart", value:"Restart", width:100, align:"left", click: restart, },
+                            { view:"button", id: "build_again", value:"Build Again", width:100, align:"left", click: build_again, },
+                            { view:"button", id: "rebuild", value:"Rebuild", width:100, align:"left", click: rebuild, },
+                            { view:"button", id: "start", value:"Open UI", width:100, align:"right", click: start_instance },
+                            { view:"button", id:"start_mails", value:"Mails", width:100, align:"right", click: show_mails },
+                            { view:"button", id:"start_logging", value:"Server Log", width:100, align:"right", click: show_logs },
+                            { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: debug },
                         ],
                     },
                     {

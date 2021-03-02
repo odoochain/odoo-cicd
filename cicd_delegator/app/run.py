@@ -95,16 +95,16 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         logger.debug(f"rewrite path: self.path: {self.path}, delegator_path: {delegator_path}")
 
         path = (self.path or '').split("?")[0]
-        if path.startswith("/mailer/") and delegator_path:
-            host = f"{delegator_path}_proxy"
-            url = f'http://{host}{path}'
-        elif path in ['/index', '/index/'] or "/__start_cicd" in path or not delegator_path or path.startswith("/cicd/"):
+        if path in ['/index', '/index/'] or "/__start_cicd" in path or not delegator_path or path.startswith("/cicd/"):
             path = self.path
             if path.split("/")[1] == 'index':
                 path = '/'
             else:
                 path = '/' + '/'.join(path.split("/")[2:])
             url = f'{cicd_index_url}{path}'
+        elif path.startswith("/mailer/") and delegator_path:
+            host = f"{delegator_path}_proxy"
+            url = f'http://{host}{path}'
         else:
             host = f"{delegator_path}_proxy"
             path = self.path.replace(f"/{delegator_path}", "")
@@ -114,8 +114,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         return url
 
     def do_GET(self, body=True):
-        import pudb
-        pudb.set_trace()
         sent = False
         query_params = dict(parse.parse_qsl(parse.urlsplit(self.path).query))
         try:

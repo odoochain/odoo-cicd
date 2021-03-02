@@ -313,21 +313,29 @@ def _reset_instance_in_db(name):
     db.sites.remove(info)
     db.updates.remove(info)
 
-@app.route('/trigger/rebuild')
-def trigger_rebuild():
-    site = db.sites.find_one({'name': request.args['name']})
-    data = {
-        'reset-db-at-next-build': True
-    }
+def _set_marker_and_restart(name, settings):
+    site = db.sites.find_one({'name': name})
     db.sites.update_one(
         {'_id': site['_id']},
-        {'$set': data},
+        {'$set': settings},
         upsert=False
     )
 
     jenkins = _get_jenkins()
     job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{site['git_branch']}"]
     job.invoke()
+    return jsonify({
+        'result': 'ok',
+    })
+
+@app.route('/trigger/rebuild')
+def trigger_rebuild():
+    _set_marker_and_restart(
+        request.args['name'],
+        {
+            'reset-db-at-next-build': True
+        }
+    )
     db.updates.remove({'name': site['name']})
     return jsonify({
         'result': 'ok',
@@ -525,14 +533,11 @@ def debug_instance():
 
 @app.route("/delete")
 def delete_instance():
-    site = db.sites.find_one({'name': request.args['name']})
-    data = {
-        'kill': True
-    }
-    db.sites.update_one(
-        {'_id': site['_id']},
-        {'$set': data},
-        upsert=False
+    _set_marker_and_restart(
+        request.args['name'],
+        {
+            'kill': True
+        }
     )
 
     # delete docker containers
@@ -573,10 +578,25 @@ def build_log():
 # job.get_build(x).stop()
 
 @app.route("/dump")
-def backup_db(self):
-    site = db.sites.find_one({'name': request.args['name']})
-    containers = docker.containers.list(all=True, filters={'name': [name]})
+def backup_db():
+    _set_marker_and_restart(
+        request.args.get('name'),
+        {
+            'backup-db': request.args['dumpname'],
+        }
+    )
+    return jsonify({
+        'result': 'ok',
+    })
 
+@app.route("/build_again")
+def build_again():
+    _set_marker_and_restart(
+        request.args.get('name'),
+        {
+            'just-build': True,
+        }
+    )
     return jsonify({
         'result': 'ok',
     })

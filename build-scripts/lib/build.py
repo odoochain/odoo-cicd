@@ -70,6 +70,14 @@ def _notify_instance_updated(context, instance, duration, dump_date, dump_name):
         f"Instance updated {name} in {duration} seconds."
     )
 
+def backup_dump(context, instance, dumpname):
+    logger.info(f"Dumping to {dumpname}")
+    path = _get_instance_working_path(context.workspace, instance['name'])
+    os.chdir(path)
+
+    cmd = ["-f", "backup", "odoo-db", dumpname]
+    _exec(context, cmd)
+
 def _make_instance_docker_configs(context, instance):
     instance_name = instance['name']
     file = context.odoo_settings / f'docker-compose.{instance_name}.yml'
@@ -120,7 +128,7 @@ def augment_instance(context, instance):
     instance['title'] = title
     instance['initiator'] = creator
 
-def update_instance(context, instance, dump_name, force_rebuild=False):
+def update_instance(context, instance, dump_name, force_rebuild=False, at_least_recompose=False):
     logger.info(f"Updating instance {instance['name']}")
     _setup_new_working_path(
         context.workspace,
@@ -143,13 +151,17 @@ def update_instance(context, instance, dump_name, force_rebuild=False):
             'name': instance['name'], 'value': 1
         })
         started = arrow.get()
+        if at_least_recompose:
+            reload_instance(context, instance)
+            logger.info("Restarting odoo...")
+            _exec(context, ["--project-name", instance['name'], "restart", "odoo"])
         _exec(context, ["--project-name", instance['name'], "update", "--no-dangling-check", "--since-git-sha", last_sha['sha']])
         _notify_instance_updated(
             context, instance, (arrow.get() - started).total_seconds(), "", ""
         )
 
 def clear_instance(context, instance):
-    path = _get_instance_working_path(context.workspace, instance)
+    path = _get_instance_working_path(context.workspace, instance['name'])
     os.chdir(path)
 
     def e(cmd, needs_result=False):
@@ -163,6 +175,15 @@ def clear_instance(context, instance):
         logger.info(f"Removing path {path}")
         shutil.rmtree(path)
 
+def reload_instance(context, instance):
+    def e(cmd, needs_result=False):
+        cmd = ["-f", "--project-name", instance['name']] + cmd
+        return _exec(context, cmd, needs_result)
+    logger.info("Reloading...")
+    e(["reload", '-d', instance['name'], '--headless', '--devmode'])
+    logger.info(f"Calling register with branch {instance['git_branch']}")
+    e(["build"]) # build containers; use new pip packages
+
 def make_instance(context, instance, use_dump, use_previous_db=False):
     _setup_new_working_path(context.workspace, instance['name'])
     logger.info(f"BUILD CONTROL: Making Instance for {instance['name']}")
@@ -172,9 +193,7 @@ def make_instance(context, instance, use_dump, use_previous_db=False):
         cmd = ["-f", "--project-name", instance['name']] + cmd
         return _exec(context, cmd, needs_result)
 
-    logger.info("Reloading...")
-    e(["reload", '-d', instance['name'], '--headless', '--devmode'])
-    logger.info(f"Calling register with branch {instance['git_branch']}")
+    reload_instance(context, instance)
 
     if not instance['git_branch']:
         raise Exception("required git branch!")
@@ -194,7 +213,6 @@ def make_instance(context, instance, use_dump, use_previous_db=False):
         logger.info(f"BUILD CONTROL: Resetting DB for {instance['name']}")
         e(["db", "reset"])
 
-    e(["build"]) # build containers; use new pip packages
 
     started = arrow.get()
     e(["update"]) # odoo module updates
