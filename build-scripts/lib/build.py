@@ -99,6 +99,7 @@ networks:
 
     (context.odoo_settings / f'settings.{instance_name}').write_text("""
 DEVMODE=1
+PROJECT_NAME={}
 DUMPS_PATH={}
 RUN_PROXY_PUBLISHED=0
 RUN_ODOO_CRONJOBS=0
@@ -112,6 +113,7 @@ DB_USER={}
 DB_PWD={}
 DB_PORT={}
 """.format(
+        instance_name,
         os.environ['DUMPS_PATH'],
         os.environ['DB_HOST'],
         os.environ['DB_USER'],
