@@ -536,16 +536,31 @@ def debug_instance():
     # kill existing container and start odoo with debug command
     containers = docker.containers.list(all=True, filters={'name': [name]})
     containers = [x for x in containers if x.name == name]
-    print(containers[0].id)
     for container in containers:
         container.stop()
-    shell_url = _get_shell_url(["docker", "run", "-it", container.image.id, '/odoolib/debug.py'])
     shell_url = _get_shell_url([
-        "cd", f"/cicd_workspace/cicd_instance_{site_name}", ";",
-        "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name",
-        site_name, "debug", "odoo"
+        "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
+        "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo", "--command", "/odoolib/debug.py",
     ])
-    print(shell_url)
+    # TODO make safe; no harm on system, probably with ssh authorized_keys
+
+    return redirect(shell_url)
+
+@app.route("/shell_instance")
+def shell_instance():
+    name = request.args.get('name')
+    site_name = name
+    name += '_odoo'
+    # kill existing container and start odoo with debug command
+    containers = docker.containers.list(all=True, filters={'name': [name]})
+    containers = [x for x in containers if x.name == name]
+    for container in containers:
+        container.stop()
+    shell_url = _get_shell_url([
+        "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
+        "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo", "--command", "/odoolib/shell.py",
+    ])
+    # TODO make safe; no harm on system, probably with ssh authorized_keys
 
     return redirect(shell_url)
 

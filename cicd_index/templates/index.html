@@ -143,6 +143,10 @@ span.webix_icon {
                 window.open("/cicd/show_logs?name=" + current_details);
             }
 
+            function shell() {
+                window.open("/cicd/shell_instance?name=" + current_details);
+            }
+
             function debug() {
                 window.open("/cicd/debug_instance?name=" + current_details);
             }
@@ -419,6 +423,7 @@ span.webix_icon {
                             { view:"button", id:"start", value:"Open UI", width:100, align:"right", click: start_instance },
                             { view:"button", id:"start_mails", value:"Mails", width:100, align:"right", click: show_mails },
                             { view:"button", id:"start_logging", value:"Live Log", width:100, align:"right", click: show_logs },
+                            { view:"button", id:"start_shell", value:"Shell", width:100, align:"right", click: shell },
                             { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: debug },
                         ],
                     },

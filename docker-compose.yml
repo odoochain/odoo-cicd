@@ -29,6 +29,7 @@ services:
         JENKINS_URL: ${JENKINS_URL}
         JENKINS_USER: ${JENKINS_USER}
         JENKINS_PASSWORD: ${JENKINS_PASSWORD}
+        WEBSSH_CICD_WORKSPACE: /cicd_workspace
     volumes:
         - ${DUMPS_PATH}:/opt/dumps
         - ./cicd_index:/code
