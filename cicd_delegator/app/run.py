@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 from urllib import parse
 
-cicd_index_url = "http://cicd_index:5000"
+cicd_index_url = os.environ['INDEX_HOST']
 
 FORMAT = '[%(levelname)s] %(name) -12s %(asctime)s %(message)s'
 logging.basicConfig(format=FORMAT)

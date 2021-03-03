@@ -213,14 +213,6 @@ def set_updating():
 
 @app.route("/notify_instance_updating")
 def notify_instance_updating():
-    info = {
-        'name': request.args['name'],
-    }
-    recs = list(db.sites.find({'name': info['name']}).limit(1))
-    if recs:
-        db.sites.update_one({'_id': recs[0]['_id']}, {'$set': {
-            'update_in_progress': True,
-        }}, upsert=False)
 
     return jsonify({
         'result': 'ok',
@@ -252,7 +244,6 @@ def notify_instance_updated():
     db.sites.update_one({'_id': site['_id']}, {'$set': {
         'duration': request.args.get('duration'),
         'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-        'update_in_progress': False,
     }}, upsert=False)
 
     # if there is dump information, then store at site
@@ -341,17 +332,6 @@ def trigger_rebuild():
         'result': 'ok',
     })
 
-@app.route("/restart_docker")
-def restart_docker():
-    name = request.args.get('name')
-    containers = [x for x in docker.containers.list(all=True) if name in x.name]
-    for x in containers:
-        x.restart()
-    return jsonify({
-        'result': 'ok',
-        'containers': [x.name for x in containers],
-    })
-
 def _get_docker_state(name):
     docker.ping()
     containers = docker.containers.list(all=True, filters={'name': [name]})
@@ -417,6 +397,7 @@ def data_variants():
 
     for site in sites:
         site['id'] = site['_id']
+        site['update_in_progress'] = False
 
     return jsonify(sites)
 
@@ -546,6 +527,26 @@ def debug_instance():
 
     return redirect(shell_url)
 
+@app.route("/restart_docker")
+def restart_docker():
+    site_name = request.args.get('name')
+    containers = [x for x in docker.containers.list(all=True) if site_name in x.name]
+    for x in containers:
+        if 'running' in (x.status or '').lower():
+            x.kill()
+
+    shell_url = _get_shell_url([
+        "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
+        "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "restart",
+    ])
+    return redirect(shell_url)
+
+    return jsonify({
+        'result': 'ok',
+        'containers': [x.name for x in containers],
+    })
+
+
 @app.route("/shell_instance")
 def shell_instance():
     name = request.args.get('name')
@@ -556,7 +557,7 @@ def shell_instance():
     containers = [x for x in containers if x.name == name]
     shell_url = _get_shell_url([
         "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
-        "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo", "--command", "/odoolib/shell.py",
+        "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo_debug", "--command", "/odoolib/shell.py",
     ])
     # TODO make safe; no harm on system, probably with ssh authorized_keys
 

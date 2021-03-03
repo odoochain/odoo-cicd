@@ -99,7 +99,7 @@ def build(jira):
     #    return
 
     instance = {
-        'name': f"{branch}",
+        'name': f"{os.environ['CICD_PREFIX']}{branch}",
         'git_sha': sha,
         'git_branch': os.environ['GIT_BRANCH'],
     }

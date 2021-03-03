@@ -210,9 +210,7 @@ span.webix_icon {
 
             function restart() {
                 webix.message('Restarting docker containers of' + current_details + '. Reporting immediately when done.');
-                webix.ajax().get("/cicd/restart_docker?name=" + current_details).then(function(res) {
-                    webix.message("Restarted: " + res.json().containers.join(','), "info");
-                });
+                window.open("/cicd/restart_docker?name=" + current_details);
             }
             function rebuild() {
                 show_reset_form(current_details);
@@ -398,7 +396,7 @@ span.webix_icon {
                                 }
                             },
                             columns:[
-                                { id: 'name', header: 'Name', minWidth: 120},
+                                { id: 'name', header: 'Name', minWidth: 150},
                                 { id: 'title', header: 'Title', minWidth: 180},
                                 { id: 'last_build', header: 'Last Build', minWidth: 80},
                                 { id: 'update_in_progress', header: 'Building', template: "{common.checkbox()}", disable: true},
