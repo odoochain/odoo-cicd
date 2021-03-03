@@ -62,6 +62,17 @@ span.webix_icon {
         <script>
             var update_from_jenkins = null;
 
+            function reload_table_item($table, id, data) {
+                var item = $table.getItem(id);
+                console.log(data);
+                for (var key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        item[key] = data[key];
+                    }
+                }
+                $table.updateItem(item.id, item);
+            }
+
             update_from_jenkins = function() {
 
                 webix.ajax().get('/cicd/data/site/live_values').then(function(res) {
@@ -69,13 +80,7 @@ span.webix_icon {
                     var $table = $$("table-sites")
                     for (i = 0; i < data.length; i++) {
                         var record = data[i];
-                        var item = $table.getItem(record._id);
-                        for (var key in record) {
-                            if (record.hasOwnProperty(key)) {
-                                item[key] = record[key];
-                            }
-                        }
-                        $table.updateItem(item.id, item);
+                        reload_table_item($table, record._id, record);
                     }
                     setTimeout(update_from_jenkins, 1000);
                 });
@@ -128,6 +133,9 @@ span.webix_icon {
             }
 
             function clicked_menu(id) {
+                if (!id) {
+                    return;
+                }
                 window[id]();
             }
 
@@ -224,7 +232,6 @@ span.webix_icon {
                                 elements: [
                                     { view: 'text', name: 'title', label: "Title" },
                                     { view: "textarea", name: 'note', label:"Note" },
-                                    // { view:"text", name: 'limit_instanes', label:"Limit Instances" },
                                     { view: "combo", name: 'dump', label:"Dump", options: dumps, },
                                     { view: "text", name: 'backup-db', label:"Todo Dump" },
                                     {
@@ -233,7 +240,11 @@ span.webix_icon {
                                                 var values = this.getParentView().getFormView().getValues();
                                                 webix.ajax().post('/cicd/update/site', values).then(function() {
                                                     form.hide();
-                                                    reload_table()
+                                                    reload_table_item(
+                                                        $$("table-sites"),
+                                                        $$("table-sites").getSelectedItem()._id,
+                                                        values,
+                                                    )
                                                 });
                                                 }
                                             },
@@ -361,7 +372,7 @@ span.webix_icon {
                             headerRowHeight: 60,
                             rowHeight: 40,
                             select: 'row',
-                            autoConfig: true,
+                            autoConfig: false,
                             url: '/cicd/data/sites',
                             editable: false,
                             data: [],
