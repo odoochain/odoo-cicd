@@ -1,4 +1,5 @@
 CICD_NETWORK_NAME=cicd_xxxxx_net
+CICD_PREFIX=ipeticket_
 CICD_BINDING=0.0.0.0:9991
 CICD_URL=http://127.0.0.1:9991
 CICD_WORKSPACE=/home/cicd/workspace
@@ -15,3 +16,5 @@ DB_HOST=not internal docker host, reachable from outside
 DB_USER=cicd
 DB_PASSWORD=cicd_is_cool
 DB_PORT=5433
+ODOO_SETTINGS=/home/jenkins/.odoo
+REPO_URL=https://git.clear-consulting.de/odoo/customs/ipe
