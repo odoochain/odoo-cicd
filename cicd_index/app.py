@@ -554,8 +554,6 @@ def shell_instance():
     # kill existing container and start odoo with debug command
     containers = docker.containers.list(all=True, filters={'name': [name]})
     containers = [x for x in containers if x.name == name]
-    for container in containers:
-        container.stop()
     shell_url = _get_shell_url([
         "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
         "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo", "--command", "/odoolib/shell.py",
