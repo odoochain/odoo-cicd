@@ -398,6 +398,7 @@ def data_variants():
     for site in sites:
         site['id'] = site['_id']
         site['update_in_progress'] = False
+        site['repo_url'] = f"{os.environ['REPO_URL']}/-/commit/{site['git_sha']}"
 
     return jsonify(sites)
 
