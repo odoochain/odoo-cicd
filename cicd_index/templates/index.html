@@ -325,6 +325,7 @@ span.webix_icon {
         var menu = {
             view: "menu",
             autowidth: true,
+            width: 120,
             type: {
                 subsign: true,
             },
@@ -414,10 +415,10 @@ span.webix_icon {
                         hidden: true,
                         elements: [
                             menu,
-                            { view:"button", id:"build_log", value:"Build Log", width:100, align:"left", click: build_log },
+                            { view:"button", id:"build_log", value:"Last Job Log", width:150, align:"left", click: build_log },
                             { view:"button", id:"start", value:"Open UI", width:100, align:"right", click: start_instance },
                             { view:"button", id:"start_mails", value:"Mails", width:100, align:"right", click: show_mails },
-                            { view:"button", id:"start_logging", value:"Server Log", width:100, align:"right", click: show_logs },
+                            { view:"button", id:"start_logging", value:"Live Log", width:100, align:"right", click: show_logs },
                             { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: debug },
                         ],
                     },
