@@ -101,8 +101,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def _rewrite_path(self, header, cookies):
         url = ""
-        import pudb
-        pudb.set_trace()
         if cookies and cookies.get('delegator-path'):
             delegator_path = cookies.get('delegator-path', "")
             delegator_path = delegator_path and delegator_path.value
@@ -232,8 +230,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', len(resp.content))
 
         if resp.headers.get('set-cookie'):
-            import pudb
-            pudb.set_trace()
             for cookie in split_set_cookie(resp.headers.get('set-cookie')):
                 self.send_header("Set-Cookie", cookie)
 
