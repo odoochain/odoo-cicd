@@ -30,6 +30,10 @@ RUN chmod a+x /root/launch.sh
 
 RUN echo "root:odoo" | chpasswd root
 
+RUN apt install -y python3-pip
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
+
 
 RUN sed -i 's/\#PermitRootLogin\ prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config 
 RUN cat /etc/ssh/sshd_config |grep Permit

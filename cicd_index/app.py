@@ -523,17 +523,30 @@ def _get_shell_url(command):
 def show_logs():
     name = request.args.get('name')
     name += '_odoo'
-    shell_url = _get_shell_url(["docker", "logs", "-f", name])
+    containers = docker.containers.list(all=True, filters={'name': [name]})
+    containers = [x for x in containers if x.name == name]
+    shell_url = _get_shell_url(["docker", "logs", "-f", containers[0].id])
     return redirect(shell_url)
 
 @app.route("/debug_instance")
 def debug_instance():
     name = request.args.get('name')
+    site_name = name
     name += '_odoo'
     # kill existing container and start odoo with debug command
     containers = docker.containers.list(all=True, filters={'name': [name]})
-    containers.stop()
-    shell_url = _get_shell_url(["docker", "run", name, 'debug.sh'])
+    containers = [x for x in containers if x.name == name]
+    print(containers[0].id)
+    for container in containers:
+        container.stop()
+    shell_url = _get_shell_url(["docker", "run", "-it", container.image.id, '/odoolib/debug.py'])
+    shell_url = _get_shell_url([
+        "cd", f"/cicd_workspace/cicd_instance_{site_name}", ";",
+        "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name",
+        site_name, "debug", "odoo"
+    ])
+    print(shell_url)
+
     return redirect(shell_url)
 
 @app.route("/delete")
