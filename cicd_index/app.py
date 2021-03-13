@@ -321,6 +321,7 @@ def _set_marker_and_restart(name, settings):
 
 @app.route('/trigger/rebuild')
 def trigger_rebuild():
+    site = db.sites.find_one({'name': request.args['name']})
     _set_marker_and_restart(
         request.args['name'],
         {

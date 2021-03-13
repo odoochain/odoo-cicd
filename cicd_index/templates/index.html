@@ -114,7 +114,10 @@ span.webix_icon {
                                                 'dumpname': values['dumpname'],
                                             }).then(function(data) {
                                                 form_backupdb.hide();
-                                            })
+                                            }).fail(function(data) {
+                                                alert(data.statusText);
+                                                console.error(data.responseText);
+                                            });
                                         }
                                     },
                                     { view:"button", value:"Cancel", click: function() {
@@ -184,7 +187,10 @@ span.webix_icon {
                                                 'name': current_details,
                                             }).then(function(data) {
                                                 form_reset.hide();
-                                            })
+                                            }).fail(function(data) {
+                                                alert(data.statusText);
+                                                console.error(data.responseText);
+                                            });
                                             }
                                     },
                                     { view:"button", value:"Cancel", click: function() {
@@ -205,6 +211,8 @@ span.webix_icon {
             function build_again() {
                 webix.ajax().get("/cicd/build_again?name=" + current_details).then(function(res) {
                     webix.message("Triggered rebuild in Jenkins", "info");
+                }).fail(function(response) {
+                    webix.message("Error: " + response.statusText, "error");
                 });
             }
 
@@ -278,6 +286,8 @@ span.webix_icon {
                 template.show();
                 $$('site-toolbar').show();
                 current_details = name;
+            }).fail(function(response) {
+                webix.message("Error: " + response.statusText, "error");
             });
         }
         function reload_table() {
@@ -306,7 +316,10 @@ span.webix_icon {
                                             'name': name,
                                         }).then(function(data) {
                                             form_reset.hide();
-                                        })
+                                        }).fail(function(response) {
+                                            alert(response.statusText);
+                                            console.error(response.responseText);
+                                        });
                                         }
                                 },
                                 { view:"button", value:"Cancel", click: function() {
