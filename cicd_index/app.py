@@ -372,14 +372,18 @@ def possible_dumps():
 def site_jenkins():
     sites = list(db.sites.find())
     for site in sites:
-        job = _get_jenkins_job(site['git_branch'])
-        if job:
-            last_build = job.get_last_build_or_none()
-            if last_build:
-                site['last_build'] = last_build.get_status()
-                site['duration'] = round(last_build.get_duration().total_seconds(), 0)
-            site['update_in_progress'] = job.is_running()
-        site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
+        try:
+            job = _get_jenkins_job(site['git_branch'])
+        except Exception as ex:
+            site['last_build'] = f"Error: {ex}"
+        else:
+            if job:
+                last_build = job.get_last_build_or_none()
+                if last_build:
+                    site['last_build'] = last_build.get_status()
+                    site['duration'] = round(last_build.get_duration().total_seconds(), 0)
+                site['update_in_progress'] = job.is_running()
+            site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
     return jsonify(sites)
 
 
