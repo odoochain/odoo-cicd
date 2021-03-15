@@ -196,7 +196,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 key = line_parts[0]
                 if key.lower() == 'cookie':
                     key = 'Cookie'
-                req_header[line_parts[0]] = line_parts[1]
+                req_header[key] = line_parts[1]
 
         cookies = SimpleCookie()
         if req_header.get('Cookie'):
