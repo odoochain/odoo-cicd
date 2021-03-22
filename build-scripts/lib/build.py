@@ -161,7 +161,7 @@ def update_instance(context, instance, dump_name, force_rebuild=False, at_least_
             reload_instance(context, instance)
             logger.info("Restarting odoo...")
             _exec(context, ["--project-name", instance['name'], "restart"])
-        _exec(context, ["--project-name", instance['name'], "update", "--no-dangling-check", "--since-git-sha", last_sha['sha']])
+        _exec(context, ["--project-name", instance['name'], "update", "--no-dangling-check", "--i18n", "--since-git-sha", last_sha['sha']])
         _exec(context, ["--project-name", instance['name'], "up", "-d"])
         _notify_instance_updated(
             context, instance, (arrow.get() - started).total_seconds(), "", ""
