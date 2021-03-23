@@ -169,18 +169,24 @@ def update_instance(context, instance, dump_name, force_rebuild=False, at_least_
 
 def clear_instance(context, instance):
     path = _get_instance_working_path(context.workspace, instance['name'])
-    os.chdir(path)
-
-    def e(cmd, needs_result=False):
-        cmd = ["-f", "--project-name", instance['name']] + cmd
-        return _exec(context, cmd, needs_result)
-
-    e(['kill'])
-    e(['drop-db', instance['name']])
-
     if path.exists():
+        logger.info(f"Changing to: {path}")
+        os.chdir(path)
+
+        def e(cmd, needs_result=False):
+            cmd = ["-f", "--project-name", instance['name']] + cmd
+            return _exec(context, cmd, needs_result)
+
+        logger.info("Trying to kill instance containers")
+        e(['kill'])
+
+        logger.info("Dropping database")
+        e(['drop-db', instance['name']])
+
         logger.info(f"Removing path {path}")
         shutil.rmtree(path)
+
+    requests.post(context.cicd_url + '/notify_deleted_instance', json=instance).raise_for_status()
 
 def reload_instance(context, instance):
     def e(cmd, needs_result=False):

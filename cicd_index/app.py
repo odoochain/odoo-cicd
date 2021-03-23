@@ -569,10 +569,19 @@ def shell_instance():
 
     return redirect(shell_url)
 
-@app.route("/delete")
+@app.route("/notify_deleted_instance", methods=["POST"])
+def notify_deleted_instance():
+    data = dict(request.json)
+    name = data['name']
+    db.sites.remove({'name': name})
+    return jsonify({'result': 'ok'})
+
+@app.route("/trigger/delete")
 def delete_instance():
+    name = request.args.get('name')
+    site = db.sites.find_one({'name': name})
     _set_marker_and_restart(
-        request.args['name'],
+        site['name'],
         {
             'kill': True
         }
@@ -580,8 +589,10 @@ def delete_instance():
 
     # delete docker containers
     containers = docker.containers.list(all=True, filters={'name': [site['name']]})
-    containers.kill()
-    containers.remove(force=True)
+    for container in containers:
+        if container.status == 'running':
+            container.kill()
+        container.remove(force=True)
 
     jenkins = _get_jenkins()
     job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{site['git_branch']}"]
