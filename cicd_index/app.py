@@ -574,6 +574,7 @@ def notify_deleted_instance():
     data = dict(request.json)
     name = data['name']
     db.sites.remove({'name': name})
+    db.updates.remove({'name': name})
     return jsonify({'result': 'ok'})
 
 @app.route("/trigger/delete")
@@ -587,17 +588,9 @@ def delete_instance():
         }
     )
 
-    # delete docker containers
-    containers = docker.containers.list(all=True, filters={'name': [site['name']]})
-    for container in containers:
-        if container.status == 'running':
-            container.kill()
-        container.remove(force=True)
-
     jenkins = _get_jenkins()
     job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{site['git_branch']}"]
     job.invoke()
-    db.updates.remove({'name': site['name']})
     return jsonify({
         'result': 'ok',
     })
@@ -649,3 +642,8 @@ def build_again():
     return jsonify({
         'result': 'ok',
     })
+
+@app.route("/clean_unused_databases")
+def clean_unused_databases():
+    pass
+    

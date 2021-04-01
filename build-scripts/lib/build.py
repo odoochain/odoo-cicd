@@ -1,4 +1,5 @@
 import arrow
+import docker as Docker
 from datetime import datetime
 import requests
 from functools import partial
@@ -178,7 +179,13 @@ def clear_instance(context, instance):
             return _exec(context, cmd, needs_result)
 
         logger.info("Trying to kill instance containers")
-        e(['kill'])
+
+        docker = Docker.from_env()
+        containers = docker.containers.list(all=True, filters={'name': [instance['name']]})
+        for container in containers:
+            if container.status == 'running':
+                container.kill()
+            container.remove(force=True)
 
         logger.info("Dropping database")
         e(['drop-db', instance['name']])
