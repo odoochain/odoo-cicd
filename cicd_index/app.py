@@ -633,10 +633,14 @@ def backup_db():
 
 @app.route("/build_again")
 def build_again():
+    if request.args.get('all') == '1':
+        param_name = 'just-buil-all'
+    else:
+        param_name = 'just-build'
     _set_marker_and_restart(
         request.args.get('name'),
         {
-            'just-build': True,
+            param_name: True,
         }
     )
     return jsonify({
