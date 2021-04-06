@@ -81,6 +81,7 @@ def clearflags():
         'kill': False,
         'backup-db': False,
         'just-build': False,
+        'just-build-all': False,
     })
 
 
@@ -131,7 +132,7 @@ def build(jira):
         backup_dump(context, instance, record_site['backup-db'])
 
     at_least_recompose = False
-    if record_site.get('just-build'):
+    if record_site.get('just-build') or record_site.get('just-build-all'):
         at_least_recompose = True
 
     if record_site.get('kill'):

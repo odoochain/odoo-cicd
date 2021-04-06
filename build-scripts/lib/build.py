@@ -1,4 +1,5 @@
 import arrow
+import docker as Docker
 from datetime import datetime
 import requests
 from functools import partial
@@ -149,7 +150,7 @@ def update_instance(context, instance, dump_name, force_rebuild=False, at_least_
     logger.info(f"Result of asking for last_successful_sha: {last_sha}")
     if not last_sha.get('sha') or force_rebuild:
         logger.info(f"Make new instance: force rebuild: {force_rebuild} / last sha: {last_sha.get('sha')}")
-        make_instance(context, instance, dump_name, use_previous_db=True) # TODO parametrized from jenkins
+        make_instance(context, instance, dump_name)
     else:
         logger.info(f"Updating current instance")
         # mark existing instance as being updated
@@ -161,7 +162,13 @@ def update_instance(context, instance, dump_name, force_rebuild=False, at_least_
             reload_instance(context, instance)
             logger.info("Restarting odoo...")
             _exec(context, ["--project-name", instance['name'], "restart"])
-        _exec(context, ["--project-name", instance['name'], "update", "--no-dangling-check", "--i18n", "--since-git-sha", last_sha['sha']])
+
+        if instance.get('just-build-all'):
+            params = ["update", "--no-dangling-check", "--i18n"]
+        else:
+            params = ["update", "--no-dangling-check", "--since-git-sha", last_sha['sha'], "--i18n"]
+
+        _exec(context, ["--project-name", instance['name']] + params)
         _exec(context, ["--project-name", instance['name'], "up", "-d"])
         _notify_instance_updated(
             context, instance, (arrow.get() - started).total_seconds(), "", ""
@@ -169,18 +176,30 @@ def update_instance(context, instance, dump_name, force_rebuild=False, at_least_
 
 def clear_instance(context, instance):
     path = _get_instance_working_path(context.workspace, instance['name'])
-    os.chdir(path)
-
-    def e(cmd, needs_result=False):
-        cmd = ["-f", "--project-name", instance['name']] + cmd
-        return _exec(context, cmd, needs_result)
-
-    e(['kill'])
-    e(['drop-db', instance['name']])
-
     if path.exists():
+        logger.info(f"Changing to: {path}")
+        os.chdir(path)
+
+        def e(cmd, needs_result=False):
+            cmd = ["-f", "--project-name", instance['name']] + cmd
+            return _exec(context, cmd, needs_result)
+
+        logger.info("Trying to kill instance containers")
+
+        docker = Docker.from_env()
+        containers = docker.containers.list(all=True, filters={'name': [instance['name']]})
+        for container in containers:
+            if container.status == 'running':
+                container.kill()
+            container.remove(force=True)
+
+        logger.info("Dropping database")
+        e(['drop-db', instance['name']])
+
         logger.info(f"Removing path {path}")
         shutil.rmtree(path)
+
+    requests.post(context.cicd_url + '/notify_deleted_instance', json=instance).raise_for_status()
 
 def reload_instance(context, instance):
     def e(cmd, needs_result=False):
@@ -191,7 +210,7 @@ def reload_instance(context, instance):
     logger.info(f"Calling register with branch {instance['git_branch']}")
     e(["build"]) # build containers; use new pip packages
 
-def make_instance(context, instance, use_dump, use_previous_db=False):
+def make_instance(context, instance, use_dump):
     _setup_new_working_path(context.workspace, instance['name'])
     logger.info(f"BUILD CONTROL: Making Instance for {instance['name']}")
     _make_instance_docker_configs(context, instance)

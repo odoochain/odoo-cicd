@@ -569,24 +569,28 @@ def shell_instance():
 
     return redirect(shell_url)
 
-@app.route("/delete")
+@app.route("/notify_deleted_instance", methods=["POST"])
+def notify_deleted_instance():
+    data = dict(request.json)
+    name = data['name']
+    db.sites.remove({'name': name})
+    db.updates.remove({'name': name})
+    return jsonify({'result': 'ok'})
+
+@app.route("/trigger/delete")
 def delete_instance():
+    name = request.args.get('name')
+    site = db.sites.find_one({'name': name})
     _set_marker_and_restart(
-        request.args['name'],
+        site['name'],
         {
             'kill': True
         }
     )
 
-    # delete docker containers
-    containers = docker.containers.list(all=True, filters={'name': [site['name']]})
-    containers.kill()
-    containers.remove(force=True)
-
     jenkins = _get_jenkins()
     job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{site['git_branch']}"]
     job.invoke()
-    db.updates.remove({'name': site['name']})
     return jsonify({
         'result': 'ok',
     })
@@ -629,12 +633,21 @@ def backup_db():
 
 @app.route("/build_again")
 def build_again():
+    if request.args.get('all') == '1':
+        param_name = 'just-buil-all'
+    else:
+        param_name = 'just-build'
     _set_marker_and_restart(
         request.args.get('name'),
         {
-            'just-build': True,
+            param_name: True,
         }
     )
     return jsonify({
         'result': 'ok',
     })
+
+@app.route("/clean_unused_databases")
+def clean_unused_databases():
+    pass
+    
