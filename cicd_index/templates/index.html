@@ -8,7 +8,6 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
         <link rel="stylesheet" href="https://cdn.webix.com/edge/webix.css" type="text/css" charset="utf-8">
         <script src="https://cdn.webix.com/edge/webix.js" type="text/javascript" charset="utf-8"></script>
-        <script src="/cicd/static/app.js" type="text/javascript" charset="utf-8"></script>
     </head>
     <style>
 span.webix_icon {
@@ -166,7 +165,12 @@ span.webix_icon {
                 window.open("/cicd/build_log?name=" + current_details);
             }
 
-            function delete_unused_databases() {
+            function delete_unused() {
+                webix.ajax().get("/cicd/cleanup").then(function(res) {
+                    webix.message("Cleanup done", "info");
+                }).fail(function(response) {
+                    webix.message("Error: " + response.statusText, "error");
+                });
             }
 
             function delete_instance() {
@@ -375,7 +379,7 @@ span.webix_icon {
                                 { view:"button", id:"build_again_all", value:"Update all modules" },
                                 { view:"button", id:"rebuild", value:"Rebuild from Dump" },
                                 { view:"button", id:"delete_instance", value:"Destroy", click: delete_instance },
-                                { view:"button", id:"delete_unused_databases", value:"Delete unused databases", click: delete_unused_databases },
+                                { view:"button", id:"delete_unused", value:"Spring Clean", click: delete_unused},
                             ]
                         },
                         { view:"button", id:"settings", value:"Settings", click: function() {

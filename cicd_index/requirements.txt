@@ -7,3 +7,5 @@ docker
 croniter
 python-jenkins
 jenkinsapi
+psycopg2-binary
+humanize

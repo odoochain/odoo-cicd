@@ -31,9 +31,9 @@ services:
         WEBSSH_CICD_WORKSPACE: /cicd_workspace
     volumes:
         - ${DUMPS_PATH}:/opt/dumps
+        - ${CICD_WORKSPACE}:/cicd_workspace
         - ./cicd_index:/code
         - /var/run/docker.sock:/var/run/docker.sock
-          # - /var/lib/jenkins/workspace:/jenkins_workspaces
   cicd_postgres:
     image: postgres:12
     restart: 'unless-stopped'

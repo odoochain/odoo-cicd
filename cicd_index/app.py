@@ -8,6 +8,7 @@ from flask import redirect
 from operator import itemgetter
 import docker as Docker
 import arrow
+import humanize
 import subprocess
 from flask import jsonify
 from flask import make_response
@@ -25,6 +26,7 @@ import threading
 import logging
 # import jenkins
 import urllib
+import psycopg2
 
 
 from pymongo import MongoClient
@@ -617,8 +619,6 @@ def build_log():
         output=build.get_console(),
     )
 
-# job.get_build(x).stop()
-
 @app.route("/dump")
 def backup_db():
     _set_marker_and_restart(
@@ -647,7 +647,68 @@ def build_again():
         'result': 'ok',
     })
 
-@app.route("/clean_unused_databases")
-def clean_unused_databases():
-    pass
-    
+def _get_db_conn():
+    conn = psycopg2.connect(
+        host=os.environ['DB_HOST'],
+        port=int(os.environ['DB_PORT']),
+        user=os.environ['DB_USER'],
+        password=os.environ['DB_PASSWORD'],
+        dbname="template1",
+    )
+    conn.autocommit = True
+    return conn
+
+@app.route("/cleanup")
+def cleanup():
+    conn = _get_db_conn()
+    try:
+        cr = conn.cursor()
+
+        cr.execute("""
+            SELECT d.datname as "Name"
+            FROM pg_catalog.pg_database d
+            ORDER BY 1;
+        """)
+
+        dbnames = [x[0] for x in cr.fetchall()]
+
+        sites = set([x['name'] for x in db.sites.find({})])
+        for dbname in dbnames:
+            if dbname.startswith('template') or dbname == 'postgres':
+                continue
+            if dbname not in sites:
+                # Version 13:
+                # DROP DATABASE mydb WITH (FORCE);
+
+                cr.execute(f"ALTER DATABASE {dbname} CONNECTION LIMIT 0;")
+                cr.execute("""
+                    SELECT pg_terminate_backend(pid)
+                    FROM pg_stat_activity
+                    WHERE datname = %s;
+                """, (dbname,))
+                cr.execute(f"DROP DATABASE {dbname}")
+
+        # Drop also old sourcecodes
+        for dir in Path("/cicd_workspace").glob("cicd_instance_*"):
+            instance_name = dir.name[len("cicd_instance_"):]
+            if instance_name not in sites:
+                shutil.rmtree(dir)
+
+        # remove artefacts from ~/.odoo/
+        os.system("docker system prune -f -a")
+
+    finally:
+        cr.close()
+        conn.close()
+
+    return jsonify({'result': 'ok'})
+
+@app.route("/get_free_resources")
+def get_free_resources():
+    return [
+        {
+            'name': '/',
+            'used': '98',
+            'free': humanize.natural_size(100000),
+        }
+    ]
