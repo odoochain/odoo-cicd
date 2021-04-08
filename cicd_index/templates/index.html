@@ -196,14 +196,17 @@ span.webix_icon {
                         complexData: true,
                         elements: [
                             // { view:"combo", name: 'dump', label:"Dump", options: dumps },
-                            { view: 'template', template: "Jenkins will erase this instance."},
+                            { view: 'template', template: "Going to erase this instance."},
                             {
                                 cols:[
                                     { view:"button", value:"OK", css:"webix_primary", click: function() { 
                                             var values = this.getParentView().getFormView().getValues();
-                                            webix.ajax().get('/cicd/trigger/delete', {
+                                            form_reset.hide();
+                                            webix.message("Deleting in Background", "info");
+                                            webix.ajax().get('/cicd/delete', {
                                                 'name': current_details,
                                             }).then(function(data) {
+                                                webix.message("Instance erased: " + current_details, "info");
                                                 form_reset.hide();
                                             }).fail(function(data) {
                                                 alert(data.statusText);

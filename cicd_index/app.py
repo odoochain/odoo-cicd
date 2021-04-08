@@ -634,7 +634,7 @@ def _get_db_conn():
     conn.autocommit = True
     return conn
 
-@app.route("/trigger/delete")
+@app.route("/delete")
 def delete_instance():
     name = request.args.get('name')
     site = db.sites.find_one({'name': name})
@@ -667,7 +667,7 @@ def _delete_dockercontainers(name):
     
 def _delete_sourcecode(name):
 
-    path = Path("/cicd_workspace") / f"cicd_instance_name"
+    path = Path("/cicd_workspace") / f"cicd_instance_{name}"
     if not path.exists():
         return
     shutil.rmtree(path)
@@ -675,6 +675,9 @@ def _delete_sourcecode(name):
 def _drop_db(cr, dbname):
     # Version 13:
     # DROP DATABASE mydb WITH (FORCE);
+    dbnames = _get_all_databases(cr)
+    if dbname not in dbnames:
+        return
     cr.execute(f"ALTER DATABASE {dbname} CONNECTION LIMIT 0;")
     cr.execute("""
         SELECT pg_terminate_backend(pid)
@@ -683,6 +686,15 @@ def _drop_db(cr, dbname):
     """, (dbname,))
     cr.execute(f"DROP DATABASE {dbname}")
 
+def _get_all_databases(cr):
+    cr.execute("""
+        SELECT d.datname as "Name"
+        FROM pg_catalog.pg_database d
+        ORDER BY 1;
+    """)
+
+    dbnames = [x[0] for x in cr.fetchall()]
+    return dbnames
 
 @app.route("/cleanup")
 def cleanup():
@@ -694,13 +706,7 @@ def cleanup():
     try:
         cr = conn.cursor()
 
-        cr.execute("""
-            SELECT d.datname as "Name"
-            FROM pg_catalog.pg_database d
-            ORDER BY 1;
-        """)
-
-        dbnames = [x[0] for x in cr.fetchall()]
+        dbnames = _get_all_databases(cr)
 
         sites = set([x['name'] for x in db.sites.find({})])
         for dbname in dbnames:
