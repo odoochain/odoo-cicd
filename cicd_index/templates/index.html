@@ -87,8 +87,19 @@ span.webix_icon {
 
             }
 
+            update_resources = function() {
+
+                webix.ajax().get('/cicd/get_resources').then(function(res) {
+                    var $template = $$('resources-view');
+                    $("div#resources").html($(res.text()));
+                    setTimeout(update_from_jenkins, 30000);
+                });
+
+            }
+
             // start live values
             setTimeout(update_from_jenkins, 0);
+            setTimeout(update_resources, 0);
 
             function backup_db() {
                 var form_backupdb = webix.ui({
@@ -404,6 +415,12 @@ span.webix_icon {
                             type: "header",
                             css: "webix_dark",
                             template: "CICD Feature Branches"
+                        },
+                        {
+                            id: "resources-view",
+                            view: "template",
+                            type: "header",
+                            template: "<div id='resources'></div>"
                         },
                         {
                             id: 'table-sites',

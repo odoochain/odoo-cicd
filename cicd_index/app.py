@@ -1,3 +1,4 @@
+#TODO clean source not only in workspace
 #TODO label in containers per project
 import base64
 import shutil
@@ -27,6 +28,7 @@ import logging
 # import jenkins
 import urllib
 import psycopg2
+
 
 
 from pymongo import MongoClient
@@ -571,32 +573,6 @@ def shell_instance():
 
     return redirect(shell_url)
 
-@app.route("/notify_deleted_instance", methods=["POST"])
-def notify_deleted_instance():
-    data = dict(request.json)
-    name = data['name']
-    db.sites.remove({'name': name})
-    db.updates.remove({'name': name})
-    return jsonify({'result': 'ok'})
-
-@app.route("/trigger/delete")
-def delete_instance():
-    name = request.args.get('name')
-    site = db.sites.find_one({'name': name})
-    _set_marker_and_restart(
-        site['name'],
-        {
-            'kill': True
-        }
-    )
-
-    jenkins = _get_jenkins()
-    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{site['git_branch']}"]
-    job.invoke()
-    return jsonify({
-        'result': 'ok',
-    })
-
 @app.route("/show_mails")
 def show_mails():
     name = request.args.get('name')
@@ -658,8 +634,62 @@ def _get_db_conn():
     conn.autocommit = True
     return conn
 
+@app.route("/trigger/delete")
+def delete_instance():
+    name = request.args.get('name')
+    site = db.sites.find_one({'name': name})
+
+    _delete_sourcecode(name)
+
+    _delete_dockercontainers(name)
+
+    conn = _get_db_conn()
+    try:
+        cr = conn.cursor()
+        _drop_db(cr, name)
+    finally:
+        cr.close()
+        conn.close()
+        
+    db.sites.remove({'name': name})
+    db.updates.remove({'name': name})
+
+    return jsonify({
+        'result': 'ok',
+    })
+
+def _delete_dockercontainers(name):
+    containers = docker.containers.list(all=True, filters={'name': [name]})
+    for container in containers:
+        if container.status == 'running':
+            container.kill()
+        container.remove(force=True)
+    
+def _delete_sourcecode(name):
+
+    path = Path("/cicd_workspace") / f"cicd_instance_name"
+    if not path.exists():
+        return
+    shutil.rmtree(path)
+
+def _drop_db(cr, dbname):
+    # Version 13:
+    # DROP DATABASE mydb WITH (FORCE);
+    cr.execute(f"ALTER DATABASE {dbname} CONNECTION LIMIT 0;")
+    cr.execute("""
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE datname = %s;
+    """, (dbname,))
+    cr.execute(f"DROP DATABASE {dbname}")
+
+
 @app.route("/cleanup")
 def cleanup():
+    """
+    Removes all unused source directories, databases
+    and does a docker system prune.
+    """
     conn = _get_db_conn()
     try:
         cr = conn.cursor()
@@ -677,22 +707,14 @@ def cleanup():
             if dbname.startswith('template') or dbname == 'postgres':
                 continue
             if dbname not in sites:
-                # Version 13:
-                # DROP DATABASE mydb WITH (FORCE);
 
-                cr.execute(f"ALTER DATABASE {dbname} CONNECTION LIMIT 0;")
-                cr.execute("""
-                    SELECT pg_terminate_backend(pid)
-                    FROM pg_stat_activity
-                    WHERE datname = %s;
-                """, (dbname,))
-                cr.execute(f"DROP DATABASE {dbname}")
+                _drop_db(cr, dbname)
 
         # Drop also old sourcecodes
         for dir in Path("/cicd_workspace").glob("cicd_instance_*"):
             instance_name = dir.name[len("cicd_instance_"):]
             if instance_name not in sites:
-                shutil.rmtree(dir)
+                _delete_sourcecode(instance_name)
 
         # remove artefacts from ~/.odoo/
         os.system("docker system prune -f -a")
@@ -703,12 +725,22 @@ def cleanup():
 
     return jsonify({'result': 'ok'})
 
-@app.route("/get_free_resources")
+@app.route("/get_resources")
 def get_free_resources():
-    return [
-        {
-            'name': '/',
-            'used': '98',
-            'free': humanize.natural_size(100000),
+    return render_template(
+        'resources.html',
+        resources=_get_resources(),
+    )
+
+def _get_resources():
+    for disk in Path("/display_resources").glob("*"):
+        total, used, free = shutil.disk_usage(disk)
+        yield {
+            'name': disk.name,
+            'total': total // (2**30),
+            'used': used // (2**30),
+            'free': free // (2**30),
+            'used_percent': round(used / total * 100),
         }
-    ]
+
+    pass
