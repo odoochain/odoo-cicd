@@ -36,6 +36,9 @@ def _export_git_values():
     os.environ['GIT_AUTHOR_NAME'] = g("%an")
     os.environ['GIT_DESC'] = g("%s")
     os.environ['GIT_SHA'] = g("%H")
+    if not os.getenv("GIT_BRANCH"):
+        if os.getenv("BRANCH_NAME"):
+            os.environ['GIT_BRANCH'] = os.environ['BRANCH_NAME']
 
 
 # -----------------------------------------------------------------
