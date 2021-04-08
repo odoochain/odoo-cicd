@@ -3,6 +3,8 @@
 Resources used:
 {% for res in resources %}
 
-{{ res['name'] }}: {{ res['used_percent'] }}% 
+    <span style="color: {{ res['color'] }};">
+    {{ res['name'] }}: {{ res['used_percent'] }}% 
+    </span>
 {% endfor %}
 </div>

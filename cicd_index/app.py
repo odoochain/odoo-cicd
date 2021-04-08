@@ -747,6 +747,7 @@ def _get_resources():
             'used': used // (2**30),
             'free': free // (2**30),
             'used_percent': round(used / total * 100),
+            'color': 'green' if round(used / total * 100) < 80 else 'red',
         }
 
     pass
