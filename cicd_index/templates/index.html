@@ -8,7 +8,6 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
         <link rel="stylesheet" href="https://cdn.webix.com/edge/webix.css" type="text/css" charset="utf-8">
         <script src="https://cdn.webix.com/edge/webix.js" type="text/javascript" charset="utf-8"></script>
-        <script src="/cicd/static/app.js" type="text/javascript" charset="utf-8"></script>
     </head>
     <style>
 span.webix_icon {
@@ -88,8 +87,19 @@ span.webix_icon {
 
             }
 
+            update_resources = function() {
+
+                webix.ajax().get('/cicd/get_resources').then(function(res) {
+                    var $template = $$('resources-view');
+                    $("div#resources").html($(res.text()));
+                    setTimeout(update_from_jenkins, 30000);
+                });
+
+            }
+
             // start live values
             setTimeout(update_from_jenkins, 0);
+            setTimeout(update_resources, 0);
 
             function backup_db() {
                 var form_backupdb = webix.ui({
@@ -166,6 +176,14 @@ span.webix_icon {
                 window.open("/cicd/build_log?name=" + current_details);
             }
 
+            function delete_unused() {
+                webix.ajax().get("/cicd/cleanup").then(function(res) {
+                    webix.message("Cleanup done", "info");
+                }).fail(function(response) {
+                    webix.message("Error: " + response.statusText, "error");
+                });
+            }
+
             function delete_instance() {
                 var form_reset = webix.ui({
                     view: "window", 
@@ -178,14 +196,17 @@ span.webix_icon {
                         complexData: true,
                         elements: [
                             // { view:"combo", name: 'dump', label:"Dump", options: dumps },
-                            { view: 'template', template: "Jenkins will erase this instance."},
+                            { view: 'template', template: "Going to erase this instance."},
                             {
                                 cols:[
                                     { view:"button", value:"OK", css:"webix_primary", click: function() { 
                                             var values = this.getParentView().getFormView().getValues();
-                                            webix.ajax().get('/cicd/trigger/delete', {
+                                            form_reset.hide();
+                                            webix.message("Deleting in Background", "info");
+                                            webix.ajax().get('/cicd/delete', {
                                                 'name': current_details,
                                             }).then(function(data) {
+                                                webix.message("Instance erased: " + current_details, "info");
                                                 form_reset.hide();
                                             }).fail(function(data) {
                                                 alert(data.statusText);
@@ -208,12 +229,27 @@ span.webix_icon {
                 form_reset.show();
             }
 
-            function build_again() {
-                webix.ajax().get("/cicd/build_again?name=" + current_details).then(function(res) {
+            function _build_again(do_all) {
+                var url = "/cicd/build_again"
+                if (do_all) {
+                    do_all = '1';
+                } else {
+                    do_all = '0'
+                }
+
+                webix.ajax().get("/cicd/build_again?all=" + do_all + "&name=" + current_details).then(function(res) {
                     webix.message("Triggered rebuild in Jenkins", "info");
                 }).fail(function(response) {
                     webix.message("Error: " + response.statusText, "error");
                 });
+            }
+
+            function build_again() {
+                _build_again(false);
+            }
+
+            function build_again_all() {
+                _build_again(true);
             }
 
             function restart() {
@@ -354,8 +390,10 @@ span.webix_icon {
                             { view:"menu", id: "build_submenu", value: "Lifecycle", autowidth: true, config: { on: { onItemClick: clicked_menu}}, data: [
                                 { view:"button", id:"restart", value:"Restart Docker Containers"},
                                 { view:"button", id:"build_again", value:"Repeat last build" },
+                                { view:"button", id:"build_again_all", value:"Update all modules" },
                                 { view:"button", id:"rebuild", value:"Rebuild from Dump" },
                                 { view:"button", id:"delete_instance", value:"Destroy", click: delete_instance },
+                                { view:"button", id:"delete_unused", value:"Spring Clean", click: delete_unused},
                             ]
                         },
                         { view:"button", id:"settings", value:"Settings", click: function() {
@@ -380,6 +418,12 @@ span.webix_icon {
                             type: "header",
                             css: "webix_dark",
                             template: "CICD Feature Branches"
+                        },
+                        {
+                            id: "resources-view",
+                            view: "template",
+                            type: "header",
+                            template: "<div id='resources'></div>"
                         },
                         {
                             id: 'table-sites',

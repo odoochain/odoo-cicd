@@ -18,3 +18,4 @@ DB_PASSWORD=cicd_is_cool
 DB_PORT=5433
 ODOO_SETTINGS=/home/jenkins/.odoo
 REPO_URL=https://git.clear-consulting.de/odoo/customs/ipe
+DISK_RESOURCES=/,/var/lib/docker

@@ -1,3 +1,4 @@
+#TODO clean source not only in workspace
 #TODO label in containers per project
 import base64
 import shutil
@@ -8,6 +9,7 @@ from flask import redirect
 from operator import itemgetter
 import docker as Docker
 import arrow
+import humanize
 import subprocess
 from flask import jsonify
 from flask import make_response
@@ -25,6 +27,8 @@ import threading
 import logging
 # import jenkins
 import urllib
+import psycopg2
+
 
 
 from pymongo import MongoClient
@@ -569,28 +573,6 @@ def shell_instance():
 
     return redirect(shell_url)
 
-@app.route("/delete")
-def delete_instance():
-    _set_marker_and_restart(
-        request.args['name'],
-        {
-            'kill': True
-        }
-    )
-
-    # delete docker containers
-    containers = docker.containers.list(all=True, filters={'name': [site['name']]})
-    containers.kill()
-    containers.remove(force=True)
-
-    jenkins = _get_jenkins()
-    job = jenkins[f"{os.environ['JENKINS_JOB_MULTIBRANCH']}/{site['git_branch']}"]
-    job.invoke()
-    db.updates.remove({'name': site['name']})
-    return jsonify({
-        'result': 'ok',
-    })
-
 @app.route("/show_mails")
 def show_mails():
     name = request.args.get('name')
@@ -613,8 +595,6 @@ def build_log():
         output=build.get_console(),
     )
 
-# job.get_build(x).stop()
-
 @app.route("/dump")
 def backup_db():
     _set_marker_and_restart(
@@ -629,12 +609,145 @@ def backup_db():
 
 @app.route("/build_again")
 def build_again():
+    if request.args.get('all') == '1':
+        param_name = 'just-buil-all'
+    else:
+        param_name = 'just-build'
     _set_marker_and_restart(
         request.args.get('name'),
         {
-            'just-build': True,
+            param_name: True,
         }
     )
     return jsonify({
         'result': 'ok',
     })
+
+def _get_db_conn():
+    conn = psycopg2.connect(
+        host=os.environ['DB_HOST'],
+        port=int(os.environ['DB_PORT']),
+        user=os.environ['DB_USER'],
+        password=os.environ['DB_PASSWORD'],
+        dbname="template1",
+    )
+    conn.autocommit = True
+    return conn
+
+@app.route("/delete")
+def delete_instance():
+    name = request.args.get('name')
+    site = db.sites.find_one({'name': name})
+
+    _delete_sourcecode(name)
+
+    _delete_dockercontainers(name)
+
+    conn = _get_db_conn()
+    try:
+        cr = conn.cursor()
+        _drop_db(cr, name)
+    finally:
+        cr.close()
+        conn.close()
+        
+    db.sites.remove({'name': name})
+    db.updates.remove({'name': name})
+
+    return jsonify({
+        'result': 'ok',
+    })
+
+def _delete_dockercontainers(name):
+    containers = docker.containers.list(all=True, filters={'name': [name]})
+    for container in containers:
+        if container.status == 'running':
+            container.kill()
+        container.remove(force=True)
+    
+def _delete_sourcecode(name):
+
+    path = Path("/cicd_workspace") / f"cicd_instance_{name}"
+    if not path.exists():
+        return
+    shutil.rmtree(path)
+
+def _drop_db(cr, dbname):
+    # Version 13:
+    # DROP DATABASE mydb WITH (FORCE);
+    dbnames = _get_all_databases(cr)
+    if dbname not in dbnames:
+        return
+    cr.execute(f"ALTER DATABASE {dbname} CONNECTION LIMIT 0;")
+    cr.execute("""
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE datname = %s;
+    """, (dbname,))
+    cr.execute(f"DROP DATABASE {dbname}")
+
+def _get_all_databases(cr):
+    cr.execute("""
+        SELECT d.datname as "Name"
+        FROM pg_catalog.pg_database d
+        ORDER BY 1;
+    """)
+
+    dbnames = [x[0] for x in cr.fetchall()]
+    return dbnames
+
+@app.route("/cleanup")
+def cleanup():
+    """
+    Removes all unused source directories, databases
+    and does a docker system prune.
+    """
+    conn = _get_db_conn()
+    try:
+        cr = conn.cursor()
+
+        dbnames = _get_all_databases(cr)
+
+        sites = set([x['name'] for x in db.sites.find({})])
+        for dbname in dbnames:
+            if dbname.startswith('template') or dbname == 'postgres':
+                continue
+            if dbname not in sites:
+
+                _drop_db(cr, dbname)
+
+        # Drop also old sourcecodes
+        for dir in Path("/cicd_workspace").glob("cicd_instance_*"):
+            instance_name = dir.name[len("cicd_instance_"):]
+            if instance_name not in sites:
+                _delete_sourcecode(instance_name)
+
+        # remove artefacts from ~/.odoo/
+        os.system("docker system prune -f -a")
+
+    finally:
+        cr.close()
+        conn.close()
+
+    return jsonify({'result': 'ok'})
+
+@app.route("/get_resources")
+def get_free_resources():
+    return render_template(
+        'resources.html',
+        resources=_get_resources(),
+    )
+
+def _get_resources():
+    for disk in Path("/display_resources").glob("*"):
+        total, used, free = shutil.disk_usage(disk)
+        yield {
+            'name': disk.name,
+            'total': total // (2**30),
+            'used': used // (2**30),
+            'free': free // (2**30),
+            'used_percent': round(used / total * 100),
+            'color': 'green' if round(used / total * 100) < 80 else 'red',
+        }
+
+    pass

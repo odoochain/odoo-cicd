@@ -1,0 +1,10 @@
+<div>
+
+Resources used:
+{% for res in resources %}
+
+    <span style="color: {{ res['color'] }};">
+    {{ res['name'] }}: {{ res['used_percent'] }}% 
+    </span>
+{% endfor %}
+</div>

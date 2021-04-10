@@ -15,7 +15,6 @@ from datetime import datetime
 from lib.build import make_instance
 from lib.build import backup_dump
 from lib.build import update_instance
-from lib.build import clear_instance
 from lib.build import augment_instance
 import logging
 FORMAT = '[%(levelname)s] %(name) -12s %(asctime)s %(message)s'
@@ -37,6 +36,9 @@ def _export_git_values():
     os.environ['GIT_AUTHOR_NAME'] = g("%an")
     os.environ['GIT_DESC'] = g("%s")
     os.environ['GIT_SHA'] = g("%H")
+    if not os.getenv("GIT_BRANCH"):
+        if os.getenv("BRANCH_NAME"):
+            os.environ['GIT_BRANCH'] = os.environ['BRANCH_NAME']
 
 
 # -----------------------------------------------------------------
@@ -78,6 +80,7 @@ def clearflags():
         'kill': False,
         'backup-db': False,
         'just-build': False,
+        'just-build-all': False,
     })
 
 
@@ -128,14 +131,11 @@ def build(jira):
         backup_dump(context, instance, record_site['backup-db'])
 
     at_least_recompose = False
-    if record_site.get('just-build'):
+    if record_site.get('just-build') or record_site.get('just-build-all'):
         at_least_recompose = True
 
-    if record_site.get('kill'):
-        clear_instance(context, record_site)
-    else:
-        logger.info(f"FORCE REBUILD: {force_rebuild}")
-        update_instance(context, instance, dump_name, force_rebuild=force_rebuild, at_least_recompose=at_least_recompose)
+    logger.info(f"FORCE REBUILD: {force_rebuild}")
+    update_instance(context, instance, dump_name, force_rebuild=force_rebuild, at_least_recompose=at_least_recompose)
 
     clearflags()
 
