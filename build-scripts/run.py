@@ -79,8 +79,8 @@ def clearflags():
         'reset-db-at-next-build': False,
         'kill': False,
         'backup-db': False,
-        'just-build': False,
-        'just-build-all': False,
+        'do-build': False,
+        'do-build-all': False,
     })
 
 
@@ -131,7 +131,8 @@ def build(jira):
         backup_dump(context, instance, record_site['backup-db'])
 
     at_least_recompose = False
-    if record_site.get('just-build') or record_site.get('just-build-all'):
+    logger.info(f"Debug info: {record_site}")
+    if record_site.get('do-build') or record_site.get('do-build-all'):
         at_least_recompose = True
 
     logger.info(f"FORCE REBUILD: {force_rebuild}")

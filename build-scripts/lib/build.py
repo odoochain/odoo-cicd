@@ -159,11 +159,14 @@ def update_instance(context, instance, dump_name, force_rebuild=False, at_least_
         })
         started = arrow.get()
         if at_least_recompose:
+            logger.info("At least recompose is set.")
             reload_instance(context, instance)
             logger.info("Restarting odoo...")
             _exec(context, ["--project-name", instance['name'], "restart"])
+        else:
+            logger.info("At least recompose is not set. Skipping.")
 
-        if instance.get('just-build-all'):
+        if instance.get('do-build-all'):
             params = ["update", "--no-dangling-check", "--i18n"]
         else:
             params = ["update", "--no-dangling-check", "--since-git-sha", last_sha['sha'], "--i18n"]
