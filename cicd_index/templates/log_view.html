@@ -9,7 +9,18 @@
         <link rel="stylesheet" href="https://cdn.webix.com/edge/webix.css" type="text/css" charset="utf-8">
         <script src="https://cdn.webix.com/edge/webix.js" type="text/javascript" charset="utf-8"></script>
         <script src="/cicd/static/app.js" type="text/javascript" charset="utf-8"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     </head>
+    <script>
+    function jump(h){
+        var url = location.href;               //Save down the URL without hash.
+        location.href = "#"+h;                 //Go to the target element.
+        history.replaceState(null,null,url);   //Don't like hashes. Changing it back.
+    }
+    $(document).ready(function() {
+        jump("bottom");
+    });
+    </script>
     <style>
         * { margin: 0; padding: 0; }
         body {
@@ -34,5 +45,6 @@
         </pre>
         <h2 class='build-{{build.get_status()}}'>State: {{build.get_status()}}</h2>
         <h2>Duration: {{build.get_duration().total_seconds()}} seconds</h2>
+        <a href="#bottom"></a>
     </body>
 </html>
