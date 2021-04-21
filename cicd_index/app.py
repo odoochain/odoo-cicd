@@ -540,20 +540,29 @@ def debug_instance():
 @app.route("/restart_docker")
 def restart_docker():
     site_name = request.args.get('name')
-    containers = [x for x in docker.containers.list(all=True) if site_name in x.name]
-    for x in containers:
-        if 'running' in (x.status or '').lower():
-            x.kill()
+    if site_name != 'all':
+        site_name = [site_name]
+    else:
+        site_name = [x['name'] for x in db.sites.find({})]
 
-    shell_url = _get_shell_url([
-        "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
-        "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "restart",
-    ])
-    return redirect(shell_url)
+    containers_all = []
+    for site_name in site_name:
+        containers = [x for x in docker.containers.list(all=True) if site_name in x.name]
+        containers_all += containers
+        for x in containers:
+            if 'running' in (x.status or '').lower():
+                x.kill()
+
+        shell_url = _get_shell_url([
+            "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
+            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "restart",
+        ])
+
+    # return redirect(shell_url)
 
     return jsonify({
         'result': 'ok',
-        'containers': [x.name for x in containers],
+        'containers': [x.name for x in containers_all],
     })
 
 
