@@ -55,25 +55,25 @@ app = Flask(
 docker = Docker.from_env()
 
 
-def cycle_down_apps():
-    while True:
-        try:
-            sites = db.sites.find({'name': 1, 'last_access': 1})
-            for site in sites:
-                logger.debug(f"Checking site to cycle down: {site['name']}")
-                if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
-                    if _get_docker_state(site['name']) == 'running':
-                        logger.info(f"Cycling down instance due to inactivity: {site['name']}")
-                        _stop_instance(site['name'])
+# def cycle_down_apps():
+#     while True:
+#         try:
+#             sites = db.sites.find({'name': 1, 'last_access': 1})
+#             for site in sites:
+#                 logger.debug(f"Checking site to cycle down: {site['name']}")
+#                 if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
+#                     if _get_docker_state(site['name']) == 'running':
+#                         logger.info(f"Cycling down instance due to inactivity: {site['name']}")
+#                         _stop_instance(site['name'])
 
-        except Exception as e:
-            logging.error(e)
-        time.sleep(10)
+#         except Exception as e:
+#             logging.error(e)
+#         time.sleep(10)
 
 
-t = threading.Thread(target=cycle_down_apps)
-t.daemon = True
-t.start()
+# t = threading.Thread(target=cycle_down_apps)
+# t.daemon = True
+# t.start()
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -170,6 +170,29 @@ def site():
             q[key] = request.args.get(key)
     site = db.sites.find(q)
     return jsonify(site)
+
+@app.route('/start_all')
+def start_all_instances():
+    _restart_docker(None, kill_before=False)
+    return jsonify({
+        'result': 'ok',
+    })
+    
+@app.route('/restart_delegator')
+def restart_delegator():
+    import pudb;pudb.set_trace()
+    docker_project_name = os.environ['PROJECT_NAME']
+    delegator_name = f"{docker_project_name}_cicd_delegator"
+    containers = docker.containers.list(all=True, filters={'name': [delegator_name]})
+    for container in containers:
+        try:
+            container.stop()
+        except Exception:
+            logger.info(f"Container not stoppable - maybe ok: {container.name}")
+        container.start()
+    return jsonify({
+        'result': 'ok',
+    })
 
 @app.route("/instance/start")
 def start_instance(name=None):
@@ -540,18 +563,25 @@ def debug_instance():
 @app.route("/restart_docker")
 def restart_docker():
     site_name = request.args.get('name')
-    if site_name != 'all':
-        site_name = [site_name]
+    if site_name == "all":
+        site_name = None
+    _restart_docker(site_name, kill_before=True)
+
+def _restart_docker(site_name, kill_before=True):
+    if site_name:
+        sites = [site_name]
     else:
-        site_name = [x['name'] for x in db.sites.find({})]
+        sites = [x['name'] for x in db.sites.find({})]
 
     containers_all = []
     for site_name in site_name:
         containers = [x for x in docker.containers.list(all=True) if site_name in x.name]
         containers_all += containers
-        for x in containers:
-            if 'running' in (x.status or '').lower():
-                x.kill()
+        containers = [x for x in docker.containers.list(all=True) if any(y in x.name for y in sites)]
+        if kill_before:
+            for x in containers:
+                if 'running' in (x.status or '').lower():
+                    x.kill()
 
         shell_url = _get_shell_url([
             "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",

@@ -81,7 +81,7 @@ span.webix_icon {
                         var record = data[i];
                         reload_table_item($table, record._id, record);
                     }
-                    setTimeout(update_from_jenkins, 1000);
+                    setTimeout(update_from_jenkins, 60000);
                 });
 
 
@@ -252,6 +252,20 @@ span.webix_icon {
                 _build_again(true);
             }
 
+            function restart_delegator() {
+                var url = "/cicd/restart_delegator"
+                webix.ajax().get(url).then(function(res) {
+                    webix.message("Restarted delegator", "info");
+                }).fail(function(response) {
+                    webix.message("Error: " + response.statusText, "error");
+                });
+            }
+
+            function restart() {
+                webix.message('Starting all docker containers; also restarting delegator after that.');
+                window.open("/cicd/start_all");
+            }
+
             function restart() {
                 webix.message('Restarting docker containers of' + current_details + '. Reporting immediately when done.');
                 window.open("/cicd/restart_docker?name=" + current_details);
@@ -388,6 +402,8 @@ span.webix_icon {
                     config: { on: { onItemClick: clicked_menu}},
                     submenu: [
                             { view:"menu", id: "build_submenu", value: "Lifecycle", autowidth: true, config: { on: { onItemClick: clicked_menu}}, data: [
+                                { view:"button", id:"restart_delegator", value:"Restart Docker Delegator"},
+                                { view:"button", id:"start_all", value:"Start All Docker Containers"},
                                 { view:"button", id:"restart", value:"Restart Docker Containers"},
                                 { view:"button", id:"build_again", value:"Repeat last build" },
                                 { view:"button", id:"build_again_all", value:"Update all modules" },
