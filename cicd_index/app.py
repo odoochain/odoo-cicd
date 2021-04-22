@@ -132,7 +132,7 @@ def cycle_down_apps():
                 if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
                     if _get_docker_state(site['name']) == 'running':
                         logger.info(f"Cycling down instance due to inactivity: {site['name']}")
-                        _execute_shell(site['name'], ['kill'])
+                        _execute_shell(site['name'], 'kill')
 
         except Exception as e:
             logging.error(e)
@@ -264,7 +264,7 @@ def restart_delegator():
 @app.route("/instance/start")
 def start_instance(name=None):
     name = name or request.args['name']
-    _execute_shell(name, ['up', '-d'])
+    _restart_docker(name, kill_before=False)
     return jsonify({
         'result': 'ok',
     })
@@ -554,7 +554,9 @@ def start_cicd():
 def _start_cicd():
     # name = request.cookies['delegator-path']
     name = request.args['name']
-    if not _get_docker_state(name):
+    docker_state = _get_docker_state(name)
+    logger.info(f"Opening user interface of cicd instance {name}; current docker state: {docker_state}")
+    if not docker_state:
         _restart_docker(name, kill_before=False)
 
     response = make_response(
@@ -632,11 +634,8 @@ def _restart_docker(site_name, kill_before=True):
         sites = [x['name'] for x in db.sites.find({})]
     del site_name
 
-    containers_all = []
+    logger.info(f"Restarting {sites}")
     for site_name in sites:
-        containers = [x for x in docker.containers.list(all=True) if site_name in x.name]
-        containers_all += containers
-        containers = [x for x in docker.containers.list(all=True) if any(y in x.name for y in sites)]
 
         if kill_before:
             _execute_shell(site_name, ['kill'])
