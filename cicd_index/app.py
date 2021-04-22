@@ -264,7 +264,7 @@ def restart_delegator():
 @app.route("/instance/start")
 def start_instance(name=None):
     name = name or request.args['name']
-    _restart_docker(name, kill_before=False)
+    _execute_shell(name, ['up', '-d'])
     return jsonify({
         'result': 'ok',
     })
