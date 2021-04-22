@@ -7,6 +7,7 @@ import time
 from bson import ObjectId
 from flask import redirect
 from operator import itemgetter
+import requests
 import docker as Docker
 import arrow
 import humanize
@@ -540,7 +541,7 @@ def update_site():
         branch_name = data.pop('git_branch')
         site = db.sites.find_one({'git_branch': branch_name})
         if not site:
-            return jsoniy({'result': 'not_found', 'msg': "Site not found"})
+            return jsonify({'result': 'not_found', 'msg': "Site not found"})
         id = site['_id']
     else:
         id = ObjectId(data.pop('_id'))
@@ -639,21 +640,31 @@ def _restart_docker(site_name, kill_before=True):
         sites = [site_name]
     else:
         sites = [x['name'] for x in db.sites.find({})]
+    del site_name
 
     containers_all = []
-    for site_name in site_name:
+    for site_name in sites:
         containers = [x for x in docker.containers.list(all=True) if site_name in x.name]
         containers_all += containers
         containers = [x for x in docker.containers.list(all=True) if any(y in x.name for y in sites)]
         if kill_before:
-            for x in containers:
-                if 'running' in (x.status or '').lower():
-                    x.kill()
+            shell_url = _get_shell_url([
+                "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
+                "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "down",
+            ])
+            shell_url = os.getenv("CICD_URL") + shell_url
+            logger.info(f"Executing url to stop machines: {shell_url}")
+            requests.get(shell_url)
 
         shell_url = _get_shell_url([
             "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
-            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "restart",
+            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "start",
         ])
+        shell_url = os.getenv("CICD_URL") + shell_url
+        logger.info(f"Executing url to start machines: {shell_url}")
+        response = requests.get(shell_url)
+        response.raise_for_status()
+        logger.info(f"Started via webssh call to odoo object: {site_name}")
 
     # return redirect(shell_url)
 
