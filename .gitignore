@@ -6,3 +6,4 @@ cicd-app/data
 mongo_data
 .vscode/tags
 .vscode/settings.json
+docker-compose.override.yml
