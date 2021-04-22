@@ -559,16 +559,7 @@ def _start_cicd():
     # name = request.cookies['delegator-path']
     name = request.args['name']
     if not _get_docker_state(name):
-        start_instance(name=name)
-        for i in range(60):
-            if _get_docker_state(name):
-                break
-            time.sleep(1)
-        else:
-            url = request.url.split(request.host)[0] + request.host # TODO messy
-            return redirect(url + "/index?" + urllib.parse.urlencode({
-                "message": f"Please try again. Instance {name} not started within timeout.",
-            }, quote_via=urllib.parse.quote_plus))
+        _restart_docker(name, kill_before=False)
 
     response = make_response(
         render_template(
