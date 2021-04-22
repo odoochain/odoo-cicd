@@ -245,7 +245,6 @@ def start_all_instances():
     
 @app.route('/restart_delegator')
 def restart_delegator():
-    import pudb;pudb.set_trace()
     docker_project_name = os.environ['PROJECT_NAME']
     delegator_name = f"{docker_project_name}_cicd_delegator"
     containers = docker.containers.list(all=True, filters={'name': [delegator_name]})
