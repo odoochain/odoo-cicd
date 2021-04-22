@@ -120,25 +120,25 @@ t = threading.Thread(target=_get_docker_state)
 t.daemon = True
 t.start()
 
-# def cycle_down_apps():
-#     while True:
-#         try:
-#             sites = db.sites.find({'name': 1, 'last_access': 1})
-#             for site in sites:
-#                 logger.debug(f"Checking site to cycle down: {site['name']}")
-#                 if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
-#                     if _get_docker_state(site['name']) == 'running':
-#                         logger.info(f"Cycling down instance due to inactivity: {site['name']}")
-#                         _stop_instance(site['name'])
+def cycle_down_apps():
+    while True:
+        try:
+            sites = db.sites.find({'name': 1, 'last_access': 1})
+            for site in sites:
+                logger.debug(f"Checking site to cycle down: {site['name']}")
+                if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
+                    if _get_docker_state(site['name']) == 'running':
+                        logger.info(f"Cycling down instance due to inactivity: {site['name']}")
+                        _stop_instance(site['name'])
 
-#         except Exception as e:
-#             logging.error(e)
-#         time.sleep(10)
+        except Exception as e:
+            logging.error(e)
+        time.sleep(10)
 
 
-# t = threading.Thread(target=cycle_down_apps)
-# t.daemon = True
-# t.start()
+t = threading.Thread(target=cycle_down_apps)
+t.daemon = True
+t.start()
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -261,9 +261,8 @@ def restart_delegator():
 @app.route("/instance/start")
 def start_instance(name=None):
     name = name or request.args['name']
-    containers = docker.containers.list(all=True, filters={'name': [name]})
-    for container in containers:
-        container.start()
+    assert name
+    _restart_docker(name, kill_before=False)
     return jsonify({
         'result': 'ok',
     })
@@ -558,7 +557,9 @@ def start_cicd():
 def _start_cicd():
     # name = request.cookies['delegator-path']
     name = request.args['name']
-    if not _get_docker_state(name):
+    docker_state = _get_docker_state(name)
+    logger.info(f"Opening user interface of cicd instance {name}; current docker state: {docker_state}")
+    if not docker_state:
         _restart_docker(name, kill_before=False)
 
     response = make_response(
@@ -632,11 +633,8 @@ def _restart_docker(site_name, kill_before=True):
         sites = [x['name'] for x in db.sites.find({})]
     del site_name
 
-    containers_all = []
+    logger.info(f"Restarting {sites}")
     for site_name in sites:
-        containers = [x for x in docker.containers.list(all=True) if site_name in x.name]
-        containers_all += containers
-        containers = [x for x in docker.containers.list(all=True) if any(y in x.name for y in sites)]
 
         # TODO the webssh calls to the framework may fail; evaluate result somehow
         if kill_before:
@@ -662,7 +660,6 @@ def _restart_docker(site_name, kill_before=True):
 
     return jsonify({
         'result': 'ok',
-        'containers': [x.name for x in containers_all],
     })
 
 
