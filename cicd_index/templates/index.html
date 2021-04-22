@@ -263,12 +263,21 @@ span.webix_icon {
 
             function start_all() {
                 webix.message('Starting all docker containers; also restarting delegator after that.');
-                window.open("/cicd/start_all");
+                webix.ajax().get("/cicd/start_all").then(function(res) {
+                    webix.message("Started all instances possible");
+                }).fail(function(response) {
+                    webix.message("Error: " + response.statusText, "error");
+                });
             }
 
             function restart() {
+                var site = current_details;
                 webix.message('Restarting docker containers of' + current_details + '. Reporting immediately when done.');
-                window.open("/cicd/restart_docker?name=" + current_details);
+                webix.ajax().get("/cicd/restart_docker?name=" + current_details).then(function(res) {
+                    webix.message("Restarted " + site);
+                }).fail(function(response) {
+                    webix.message("Error: " + response.statusText, "error");
+                });
             }
             function rebuild() {
                 show_reset_form(current_details);

@@ -647,6 +647,8 @@ def _restart_docker(site_name, kill_before=True):
         containers = [x for x in docker.containers.list(all=True) if site_name in x.name]
         containers_all += containers
         containers = [x for x in docker.containers.list(all=True) if any(y in x.name for y in sites)]
+
+        # TODO the webssh calls to the framework may fail; evaluate result somehow
         if kill_before:
             shell_url = _get_shell_url([
                 "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
@@ -658,7 +660,7 @@ def _restart_docker(site_name, kill_before=True):
 
         shell_url = _get_shell_url([
             "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
-            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "start",
+            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "up", "-d",
         ])
         shell_url = os.getenv("CICD_URL") + shell_url
         logger.info(f"Executing url to start machines: {shell_url}")
