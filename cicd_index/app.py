@@ -29,6 +29,7 @@ import logging
 # import jenkins
 import urllib
 import psycopg2
+import spur
 
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -48,6 +49,8 @@ FORMAT = '[%(levelname)s] %(name) -12s %(asctime)s %(message)s'
 logging.basicConfig(format=FORMAT)
 logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger('')  # root handler
+host_ip = '.'.join(subprocess.check_output(["/usr/bin/hostname", "-I"]).decode('utf-8').strip().split(".")[:3]) + '.1'
+logger.info(f"Host IP: {host_ip}")
 
 BOOL_VALUES = ['1', 1, 'true', 'True', 'y']
 app = Flask(
@@ -120,25 +123,25 @@ t = threading.Thread(target=_get_docker_state)
 t.daemon = True
 t.start()
 
-# def cycle_down_apps():
-#     while True:
-#         try:
-#             sites = db.sites.find({'name': 1, 'last_access': 1})
-#             for site in sites:
-#                 logger.debug(f"Checking site to cycle down: {site['name']}")
-#                 if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
-#                     if _get_docker_state(site['name']) == 'running':
-#                         logger.info(f"Cycling down instance due to inactivity: {site['name']}")
-#                         _stop_instance(site['name'])
+def cycle_down_apps():
+    while True:
+        try:
+            sites = db.sites.find({'name': 1, 'last_access': 1})
+            for site in sites:
+                logger.debug(f"Checking site to cycle down: {site['name']}")
+                if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
+                    if _get_docker_state(site['name']) == 'running':
+                        logger.info(f"Cycling down instance due to inactivity: {site['name']}")
+                        _execute_shell(site['name'], ['kill'])
 
-#         except Exception as e:
-#             logging.error(e)
-#         time.sleep(10)
+        except Exception as e:
+            logging.error(e)
+        time.sleep(10)
 
 
-# t = threading.Thread(target=cycle_down_apps)
-# t.daemon = True
-# t.start()
+t = threading.Thread(target=cycle_down_apps)
+t.daemon = True
+t.start()
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -261,22 +264,15 @@ def restart_delegator():
 @app.route("/instance/start")
 def start_instance(name=None):
     name = name or request.args['name']
-    containers = docker.containers.list(all=True, filters={'name': [name]})
-    for container in containers:
-        container.start()
+    _execute_shell(name, ['up', '-d'])
     return jsonify({
         'result': 'ok',
     })
 
-def _stop_instance(name):
-    containers = docker.containers.list(all=False, filters={'name': [name]})
-    for container in containers:
-        container.stop()
-
 @app.route("/instance/stop")
 def stop_instance(name=None):
     name = name or request.args['name']
-    _stop_instance(name)
+    _execute_shell(name, ['kill'])
     return jsonify({
         'result': 'ok'
     })
@@ -624,6 +620,10 @@ def restart_docker():
     if site_name == "all":
         site_name = None
     _restart_docker(site_name, kill_before=True)
+    return jsonify({
+        'result': 'ok',
+    })
+
 
 def _restart_docker(site_name, kill_before=True):
     if site_name:
@@ -638,32 +638,11 @@ def _restart_docker(site_name, kill_before=True):
         containers_all += containers
         containers = [x for x in docker.containers.list(all=True) if any(y in x.name for y in sites)]
 
-        # TODO the webssh calls to the framework may fail; evaluate result somehow
         if kill_before:
-            shell_url = _get_shell_url([
-                "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
-                "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "down",
-            ])
-            shell_url = os.getenv("CICD_URL") + shell_url
-            logger.info(f"Executing url to stop machines: {shell_url}")
-            requests.get(shell_url)
-
-        shell_url = _get_shell_url([
-            "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/cicd_instance_{site_name}", ";",
-            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "up", "-d",
-        ])
-        shell_url = os.getenv("CICD_URL") + shell_url
-        logger.info(f"Executing url to start machines: {shell_url}")
-        response = requests.get(shell_url)
-        response.raise_for_status()
-        logger.info(f"Started via webssh call to odoo object: {site_name}")
-
-    # return redirect(shell_url)
-
-    return jsonify({
-        'result': 'ok',
-        'containers': [x.name for x in containers_all],
-    })
+            _execute_shell(site_name, ['kill'])
+        
+        _execute_shell(site_name, ["up", "-d"])
+        logger.info(f"Started via ssh call to odoo object: {site_name}")
 
 
 @app.route("/shell_instance")
@@ -860,3 +839,18 @@ def _get_resources():
         }
 
     pass
+
+def _execute_shell(site_name, command):
+    if isinstance(command, str):
+        command = [command]
+
+    with spur.SshShell(
+        hostname=host_ip,
+        username=os.environ['HOST_SSH_USER'],
+        private_key_file="/root/.ssh/id_rsa",
+        missing_host_key=spur.ssh.MissingHostKey.accept
+        ) as shell:
+        result = shell.run(
+            ["/opt/odoo/odoo", "-f", "--project-name", site_name] + command,
+            cwd=f"{os.environ['CICD_WORKSPACE']}/cicd_instance_{site_name}",
+            )

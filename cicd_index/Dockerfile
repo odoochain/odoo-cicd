@@ -14,3 +14,7 @@ RUN pip3 install -r requirements.txt
 EXPOSE 5000
 COPY . .
 CMD ["flask", "run"]
+RUN mkdir -p /root/.ssh/socket
+ADD index_ident /root/.ssh/id_rsa
+RUN chmod 400 /root/.ssh/id_rsa
+RUN chmod 500 /root/.ssh

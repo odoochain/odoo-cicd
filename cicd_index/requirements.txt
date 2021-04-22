@@ -9,3 +9,6 @@ python-jenkins
 jenkinsapi
 psycopg2-binary
 humanize
+paramiko
+spur
+certifi
