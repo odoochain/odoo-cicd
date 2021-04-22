@@ -132,7 +132,7 @@ def cycle_down_apps():
                 if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
                     if _get_docker_state(site['name']) == 'running':
                         logger.info(f"Cycling down instance due to inactivity: {site['name']}")
-                        _execute_shell(site['name'], 'kill')
+                        _odoo_framework(site['name'], 'kill')
 
         except Exception as e:
             logging.error(e)
@@ -264,7 +264,7 @@ def restart_delegator():
 @app.route("/instance/start")
 def start_instance(name=None):
     name = name or request.args['name']
-    _execute_shell(name, ['up', '-d'])
+    _odoo_framework(name, ['up', '-d'])
     return jsonify({
         'result': 'ok',
     })
@@ -272,7 +272,7 @@ def start_instance(name=None):
 @app.route("/instance/stop")
 def stop_instance(name=None):
     name = name or request.args['name']
-    _execute_shell(name, ['kill'])
+    _odoo_framework(name, ['kill'])
     return jsonify({
         'result': 'ok'
     })
@@ -638,9 +638,9 @@ def _restart_docker(site_name, kill_before=True):
     for site_name in sites:
 
         if kill_before:
-            _execute_shell(site_name, ['kill'])
+            _odoo_framework(site_name, ['kill'])
         
-        _execute_shell(site_name, ["up", "-d"])
+        _odoo_framework(site_name, ["up", "-d"])
         logger.info(f"Started via ssh call to odoo object: {site_name}")
 
 
@@ -837,9 +837,35 @@ def _get_resources():
             'color': 'green' if round(used / total * 100) < 80 else 'red',
         }
 
-    pass
+    """
+              total        used        free      shared  buff/cache   available
+Mem:       32165168    11465300      246788      401468    20453080    19849564
+Swap:             0           0           0
+    """
+    ram = [x for x in _execute_shell("/usr/bin/free").output.decode('utf-8').split("\n") if 'Mem:' in x][0].strip()
+    while '\t' in ram or '  ' in ram:
+        ram = ram.replace("\t", "")
+        ram = ram.replace("  ", " ")
+    ram = ram.split(" ")
+    yield {
+        'name': "RAM",
+        'total': int(ram[1]) / 1024 / 1024,
+        'used': int(ram[2]) / 1024 / 1024,
+        'free': int(ram[6]) / 1024 / 1024,
+        'used_percent': round(float(ram[2]) / float(ram[1]) * 100, 0),
+        'color': 'green' if round(int(ram[6]) / 1024 / 1024) > 4 else 'red',
+    }
 
-def _execute_shell(site_name, command):
+def _odoo_framework(site_name, command):
+    if isinstance(command, str):
+        command = [command]
+
+    res = _execute_shell(
+        ["/opt/odoo/odoo", "-f", "--project-name", site_name] + command,
+        cwd=f"{os.environ['CICD_WORKSPACE']}/cicd_instance_{site_name}",
+    )
+
+def _execute_shell(command, cwd=None):
     if isinstance(command, str):
         command = [command]
 
@@ -850,6 +876,21 @@ def _execute_shell(site_name, command):
         missing_host_key=spur.ssh.MissingHostKey.accept
         ) as shell:
         result = shell.run(
-            ["/opt/odoo/odoo", "-f", "--project-name", site_name] + command,
-            cwd=f"{os.environ['CICD_WORKSPACE']}/cicd_instance_{site_name}",
+            command,
+            cwd=cwd,
             )
+    return result
+
+@app.route("/turn_into_dev")
+def _turn_into_dev():
+    if not request.args.get('site'):
+        raise Exception('site missing')
+    site = db.sites.find_one({'name': request.args.get('site')})
+    if site:
+        site = site['name']
+        _reload_instance(site)
+        _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
+    return jsonify({'result': 'ok'})
+
+def _reload_instance(site):
+    _odoo_framework(site, ["reload", "-d", site])

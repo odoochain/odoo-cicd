@@ -97,7 +97,7 @@ span.webix_icon {
 
             }
 
-            // start live values
+            // start live valuen
             setTimeout(update_from_jenkins, 0);
             setTimeout(update_resources, 0);
 
@@ -250,6 +250,16 @@ span.webix_icon {
 
             function build_again_all() {
                 _build_again(true);
+            }
+
+            function turn_into_dev() {
+                var sitename = current_details;
+                var url = "/cicd/turn_into_dev?site=" + sitename;
+                webix.ajax().get(url).then(function(res) {
+                    webix.message("Turned into dev: " + sitename, "info");
+                }).fail(function(response) {
+                    webix.message("Error: " + response.statusText, "error");
+                });
             }
 
             function restart_delegator() {
@@ -410,22 +420,23 @@ span.webix_icon {
                     value: "Admin...",
                     config: { on: { onItemClick: clicked_menu}},
                     submenu: [
-                            { view:"menu", id: "build_submenu", value: "Lifecycle", autowidth: true, config: { on: { onItemClick: clicked_menu}}, data: [
-                                { view:"button", id:"restart_delegator", value:"Restart Docker Delegator"},
-                                { view:"button", id:"start_all", value:"Start All Docker Containers"},
-                                { view:"button", id:"restart", value:"Restart Docker Containers"},
-                                { view:"button", id:"build_again", value:"Repeat last build" },
-                                { view:"button", id:"build_again_all", value:"Update all modules" },
-                                { view:"button", id:"rebuild", value:"Rebuild from Dump" },
-                                { view:"button", id:"delete_instance", value:"Destroy", click: delete_instance },
-                                { view:"button", id:"delete_unused", value:"Spring Clean", click: delete_unused},
-                            ]
-                        },
                         { view:"button", id:"settings", value:"Settings", click: function() {
                             settings();
                         }},
                         { $template:"Separator" },
+                        { view:"menu", id: "build_submenu", value: "Lifecycle", autowidth: true, config: { on: { onItemClick: clicked_menu}}, data: [
+                            { view:"button", id:"restart", value:"Restart"},
+                            { view:"button", id:"delete_instance", value:"Destroy (unrecoverable)", click: delete_instance },
+                        ]
+                        },
+                        { $template:"Separator" },
+                        { view:"button", id:"build_again", value:"Update recently changed modules" },
+                        { view:"button", id:"build_again_all", value:"Update all modules" },
+                        { view:"button", id:"rebuild", value:"Rebuild from Dump (Data lost)" },
+                        { $template:"Separator" },
                         { view:"button", id:"backup_db", value:"Make Database Dump", click: backup_db },
+                        { $template:"Separator" },
+                        { view:"button", id:"turn_into_dev", value: 'Apply Developer Settings (Password, Cronjobs)', click: turn_into_dev}
                     ]
                 },
 
@@ -445,10 +456,20 @@ span.webix_icon {
                             template: "CICD Feature Branches"
                         },
                         {
+                            view: 'toolbar',
+                            css: "webix_dark",
+                            id: 'site-toolbar-common',
+                            elements: [
+                                { view:"button", id:"restart_delegator", value:"Restart Docker Delegator", click: clicked_menu},
+                                { view:"button", id:"start_all", value:"Start All Docker Containers", click: clicked_menu},
+                                { view:"button", id:"delete_unused", value:"Spring Clean", click: delete_unused},
+                            ],
+                        },
+                        {
                             id: "resources-view",
                             view: "template",
                             type: "header",
-                            template: "<div id='resources'></div>"
+                            template: "<div id='resources'></div>",
                         },
                         {
                             id: 'table-sites',
@@ -485,7 +506,7 @@ span.webix_icon {
                                 { id: 'docker_state', header: 'Docker', },
                                 { id: 'updated', header: 'Updated', minWidth: 150,},
                                 { id: 'duration', header: 'Duration [s]'},
-                                { id: 'delete', header: 'Delete', }
+                                { id: 'delete', header: 'Delete', },
                             ],
                         },
                     ]
