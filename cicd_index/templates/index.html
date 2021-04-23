@@ -472,6 +472,24 @@ span.webix_icon {
                             template: "<div id='resources'></div>",
                         },
                         {
+                            view:"text", 
+                            placeholder:"Filter grid",
+                            on:{
+                              onTimedKeyPress:function(){
+                                var text = this.getValue().toLowerCase();
+                                var table = $$("table-sites");
+                                var columns = table.config.columns;
+                                table.filter(function(obj){
+                                  for (var i=0; i<columns.length; i++) {
+                                    debugger;
+                                      if (obj[columns[i].id].toString().toLowerCase().indexOf(text) !== -1) return true;
+                                    return false;
+                                  }
+                                })
+                              }
+                            }
+                        },
+                        {
                             id: 'table-sites',
                             view: "datatable",
                             navigation: true,
