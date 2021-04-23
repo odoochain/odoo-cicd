@@ -23,6 +23,7 @@ def _setup_new_working_path(workspace, instance_name):
     new_path = _get_instance_working_path(workspace, instance_name)
     logger.info(f"Rsyncing {os.getcwd()}/ to {new_path}/")
     subprocess.check_call([
+        '/usr/bin/sudo',
         '/usr/bin/rsync',
         str(os.getcwd()) + "/",
         str(new_path) + "/",
