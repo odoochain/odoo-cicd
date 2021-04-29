@@ -30,6 +30,10 @@ import logging
 import urllib
 import psycopg2
 import spur
+import flask_login
+from flask_login import login_required
+
+login_manager = flask_login.LoginManager()
 
 
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -57,92 +61,10 @@ app = Flask(
     __name__,
     static_folder='/_static_index_files',
 )
+login_manager.init_app(app)
+from .app_utils import auth
 
 docker = Docker.from_env()
-
-def _get_jenkins_state():
-    while True:
-        try:
-            logger.info("Getting job state from jenkins")
-            sites = list(db.sites.find({}))
-            for site in sites:
-                try:
-                    job = _get_jenkins_job(site['git_branch'])
-                except Exception as ex:
-                    site['last_build'] = f"Error: {ex}"
-                else:
-                    if not job:
-                        continue
-                    last_build = job.get_last_build_or_none()
-                    if last_build:
-                        site['last_build'] = last_build.get_status()
-                        site['duration'] = round(last_build.get_duration().total_seconds(), 0)
-                    site['update_in_progress'] = job.is_running()
-                    db.sites.update_one({
-                        '_id': site['_id'],
-                    }, {'$set': {
-                        'update_in_progress': site['update_in_progress'],
-                        'duration': site['duration'],
-                        'last_build': site['last_build'],
-                    }
-                    }, upsert=False)
-            logger.info(f"Finished updating jenkins job for {len(sites)} sites.")
-        except Exception as ex:
-            logger.error(ex)
-
-        finally:
-            time.sleep(60)
-
-logger.info("Starting jenkins job updater")
-t = threading.Thread(target=_get_jenkins_state)
-t.daemon = True
-t.start()
-
-def _get_docker_state():
-    while True:
-        try:
-            logger.info("Getting docker state from jenkins")
-            sites = list(db.sites.find({}))
-            for site in sites:
-                site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
-                db.sites.update_one({
-                    '_id': site['_id'],
-                }, {'$set': {
-                    'docker_state': site['docker_state'],
-                }
-                }, upsert=False)
-            logger.info(f"Finished updating docker job for {len(sites)} sites.")
-        except Exception as ex:
-            logger.error(ex)
-
-        finally:
-            time.sleep(10)
-
-logger.info("Starting docker state updater")
-t = threading.Thread(target=_get_docker_state)
-t.daemon = True
-t.start()
-
-def cycle_down_apps():
-    while True:
-        try:
-            sites = db.sites.find({'name': 1, 'last_access': 1})
-            for site in sites:
-                logger.debug(f"Checking site to cycle down: {site['name']}")
-                if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
-                    if _get_docker_state(site['name']) == 'running':
-                        logger.info(f"Cycling down instance due to inactivity: {site['name']}")
-                        _odoo_framework(site['name'], 'kill')
-
-        except Exception as e:
-            logging.error(e)
-        time.sleep(10)
-
-
-t = threading.Thread(target=cycle_down_apps)
-t.daemon = True
-t.start()
-
 
 class JSONEncoder(json.JSONEncoder):
     # for encoding ObjectId
@@ -496,6 +418,7 @@ def data_variants():
     return jsonify(sites)
 
 @app.route('/')
+@login_required
 def index_func():
 
     return render_template(
@@ -894,3 +817,6 @@ def _turn_into_dev():
 
 def _reload_instance(site):
     _odoo_framework(site, ["reload", "-d", site])
+
+
+from . import app_utils

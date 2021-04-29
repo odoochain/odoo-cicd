@@ -19,6 +19,7 @@ services:
         - 5000
     environment:
         FLASK_ENV: development
+        FLASK_APP: app
         DISPLAY_TIMEZONE: Europe/Berlin
         DATE_FORMAT: '_d._m._Y _H:_M:_S'
         MONGO_HOST: mongo
@@ -32,7 +33,7 @@ services:
     volumes:
         - ${DUMPS_PATH}:/opt/dumps
         - ${CICD_WORKSPACE}:/cicd_workspace
-        - ./cicd_index:/code
+        - ./cicd_index/app:/app
         - /var/run/docker.sock:/var/run/docker.sock
         - /var/lib/docker:/display_resources/docker
         - /:/display_resources/root
@@ -54,7 +55,7 @@ services:
     networks:
         - internal
     volumes:
-        - ./mongo_data:/data/db
+        - ../mongo_data:/data/db
     expose:
         - 27017
     environment:
