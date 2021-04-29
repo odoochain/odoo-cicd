@@ -1,3 +1,4 @@
+import flask
 from flask.templating import render_template
 from flask import redirect
 import flask_login
@@ -46,15 +47,14 @@ def login():
 
 @app.route('/login', methods=['POST'])
 def login_post():
-    email = flask.request.form['email']
+    email = flask.request.form['username']
     if flask.request.form['password'] == '123':
         user = User()
         user.id = email
         flask_login.login_user(user)
-        return flask.redirect(flask.url_for('index'))
+        return flask.redirect('/')
     return flask.redirect(flask.url_for('login'))
     
 @login_manager.unauthorized_handler
 def unauthorized_handler():
-    import pudb;pudb.set_trace()
     return login()

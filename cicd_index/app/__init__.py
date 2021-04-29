@@ -61,6 +61,7 @@ app = Flask(
     __name__,
     static_folder='/_static_index_files',
 )
+app.secret_key = 'asajdkasj24242184*$@'
 login_manager.init_app(app)
 from .app_utils import auth
 
