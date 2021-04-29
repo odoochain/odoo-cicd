@@ -1,4 +1,5 @@
 import flask
+import os
 from flask.templating import render_template
 from flask import redirect
 import flask_login
@@ -7,31 +8,20 @@ from .. import app
 from .. import login_manager
 from .models import User
 
-users = ['marc@itewimmer.de']
-
 class User(flask_login.UserMixin):
-    pass
+    id = ""
+    is_authenticated = False
 
 
 @login_manager.user_loader
 def user_loader(email):
-    import pudb;pudb.set_trace()
-    if email not in users:
-        return
+    # if email not in users:
+    #     return
 
     user = User()
     user.id = email
     user.is_authenticated = True
     return user
-
-
-#@login_manager.request_loader
-# def request_loader(request, methods=['GET', 'POST']):
-#     import pudb;pudb.set_trace()
-#     # if request.method == 'GET':
-#     #     return render_template(
-#     #         'login.html',
-#     #     )
 
 @app.route('/logout')
 def logout():
@@ -48,7 +38,7 @@ def login():
 @app.route('/login', methods=['POST'])
 def login_post():
     email = flask.request.form['username']
-    if flask.request.form['password'] == '123':
+    if flask.request.form['password'] == os.getenv("PASSWD"):
         user = User()
         user.id = email
         flask_login.login_user(user)
