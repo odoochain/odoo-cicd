@@ -1,12 +1,18 @@
 import logging
 import time
 import threading
+from .. import db
+import docker as Docker
+import arrow
+from .tools import _get_docker_state
+from .tools import _odoo_framework
 logger = logging.getLogger(__name__)
+client = Docker.from_env()
 
-def _get_docker_state():
+def _get_docker_states_background():
     while True:
         try:
-            logger.info("Getting docker state from jenkins")
+            logger.debug("Getting docker state from jenkins")
             sites = list(db.sites.find({}))
             for site in sites:
                 site['docker_state'] = 'running' if _get_docker_state(site['name']) else 'stopped'
@@ -16,17 +22,13 @@ def _get_docker_state():
                     'docker_state': site['docker_state'],
                 }
                 }, upsert=False)
-            logger.info(f"Finished updating docker job for {len(sites)} sites.")
+            logger.debug(f"Finished updating docker job for {len(sites)} sites.")
         except Exception as ex:
             logger.error(ex)
 
         finally:
             time.sleep(10)
 
-logger.info("Starting docker state updater")
-t = threading.Thread(target=_get_docker_state)
-t.daemon = True
-t.start()
 
 def cycle_down_apps():
     while True:
@@ -36,7 +38,7 @@ def cycle_down_apps():
                 logger.debug(f"Checking site to cycle down: {site['name']}")
                 if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
                     if _get_docker_state(site['name']) == 'running':
-                        logger.info(f"Cycling down instance due to inactivity: {site['name']}")
+                        logger.debug(f"Cycling down instance due to inactivity: {site['name']}")
                         _odoo_framework(site['name'], 'kill')
 
         except Exception as e:
@@ -44,7 +46,11 @@ def cycle_down_apps():
         time.sleep(10)
 
 
-t = threading.Thread(target=cycle_down_apps)
-t.daemon = True
-t.start()
+def start():
+    t = threading.Thread(target=cycle_down_apps)
+    t.daemon = True
+    t.start()
 
+    t = threading.Thread(target=_get_docker_states_background)
+    t.daemon = True
+    t.start()
