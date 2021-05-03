@@ -21,6 +21,7 @@ from datetime import datetime
 from .tools import _store
 from git import Repo
 from .tools import store_output, get_output
+from .tools import update_instance_folder
 logger = logging.getLogger(__name__)
 
 threads = {} # for multitasking
@@ -204,6 +205,7 @@ def _build():
             for site in sites:
                 if not threads.get(site['name']) or not threads[site['name']].is_alive():
                     if count_active < concurrent_threads:
+                        update_instance_folder(site['name'])
                         thread = threading.Thread(target=build_instance, args=(site,))
                         threads[site['name']] = thread
                         thread.start()

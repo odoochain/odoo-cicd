@@ -3,39 +3,39 @@ from datetime import datetime
 import time
 import git
 import threading
+from . import WORKSPACE
+from . import URL
 from .. import db
 from .. import MAIN_FOLDER_NAME
-from git import Repo
 import subprocess
 from pathlib import Path
+from .tools import _get_main_repo
 import os
 import shutil
+from .tools import update_instance_folder
 logger = logging.getLogger(__name__)
 
-URL = os.environ['REPO_URL']
-WORKSPACE = Path("/cicd_workspace")
 
-path = WORKSPACE / MAIN_FOLDER_NAME
 
-def clone(path):
-    git.Repo.clone_from(
-        URL, 
-        path, 
-    )
+def del_index_lock():
+    paths = []
+    paths.append(WORKSPACE / MAIN_FOLDER_NAME)
+    for site in db.sites.find({}):
+        WORKSPACE / site['name']
+        paths.append(WORKSPACE / MAIN_FOLDER_NAME)
 
-if not path.exists():
-    clone(path)
-try:
-    repo = Repo(path)
-except git.exc.InvalidGitRepositoryError:
-    shutil.rmtree(path)
-    clone(path)
-    repo = Repo(path)
-
+    for path in paths:
+        idxfile = path / '.git' / 'index.lock'
+        if idxfile.exists():
+            idxfile.unlink()
 
 def _get_git_state():
+    del_index_lock()
+        
     while True:
         try:
+            repo = _get_main_repo()
+
             new_branches = []
             for remote in repo.remotes:
                 fetch_info = remote.fetch()
@@ -51,13 +51,7 @@ def _get_git_state():
 
             logger.debug(f"New Branches detected: {new_branches}")
             for branch in new_branches:
-                repo.git.checkout(branch)
-                repo.git.pull()
-                commit = repo.refs[branch].commit
-                instance_folder = WORKSPACE / branch
-                instance_folder.mkdir(exist_ok=True)
-                logger.debug(f"Copying source code to {instance_folder}")
-                subprocess.run(["rsync", str(path) + "/", str(instance_folder) + "/", "-ar"]) # , "--exclude=.git"]) building needs git...
+                update_instance_folder(branch)
             
                 db.sites.update_one({
                     'name': branch,

@@ -4,6 +4,7 @@ import docker as Docker
 import base64
 import psycopg2
 import spur
+import git
 import arrow
 import os
 import json
@@ -13,8 +14,10 @@ from pathlib import Path
 from bson import ObjectId
 import docker as Docker
 import logging
+import os
 from .. import host_ip
 from git import Repo
+from .. import MAIN_FOLDER_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -208,7 +211,7 @@ def _get_db_conn():
         port=int(os.environ['DB_PORT']),
         user=os.environ['DB_USER'],
         password=os.environ['DB_PASSWORD'],
-        dbname="template1",
+        dbname="postgres",
     )
     conn.autocommit = True
     return conn
@@ -296,3 +299,36 @@ def _get_config(name, default):
 
 def _set_config(name, value):
     db.config.update_one({'name': name}, {'$set': {'name': name, 'value': value}}, upsert=True)
+
+def _get_main_repo():
+    from . import WORKSPACE
+    from . import URL
+
+    def clone(path):
+        git.Repo.clone_from(
+            URL, 
+            path, 
+        )
+
+    path = WORKSPACE / MAIN_FOLDER_NAME
+    if not path.exists():
+        clone(path)
+    try:
+        repo = Repo(path)
+    except git.exc.InvalidGitRepositoryError:
+        shutil.rmtree(path)
+        clone(path)
+        repo = Repo(path)
+    return repo
+
+def update_instance_folder(branch):
+    from . import WORKSPACE
+
+    repo = _get_main_repo()
+    repo.git.checkout(branch, force=True)
+    repo.git.pull()
+    commit = repo.refs[branch].commit
+    instance_folder = WORKSPACE / branch
+    instance_folder.mkdir(exist_ok=True)
+    logger.debug(f"Copying source code to {instance_folder}")
+    subprocess.run(["rsync", str(WORKSPACE) + "/", str(instance_folder) + "/", "-ar"]) # , "--exclude=.git"]) building needs git...

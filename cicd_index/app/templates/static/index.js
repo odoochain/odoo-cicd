@@ -516,6 +516,8 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                             { id: 'success', header: 'Success', template: "{common.checkbox()}", disable: true, minWidth: 80},
                             { id: 'is_building', header: 'Building', template: "{common.checkbox()}", disable: true},
                             { id: 'docker_state', header: 'Docker', },
+                            { id: 'db_size', header: "DB Size", },
+                            { id: 'source_size', header: "Source Size", },
                             //{ id: 'updated', header: 'Updated', minWidth: 150,},
                             { id: 'duration', header: 'Duration [s]'},
                         ],
