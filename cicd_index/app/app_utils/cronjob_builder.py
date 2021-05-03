@@ -80,6 +80,15 @@ def notify_instance_updated(site):
     info['date'] = arrow.get().to('utc').strftime("%Y-%m-%d %H:%M:%S")
     db.updates.insert_one(info)
 
+    site = db.sites.find_one({'name': site['name']})
+    db.sites.update_one(
+        {'name': site['name']}, 
+        {"$set": {
+            'git_sha': sha,
+            'git_author': str(repo.active_branch.commit.author.name)
+            }},  
+        upsert=False)
+
 def _last_success_full_sha(site):
     info = {'name': site['name']}
     updates = list(db.updates.find(info).sort([("date", pymongo.DESCENDING)]).limit(1))
@@ -89,6 +98,7 @@ def _last_success_full_sha(site):
 
 def make_instance(site, use_dump):
     logger.info(f"Make instance for {site}")
+    settings = _get_instance_config(site['name'])
     _make_instance_docker_configs(site)
 
     output = _odoo_framework(
@@ -115,13 +125,13 @@ def make_instance(site, use_dump):
         _store(site['name'], {
             'dump_date': dump_date,
             'dump_name': dump_name,
-            'is_building': True,
             }
         )
 
     else:
         logger.info(f"BUILD CONTROL: Resetting DB for {site['name']}")
-        _odoo_framework(site, ["db", "reset"])
+        if settings['DBNAME']:
+            _odoo_framework(site, ["db", "reset", dbname])
 
     output = _odoo_framework(site, ["update"])
     store_output(site['name'], 'update', output)
@@ -130,9 +140,16 @@ def make_instance(site, use_dump):
     _odoo_framework(site, ["set-ribbon", site['name']])
 
 
+def fix_ownership():
+    user = os.environ['HOST_SSH_USER']
+    pass
+    # _execute_shell
+    # os.system(f"chown {user}:{user} /odoo_settings -R")
+
 
 def build_instance(site):
     try:
+        fix_ownership()
         logger.info(f"Building instance {site['name']}")
         started = arrow.get()
         _store(site['name'], {
@@ -144,7 +161,8 @@ def build_instance(site):
 
             last_sha = _last_success_full_sha(site)
             if site.get('reset-db'):
-                _odoo_framework(site, ['db', 'reset'])
+                if settings['DBNAME']:
+                    _odoo_framework(site, ['db', 'reset', settings['DBNAME']])
 
             if not last_sha or site.get('force_rebuild'):
                 logger.debug(f"Make new instance: force rebuild: {site.get('force_rebuild')} / last sha: {last_sha and last_sha.get('sha')}")
@@ -163,18 +181,18 @@ def build_instance(site):
 
                 store_output(site['name'], 'update', output)
 
-                _odoo_framework(["up", "-d"])
+                _odoo_framework(site, ["up", "-d"])
 
             notify_instance_updated(site)
 
             success = True
         except (Exception, BaseException) as ex:
             success = False
-            logger.error(ex)
+            import traceback
+            msg = traceback.format_exc()
+            logger.error(msg)
         
-        db.sites.update_one({
-            'name': site['name'],
-        }, {'$set': {
+        _store(site['name'], {
             'is_building': False,
             'needs_build': False,
             'success': success,
@@ -183,13 +201,16 @@ def build_instance(site):
             'reset-db': False,
             'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
             'duration': (arrow.get() - started).total_seconds(),
-        }
-        }, upsert=False)
+        })
 
         del threads[site['name']]
         
     except Exception as ex:
         logger.error(ex)
+        _store(site['name'], {
+            'is_building': False,
+            'needs_build': False,
+        })
 
 
 def _build():
@@ -199,9 +220,9 @@ def _build():
             concurrent_threads = _get_config('concurrent_builds', 5)
 
             count_active = len([x for x in threads.values() if x.is_alive()])
-            logger.info(f"Active builds: {count_active}, configured max builds: {concurrent_threads}")
+            logger.debug(f"Active builds: {count_active}, configured max builds: {concurrent_threads}")
 
-            sites = list(db.sites.find({'needs_build': True}))
+            sites = list(db.sites.find({'needs_build': True, 'is_building': False}))
             for site in sites:
                 if not threads.get(site['name']) or not threads[site['name']].is_alive():
                     if count_active < concurrent_threads:
@@ -212,7 +233,9 @@ def _build():
                         count_active += 1
 
         except Exception as ex:
-            logger.error(ex)
+            import traceback
+            msg = traceback.format_exc()
+            logger.error(msg)
 
         finally:
             time.sleep(1)

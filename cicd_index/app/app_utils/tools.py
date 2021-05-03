@@ -325,10 +325,24 @@ def update_instance_folder(branch):
     from . import WORKSPACE
     instance_folder = WORKSPACE / branch
     instance_folder.mkdir(exist_ok=True)
-    subprocess.run(["rsync", str(Path(WORKSPACE) / MAIN_FOLDER_NAME) + "/", str(instance_folder) + "/", "-ar"]) # , "--exclude=.git"]) building needs git...
+    subprocess.run(["rsync", str(Path(WORKSPACE) / MAIN_FOLDER_NAME) + "/", str(instance_folder) + "/", "-ar", "--delete-after", "--exclude=.odoo"]) # , "--exclude=.git"]) building needs git...
 
     repo = Repo(instance_folder)
     repo.git.checkout(branch, force=True)
+    for submodule in repo.submodules:
+        submodule.update(init=True, force=True)
     repo.git.pull()
     commit = repo.refs[branch].commit
     logger.debug(f"Copying source code to {instance_folder}")
+
+def _get_instance_config(sitename):
+    settings = Path("/odoo_settings/.run") / sitename / 'settings'
+    dbname = ""
+    if settings.exists():
+        try:
+            dbname = [x for x in settings.read_text().split("\n") if 'DBNAME=' in x][0].split("=")[1]
+        except IndexError: pass
+    
+    return {
+        "DBNAME": dbname
+    }
