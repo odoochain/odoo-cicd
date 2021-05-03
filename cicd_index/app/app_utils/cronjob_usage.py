@@ -37,6 +37,7 @@ def _usages():
                     source_size = sum(f.stat().st_size / 1024 / 1024 for f in path.glob('**/*') if f.is_file())
 
                 settings = Path("/odoo_settings/.run") / name / 'settings'
+                db_size = 0
                 if settings.exists():
                     dbname = [x for x in settings.read_text().split("\n") if 'DBNAME=' in x][0].split("=")[1]
                     try:

@@ -323,12 +323,12 @@ def _get_main_repo():
 
 def update_instance_folder(branch):
     from . import WORKSPACE
+    instance_folder = WORKSPACE / branch
+    instance_folder.mkdir(exist_ok=True)
+    subprocess.run(["rsync", str(Path(WORKSPACE) / MAIN_FOLDER_NAME) + "/", str(instance_folder) + "/", "-ar"]) # , "--exclude=.git"]) building needs git...
 
-    repo = _get_main_repo()
+    repo = Repo(instance_folder)
     repo.git.checkout(branch, force=True)
     repo.git.pull()
     commit = repo.refs[branch].commit
-    instance_folder = WORKSPACE / branch
-    instance_folder.mkdir(exist_ok=True)
     logger.debug(f"Copying source code to {instance_folder}")
-    subprocess.run(["rsync", str(WORKSPACE) + "/", str(instance_folder) + "/", "-ar"]) # , "--exclude=.git"]) building needs git...
