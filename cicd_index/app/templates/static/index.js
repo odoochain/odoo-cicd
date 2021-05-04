@@ -8,8 +8,8 @@ update_live_values = function() {
     webix.ajax().get('/cicd/data/site/live_values').then(function(res) {
         var data = res.json();
         var $table = $$("table-sites")
-        for (i = 0; i < data.length; i++) {
-            var record = data[i];
+        for (i = 0; i < data.sites.length; i++) {
+            var record = data.sites[i];
             reload_table_item($table, record._id, record);
         }
         setTimeout(update_live_values, 5000);
@@ -33,7 +33,7 @@ setTimeout(update_live_values, 0);
 setTimeout(update_resources, 0);
 
 function backup_db() {
-    var form_backupdb = webix.ui({
+    var form = webix.ui({
         view: "window", 
         position: 'center',
         modal: true,
@@ -49,12 +49,15 @@ function backup_db() {
                     cols:[
                         {
                             view:"button", value:"OK", css:"webix_primary", click: function() { 
-                               var values = this.getParentView().getFormView().getValues();
+                                var values = this.getParentView().getFormView().getValues();
+                                webix.message('Dumping to: ' + values['dumpname']);
+                                form.hide();
                                 webix.ajax().get('/cicd/dump', {
                                     'name': current_details,
                                     'dumpname': values['dumpname'],
                                 }).then(function(data) {
-                                    form_backupdb.hide();
+                                    form.hide();
+                                    webix.message('Dumped to: ' + values['dumpname']);
                                 }).fail(function(data) {
                                     alert(data.statusText);
                                     console.error(data.responseText);
@@ -62,7 +65,7 @@ function backup_db() {
                             }
                         },
                         { view:"button", value:"Cancel", click: function() {
-                            form_backupdb.hide();
+                            form.hide();
                         }}
                     ]
                 }
@@ -73,7 +76,7 @@ function backup_db() {
             }
         }
     });
-    form_backupdb.show();
+    form.show();
 }
 
 
@@ -513,7 +516,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         columns:[
                             { id: 'name', header: 'Name', minWidth: 150},
                             { id: 'title', header: 'Title', minWidth: 180},
-                            { id: 'success', header: 'Success', template: "{common.checkbox()}", disable: true, minWidth: 80},
+                            { id: 'success', header: 'Success', template: "{common.checkbox()}", disable: true, minWidth: 80, readonly: true},
                             { id: 'needs_build', header: 'Will rebuild', template: "{common.checkbox()}", disable: true},
                             { id: 'is_building', header: 'Building', template: "{common.checkbox()}", disable: true},
                             { id: 'docker_state', header: 'Docker', },

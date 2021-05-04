@@ -12,7 +12,7 @@ function reload_table(table) {
 
 function reload_table_item($table, id, data) {
     var item = $table.getItem(id);
-    if (item) {
+    if (!item) {
         return;
     }
     for (var key in data) {
