@@ -1,4 +1,5 @@
 import logging
+from copy import deepcopy
 from datetime import datetime
 import time
 import git
@@ -47,21 +48,33 @@ def _get_git_state():
                         new_branches.append(name)
                     else:
                         if repo.refs[name].commit != fi.commit:
+                            key = {
+                                'branch': name,
+                                'sha': str(fi.commit),
+                            }
+                            data = deepcopy(key)
+                            data['triggered_update'] = False
+                            # trigger onetime only for new branch
+                            db.git_commits.update_one(data, {"$set": data}, upsert=True)
                             new_branches.append(name)
+                            repo.git.checkout(name, force=True)
+                            repo.git.pull()
 
-            logger.debug(f"New Branches detected: {new_branches}")
-            for branch in new_branches:
-                existing_site = list(db.sites.find_one({'name': branch}))
+            for new_branch in db.git_commits.find({'triggered_update': False}):
+                logger.debug(f"New Branches detected: {new_branches}")
+
+                existing_site = list(db.sites.find_one({'name': new_branch['branch']}))
                 data = {
-                    'name': branch,
+                    'name': new_branch['branch'],
                     'needs_build': True,
                 }
                 if not existing_site:
                     data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
             
                 db.sites.update_one({
-                    'name': branch,
+                    'name': new_branch['branch'],
                 }, {'$set': data}, upsert=True)
+                db.git_commits.update_one({'branch': new_branch['branch'], 'sha': new_branch['sha']}, {'$set': {'triggered_update': True}})
 
         except Exception as ex:
             import traceback

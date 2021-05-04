@@ -300,40 +300,42 @@ def _get_config(name, default):
 def _set_config(name, value):
     db.config.update_one({'name': name}, {'$set': {'name': name, 'value': value}}, upsert=True)
 
-def _get_main_repo():
-    from . import WORKSPACE
-    from . import URL
-
-    def clone(path):
-        git.Repo.clone_from(
-            URL, 
-            path, 
-        )
-
-    path = WORKSPACE / MAIN_FOLDER_NAME
+def clone_repo(url, path):
     if not path.exists():
-        clone(path)
+        git.Repo.clone_from(url, path)
     try:
         repo = Repo(path)
     except git.exc.InvalidGitRepositoryError:
         shutil.rmtree(path)
-        clone(path)
+        git.Repo.clone_from(url, path)
         repo = Repo(path)
     return repo
 
-def update_instance_folder(branch):
-    from . import WORKSPACE
-    instance_folder = WORKSPACE / branch
-    instance_folder.mkdir(exist_ok=True)
-    subprocess.run(["rsync", str(Path(WORKSPACE) / MAIN_FOLDER_NAME) + "/", str(instance_folder) + "/", "-ar", "--delete-after", "--exclude=.odoo"]) # , "--exclude=.git"]) building needs git...
+def _get_main_repo():
+    from . import GIT_LOCK
+    with GIT_LOCK:
+        from . import WORKSPACE
+        from . import URL
 
-    repo = Repo(instance_folder)
-    repo.git.checkout(branch, force=True)
-    for submodule in repo.submodules:
-        submodule.update(init=True, force=True)
-    repo.git.pull()
-    commit = repo.refs[branch].commit
-    logger.debug(f"Copying source code to {instance_folder}")
+        path = WORKSPACE / MAIN_FOLDER_NAME
+        repo = clone_repo(URL, path)
+    return repo
+
+def update_instance_folder(branch):
+    from . import GIT_LOCK
+    from . import URL
+    with GIT_LOCK:
+        logger.info(f"Updating instance folder {branch}")
+        from . import WORKSPACE
+        instance_folder = WORKSPACE / branch
+        repo = clone_repo(URL, instance_folder)
+        repo.git.checkout(branch, force=True)
+        repo.git.pull()
+        for submodule in repo.submodules:
+            submodule.update(init=True, force=True)
+        commit = repo.refs[branch].commit
+        logger.debug(f"Copying source code to {instance_folder}")
+        return str(commit)
 
 def _get_instance_config(sitename):
     settings = Path("/odoo_settings/.run") / sitename / 'settings'

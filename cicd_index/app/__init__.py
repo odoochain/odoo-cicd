@@ -13,6 +13,8 @@ login_manager = flask_login.LoginManager()
 
 
 logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("paramiko").setLevel(logging.WARNING)
+logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
 logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
 """
@@ -56,6 +58,7 @@ from .app_utils import cronjob_docker
 from .app_utils import cronjob_fetch_git
 
 if os.getenv("CICD_CRONJOBS") == "1":
+
     cronjob_builder.start()
     cronjob_docker.start()
     cronjob_fetch_git.start()

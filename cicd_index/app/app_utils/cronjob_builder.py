@@ -22,6 +22,7 @@ from .tools import _store
 from git import Repo
 from .tools import store_output, get_output
 from .tools import update_instance_folder
+from .tools import _get_instance_config
 logger = logging.getLogger(__name__)
 
 threads = {} # for multitasking
@@ -149,12 +150,11 @@ def fix_ownership():
 
 def build_instance(site):
     try:
-        fix_ownership()
         logger.info(f"Building instance {site['name']}")
+        fix_ownership()
         started = arrow.get()
         settings = _get_instance_config(site['name'])
         _store(site['name'], {
-            "is_building": True,
             "build_started": started.to("utc").strftime("%Y-%m-%d %H:%M:%S"),
             })
         try:
@@ -204,36 +204,43 @@ def build_instance(site):
             'duration': (arrow.get() - started).total_seconds(),
         })
 
-        del threads[site['name']]
-        
     except Exception as ex:
         logger.error(ex)
+    finally:
         _store(site['name'], {
             'is_building': False,
             'needs_build': False,
         })
+        assert not db.sites.find_one({'name': site['name']})['needs_build']
+        del threads[site['name']]
 
 
 def _build():
-    db.sites.update({}, {"$set": {'is_building': False}})
+    ids = map(lambda x: x['_id'], db.sites.find({}))
+    for id in ids:
+        db.sites.update({'_id': id}, {"$set": {'is_building': False}})  # update with empty {} did not work
+
     while True:
         try:
-            # todo from db
             concurrent_threads = _get_config('concurrent_builds', 5)
 
             count_active = len([x for x in threads.values() if x.is_alive()])
             logger.debug(f"Active builds: {count_active}, configured max builds: {concurrent_threads}")
 
-            sites = list(db.sites.find({'needs_build': True, 'is_building': False}))
+            sites = list(db.sites.find({'needs_build': True}))
+            sites = [x for x in sites if not x.get('is_building')]
+            if not sites:
+                logger.debug("Nothing to build")
             for site in sites:
                 if not threads.get(site['name']) or not threads[site['name']].is_alive():
                     if count_active < concurrent_threads:
                         update_instance_folder(site['name'])
+                        _store(site['name'], {'is_building': True})
                         thread = threading.Thread(target=build_instance, args=(site,))
                         threads[site['name']] = thread
                         thread.start()
                         count_active += 1
-
+ 
         except Exception as ex:
             import traceback
             msg = traceback.format_exc()
