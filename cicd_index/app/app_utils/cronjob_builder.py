@@ -152,6 +152,7 @@ def build_instance(site):
         fix_ownership()
         logger.info(f"Building instance {site['name']}")
         started = arrow.get()
+        settings = _get_instance_config(site['name'])
         _store(site['name'], {
             "is_building": True,
             "build_started": started.to("utc").strftime("%Y-%m-%d %H:%M:%S"),
@@ -214,6 +215,7 @@ def build_instance(site):
 
 
 def _build():
+    db.sites.update({}, {"$set": {'is_building': False}})
     while True:
         try:
             # todo from db

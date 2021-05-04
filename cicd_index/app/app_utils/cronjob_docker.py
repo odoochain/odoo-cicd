@@ -41,8 +41,10 @@ def cycle_down_apps():
                         logger.debug(f"Cycling down instance due to inactivity: {site['name']}")
                         _odoo_framework(site['name'], 'kill')
 
-        except Exception as e:
-            logging.error(e)
+        except Exception as ex:
+            import traceback
+            msg = traceback.format_exc()
+            logger.error(msg)
         time.sleep(10)
 
 

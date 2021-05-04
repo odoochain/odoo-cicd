@@ -6,6 +6,7 @@ from .. import db
 from .tools import _get_db_conn
 from .tools import _odoo_framework
 from .tools import _get_config, _set_config
+from .tools import _get_instance_config
 import os
 import re
 import subprocess
@@ -24,6 +25,17 @@ from git import Repo
 from .tools import store_output, get_output
 logger = logging.getLogger(__name__)
 
+def _get_db_size(dbname):
+    try:
+        conn = _get_db_conn
+        try:
+            cr = conn.cursor()
+            cr.execute("select pg_database_size('{dbname}')")
+            db_size = cr.fetchone()[0] / 1024 / 1024
+        finally:
+            conn.close()
+    except: db_size = 0
+    return db_size
 
 def _usages():
     while True:
@@ -36,19 +48,11 @@ def _usages():
                 if path.exists():
                     source_size = sum(f.stat().st_size / 1024 / 1024 for f in path.glob('**/*') if f.is_file())
 
-                settings = Path("/odoo_settings/.run") / name / 'settings'
+                settings = _get_instance_config(name)
+                dbname = settings.get('DBNAME', "")
                 db_size = 0
-                if settings.exists():
-                    dbname = [x for x in settings.read_text().split("\n") if 'DBNAME=' in x][0].split("=")[1]
-                    try:
-                        conn = _get_db_conn
-                        try:
-                            cr = conn.cursor()
-                            cr.execute("select pg_database_size('{dbname}')")
-                            db_size = cr.fetchone()[0] / 1024 / 1024
-                        finally:
-                            conn.close()
-                    except: db_size = 0
+                if dbname:
+                    db_size = _get_db_size()
 
                 db.sites.update_one({'_id': site['_id']}, {'$set': {
                     'db_size': db_size,

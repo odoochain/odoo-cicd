@@ -51,22 +51,22 @@ def _get_git_state():
 
             logger.debug(f"New Branches detected: {new_branches}")
             for branch in new_branches:
-                update_instance_folder(branch)
+                existing_site = list(db.sites.find_one({'name': branch}))
+                data = {
+                    'name': branch,
+                    'needs_build': True,
+                }
+                if not existing_site:
+                    data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
             
                 db.sites.update_one({
                     'name': branch,
-                }, {'$set': {
-                    'name': branch,
-                    'needs_build': True,
-                    'git_sha': str(commit),
-                    'git_author': commit.author.name,
-                    'git_desc': commit.message,
-                    'date_registered': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-                }
-                }, upsert=True)
+                }, {'$set': data}, upsert=True)
 
         except Exception as ex:
-            logger.error(ex)
+            import traceback
+            msg = traceback.format_exc()
+            logger.error(msg)
 
         finally:
             time.sleep(5)
