@@ -1,4 +1,5 @@
 import logging
+import arrow
 import pymongo
 import time
 import threading
@@ -101,6 +102,10 @@ def make_instance(site, use_dump):
     logger.info(f"Make instance for {site}")
     settings = _get_instance_config(site['name'])
     _make_instance_docker_configs(site)
+
+    store_output(site['name'], 'meta', (
+        f"Date: {arrow.get()}"
+    ))
 
     output = _odoo_framework(
         site['name'], 

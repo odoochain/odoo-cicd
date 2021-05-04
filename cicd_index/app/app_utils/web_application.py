@@ -290,6 +290,7 @@ def build_log():
     site = db.sites.find_one({'name': name})
     output = []
     for heading in [
+        ("Meta", 'meta'),
         ("Reload", 'reload'),
         ("Build", 'build'),
         ("Last Update", 'update'),
