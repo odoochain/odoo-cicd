@@ -72,10 +72,14 @@ def _reload_instance(site):
 def trigger_rebuild():
     site = db.sites.find_one({'name': request.args['name']})
     db.updates.remove({'name': site['name']})
-    db.sites.update_one({'name': request.args.get('name')}, {'$set': {
+    data = {
         'needs_build': True,
         'reset-db': True,
-    }}, upsert=False)
+    }
+    if request.args.get('dump'):
+        data['dump'] = request.args['dump']
+
+    db.sites.update_one({'name': request.args.get('name')}, {'$set': data}, upsert=False)
     return jsonify({
         'result': 'ok',
     })
