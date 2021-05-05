@@ -173,6 +173,15 @@ function _build_again(do_all) {
     });
 }
 
+function reload_restart() {
+    var sitename = current_details;
+    var url = "/cicd/reload_restart?name=" + sitename;
+    webix.ajax().get(url).then(function(res) {
+        webix.message("Reloading and restarting triggered for " + sitename);
+    }).fail(function(response) {
+        webix.message("Error: " + response.statusText, "error");
+    });
+}
 function build_again() {
     _build_again(false);
 }
@@ -405,6 +414,7 @@ var menu = {
                 ]
                 },
                 { $template:"Separator" },
+                { view:"button", id:"reload_restart", value:"Reload & Restart" },
                 { view:"button", id:"build_again", value:"Update recently changed modules" },
                 { view:"button", id:"build_again_all", value:"Update all modules" },
                 { view:"button", id:"rebuild", value:"Rebuild from Dump (Data lost)" },

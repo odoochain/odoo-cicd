@@ -442,3 +442,15 @@ def start_info():
         'is_admin': u.is_authenticated and u.is_admin
     })
 
+@app.route("/reload_restart")
+def reload_restart():
+    site = db.sites.find_one({'name': request.args['name']})
+    data = {
+        'needs_build': True,
+        'build_mode': 'reload_restart',
+    }
+    db.sites.update_one({'name': site['name']}, {"$set": data}, upsert=True)
+
+    return jsonify({
+        'result': 'ok',
+    })
