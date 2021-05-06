@@ -32,6 +32,51 @@ update_resources = function() {
 setTimeout(update_live_values, 0);
 setTimeout(update_resources, 0);
 
+function make_new_instance() {
+    var form = webix.ui({
+        view: "window", 
+        position: 'center',
+        modal: true,
+        head: "Make New Instance",
+        width: 550,
+        body: {
+            view: 'form',
+            complexData: true,
+            elements: [
+                { view: 'text', name: 'sitename', label: "Name" },
+                {
+                    cols:[
+                        {
+                            view:"button", value:"OK", css:"webix_primary", click: function() { 
+                                var values = this.getParentView().getFormView().getValues();
+                                webix.message('Add new instance - please reloa');
+                                form.hide();
+                                webix.ajax().get('/cicd/make_custom_instance', {
+                                    'name': values.sitename,
+                                }).then(function(data) {
+                                    form.hide();
+                                    webix.message('Instance created: ' + values['sitename']);
+                                }).fail(function(data) {
+                                    alert(data.statusText);
+                                    console.error(data.responseText);
+                                });
+                            }
+                        },
+                        { view:"button", value:"Cancel", click: function() {
+                            form.hide();
+                        }}
+                    ]
+                }
+            ],
+            on: {
+                'onSubmit': function() {
+                },
+            }
+        }
+    });
+    form.show();
+}
+
 function backup_db() {
     var form = webix.ui({
         view: "window", 
@@ -446,6 +491,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         { view:"button", id:"restart_delegator", icon: 'recycle', value:"Restart Delegator", batch: 'admin'},
                         { view:"button", id:"start_all", icon: 'play', value:"Start All Docker Containers", batch: 'admin', click: clicked_menu,},
                         { view:"button", id:"delete_unused", icon: 'eraser', value:"Spring Clean", batch: 'admin'},
+                        { view:"button", id:"make_new_instance", icon: 'file', value:"New Instance", batch: 'admin'},
                         { view:"button", id:"users_admin", value:"Users", icon: "users", batch: 'admin' },
                         { view:"button", id:"appsettings", value:"App Settings", icon: "cog", batch: 'admin' },
                         { view:"button", id:"logout", value:"Logout", icon: "sign-out-alt", batch: 'user'},
