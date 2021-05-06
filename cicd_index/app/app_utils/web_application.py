@@ -112,12 +112,23 @@ def data_variants():
         site['id'] = site['_id']
         site['update_in_progress'] = False
         site['repo_url'] = f"{os.environ['REPO_URL']}/-/commit/{site.get('git_sha')}"
+        site['build_state'] = _get_build_state(site)
+        site['duration'] = round(site['duration'] or 0, 0)
 
     if user.is_authenticated and not user.is_admin:
         user_db = db.users.find_one({'login': user.id})
         sites = [x for x in sites if x['name'] in user_db.get('sites')]
 
     return jsonify(sites)
+
+def _get_build_state(site):
+    if site.get('is_building'):
+        return "Building...."
+    if site.get('needs_build'):
+        return 'Scheduled'
+    if 'success' in site:
+        return 'SUCCESS' if site['success'] else 'FAILED'
+    return ''
 
 @app.route('/update/site', methods=["GET", "POST"])
 def update_site():

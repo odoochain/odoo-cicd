@@ -1,3 +1,4 @@
+import traceback
 import logging
 import arrow
 import pymongo
@@ -156,7 +157,6 @@ def fix_ownership():
 def build_instance(site):
     try:
         logger.info(f"Building instance {site['name']}")
-        store_output(site['name'], 'error', '')
         fix_ownership()
         started = arrow.get()
         settings = _get_instance_config(site['name'])
@@ -213,7 +213,6 @@ def build_instance(site):
             success = True
         except Exception as ex:
             success = False
-            import traceback
             msg = traceback.format_exc()
             logger.error(msg)
             store_output(site['name'], 'error', str(msg))
@@ -260,10 +259,13 @@ def _build():
             for site in sites:
                 if not threads.get(site['name']) or not threads[site['name']].is_alive():
                     if count_active < concurrent_threads:
+                        for key in ['reload', 'name', 'update', 'build', 'last_error']:
+                            store_output(site['name'], key, "")
                         try:
                             update_instance_folder(site['name'])
                         except Exception as ex:
-                            store_output(site['name'], 'update', str(ex))
+                            msg = traceback.format_exc()
+                            store_output(site['name'], 'last_error', msg)
                             _store(site['name'], {'is_building': False, 'needs_build': False})
                             continue
 
@@ -274,7 +276,6 @@ def _build():
                         count_active += 1
 
         except Exception as ex:
-            import traceback
             msg = traceback.format_exc()
             logger.error(msg)
 

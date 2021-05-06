@@ -17,3 +17,4 @@ jira
 requests
 gitpython
 python-dotenv
+humanize
