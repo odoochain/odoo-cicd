@@ -174,17 +174,12 @@ def build_instance(site):
                 )
                 logger.info(f"Downing {site['name']}")
                 try:
-                    _odoo_framework(site, 
-                _odoo_framework(site, 
-                    _odoo_framework(site, 
-                        ["down"]
-                    )
+                    _odoo_framework(site, ["down"])
                 except Exception as ex:
                     logger.warn(ex)
+
                 logger.info(f"Upping {site['name']}")
-                _odoo_framework(site, 
-                    ["up", "-d"]
-                )
+                _odoo_framework(site, ["up", "-d"])
                 logger.info(f"Upped {site['name']}")
 
             else:
