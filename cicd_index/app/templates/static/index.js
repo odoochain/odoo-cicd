@@ -12,7 +12,7 @@ update_live_values = function() {
             var record = data.sites[i];
             reload_table_item($table, record._id, record);
         }
-        setTimeout(update_live_values, 5000);
+        setTimeout(update_live_values, 3000);
     });
 
 
@@ -526,7 +526,6 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                                     var name = this.getSelectedItem().name;
                                     var link = window.location.protocol + "//" + window.location.hostname + "/cicd/start?name=" + name;
                                     copyTextToClipboard(link);
-                                    webix.message("Copied to clipboard: " + link);
                                 }
                             }
                         },
