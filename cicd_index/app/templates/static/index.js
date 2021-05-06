@@ -522,21 +522,22 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                                 reload_details(this.getSelectedItem().name);
                             },
                             onItemClick: function(id, e, trg) {
-                                //if (id.column === 'start_instance') {
-                                //    var name = this.getSelectedItem().name;
-                                //    start_instance(name);
-                                //}
+                                if (id.column === 'copy_to_clipboard') {
+                                    var name = this.getSelectedItem().name;
+                                    var link = window.location.protocol + "//" + window.location.hostname + "/cicd/start?name=" + name;
+                                    copyTextToClipboard(link);
+                                    webix.message("Copied to clipboard: " + link);
+                                }
                             }
                         },
                         columns:[
+                            { id: 'copy_to_clipboard', header: '',  template: "html->clipboard-icon" }, 
                             { id: 'name', header: 'Name', minWidth: 150},
                             { id: 'title', header: 'Title', minWidth: 180},
-                            { id: 'success', header: 'Success', template: "{common.checkbox()}", disable: true, minWidth: 80, readonly: true},
-                            { id: 'needs_build', header: 'Will rebuild', template: "{common.checkbox()}", disable: true},
-                            { id: 'is_building', header: 'Building', template: "{common.checkbox()}", disable: true},
-                            { id: 'docker_state', header: 'Docker', },
-                            { id: 'db_size', header: "DB Size", },
-                            { id: 'source_size', header: "Source Size", },
+                            { id: 'build_state', header: 'Build', disable: true, minWidth: 80, readonly: true},
+                            // { id: 'docker_state', header: 'Docker', },
+                            { id: 'db_size_humanize', header: "DB Size", },
+                            { id: 'source_size_humanize', header: "Source Size", },
                             //{ id: 'updated', header: 'Updated', minWidth: 150,},
                             { id: 'duration', header: 'Duration [s]'},
                         ],
@@ -573,6 +574,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
             }
         ]
     });
+
 
     webix.ui.fullScreen();
 
