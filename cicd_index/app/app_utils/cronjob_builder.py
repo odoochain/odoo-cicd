@@ -156,6 +156,7 @@ def fix_ownership():
 def build_instance(site):
     try:
         logger.info(f"Building instance {site['name']}")
+        store_output(site['name'], 'error', '')
         fix_ownership()
         started = arrow.get()
         settings = _get_instance_config(site['name'])
@@ -166,14 +167,20 @@ def build_instance(site):
             dump_name = site.get('dump') or os.getenv("DUMP_NAME")
 
             if site.get("build_mode"):
+                _make_instance_docker_configs(site)
                 logger.info(f"Reloading {site['name']}")
                 _odoo_framework(site, 
                     ["reload", '-d', site['name'], '--headless', '--devmode']
                 )
                 logger.info(f"Downing {site['name']}")
+                try:
+                    _odoo_framework(site, 
                 _odoo_framework(site, 
-                    ["down"]
-                )
+                    _odoo_framework(site, 
+                        ["down"]
+                    )
+                except Exception as ex:
+                    logger.warn(ex)
                 logger.info(f"Upping {site['name']}")
                 _odoo_framework(site, 
                     ["up", "-d"]
@@ -209,11 +216,12 @@ def build_instance(site):
             notify_instance_updated(site)
 
             success = True
-        except (Exception, BaseException) as ex:
+        except Exception as ex:
             success = False
             import traceback
             msg = traceback.format_exc()
             logger.error(msg)
+            store_output(site['name'], 'error', str(msg))
         
         _store(site['name'], {
             'is_building': False,
@@ -257,13 +265,19 @@ def _build():
             for site in sites:
                 if not threads.get(site['name']) or not threads[site['name']].is_alive():
                     if count_active < concurrent_threads:
-                        update_instance_folder(site['name'])
+                        try:
+                            update_instance_folder(site['name'])
+                        except Exception as ex:
+                            store_output(site['name'], 'update', str(ex))
+                            _store(site['name'], {'is_building': False, 'needs_build': False})
+                            continue
+
                         _store(site['name'], {'is_building': True})
                         thread = threading.Thread(target=build_instance, args=(site,))
                         threads[site['name']] = thread
                         thread.start()
                         count_active += 1
- 
+
         except Exception as ex:
             import traceback
             msg = traceback.format_exc()

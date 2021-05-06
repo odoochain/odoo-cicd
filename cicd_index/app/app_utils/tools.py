@@ -25,7 +25,7 @@ docker = Docker.from_env()
 
 BOOL_VALUES = ['1', 1, 'true', 'True', 'y']
 
-class OdooFrameworkException(BaseException): pass
+class OdooFrameworkException(Exception): pass
 
 class JSONEncoder(json.JSONEncoder):
     # for encoding ObjectId
