@@ -6,11 +6,15 @@ var update_live_values = null;
 update_live_values = function() {
 
     webix.ajax().get('/cicd/data/site/live_values').then(function(res) {
-        var data = res.json();
-        var $table = $$("table-sites")
-        for (i = 0; i < data.sites.length; i++) {
-            var record = data.sites[i];
-            reload_table_item($table, record._id, record);
+        try {
+            var data = res.json();
+            var $table = $$("table-sites")
+            for (i = 0; i < data.sites.length; i++) {
+                var record = data.sites[i];
+                reload_table_item($table, record._id, record);
+            }
+        } catch(e) {
+            console.error(e);
         }
         setTimeout(update_live_values, 3000);
     });
