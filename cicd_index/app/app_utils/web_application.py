@@ -113,7 +113,7 @@ def data_variants():
         site['update_in_progress'] = False
         site['repo_url'] = f"{os.environ['REPO_URL']}/-/commit/{site.get('git_sha')}"
         site['build_state'] = _get_build_state(site)
-        site['duration'] = round(site.get('duration', 0) or 0, 0)
+        site['duration'] = site.get('duration', 0)
 
     if user.is_authenticated and not user.is_admin:
         user_db = db.users.find_one({'login': user.id})
