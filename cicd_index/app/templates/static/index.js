@@ -540,9 +540,11 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                             var columns = table.config.columns;
                             table.filter(function(obj){
                                 for (var i=0; i<columns.length; i++) {
-                                    if (obj[columns[i].id].toString().toLowerCase().indexOf(text) !== -1) return true;
-                                    return false;
+                                    if (obj[columns[i].id]) {
+                                        if (obj[columns[i].id].toString().toLowerCase().indexOf(text) !== -1) return true;
+                                    }
                                 }
+                                return false;
                             })
                             }
                         }
