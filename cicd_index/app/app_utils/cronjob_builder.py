@@ -225,7 +225,7 @@ def build_instance(site):
             'do-build-all': False,
             'reset-db': False,
             'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-            'duration': (arrow.get() - started).total_seconds(),
+            'duration': round((arrow.get() - started).total_seconds(), 0),
             'build_mode': False,
         })
 
