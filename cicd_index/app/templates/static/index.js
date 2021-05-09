@@ -334,15 +334,21 @@ function settings(){
                 position: 'center',
                 modal: true,
                 head: "Settings",
-                width: 550,
                 body: {
                     view: 'form',
+                    width: 550,
                     complexData: true,
                     elements: [
-                        { view: 'text', name: 'title', label: "Title" },
-                        { view: "textarea", name: 'note', label:"Note" },
-                        { view: "combo", name: 'dump', label:"Dump", options: dumps, },
-                        { view: "text", name: 'backup-db', label:"Todo Dump" },
+                        { view: 'text', name: 'title', placeholder: "Title", },
+                        { view: "textarea", name: 'note', placeholder: "Note..."},
+                        { cols: [
+                            { view: "label", label: "Dump"}, 
+                            { view: "combo", name: 'dump', options: dumps, placeholder: "Dump" },
+                        ]},
+                        { cols: [
+                            { view: "label", label: "Dont anonymize / clear data"}, 
+                            { view: "checkbox", name: 'keep_data' },
+                        ]},
                         {
                             cols:[
                                 { view:"button", value:"OK", css:"webix_primary", click: function() { 

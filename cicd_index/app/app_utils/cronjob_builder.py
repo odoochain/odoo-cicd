@@ -144,6 +144,11 @@ def make_instance(site, use_dump):
     store_output(site['name'], 'update', output)
 
     _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
+
+    if not site.get('keep_data'):
+        _odoo_framework(site, ["cleardb"])
+        _odoo_framework(site, ["anonymize"])
+
     _odoo_framework(site, ["set-ribbon", site['name']])
 
 
