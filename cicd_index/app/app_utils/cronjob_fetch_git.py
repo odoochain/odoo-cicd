@@ -65,9 +65,7 @@ def _get_git_state():
                         repo.git.pull()
 
             for new_branch in db.git_commits.find({'triggered_update': False}):
-                if not new_branch: continue
-
-                existing_site = list(db.sites.find_one({'name': new_branch['branch']}))
+                existing_site = db.sites.find_one({'name': new_branch['branch']})
                 data = {
                     'name': new_branch['branch'],
                     'needs_build': True,
