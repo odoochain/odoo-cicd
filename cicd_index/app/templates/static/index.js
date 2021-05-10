@@ -6,13 +6,17 @@ var update_live_values = null;
 update_live_values = function() {
 
     webix.ajax().get('/cicd/data/site/live_values').then(function(res) {
-        var data = res.json();
-        var $table = $$("table-sites")
-        for (i = 0; i < data.sites.length; i++) {
-            var record = data.sites[i];
-            reload_table_item($table, record._id, record);
+        try {
+            var data = res.json();
+            var $table = $$("table-sites")
+            for (i = 0; i < data.sites.length; i++) {
+                var record = data.sites[i];
+                reload_table_item($table, record._id, record);
+            }
+        } catch(e) {
+            console.error(e);
         }
-        setTimeout(update_live_values, 5000);
+        setTimeout(update_live_values, 3000);
     });
 
 
@@ -31,6 +35,51 @@ update_resources = function() {
 // start live valuen
 setTimeout(update_live_values, 0);
 setTimeout(update_resources, 0);
+
+function make_new_instance() {
+    var form = webix.ui({
+        view: "window", 
+        position: 'center',
+        modal: true,
+        head: "Make New Instance",
+        width: 550,
+        body: {
+            view: 'form',
+            complexData: true,
+            elements: [
+                { view: 'text', name: 'sitename', label: "Name" },
+                {
+                    cols:[
+                        {
+                            view:"button", value:"OK", css:"webix_primary", click: function() { 
+                                var values = this.getParentView().getFormView().getValues();
+                                webix.message('Add new instance - please reloa');
+                                form.hide();
+                                webix.ajax().get('/cicd/make_custom_instance', {
+                                    'name': values.sitename,
+                                }).then(function(data) {
+                                    form.hide();
+                                    webix.message('Instance created: ' + values['sitename']);
+                                }).fail(function(data) {
+                                    alert(data.statusText);
+                                    console.error(data.responseText);
+                                });
+                            }
+                        },
+                        { view:"button", value:"Cancel", click: function() {
+                            form.hide();
+                        }}
+                    ]
+                }
+            ],
+            on: {
+                'onSubmit': function() {
+                },
+            }
+        }
+    });
+    form.show();
+}
 
 function backup_db() {
     var form = webix.ui({
@@ -285,15 +334,21 @@ function settings(){
                 position: 'center',
                 modal: true,
                 head: "Settings",
-                width: 550,
                 body: {
                     view: 'form',
+                    width: 550,
                     complexData: true,
                     elements: [
-                        { view: 'text', name: 'title', label: "Title" },
-                        { view: "textarea", name: 'note', label:"Note" },
-                        { view: "combo", name: 'dump', label:"Dump", options: dumps, },
-                        { view: "text", name: 'backup-db', label:"Todo Dump" },
+                        { view: 'text', name: 'title', placeholder: "Title", },
+                        { view: "textarea", name: 'note', placeholder: "Note..."},
+                        { cols: [
+                            { view: "label", label: "Dump"}, 
+                            { view: "combo", name: 'dump', options: dumps, placeholder: "Dump" },
+                        ]},
+                        { cols: [
+                            { view: "label", label: "Dont anonymize / clear data"}, 
+                            { view: "checkbox", name: 'keep_data' },
+                        ]},
                         {
                             cols:[
                                 { view:"button", value:"OK", css:"webix_primary", click: function() { 
@@ -446,6 +501,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         { view:"button", id:"restart_delegator", icon: 'recycle', value:"Restart Delegator", batch: 'admin'},
                         { view:"button", id:"start_all", icon: 'play', value:"Start All Docker Containers", batch: 'admin', click: clicked_menu,},
                         { view:"button", id:"delete_unused", icon: 'eraser', value:"Spring Clean", batch: 'admin'},
+                        { view:"button", id:"make_new_instance", icon: 'file', value:"New Instance", batch: 'admin'},
                         { view:"button", id:"users_admin", value:"Users", icon: "users", batch: 'admin' },
                         { view:"button", id:"appsettings", value:"App Settings", icon: "cog", batch: 'admin' },
                         { view:"button", id:"logout", value:"Logout", icon: "sign-out-alt", batch: 'user'},
@@ -494,9 +550,11 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                             var columns = table.config.columns;
                             table.filter(function(obj){
                                 for (var i=0; i<columns.length; i++) {
-                                    if (obj[columns[i].id].toString().toLowerCase().indexOf(text) !== -1) return true;
-                                    return false;
+                                    if (obj[columns[i].id]) {
+                                        if (obj[columns[i].id].toString().toLowerCase().indexOf(text) !== -1) return true;
+                                    }
                                 }
+                                return false;
                             })
                             }
                         }
@@ -522,21 +580,21 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                                 reload_details(this.getSelectedItem().name);
                             },
                             onItemClick: function(id, e, trg) {
-                                //if (id.column === 'start_instance') {
-                                //    var name = this.getSelectedItem().name;
-                                //    start_instance(name);
-                                //}
+                                if (id.column === 'copy_to_clipboard') {
+                                    var name = this.getSelectedItem().name;
+                                    var link = window.location.protocol + "//" + window.location.hostname + "/cicd/start?name=" + name;
+                                    copyTextToClipboard(link);
+                                }
                             }
                         },
                         columns:[
+                            { id: 'copy_to_clipboard', header: '',  template: "html->clipboard-icon" }, 
                             { id: 'name', header: 'Name', minWidth: 150},
                             { id: 'title', header: 'Title', minWidth: 180},
-                            { id: 'success', header: 'Success', template: "{common.checkbox()}", disable: true, minWidth: 80, readonly: true},
-                            { id: 'needs_build', header: 'Will rebuild', template: "{common.checkbox()}", disable: true},
-                            { id: 'is_building', header: 'Building', template: "{common.checkbox()}", disable: true},
-                            { id: 'docker_state', header: 'Docker', },
-                            { id: 'db_size', header: "DB Size", },
-                            { id: 'source_size', header: "Source Size", },
+                            { id: 'build_state', header: 'Build', disable: true, minWidth: 80, readonly: true},
+                            // { id: 'docker_state', header: 'Docker', },
+                            { id: 'db_size_humanize', header: "DB Size", },
+                            { id: 'source_size_humanize', header: "Source Size", },
                             //{ id: 'updated', header: 'Updated', minWidth: 150,},
                             { id: 'duration', header: 'Duration [s]'},
                         ],
@@ -573,6 +631,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
             }
         ]
     });
+
 
     webix.ui.fullScreen();
 

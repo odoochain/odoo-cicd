@@ -30,6 +30,8 @@ def del_index_lock():
         if idxfile.exists():
             idxfile.unlink()
 
+class NewBranch(Exception): pass
+
 def _get_git_state():
     del_index_lock()
         
@@ -37,33 +39,33 @@ def _get_git_state():
         try:
             repo = _get_main_repo()
 
-            new_branches = []
             for remote in repo.remotes:
                 fetch_info = remote.fetch()
                 for fi in fetch_info:
                     name = fi.ref.name.split("/")[-1]
                     try:
-                        repo.refs[name]
-                    except IndexError:
-                        new_branches.append(name)
-                    else:
-                        if repo.refs[name].commit != fi.commit:
-                            key = {
-                                'branch': name,
-                                'sha': str(fi.commit),
-                            }
-                            data = deepcopy(key)
-                            data['triggered_update'] = False
-                            # trigger onetime only for new branch
-                            db.git_commits.update_one(data, {"$set": data}, upsert=True)
-                            new_branches.append(name)
-                            repo.git.checkout(name, force=True)
-                            repo.git.pull()
+                        try:
+                            repo.refs[name]
+                        except IndexError:
+                            raise NewBranch()
+                            
+                        else:
+                            if repo.refs[remote.name + '/' + name].commit != fi.commit:
+                                raise NewBranch()
+                    except NewBranch:
+                        key = {
+                            'branch': name,
+                            'sha': str(fi.commit),
+                        }
+                        data = deepcopy(key)
+                        data['triggered_update'] = False
+                        # trigger onetime only for new branch
+                        db.git_commits.update_one(data, {"$set": data}, upsert=True)
+                        repo.git.checkout(name, force=True)
+                        repo.git.pull()
 
             for new_branch in db.git_commits.find({'triggered_update': False}):
-                logger.debug(f"New Branches detected: {new_branches}")
-
-                existing_site = list(db.sites.find_one({'name': new_branch['branch']}))
+                existing_site = db.sites.find_one({'name': new_branch['branch']})
                 data = {
                     'name': new_branch['branch'],
                     'needs_build': True,

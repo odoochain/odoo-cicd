@@ -30,3 +30,7 @@ function logout() {
 function users_admin() {
     location = '/cicd/user_admin';
 }
+
+function copyTextToClipboard(text) {
+    window.prompt("Copy to clipboard: Ctrl+C, Enter", text);
+  }

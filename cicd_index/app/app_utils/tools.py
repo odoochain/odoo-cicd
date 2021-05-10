@@ -331,14 +331,19 @@ def update_instance_folder(branch):
         repo = clone_repo(URL, instance_folder)
         repo.git.checkout(branch, force=True)
         repo.git.pull()
-        for submodule in repo.submodules:
-            submodule.update(init=True, force=True)
+        run = subprocess.run(
+            ["git", "submodule", "update", "--init", "--force", "--recursive"],
+            capture_output=True,
+            cwd=instance_folder,
+            )
+        if run.returncode:
+            raise Exception(run.stderr)
         commit = repo.refs[branch].commit
         logger.debug(f"Copying source code to {instance_folder}")
         return str(commit)
 
 def _get_instance_config(sitename):
-    settings = Path("/odoo_settings/.run") / sitename / 'settings'
+    settings = Path("/odoo_settings/run") / sitename / 'settings'
     dbname = ""
     if settings.exists():
         try:

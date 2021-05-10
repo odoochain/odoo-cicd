@@ -1,3 +1,4 @@
+import traceback
 import logging
 import arrow
 import pymongo
@@ -143,6 +144,11 @@ def make_instance(site, use_dump):
     store_output(site['name'], 'update', output)
 
     _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
+
+    if not site.get('keep_data'):
+        _odoo_framework(site, ["cleardb"])
+        _odoo_framework(site, ["anonymize"])
+
     _odoo_framework(site, ["set-ribbon", site['name']])
 
 
@@ -156,7 +162,6 @@ def fix_ownership():
 def build_instance(site):
     try:
         logger.info(f"Building instance {site['name']}")
-        store_output(site['name'], 'error', '')
         fix_ownership()
         started = arrow.get()
         settings = _get_instance_config(site['name'])
@@ -213,7 +218,6 @@ def build_instance(site):
             success = True
         except Exception as ex:
             success = False
-            import traceback
             msg = traceback.format_exc()
             logger.error(msg)
             store_output(site['name'], 'error', str(msg))
@@ -226,7 +230,7 @@ def build_instance(site):
             'do-build-all': False,
             'reset-db': False,
             'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-            'duration': (arrow.get() - started).total_seconds(),
+            'duration': round((arrow.get() - started).total_seconds(), 0),
             'build_mode': False,
         })
 
@@ -260,10 +264,13 @@ def _build():
             for site in sites:
                 if not threads.get(site['name']) or not threads[site['name']].is_alive():
                     if count_active < concurrent_threads:
+                        for key in ['reload', 'name', 'update', 'build', 'last_error']:
+                            store_output(site['name'], key, "")
                         try:
                             update_instance_folder(site['name'])
                         except Exception as ex:
-                            store_output(site['name'], 'update', str(ex))
+                            msg = traceback.format_exc()
+                            store_output(site['name'], 'last_error', msg)
                             _store(site['name'], {'is_building': False, 'needs_build': False})
                             continue
 
@@ -274,7 +281,6 @@ def _build():
                         count_active += 1
 
         except Exception as ex:
-            import traceback
             msg = traceback.format_exc()
             logger.error(msg)
 
