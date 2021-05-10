@@ -335,6 +335,7 @@ def update_instance_folder(branch):
             ["git", "submodule", "update", "--init", "--force", "--recursive"],
             capture_output=True,
             cwd=instance_folder,
+            env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
             )
         if run.returncode:
             raise Exception(run.stderr)
