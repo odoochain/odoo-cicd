@@ -128,6 +128,18 @@ function backup_db() {
     form.show();
 }
 
+function delete_instance(name) {
+    webix.message("Deleting in Background " + name, "info");
+    webix.ajax().get('/cicd/delete', {
+        'name': name,
+    }).then(function(data) {
+        webix.message("Instance erased: " + current_details, "info");
+    }).fail(function(data) {
+        debugger;
+        alert(data.statusText);
+        console.error(data.responseText);
+    });
+}
 
 function show_logs() {
     window.open("/cicd/show_logs?name=" + current_details);
@@ -162,7 +174,7 @@ function delete_unused() {
     });
 }
 
-function delete_instance() {
+function delete_instance_ask() {
     var form_reset = webix.ui({
         view: "window", 
         position: 'center',
@@ -180,16 +192,7 @@ function delete_instance() {
                         { view:"button", value:"OK", css:"webix_primary", click: function() { 
                                 var values = this.getParentView().getFormView().getValues();
                                 form_reset.hide();
-                                webix.message("Deleting in Background", "info");
-                                webix.ajax().get('/cicd/delete', {
-                                    'name': current_details,
-                                }).then(function(data) {
-                                    webix.message("Instance erased: " + current_details, "info");
-                                    form_reset.hide();
-                                }).fail(function(data) {
-                                    alert(data.statusText);
-                                    console.error(data.responseText);
-                                });
+                                delete_instance(current_details);
                                 }
                         },
                         { view:"button", value:"Cancel", click: function() {
@@ -465,7 +468,7 @@ var menu = {
                 { $template:"Separator" },
                 { view:"menu", id: "build_submenu", value: "Lifecycle", autowidth: true, config: { on: { onItemClick: clicked_menu}}, data: [
                     { view:"button", id:"restart", value:"Restart"},
-                    { view:"button", id:"delete_instance", value:"Destroy (unrecoverable)", click: delete_instance },
+                    { view:"button", id:"delete_instance", value:"Destroy (unrecoverable)", click: delete_instance_ask },
                 ]
                 },
                 { $template:"Separator" },
@@ -585,7 +588,15 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                                     var link = window.location.protocol + "//" + window.location.hostname + "/cicd/start?name=" + name;
                                     copyTextToClipboard(link);
                                 }
-                            }
+                            },
+                            onKeyPress: function(code, e) {
+                                if (code == 68) {
+                                    var name = this.getSelectedItem().name;
+                                    if (confirm("Delete " + name)) {
+                                        delete_instance(name);
+                                    }
+                                }
+                            },
                         },
                         columns:[
                             { id: 'copy_to_clipboard', header: '',  template: "html->clipboard-icon" }, 
