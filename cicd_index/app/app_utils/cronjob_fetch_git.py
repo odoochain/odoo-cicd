@@ -33,7 +33,6 @@ def del_index_lock():
 class NewBranch(Exception): pass
 
 def _get_git_state():
-    del_index_lock()
         
     while True:
         try:
@@ -64,6 +63,19 @@ def _get_git_state():
                         repo.git.checkout(name, force=True)
                         repo.git.pull()
 
+        except Exception as ex:
+            import traceback
+            msg = traceback.format_exc()
+            logger.error(msg)
+
+        finally:
+            time.sleep(5)
+
+
+def _make_new_instances():
+        
+    while True:
+        try:
             for new_branch in db.git_commits.find({'triggered_update': False}):
                 existing_site = db.sites.find_one({'name': new_branch['branch']})
                 data = {
@@ -87,8 +99,15 @@ def _get_git_state():
             time.sleep(5)
 
 
+
 def start():
+    del_index_lock()
+
     logger.info("Starting job to fetch source code")
     t = threading.Thread(target=_get_git_state)
+    t.daemon = True
+    t.start()
+
+    t = threading.Thread(target=_make_new_instances)
     t.daemon = True
     t.start()
