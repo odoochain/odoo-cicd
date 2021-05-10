@@ -86,9 +86,14 @@ def trigger_rebuild():
 
 @app.route("/data/site/live_values")
 def site_jenkins():
-    sites = list(db.sites.find({}, {'name': 1, 'is_building': 1, 'duration': 1, 'docker_state': 1}))
+    sites = list(db.sites.find({}, {
+        'name': 1, 'is_building': 1, 'duration': 1,
+        'docker_state': 1, 'build_state': 1, 'success': 1,
+        'needs_build': 1, 'db_size_humanize': 1, 'source_size_humanize': 1
+        }))
     for site in sites:
         site['id'] = site['_id']
+        site['build_state'] = _get_build_state(site)
     return jsonify({
         'sites': sites,
     })
