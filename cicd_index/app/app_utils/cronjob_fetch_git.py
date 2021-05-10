@@ -16,8 +16,6 @@ import shutil
 from .tools import update_instance_folder
 logger = logging.getLogger(__name__)
 
-
-
 def del_index_lock():
     paths = []
     paths.append(WORKSPACE / MAIN_FOLDER_NAME)
@@ -42,6 +40,8 @@ def _get_git_state():
                 fetch_info = remote.fetch()
                 for fi in fetch_info:
                     name = fi.ref.name.split("/")[-1]
+                    if '/release/' in fi.ref.name:
+                        continue
                     try:
                         try:
                             repo.refs[name]

@@ -79,18 +79,20 @@ def notify_instance_updated(site):
     info = {
         'name': site['name'],
         'sha': sha,
+        'git_author': repo.active_branch.commit.author.name,
+        'git_desc': repo.active_branch.commit.summary,
+        'git_authored_date': arrow.get(repo.active_branch.commit.authored_date).strftime("%Y-%m-%d %H:%M:%S"),
     }
     info['date'] = arrow.get().to('utc').strftime("%Y-%m-%d %H:%M:%S")
     db.updates.insert_one(info)
 
     site = db.sites.find_one({'name': site['name']})
-    db.sites.update_one(
-        {'name': site['name']}, 
-        {"$set": {
-            'git_sha': sha,
-            'git_author': str(repo.active_branch.commit.author.name)
-            }},  
-        upsert=False)
+    if site:
+        db.sites.update_one(
+            {'name': site['name']}, 
+            {"$set": info },
+            upsert=False
+        )
 
 def _last_success_full_sha(site):
     info = {'name': site['name']}
@@ -259,6 +261,7 @@ def _build():
 
             sites = list(db.sites.find({'needs_build': True}))
             sites = [x for x in sites if not x.get('is_building')]
+            sites = [x for x in sites if not x.get('archive')]
             if not sites:
                 logger.debug("Nothing to build")
             for site in sites:
