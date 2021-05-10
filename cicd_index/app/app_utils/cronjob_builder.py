@@ -85,11 +85,12 @@ def notify_instance_updated(site):
     }
     info['date'] = arrow.get().to('utc').strftime("%Y-%m-%d %H:%M:%S")
     db.updates.insert_one(info)
+    info.pop("_id")
 
     site = db.sites.find_one({'name': site['name']})
     if site:
         db.sites.update_one(
-            {'name': site['name']}, 
+            {'_id': site['_id']}, 
             {"$set": info },
             upsert=False
         )
