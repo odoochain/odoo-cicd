@@ -17,7 +17,9 @@ import logging
 import os
 from .. import host_ip
 from git import Repo
+from .. import rolling_log_dir
 from .. import MAIN_FOLDER_NAME
+
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +75,24 @@ def _validate_input(data, int_fields=[]):
         data['_id'] = ObjectId(data['_id'])
     return data
 
-def _odoo_framework(site_name, command):
+def _odoo_framework(site_name, command, start_rolling_new=False):
     if isinstance(site_name, dict):
         site_name = site_name['name']
     if isinstance(command, str):
         command = [command]
+
+    file = rolling_log_dir / site_name
+    if start_rolling_new:
+        file.write_text("")
+
+
+    def on_input(prefix, line):
+        if line:
+            with open(str(file), 'a') as fh:
+                print(f"writing to file {file}: {line}")
+                fh.write(f"{prefix}_____{line}")
+                fh.write("\n")
+                fh.flush()
 
     res, stdout, stderr = _execute_shell(
         ["/opt/odoo/odoo", "-f", "--project-name", site_name] + command,
@@ -87,7 +102,8 @@ def _odoo_framework(site_name, command):
             'DOCKER_CLIENT_TIMEOUT': "600",
             'COMPOSE_HTTP_TIMEOUT': "600",
             'PSYCOPG_TIMEOUT': "120",
-        }
+        },
+        callback=on_input
     )
     output = stdout + '\n' + stderr
     if res == 'error':
@@ -97,16 +113,36 @@ def _odoo_framework(site_name, command):
     store_output(site_name, 'last_error', '')
     return output
 
-def _execute_shell(command, cwd=None, env=None):
+def _execute_shell(command, cwd=None, env=None, callback=None):
     if isinstance(command, str):
         command = [command]
 
     env = env or {}
 
-    stdout, stderr = BytesIO(), BytesIO()
+    class MyWriter(object):
+        def __init__(self, prefix):
+            self.text = [""]
+            self.prefix = prefix
 
-    def decoded(s):
-        return s.decode('utf-8')
+        def write(self, bytes):
+            s = bytes.decode('utf-8')
+            for c in s:
+                if c == '\n':
+                    line = self.text[-1]
+                    if self.prefix == 'stderr':
+                        logger.error(line)
+                    else:
+                        logger.debug(line)
+                    self.text.append("")
+                    if callback:
+                        callback(self.prefix, line)
+                self.text[-1] += c
+
+        def getall(self):
+            return '\n'.join(self.text)
+
+    stdout, stderr = MyWriter('stdout'), MyWriter('stderr')
+
 
     with spur.SshShell(
         hostname=host_ip,
@@ -123,14 +159,10 @@ def _execute_shell(command, cwd=None, env=None):
                 stderr=stderr,
                 )
         except Exception as ex:
-            stdout.seek(0)
-            stderr.seek(0)
             logger.error(ex)
-            return 'error', decoded(stdout.read()), decoded(stderr.read())
+            return 'error', stdout.getall(), stderr.getall()
 
-    stdout.seek(0)
-    stderr.seek(0)
-    return result, decoded(stdout.read()), decoded(stderr.read())
+    return result, stdout.getall(), stderr.getall()
 
     
 def _get_resources():

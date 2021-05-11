@@ -8,6 +8,10 @@ import flask_login
 import logging
 from flask_login import login_required
 from pymongo import MongoClient
+from pathlib import Path
+
+rolling_log_dir = Path("/tmp") / 'rolling_log'
+rolling_log_dir.mkdir(exist_ok=True)
 
 login_manager = flask_login.LoginManager()
 

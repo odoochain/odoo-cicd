@@ -32,6 +32,7 @@ services:
         - /var/run/docker.sock:/var/run/docker.sock
         - /var/lib/docker:/display_resources/docker
         - /:/display_resources/root
+        - rolling_log:/tmp/rolling_log
   cicd_index:
     build: ./cicd_index
     env_file: .env
@@ -61,6 +62,7 @@ services:
         - /var/run/docker.sock:/var/run/docker.sock
         - /var/lib/docker:/display_resources/docker
         - /:/display_resources/root
+        - rolling_log:/tmp/rolling_log
         
   cicd_postgres:
     image: postgres:12
@@ -125,6 +127,7 @@ services:
       - ${CICD_WORKSPACE}:/cicd_workspace
 volumes:
     cicd_postgres_data:
+    rolling_log:
 networks:
     cicd_delegator:
         name: ${CICD_NETWORK_NAME}

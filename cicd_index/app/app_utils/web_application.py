@@ -27,6 +27,7 @@ import logging
 from datetime import datetime
 import docker as Docker
 from .tools import get_output
+from .. import rolling_log_dir
 import flask_login
 logger = logging.getLogger(__name__)
 
@@ -502,3 +503,36 @@ def make_custom_instance():
     return jsonify({
         'result': 'ok',
     })
+
+@app.route("/live_log")
+def livelog():
+    name = request.args['name']
+    return render_template(
+        'live_log.html',
+        site=name,
+    )
+
+@app.route("/live_log/new_lines")
+def fetch_new_lines():
+    name = request.args.get('name')
+    name = name.replace('/', '_')
+    file = rolling_log_dir / name
+    result = {
+        'content': [],
+        'next_line_number': 0,
+    }
+
+    next_line_number = int(request.args.get('next_line_number') or '0')
+    if file.exists():
+        content = file.read_text().split("\n")
+    else:
+        content = []
+    all_lines = len(content)
+    if next_line_number > len(content) + 1:
+        next_line_number = 0
+    content = content[next_line_number:]
+    lines = len(content)
+    result['content'] = '\n'.join(content)
+    result['next_line_number'] = all_lines
+
+    return jsonify(result)

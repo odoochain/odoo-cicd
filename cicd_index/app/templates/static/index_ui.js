@@ -144,10 +144,14 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                                 reload_details(this.getSelectedItem().name);
                             },
                             onItemClick: function(id, e, trg) {
+                                var name = this.getSelectedItem().name;
                                 if (id.column === 'copy_to_clipboard') {
-                                    var name = this.getSelectedItem().name;
                                     var link = window.location.protocol + "//" + window.location.hostname + "/cicd/start?name=" + name;
                                     copyTextToClipboard(link);
+                                }
+                                else if (id.column === 'live_log') {
+                                    var name = this.getSelectedItem().name;
+                                    window.open("/cicd/live_log?name=" + name);
                                 }
                             },
                             onKeyPress: function(code, e) {
@@ -161,6 +165,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         },
                         columns:[
                             { id: 'copy_to_clipboard', header: '',  template: "html->clipboard-icon" }, 
+                            { id: 'live_log', header: '',  template: "html->live_log-icon" }, 
                             { id: 'name', header: 'Name', minWidth: 150},
                             { id: 'title', header: 'Title', minWidth: 180},
                             { id: 'build_state', header: 'Build', disable: true, minWidth: 80, readonly: true},
