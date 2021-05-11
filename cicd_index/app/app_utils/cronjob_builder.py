@@ -113,7 +113,8 @@ def make_instance(site, use_dump):
 
     output = _odoo_framework(
         site['name'], 
-        ["reload", '-d', site['name'], '--headless', '--devmode']
+        ["reload", '-d', site['name'], '--headless', '--devmode'],
+        start_rolling_new=True
     )
     store_output(site['name'], 'reload', output)
 

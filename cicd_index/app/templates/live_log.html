@@ -9,13 +9,34 @@
         <script src="https://cdn.webix.com/edge/webix.js" type="text/javascript" charset="utf-8"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     </head>
+    <style>
+        div>span:first-child {
+            margin-right: 10px;
+            color: grey;
+        }
+
+    </style>
     <script type='text/javascript'>
         $(document).ready(function() {
 
+            var autoscroll = true;
+
+            $(document).mousedown(function () {
+                autoscroll = false;
+            });
+            $(document).keydown(function (ev) {
+                if (ev.keyCode === 13) {
+                    autoscroll = true;
+                }
+            });
+
             function scroll_down() {
                 //$("html, body").animate({ scrollTop: $(document).height() }, 1000);
+                if (!autoscroll) {
+                    return;
+                }
                 $('html, body').animate({
-                    scrollTop: $("pre:last-child").offset().top
+                    scrollTop: $("#container>div:last-child").offset().top
                  }, 200);
             }
 
@@ -32,9 +53,15 @@
                             else if (content.indexOf("stderr_____") === 0) {
                                 color = 'red';
                             }
-                            content = content.split("_____")[1];
-                            var $pre = $("<pre>").text(content);
-                            $pre.css('color', color).appendTo($container);
+                            var splitted = content.split("_____")
+                            var date = splitted[1];
+                            content = splitted[2];
+                            if (content) {
+                                var $div = $("<div>");
+                                var $span = $("<span>").text(date).appendTo($div);
+                                var $span = $("<span>").text(content).appendTo($div);
+                                $div.css('color', color).appendTo($container);
+                            }
                         });
                         scroll_down();
                     }
