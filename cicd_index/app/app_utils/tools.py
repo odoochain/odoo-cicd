@@ -89,7 +89,6 @@ def _odoo_framework(site_name, command, start_rolling_new=False):
     def on_input(prefix, line):
         if line:
             with open(str(file), 'a') as fh:
-                print(f"writing to file {file}: {line}")
                 fh.write(f"{prefix}_____{arrow.get()}_____{line}\n")
                 fh.flush()
 

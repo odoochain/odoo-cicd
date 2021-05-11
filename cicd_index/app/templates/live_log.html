@@ -21,7 +21,7 @@
 
             var autoscroll = true;
 
-            $(document).mousedown(function () {
+            $(document).bind("mousewheel DOMMouseScroll mousedown", function () {
                 autoscroll = false;
             });
             $(document).keydown(function (ev) {
