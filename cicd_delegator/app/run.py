@@ -86,7 +86,7 @@ def split_set_cookie(cookie, as_simple_cookie=False):
     return cookies
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
-    protocol_version = 'HTTP/1.0'
+    protocol_version = 'HTTP/1.1'
 
     def _merge_headers(self, *arrs):
         headers = sum(arrs)
@@ -113,7 +113,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             # set touched date:
             requests.get(cicd_index_url + "/last_access", params={'site': delegator_path}).raise_for_status()
 
-        logger.debug(f"rewrite path: self.path: {self.path}, delegator_path: {delegator_path}")
+        logger.info(f"rewrite path: self.path: {self.path}, delegator_path: {delegator_path}")
 
         path = (self.path or '').split("?")[0]
         if path in ['/index', '/index/'] or "/__start_cicd" in path or not delegator_path or path.startswith("/cicd/"):
@@ -128,7 +128,10 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             url = f'http://{host}{path}'
         else:
             host = f"{delegator_path}_proxy"
-            path = self.path.replace(f"/{delegator_path}", "")
+            if self.path.endswith(f"/{delegator_path}"):
+                path = self.path.replace(f"/{delegator_path}", "")
+            else:
+                path = self.path.replace(f"/{delegator_path}/", "")
             url = f'http://{host}{path}'
 
         logger.debug(f"rewrite path result: {url}")
@@ -140,7 +143,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             req_header, cookies = self.parse_headers()
             url = self._rewrite_path(req_header, cookies)
-            logger.debug(f"{url}\n{req_header}")
             resp = requests.get(
                 url, headers=req_header, verify=False,
                 allow_redirects=False, params=query_params,
@@ -170,7 +172,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             post_body = self.rfile.read(content_len)
 
             resp = requests.post(
-                url, data=post_body, headers=req_header,
+                url, data=post_body,  headers=req_header,
                 verify=False, allow_redirects=False,
                 cookies={k: v.value for k, v in cookies.items()},
             )
@@ -181,6 +183,10 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             if body:
                 self.wfile.write(resp.content)
             return
+        except Exception as ex:
+            import traceback
+            msg = traceback.format_exc()
+            logger.error(msg)
         finally:
             self.finish()
             if not sent:
