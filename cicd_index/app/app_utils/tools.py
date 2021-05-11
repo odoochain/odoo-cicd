@@ -159,8 +159,12 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
                 )
         except Exception as ex:
             logger.error(ex)
+            if callback:
+                callback('stderr', f"Process aborted with: {result}")
             return 'error', stdout.getall(), stderr.getall()
 
+    if callback:
+        callback('stdout', f"Successfully terminated.")
     return result, stdout.getall(), stderr.getall()
 
     
