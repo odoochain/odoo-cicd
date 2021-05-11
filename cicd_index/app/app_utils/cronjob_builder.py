@@ -275,7 +275,7 @@ def _build():
                         except Exception as ex:
                             msg = traceback.format_exc()
                             store_output(site['name'], 'last_error', msg)
-                            _store(site['name'], {'is_building': False, 'needs_build': False})
+                            _store(site['name'], {'is_building': False, 'needs_build': False, 'success': False})
                             continue
 
                         _store(site['name'], {'is_building': True})

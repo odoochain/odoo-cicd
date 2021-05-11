@@ -349,6 +349,10 @@ function settings(){
                             { view: "combo", name: 'dump', options: dumps, placeholder: "Dump" },
                         ]},
                         { cols: [
+                            { view: "label", label: "Archived"}, 
+                            { view: "checkbox", name: 'archive' },
+                        ]},
+                        { cols: [
                             { view: "label", label: "Dont anonymize / clear data"}, 
                             { view: "checkbox", name: 'keep_data' },
                         ]},
@@ -603,6 +607,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                             { id: 'name', header: 'Name', minWidth: 150},
                             { id: 'title', header: 'Title', minWidth: 180},
                             { id: 'build_state', header: 'Build', disable: true, minWidth: 80, readonly: true},
+                            { id: 'archive', header: 'Archived', disable: true, minWidth: 80, readonly: true, template:"{common.checkbox()}"},
                             // { id: 'docker_state', header: 'Docker', },
                             { id: 'db_size_humanize', header: "DB Size", },
                             { id: 'source_size_humanize', header: "Source Size", },

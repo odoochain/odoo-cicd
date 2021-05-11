@@ -124,6 +124,8 @@ def data_variants():
         user_db = db.users.find_one({'login': user.id})
         sites = [x for x in sites if x['name'] in user_db.get('sites')]
 
+    sites = list(sorted(sites, key=lambda x: (1 if x.get('archive') else 0, x.get('name'))))
+
     return jsonify(sites)
 
 def _get_build_state(site):
@@ -291,7 +293,10 @@ def delete_instance():
         cr.close()
         conn.close()
         
-    db.sites.remove({'name': name})
+    db.sites.update_one(
+        {'_id': site['_id']},
+        {"$set": {'archive': True}}
+        )
     db.updates.remove({'name': name})
 
     return jsonify({

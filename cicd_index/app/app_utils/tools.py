@@ -332,13 +332,15 @@ def update_instance_folder(branch):
         repo.git.checkout(branch, force=True)
         repo.git.pull()
         run = subprocess.run(
-            ["git", "submodule", "update", "--init", "--force", "--recursive"],
+            ["git", "submodule", "update", "--init", "--force", "--recursive", "--remote"],
             capture_output=True,
             cwd=instance_folder,
             env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
             )
         if run.returncode:
-            raise Exception(run.stderr)
+            msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
+            logger.error(msg)
+            raise Exception(msg)
         commit = repo.refs[branch].commit
         logger.debug(f"Copying source code to {instance_folder}")
         return str(commit)
