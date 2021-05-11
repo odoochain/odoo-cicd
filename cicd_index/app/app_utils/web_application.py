@@ -395,14 +395,17 @@ def start_all_instances():
 @app.route('/restart_delegator')
 def restart_delegator():
     docker_project_name = os.environ['PROJECT_NAME']
-    delegator_name = f"{docker_project_name}_cicd_delegator"
-    containers = docker.containers.list(all=True, filters={'name': [delegator_name]})
-    for container in containers:
-        try:
-            container.stop()
-        except Exception:
-            logger.info(f"Container not stoppable - maybe ok: {container.name}")
-        container.start()
+    names = []
+    names.append(f"{docker_project_name}_cicd_delegator")
+    names.append(f"{docker_project_name}_nginx")
+    for name in names:
+        containers = docker.containers.list(all=True, filters={'name': [name]})
+        for container in containers:
+            try:
+                container.stop()
+            except Exception:
+                logger.info(f"Container not stoppable - maybe ok: {container.name}")
+            container.start()
     return jsonify({
         'result': 'ok',
     })
