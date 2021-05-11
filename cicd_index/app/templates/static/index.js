@@ -252,6 +252,10 @@ function turn_into_dev() {
     });
 }
 
+function filter_archived() {
+    reload_table($$('table-sites'));
+}
+
 function restart_delegator() {
     webix.message("Restarting delegator", "info");
     var url = "/cicd/restart_delegator"
@@ -548,23 +552,32 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         template: "<div id='resources'></div>",
                     },
                     {
-                        view:"text", 
-                        placeholder:"Filter grid",
-                        on:{
-                            onTimedKeyPress:function(){
-                            var text = this.getValue().toLowerCase();
-                            var table = $$("table-sites");
-                            var columns = table.config.columns;
-                            table.filter(function(obj){
-                                for (var i=0; i<columns.length; i++) {
-                                    if (obj[columns[i].id]) {
-                                        if (obj[columns[i].id].toString().toLowerCase().indexOf(text) !== -1) return true;
+                        cols: [
+                            {
+                                cols: [
+                                    { view: "label", label: "Show Archived"}, 
+                                    { view: "checkbox", name: 'show_archived', click: filter_archived() },
+                                ],
+                            },
+                            {
+                            view:"text", 
+                            placeholder:"Filter grid",
+                            on:{
+                                onTimedKeyPress:function(){
+                                var text = this.getValue().toLowerCase();
+                                var table = $$("table-sites");
+                                var columns = table.config.columns;
+                                table.filter(function(obj){
+                                    for (var i=0; i<columns.length; i++) {
+                                        if (obj[columns[i].id]) {
+                                            if (obj[columns[i].id].toString().toLowerCase().indexOf(text) !== -1) return true;
+                                        }
                                     }
+                                    return false;
+                                })
                                 }
-                                return false;
-                            })
                             }
-                        }
+                        }]
                     },
                     {
                         id: 'table-sites',

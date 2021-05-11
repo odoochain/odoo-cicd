@@ -11,6 +11,7 @@ function reload_table(table) {
 }
 
 function reload_table_item($table, id, data) {
+    if (!$table) return;
     var item = $table.getItem(id);
     if (!item) {
         return;
