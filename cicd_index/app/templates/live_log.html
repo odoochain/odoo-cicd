@@ -13,23 +13,34 @@
         $(document).ready(function() {
 
             function scroll_down() {
-                $("html, body").animate({ scrollTop: $(document).height() }, 1000);
+                //$("html, body").animate({ scrollTop: $(document).height() }, 1000);
+                $('html, body').animate({
+                    scrollTop: $("pre:last-child").offset().top
+                 }, 200);
             }
 
-            var $pre = $("pre");
+            var $container = $("#container");
             var update = null;
             update = function (next_line_number) {
                 $.get("/cicd/live_log/new_lines?name={{ site }}&next_line_number=" + next_line_number).then(function(res) {
-                    console.log(res);
                     if (res.content.length) {
-                        $pre.append('\n' + res.content);
-                        if (res.content) {
-                            scroll_down();
-                        }
+                        res.content.forEach(function(content) {
+                            var color = 'black';
+                            if (content.indexOf("stdout_____") === 0) {
+                                color = 'black';
+                            }
+                            else if (content.indexOf("stderr_____") === 0) {
+                                color = 'red';
+                            }
+                            content = content.split("_____")[1];
+                            var $pre = $("<pre>").text(content);
+                            $pre.css('color', color).appendTo($container);
+                        });
+                        scroll_down();
                     }
                     var timeout = 2000;
-                    if (res.content) {
-                        timeout = 200;
+                    if (res.content.length) {
+                        timeout = 20;
                     }
                     setTimeout(function() {
                         update(res.next_line_number);
@@ -54,7 +65,8 @@
 
     </style>
     <body>
-        <pre>
-        </pre>
+        <div id="container">
+
+        </div>
     </body>
 </html>

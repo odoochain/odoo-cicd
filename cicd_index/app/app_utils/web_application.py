@@ -514,6 +514,7 @@ def livelog():
 
 @app.route("/live_log/new_lines")
 def fetch_new_lines():
+    MAX_LINES = 1000;
     name = request.args.get('name')
     name = name.replace('/', '_')
     file = rolling_log_dir / name
@@ -530,9 +531,9 @@ def fetch_new_lines():
     all_lines = len(content)
     if next_line_number > len(content) + 1:
         next_line_number = 0
-    content = content[next_line_number:]
+    content = content[next_line_number:next_line_number + MAX_LINES]
     lines = len(content)
-    result['content'] = '\n'.join(content)
-    result['next_line_number'] = all_lines
+    result['content'] = content
+    result['next_line_number'] = next_line_number + lines
 
     return jsonify(result)

@@ -90,8 +90,7 @@ def _odoo_framework(site_name, command, start_rolling_new=False):
         if line:
             with open(str(file), 'a') as fh:
                 print(f"writing to file {file}: {line}")
-                fh.write(f"{prefix}_____{line}")
-                fh.write("\n")
+                fh.write(f"{prefix}_____{line}\n")
                 fh.flush()
 
     res, stdout, stderr = _execute_shell(
@@ -125,7 +124,7 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
             self.prefix = prefix
 
         def write(self, bytes):
-            s = bytes.decode('utf-8')
+            s = bytes.decode('utf-8', errors='ignore')
             for c in s:
                 if c == '\n':
                     line = self.text[-1]
@@ -136,7 +135,8 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
                     self.text.append("")
                     if callback:
                         callback(self.prefix, line)
-                self.text[-1] += c
+                else:
+                    self.text[-1] += c
 
         def getall(self):
             return '\n'.join(self.text)
