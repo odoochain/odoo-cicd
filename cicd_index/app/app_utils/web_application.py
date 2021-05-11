@@ -101,6 +101,7 @@ def site_jenkins():
 @app.route("/data/sites", methods=["GET", "POST"])
 def data_variants():
     _filter = {}
+
     user = flask_login.current_user
         
     if request.args.get('git_branch', None):
@@ -112,6 +113,10 @@ def data_variants():
 
     sites = _format_dates_in_records(sites)
     sites = sorted(sites, key=lambda x: x.get('name'))
+    if request.args.get('archived') == '1':
+        sites = [x for x in sites if x.get('archive')]
+    else:
+        sites = [x for x in sites if not x.get('archive')]
 
     for site in sites:
         site['id'] = site['_id']

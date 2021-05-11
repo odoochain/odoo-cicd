@@ -252,8 +252,10 @@ function turn_into_dev() {
     });
 }
 
-function filter_archived() {
-    reload_table($$('table-sites'));
+function update_sites() {
+    var archived = $$('show_archived').getValue();
+    var url = "archived=" + archived;
+    reload_table($$('table-sites'), url);
 }
 
 function restart_delegator() {
@@ -556,7 +558,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                             {
                                 cols: [
                                     { view: "label", label: "Show Archived"}, 
-                                    { view: "checkbox", name: 'show_archived', click: filter_archived() },
+                                    { view: "checkbox", id: 'show_archived', click: update_sites },
                                 ],
                             },
                             {

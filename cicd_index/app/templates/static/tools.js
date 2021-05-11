@@ -5,9 +5,13 @@ function clicked_menu(id) {
     window[id]();
 }
 
-function reload_table(table) {
+function reload_table(table, params) {
     table.clearAll()
-    table.load(table.config.url);
+    var q = "?";
+    if (params) {
+        q += params;
+    }
+    table.load(table.config.url + q);
 }
 
 function reload_table_item($table, id, data) {
