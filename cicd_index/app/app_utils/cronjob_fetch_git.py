@@ -15,6 +15,7 @@ from .tools import _get_main_repo
 import os
 import shutil
 from .tools import update_instance_folder
+from . import BUILDING_LOCK
 logger = logging.getLogger(__name__)
 
 def del_index_lock():
@@ -73,22 +74,27 @@ def _get_git_state():
 def _make_new_instances():
     while True:
         try:
-            for new_branch in db.git_commits.find({'triggered_update': False}):
-                existing_site = db.sites.find_one({'name': new_branch['branch']})
-                data = {
-                    'name': new_branch['branch'],
-                    'needs_build': True,
-                }
-                if not existing_site:
-                    data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-            
-                site = db.sites.find_one({'name': new_branch['branch']})
-                if not site.get('is_building'):
+
+            new_commits = db.git_commits.find({'triggered_update': False})
+            new_branches = set([x['branch'] for x in new_commits])
+            for new_branch in new_branches:
+                with BUILDING_LOCK:
+                    existing_site = db.sites.find_one({'name': new_branch})
+                    data = {
+                        'name': new_branch,
+                        'needs_build': True,
+                    }
+                    if not existing_site:
+                        data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+
+                    if existing_site and existing_site.get('is_building'):
+                        continue
+
                     db.sites.update_one({
-                        '_id': site['_id'],
+                        'name': new_branch,
                     }, {'$set': data}, upsert=True)
-                    db.git_commits.update_one(
-                        {'_id': new_branch['_id']},
+                    db.git_commits.update_many(
+                        {'branch': new_branch},
                         {'$set': {'triggered_update': True}})
 
         except Exception as ex:
