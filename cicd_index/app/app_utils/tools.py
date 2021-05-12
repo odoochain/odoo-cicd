@@ -361,26 +361,50 @@ def _get_main_repo():
 def update_instance_folder(branch):
     from . import GIT_LOCK
     from . import URL
+    from . import WORKSPACE
+    instance_folder = WORKSPACE / branch
+    tries = 0
     with GIT_LOCK:
-        logger.info(f"Updating instance folder {branch}")
-        from . import WORKSPACE
-        instance_folder = WORKSPACE / branch
-        repo = clone_repo(URL, instance_folder)
-        repo.git.checkout(branch, force=True)
-        repo.git.pull()
-        run = subprocess.run(
-            ["git", "submodule", "update", "--init", "--force", "--recursive", "--remote"],
-            capture_output=True,
-            cwd=instance_folder,
-            env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
-            )
-        if run.returncode:
-            msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
-            logger.error(msg)
-            raise Exception(msg)
-        commit = repo.refs[branch].commit
-        logger.debug(f"Copying source code to {instance_folder}")
-        return str(commit)
+        while tries < 3:
+            try:
+                tries += 1
+                logger.info(f"Updating instance folder {branch}")
+                _store(branch, {'is_building': True})
+                logger.info(f"Cloning {branch} {URL}")
+                repo = clone_repo(URL, instance_folder)
+                logger.info(f"Checking out {branch}")
+                repo.git.checkout(branch, force=True)
+                logger.info(f"Pulling {branch}")
+                repo.git.pull()
+                logger.info(f"Clean git")
+                run = subprocess.run(
+                    ["git", "clean", "-xdff"],
+                    capture_output=True,
+                    cwd=instance_folder,
+                    env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
+                    )
+
+                run = subprocess.run(
+                    ["git", "submodule", "update", "--init", "--force", "--recursive", "--remote"],
+                    capture_output=True,
+                    cwd=instance_folder,
+                    env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
+                    )
+                if run.returncode:
+                    msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
+                    logger.error(msg)
+                    raise Exception(msg)
+                commit = repo.refs[branch].commit
+                logger.debug(f"Copying source code to {instance_folder}")
+                return str(commit)
+
+            except Exception as ex:
+                if tries < 3:
+                    logger.warn(ex)
+                    logger.info(f"Retrying update instance folder for {branch}")
+                    shutil.rmtree(instance_folder)
+                else:
+                    raise
 
 def _get_instance_config(sitename):
     settings = Path("/odoo_settings/run") / sitename / 'settings'
