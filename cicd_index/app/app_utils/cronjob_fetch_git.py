@@ -82,12 +82,14 @@ def _make_new_instances():
                 if not existing_site:
                     data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
             
-                db.sites.update_one({
-                    'name': new_branch['branch'],
-                }, {'$set': data}, upsert=True)
-                db.git_commits.update_one(
-                    {'_id': new_branch['_id']},
-                    {'$set': {'triggered_update': True}})
+                site = db.sites.find_one({'name': new_branch['branch']})
+                if not site.get('is_building'):
+                    db.sites.update_one({
+                        '_id': site['_id'],
+                    }, {'$set': data}, upsert=True)
+                    db.git_commits.update_one(
+                        {'_id': new_branch['_id']},
+                        {'$set': {'triggered_update': True}})
 
         except Exception as ex:
             import traceback

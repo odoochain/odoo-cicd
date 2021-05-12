@@ -225,7 +225,7 @@ def build_instance(site):
             msg = traceback.format_exc()
             logger.error(msg)
             store_output(site['name'], 'error', str(msg))
-        
+
         _store(site['name'], {
             'is_building': False,
             'needs_build': False,
