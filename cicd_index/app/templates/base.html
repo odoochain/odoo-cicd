@@ -12,13 +12,22 @@
 
     </head>
     <style>
+        
 span.webix_icon {
     cursor: pointer;
 }
-        table.data tr th {text-align: left;}
-        .error {
-            color: red;
-        }
+table.data tr th {text-align: left;}
+.error {
+    color: red;
+}
+.state-building {
+    background-color: rgb(110, 165, 115);
+}
+tr.state-building > state-building-only {
+    background-color: rgb(110, 165, 115);
+}
+
+
     </style>
 
     {% block content %}{% endblock %}

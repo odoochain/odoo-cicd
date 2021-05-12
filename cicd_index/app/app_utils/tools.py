@@ -76,6 +76,7 @@ def _validate_input(data, int_fields=[]):
     return data
 
 def _odoo_framework(site_name, command, start_rolling_new=False):
+    logger.info(f"Executing command: {site_name} {command}")
     if isinstance(site_name, dict):
         site_name = site_name['name']
     if isinstance(command, str):
@@ -109,6 +110,7 @@ def _odoo_framework(site_name, command, start_rolling_new=False):
         raise OdooFrameworkException(output)
 
     store_output(site_name, 'last_error', '')
+    logger.info(f"Executed command: {site_name} {command}")
     return output
 
 def _execute_shell(command, cwd=None, env=None, callback=None):
@@ -127,10 +129,10 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
             for c in s:
                 if c == '\n':
                     line = self.text[-1]
-                    if self.prefix == 'stderr':
-                        logger.error(line)
-                    else:
-                        logger.debug(line)
+                    # if self.prefix == 'stderr':
+                    #     logger.error(line)
+                    # else:
+                    #     logger.debug(line)
                     self.text.append("")
                     if callback:
                         callback(self.prefix, line)
@@ -160,7 +162,7 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
         except Exception as ex:
             logger.error(ex)
             if callback:
-                callback('stderr', f"Process aborted with: {result}")
+                callback('stderr', f"Process aborted")
             return 'error', stdout.getall(), stderr.getall()
 
     if callback:

@@ -128,6 +128,7 @@ def make_instance(site, use_dump):
     if use_dump:
         logger.info(f"BUILD CONTROL: Restoring DB for {site['name']} from {use_dump}")
         _odoo_framework(site, ["restore", "odoo-db", use_dump])
+        logger.info(f"Restoring dump {site['name']} finished")
         _odoo_framework(site, ["remove-web-assets"])
         dump_file = Path("/opt/dumps") / use_dump
         dump_date = arrow.get(dump_file.stat().st_mtime).to('UTC').strftime("%Y-%m-%d %H:%M:%S")
@@ -148,10 +149,6 @@ def make_instance(site, use_dump):
     store_output(site['name'], 'update', output)
 
     _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
-
-    if not site.get('keep_data'):
-        _odoo_framework(site, ["cleardb"])
-        _odoo_framework(site, ["anonymize"])
 
     _odoo_framework(site, ["set-ribbon", site['name']])
 

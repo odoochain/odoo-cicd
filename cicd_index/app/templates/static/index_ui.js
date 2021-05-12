@@ -136,6 +136,16 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         data: [],
                         leftSplit: 0,
                         scrollX: false,
+                        scheme:{
+                            $change/*or $init / $update*/: function(obj){
+                              if(obj.build_state === 'Building....'){
+                                  debugger;
+                                obj.$css = "state-building";
+                              }else{
+                                obj.$css = "";
+                              }
+                            }
+                          },
                         on: {
                             onSelectChange:function(){
                                 if (!this.getSelectedItem()) {
@@ -162,6 +172,10 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                                     }
                                 }
                             },
+                            onBeforeEditStart:function(id){
+                                var item = this.getItem(id.row);
+                                return false;
+                             }
                         },
                         columns:[
                             { id: 'copy_to_clipboard', header: '',  template: "html->clipboard-icon" }, 
@@ -169,7 +183,6 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                             { id: 'name', header: 'Name', minWidth: 150},
                             { id: 'title', header: 'Title', minWidth: 180},
                             { id: 'build_state', header: 'Build', disable: true, minWidth: 80, readonly: true},
-                            { id: 'archive', header: 'Archived', disable: true, minWidth: 80, readonly: true, template:"{common.checkbox()}"},
                             // { id: 'docker_state', header: 'Docker', },
                             { id: 'db_size_humanize', header: "DB Size", },
                             { id: 'source_size_humanize', header: "Source Size", },

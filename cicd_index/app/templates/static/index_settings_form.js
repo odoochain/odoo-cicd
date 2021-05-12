@@ -25,10 +25,6 @@ function settings(){
                             { view: "label", label: "Archived"}, 
                             { view: "checkbox", name: 'archive' },
                         ]},
-                        { cols: [
-                            { view: "label", label: "Dont anonymize / clear data"}, 
-                            { view: "checkbox", name: 'keep_data' },
-                        ]},
                         {
                             cols:[
                                 { view:"button", value:"OK", css:"webix_primary", click: function() { 
