@@ -58,6 +58,7 @@ def _get_git_state():
                         }
                         data = deepcopy(key)
                         data['triggered_update'] = False
+                        data['date'] = arrow.get().strftime("%Y-%m-%d %H:%M:%S")
                         # trigger onetime only for new branch
                         db.git_commits.update_one(data, {"$set": data}, upsert=True)
                         repo.git.checkout(name, force=True)
