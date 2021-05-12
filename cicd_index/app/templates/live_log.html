@@ -36,15 +36,20 @@
                 if (!autoscroll) {
                     return;
                 }
-                $('html, body').animate({
-                    scrollTop: $("#container>div:last-child").offset().top
-                 }, 200);
+                var $divs = $("#container>div:last-child");
+                if ($divs.length) {
+                    $('html, body').animate({
+                        scrollTop: $divs.offset().top
+                    }, 200);
+                }
             }
 
             var $container = $("#container");
             var update = null;
+            var last_line_number = 0;
             update = function (next_line_number) {
                 $.get("/cicd/live_log/new_lines?name={{ site }}&next_line_number=" + next_line_number).then(function(res) {
+                    last_line_number = res.next_line_number;
                     if (res.content.length) {
                         res.content.forEach(function(content) {
                             var color = 'black';
@@ -73,6 +78,10 @@
                     setTimeout(function() {
                         update(res.next_line_number);
                     }, timeout);
+                }).fail(function() {
+                    setTimeout(function() {
+                        update(last_line_number);
+                    }, 2000);
                 });
             };
             update(0);

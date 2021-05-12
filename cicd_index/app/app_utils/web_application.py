@@ -525,10 +525,9 @@ def fetch_new_lines():
 
     next_line_number = int(request.args.get('next_line_number') or '0')
     if file.exists():
-        content = file.read_text().split("\n")
+        content = file.read_text().strip().split("\n")
     else:
         content = []
-    all_lines = len(content)
     if next_line_number > len(content) + 1:
         next_line_number = 0
     content = content[next_line_number:next_line_number + MAX_LINES]
