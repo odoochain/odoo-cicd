@@ -43,28 +43,23 @@ def _get_git_state():
                     name = fi.ref.name.split("/")[-1]
                     if '/release/' in fi.ref.name:
                         continue
-                    try:
-                        try:
-                            repo.refs[name]
-                        except IndexError:
-                            raise NewBranch()
-                            
-                        else:
-                            if repo.refs[remote.name + '/' + name].commit != fi.commit:
-                                raise NewBranch()
-                    except NewBranch:
-                        key = {
-                            'branch': name,
-                            'sha': str(fi.commit),
-                        }
+                    key = {
+                        'branch': name,
+                        'sha': str(fi.commit),
+                    }
+                    if not db.git_commits.find_one(key):
                         data = deepcopy(key)
                         data['triggered_update'] = False
                         data['date'] = arrow.get().strftime("%Y-%m-%d %H:%M:%S")
+                        db.git_commits.update_one(key, {"$set": data}, upsert=True)
                         # trigger onetime only for new branch
-                        if not db.git_commits.find_one(key):
-                            db.git_commits.update_one(data, {"$set": data}, upsert=True)
-                        repo.git.checkout(name, force=True)
-                        repo.git.pull()
+                        try:
+                            repo.git.checkout(name, force=True)
+                            repo.git.pull()
+                        except Exception as ex:
+                            logger.error(ex)
+                            continue
+                        
 
         except Exception as ex:
             import traceback
