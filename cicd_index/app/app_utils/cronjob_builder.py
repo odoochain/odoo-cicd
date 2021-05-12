@@ -184,6 +184,8 @@ def build_instance(site):
                 except Exception as ex:
                     logger.warn(ex)
 
+                logger.info(f"Building {site['name']}")
+                _odoo_framework(site, ["build"])
                 logger.info(f"Upping {site['name']}")
                 _odoo_framework(site, ["up", "-d"])
                 logger.info(f"Upped {site['name']}")

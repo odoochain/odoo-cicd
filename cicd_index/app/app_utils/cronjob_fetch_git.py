@@ -61,7 +61,8 @@ def _get_git_state():
                         data['triggered_update'] = False
                         data['date'] = arrow.get().strftime("%Y-%m-%d %H:%M:%S")
                         # trigger onetime only for new branch
-                        db.git_commits.update_one(data, {"$set": data}, upsert=True)
+                        if not db.git_commits.find_one(key):
+                            db.git_commits.update_one(data, {"$set": data}, upsert=True)
                         repo.git.checkout(name, force=True)
                         repo.git.pull()
 
@@ -75,7 +76,6 @@ def _get_git_state():
 
 
 def _make_new_instances():
-        
     while True:
         try:
             for new_branch in db.git_commits.find({'triggered_update': False}):
@@ -90,7 +90,9 @@ def _make_new_instances():
                 db.sites.update_one({
                     'name': new_branch['branch'],
                 }, {'$set': data}, upsert=True)
-                db.git_commits.update_one({'branch': new_branch['branch'], 'sha': new_branch['sha']}, {'$set': {'triggered_update': True}})
+                db.git_commits.update_one(
+                    {'_id': new_branch['_id']},
+                    {'$set': {'triggered_update': True}})
 
         except Exception as ex:
             import traceback
