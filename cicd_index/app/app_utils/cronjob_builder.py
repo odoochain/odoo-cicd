@@ -25,6 +25,7 @@ from git import Repo
 from .tools import store_output, get_output
 from .tools import update_instance_folder
 from .tools import _get_instance_config
+from .. import rolling_log_dir
 logger = logging.getLogger(__name__)
 
 threads = {} # for multitasking
@@ -270,6 +271,11 @@ def _build():
                     if count_active < concurrent_threads:
                         for key in ['reload', 'name', 'update', 'build', 'last_error']:
                             store_output(site['name'], key, "")
+
+                        rolling_file = rolling_log_dir / site['name']
+                        if rolling_file.exists():
+                            rolling_file.write_text(f"_____ _____Started new build: {arrow.get()}")
+
                         try:
                             update_instance_folder(site['name'])
                         except Exception as ex:

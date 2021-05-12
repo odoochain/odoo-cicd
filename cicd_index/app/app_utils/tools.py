@@ -385,7 +385,7 @@ def update_instance_folder(branch):
                     )
 
                 run = subprocess.run(
-                    ["git", "submodule", "update", "--init", "--force", "--recursive", "--remote"],
+                    ["git", "submodule", "update", "--init", "--force", "--recursive"],
                     capture_output=True,
                     cwd=instance_folder,
                     env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
