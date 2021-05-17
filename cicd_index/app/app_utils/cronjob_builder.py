@@ -211,11 +211,10 @@ def build_instance(site):
                 _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'reset':
+                last_sha = _last_success_full_sha(site)
 
                 if settings['DBNAME']:
                     _odoo_framework(site, ['db', 'reset', settings['DBNAME']])
-                else:
-                    raise Exception("No DBName configured - cannot reset db")
                 output = _odoo_framework(
                     site, 
                     ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
