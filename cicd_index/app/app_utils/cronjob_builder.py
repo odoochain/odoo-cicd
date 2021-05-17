@@ -195,7 +195,7 @@ def build_instance(site):
             elif site.get("build_mode") == 'update-all-modules':
                 _odoo_framework(site, ["remove-web-assets"])
                 output = _odoo_framework(
-                    site, 
+                    site,
                     ["update", "--no-dangling-check", "--i18n"]
                 )
                 store_output(site['name'], 'update', output)
@@ -204,7 +204,7 @@ def build_instance(site):
             elif site.get("build_mode") == 'update-recent':
                 last_sha = _last_success_full_sha(site)
                 output = _odoo_framework(
-                    site, 
+                    site,
                     ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
                 )
                 store_output(site['name'], 'update', output)
@@ -215,15 +215,21 @@ def build_instance(site):
 
                 if settings['DBNAME']:
                     _odoo_framework(site, ['db', 'reset', settings['DBNAME']])
-                output = _odoo_framework(
-                    site, 
-                    ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
-                )
+                if last_sha:
+                    output = _odoo_framework(
+                        site,
+                        ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
+                    )
+                else:
+                    output = _odoo_framework(
+                        site,
+                        ["update", "--no-dangling-check", "--i18n"]
+                    )
                 store_output(site['name'], 'update', output)
                 _odoo_framework(site, ["up", "-d"])
                 make_instance(site, dump_name)
                 _odoo_framework(site, ["up", "-d"])
-            
+
             else:
                 raise NotImplementedError(site.get('build_mode'))
 
