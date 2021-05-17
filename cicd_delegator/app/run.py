@@ -18,9 +18,12 @@ cicd_index_url = os.environ['INDEX_HOST']
 
 FORMAT = '[%(levelname)s] %(name) -12s %(asctime)s %(message)s'
 logging.basicConfig(format=FORMAT)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger('')  # root handler
 logger.info("Starting cicd delegator reverse-proxy")
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+
 
 def ignore_case_get(dict, key):
     keys = list(dict.keys())
