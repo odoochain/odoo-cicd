@@ -175,6 +175,7 @@ def build_instance(site):
             dump_name = site.get('dump') or os.getenv("DUMP_NAME")
 
             if site.get("build_mode") == 'reload_restart':
+                _odoo_framework(site, ["prolong"])
                 _make_instance_docker_configs(site)
                 logger.info(f"Reloading {site['name']}")
                 _odoo_framework(site, 
