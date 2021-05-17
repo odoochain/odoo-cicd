@@ -211,22 +211,8 @@ def build_instance(site):
                 _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'reset':
-                last_sha = _last_success_full_sha(site)
-
                 if settings['DBNAME']:
                     _odoo_framework(site, ['db', 'reset', settings['DBNAME']])
-                if last_sha:
-                    output = _odoo_framework(
-                        site,
-                        ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
-                    )
-                else:
-                    output = _odoo_framework(
-                        site,
-                        ["update", "--no-dangling-check", "--i18n"]
-                    )
-                store_output(site['name'], 'update', output)
-                _odoo_framework(site, ["up", "-d"])
                 make_instance(site, dump_name)
                 _odoo_framework(site, ["up", "-d"])
 
