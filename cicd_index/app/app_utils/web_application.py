@@ -386,8 +386,6 @@ def shell_instance():
     return redirect(shell_url)
 
 
-
-    
 @app.route("/site", methods=["GET"])
 def site():
     q = {}
@@ -399,6 +397,7 @@ def site():
     site = db.sites.find(q)
     return jsonify(site)
 
+
 @app.route('/start_all')
 def start_all_instances():
     from .web_instance_control import _restart_docker
@@ -406,7 +405,7 @@ def start_all_instances():
     return jsonify({
         'result': 'ok',
     })
-    
+
 @app.route('/restart_delegator')
 def restart_delegator():
     docker_project_name = os.environ['PROJECT_NAME']
@@ -425,9 +424,11 @@ def restart_delegator():
         'result': 'ok',
     })
 
+
 @app.route("/sites")
 def show_sites():
     return jsonify(list(db.sites.find()))
+
 
 @app.route("/next_instance")
 def next_instance_name():

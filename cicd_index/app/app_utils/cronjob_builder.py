@@ -153,6 +153,7 @@ def make_instance(site, use_dump):
     _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
 
     _odoo_framework(site, ["set-ribbon", site['name']])
+    _odoo_framework(site, ["prolong"])
 
 
 def fix_ownership():
