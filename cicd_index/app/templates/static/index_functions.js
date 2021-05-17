@@ -35,7 +35,6 @@ function delete_instance(name) {
     }).then(function(data) {
         webix.message("Instance erased: " + current_details, "info");
     }).fail(function(data) {
-        debugger;
         alert(data.statusText);
         console.error(data.responseText);
     });

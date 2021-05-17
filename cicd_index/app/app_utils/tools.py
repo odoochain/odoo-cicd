@@ -86,7 +86,6 @@ def _odoo_framework(site_name, command, start_rolling_new=False):
     if start_rolling_new:
         file.write_text("")
 
-
     def on_input(prefix, line):
         if line:
             with open(str(file), 'a') as fh:

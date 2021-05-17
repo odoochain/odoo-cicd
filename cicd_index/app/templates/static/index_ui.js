@@ -139,7 +139,6 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         scheme:{
                             $change/*or $init / $update*/: function(obj){
                               if(obj.build_state === 'Building....'){
-                                  debugger;
                                 obj.$css = "state-building";
                               }else{
                                 obj.$css = "";

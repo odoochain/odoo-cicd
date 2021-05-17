@@ -75,7 +75,7 @@ def trigger_rebuild():
     db.updates.remove({'name': site['name']})
     data = {
         'needs_build': True,
-        'reset-db': True,
+        'build_mode': 'reset',
     }
     if request.args.get('dump'):
         data['dump'] = request.args['dump']
@@ -354,11 +354,11 @@ def backup_db():
 @app.route("/build_again")
 def build_again():
     if request.args.get('all') == '1':
-        param_name = 'do-build-all'
+        mode = 'update-all-modules'
     else:
-        param_name = 'do-build'
+        mode = 'update-recent'
     db.sites.update_one({'name': request.args.get('name')}, {'$set': {
-        param_name: True,
+        'build_mode': mode,
         'needs_build': True,
     }}, upsert=False)
     return jsonify({
