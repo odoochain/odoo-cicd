@@ -173,7 +173,7 @@ def build_instance(site):
         try:
             dump_name = site.get('dump') or os.getenv("DUMP_NAME")
 
-            if site.get("build_mode"):
+            if site.get("build_mode") == 'reload_restart':
                 _make_instance_docker_configs(site)
                 logger.info(f"Reloading {site['name']}")
                 _odoo_framework(site, 
@@ -191,35 +191,46 @@ def build_instance(site):
                 _odoo_framework(site, ["up", "-d"])
                 logger.info(f"Upped {site['name']}")
 
-            else:
+            elif site.get("build_mode") == 'update-all-modules':
+                _odoo_framework(site, ["remove-web-assets"])
+                output = _odoo_framework(
+                    site, 
+                    ["update", "--no-dangling-check", "--i18n"]
+                )
+                store_output(site['name'], 'update', output)
+                _odoo_framework(site, ["up", "-d"])
 
+            elif site.get("build_mode") == 'update-recent':
                 last_sha = _last_success_full_sha(site)
-                if site.get('reset-db'):
-                    if settings['DBNAME']:
-                        _odoo_framework(site, ['db', 'reset', settings['DBNAME']])
+                output = _odoo_framework(
+                    site, 
+                    ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
+                )
+                store_output(site['name'], 'update', output)
+                _odoo_framework(site, ["up", "-d"])
 
-                if not last_sha or site.get('force_rebuild'):
-                    logger.debug(f"Make new instance: force rebuild: {site.get('force_rebuild')} / last sha: {last_sha and last_sha.get('sha')}")
-                    make_instance(site, dump_name)
+            elif site.get("build_mode") == 'reset':
+
+                if settings['DBNAME']:
+                    _odoo_framework(site, ['db', 'reset', settings['DBNAME']])
                 else:
-                    if site.get('do-build-all'):
-                        output = _odoo_framework(
-                            site, 
-                            ["update", "--no-dangling-check", "--i18n"]
-                        )
-                    else:
-                        output = _odoo_framework(
-                            site, 
-                            ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
-                        )
-
-                    store_output(site['name'], 'update', output)
-
-                    _odoo_framework(site, ["up", "-d"])
+                    raise Exception("No DBName configured - cannot reset db")
+                output = _odoo_framework(
+                    site, 
+                    ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
+                )
+                store_output(site['name'], 'update', output)
+                _odoo_framework(site, ["up", "-d"])
+                make_instance(site, dump_name)
+                _odoo_framework(site, ["up", "-d"])
+            
+            else:
+                raise NotImplementedError(site.get('build_mode'))
 
             notify_instance_updated(site)
 
             success = True
+
         except Exception as ex:
             success = False
             msg = traceback.format_exc()
@@ -230,8 +241,6 @@ def build_instance(site):
             'is_building': False,
             'needs_build': False,
             'success': success,
-            'force_rebuild': False,
-            'do-build-all': False,
             'reset-db': False,
             'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
             'duration': round((arrow.get() - started).total_seconds(), 0),
