@@ -138,8 +138,15 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         logger.debug(f"rewrite path result: {url}")
         return url
 
+    def _redirect_to_index(self):
+        # do logout to odoo to be clean; but redirect to index
+        self.send_response(302)
+        self.send_header('Location', '/index')
+        self.end_headers()
+
     def do_GET(self, body=True):
         sent = False
+
         query_params = dict(parse.parse_qsl(parse.urlsplit(self.path).query))
         try:
             req_header, cookies = self.parse_headers()
@@ -151,10 +158,13 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             )
             sent = True
 
-            self.send_response(resp.status_code)
-            self.send_resp_headers(resp, cookies)
-            if body:
-                self.wfile.write(resp.content)
+            if self.path == '/web/session/logout':
+                self._redirect_to_index()
+            else:
+                self.send_response(resp.status_code)
+                self.send_resp_headers(resp, cookies)
+                if body:
+                    self.wfile.write(resp.content)
 
             return
         except Exception as ex:
