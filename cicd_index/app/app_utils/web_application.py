@@ -182,7 +182,7 @@ def _start_cicd():
     response = make_response(
         render_template(
             'start_cicd.html',
-            initial_path=request.args.get('initial_path') or '/web/login'
+            initial_path=request.args.get('initial_path') or '/web'
         ),
     )
     response.set_cookie('delegator-path', name)
