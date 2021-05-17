@@ -9,6 +9,8 @@ services:
     environment:
         INDEX_HOST: http://cicd_index:5000
     restart: "unless-stopped"
+    volumes:
+        - ./cicd_delegator/app:/usr/src/app
   cicd_cronjobs:
     build: ./cicd_index
     env_file: .env

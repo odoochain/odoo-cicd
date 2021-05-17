@@ -186,6 +186,9 @@ def _start_cicd():
         ),
     )
     response.set_cookie('delegator-path', name)
+    response.set_cookie('frontend_lang', '', expires=0)
+    response.set_cookie('im_livechat_history', '', expires=0)
+    response.set_cookie('session_id', "", expires=0)
     return response
 
 def get_setting(key, default=None):
@@ -223,11 +226,10 @@ def debug_instance():
     name = request.args.get('name')
     site_name = name
     name += '_odoo'
-    # kill existing container and start odoo with debug command
-    containers = docker.containers.list(all=True, filters={'name': [name]})
-    containers = [x for x in containers if x.name == name]
-    for container in containers:
-        container.stop()
+
+    _odoo_framework(site_name, ['kill', 'odoo'])
+    _odoo_framework(site_name, ['kill', 'odoo_debug'])
+
     shell_url = _get_shell_url([
         "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{site_name}", ";",
         "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo", "--command", "/odoolib/debug.py",

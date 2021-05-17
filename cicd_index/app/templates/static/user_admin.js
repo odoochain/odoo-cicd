@@ -213,13 +213,6 @@ webix.ui({
                 elements: [
                     { view:"button", id:"edit_user", value:"Edit", width:150, align:"left", click: clicked_menu },
                     { view:"button", id:"delete_user", value:"Delete", width:150, align:"right", click: clicked_menu },
-                    /*
-                    { view:"button", id:"start", value:"Open UI", width:100, align:"right", click: start_instance },
-                    { view:"button", id:"start_mails", value:"Mails", width:100, align:"right", click: show_mails },
-                    { view:"button", id:"start_logging", value:"Live Log", width:100, align:"right", click: show_logs },
-                    { view:"button", id:"start_shell", value:"Shell", width:100, align:"right", click: shell },
-                    { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: debug },
-                    */
                 ],
             },
             {
