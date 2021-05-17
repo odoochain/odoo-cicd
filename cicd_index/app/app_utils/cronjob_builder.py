@@ -26,6 +26,7 @@ from .tools import store_output, get_output
 from .tools import update_instance_folder
 from .tools import _get_instance_config
 from .. import rolling_log_dir
+from . import BUILDING_LOCK
 logger = logging.getLogger(__name__)
 
 threads = {} # for multitasking
@@ -236,10 +237,8 @@ def build_instance(site):
             msg = traceback.format_exc()
             logger.error(msg)
             store_output(site['name'], 'error', str(msg))
-        
+
         _store(site['name'], {
-            'is_building': False,
-            'needs_build': False,
             'success': success,
             'reset-db': False,
             'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
@@ -250,18 +249,20 @@ def build_instance(site):
     except Exception as ex:
         logger.error(ex)
     finally:
-        _store(site['name'], {
-            'is_building': False,
-            'needs_build': False,
-        })
+        with BUILDING_LOCK:
+            _store(site['name'], {
+                'is_building': False,
+                'needs_build': False,
+            })
         assert not db.sites.find_one({'name': site['name']})['needs_build']
         del threads[site['name']]
 
 
 def _build():
-    ids = map(lambda x: x['_id'], db.sites.find({}))
-    for id in ids:
-        db.sites.update({'_id': id}, {"$set": {'is_building': False}})  # update with empty {} did not work
+    with BUILDING_LOCK:
+        ids = map(lambda x: x['_id'], db.sites.find({}))
+        for id in ids:
+            db.sites.update({'_id': id}, {"$set": {'is_building': False}})  # update with empty {} did not work
 
     while True:
         try:
@@ -288,12 +289,14 @@ def _build():
                         try:
                             update_instance_folder(site['name'])
                         except Exception as ex:
-                            msg = traceback.format_exc()
-                            store_output(site['name'], 'last_error', msg)
-                            _store(site['name'], {'is_building': False, 'needs_build': False, 'success': False})
+                            with BUILDING_LOCK:
+                                msg = traceback.format_exc()
+                                store_output(site['name'], 'last_error', msg)
+                                _store(site['name'], {'is_building': False, 'needs_build': False, 'success': False})
                             continue
 
-                        _store(site['name'], {'is_building': True})
+                        with BUILDING_LOCK:
+                            _store(site['name'], {'is_building': True})
                         thread = threading.Thread(target=build_instance, args=(site,))
                         threads[site['name']] = thread
                         thread.start()

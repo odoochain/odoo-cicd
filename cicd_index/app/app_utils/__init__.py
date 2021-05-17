@@ -10,3 +10,4 @@ WORKSPACE = Path("/cicd_workspace")
 
 
 GIT_LOCK = RLock()
+BUILDING_LOCK = RLock()
