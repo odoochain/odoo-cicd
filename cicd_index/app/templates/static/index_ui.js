@@ -178,7 +178,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         },
                         columns:[
                             { id: 'copy_to_clipboard', header: '',  template: "html->clipboard-icon" }, 
-                            { id: 'live_log', header: '',  template: "html->live_log-icon" }, 
+                            //{ id: 'live_log', header: '',  template: "html->live_log-icon" }, 
                             { id: 'name', header: 'Name', minWidth: 150},
                             { id: 'title', header: 'Title', minWidth: 180},
                             { id: 'build_state', header: 'Build', disable: true, minWidth: 80, readonly: true},
@@ -203,7 +203,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         { view:"button", id:"build_log", value:"Build Log", width:150, align:"left", click: build_log, batch: 'admin' },
                         { view:"button", id:"start", value:"Open UI", width:100, align:"right", click: start_instance, batch: 'user' },
                         { view:"button", id:"start_mails", value:"Mails", width:100, align:"right", click: show_mails, batch: 'user' },
-                        { view:"button", id:"start_logging", value:"Live Log", width:100, align:"right", click: show_logs, batch: 'admin' },
+                        { view:"button", id:"start_logging", value:"Log Output", width:100, align:"right", click: show_logs, batch: 'admin' },
                         { view:"button", id:"start_shell", value:"Shell", width:100, align:"right", click: shell, batch: 'admin' },
                         { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: debug, batch: 'admin' },
                     ],
