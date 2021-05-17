@@ -324,25 +324,28 @@ def show_mails():
 def build_log():
     name = request.args.get('name')
     site = db.sites.find_one({'name': name})
-    output = []
-    for heading in [
-        ("Meta", 'meta'),
-        ("Reload", 'reload'),
-        ("Build", 'build'),
-        ("Last Update", 'update'),
-        ("Last Error", 'last_error'),
-    ]:
-        output.append(f"<h1>{heading[0]}</h1>")
-        output.append(get_output(site['name'], heading[1]))
-        
-    return render_template(
-        'log_view.html',
-        name=site['name'],
-        site=site,
-        build_status="SUCCESS" if site.get('success') else "FAILURE",
-        duration=site.get('duration', 0),
-        output="<hr/>".join(output),
-    )
+    if site.get('is_building'):
+        return redirect("/cicd/live_log?name=" + site['name'])
+    else:
+        output = []
+        for heading in [
+            ("Meta", 'meta'),
+            ("Reload", 'reload'),
+            ("Build", 'build'),
+            ("Last Update", 'update'),
+            ("Last Error", 'last_error'),
+        ]:
+            output.append(f"<h1>{heading[0]}</h1>")
+            output.append(get_output(site['name'], heading[1]))
+
+        return render_template(
+            'log_view.html',
+            name=site['name'],
+            site=site,
+            build_status="SUCCESS" if site.get('success') else "FAILURE",
+            duration=site.get('duration', 0),
+            output="<hr/>".join(output),
+        )
 
 @app.route("/dump")
 def backup_db():
@@ -385,8 +388,6 @@ def shell_instance():
     return redirect(shell_url)
 
 
-
-    
 @app.route("/site", methods=["GET"])
 def site():
     q = {}
@@ -398,6 +399,7 @@ def site():
     site = db.sites.find(q)
     return jsonify(site)
 
+
 @app.route('/start_all')
 def start_all_instances():
     from .web_instance_control import _restart_docker
@@ -405,7 +407,7 @@ def start_all_instances():
     return jsonify({
         'result': 'ok',
     })
-    
+
 @app.route('/restart_delegator')
 def restart_delegator():
     docker_project_name = os.environ['PROJECT_NAME']
@@ -424,9 +426,11 @@ def restart_delegator():
         'result': 'ok',
     })
 
+
 @app.route("/sites")
 def show_sites():
     return jsonify(list(db.sites.find()))
+
 
 @app.route("/next_instance")
 def next_instance_name():
