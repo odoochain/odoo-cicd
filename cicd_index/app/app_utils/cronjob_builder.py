@@ -175,6 +175,8 @@ def build_instance(site):
         try:
             dump_name = site.get('dump') or os.getenv("DUMP_NAME")
 
+            noi18n = _get_config('no_i18n', False)
+
             if site.get("build_mode") == 'reload_restart':
                 _odoo_framework(site, ["prolong"])
                 _make_instance_docker_configs(site)
@@ -198,7 +200,7 @@ def build_instance(site):
                 _odoo_framework(site, ["remove-web-assets"])
                 output = _odoo_framework(
                     site,
-                    ["update", "--no-dangling-check", "--i18n"]
+                    ["update", "--no-dangling-check"] + ([] if noi18n else ["--i18n"])
                 )
                 store_output(site['name'], 'update', output)
                 _odoo_framework(site, ["up", "-d"])
@@ -207,7 +209,7 @@ def build_instance(site):
                 last_sha = _last_success_full_sha(site)
                 output = _odoo_framework(
                     site,
-                    ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
+                    ["update", "--no-dangling-check", "--since-git-sha", last_sha] + ([] if noi18n else ["--i18n"])
                 )
                 store_output(site['name'], 'update', output)
                 _odoo_framework(site, ["up", "-d"])
