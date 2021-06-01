@@ -280,10 +280,13 @@ def _build():
                             rolling_file.write_text(f"_____ _____Started new build: {arrow.get()}")
 
                         try:
-                            update_instance_folder(site['name'])
+                            rolling_file.write_text(f"Cloning from git...")
+                            update_instance_folder(site['name'], rolling_file)
+                            rolling_file.write_text(f"Cloned from git...")
                         except Exception as ex:
                             with BUILDING_LOCK:
                                 msg = traceback.format_exc()
+                                rolling_file.write_text(msg)
                                 store_output(site['name'], 'last_error', msg)
                                 _store(site['name'], {'is_building': False, 'needs_build': False, 'success': False})
                             continue

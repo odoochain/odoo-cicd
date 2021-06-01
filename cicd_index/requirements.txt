@@ -15,6 +15,6 @@ spur
 certifi
 jira
 requests
-gitpython
+gitpython==3.1.17
 python-dotenv
 humanize
