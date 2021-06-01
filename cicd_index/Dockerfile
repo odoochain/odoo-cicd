@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 ENV FLASK_RUN_HOST=0.0.0.0
-RUN apt update && apt install -y curl apt-transport-https ca-certificates curl gnupg2 software-properties-common libpq-dev
+RUN apt update && DEBIAN_FRONTEND="noninteractive" apt install -y curl apt-transport-https ca-certificates curl gnupg2 software-properties-common libpq-dev git rsync
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 RUN add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu focal stable"
 RUN apt update && DEBIAN_FRONTEND="noninteractive" apt install -y python3-pip docker-ce-cli
@@ -15,5 +15,3 @@ EXPOSE 5000
 ADD ssh_config /root/.ssh/config
 CMD ["flask", "run"]
 WORKDIR /
-
-RUN apt install -y rsync

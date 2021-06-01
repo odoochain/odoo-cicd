@@ -12,7 +12,7 @@ RUN apt update && DEBIAN_FRONTEND="noninteractive" apt install -y --no-install-r
     curl \
     gnupg-agent \
     software-properties-common \
-    python3-dev \
+    python3.8-dev \
     libpq-dev \
     python3.8 \
     python3-pip \
@@ -24,8 +24,8 @@ add-apt-repository \
     stable" && \
     apt-get update && \
     apt-get install -y docker-ce docker-ce-cli containerd.io && \
-    pip3 install pip --upgrade & \
-    pip3 install webssh
+    pip install pip --upgrade & \
+    pip install webssh
 
 #ADD nginx /etc/nginx/sites-enabled/default
 #RUN nginx -c /etc/nginx/nginx.conf -t
