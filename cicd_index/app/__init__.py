@@ -10,6 +10,8 @@ from flask_login import login_required
 from pymongo import MongoClient
 from pathlib import Path
 
+
+
 rolling_log_dir = Path("/tmp") / 'rolling_log'
 rolling_log_dir.mkdir(exist_ok=True)
 
@@ -71,7 +73,10 @@ if os.getenv("CICD_CRONJOBS") == "1":
     while True:
         time.sleep(1000)
 
-else:
+app = None
+
+def create_app():
+    global app
     app = Flask(
         __name__,
         static_url_path='/static', 
@@ -88,3 +93,4 @@ else:
     from .app_utils import web_app_settings
     from .app_utils.tools import JSONEncoder
     from . import app_utils
+    return app

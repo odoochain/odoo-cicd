@@ -38,17 +38,16 @@ services:
   cicd_index:
     build: ./cicd_index
     env_file: .env
+    privileged: True
     networks:
         - internal
     restart: "unless-stopped"
-    # ports:
-    #     - "0.0.0.0:5000:5000"
+    ports:
+        - "0.0.0.0:5000:5000"
     expose:
-        - 5000
+        - 8080
     environment:
-        FLASK_ENV: development
         CICD_CRONJOBS: 0
-        FLASK_APP: app
         DISPLAY_TIMEZONE: Europe/Berlin
         DATE_FORMAT: '_d._m._Y _H:_M:_S'
         MONGO_HOST: mongo
@@ -60,7 +59,7 @@ services:
         - ${DUMPS_PATH}:/opt/dumps
         - ${CICD_WORKSPACE}:/cicd_workspace
         - ${ODOO_SETTINGS}:/odoo_settings
-        - ./cicd_index/app:/app
+        - ./cicd_index/app:/app1
         - /var/run/docker.sock:/var/run/docker.sock
         - /var/lib/docker:/display_resources/docker
         - /:/display_resources/root

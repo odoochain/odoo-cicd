@@ -1,6 +1,5 @@
 FROM ubuntu:20.04
-ENV FLASK_RUN_HOST=0.0.0.0
-RUN apt update && apt install -y curl apt-transport-https ca-certificates curl gnupg2 software-properties-common libpq-dev
+RUN apt update && DEBIAN_FRONTEND="noninteractive" apt install -y curl apt-transport-https ca-certificates curl gnupg2 software-properties-common libpq-dev rsync git iproute2 sockstat
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 RUN add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu focal stable"
 RUN apt update && DEBIAN_FRONTEND="noninteractive" apt install -y python3-pip docker-ce-cli
@@ -13,7 +12,6 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 EXPOSE 5000
 ADD ssh_config /root/.ssh/config
-CMD ["flask", "run"]
+RUN pip install waitress
 WORKDIR /
-
-RUN apt install -y rsync
+CMD ["waitress-serve", "--port=5000", "--call" , "app1:create_app"]
