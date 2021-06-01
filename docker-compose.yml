@@ -26,11 +26,13 @@ services:
         MONGO_USERNAME: admin
         MONGO_PASSWORD: 1
         WEBSSH_CICD_WORKSPACE: /cicd_workspace
+        PYTHONPATH: /app1
+    command: ["python3", "-m", "app1"]
     volumes:
         - ${DUMPS_PATH}:/opt/dumps
         - ${CICD_WORKSPACE}:/cicd_workspace
         - ${ODOO_SETTINGS}:/odoo_settings
-        - ./cicd_index/app:/app
+        - ./cicd_index/app:/app1
         - /var/run/docker.sock:/var/run/docker.sock
         - /var/lib/docker:/display_resources/docker
         - /:/display_resources/root
