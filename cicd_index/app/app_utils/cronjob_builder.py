@@ -126,10 +126,10 @@ def make_instance(site, use_dump):
     )
     store_output(site['name'], 'reload', output)
 
-    output = _odoo_framework(
-        site['name'], 
-        ["build"], # build containers; use new pip packages
-    )
+    build_command = ["build"]
+    if site.get('docker_no_cache'):
+        build_command += ["--no-cache"]
+    output = _odoo_framework(site['name'], build_command)
     store_output(site['name'], 'build', output)
 
     dump_date, dump_name = None, None
@@ -240,6 +240,7 @@ def build_instance(site):
         _store(site['name'], {
             'success': success,
             'reset-db': False,
+            'docker_no_cache': False,
             'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
             'duration': round((arrow.get() - started).total_seconds(), 0),
             'build_mode': False,

@@ -76,6 +76,7 @@ def trigger_rebuild():
     data = {
         'needs_build': True,
         'build_mode': 'reset',
+        'docker_no_cache': request.args.get('no_cache') == '1',
     }
     if request.args.get('dump'):
         data['dump'] = request.args['dump']
