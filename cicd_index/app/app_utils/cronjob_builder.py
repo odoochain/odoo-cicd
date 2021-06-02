@@ -174,7 +174,6 @@ def build_instance(site):
             dump_name = site.get('dump') or os.getenv("DUMP_NAME")
 
             if site.get("build_mode") == 'reload_restart':
-                _odoo_framework(site, ["prolong"])
                 _make_instance_docker_configs(site)
                 logger.info(f"Reloading {site['name']}")
                 _odoo_framework(site, 
@@ -191,6 +190,7 @@ def build_instance(site):
                 logger.info(f"Upping {site['name']}")
                 _odoo_framework(site, ["up", "-d"])
                 logger.info(f"Upped {site['name']}")
+                _odoo_framework(site, ["prolong"])
 
             elif site.get("build_mode") == 'update-all-modules':
                 _odoo_framework(site, ["remove-web-assets"])
