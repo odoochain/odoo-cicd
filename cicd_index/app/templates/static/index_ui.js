@@ -180,7 +180,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                             { id: 'copy_to_clipboard', header: '',  template: "html->clipboard-icon" }, 
                             //{ id: 'live_log', header: '',  template: "html->live_log-icon" }, 
                             { id: 'name', header: 'Name', minWidth: 150},
-                            { id: 'title', header: 'Title', minWidth: 180},
+                            //{ id: 'title', header: 'Title', minWidth: 180},
                             { id: 'build_state', header: 'Build', disable: true, minWidth: 80, readonly: true},
                             // { id: 'docker_state', header: 'Docker', },
                             { id: 'db_size_humanize', header: "DB Size", },

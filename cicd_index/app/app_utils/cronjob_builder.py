@@ -1,4 +1,5 @@
 import traceback
+import base64
 import logging
 import arrow
 import pymongo
@@ -103,6 +104,13 @@ def _last_success_full_sha(site):
     if updates:
         return updates[0]['sha']
 
+def _reload_cmd(site_name):
+    odoo_settings = base64.encodestring(_get_config('odoo_settings', '').encode('utf-8')).strip().decode('utf-8')
+    return [
+        "reload", '-d', site_name,
+        '--headless', '--devmode', '--additional_config',
+        odoo_settings
+        ]
 
 def make_instance(site, use_dump):
     logger.info(f"Make instance for {site}")
@@ -115,7 +123,7 @@ def make_instance(site, use_dump):
 
     output = _odoo_framework(
         site['name'], 
-        ["reload", '-d', site['name'], '--headless', '--devmode'],
+        _reload_cmd(site['name']),
         start_rolling_new=True
     )
     store_output(site['name'], 'reload', output)
@@ -180,7 +188,7 @@ def build_instance(site):
                 _make_instance_docker_configs(site)
                 logger.info(f"Reloading {site['name']}")
                 _odoo_framework(site, 
-                    ["reload", '-d', site['name'], '--headless', '--devmode']
+                    _reload_cmd(site['name']),
                 )
                 logger.info(f"Downing {site['name']}")
                 try:
@@ -214,7 +222,7 @@ def build_instance(site):
 
             elif site.get("build_mode") == 'reset':
                 if settings['DBNAME']:
-                    _odoo_framework(site, ['db', 'reset', settings['DBNAME']])
+                    _odoo_framework(site, ['db', 'reset', settings['DBNAME'], '--do-not-install-base'])
                 make_instance(site, dump_name)
                 _odoo_framework(site, ["up", "-d"])
 

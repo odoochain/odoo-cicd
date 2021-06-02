@@ -14,6 +14,7 @@ from .tools import _get_config, _set_config
 def app_settings_get():
     result = {
         'concurrent_builds': _get_config('concurrent_builds', 5),
+        'odoo_settings': _get_config('odoo_settings', ""),
     }
     return jsonify(result)
 
