@@ -164,11 +164,14 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                                 }
                             },
                             onKeyPress: function(code, e) {
-                                if (code == 68) {
-                                    var name = this.getSelectedItem().name;
+                                var name = this.getSelectedItem() && this.getSelectedItem().name;
+                                if (code == 68) {  // d
                                     if (confirm("Delete " + name)) {
                                         delete_instance(name);
                                     }
+                                }
+                                if (code == 82) { // r
+                                    reload_restart(name);
                                 }
                             },
                             onBeforeEditStart:function(id){

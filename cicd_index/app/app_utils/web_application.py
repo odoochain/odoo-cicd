@@ -258,12 +258,11 @@ def cleanup():
 
         dbnames = _get_all_databases(cr)
 
-        sites = set([x['name'] for x in db.sites.find({})] if not x.get('archived'))
+        sites = set([x['name'] for x in db.sites.find({}) if not x.get('archived')])
         for dbname in dbnames:
             if dbname.startswith('template') or dbname == 'postgres':
                 continue
             if dbname not in sites:
-
                 _drop_db(cr, dbname)
 
 
@@ -279,11 +278,15 @@ def cleanup():
         os.system("docker system prune -f -a")
 
         # drop old docker containers
-        # containers = docker.containers.list(all=True, filters={'name': [name]})
-        # for container in containers:
-        #     if container.status == 'running':
-        #         container.kill()
-        #     container.remove(force=True)
+        cicd_prefix = os.environ['CICD_PREFIX']
+        containers = docker.containers.list(all=True, filters={'label': f'ODOO_CICD={cicd_prefix}'})
+        for container in containers:
+            site_name = container.labels.get('ODOO_CICD_INSTANCE_NAME', '')
+            if not site_name: continue
+            if site_name not in sites:
+                if container.status == 'running':
+                    container.kill()
+                container.remove(force=True)
 
     finally:
         cr.close()

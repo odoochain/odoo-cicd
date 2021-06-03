@@ -61,6 +61,9 @@ RUN_CRONJOBS=0
 RUN_CUPS=0
 RUN_POSTGRES=0
 
+DOCKER_LABEL_ODOO_CICD=1
+DOCKER_LABEL_ODOO_CICD_INSTANCE_NAME={}
+
 DB_HOST={}
 DB_USER={}
 DB_PWD={}
@@ -68,6 +71,7 @@ DB_PORT={}
 """.format(
         instance_name,
         os.environ['DUMPS_PATH'],
+        instance_name,
         os.environ['DB_HOST'],
         os.environ['DB_USER'],
         os.environ['DB_PASSWORD'],

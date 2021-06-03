@@ -1,8 +1,8 @@
 var update_live_values = null;
 var update_resources = null;
 
-function reload_restart() {
-    var sitename = current_details;
+function reload_restart(sitename) {
+    var sitename = sitename || current_details;
     var url = "/cicd/reload_restart?name=" + sitename;
     webix.ajax().get(url).then(function(res) {
         webix.message("Reloading and restarting triggered for " + sitename);
