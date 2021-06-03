@@ -258,13 +258,14 @@ def cleanup():
 
         dbnames = _get_all_databases(cr)
 
-        sites = set([x['name'] for x in db.sites.find({})])
+        sites = set([x['name'] for x in db.sites.find({})] if not x.get('archived'))
         for dbname in dbnames:
             if dbname.startswith('template') or dbname == 'postgres':
                 continue
             if dbname not in sites:
 
                 _drop_db(cr, dbname)
+
 
         # Drop also old sourcecodes
         for dir in Path("/cicd_workspace").glob("*"):
@@ -276,6 +277,13 @@ def cleanup():
 
         # remove artefacts from ~/.odoo/
         os.system("docker system prune -f -a")
+
+        # drop old docker containers
+        # containers = docker.containers.list(all=True, filters={'name': [name]})
+        # for container in containers:
+        #     if container.status == 'running':
+        #         container.kill()
+        #     container.remove(force=True)
 
     finally:
         cr.close()
