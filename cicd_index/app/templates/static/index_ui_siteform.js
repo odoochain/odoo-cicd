@@ -15,9 +15,10 @@
                 "_id": values._id,
                 'note': values.note,
                 'odoo_settings': values.odoo_settings,
-                'archived': values.archived,
+                'archived': values.archived == '1',
                 'dump': values.dump,
-                'docker_no_cache': values.docker_no_cache,
+                'docker_no_cache': values.docker_no_cache == '1',
+                'do_backup_regularly': values.do_backup_regularly == '1',
             }
             webix.ajax().post(url, values_store).then(function(res) {
             }).fail(function(response) {
@@ -77,6 +78,12 @@
             cols: [
                 { view: "label", label: "Archived"}, 
                 { view: 'checkbox', name: 'archived' },
+            ]
+        },
+        {
+            cols: [
+                { view: "label", label: "Backup regulary"}, 
+                { view: 'checkbox', name: 'do_backup_regularly' },
             ]
         },
         {

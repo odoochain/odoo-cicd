@@ -62,6 +62,7 @@ from .app_utils import cronjob_builder
 from .app_utils import cronjob_usage
 from .app_utils import cronjob_docker
 from .app_utils import cronjob_fetch_git
+from .app_utils import cronjob_backup
 
 if os.getenv("CICD_CRONJOBS") == "1":
 
@@ -69,6 +70,7 @@ if os.getenv("CICD_CRONJOBS") == "1":
     cronjob_docker.start()
     cronjob_fetch_git.start()
     cronjob_usage.start()
+    cronjob_backup.start()
 
     while True:
         time.sleep(1000)
