@@ -214,6 +214,13 @@ def build_instance(site):
                 _odoo_framework(site, ["prolong"])
 
             elif site.get("build_mode") == 'update-all-modules':
+
+                if site.get('odoo_settings_update_modules_before'):
+                    output = _odoo_framework(
+                        site,
+                        ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
+                    )
+
                 _odoo_framework(site, ["remove-web-assets"])
                 output = _odoo_framework(
                     site,
@@ -223,6 +230,11 @@ def build_instance(site):
                 _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'update-recent':
+                if site.get('odoo_settings_update_modules_before'):
+                    output = _odoo_framework(
+                        site,
+                        ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
+                    )
                 last_sha = _last_success_full_sha(site)
                 output = _odoo_framework(
                     site,

@@ -19,6 +19,7 @@
                 'dump': values.dump,
                 'docker_no_cache': values.docker_no_cache == '1',
                 'do_backup_regularly': values.do_backup_regularly == '1',
+                'odoo_settings_update_modules_before': values.odoo_settings_update_modules_before,
             }
             webix.ajax().post(url, values_store).then(function(res) {
             }).fail(function(response) {
@@ -98,5 +99,7 @@
         { view: 'textarea', height: 150, name: 'note', },
         { view: "label", label: "Odoo Settings"}, 
         { view: 'textarea', height: 150, name: 'odoo_settings', },
+        { view: "label", label: "Update modules always before:"}, 
+        { view: 'textarea', height: 40, name: 'odoo_settings_update_modules_before', },
     ],
 }
