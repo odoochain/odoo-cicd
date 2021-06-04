@@ -17,6 +17,7 @@
                 'odoo_settings': values.odoo_settings,
                 'archived': values.archived,
                 'dump': values.dump,
+                'docker_no_cache': values.docker_no_cache,
             }
             webix.ajax().post(url, values_store).then(function(res) {
             }).fail(function(response) {
@@ -47,7 +48,7 @@
         {
             cols: [
                 { view: "label", label: "Author"}, 
-                { view: 'datepicker', name: 'git_authored_date', readonly: true, timepicker: true},
+                { view: 'text', name: 'git_authored_date', readonly: true},
             ],
         },
         {
@@ -76,6 +77,12 @@
             cols: [
                 { view: "label", label: "Archived"}, 
                 { view: 'checkbox', name: 'archived' },
+            ]
+        },
+        {
+            cols: [
+                { view: "label", label: "No cache at next build"}, 
+                { view: 'checkbox', name: 'docker_no_cache' },
             ]
         },
         { view: "label", label: "Description"}, 

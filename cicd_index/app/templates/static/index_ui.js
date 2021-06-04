@@ -14,16 +14,12 @@ var menu = {
             config: { on: { onItemClick: clicked_menu}},
             submenu: [
                 { $template:"Separator" },
-                { view:"menu", id: "build_submenu", value: "Lifecycle", autowidth: true, config: { on: { onItemClick: clicked_menu}}, data: [
-                    { view:"button", id:"restart", value:"Restart"},
-                    { view:"button", id:"delete_instance", value:"Destroy (unrecoverable)", click: delete_instance_ask },
-                ]
-                },
-                { $template:"Separator" },
+                { view:"button", id:"restart", value:"Restart Containers"},
                 { view:"button", id:"reload_restart", value:"Reload & Restart" },
                 { view:"button", id:"build_again", value:"Update recently changed modules" },
                 { view:"button", id:"build_again_all", value:"Update all modules" },
                 { view:"button", id:"rebuild", value:"Rebuild from Dump (Data lost)" },
+                { view:"button", id:"delete_instance", value:"Destroy (unrecoverable)", click: delete_instance_ask },
                 { $template:"Separator" },
                 { view:"button", id:"backup_db", value:"Make Database Dump", click: backup_db },
                 { $template:"Separator" },
@@ -203,7 +199,31 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         { view:"button", id:"build_log", value:"Build Log", width:150, align:"left", click: build_log, batch: 'admin' },
                         { view:"button", id:"start", value:"Open UI", width:100, align:"right", click: start_instance, batch: 'user' },
                         { view:"button", id:"start_mails", value:"Mails", width:100, align:"right", click: show_mails, batch: 'user' },
-                        { view:"button", id:"start_logging", value:"Log Output", width:100, align:"right", click: show_logs, batch: 'admin' },
+
+                        { view:"menu", autowidth: true, width: 120, batch: 'user', type: {subsign: true}, 
+                            data: [
+                                {
+                                    id: 'logoutput_containers',
+                                    view: "menu",
+                                    value: "Logs...",
+                                    config: {
+                                        on: {
+                                            onItemClick: function(id) {
+                                                service_name = id.substring("start_logging_".length);
+                                                show_logs(service_name);
+                                            },
+                                        }
+                                    },
+                                    submenu: [
+                                        { view:"button", id:"start_logging_odoo", value:"Odoo Web", width:100, align:"right", click: show_logs, batch: 'admin' },
+                                        { view:"button", id:"start_logging_odoo_queuejobs", value:"Odoo Queuejobs", width:100, align:"right", click: show_logs, batch: 'admin' },
+                                        { view:"button", id:"start_logging_odoo_cronjobs", value:"Odoo Cronjobs", width:100, align:"right", click: show_logs, batch: 'admin' },
+
+                                    ],
+                                }
+                            ],
+                        },
+
                         { view:"button", id:"start_shell", value:"Shell", width:100, align:"right", click: shell, batch: 'admin' },
                         { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: debug, batch: 'admin' },
                     ],

@@ -50,8 +50,8 @@ function delete_instance(name) {
     });
 }
 
-function show_logs() {
-    window.open("/cicd/show_logs?name=" + current_details);
+function show_logs(service_name) {
+    window.open("/cicd/show_logs?name=" + current_details + "&service=" + service_name);
 }
 
 function shell() {

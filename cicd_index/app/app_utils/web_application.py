@@ -221,7 +221,7 @@ def _get_shell_url(command):
 @app.route("/show_logs")
 def show_logs():
     name = request.args.get('name')
-    name += '_odoo'
+    name += '_' + request.args.get('service')
     containers = docker.containers.list(all=True, filters={'name': [name]})
     containers = [x for x in containers if x.name == name]
     shell_url = _get_shell_url(["docker", "logs", "-f", containers[0].id])

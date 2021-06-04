@@ -107,7 +107,10 @@ def _last_success_full_sha(site):
         return updates[0]['sha']
 
 def _reload_cmd(site_name):
-    odoo_settings = base64.encodestring(_get_config('odoo_settings', '').encode('utf-8')).strip().decode('utf-8')
+    global_settings = _get_config('odoo_settings', '')
+    local_settings = db.sites.find_one({'name': site_name}).get("odoo_settings", "")
+    odoo_settings = global_settings + "\n" + local_settings + "\n"
+    odoo_settings = base64.encodestring(odoo_settings.encode('utf-8')).strip().decode('utf-8')
     return [
         "reload", '-d', site_name,
         '--headless', '--devmode', '--additional_config',
