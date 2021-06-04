@@ -1,6 +1,14 @@
 var update_live_values = null;
 var update_resources = null;
 
+function update_odoo_configuration(e) {
+    var sitename = current_details;
+    debugger;
+    debugger;
+    debugger;
+    debugger;
+}
+
 function reload_restart(sitename) {
     var sitename = sitename || current_details;
     var url = "/cicd/reload_restart?name=" + sitename;
@@ -9,7 +17,9 @@ function reload_restart(sitename) {
     }).fail(function(response) {
         webix.message("Error: " + response.statusText, "error");
     });
+
 }
+
 function build_again() {
     _build_again(false);
 }
@@ -127,10 +137,9 @@ function rebuild() {
     show_reset_form(current_details);
 }
 function reload_details(name) {
+    var template = $$('webix-instance-details');
     webix.ajax().get('/cicd/data/sites?name=' + name).then(function(data) {
-        var template = $$('webix-instance-details');
-        template.data = data.json()[0];
-        template.refresh();
+        template.setValues(data.json()[0]);
         template.show();
         $$('site-toolbar').show();
         current_details = name;

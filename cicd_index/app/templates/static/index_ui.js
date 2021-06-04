@@ -13,9 +13,6 @@ var menu = {
             value: "Admin...",
             config: { on: { onItemClick: clicked_menu}},
             submenu: [
-                { view:"button", id:"settings", value:"Settings", click: function() {
-                    settings();
-                }},
                 { $template:"Separator" },
                 { view:"menu", id: "build_submenu", value: "Lifecycle", autowidth: true, config: { on: { onItemClick: clicked_menu}}, data: [
                     { view:"button", id:"restart", value:"Restart"},
@@ -211,15 +208,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: debug, batch: 'admin' },
                     ],
                 },
-                {
-                    id: "webix-instance-details",
-                    maxWidth: 650,
-                    css: "webix_dark",
-                    view: "template",
-                    type: "body",
-                    template: "html->instance-template",
-                    hidden: true,
-                },
+                {% include "static/index_ui_siteform.js" %}
             ]
             }
         ]

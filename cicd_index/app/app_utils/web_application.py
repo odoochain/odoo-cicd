@@ -1,4 +1,5 @@
 from .. import MAIN_FOLDER_NAME
+import humanize
 from flask import Flask, request, send_from_directory
 import os
 import base64
@@ -49,7 +50,11 @@ def possible_dumps():
 
     def _get_value(filename):
         date = arrow.get((path / filename).stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-        return f"{filename} [{date}]"
+        size = "?"
+        if path.exists():
+            size = path.stat().st_size
+            size = humanize.naturalsize(size)
+        return f"{filename} [{date}] {size}"
 
     dump_names = [{'id': x, 'value': _get_value(x)} for x in dump_names]
     return jsonify(dump_names)
@@ -262,7 +267,18 @@ def cleanup():
         for dbname in dbnames:
             if dbname.startswith('template') or dbname == 'postgres':
                 continue
-            if dbname not in sites:
+
+            # critical: reverse dbname to instance name
+            def match(site, dbname):
+                ignored_chars = "-!@#$%^&*()_-+=][{}';:,.<>/"
+                site = site.lower()
+                dbname = dbname.lower()
+                for c in ignored_chars:
+                    site = site.replace(c, '')
+                    dbname = dbname.replace(c, '')
+                return dbname == site
+
+            if not [x for x in sites if match(x, dbname)]:
                 _drop_db(cr, dbname)
 
 
