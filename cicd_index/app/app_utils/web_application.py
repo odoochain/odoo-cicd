@@ -45,7 +45,7 @@ def index_func():
 
 @app.route("/possible_dumps")
 def possible_dumps():
-    path = Path("/opt/dumps")
+    path = Path(os.environ['DUMPS_PATH_MAPPED'])
     dump_names = sorted([x.name for x in path.glob("*")])
 
     def _get_value(filename):

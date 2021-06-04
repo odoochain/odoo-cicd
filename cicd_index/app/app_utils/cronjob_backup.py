@@ -28,11 +28,10 @@ def _do_backups():
     while True:
         try:
             sites = list(db.sites.find({'do_backup_regularly': True}))
-            logger.info(f"Sites to backup: {sites}")
             for site in sites:
                 # check for existing dumpname
                 dump_name = _get_dump_name(site['name'])
-                dump_path = Path(os.environ['DUMPS_PATH']) / dump_name
+                dump_path = Path(os.environ['DUMPS_PATH_MAPPED']) / dump_name
                 if dump_path.exists():
                     age = (arrow.get() - arrow.get(dump_path.stat().st_mtime)).total_seconds() / 3600
                 else:

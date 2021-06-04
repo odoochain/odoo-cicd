@@ -111,6 +111,12 @@ def _reload_cmd(site_name):
     local_settings = db.sites.find_one({'name': site_name}).get("odoo_settings", "")
     odoo_settings = global_settings + "\n" + local_settings + "\n"
     odoo_settings = base64.encodestring(odoo_settings.encode('utf-8')).strip().decode('utf-8')
+
+    # dumps path must patch of cicd; otherwise conflicts when cicd triggers backup of odoo and checks if dump was done
+    if "DUMPS_PATH" in odoo_settings:
+        raise Exception("DUMPS_PATH not allowed")
+    odoo_settings += f"\nDUMPS_PATH={os.environ['DUMPS_PATH']}\n"
+
     return [
         "reload", '-d', site_name,
         '--headless', '--devmode', '--additional_config',
