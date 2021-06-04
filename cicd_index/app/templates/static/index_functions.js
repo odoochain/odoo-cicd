@@ -83,7 +83,7 @@ function _build_again(do_all) {
     }
 
     webix.ajax().get("/cicd/build_again?all=" + do_all + "&name=" + current_details).then(function(res) {
-        webix.message("Triggered rebuild in Jenkins", "info");
+        webix.message("Triggered rebuild", "info");
     }).fail(function(response) {
         webix.message("Error: " + response.statusText, "error");
     });
