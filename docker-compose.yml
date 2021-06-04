@@ -27,6 +27,7 @@ services:
         MONGO_PASSWORD: 1
         WEBSSH_CICD_WORKSPACE: /cicd_workspace
         PYTHONPATH: /app1
+        DUMPS_PATH_MAPPED: /opt/dumps
     command: ["python3", "-m", "app1"]
     volumes:
         - ${DUMPS_PATH}:/opt/dumps
@@ -57,6 +58,7 @@ services:
         MONGO_USERNAME: admin
         MONGO_PASSWORD: 1
         WEBSSH_CICD_WORKSPACE: /cicd_workspace
+        DUMPS_PATH_MAPPED: /opt/dumps
     volumes:
         - ${DUMPS_PATH}:/opt/dumps
         - ${CICD_WORKSPACE}:/cicd_workspace

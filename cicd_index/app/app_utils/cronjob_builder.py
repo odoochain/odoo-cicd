@@ -1,4 +1,5 @@
 import traceback
+import base64
 import logging
 import arrow
 import pymongo
@@ -56,11 +57,12 @@ DEVMODE=1
 PROJECT_NAME={}
 DUMPS_PATH={}
 RUN_PROXY_PUBLISHED=0
-RUN_ODOO_CRONJOBS=0
-RUN_ODOO_QUEUEJOBS=0
 RUN_CRONJOBS=0
 RUN_CUPS=0
 RUN_POSTGRES=0
+
+DOCKER_LABEL_ODOO_CICD=1
+DOCKER_LABEL_ODOO_CICD_INSTANCE_NAME={}
 
 DB_HOST={}
 DB_USER={}
@@ -69,6 +71,7 @@ DB_PORT={}
 """.format(
         instance_name,
         os.environ['DUMPS_PATH'],
+        instance_name,
         os.environ['DB_HOST'],
         os.environ['DB_USER'],
         os.environ['DB_PASSWORD'],
@@ -103,6 +106,22 @@ def _last_success_full_sha(site):
     if updates:
         return updates[0]['sha']
 
+def _reload_cmd(site_name):
+    global_settings = _get_config('odoo_settings', '')
+    local_settings = db.sites.find_one({'name': site_name}).get("odoo_settings", "")
+    odoo_settings = global_settings + "\n" + local_settings + "\n"
+
+    # dumps path must patch of cicd; otherwise conflicts when cicd triggers backup of odoo and checks if dump was done
+    if "DUMPS_PATH" in odoo_settings:
+        raise Exception("DUMPS_PATH not allowed")
+    odoo_settings += f"\nDUMPS_PATH={os.environ['DUMPS_PATH']}\n"
+
+    odoo_settings = base64.encodestring(odoo_settings.encode('utf-8')).strip().decode('utf-8')
+    return [
+        "reload", '-d', site_name,
+        '--headless', '--devmode', '--additional_config',
+        odoo_settings
+        ]
 
 def make_instance(site, use_dump):
     logger.info(f"Make instance for {site}")
@@ -115,15 +134,15 @@ def make_instance(site, use_dump):
 
     output = _odoo_framework(
         site['name'], 
-        ["reload", '-d', site['name'], '--headless', '--devmode'],
+        _reload_cmd(site['name']),
         start_rolling_new=True
     )
     store_output(site['name'], 'reload', output)
 
-    output = _odoo_framework(
-        site['name'], 
-        ["build"], # build containers; use new pip packages
-    )
+    build_command = ["build"]
+    if site.get('docker_no_cache'):
+        build_command += ["--no-cache"]
+    output = _odoo_framework(site['name'], build_command)
     store_output(site['name'], 'build', output)
 
     dump_date, dump_name = None, None
@@ -176,11 +195,10 @@ def build_instance(site):
             dump_name = site.get('dump') or os.getenv("DUMP_NAME")
 
             if site.get("build_mode") == 'reload_restart':
-                _odoo_framework(site, ["prolong"])
                 _make_instance_docker_configs(site)
                 logger.info(f"Reloading {site['name']}")
                 _odoo_framework(site, 
-                    ["reload", '-d', site['name'], '--headless', '--devmode']
+                    _reload_cmd(site['name']),
                 )
                 logger.info(f"Downing {site['name']}")
                 try:
@@ -193,8 +211,16 @@ def build_instance(site):
                 logger.info(f"Upping {site['name']}")
                 _odoo_framework(site, ["up", "-d"])
                 logger.info(f"Upped {site['name']}")
+                _odoo_framework(site, ["prolong"])
 
             elif site.get("build_mode") == 'update-all-modules':
+
+                if site.get('odoo_settings_update_modules_before'):
+                    output = _odoo_framework(
+                        site,
+                        ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
+                    )
+
                 _odoo_framework(site, ["remove-web-assets"])
                 output = _odoo_framework(
                     site,
@@ -204,6 +230,11 @@ def build_instance(site):
                 _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'update-recent':
+                if site.get('odoo_settings_update_modules_before'):
+                    output = _odoo_framework(
+                        site,
+                        ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
+                    )
                 last_sha = _last_success_full_sha(site)
                 output = _odoo_framework(
                     site,
@@ -214,7 +245,7 @@ def build_instance(site):
 
             elif site.get("build_mode") == 'reset':
                 if settings['DBNAME']:
-                    _odoo_framework(site, ['db', 'reset', settings['DBNAME']])
+                    _odoo_framework(site, ['db', 'reset', settings['DBNAME'], '--do-not-install-base'])
                 make_instance(site, dump_name)
                 _odoo_framework(site, ["up", "-d"])
 
@@ -234,6 +265,7 @@ def build_instance(site):
         _store(site['name'], {
             'success': success,
             'reset-db': False,
+            'docker_no_cache': False,
             'updated': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
             'duration': round((arrow.get() - started).total_seconds(), 0),
             'build_mode': False,

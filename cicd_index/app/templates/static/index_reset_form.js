@@ -13,8 +13,15 @@ function show_reset_form(name) {
                 view: 'form',
                 complexData: true,
                 elements: [
-                    { view:"combo", name: 'dump', label:"Dump", options: dumps },
-                    { view: 'template', template: "Rebuilding the instance in background. Will take some time, until instance is up again."},
+                    { view: "label", label: "Dump" }, 
+                    { view: "combo", name: 'dump', options: dumps },
+                    {
+                        'cols': [
+                            { view: "label", label: "Docker Build: No Cache" },
+                            { view: "checkbox", name: 'no_cache' },
+                        ]
+                    },
+                    { view: 'label', label: "Rebuilding the instance in background. Will take some time, until instance is up again."},
                     {
                         cols:[
                             { view:"button", value:"OK", css:"webix_primary", click: function() { 
@@ -22,6 +29,7 @@ function show_reset_form(name) {
                                     webix.ajax().get('/cicd/trigger/rebuild', {
                                         'name': name,
                                         'dump': values.dump,
+                                        'no_cache': values.no_cache,
                                     }).then(function(data) {
                                         form.hide();
                                     }).fail(function(response) {

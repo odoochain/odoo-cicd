@@ -14,4 +14,5 @@ EXPOSE 5000
 ADD ssh_config /root/.ssh/config
 RUN pip install waitress
 WORKDIR /
+ENV PYTHONPATH=/app1
 CMD ["waitress-serve", "--port=5000", "--call" , "app1:create_app"]
