@@ -20,9 +20,8 @@ RUN apt update && DEBIAN_FRONTEND="noninteractive" apt install -y --no-install-r
     git
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 RUN add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-RUN apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io && \
-RUN pip install pip --upgrade && \
-    pip install webssh
+RUN apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io
+RUN pip install pip --upgrade && pip install webssh
 
 RUN docker --version
 
