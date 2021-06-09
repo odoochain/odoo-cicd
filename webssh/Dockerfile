@@ -18,15 +18,13 @@ RUN apt update && DEBIAN_FRONTEND="noninteractive" apt install -y --no-install-r
     python3-pip \
     build-essential \
     git
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
-add-apt-repository \
-    "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu \
-    $(lsb_release -cs) \
-    stable" && \
-    apt-get update && \
-    apt-get install -y docker-ce docker-ce-cli containerd.io && \
-    pip install pip --upgrade & \
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+RUN add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+RUN apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io && \
+RUN pip install pip --upgrade && \
     pip install webssh
+
+RUN docker --version
 
 ADD launch.sh /root
 RUN chmod a+x /root/launch.sh
@@ -40,3 +38,5 @@ RUN pip3 install -r requirements.txt
 RUN sed -i 's/\#PermitRootLogin\ prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config 
 RUN cat /etc/ssh/sshd_config |grep Permit
 EXPOSE 8080
+
+RUN touch /tmp/iam_webssh
