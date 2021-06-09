@@ -16,7 +16,8 @@ RUN apt update && DEBIAN_FRONTEND="noninteractive" apt install -y --no-install-r
     libpq-dev \
     python3.8 \
     python3-pip \
-    build-essential
+    build-essential \
+    git
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
 add-apt-repository \
     "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu \
@@ -27,12 +28,8 @@ add-apt-repository \
     pip install pip --upgrade & \
     pip install webssh
 
-#ADD nginx /etc/nginx/sites-enabled/default
-#RUN nginx -c /etc/nginx/nginx.conf -t
 ADD launch.sh /root
 RUN chmod a+x /root/launch.sh
-# RUN useradd -ms /bin/bash console
-
 
 RUN echo "root:odoo" | chpasswd root
 
