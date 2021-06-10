@@ -11,11 +11,14 @@ function appsettings(){
                 view: 'form',
                 complexData: true,
                 elements: [
-                    { view: 'text', name: 'concurrent_builds', label: "Concurrent Builds" },
                     { cols: [
                         { view: "label", label: "Dont update translations"}, 
                         { view: "checkbox", name: 'no_i18n' },
                     ]},
+                    { view: "label", label: "Concurrent Builds"}, 
+                    { view: 'text', name: 'concurrent_builds' },
+                    { view: "label", label: "Odoo Settings"}, 
+                    { view: 'textarea', height: 150, name: 'odoo_settings', },
                     {
                         cols:[
                             { view:"button", value:"OK", css:"webix_primary", click: function() { 

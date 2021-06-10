@@ -357,7 +357,7 @@ def _get_main_repo():
         repo = clone_repo(URL, path)
     return repo
 
-def update_instance_folder(branch):
+def update_instance_folder(branch, rolling_file):
     from . import GIT_LOCK
     from . import URL
     from . import WORKSPACE
@@ -367,15 +367,15 @@ def update_instance_folder(branch):
         while tries < 3:
             try:
                 tries += 1
-                logger.info(f"Updating instance folder {branch}")
+                rolling_file.write_text(f"Updating instance folder {branch}")
                 _store(branch, {'is_building': True})
-                logger.info(f"Cloning {branch} {URL}")
+                rolling_file.write_text(f"Cloning {branch} {URL}")
                 repo = clone_repo(URL, instance_folder)
-                logger.info(f"Checking out {branch}")
+                rolling_file.write_text(f"Checking out {branch}")
                 repo.git.checkout(branch, force=True)
-                logger.info(f"Pulling {branch}")
+                rolling_file.write_text(f"Pulling {branch}")
                 repo.git.pull()
-                logger.info(f"Clean git")
+                rolling_file.write_text(f"Clean git")
                 run = subprocess.run(
                     ["git", "clean", "-xdff"],
                     capture_output=True,
@@ -391,16 +391,17 @@ def update_instance_folder(branch):
                     )
                 if run.returncode:
                     msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
-                    logger.error(msg)
+                    rolling_file.write_text(msg)
                     raise Exception(msg)
                 commit = repo.refs[branch].commit
-                logger.debug(f"Copying source code to {instance_folder}")
+                rolling_file.write_text(f"Copying source code to {instance_folder}")
                 return str(commit)
 
             except Exception as ex:
                 if tries < 3:
+                    rolling_file.write_text(str(ex))
                     logger.warn(ex)
-                    logger.info(f"Retrying update instance folder for {branch}")
+                    rolling_file.write_text(f"Retrying update instance folder for {branch}")
                     shutil.rmtree(instance_folder)
                 else:
                     raise

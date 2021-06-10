@@ -10,7 +10,6 @@ var current_details = null;
 {% include "static/index_make_new_instance_form.js" %}
 {% include "static/index_appsettings.js" %}
 {% include "static/index_reset_form.js" %}
-{% include "static/index_settings_form.js" %}
 {% include "static/index_ui.js" %}
 
 setTimeout(update_live_values, 0);

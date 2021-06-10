@@ -68,11 +68,11 @@ def _usages():
             logger.error(ex)
 
         finally:
-            time.sleep(60)
+            time.sleep(5)
 
 
 def start():
-    logger.info("Starting job to build instances")
+    logger.info("Starting job to scan resources")
     t = threading.Thread(target=_usages)
     t.daemon = True
     t.start()

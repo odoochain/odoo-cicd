@@ -1,4 +1,5 @@
 from .. import MAIN_FOLDER_NAME
+import humanize
 from flask import Flask, request, send_from_directory
 import os
 import base64
@@ -44,12 +45,16 @@ def index_func():
 
 @app.route("/possible_dumps")
 def possible_dumps():
-    path = Path("/opt/dumps")
+    path = Path(os.environ['DUMPS_PATH_MAPPED'])
     dump_names = sorted([x.name for x in path.glob("*")])
 
     def _get_value(filename):
         date = arrow.get((path / filename).stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-        return f"{filename} [{date}]"
+        size = "?"
+        if path.exists():
+            size = path.stat().st_size
+            size = humanize.naturalsize(size)
+        return f"{filename} [{date}] {size}"
 
     dump_names = [{'id': x, 'value': _get_value(x)} for x in dump_names]
     return jsonify(dump_names)
@@ -76,6 +81,7 @@ def trigger_rebuild():
     data = {
         'needs_build': True,
         'build_mode': 'reset',
+        'docker_no_cache': request.args.get('no_cache') == '1',
     }
     if request.args.get('dump'):
         data['dump'] = request.args['dump']
@@ -215,7 +221,7 @@ def _get_shell_url(command):
 @app.route("/show_logs")
 def show_logs():
     name = request.args.get('name')
-    name += '_odoo'
+    name += '_' + request.args.get('service')
     containers = docker.containers.list(all=True, filters={'name': [name]})
     containers = [x for x in containers if x.name == name]
     shell_url = _get_shell_url(["docker", "logs", "-f", containers[0].id])
@@ -257,13 +263,24 @@ def cleanup():
 
         dbnames = _get_all_databases(cr)
 
-        sites = set([x['name'] for x in db.sites.find({})])
+        sites = set([x['name'] for x in db.sites.find({}) if not x.get('archived')])
         for dbname in dbnames:
             if dbname.startswith('template') or dbname == 'postgres':
                 continue
-            if dbname not in sites:
 
+            # critical: reverse dbname to instance name
+            def match(site, dbname):
+                ignored_chars = "-!@#$%^&*()_-+=][{}';:,.<>/"
+                site = site.lower()
+                dbname = dbname.lower()
+                for c in ignored_chars:
+                    site = site.replace(c, '')
+                    dbname = dbname.replace(c, '')
+                return dbname == site
+
+            if not [x for x in sites if match(x, dbname)]:
                 _drop_db(cr, dbname)
+
 
         # Drop also old sourcecodes
         for dir in Path("/cicd_workspace").glob("*"):
@@ -275,6 +292,17 @@ def cleanup():
 
         # remove artefacts from ~/.odoo/
         os.system("docker system prune -f -a")
+
+        # drop old docker containers
+        cicd_prefix = os.environ['CICD_PREFIX']
+        containers = docker.containers.list(all=True, filters={'label': f'ODOO_CICD={cicd_prefix}'})
+        for container in containers:
+            site_name = container.labels.get('ODOO_CICD_INSTANCE_NAME', '')
+            if not site_name: continue
+            if site_name not in sites:
+                if container.status == 'running':
+                    container.kill()
+                container.remove(force=True)
 
     finally:
         cr.close()

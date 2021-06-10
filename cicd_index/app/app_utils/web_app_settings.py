@@ -15,6 +15,7 @@ def app_settings_get():
     result = {
         'concurrent_builds': _get_config('concurrent_builds', 5),
         'no_i18n': _get_config('no_i18n', True),
+        'odoo_settings': _get_config('odoo_settings', ""),
     }
     return jsonify(result)
 

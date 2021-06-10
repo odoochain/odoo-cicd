@@ -10,6 +10,8 @@ from flask_login import login_required
 from pymongo import MongoClient
 from pathlib import Path
 
+
+
 rolling_log_dir = Path("/tmp") / 'rolling_log'
 rolling_log_dir.mkdir(exist_ok=True)
 
@@ -60,6 +62,7 @@ from .app_utils import cronjob_builder
 from .app_utils import cronjob_usage
 from .app_utils import cronjob_docker
 from .app_utils import cronjob_fetch_git
+from .app_utils import cronjob_backup
 
 if os.getenv("CICD_CRONJOBS") == "1":
 
@@ -67,11 +70,15 @@ if os.getenv("CICD_CRONJOBS") == "1":
     cronjob_docker.start()
     cronjob_fetch_git.start()
     cronjob_usage.start()
+    cronjob_backup.start()
 
     while True:
         time.sleep(1000)
 
-else:
+app = None
+
+def create_app():
+    global app
     app = Flask(
         __name__,
         static_url_path='/static', 
@@ -88,3 +95,4 @@ else:
     from .app_utils import web_app_settings
     from .app_utils.tools import JSONEncoder
     from . import app_utils
+    return app
