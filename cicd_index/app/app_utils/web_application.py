@@ -97,6 +97,7 @@ def transform_input_dump():
             update_instance_folder(site, rolling_file, instance_folder=instance_folder)
             _odoo_framework(site, ["reload"], rolling_file_name=rolling_file)
             _odoo_framework(site, ["restore", "odoo-db"], rolling_file_name=rolling_file)
+            suffix =''
             if erase:
                 _odoo_framework(site, ["cleardb"], rolling_file_name=rolling_file)
                 suffix += '.cleared'
