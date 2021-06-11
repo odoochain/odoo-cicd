@@ -91,20 +91,20 @@ def transform_input_dump():
     rolling_file= rolling_log_dir / f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
 
     def do():
-        instance_folder = Path(tempfile.mktemp())
+        instance_folder = Path("/cicd_workspace") / f"prepare_dump_{Path(tempfile.mktemp()).name}"
         try:
             write_rolling_log(rolling_file, "Preparing instance folder")
             update_instance_folder(site, rolling_file, instance_folder=instance_folder)
-            _odoo_framework(site, ["reload"], rolling_file_name=rolling_file)
-            _odoo_framework(site, ["restore", "odoo-db"], rolling_file_name=rolling_file)
+            _odoo_framework(site, ["reload"], rolling_file_name=rolling_file, instance_folder=instance_folder)
+            _odoo_framework(site, ["restore", "odoo-db"], rolling_file_name=rolling_file, instance_folder=instance_folder)
             suffix =''
             if erase:
-                _odoo_framework(site, ["cleardb"], rolling_file_name=rolling_file)
+                _odoo_framework(site, ["cleardb"], rolling_file_name=rolling_file, instance_folder=instance_folder)
                 suffix += '.cleared'
             if anonymize:
-                _odoo_framework(site, ["anonymize"], rolling_file_name=rolling_file)
+                _odoo_framework(site, ["anonymize"], rolling_file_name=rolling_file, instance_folder=instance_folder)
                 suffix += '.anonym'
-            _odoo_framework(site, ["backup", "odoo-db", dump + suffix + '.cicd_ready'], rolling_file_name=rolling_file)
+            _odoo_framework(site, ["backup", "odoo-db", dump + suffix + '.cicd_ready'], rolling_file_name=rolling_file, instance_folder=instance_folder)
         finally:
             if instance_folder.exists():
                 shutil.rmtree(instance_folder)

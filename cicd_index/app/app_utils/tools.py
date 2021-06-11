@@ -80,7 +80,7 @@ def write_rolling_log(file, line, prefix=''):
         fh.write(f"{prefix}_____{arrow.get()}_____{line}\n")
         fh.flush()
 
-def _odoo_framework(site_name, command, start_rolling_new=False, rolling_file_name=None):
+def _odoo_framework(site_name, command, start_rolling_new=False, rolling_file_name=None, instance_folder=None):
     logger.info(f"Executing command: {site_name} {command}")
     if isinstance(site_name, dict):
         site_name = site_name['name']
@@ -91,13 +91,15 @@ def _odoo_framework(site_name, command, start_rolling_new=False, rolling_file_na
     if start_rolling_new:
         file.write_text("")
 
+    instance_folder = instance_folder or f"{os.environ['CICD_WORKSPACE']}/{site_name}"
+
     def on_input(prefix, line):
         if line:
             write_rolling_log(file, line, prefix=prefix)
 
     res, stdout, stderr = _execute_shell(
         ["/opt/odoo/odoo", "-f", "--project-name", site_name] + command,
-        cwd=f"{os.environ['CICD_WORKSPACE']}/{site_name}",
+        cwd=instance_folder, 
         env={
             'NO_PROXY': "*",
             'DOCKER_CLIENT_TIMEOUT': "600",
@@ -109,6 +111,7 @@ def _odoo_framework(site_name, command, start_rolling_new=False, rolling_file_na
     output = stdout + '\n' + stderr
     if res == 'error':
         store_output(site_name, 'last_error', output)
+        write_rolling_log(file, stderr)
         raise OdooFrameworkException(output)
 
     store_output(site_name, 'last_error', '')
@@ -397,7 +400,8 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
                     write_rolling_log(rolling_file, msg)
                     raise Exception(msg)
                 commit = repo.refs[branch].commit
-                write_rolling_log(rolling_file, f"Copying source code to {instance_folder}")
+                write_rolling_log(rolling_file, f"Setting public access rights in {instance_folder}, for example requirements.txt is updated")
+                subprocess.check_call(["/usr/bin/chmod", "a+rwx", "-R", instance_folder])
                 return str(commit)
 
             except Exception as ex:
