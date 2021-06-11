@@ -99,9 +99,11 @@ def transform_input_dump():
             _odoo_framework(site, ["restore", "odoo-db"], rolling_file_name=rolling_file)
             if erase:
                 _odoo_framework(site, ["cleardb"], rolling_file_name=rolling_file)
+                suffix += '.cleared'
             if anonymize:
                 _odoo_framework(site, ["anonymize"], rolling_file_name=rolling_file)
-            _odoo_framework(site, ["backup", "odoo-db", dump + '.cicd_ready'], rolling_file_name=rolling_file)
+                suffix += '.anonym'
+            _odoo_framework(site, ["backup", "odoo-db", dump + suffix + '.cicd_ready'], rolling_file_name=rolling_file)
         finally:
             if instance_folder.exists():
                 shutil.rmtree(instance_folder)
