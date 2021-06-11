@@ -18,13 +18,13 @@ function fetch_dump() {
                     {
                         'cols': [
                             { view: "label", label: "Anonymize" },
-                            { view: "checkbox", name: 'anonymize' },
+                            { view: "checkbox", name: 'anonymize', value: 1 },
                         ]
                     },
                     {
                         'cols': [
                             { view: "label", label: "Erase Data (make small)" },
-                            { view: "checkbox", name: 'erase' },
+                            { view: "checkbox", name: 'erase', value: 1 },
                         ]
                     },
                     {
@@ -37,6 +37,7 @@ function fetch_dump() {
                                         'anonymize': values.anonymize,
                                     }).then(function(data) {
                                         form.hide();
+                                        window.open(data.json().live_url);
                                     }).fail(function(response) {
                                         alert(response.statusText);
                                         console.error(response.responseText);

@@ -6,7 +6,7 @@ from flask import Flask, request, send_from_directory
 import os
 import base64
 import arrow
-from .tools import _delete_sourcecode, get_output
+from .tools import _delete_sourcecode, get_output, write_rolling_log
 from .tools import _get_db_conn
 from pathlib import Path
 from flask import redirect
@@ -33,6 +33,7 @@ from .tools import get_output
 from .tools import update_instance_folder
 from .. import rolling_log_dir
 import flask_login
+import shutil
 logger = logging.getLogger(__name__)
 
 docker = Docker.from_env()
@@ -87,23 +88,31 @@ def transform_input_dump():
     erase = request.args['erase'] == '1'
     anonymize = request.args['anonymize'] == '1'
     site = 'master'
-    rolling_filename = f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
+    rolling_file= rolling_log_dir / f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
 
     def do():
-        instance_folder = tempfile.mktemp()
-        update_instance_folder(site, rolling_filename, instance_folder=instance_folder)
-        _odoo_framework(site, ["reload"], rolling_file_name=rolling_filename)
-        _odoo_framework(site, ["restore", "odoo-db"], rolling_file_name=rolling_filename)
-        if erase:
-            _odoo_framework(site, ["cleardb"], rolling_file_name=rolling_filename)
-        if anonymize:
-            _odoo_framework(site, ["anonymize"], rolling_file_name=rolling_filename)
-        _odoo_framework(site, ["backup", "odoo-db", dump + '.cicd_ready'], rolling_file_name=rolling_filename)
+        import pudb;pudb.set_trace()
+        instance_folder = Path(tempfile.mktemp())
+        try:
+            write_rolling_log(rolling_file, "Preparing instance folder")
+            update_instance_folder(site, rolling_file, instance_folder=instance_folder)
+            _odoo_framework(site, ["reload"], rolling_file_name=rolling_file)
+            _odoo_framework(site, ["restore", "odoo-db"], rolling_file_name=rolling_file)
+            if erase:
+                _odoo_framework(site, ["cleardb"], rolling_file_name=rolling_file)
+            if anonymize:
+                _odoo_framework(site, ["anonymize"], rolling_file_name=rolling_file)
+            _odoo_framework(site, ["backup", "odoo-db", dump + '.cicd_ready'], rolling_file_name=rolling_file)
+        finally:
+            if instance_folder.exists():
+                shutil.rmtree(instance_folder)
 
     t = threading.Thread(target=do)
     t.start()
 
-    return redirect("/cicd/live_log?name=" + rolling_filename)
+    return jsonify({
+        'live_url': "/cicd/live_log?name=" + rolling_file.name
+    })
 
 @app.route("/turn_into_dev")
 def _turn_into_dev():

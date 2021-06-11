@@ -75,8 +75,7 @@ def _validate_input(data, int_fields=[]):
         data['_id'] = ObjectId(data['_id'])
     return data
 
-def write_rolling_log(filename):
-    file = rolling_log_dir / filename
+def write_rolling_log(file, line, prefix=''):
     with open(str(file), 'a') as fh:
         fh.write(f"{prefix}_____{arrow.get()}_____{line}\n")
         fh.flush()
@@ -94,7 +93,7 @@ def _odoo_framework(site_name, command, start_rolling_new=False, rolling_file_na
 
     def on_input(prefix, line):
         if line:
-            write_rolling_log(file.name, line)
+            write_rolling_log(file, line, prefix=prefix)
 
     res, stdout, stderr = _execute_shell(
         ["/opt/odoo/odoo", "-f", "--project-name", site_name] + command,
@@ -365,21 +364,21 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
     from . import GIT_LOCK
     from . import URL
     from . import WORKSPACE
-    instance_folder = instance_folder or WORKSPACE / branch
+    instance_folder = Path(instance_folder or WORKSPACE / branch)
     tries = 0
     with GIT_LOCK:
         while tries < 3:
             try:
                 tries += 1
-                rolling_file.write_text(f"Updating instance folder {branch}")
+                write_rolling_log(rolling_file, f"Updating instance folder {branch}")
                 _store(branch, {'is_building': True})
-                rolling_file.write_text(f"Cloning {branch} {URL}")
+                write_rolling_log(rolling_file, f"Cloning {branch} {URL} to {instance_folder}")
                 repo = clone_repo(URL, instance_folder)
-                rolling_file.write_text(f"Checking out {branch}")
+                write_rolling_log(rolling_file, f"Checking out {branch}")
                 repo.git.checkout(branch, force=True)
-                rolling_file.write_text(f"Pulling {branch}")
+                write_rolling_log(rolling_file, f"Pulling {branch}")
                 repo.git.pull()
-                rolling_file.write_text(f"Clean git")
+                write_rolling_log(rolling_file, f"Clean git")
                 run = subprocess.run(
                     ["git", "clean", "-xdff"],
                     capture_output=True,
@@ -395,10 +394,10 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
                     )
                 if run.returncode:
                     msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
-                    rolling_file.write_text(msg)
+                    write_rolling_log(rolling_file, msg)
                     raise Exception(msg)
                 commit = repo.refs[branch].commit
-                rolling_file.write_text(f"Copying source code to {instance_folder}")
+                write_rolling_log(rolling_file, f"Copying source code to {instance_folder}")
                 return str(commit)
 
             except Exception as ex:
@@ -406,7 +405,8 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
                     rolling_file.write_text(str(ex))
                     logger.warn(ex)
                     rolling_file.write_text(f"Retrying update instance folder for {branch}")
-                    shutil.rmtree(instance_folder)
+                    if instance_folder.exists():
+                        shutil.rmtree(instance_folder)
                 else:
                     raise
 
