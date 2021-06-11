@@ -91,7 +91,6 @@ def transform_input_dump():
     rolling_file= rolling_log_dir / f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
 
     def do():
-        import pudb;pudb.set_trace()
         instance_folder = Path(tempfile.mktemp())
         try:
             write_rolling_log(rolling_file, "Preparing instance folder")
