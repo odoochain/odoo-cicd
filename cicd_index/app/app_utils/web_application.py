@@ -1,4 +1,6 @@
 from .. import MAIN_FOLDER_NAME
+import threading
+import tempfile
 import humanize
 from flask import Flask, request, send_from_directory
 import os
@@ -28,6 +30,7 @@ import logging
 from datetime import datetime
 import docker as Docker
 from .tools import get_output
+from .tools import update_instance_folder
 from .. import rolling_log_dir
 import flask_login
 logger = logging.getLogger(__name__)
@@ -43,21 +46,64 @@ def index_func():
         DATE_FORMAT=os.environ['DATE_FORMAT'].replace("_", "%"),
     )
 
-@app.route("/possible_dumps")
-def possible_dumps():
-    path = Path(os.environ['DUMPS_PATH_MAPPED'])
-    dump_names = sorted([x.name for x in path.glob("*")])
+def _get_dump_files_of_dir(path, relative_to):
+    dump_names = sorted([x for x in path.glob("*")])
 
     def _get_value(filename):
         date = arrow.get((path / filename).stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
         size = "?"
-        if path.exists():
-            size = path.stat().st_size
+        if filename.exists():
+            size = filename.stat().st_size
             size = humanize.naturalsize(size)
-        return f"{filename} [{date}] {size}"
+        return f"{filename.relative_to(relative_to)} [{date}] {size}"
 
-    dump_names = [{'id': x, 'value': _get_value(x)} for x in dump_names]
+    def _get_name(filepath):
+        if not relative_to:
+            return filepath
+        res = Path(filepath).relative_to(relative_to)
+        return res
+
+    dump_names = [{'id': str(_get_name(x)), 'value': _get_value(x)} for x in dump_names]
+    return dump_names
+
+@app.route("/possible_dumps")
+def possible_dumps():
+    path = Path(os.environ['DUMPS_PATH_MAPPED'])
+    dump_names = _get_dump_files_of_dir(path, path)
     return jsonify(dump_names)
+
+@app.route("/possible_input_dumps")
+def possible_input_dumps():
+    path = Path(os.environ['INPUT_DUMPS_PATH_MAPPED'])
+    dump_names = []
+    for subdir in path.glob("*"):
+        if subdir.is_dir():
+            dump_names += _get_dump_files_of_dir(subdir, relative_to=path)
+    return jsonify(dump_names)
+
+@app.route("/transform_input_dump")
+def transform_input_dump():
+    dump = request.args['dump']
+    erase = request.args['erase'] == '1'
+    anonymize = request.args['anonymize'] == '1'
+    site = 'master'
+    rolling_filename = f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
+
+    def do():
+        instance_folder = tempfile.mktemp()
+        update_instance_folder(site, rolling_filename, instance_folder=instance_folder)
+        _odoo_framework(site, ["reload"], rolling_file_name=rolling_filename)
+        _odoo_framework(site, ["restore", "odoo-db"], rolling_file_name=rolling_filename)
+        if erase:
+            _odoo_framework(site, ["cleardb"], rolling_file_name=rolling_filename)
+        if anonymize:
+            _odoo_framework(site, ["anonymize"], rolling_file_name=rolling_filename)
+        _odoo_framework(site, ["backup", "odoo-db", dump + '.cicd_ready'], rolling_file_name=rolling_filename)
+
+    t = threading.Thread(target=do)
+    t.start()
+
+    return redirect("/cicd/live_log?name=" + rolling_filename)
 
 @app.route("/turn_into_dev")
 def _turn_into_dev():

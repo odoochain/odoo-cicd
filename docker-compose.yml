@@ -45,8 +45,6 @@ services:
     networks:
         - internal
     restart: "unless-stopped"
-    ports:
-        - "0.0.0.0:5000:5000"
     expose:
         - 8080
     environment:
@@ -59,6 +57,7 @@ services:
         MONGO_PASSWORD: 1
         WEBSSH_CICD_WORKSPACE: /cicd_workspace
         DUMPS_PATH_MAPPED: /opt/dumps
+        INPUT_DUMPS_PATH_MAPPED: /input_dumps
     volumes:
         - ${DUMPS_PATH}:/opt/dumps
         - ${CICD_WORKSPACE}:/cicd_workspace
@@ -68,6 +67,7 @@ services:
         - /var/lib/docker:/display_resources/docker
         - /:/display_resources/root
         - rolling_log:/tmp/rolling_log
+        - uploaded_dumps:/input_dumps/uploaded
         
   cicd_postgres:
     image: postgres:12
@@ -133,6 +133,7 @@ services:
 volumes:
     cicd_postgres_data:
     rolling_log:
+    uploaded_dumps:
 networks:
     cicd_delegator:
         name: ${CICD_NETWORK_NAME}

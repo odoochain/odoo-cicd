@@ -75,22 +75,26 @@ def _validate_input(data, int_fields=[]):
         data['_id'] = ObjectId(data['_id'])
     return data
 
-def _odoo_framework(site_name, command, start_rolling_new=False):
+def write_rolling_log(filename):
+    file = rolling_log_dir / filename
+    with open(str(file), 'a') as fh:
+        fh.write(f"{prefix}_____{arrow.get()}_____{line}\n")
+        fh.flush()
+
+def _odoo_framework(site_name, command, start_rolling_new=False, rolling_file_name=None):
     logger.info(f"Executing command: {site_name} {command}")
     if isinstance(site_name, dict):
         site_name = site_name['name']
     if isinstance(command, str):
         command = [command]
 
-    file = rolling_log_dir / site_name
+    file = rolling_log_dir / (rolling_file_name or site_name)
     if start_rolling_new:
         file.write_text("")
 
     def on_input(prefix, line):
         if line:
-            with open(str(file), 'a') as fh:
-                fh.write(f"{prefix}_____{arrow.get()}_____{line}\n")
-                fh.flush()
+            write_rolling_log(file.name, line)
 
     res, stdout, stderr = _execute_shell(
         ["/opt/odoo/odoo", "-f", "--project-name", site_name] + command,
@@ -357,11 +361,11 @@ def _get_main_repo():
         repo = clone_repo(URL, path)
     return repo
 
-def update_instance_folder(branch, rolling_file):
+def update_instance_folder(branch, rolling_file, instance_folder=None):
     from . import GIT_LOCK
     from . import URL
     from . import WORKSPACE
-    instance_folder = WORKSPACE / branch
+    instance_folder = instance_folder or WORKSPACE / branch
     tries = 0
     with GIT_LOCK:
         while tries < 3:

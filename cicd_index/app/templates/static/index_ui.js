@@ -50,6 +50,7 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                         { view:"button", id:"start_all", icon: 'play', value:"Start All Docker Containers", batch: 'admin', click: clicked_menu,},
                         { view:"button", id:"delete_unused", icon: 'eraser', value:"Spring Clean", batch: 'admin'},
                         { view:"button", id:"make_new_instance", icon: 'file', value:"New Instance", batch: 'admin'},
+                        { view:"button", id:"fetch_dump", icon: 'file', value:"Fetch Dump", batch: 'admin'},
                         { view:"button", id:"users_admin", value:"Users", icon: "users", batch: 'admin' },
                         { view:"button", id:"appsettings", value:"App Settings", icon: "cog", batch: 'admin' },
                         { view:"button", id:"logout", value:"Logout", icon: "sign-out-alt", batch: 'user'},
