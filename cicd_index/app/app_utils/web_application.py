@@ -1,4 +1,8 @@
 from .. import MAIN_FOLDER_NAME
+import time
+import traceback
+import subprocess
+from functools import partial
 import threading
 import tempfile
 import humanize
@@ -97,20 +101,39 @@ def transform_input_dump():
             # reverse lookup the path
             real_path = _get_host_path(Path("/input_dumps") / dump.parent) / dump.name
 
+            def of(*args):
+                _odoo_framework(instance_folder.name, list(args), rolling_file_name=rolling_file, instance_folder=instance_folder)
+
             write_rolling_log(rolling_file, "Preparing instance folder")
-            update_instance_folder(site, rolling_file, instance_folder=instance_folder)
-            _odoo_framework(site, ["reload"], rolling_file_name=rolling_file, instance_folder=instance_folder)
+            source = str(Path("/cicd_workspace") / "master") + "/"
+            dest = str(instance_folder) + "/"
+            write_rolling_log(rolling_file, f"rsync from {source} to {dest}")
+            subprocess.check_call([
+                "rsync", source, dest,
+                "-ar",
+                "--exclude=.odoo"
+            ])
+            # #update_instance_folder(site, rolling_file, instance_folder=instance_folder)
+            of("reload")
 
+            # to avoid orphan messages, that return error codes although warning
+            write_rolling_log(rolling_file, f"Starting local postgres")
+            of("up", "-d", 'postgres')
+            write_rolling_log(rolling_file, f"Waiting 10 seconds for postgres to start")
 
-            _odoo_framework(site, ["restore", "odoo-db", str(Path(real_path) / dump.name)], rolling_file_name=rolling_file, instance_folder=instance_folder)
+            of("restore", "odoo-db", str(real_path))
             suffix =''
             if erase:
-                _odoo_framework(site, ["cleardb"], rolling_file_name=rolling_file, instance_folder=instance_folder)
+                of("cleardb")
                 suffix += '.cleared'
             if anonymize:
-                _odoo_framework(site, ["anonymize"], rolling_file_name=rolling_file, instance_folder=instance_folder)
+                of("anonymize")
                 suffix += '.anonym'
-            _odoo_framework(site, ["backup", "odoo-db", dump + suffix + '.cicd_ready'], rolling_file_name=rolling_file, instance_folder=instance_folder)
+            of("backup", "odoo-db", dump + suffix + '.cicd_ready')
+            of("down")
+        except Exception as ex:
+            msg = traceback.format_exc()
+            write_rolling_log(rolling_file, msg)
         finally:
             if instance_folder.exists(): 
                 shutil.rmtree(instance_folder)
