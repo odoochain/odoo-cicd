@@ -120,7 +120,6 @@ def transform_input_dump():
             # to avoid orphan messages, that return error codes although warning
             write_rolling_log(rolling_file, f"Starting local postgres")
             of("up", "-d", 'postgres')
-            write_rolling_log(rolling_file, f"Waiting 10 seconds for postgres to start")
 
             of("restore", "odoo-db", str(real_path))
             suffix =''
