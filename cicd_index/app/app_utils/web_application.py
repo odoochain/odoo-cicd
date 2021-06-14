@@ -129,7 +129,7 @@ def transform_input_dump():
             if anonymize:
                 of("anonymize")
                 suffix += '.anonym'
-            of("backup", "odoo-db", dump + suffix + '.cicd_ready')
+            of("backup", "odoo-db", dump.name + suffix + '.cicd_ready')
             of("down")
         except Exception as ex:
             msg = traceback.format_exc()
