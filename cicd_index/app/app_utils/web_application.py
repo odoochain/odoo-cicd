@@ -115,6 +115,7 @@ def transform_input_dump():
             ])
             # #update_instance_folder(site, rolling_file, instance_folder=instance_folder)
             of("reload")
+            of("down", "-v")
 
             # to avoid orphan messages, that return error codes although warning
             write_rolling_log(rolling_file, f"Starting local postgres")
@@ -130,7 +131,7 @@ def transform_input_dump():
                 of("anonymize")
                 suffix += '.anonym'
             of("backup", "odoo-db", dump.name + suffix + '.cicd_ready')
-            of("down")
+            of("down", "-v")
         except Exception as ex:
             msg = traceback.format_exc()
             write_rolling_log(rolling_file, msg)
