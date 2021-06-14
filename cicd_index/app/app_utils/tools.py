@@ -1,4 +1,5 @@
 from .. import db
+import socket
 from io import BytesIO ## for Python 3
 import docker as Docker
 import base64
@@ -91,7 +92,14 @@ def _odoo_framework(site_name, command, start_rolling_new=False, rolling_file_na
     if start_rolling_new:
         file.write_text("")
 
-    instance_folder = instance_folder or f"{os.environ['CICD_WORKSPACE']}/{site_name}"
+    if instance_folder:
+        if not instance_folder.exists():
+            raise Exception(f"Instance folder does not exist: {instance_folder}")
+        if instance_folder.parent != Path('/cicd_workspace'):
+            raise Exception(f"Parent of Instance folder must be /cicd_workspace")
+        instance_folder = Path(os.environ['CICD_WORKSPACE']) / instance_folder.name
+    else:
+        instance_folder = f"{os.environ['CICD_WORKSPACE']}/{site_name}"
 
     def on_input(prefix, line):
         if line:
@@ -159,7 +167,7 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
         try:
             result = shell.run(
                 command,
-                cwd=cwd,
+                cwd=str(cwd) if cwd else cwd,
                 update_env=env,
                 stdout=stdout,
                 stderr=stderr,
@@ -401,7 +409,7 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
                     raise Exception(msg)
                 commit = repo.refs[branch].commit
                 write_rolling_log(rolling_file, f"Setting public access rights in {instance_folder}, for example requirements.txt is updated")
-                subprocess.check_call(["/usr/bin/chmod", "a+rwx", "-R", instance_folder])
+                subprocess.check_call(["/usr/bin/chmod", "a+w", "-R", instance_folder / 'requirements.txt'])
                 return str(commit)
 
             except Exception as ex:
@@ -425,3 +433,13 @@ def _get_instance_config(sitename):
     return {
         "DBNAME": dbname
     }
+
+def _get_host_path(path):
+    """
+    For the given path inside container the host path is returned.
+    """
+    hostname = socket.gethostname()
+    container = [x for x in docker.containers.list(all=True) if x.id.startswith(hostname)][0]
+    inspect = json.loads(subprocess.check_output(['docker', 'inspect', container.id]))
+    source = [x for x in inspect[0]['Mounts'] if x['Destination'] == str(path)][0]['Source']
+    return Path(source)

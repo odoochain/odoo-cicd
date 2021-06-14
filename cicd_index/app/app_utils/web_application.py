@@ -6,6 +6,7 @@ from flask import Flask, request, send_from_directory
 import os
 import base64
 import arrow
+from .tools import _get_host_path
 from .tools import _delete_sourcecode, get_output, write_rolling_log
 from .tools import _get_db_conn
 from pathlib import Path
@@ -84,7 +85,7 @@ def possible_input_dumps():
 
 @app.route("/transform_input_dump")
 def transform_input_dump():
-    dump = request.args['dump']
+    dump = Path(request.args['dump'])
     erase = request.args['erase'] == '1'
     anonymize = request.args['anonymize'] == '1'
     site = 'master'
@@ -93,10 +94,15 @@ def transform_input_dump():
     def do():
         instance_folder = Path("/cicd_workspace") / f"prepare_dump_{Path(tempfile.mktemp()).name}"
         try:
+            # reverse lookup the path
+            real_path = _get_host_path(Path("/input_dumps") / dump.parent) / dump.name
+
             write_rolling_log(rolling_file, "Preparing instance folder")
             update_instance_folder(site, rolling_file, instance_folder=instance_folder)
             _odoo_framework(site, ["reload"], rolling_file_name=rolling_file, instance_folder=instance_folder)
-            _odoo_framework(site, ["restore", "odoo-db"], rolling_file_name=rolling_file, instance_folder=instance_folder)
+
+
+            _odoo_framework(site, ["restore", "odoo-db", str(Path(real_path) / dump.name)], rolling_file_name=rolling_file, instance_folder=instance_folder)
             suffix =''
             if erase:
                 _odoo_framework(site, ["cleardb"], rolling_file_name=rolling_file, instance_folder=instance_folder)
@@ -106,7 +112,7 @@ def transform_input_dump():
                 suffix += '.anonym'
             _odoo_framework(site, ["backup", "odoo-db", dump + suffix + '.cicd_ready'], rolling_file_name=rolling_file, instance_folder=instance_folder)
         finally:
-            if instance_folder.exists():
+            if instance_folder.exists(): 
                 shutil.rmtree(instance_folder)
 
     t = threading.Thread(target=do)
