@@ -80,7 +80,8 @@
                             ]},
                             { cols: [
                                 { view: "label", label: ""}, 
-                                { view: 'button', value: 'Show Details Results', name: "robot_results", onItemClick: function() {
+                                { view: 'button', value: 'Show Details Results', name: "robot_results", click: function() {
+                                    debugger;
                                     show_robot_results();
                                 }},
                             ]}
