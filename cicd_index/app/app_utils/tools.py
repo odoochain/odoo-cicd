@@ -409,8 +409,8 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
                     raise Exception(msg)
                 commit = repo.refs[branch].commit
                 write_rolling_log(rolling_file, f"Setting public access rights in {instance_folder}, for example requirements.txt is updated")
-                if (instance_folder / 'requirements.txt').exists():
-                    subprocess.check_call(["/usr/bin/chmod", "a+w", "-R", instance_folder / 'requirements.txt'])
+                user = os.environ['HOST_SSH_USER']
+                subprocess.check_call(["/usr/bin/chown", f"{user}:{user}", "-R", instance_folder'])
                 return str(commit)
 
             except Exception as ex:
