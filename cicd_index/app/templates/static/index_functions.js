@@ -115,6 +115,10 @@ function restart_delegator() {
     });
 }
 
+function show_logs() {
+    window.location = '/cicd/logs';
+}
+
 function start_all() {
     webix.message('Starting all docker containers; also restarting delegator after that.');
     webix.ajax().get("/cicd/start_all").then(function(res) {

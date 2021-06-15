@@ -93,7 +93,7 @@ def transform_input_dump():
     erase = request.args['erase'] == '1'
     anonymize = request.args['anonymize'] == '1'
     site = 'master'
-    rolling_file= rolling_log_dir / f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
+    rolling_file = rolling_log_dir / f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
 
     def do():
         instance_folder = Path("/cicd_workspace") / f"prepare_dump_{Path(tempfile.mktemp()).name}"
@@ -104,6 +104,7 @@ def transform_input_dump():
             def of(*args):
                 _odoo_framework(instance_folder.name, list(args), rolling_file_name=rolling_file, instance_folder=instance_folder)
 
+            write_rolling_log(rolling_file, f"Preparing Input Dump: {dump.name}")
             write_rolling_log(rolling_file, "Preparing instance folder")
             source = str(Path("/cicd_workspace") / "master") + "/"
             dest = str(instance_folder) + "/"

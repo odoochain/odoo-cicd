@@ -38,4 +38,8 @@ function users_admin() {
 
 function copyTextToClipboard(text) {
     window.prompt("Copy to clipboard: Ctrl+C, Enter", text);
-  }
+}
+
+function return_to_branches() {
+    location = '/index';
+}

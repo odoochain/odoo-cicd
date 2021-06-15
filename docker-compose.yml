@@ -30,6 +30,7 @@ services:
         DUMPS_PATH_MAPPED: /opt/dumps
     command: ["python3", "-m", "app1"]
     volumes:
+        - log_history:/log_history
         - ${DUMPS_PATH}:/opt/dumps
         - ${CICD_WORKSPACE}:/cicd_workspace
         - ${ODOO_SETTINGS}:/odoo_settings
@@ -59,6 +60,7 @@ services:
         DUMPS_PATH_MAPPED: /opt/dumps
         INPUT_DUMPS_PATH_MAPPED: /input_dumps
     volumes:
+        - log_history:/log_history
         - ${DUMPS_PATH}:/opt/dumps
         - ${CICD_WORKSPACE}:/cicd_workspace
         - ${ODOO_SETTINGS}:/odoo_settings
@@ -134,6 +136,7 @@ volumes:
     cicd_postgres_data:
     rolling_log:
     uploaded_dumps:
+    log_history:
 networks:
     cicd_delegator:
         name: ${CICD_NETWORK_NAME}
