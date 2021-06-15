@@ -16,6 +16,7 @@
                 'note': values.note,
                 'odoo_settings': values.odoo_settings,
                 'archive': values.archive,
+                'restore_no_dev_scripts': values.restore_no_dev_scripts == '1',
                 'dump': values.dump,
                 'docker_no_cache': values.docker_no_cache == '1',
                 'do_backup_regularly': values.do_backup_regularly == '1',
@@ -113,6 +114,10 @@
                             { cols: [
                                 { view: "label", label: "Choose Dump"}, 
                                 { view: "combo", name: 'dump', options: '/cicd/possible_dumps', placeholder: "Dump" },
+                            ]},
+                            { cols: [
+                                { view: "label", label: "No Dev scripts on restore (possibly dangerous!)"}, 
+                                { view: "checkbox", name: 'restore_no_dev_scripts', },
                             ]},
                             { cols: [
                                 { view: "label", label: "Odoo Settings"}, 

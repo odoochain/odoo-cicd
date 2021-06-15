@@ -148,7 +148,10 @@ def make_instance(site, use_dump):
     dump_date, dump_name = None, None
     if use_dump:
         logger.info(f"BUILD CONTROL: Restoring DB for {site['name']} from {use_dump}")
-        _odoo_framework(site, ["restore", "odoo-db", use_dump])
+        flags = []
+        if site.get('restore_no_dev_scripts'):
+            flags += ['--no-dev-scripts']
+        _odoo_framework(site, ["restore", "odoo-db", use_dump] + flags)
         logger.info(f"Restoring dump {site['name']} finished")
         _odoo_framework(site, ["remove-web-assets"])
         dump_file = Path("/opt/dumps") / use_dump
