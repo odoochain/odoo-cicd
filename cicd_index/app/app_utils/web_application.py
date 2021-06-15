@@ -116,11 +116,11 @@ def transform_input_dump():
             ])
             # #update_instance_folder(site, rolling_file, instance_folder=instance_folder)
             custom_settings = """
- RUN_POSTGRES=1
- DB_PORT=5432
- DB_HOST=postgres
- DB_USER=odoo
- DB_PWD=odoo
+RUN_POSTGRES=1
+DB_PORT=5432
+DB_HOST=postgres
+DB_USER=odoo
+DB_PWD=odoo
             """
             of("reload", '--additional_config', base64.encodestring(custom_settings.encode('utf-8')).strip().decode('utf-8'))
             of("down", "-v")
