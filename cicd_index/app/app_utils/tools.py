@@ -179,7 +179,7 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
             return 'error', stdout.getall(), stderr.getall()
 
     if callback:
-        callback('stdout', f"Successfully terminated.")
+        callback('stdout', f"Successfully Finished.")
     return result, stdout.getall(), stderr.getall()
 
     
