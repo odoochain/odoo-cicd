@@ -180,3 +180,7 @@ update_resources = function() {
     });
 
 }
+
+function show_robot_results() {
+    window.open("/cicd/start?initial_path=/robot-output&name=" + current_details);
+}
