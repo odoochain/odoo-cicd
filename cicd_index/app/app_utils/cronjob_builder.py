@@ -185,6 +185,38 @@ def fix_ownership():
     # _execute_shell
     # os.system(f"chown {user}:{user} /odoo_settings -R")
 
+def run_robot_tests(site, files):
+    output, success, failed = [], [], []
+    for file in files:
+        try:
+            output.append(_odoo_framework(
+                site,
+                ["robot", str(file)],
+            ))
+            success.append(file)
+        except Exception as ex:
+            failed.append(file)
+
+    msg = []
+    for failed in failed:
+        msg.append(f"Failed: {failed}")
+    for success in success:
+        msg.append(f"OK: {success}")
+
+    msg = '\n'.join(msg)
+    output.append(msg)
+    db.sites.update_one({
+        'name': site['name'],
+    }, {
+        '$set': {
+            'robot_result': msg
+        }
+    }, upsert=True
+    )
+
+
+    return '\n'.join(output)
+
 
 def build_instance(site):
     try:
@@ -242,12 +274,25 @@ def build_instance(site):
                         ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
                     )
                 last_sha = _last_success_full_sha(site)
-                output = _odoo_framework(
+
+                files = [Path(x) for x in _odoo_framework(
                     site,
-                    ["update", "--no-dangling-check", "--since-git-sha", last_sha] + ([] if noi18n else ["--i18n"])
-                )
-                store_output(site['name'], 'update', output)
-                _odoo_framework(site, ["up", "-d"])
+                    ["list-changed-files", "-s", last_sha]
+                ).split("---")[1].split("\n") if x]
+
+                suffixes = set(x.suffix for x in files if x)
+                output = run_robot_tests(site, [x for x in files if x.suffix == '.robot'])
+
+                if len(suffixes) == 1 and list(suffixes)[0] == '.robot':
+                    pass
+                else:
+
+                    output += _odoo_framework(
+                        site,
+                        ["update", "--no-dangling-check", "--since-git-sha", last_sha] + ([] if noi18n else ["--i18n"])
+                    )
+                    store_output(site['name'], 'update', output)
+                    _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'reset':
                 if settings['DBNAME']:
