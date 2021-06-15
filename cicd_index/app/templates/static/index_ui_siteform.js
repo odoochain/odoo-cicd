@@ -15,7 +15,7 @@
                 "_id": values._id,
                 'note': values.note,
                 'odoo_settings': values.odoo_settings,
-                'archived': values.archived == '1',
+                'archive': values.archive,
                 'dump': values.dump,
                 'docker_no_cache': values.docker_no_cache == '1',
                 'do_backup_regularly': values.do_backup_regularly == '1',
@@ -131,8 +131,8 @@
                     body: {
                         rows: [
                             { cols: [
-                                { view: "label", label: "Archived"}, 
-                                { view: 'checkbox', name: 'archived' },
+                                { view: "label", label: "Archive"}, 
+                                { view: 'checkbox', name: 'archive' },
                             ]},
                             { cols: [
                                 { view: "label", label: "Backup regulary"}, 

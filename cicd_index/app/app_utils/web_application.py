@@ -208,7 +208,7 @@ def data_variants():
     sites = _format_dates_in_records(sites)
     sites = sorted(sites, key=lambda x: x.get('name'))
     if not request.args.get('name'):
-        if request.args.get('archived') == '1':
+        if request.args.get('archive') == '1':
             sites = [x for x in sites if x.get('archive')]
         else:
             sites = [x for x in sites if not x.get('archive')]
@@ -350,7 +350,7 @@ def cleanup():
 
         dbnames = _get_all_databases(cr)
 
-        sites = set([x['name'] for x in db.sites.find({}) if not x.get('archived')])
+        sites = set([x['name'] for x in db.sites.find({}) if not x.get('archive')])
         for dbname in dbnames:
             if dbname.startswith('template') or dbname == 'postgres':
                 continue

@@ -95,8 +95,8 @@ webix.ready(function() {
                             cols: [
                                 {
                                     cols: [
-                                        { view: "label", label: "Show Archived"}, 
-                                        { view: "checkbox", id: 'show_archived', click: update_sites },
+                                        { view: "label", label: "Show Archive"}, 
+                                        { view: "checkbox", id: 'show_archive', click: update_sites },
                                     ],
                                 },
                                 {

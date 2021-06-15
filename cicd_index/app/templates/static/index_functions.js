@@ -100,8 +100,8 @@ function _build_again(do_all) {
 }
 
 function update_sites() {
-    var archived = $$('show_archived').getValue();
-    var url = "archived=" + archived;
+    var archive = $$('show_archive').getValue();
+    var url = "archive=" + archive;
     reload_table($$('table-sites'), url);
 }
 
