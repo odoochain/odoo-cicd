@@ -409,7 +409,7 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
                     raise Exception(msg)
                 commit = repo.refs[branch].commit
                 user_id = get_sshuser_id()
-                write_rolling_log(rolling_file, f"Setting access rights in {instance_folder} to {user}")
+                write_rolling_log(rolling_file, f"Setting access rights in {instance_folder} to {user_id}")
                 subprocess.check_call(["/usr/bin/chown", f"{user_id}:{user_id}", "-R", str(instance_folder)])
                 return str(commit)
 
