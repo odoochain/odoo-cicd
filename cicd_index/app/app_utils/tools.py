@@ -410,7 +410,7 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
                 commit = repo.refs[branch].commit
                 user = os.environ['HOST_SSH_USER']
                 write_rolling_log(rolling_file, f"Setting access rights in {instance_folder} to {user}")
-                subprocess.check_call(["/usr/bin/chown", f"{user}:{user}", "-R", instance_folder])
+                subprocess.check_call(["/usr/bin/chown", f"{user}:{user}", "-R", str(instance_folder)])
                 return str(commit)
 
             except Exception as ex:
