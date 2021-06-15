@@ -408,9 +408,9 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
                     write_rolling_log(rolling_file, msg)
                     raise Exception(msg)
                 commit = repo.refs[branch].commit
-                user = os.environ['HOST_SSH_USER']
+                user_id = get_sshuser_id()
                 write_rolling_log(rolling_file, f"Setting access rights in {instance_folder} to {user}")
-                subprocess.check_call(["/usr/bin/chown", f"{user}:{user}", "-R", str(instance_folder)])
+                subprocess.check_call(["/usr/bin/chown", f"{user_id}:{user_id}", "-R", str(instance_folder)])
                 return str(commit)
 
             except Exception as ex:
@@ -422,6 +422,11 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
                         shutil.rmtree(instance_folder)
                 else:
                     raise
+
+def get_sshuser_id():
+    user_name = os.environ['HOST_SSH_USER']
+    user_id = _execute_shell(["/usr/bin/id", '-u', user_name]).strip()
+    return user_id
 
 def _get_instance_config(sitename):
     settings = Path("/odoo_settings/run") / sitename / 'settings'
