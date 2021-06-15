@@ -425,7 +425,8 @@ def update_instance_folder(branch, rolling_file, instance_folder=None):
 
 def get_sshuser_id():
     user_name = os.environ['HOST_SSH_USER']
-    user_id = _execute_shell(["/usr/bin/id", '-u', user_name]).strip()
+    res, stdout, stderr = _execute_shell(["/usr/bin/id", '-u', user_name])
+    user_id = stdout.strip()
     return user_id
 
 def _get_instance_config(sitename):
