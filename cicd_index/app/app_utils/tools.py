@@ -45,12 +45,15 @@ def format_date(dt):
     return arrow.get(dt).to(tz).strftime(DATE_FORMAT)
 
 def _format_dates_in_records(records):
+    tz = os.environ['DISPLAY_TIMEZONE']
     for rec in records:
         for k in rec:
             if not isinstance(rec[k], str):
                 continue
             try:
-                rec[k] = format_date(arrow.get(rec[k]))
+                d = format_date(arrow.get(rec[k]))
+                d.replace(tzinfo='utc').to(tz)
+                rec[k] = d.datetime
             except Exception:
                 continue
     return records

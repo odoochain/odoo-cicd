@@ -115,7 +115,7 @@ function restart_delegator() {
     });
 }
 
-function show_logs() {
+function show_cicd_app_logs() {
     window.location = '/cicd/logs';
 }
 

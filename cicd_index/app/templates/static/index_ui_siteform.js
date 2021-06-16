@@ -58,7 +58,7 @@
                             ]},
                             { cols: [
                                 { view: "label", label: "SHA"}, 
-                                { view: 'text', name: 'git_authored_date', readonly: true},
+                                { view: 'text', name: 'sha', readonly: true},
                             ]},
                             { cols: [
                                 { view: "label", label: "Based on"}, 

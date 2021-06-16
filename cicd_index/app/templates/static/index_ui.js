@@ -52,7 +52,7 @@ webix.ready(function() {
                             { view:"button", id:"delete_unused", icon: 'eraser', value:"Spring Clean", batch: 'admin'},
                             { view:"button", id:"make_new_instance", icon: 'file', value:"New Instance", batch: 'admin'},
                             { view:"button", id:"fetch_dump", icon: 'file', value:"Fetch Dump", batch: 'admin'},
-                            { view:"button", id:"show_logs", icon: 'file', value:"Show Logs", batch: 'admin'},
+                            { view:"button", id:"show_cicd_app_logs", icon: 'file', value:"Show Logs", batch: 'admin'},
                             { view:"button", id:"users_admin", value:"Users", icon: "users", batch: 'admin' },
                             { view:"button", id:"appsettings", value:"App Settings", icon: "cog", batch: 'admin' },
                             { view:"button", id:"logout", value:"Logout", icon: "sign-out-alt", batch: 'user'},

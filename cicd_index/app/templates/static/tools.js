@@ -1,4 +1,4 @@
-var DATE_FORMAT = "%Y-%m-%d %H:%M:%S";
+var DATE_FORMAT = "%Y-%m-%d %H:%i:%s";
 function clicked_menu(id) {
     if (!id) {
         return;
