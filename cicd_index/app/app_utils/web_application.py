@@ -664,3 +664,9 @@ def fetch_new_lines():
     result['next_line_number'] = next_line_number + lines
 
     return jsonify(result)
+
+@app.route("/run_robot_tests")
+def run_robot_tests():
+    site = request.args.get('site')
+    rolling_file = rolling_log_dir / f"{site}_robottests_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
+    _odoo_framework(site, 'robot', '-a', rolling_file_name=rolling_file)

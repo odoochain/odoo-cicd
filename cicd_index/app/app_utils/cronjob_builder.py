@@ -169,7 +169,8 @@ def make_instance(site, use_dump):
         if settings['DBNAME']:
             _odoo_framework(site, ["db", "reset", dbname])
 
-    output = _odoo_framework(site, ["update"])
+    if not site.get('no_module_update'):
+        output = _odoo_framework(site, ["update"])
     store_output(site['name'], 'update', output)
 
     _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
@@ -253,26 +254,29 @@ def build_instance(site):
 
             elif site.get("build_mode") == 'update-all-modules':
 
-                if site.get('odoo_settings_update_modules_before'):
-                    output = _odoo_framework(
-                        site,
-                        ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
-                    )
+                if not site.get('no_module_update'):
+                    if site.get('odoo_settings_update_modules_before'):
+                        output = _odoo_framework(
+                            site,
+                            ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
+                        )
 
                 _odoo_framework(site, ["remove-web-assets"])
-                output = _odoo_framework(
-                    site,
-                    ["update", "--no-dangling-check"] + ([] if noi18n else ["--i18n"])
-                )
+                if not site.get('no_module_update'):
+                    output = _odoo_framework(
+                        site,
+                        ["update", "--no-dangling-check"] + ([] if noi18n else ["--i18n"])
+                    )
                 store_output(site['name'], 'update', output)
                 _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'update-recent':
-                if site.get('odoo_settings_update_modules_before'):
-                    output = _odoo_framework(
-                        site,
-                        ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
-                    )
+                if not site.get('no_module_update'):
+                    if site.get('odoo_settings_update_modules_before'):
+                        output = _odoo_framework(
+                            site,
+                            ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
+                        )
                 last_sha = _last_success_full_sha(site)
 
                 files = [Path(x) for x in _odoo_framework(
@@ -287,12 +291,13 @@ def build_instance(site):
                     pass
                 else:
 
-                    output += _odoo_framework(
-                        site,
-                        ["update", "--no-dangling-check", "--since-git-sha", last_sha] + ([] if noi18n else ["--i18n"])
-                    )
-                    store_output(site['name'], 'update', output)
-                    _odoo_framework(site, ["up", "-d"])
+                    if not site.get('no_module_update'):
+                        output += _odoo_framework(
+                            site,
+                            ["update", "--no-dangling-check", "--since-git-sha", last_sha] + ([] if noi18n else ["--i18n"])
+                        )
+                        store_output(site['name'], 'update', output)
+                        _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'reset':
                 if settings['DBNAME']:

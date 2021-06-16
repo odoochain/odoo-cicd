@@ -16,6 +16,7 @@
                 'note': values.note,
                 'odoo_settings': values.odoo_settings,
                 'archive': values.archive,
+                'no_module_update': values.no_module_update =='1',
                 'restore_no_dev_scripts': values.restore_no_dev_scripts == '1',
                 'dump': values.dump,
                 'docker_no_cache': values.docker_no_cache == '1',
@@ -79,9 +80,10 @@
                                 { view: 'textarea', name: 'robot_result', readonly: true},
                             ]},
                             { cols: [
-                                { view: "label", label: ""}, 
+                                { view: "button", value: "Rerun Tests", name: "run_robot_tests", click: function () {
+                                    run_robot_tests();
+                                }}, 
                                 { view: 'button', value: 'Show Details Results', name: "robot_results", click: function() {
-                                    debugger;
                                     show_robot_results();
                                 }},
                             ]}
@@ -108,6 +110,10 @@
                     collapsed: true,
                     body: {
                         rows: [
+                            { cols: [
+                                { view: "label", label: "No module update"}, 
+                                { view: 'checkbox', name: 'no_module_update' },
+                            ]},
                             { cols: [
                                 { view: "label", label: "No cache at next build"}, 
                                 { view: 'checkbox', name: 'docker_no_cache' },

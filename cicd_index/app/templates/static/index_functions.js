@@ -184,3 +184,9 @@ update_resources = function() {
 function show_robot_results() {
     window.open("/cicd/start?initial_path=/robot-output&name=" + current_details);
 }
+
+function run_robot_tests() {
+    webix.ajax().get('/cicd/run_robot_tests?site' + current_details).then(function(res) {
+        webix.message("Tests started. You can view by click 'Build Log'.");
+    });
+}
