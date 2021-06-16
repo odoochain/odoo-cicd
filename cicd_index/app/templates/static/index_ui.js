@@ -158,9 +158,18 @@ webix.ajax().get('/cicd/start_info').then(function(startinfo) {
                             },
                             onKeyPress: function(code, e) {
                                 var name = this.getSelectedItem() && this.getSelectedItem().name;
+                                console.log(e.shiftKey);
                                 if (code == 68) {  // d
-                                    if (confirm("Delete " + name)) {
-                                        delete_instance(name);
+                                    if (!e.shiftKey) {
+                                        if (!confirm("Delete " + name)) {
+                                            return;
+                                        }
+                                    }
+                                    delete_instance(name);
+                                    var table = $$('table-sites');
+                                    var id = table.getSelectedId();
+                                    if (id) {
+                                        table.remove(id);
                                     }
                                 }
                                 if (code == 82) { // r
