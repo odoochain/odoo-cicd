@@ -147,7 +147,7 @@
                                 { view: 'checkbox', name: 'archive' },
                             ]},
                             { cols: [
-                                { view: "label", label: "Backup regulary"}, 
+                                { view: "label", label: "Backup regulary (once per day - old backups overwritten)"}, 
                                 { view: 'checkbox', name: 'do_backup_regularly' },
                             ]},
                         ]
