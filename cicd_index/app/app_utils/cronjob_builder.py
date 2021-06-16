@@ -146,7 +146,7 @@ def make_instance(site, use_dump):
     store_output(site['name'], 'build', output)
 
     dump_date, dump_name = None, None
-    if use_dump:
+    if use_dump and not site.get('no_module_update'):
         logger.info(f"BUILD CONTROL: Restoring DB for {site['name']} from {use_dump}")
         flags = []
         if site.get('restore_no_dev_scripts'):
