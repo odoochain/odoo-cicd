@@ -1,4 +1,5 @@
 from .. import db
+import socket
 from io import BytesIO ## for Python 3
 import docker as Docker
 import base64
@@ -75,26 +76,38 @@ def _validate_input(data, int_fields=[]):
         data['_id'] = ObjectId(data['_id'])
     return data
 
-def _odoo_framework(site_name, command, start_rolling_new=False):
+def write_rolling_log(file, line, prefix=''):
+    with open(str(file), 'a') as fh:
+        fh.write(f"{prefix}_____{arrow.get()}_____{line}\n")
+        fh.flush()
+
+def _odoo_framework(site_name, command, start_rolling_new=False, rolling_file_name=None, instance_folder=None):
     logger.info(f"Executing command: {site_name} {command}")
     if isinstance(site_name, dict):
         site_name = site_name['name']
     if isinstance(command, str):
         command = [command]
 
-    file = rolling_log_dir / site_name
+    file = rolling_log_dir / (rolling_file_name or site_name)
     if start_rolling_new:
         file.write_text("")
 
+    if instance_folder:
+        if not instance_folder.exists():
+            raise Exception(f"Instance folder does not exist: {instance_folder}")
+        if instance_folder.parent != Path('/cicd_workspace'):
+            raise Exception(f"Parent of Instance folder must be /cicd_workspace")
+        instance_folder = Path(os.environ['CICD_WORKSPACE']) / instance_folder.name
+    else:
+        instance_folder = f"{os.environ['CICD_WORKSPACE']}/{site_name}"
+
     def on_input(prefix, line):
         if line:
-            with open(str(file), 'a') as fh:
-                fh.write(f"{prefix}_____{arrow.get()}_____{line}\n")
-                fh.flush()
+            write_rolling_log(file, line, prefix=prefix)
 
     res, stdout, stderr = _execute_shell(
         ["/opt/odoo/odoo", "-f", "--project-name", site_name] + command,
-        cwd=f"{os.environ['CICD_WORKSPACE']}/{site_name}",
+        cwd=instance_folder, 
         env={
             'NO_PROXY': "*",
             'DOCKER_CLIENT_TIMEOUT': "600",
@@ -106,6 +119,7 @@ def _odoo_framework(site_name, command, start_rolling_new=False):
     output = stdout + '\n' + stderr
     if res == 'error':
         store_output(site_name, 'last_error', output)
+        write_rolling_log(file, stderr)
         raise OdooFrameworkException(output)
 
     store_output(site_name, 'last_error', '')
@@ -153,7 +167,7 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
         try:
             result = shell.run(
                 command,
-                cwd=cwd,
+                cwd=str(cwd) if cwd else cwd,
                 update_env=env,
                 stdout=stdout,
                 stderr=stderr,
@@ -165,7 +179,7 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
             return 'error', stdout.getall(), stderr.getall()
 
     if callback:
-        callback('stdout', f"Successfully terminated.")
+        callback('stdout', f"Successfully Finished.")
     return result, stdout.getall(), stderr.getall()
 
     
@@ -357,25 +371,25 @@ def _get_main_repo():
         repo = clone_repo(URL, path)
     return repo
 
-def update_instance_folder(branch, rolling_file):
+def update_instance_folder(branch, rolling_file, instance_folder=None):
     from . import GIT_LOCK
     from . import URL
     from . import WORKSPACE
-    instance_folder = WORKSPACE / branch
+    instance_folder = Path(instance_folder or WORKSPACE / branch)
     tries = 0
     with GIT_LOCK:
         while tries < 3:
             try:
                 tries += 1
-                rolling_file.write_text(f"Updating instance folder {branch}")
+                write_rolling_log(rolling_file, f"Updating instance folder {branch}")
                 _store(branch, {'is_building': True})
-                rolling_file.write_text(f"Cloning {branch} {URL}")
+                write_rolling_log(rolling_file, f"Cloning {branch} {URL} to {instance_folder}")
                 repo = clone_repo(URL, instance_folder)
-                rolling_file.write_text(f"Checking out {branch}")
+                write_rolling_log(rolling_file, f"Checking out {branch}")
                 repo.git.checkout(branch, force=True)
-                rolling_file.write_text(f"Pulling {branch}")
+                write_rolling_log(rolling_file, f"Pulling {branch}")
                 repo.git.pull()
-                rolling_file.write_text(f"Clean git")
+                write_rolling_log(rolling_file, f"Clean git")
                 run = subprocess.run(
                     ["git", "clean", "-xdff"],
                     capture_output=True,
@@ -391,10 +405,12 @@ def update_instance_folder(branch, rolling_file):
                     )
                 if run.returncode:
                     msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
-                    rolling_file.write_text(msg)
+                    write_rolling_log(rolling_file, msg)
                     raise Exception(msg)
                 commit = repo.refs[branch].commit
-                rolling_file.write_text(f"Copying source code to {instance_folder}")
+                user_id = get_sshuser_id()
+                write_rolling_log(rolling_file, f"Setting access rights in {instance_folder} to {user_id}")
+                subprocess.check_call(["/usr/bin/chown", f"{user_id}:{user_id}", "-R", str(instance_folder)])
                 return str(commit)
 
             except Exception as ex:
@@ -402,9 +418,16 @@ def update_instance_folder(branch, rolling_file):
                     rolling_file.write_text(str(ex))
                     logger.warn(ex)
                     rolling_file.write_text(f"Retrying update instance folder for {branch}")
-                    shutil.rmtree(instance_folder)
+                    if instance_folder.exists():
+                        shutil.rmtree(instance_folder)
                 else:
                     raise
+
+def get_sshuser_id():
+    user_name = os.environ['HOST_SSH_USER']
+    res, stdout, stderr = _execute_shell(["/usr/bin/id", '-u', user_name])
+    user_id = stdout.strip()
+    return user_id
 
 def _get_instance_config(sitename):
     settings = Path("/odoo_settings/run") / sitename / 'settings'
@@ -417,3 +440,13 @@ def _get_instance_config(sitename):
     return {
         "DBNAME": dbname
     }
+
+def _get_host_path(path):
+    """
+    For the given path inside container the host path is returned.
+    """
+    hostname = socket.gethostname()
+    container = [x for x in docker.containers.list(all=True) if x.id.startswith(hostname)][0]
+    inspect = json.loads(subprocess.check_output(['docker', 'inspect', container.id]))
+    source = [x for x in inspect[0]['Mounts'] if x['Destination'] == str(path)][0]['Source']
+    return Path(source)

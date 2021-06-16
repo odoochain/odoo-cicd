@@ -11,6 +11,10 @@ function appsettings(){
                 view: 'form',
                 complexData: true,
                 elements: [
+                    { cols: [
+                        { view: "label", label: "Dont update translations"}, 
+                        { view: "checkbox", name: 'no_i18n' },
+                    ]},
                     { view: "label", label: "Concurrent Builds"}, 
                     { view: 'text', name: 'concurrent_builds' },
                     { view: "label", label: "Odoo Settings"}, 

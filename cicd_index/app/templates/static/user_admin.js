@@ -1,9 +1,5 @@
 {% include "static/tools.js" %}
 
-function return_to_branches() {
-    location = '/index';
-}
-
 function delete_user() {
     var form = webix.ui({
         view: "window", 

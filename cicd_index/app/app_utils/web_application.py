@@ -1,10 +1,17 @@
 from .. import MAIN_FOLDER_NAME
+import time
+import traceback
+import subprocess
+from functools import partial
+import threading
+import tempfile
 import humanize
 from flask import Flask, request, send_from_directory
 import os
 import base64
 import arrow
-from .tools import _delete_sourcecode, get_output
+from .tools import _get_host_path
+from .tools import _delete_sourcecode, get_output, write_rolling_log
 from .tools import _get_db_conn
 from pathlib import Path
 from flask import redirect
@@ -28,8 +35,10 @@ import logging
 from datetime import datetime
 import docker as Docker
 from .tools import get_output
+from .tools import update_instance_folder
 from .. import rolling_log_dir
 import flask_login
+import shutil
 logger = logging.getLogger(__name__)
 
 docker = Docker.from_env()
@@ -43,21 +52,106 @@ def index_func():
         DATE_FORMAT=os.environ['DATE_FORMAT'].replace("_", "%"),
     )
 
-@app.route("/possible_dumps")
-def possible_dumps():
-    path = Path(os.environ['DUMPS_PATH_MAPPED'])
-    dump_names = sorted([x.name for x in path.glob("*")])
+def _get_dump_files_of_dir(path, relative_to):
+    dump_names = sorted([x for x in path.glob("*")])
 
     def _get_value(filename):
         date = arrow.get((path / filename).stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
         size = "?"
-        if path.exists():
-            size = path.stat().st_size
+        if filename.exists():
+            size = filename.stat().st_size
             size = humanize.naturalsize(size)
-        return f"{filename} [{date}] {size}"
+        return f"{filename.relative_to(relative_to)} [{date}] {size}"
 
-    dump_names = [{'id': x, 'value': _get_value(x)} for x in dump_names]
+    def _get_name(filepath):
+        if not relative_to:
+            return filepath
+        res = Path(filepath).relative_to(relative_to)
+        return res
+
+    dump_names = [{'id': str(_get_name(x)), 'value': _get_value(x)} for x in dump_names]
+    return dump_names
+
+@app.route("/possible_dumps")
+def possible_dumps():
+    path = Path(os.environ['DUMPS_PATH_MAPPED'])
+    dump_names = _get_dump_files_of_dir(path, path)
     return jsonify(dump_names)
+
+@app.route("/possible_input_dumps")
+def possible_input_dumps():
+    path = Path(os.environ['INPUT_DUMPS_PATH_MAPPED'])
+    dump_names = []
+    for subdir in path.glob("*"):
+        if subdir.is_dir():
+            dump_names += _get_dump_files_of_dir(subdir, relative_to=path)
+    return jsonify(dump_names)
+
+@app.route("/transform_input_dump")
+def transform_input_dump():
+    dump = Path(request.args['dump'])
+    erase = request.args['erase'] == '1'
+    anonymize = request.args['anonymize'] == '1'
+    site = 'master'
+    rolling_file = rolling_log_dir / f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
+
+    def do():
+        instance_folder = Path("/cicd_workspace") / f"prepare_dump_{Path(tempfile.mktemp()).name}"
+        try:
+            # reverse lookup the path
+            real_path = _get_host_path(Path("/input_dumps") / dump.parent) / dump.name
+
+            def of(*args):
+                _odoo_framework(instance_folder.name, list(args), rolling_file_name=rolling_file, instance_folder=instance_folder)
+
+            write_rolling_log(rolling_file, f"Preparing Input Dump: {dump.name}")
+            write_rolling_log(rolling_file, "Preparing instance folder")
+            source = str(Path("/cicd_workspace") / "master") + "/"
+            dest = str(instance_folder) + "/"
+            write_rolling_log(rolling_file, f"rsync from {source} to {dest}")
+            subprocess.check_call([
+                "rsync", source, dest,
+                "-ar",
+                "--exclude=.odoo"
+            ])
+            # #update_instance_folder(site, rolling_file, instance_folder=instance_folder)
+            custom_settings = """
+RUN_POSTGRES=1
+DB_PORT=5432
+DB_HOST=postgres
+DB_USER=odoo
+DB_PWD=odoo
+            """
+            of("reload", '--additional_config', base64.encodestring(custom_settings.encode('utf-8')).strip().decode('utf-8'))
+            of("down", "-v")
+
+            # to avoid orphan messages, that return error codes although warning
+            write_rolling_log(rolling_file, f"Starting local postgres")
+            of("up", "-d", 'postgres')
+
+            of("restore", "odoo-db", str(real_path))
+            suffix =''
+            if erase:
+                of("cleardb")
+                suffix += '.cleared'
+            if anonymize:
+                of("anonymize")
+                suffix += '.anonym'
+            of("backup", "odoo-db", dump.name + suffix + '.cicd_ready')
+            of("down", "-v")
+        except Exception as ex:
+            msg = traceback.format_exc()
+            write_rolling_log(rolling_file, msg)
+        finally:
+            if instance_folder.exists(): 
+                shutil.rmtree(instance_folder)
+
+    t = threading.Thread(target=do)
+    t.start()
+
+    return jsonify({
+        'live_url': "/cicd/live_log?name=" + rolling_file.name
+    })
 
 @app.route("/turn_into_dev")
 def _turn_into_dev():
@@ -121,7 +215,7 @@ def data_variants():
     sites = _format_dates_in_records(sites)
     sites = sorted(sites, key=lambda x: x.get('name'))
     if not request.args.get('name'):
-        if request.args.get('archived') == '1':
+        if request.args.get('archive') == '1':
             sites = [x for x in sites if x.get('archive')]
         else:
             sites = [x for x in sites if not x.get('archive')]
@@ -263,7 +357,7 @@ def cleanup():
 
         dbnames = _get_all_databases(cr)
 
-        sites = set([x['name'] for x in db.sites.find({}) if not x.get('archived')])
+        sites = set([x['name'] for x in db.sites.find({}) if not x.get('archive')])
         for dbname in dbnames:
             if dbname.startswith('template') or dbname == 'postgres':
                 continue

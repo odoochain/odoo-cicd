@@ -148,7 +148,10 @@ def make_instance(site, use_dump):
     dump_date, dump_name = None, None
     if use_dump:
         logger.info(f"BUILD CONTROL: Restoring DB for {site['name']} from {use_dump}")
-        _odoo_framework(site, ["restore", "odoo-db", use_dump])
+        flags = []
+        if site.get('restore_no_dev_scripts'):
+            flags += ['--no-dev-scripts']
+        _odoo_framework(site, ["restore", "odoo-db", use_dump] + flags)
         logger.info(f"Restoring dump {site['name']} finished")
         _odoo_framework(site, ["remove-web-assets"])
         dump_file = Path("/opt/dumps") / use_dump
@@ -172,6 +175,7 @@ def make_instance(site, use_dump):
     _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
 
     _odoo_framework(site, ["set-ribbon", site['name']])
+    _odoo_framework(site, ["remove-settings", '--settings', 'web.base.url.freeze,web.base.url'])
     _odoo_framework(site, ["prolong"])
 
 
@@ -180,6 +184,38 @@ def fix_ownership():
     pass
     # _execute_shell
     # os.system(f"chown {user}:{user} /odoo_settings -R")
+
+def run_robot_tests(site, files):
+    output, success, failed = [], [], []
+    for file in files:
+        try:
+            output.append(_odoo_framework(
+                site,
+                ["robot", str(file)],
+            ))
+            success.append(file)
+        except Exception as ex:
+            failed.append(file)
+
+    msg = []
+    for failed in failed:
+        msg.append(f"Failed: {failed}")
+    for success in success:
+        msg.append(f"OK: {success}")
+
+    msg = '\n'.join(msg)
+    output.append(msg)
+    db.sites.update_one({
+        'name': site['name'],
+    }, {
+        '$set': {
+            'robot_result': msg
+        }
+    }, upsert=True
+    )
+
+
+    return '\n'.join(output)
 
 
 def build_instance(site):
@@ -193,6 +229,8 @@ def build_instance(site):
             })
         try:
             dump_name = site.get('dump') or os.getenv("DUMP_NAME")
+
+            noi18n = _get_config('no_i18n', False)
 
             if site.get("build_mode") == 'reload_restart':
                 _make_instance_docker_configs(site)
@@ -224,7 +262,7 @@ def build_instance(site):
                 _odoo_framework(site, ["remove-web-assets"])
                 output = _odoo_framework(
                     site,
-                    ["update", "--no-dangling-check", "--i18n"]
+                    ["update", "--no-dangling-check"] + ([] if noi18n else ["--i18n"])
                 )
                 store_output(site['name'], 'update', output)
                 _odoo_framework(site, ["up", "-d"])
@@ -236,12 +274,25 @@ def build_instance(site):
                         ["update", "--no-dangling-check", site['odoo_settings_update_modules_before']]
                     )
                 last_sha = _last_success_full_sha(site)
-                output = _odoo_framework(
+
+                files = [Path(x) for x in _odoo_framework(
                     site,
-                    ["update", "--no-dangling-check", "--since-git-sha", last_sha, "--i18n"]
-                )
-                store_output(site['name'], 'update', output)
-                _odoo_framework(site, ["up", "-d"])
+                    ["list-changed-files", "-s", last_sha]
+                ).split("---")[1].split("\n") if x]
+
+                suffixes = set(x.suffix for x in files if x)
+                output = run_robot_tests(site, [x for x in files if x.suffix == '.robot'])
+
+                if len(suffixes) == 1 and list(suffixes)[0] == '.robot':
+                    pass
+                else:
+
+                    output += _odoo_framework(
+                        site,
+                        ["update", "--no-dangling-check", "--since-git-sha", last_sha] + ([] if noi18n else ["--i18n"])
+                    )
+                    store_output(site['name'], 'update', output)
+                    _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'reset':
                 if settings['DBNAME']:

@@ -100,8 +100,8 @@ function _build_again(do_all) {
 }
 
 function update_sites() {
-    var archived = $$('show_archived').getValue();
-    var url = "archived=" + archived;
+    var archive = $$('show_archive').getValue();
+    var url = "archive=" + archive;
     reload_table($$('table-sites'), url);
 }
 
@@ -113,6 +113,10 @@ function restart_delegator() {
     }).fail(function(response) {
         webix.message("Error: " + response.statusText, "error");
     });
+}
+
+function show_logs() {
+    window.location = '/cicd/logs';
 }
 
 function start_all() {
@@ -175,4 +179,8 @@ update_resources = function() {
         setTimeout(update_resources, 30000);
     });
 
+}
+
+function show_robot_results() {
+    window.open("/cicd/start?initial_path=/robot-output&name=" + current_details);
 }

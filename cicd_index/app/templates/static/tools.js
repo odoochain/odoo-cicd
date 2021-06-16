@@ -1,3 +1,4 @@
+var DATE_FORMAT = "%Y-%m-%d %H:%M:%S";
 function clicked_menu(id) {
     if (!id) {
         return;
@@ -38,4 +39,8 @@ function users_admin() {
 
 function copyTextToClipboard(text) {
     window.prompt("Copy to clipboard: Ctrl+C, Enter", text);
-  }
+}
+
+function return_to_branches() {
+    location = '/index';
+}

@@ -14,6 +14,7 @@ from .tools import _get_config, _set_config
 def app_settings_get():
     result = {
         'concurrent_builds': _get_config('concurrent_builds', 5),
+        'no_i18n': _get_config('no_i18n', True),
         'odoo_settings': _get_config('odoo_settings', ""),
     }
     return jsonify(result)
@@ -24,5 +25,7 @@ def app_settings_post():
 
         if k in ['concurrent_builds']:
             v = int(v)
+        if k in ['no_i18n']:
+            v = v in ["1", "on", "True", True, 1]
         _set_config(k, v)
     return jsonify({'result': 'ok'})
