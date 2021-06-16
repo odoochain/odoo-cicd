@@ -167,7 +167,7 @@ def make_instance(site, use_dump):
     else:
         logger.info(f"BUILD CONTROL: Resetting DB for {site['name']}")
         if settings['DBNAME']:
-            _odoo_framework(site, ["db", "reset", dbname])
+            _odoo_framework(site, ["db", "reset", settings['DBNAME']])
 
     if not site.get('no_module_update'):
         output = _odoo_framework(site, ["update"])
