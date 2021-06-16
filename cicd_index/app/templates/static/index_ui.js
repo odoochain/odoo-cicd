@@ -141,20 +141,6 @@ webix.ready(function() {
                                 }
                                 }
                             },
-                            onKeyPress: function(code, e) {
-                                var name = this.getSelectedItem() && this.getSelectedItem().name;
-                                console.log(e.shiftKey);
-                                if (code == 68) {  // d
-                                    if (!e.shiftKey) {
-                                        if (!confirm("Delete " + name)) {
-                                            return;
-                                        }
-                                    }
-                                    delete_instance(name);
-                                    var table = $$('table-sites');
-                                    var id = table.getSelectedId();
-                                    if (id) {
-                                        table.remove(id);
                             on: {
                                 onSelectChange:function(){
                                     if (!this.getSelectedItem()) {
@@ -173,21 +159,30 @@ webix.ready(function() {
                                         window.open("/cicd/live_log?name=" + name);
                                     }
                                 },
-                                onKeyPress: function(code, e) {
-                                    var name = this.getSelectedItem() && this.getSelectedItem().name;
-                                    if (code == 68) {  // d
-                                        if (confirm("Delete " + name)) {
-                                            delete_instance(name);
-                                        }
-                                    }
-                                    if (code == 82) { // r
-                                        reload_restart(name);
-                                    }
-                                },
                                 onBeforeEditStart:function(id){
                                     var item = this.getItem(id.row);
                                     return false;
-                                }
+                                },
+                                onKeyPress: function(code, e) {
+                                    var name = this.getSelectedItem() && this.getSelectedItem().name;
+                                    console.log(e.shiftKey);
+                                    if (code == 82) { // r
+                                        reload_restart(name);
+                                    }
+                                    if (code == 68) {  // d
+                                        if (!e.shiftKey) {
+                                            if (!confirm("Delete " + name)) {
+                                                return;
+                                            }
+                                        }
+                                        delete_instance(name);
+                                        var table = $$('table-sites');
+                                        var id = table.getSelectedId();
+                                        if (id) {
+                                            table.remove(id);
+                                        }
+                                    }
+                                },
                             },
                             columns:[
                                 { id: 'copy_to_clipboard', header: '',  template: "html->clipboard-icon" }, 
