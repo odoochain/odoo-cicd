@@ -36,6 +36,7 @@ from datetime import datetime
 import docker as Docker
 from .tools import get_output
 from .tools import update_instance_folder
+from .tools import _get_repo
 from .. import rolling_log_dir
 import flask_login
 import shutil
@@ -53,7 +54,7 @@ def index_func():
     )
 
 def _get_dump_files_of_dir(path, relative_to):
-    dump_names = sorted([x for x in path.glob("*")], key=x.stat().st_mtime, reverse=True)
+    dump_names = sorted([x for x in path.glob("*")], key=lambda x: x.stat().st_mtime, reverse=True)
 
     def _get_value(filename):
         date = arrow.get((path / filename).stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
@@ -71,6 +72,13 @@ def _get_dump_files_of_dir(path, relative_to):
 
     dump_names = [{'id': str(_get_name(x)), 'value': _get_value(x)} for x in dump_names]
     return dump_names
+
+@app.route("/branches")
+def get_branches():
+    repo = _get_repo('master')
+    branches = list(map(str, [x.name.split("/")[-1] for x in repo.remote().refs]))
+    branches = list(filter(lambda x: x != 'HEAD', branches))
+    return jsonify(branches)
 
 @app.route("/possible_dumps")
 def possible_dumps():
@@ -622,11 +630,19 @@ def make_custom_instance():
     site = db.sites.find_one({'name': name})
     if site:
         raise Exception("site already exists")
+    repo = _get_repo('master')
+    current = repo.create_head(name)
+    current.checkout()
+    repo.git.push('origin', name)
+    repo.heads.master.checkout()
     data = {
         'name': name,
         'needs_build': True,
         'force_rebuild': True,
     }
+
+    # 
+
     db.sites.update_one({'name': name}, {"$set": data}, upsert=True)
 
     return jsonify({
