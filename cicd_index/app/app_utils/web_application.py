@@ -11,6 +11,7 @@ import os
 import base64
 import arrow
 from .tools import _get_host_path
+from .tools import PREFIX_PREPARE_DUMP
 from .tools import _delete_sourcecode, get_output, write_rolling_log
 from .tools import _get_db_conn
 from pathlib import Path
@@ -104,7 +105,7 @@ def transform_input_dump():
     rolling_file = rolling_log_dir / f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
 
     def do():
-        instance_folder = Path("/cicd_workspace") / f"prepare_dump_{Path(tempfile.mktemp()).name}"
+        instance_folder = Path("/cicd_workspace") / f"{PREFIX_PREPARE_DUMP}{Path(tempfile.mktemp()).name}"
         try:
             # reverse lookup the path
             real_path = _get_host_path(Path("/input_dumps") / dump.parent) / dump.name
@@ -363,6 +364,7 @@ def cleanup():
     conn = _get_db_conn()
     try:
         cr = conn.cursor()
+        import pudb;pudb.set_trace()
 
         dbnames = _get_all_databases(cr)
 
@@ -406,6 +408,11 @@ def cleanup():
                 if container.status == 'running':
                     container.kill()
                 container.remove(force=True)
+
+        # drop transfer rests:
+        for folder in Path("/cicd_workspace").glob("*"):
+            if folder.startswith(PREFIX_PREPARE_DUMP):
+                shutil.rmtree(folder)
 
     finally:
         cr.close()

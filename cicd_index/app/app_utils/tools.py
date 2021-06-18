@@ -21,6 +21,8 @@ from git import Repo
 from .. import rolling_log_dir
 from .. import MAIN_FOLDER_NAME
 
+PREFIX_PREPARE_DUMP = "prepare_dump_"
+
 
 logger = logging.getLogger(__name__)
 
