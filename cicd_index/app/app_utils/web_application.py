@@ -53,7 +53,7 @@ def index_func():
     )
 
 def _get_dump_files_of_dir(path, relative_to):
-    dump_names = sorted([x for x in path.glob("*")])
+    dump_names = sorted([x for x in path.glob("*")], key=x.stat().st_mtime, reverse=True)
 
     def _get_value(filename):
         date = arrow.get((path / filename).stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
