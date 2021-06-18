@@ -86,7 +86,7 @@ def _make_new_instances():
                         'build_mode': 'update-recent',
                     }
                     if not existing_site:
-                        data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                        data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
                         data['build_mode'] = 'reset'
 
                     if existing_site and existing_site.get('is_building'):

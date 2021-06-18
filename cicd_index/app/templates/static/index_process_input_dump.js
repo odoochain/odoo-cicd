@@ -7,7 +7,7 @@ function fetch_dump() {
             view: "window", 
             position: 'center',
             modal: true,
-            head: "Reset Instance",
+            head: "Transform Dump",
             width: 550,
             body: {
                 view: 'form',

@@ -52,7 +52,7 @@ webix.ready(function() {
                             { view:"button", id:"delete_unused", icon: 'eraser', value:"Spring Clean", batch: 'admin'},
                             { view:"button", id:"make_new_instance", icon: 'file', value:"New Instance", batch: 'admin'},
                             { view:"button", id:"fetch_dump", icon: 'file', value:"Fetch Dump", batch: 'admin'},
-                            { view:"button", id:"show_logs", icon: 'file', value:"Show Logs", batch: 'admin'},
+                            { view:"button", id:"show_cicd_app_logs", icon: 'file', value:"Show Logs", batch: 'admin'},
                             { view:"button", id:"users_admin", value:"Users", icon: "users", batch: 'admin' },
                             { view:"button", id:"appsettings", value:"App Settings", icon: "cog", batch: 'admin' },
                             { view:"button", id:"logout", value:"Logout", icon: "sign-out-alt", batch: 'user'},
@@ -159,21 +159,30 @@ webix.ready(function() {
                                         window.open("/cicd/live_log?name=" + name);
                                     }
                                 },
-                                onKeyPress: function(code, e) {
-                                    var name = this.getSelectedItem() && this.getSelectedItem().name;
-                                    if (code == 68) {  // d
-                                        if (confirm("Delete " + name)) {
-                                            delete_instance(name);
-                                        }
-                                    }
-                                    if (code == 82) { // r
-                                        reload_restart(name);
-                                    }
-                                },
                                 onBeforeEditStart:function(id){
                                     var item = this.getItem(id.row);
                                     return false;
-                                }
+                                },
+                                onKeyPress: function(code, e) {
+                                    var name = this.getSelectedItem() && this.getSelectedItem().name;
+                                    console.log(e.shiftKey);
+                                    if (code == 82) { // r
+                                        reload_restart(name);
+                                    }
+                                    if (code == 68) {  // d
+                                        if (!e.shiftKey) {
+                                            if (!confirm("Delete " + name)) {
+                                                return;
+                                            }
+                                        }
+                                        delete_instance(name);
+                                        var table = $$('table-sites');
+                                        var id = table.getSelectedId();
+                                        if (id) {
+                                            table.remove(id);
+                                        }
+                                    }
+                                },
                             },
                             columns:[
                                 { id: 'copy_to_clipboard', header: '',  template: "html->clipboard-icon" }, 
