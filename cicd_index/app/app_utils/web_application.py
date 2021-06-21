@@ -146,7 +146,7 @@ DB_PWD=odoo
             if anonymize:
                 of("anonymize")
                 suffix += '.anonym'
-            of("backup", "odoo-db", dump.name + suffix + '.cicd_ready')
+            of("backup", "odoo-db", str(Path(os.environ['DUMPS_PATH']) / (dump.name + suffix + '.cicd_ready')))
             of("down", "-v")
         except Exception as ex:
             msg = traceback.format_exc()
