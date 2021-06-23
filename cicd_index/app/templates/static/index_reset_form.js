@@ -17,7 +17,7 @@ function show_reset_form(name) {
                     { view: "combo", name: 'dump', options: dumps, id: 'form_reset.dump' },
                     {
                         'cols': [
-                            { view: "label", label: "Make Instance from scratch" },
+                            { view: "label", label: "Make Empty New Instance" },
                             { view: "checkbox", name: 'no_module_update', on: {
                                 onChange: function(newValue, oldValue, config) {
                                     if (newValue == 1) {
