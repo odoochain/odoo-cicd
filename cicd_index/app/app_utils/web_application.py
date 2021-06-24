@@ -364,7 +364,6 @@ def cleanup():
     conn = _get_db_conn()
     try:
         cr = conn.cursor()
-        import pudb;pudb.set_trace()
 
         dbnames = _get_all_databases(cr)
 
