@@ -617,6 +617,15 @@ def start_info():
         'is_admin': u.is_authenticated and u.is_admin
     })
 
+@app.route("/clear_webassets")
+def clear_webassets():
+    site = db.sites.find_one({'name': request.args['name']})
+    _odoo_framework(site, ['remove-web-assets'])
+
+    return jsonify({
+        'result': 'ok',
+    })
+
 @app.route("/reload_restart")
 def reload_restart():
     site = db.sites.find_one({'name': request.args['name']})
