@@ -84,9 +84,9 @@ def notify_instance_updated(site):
     info = {
         'name': site['name'],
         'sha': sha,
-        'git_author': repo.active_branch.commit.author.name,
-        'git_desc': repo.active_branch.commit.summary,
-        'git_authored_date': arrow.get(repo.active_branch.commit.authored_date).strftime("%Y-%m-%d %H:%M:%S"),
+        'git_author': repo.head.commit.author.name,
+        'git_desc': repo.head.commit.summary,
+        'git_authored_date': arrow.get(repo.head.commit.authored_date).strftime("%Y-%m-%d %H:%M:%S"),
     }
     info['date'] = arrow.get().to('utc').strftime("%Y-%m-%d %H:%M:%S")
     db.updates.insert_one(info)
@@ -176,7 +176,7 @@ def make_instance(site, use_dump):
     _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
 
     _odoo_framework(site, ["set-ribbon", site['name']])
-    _odoo_framework(site, ["remove-settings", '--settings', 'web.base.url.freeze'])
+    #_odoo_framework(site, ["remove-settings", '--settings', 'web.base.url.freeze'])
     _odoo_framework(site, ["update-setting", 'web.base.url', os.environ['CICD_URL']])
     _odoo_framework(site, ["prolong"])
 
