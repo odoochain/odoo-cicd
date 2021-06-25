@@ -287,7 +287,7 @@ def build_instance(site):
                 ).split("---")[1].split("\n") if x]
 
                 suffixes = set(x.suffix for x in files if x)
-                output = run_robot_tests(site, [x for x in files if x.suffix == '.robot'])
+                output = ""
 
                 if len(suffixes) == 1 and list(suffixes)[0] == '.robot':
                     pass
@@ -300,6 +300,9 @@ def build_instance(site):
                         )
                         store_output(site['name'], 'update', output)
                         _odoo_framework(site, ["up", "-d"])
+                output = run_robot_tests(site, [x for x in files if x.suffix == '.robot'])
+                if output:
+                    store_output(site['name'], 'robot-tests', output)
 
             elif site.get("build_mode") == 'reset':
                 if settings['DBNAME']:
