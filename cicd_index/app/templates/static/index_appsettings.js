@@ -15,8 +15,13 @@ function appsettings(){
                         { view: "label", label: "Dont update translations"}, 
                         { view: "checkbox", name: 'no_i18n' },
                     ]},
+
                     { view: "label", label: "Concurrent Builds"}, 
                     { view: 'text', name: 'concurrent_builds' },
+
+                    { view: "label", label: "Default Merge Destination"}, 
+                    { view: 'text', name: 'default_merge_target' },
+
                     { view: "label", label: "Odoo Settings"}, 
                     { view: 'textarea', height: 150, name: 'odoo_settings', },
                     {
