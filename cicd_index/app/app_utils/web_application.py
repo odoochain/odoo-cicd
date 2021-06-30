@@ -11,6 +11,7 @@ import os
 import base64
 import arrow
 from .tools import _get_host_path
+from .tools import PREFIX_PREPARE_DUMP
 from .tools import _delete_sourcecode, get_output, write_rolling_log
 from .tools import _get_db_conn
 from pathlib import Path
@@ -36,6 +37,7 @@ from datetime import datetime
 import docker as Docker
 from .tools import get_output
 from .tools import update_instance_folder
+from .tools import _get_repo
 from .. import rolling_log_dir
 import flask_login
 import shutil
@@ -53,7 +55,7 @@ def index_func():
     )
 
 def _get_dump_files_of_dir(path, relative_to):
-    dump_names = sorted([x for x in path.glob("*")])
+    dump_names = sorted([x for x in path.glob("*")], key=lambda x: x.stat().st_mtime, reverse=True)
 
     def _get_value(filename):
         date = arrow.get((path / filename).stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
@@ -71,6 +73,13 @@ def _get_dump_files_of_dir(path, relative_to):
 
     dump_names = [{'id': str(_get_name(x)), 'value': _get_value(x)} for x in dump_names]
     return dump_names
+
+@app.route("/branches")
+def get_branches():
+    repo = _get_repo('master')
+    branches = list(map(str, [x.name.split("/")[-1] for x in repo.remote().refs]))
+    branches = list(filter(lambda x: x != 'HEAD', branches))
+    return jsonify(branches)
 
 @app.route("/possible_dumps")
 def possible_dumps():
@@ -96,7 +105,7 @@ def transform_input_dump():
     rolling_file = rolling_log_dir / f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
 
     def do():
-        instance_folder = Path("/cicd_workspace") / f"prepare_dump_{Path(tempfile.mktemp()).name}"
+        instance_folder = Path("/cicd_workspace") / f"{PREFIX_PREPARE_DUMP}{Path(tempfile.mktemp()).name}"
         try:
             # reverse lookup the path
             real_path = _get_host_path(Path("/input_dumps") / dump.parent) / dump.name
@@ -137,7 +146,7 @@ DB_PWD=odoo
             if anonymize:
                 of("anonymize")
                 suffix += '.anonym'
-            of("backup", "odoo-db", dump.name + suffix + '.cicd_ready')
+            of("backup", "odoo-db", str(Path(os.environ['DUMPS_PATH']) / (dump.name + suffix + '.cicd_ready')))
             of("down", "-v")
         except Exception as ex:
             msg = traceback.format_exc()
@@ -399,6 +408,11 @@ def cleanup():
                     container.kill()
                 container.remove(force=True)
 
+        # drop transfer rests:
+        for folder in Path("/cicd_workspace").glob("*"):
+            if folder.startswith(PREFIX_PREPARE_DUMP):
+                shutil.rmtree(folder)
+
     finally:
         cr.close()
         conn.close()
@@ -602,6 +616,15 @@ def start_info():
         'is_admin': u.is_authenticated and u.is_admin
     })
 
+@app.route("/clear_webassets")
+def clear_webassets():
+    site = db.sites.find_one({'name': request.args['name']})
+    _odoo_framework(site, ['remove-web-assets'])
+
+    return jsonify({
+        'result': 'ok',
+    })
+
 @app.route("/reload_restart")
 def reload_restart():
     site = db.sites.find_one({'name': request.args['name']})
@@ -622,11 +645,19 @@ def make_custom_instance():
     site = db.sites.find_one({'name': name})
     if site:
         raise Exception("site already exists")
+    repo = _get_repo('master')
+    current = repo.create_head(name)
+    current.checkout()
+    repo.git.push('origin', name)
+    repo.heads.master.checkout()
     data = {
         'name': name,
         'needs_build': True,
         'force_rebuild': True,
     }
+
+    # 
+
     db.sites.update_one({'name': name}, {"$set": data}, upsert=True)
 
     return jsonify({

@@ -21,6 +21,8 @@ from git import Repo
 from .. import rolling_log_dir
 from .. import MAIN_FOLDER_NAME
 
+PREFIX_PREPARE_DUMP = "prepare_dump_"
+
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +96,7 @@ def _odoo_framework(site_name, command, start_rolling_new=False, rolling_file_na
     file = rolling_log_dir / (rolling_file_name or site_name)
     if start_rolling_new:
         file.write_text("")
+    write_rolling_log(file, ((" ".join(map(str, command))) + "\n"))
 
     if instance_folder:
         if not instance_folder.exists():

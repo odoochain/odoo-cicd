@@ -84,9 +84,9 @@ def notify_instance_updated(site):
     info = {
         'name': site['name'],
         'sha': sha,
-        'git_author': repo.active_branch.commit.author.name,
-        'git_desc': repo.active_branch.commit.summary,
-        'git_authored_date': arrow.get(repo.active_branch.commit.authored_date).strftime("%Y-%m-%d %H:%M:%S"),
+        'git_author': repo.head.commit.author.name,
+        'git_desc': repo.head.commit.summary,
+        'git_authored_date': arrow.get(repo.head.commit.authored_date).strftime("%Y-%m-%d %H:%M:%S"),
     }
     info['date'] = arrow.get().to('utc').strftime("%Y-%m-%d %H:%M:%S")
     db.updates.insert_one(info)
@@ -176,7 +176,8 @@ def make_instance(site, use_dump):
     _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
 
     _odoo_framework(site, ["set-ribbon", site['name']])
-    _odoo_framework(site, ["remove-settings", '--settings', 'web.base.url.freeze,web.base.url'])
+    _odoo_framework(site, ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
+    _odoo_framework(site, ["update-setting", 'web.base.url', os.environ['CICD_URL']])
     _odoo_framework(site, ["prolong"])
 
 
@@ -267,7 +268,8 @@ def build_instance(site):
                         site,
                         ["update", "--no-dangling-check"] + ([] if noi18n else ["--i18n"])
                     )
-                store_output(site['name'], 'update', output)
+                    store_output(site['name'], 'update', output)
+                _odoo_framework(site, ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
                 _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'update-recent':
@@ -285,7 +287,7 @@ def build_instance(site):
                 ).split("---")[1].split("\n") if x]
 
                 suffixes = set(x.suffix for x in files if x)
-                output = run_robot_tests(site, [x for x in files if x.suffix == '.robot'])
+                output = ""
 
                 if len(suffixes) == 1 and list(suffixes)[0] == '.robot':
                     pass
@@ -298,6 +300,9 @@ def build_instance(site):
                         )
                         store_output(site['name'], 'update', output)
                         _odoo_framework(site, ["up", "-d"])
+                output = run_robot_tests(site, [x for x in files if x.suffix == '.robot'])
+                if output:
+                    store_output(site['name'], 'robot-tests', output)
 
             elif site.get("build_mode") == 'reset':
                 if settings['DBNAME']:

@@ -9,6 +9,17 @@ function update_odoo_configuration(e) {
     debugger;
 }
 
+function clear_webassets(sitename) {
+    var sitename = sitename || current_details;
+    var url = "/cicd/clear_webassets?name=" + sitename;
+    webix.ajax().get(url).then(function(res) {
+        webix.message("Cleared Webassets " + sitename);
+    }).fail(function(response) {
+        webix.message("Error: " + response.statusText, "error");
+    });
+
+}
+
 function reload_restart(sitename) {
     var sitename = sitename || current_details;
     var url = "/cicd/reload_restart?name=" + sitename;
@@ -75,7 +86,10 @@ function build_log() {
 }
 
 function delete_unused() {
-    webix.message('Cleaning up intermediate docker images, unused networks/containers. Unused databases.');
+    if (!confirm("Continue? Unused databased will be cleared.")) {
+        return;
+    }
+    webix.message('Cleaning');
     webix.ajax().get("/cicd/cleanup").then(function(res) {
         webix.message("Cleanup done", "info");
     }).fail(function(response) {
