@@ -75,6 +75,7 @@ services:
     image: postgres:12
     restart: 'unless-stopped'
     command: postgres -c 'max_connections=1000'
+    shm_size: 1G
     environment:
         POSTGRES_PASSWORD: ${DB_PASSWORD}
         POSTGRES_USER: ${DB_USER}
