@@ -94,7 +94,7 @@ services:
     networks:
         - internal
     volumes:
-        - ../mongo_data:/data/db
+        - mongo_data:/data/db
     expose:
         - 27017
     environment:
@@ -138,6 +138,7 @@ volumes:
     rolling_log:
     uploaded_dumps:
     log_history:
+    mongo_data:
 networks:
     cicd_delegator:
         name: ${CICD_NETWORK_NAME}

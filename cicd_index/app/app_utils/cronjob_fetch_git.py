@@ -89,7 +89,7 @@ def _make_new_instances():
                     }
                     if not existing_site:
                         data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-                        if _get_config('auto_create_new_branches'):
+                        if _get_config('auto_create_new_branches', default=False):
                             data['build_mode'] = 'reset'
                         else:
                             # If switching auto create new branches prevent that 1000s branches are built
