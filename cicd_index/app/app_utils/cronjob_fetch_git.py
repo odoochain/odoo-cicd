@@ -1,4 +1,5 @@
 import logging
+import traceback
 import arrow
 from copy import deepcopy
 from datetime import datetime
@@ -16,6 +17,8 @@ import os
 import shutil
 from .tools import update_instance_folder
 from . import BUILDING_LOCK
+from .tools import _get_config
+
 logger = logging.getLogger(__name__)
 
 def del_index_lock():
@@ -63,7 +66,6 @@ def _get_git_state():
                         
 
         except Exception as ex:
-            import traceback
             msg = traceback.format_exc()
             logger.error(msg)
 
@@ -87,10 +89,14 @@ def _make_new_instances():
                     }
                     if not existing_site:
                         data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-                        data['build_mode'] = 'reset'
-
-                    if existing_site and existing_site.get('is_building'):
-                        continue
+                        if _get_config('auto_create_new_branches'):
+                            data['build_mode'] = 'reset'
+                        else:
+                            # If switching auto create new branches prevent that 1000s branches are built
+                            data['archive'] = True
+                    else:
+                        if existing_site.get('is_building') or existing_site.get('archive'):
+                            continue
 
                     db.sites.update_one({
                         'name': new_branch,
@@ -100,7 +106,6 @@ def _make_new_instances():
                         {'$set': {'triggered_update': True}})
 
         except Exception as ex:
-            import traceback
             msg = traceback.format_exc()
             logger.error(msg)
 

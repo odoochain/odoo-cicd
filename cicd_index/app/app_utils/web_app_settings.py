@@ -17,6 +17,7 @@ def app_settings_get():
         'no_i18n': _get_config('no_i18n', True),
         'odoo_settings': _get_config('odoo_settings', ""),
         'default_merge_target': _get_config('default_merge_target', ""),
+        'auto_create_new_branches': _get_config('auto_create_new_branches', False),
     }
     return jsonify(result)
 
@@ -26,7 +27,7 @@ def app_settings_post():
 
         if k in ['concurrent_builds']:
             v = int(v)
-        if k in ['no_i18n']:
+        if k in ['no_i18n', 'auto_create_new_branches']:
             v = v in ["1", "on", "True", True, 1]
         _set_config(k, v)
     return jsonify({'result': 'ok'})

@@ -22,6 +22,11 @@ function appsettings(){
                     { view: "label", label: "Default Merge Destination"}, 
                     { view: 'text', name: 'default_merge_target' },
 
+                    { cols: [
+                        { view: "label", label: "Auto Create New Branches"}, 
+                        { view: 'checkbox', name: 'auto_create_new_branches' },
+                    ]},
+
                     { view: "label", label: "Odoo Settings"}, 
                     { view: 'textarea', height: 150, name: 'odoo_settings', },
                     {
