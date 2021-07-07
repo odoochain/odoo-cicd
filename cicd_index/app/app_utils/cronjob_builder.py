@@ -172,13 +172,8 @@ def make_instance(site, use_dump):
     if not site.get('no_module_update'):
         output = _odoo_framework(site, ["update"])
     store_output(site['name'], 'update', output)
-
     _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
-
-    _odoo_framework(site, ["set-ribbon", site['name']])
-    _odoo_framework(site, ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
-    _odoo_framework(site, ["update-setting", 'web.base.url', os.environ['CICD_URL']])
-    _odoo_framework(site, ["prolong"])
+    set_config_parameters(site)
 
 
 def fix_ownership():
@@ -218,6 +213,12 @@ def run_robot_tests(site, files):
 
 
     return '\n'.join(output)
+
+def set_config_parameters(site):
+    _odoo_framework(site, ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
+    _odoo_framework(site, ["update-setting", 'web.base.url', os.environ['CICD_URL']])
+    _odoo_framework(site, ["set-ribbon", site['name']])
+    _odoo_framework(site, ["prolong"])
 
 
 def build_instance(site):
@@ -269,7 +270,7 @@ def build_instance(site):
                         ["update", "--no-dangling-check"] + ([] if noi18n else ["--i18n"])
                     )
                     store_output(site['name'], 'update', output)
-                _odoo_framework(site, ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
+                set_config_parameters(site)
                 _odoo_framework(site, ["up", "-d"])
 
             elif site.get("build_mode") == 'update-recent':
