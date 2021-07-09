@@ -618,8 +618,11 @@ def start_info():
 
 @app.route("/clear_webassets")
 def clear_webassets():
+    from .web_instance_control import _restart_docker
     site = db.sites.find_one({'name': request.args['name']})
     _odoo_framework(site, ['remove-web-assets'])
+    docker_state = _get_docker_state(site['name'])
+    _restart_docker(site['name'], kill_before=False)
 
     return jsonify({
         'result': 'ok',
