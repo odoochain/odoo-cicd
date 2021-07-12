@@ -170,7 +170,7 @@ def _turn_into_dev():
     if site:
         site = site['name']
         _reload_instance(site)
-        _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
+        _odoo_framework(site, ["turn-into-dev"])
     return jsonify({'result': 'ok'})
 
 def _reload_instance(site):

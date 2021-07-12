@@ -172,7 +172,7 @@ def make_instance(site, use_dump):
     if not site.get('no_module_update'):
         output = _odoo_framework(site, ["update"])
     store_output(site['name'], 'update', output)
-    _odoo_framework(site, ["turn-into-dev", "turn-into-dev"])
+    _odoo_framework(site, ["turn-into-dev"])
     set_config_parameters(site)
 
 
