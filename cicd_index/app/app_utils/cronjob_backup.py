@@ -8,7 +8,6 @@ import threading
 from . import WORKSPACE
 from . import URL
 from .. import db
-from .. import MAIN_FOLDER_NAME
 import subprocess
 from pathlib import Path
 from .tools import _get_main_repo

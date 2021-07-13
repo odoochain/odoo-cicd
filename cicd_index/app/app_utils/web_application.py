@@ -10,7 +10,7 @@ from flask import Flask, request, send_from_directory
 import os
 import base64
 import arrow
-from .tools import _get_host_path
+from .tools import _get_host_path, _get_main_repo
 from .tools import PREFIX_PREPARE_DUMP
 from .tools import _delete_sourcecode, get_output, write_rolling_log
 from .tools import _get_db_conn
@@ -76,7 +76,7 @@ def _get_dump_files_of_dir(path, relative_to):
 
 @app.route("/branches")
 def get_branches():
-    repo = _get_repo('master')
+    repo = _get_main_repo()
     branches = list(map(str, [x.name.split("/")[-1] for x in repo.remote().refs]))
     branches = list(filter(lambda x: x != 'HEAD', branches))
     return jsonify(branches)
@@ -648,18 +648,34 @@ def make_custom_instance():
     site = db.sites.find_one({'name': name})
     if site:
         raise Exception("site already exists")
-    repo = _get_repo('master')
-    current = repo.create_head(name)
-    current.checkout()
-    repo.git.push('origin', name)
-    repo.heads.master.checkout()
-    data = {
-        'name': name,
-        'needs_build': True,
-        'force_rebuild': True,
-    }
-
-    # 
+    repo = _get_main_repo(tempfolder=True)
+    try:
+        try:
+            was_head = repo.head.ref.name
+        except:
+            repo.git.checkout('master', '-f')
+            was_head = repo.head.ref.name
+        try:
+            try:
+                repo.heads[name]
+            except:
+                current = repo.create_head(name)
+                current.checkout()
+                origin = repo.remote(name='origin')
+                try:
+                    origin.pull()
+                except:
+                    pass
+                repo.git.push("--set-upstream", origin, repo.head.ref)
+            data = {
+                'name': name,
+                'needs_build': True,
+                'force_rebuild': True,
+            }
+        finally:
+            repo.heads[was_head].checkout()
+    finally:
+        shutil.rmtree(repo.working_dir)
 
     db.sites.update_one({'name': name}, {"$set": data}, upsert=True)
 

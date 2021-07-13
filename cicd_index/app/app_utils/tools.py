@@ -1,4 +1,5 @@
 from .. import db
+import tempfile
 import socket
 from io import BytesIO ## for Python 3
 import docker as Docker
@@ -367,7 +368,7 @@ def clone_repo(url, path):
         repo = Repo(path)
     return repo
 
-def _get_main_repo():
+def _get_main_repo(tempfolder=False):
     from . import GIT_LOCK
     with GIT_LOCK:
         from . import WORKSPACE
@@ -375,6 +376,12 @@ def _get_main_repo():
 
         path = WORKSPACE / MAIN_FOLDER_NAME
         repo = clone_repo(URL, path)
+
+        if tempfolder:
+            temppath = tempfile.mktemp()
+            subprocess.check_call(['rsync', f"{path}/", f"{temppath}/", "-ar"])
+            repo = Repo(temppath)
+            
     return repo
 
 def update_instance_folder(branch, rolling_file, instance_folder=None):
