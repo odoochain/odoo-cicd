@@ -207,8 +207,12 @@ webix.ui({
                 css: "webix_dark",
                 id: 'site-toolbar',
                 elements: [
-                    { view:"button", id:"edit_user", value:"Edit", width:150, align:"left", click: clicked_menu },
-                    { view:"button", id:"delete_user", value:"Delete", width:150, align:"right", click: clicked_menu },
+                    { view:"button", id:"edit_user", value:"Edit", width:150, align:"left", click: function() {
+                        edit_user($$("table-users").getSelectedItem()._id);
+                    }},
+                    { view:"button", id:"delete_user", value:"Delete", width:150, align:"right", click: function() {
+                        delete_user($$("table-users").getSelectedItem()._id);
+                    }},
                 ],
             },
             {
