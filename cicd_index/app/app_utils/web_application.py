@@ -252,7 +252,7 @@ def _get_build_state(site):
         return 'Scheduled'
     if 'success' in site:
         return 'SUCCESS' if site['success'] else 'FAILED'
-    return ''
+    return 'idle'
 
 @app.route('/update/site', methods=["GET", "POST"])
 def update_site():
@@ -261,6 +261,12 @@ def update_site():
     else:
         data = request.args
     data = _validate_input(data, int_fields=['archive'])
+    if 'archive' in data and not data['archive']:
+        # dont build immediatley:
+        data['needs_build'] = False
+        data['is_building'] = False
+        data['success'] = False
+
     if '_id' not in data and 'git_branch' in data:
         branch_name = data.pop('git_branch')
         site = db.sites.find_one({'git_branch': branch_name})
@@ -331,11 +337,23 @@ def show_logs():
     shell_url = _get_shell_url(["docker", "logs", "-f", containers[0].id])
     return redirect(shell_url)
 
+@app.route("/pgcli")
+def pgcli():
+    site_name = request.args.get('name')
+
+    shell_url = _get_shell_url([
+        "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{site_name}", ";",
+        "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "pgcli",
+        "--host", os.environ['DB_HOST'],
+        "--user", os.environ['DB_USER'],
+        "--password", os.environ['DB_PASSWORD'],
+        "--port", os.environ['DB_PORT'],
+    ])
+    return redirect(shell_url)
+
 @app.route("/debug_instance")
 def debug_instance():
-    name = request.args.get('name')
-    site_name = name
-    name += '_odoo'
+    site_name = request.args.get('name')
 
     _odoo_framework(site_name, ['kill', 'odoo'])
     _odoo_framework(site_name, ['kill', 'odoo_debug'])

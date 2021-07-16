@@ -238,6 +238,7 @@ webix.ready(function() {
                             },
 
                             { view:"button", id:"start_shell", value:"Shell", width:100, align:"right", click: shell, batch: 'admin' },
+                            { view:"button", id:"start_pgcli", value:"SQL", width:100, align:"right", click: pgcli, batch: 'admin' },
                             { view:"button", id:"start_debugging", value:"Debug", width:100, align:"right", click: debug, batch: 'admin' },
                         ],
                     },

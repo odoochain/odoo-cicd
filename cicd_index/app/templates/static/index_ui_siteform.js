@@ -83,7 +83,7 @@
                                 { view: "button", value: "Rerun Tests", name: "run_robot_tests", click: function () {
                                     run_robot_tests();
                                 }}, 
-                                { view: 'button', value: 'Show Details Results', name: "robot_results", click: function() {
+                                { view: 'button', value: 'Show Detailed Results', name: "robot_results", click: function() {
                                     show_robot_results();
                                 }},
                             ]}

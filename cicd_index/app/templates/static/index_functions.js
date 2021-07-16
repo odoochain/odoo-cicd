@@ -69,6 +69,10 @@ function shell() {
     window.open("/cicd/shell_instance?name=" + current_details);
 }
 
+function pgcli() {
+    window.open("/cicd/pgcli?name=" + current_details);
+}
+
 function debug() {
     window.open("/cicd/debug_instance?name=" + current_details);
 }
