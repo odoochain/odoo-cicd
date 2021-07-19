@@ -39,3 +39,7 @@ RUN cat /etc/ssh/sshd_config |grep Permit
 EXPOSE 8080
 
 RUN touch /tmp/iam_webssh
+
+RUN find /usr/local/lib -name webssh
+COPY ["font/Meslo LG M Regular for Powerline.ttf", "/usr/local/lib/python3.8/dist-packages/webssh/static/css/fonts"]
+#COPY ["font/Lucida Regular.ttf", "/usr/local/lib/python3.8/dist-packages/webssh/static/css/fonts"]

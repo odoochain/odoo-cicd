@@ -324,7 +324,7 @@ def store_setting(key, value):
 
 def _get_shell_url(command):
     pwd = base64.encodestring('odoo'.encode('utf-8')).decode('utf-8')
-    shellurl = f"/console/?hostname=127.0.0.1&username=root&password={pwd}&command="
+    shellurl = f"/console/?encoding=utf-8&term=xterm-256color&hostname=127.0.0.1&username=root&password={pwd}&command="
     shellurl += ' '.join(command)
     return shellurl
 
