@@ -204,7 +204,7 @@ function show_robot_results() {
 }
 
 function run_robot_tests() {
-    webix.ajax().get('/cicd/run_robot_tests?site' + current_details).then(function(res) {
+    webix.ajax().get('/cicd/run_robot_tests?site=' + current_details).then(function(res) {
         webix.message("Tests started. You can view by click 'Build Log'.");
     });
 }

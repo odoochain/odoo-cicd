@@ -738,4 +738,7 @@ def fetch_new_lines():
 def run_robot_tests():
     site = request.args.get('site')
     rolling_file = rolling_log_dir / f"{site}_robottests_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
-    _odoo_framework(site, 'robot', '-a', rolling_file_name=rolling_file)
+    def _run():
+        _odoo_framework(site, ['robot', '-a'], rolling_file_name=rolling_file)
+    threading.Thread(target=_run).start()
+    return jsonify({'result': 'ok'})
