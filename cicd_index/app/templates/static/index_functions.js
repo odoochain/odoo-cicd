@@ -133,6 +133,16 @@ function restart_delegator() {
     });
 }
 
+function restart_jobs() {
+    webix.message("Restarting jobs", "info");
+    var url = "/cicd/restart_jobs"
+    webix.ajax().get(url).then(function(res) {
+        webix.message("Restarted jobs", "info");
+    }).fail(function(response) {
+        webix.message("Error: " + response.statusText, "error");
+    });
+}
+
 function show_cicd_app_logs() {
     window.location = '/cicd/logs';
 }

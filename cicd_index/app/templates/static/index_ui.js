@@ -49,6 +49,7 @@ webix.ready(function() {
                         },
                         data:[
                             { view:"button", id:"restart_delegator", icon: 'recycle', value:"Restart Delegator", batch: 'admin'},
+                            { view:"button", id:"restart_jobs", icon: 'recycle', value:"Restart Jobs", batch: 'admin'},
                             { view:"button", id:"start_all", icon: 'play', value:"Start All Docker Containers", batch: 'admin', click: clicked_menu,},
                             { view:"button", id:"delete_unused", icon: 'eraser', value:"Spring Clean", batch: 'admin'},
                             { view:"button", id:"make_new_instance", icon: 'file', value:"New Instance", batch: 'admin'},

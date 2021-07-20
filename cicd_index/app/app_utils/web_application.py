@@ -581,6 +581,24 @@ def restart_delegator():
         'result': 'ok',
     })
 
+@app.route('/restart_jobs')
+def restart_jobs():
+    docker_project_name = os.environ['PROJECT_NAME']
+    names = []
+    names.append(f"{docker_project_name}_cicd_cronjobs")
+    for name in names:
+        containers = docker.containers.list(all=True, filters={'name': [name]})
+        for container in containers:
+            try:
+                container.stop()
+                container.kill()
+            except Exception:
+                logger.info(f"Container not stoppable - maybe ok: {container.name}")
+            container.start()
+    return jsonify({
+        'result': 'ok',
+    })
+
 
 @app.route("/sites")
 def show_sites():
