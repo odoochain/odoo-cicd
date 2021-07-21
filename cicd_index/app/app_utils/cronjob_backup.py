@@ -1,4 +1,5 @@
 import logging
+import traceback
 import arrow
 from copy import deepcopy
 from datetime import datetime
@@ -28,6 +29,8 @@ def _do_backups():
         try:
             sites = list(db.sites.find({'do_backup_regularly': True}))
             for site in sites:
+                if site.get('archive'):
+                    continue
                 # check for existing dumpname
                 dump_name = _get_dump_name(site['name'])
                 dump_path = Path(os.environ['DUMPS_PATH_MAPPED']) / dump_name
@@ -38,10 +41,13 @@ def _do_backups():
 
                 if age > 1:
                     logger.info(f"Starting backup of {site['name']}")
-                    _odoo_framework(site, ['backup', 'odoo-db', dump_name])
+                    try:
+                        _odoo_framework(site, ['backup', 'odoo-db', str(Path(os.environ['DUMPS_PATH']) / dump_name)])
+                    except Exception as ex:
+                        msg = traceback.format_exc()
+                        logger.error(msg)
 
         except Exception as ex:
-            import traceback
             msg = traceback.format_exc()
             logger.error(msg)
 
