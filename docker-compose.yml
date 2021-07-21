@@ -124,8 +124,6 @@ services:
   webssh:
     build: webssh
     restart: unless-stopped
-    environment:
-        ODOO_SETTINGS: /home/jenkins/.odoo
     networks:
       - cicd_delegator
     volumes:
