@@ -183,6 +183,7 @@ def trigger_rebuild():
     db.updates.remove({'name': site['name']})
     data = {
         'needs_build': True,
+        'archive': False,
         'build_mode': 'reset',
         'docker_no_cache': request.args.get('no_cache') == '1',
         'no_module_update': request.args.get('no_module_update') == '1',
