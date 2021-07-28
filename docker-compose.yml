@@ -89,7 +89,7 @@ services:
         timeout: 5s
         retries: 5
   mongo:
-    image: mongo
+    image: mongo:4.4.7
     restart: "unless-stopped"
     networks:
         - internal
