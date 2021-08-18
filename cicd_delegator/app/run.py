@@ -131,14 +131,14 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             url = f'http://{host}{path}'
         else:
             host = f"{delegator_path}_proxy"
-            path_old = path
-            if self.path.endswith(f"/{delegator_path}"):
-                path = self.path.replace(f"/{delegator_path}", "")
-            else:
-                path = self.path.replace(f"/{delegator_path}/", "/")
+            #path_old = path
+            #if self.path.endswith(f"/{delegator_path}"):
+            #    path = self.path.replace(f"/{delegator_path}", "", 1)
+            #else:
+            #    path = self.path.replace(f"/{delegator_path}/", "/", 1)
             url = f'http://{host}{path}'
 
-        logger.debug(f"rewrite path result: {url}")
+        logger.info(f"rewrite path result: {url}")
         return url
 
     def _redirect_to_index(self):
