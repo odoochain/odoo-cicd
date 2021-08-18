@@ -116,7 +116,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             # set touched date:
             requests.get(cicd_index_url + "/last_access", params={'site': delegator_path}).raise_for_status()
 
-        logger.info(f"rewrite path: self.path: {self.path}, delegator_path: {delegator_path}")
+        logger.debug(f"rewrite path: self.path: {self.path}, delegator_path: {delegator_path}")
 
         path = (self.path or '').split("?")[0]
         if path in ['/index', '/index/'] or "/__start_cicd" in path or not delegator_path or path.startswith("/cicd/"):
@@ -138,7 +138,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             #    path = self.path.replace(f"/{delegator_path}/", "/", 1)
             url = f'http://{host}{path}'
 
-        logger.info(f"rewrite path result: {url}")
+        logger.debug(f"rewrite path result: {url}")
         return url
 
     def _redirect_to_index(self):
