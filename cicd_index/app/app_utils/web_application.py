@@ -19,6 +19,7 @@ from flask import redirect
 from flask import request
 from flask import jsonify
 from .. import app
+from .. import cache
 from .. import login_required
 from flask import render_template
 from flask import make_response
@@ -368,7 +369,9 @@ def debug_instance():
     return redirect(shell_url)
     
 @app.route("/get_resources")
+@cache.cached(timeout=120)
 def get_free_resources():
+    print("get free")
     return render_template(
         'resources.html',
         resources=_get_resources(),

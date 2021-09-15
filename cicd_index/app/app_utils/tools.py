@@ -1,4 +1,6 @@
 from .. import db
+from flask import Flask
+from flask_caching import Cache
 import tempfile
 import socket
 from io import BytesIO ## for Python 3
