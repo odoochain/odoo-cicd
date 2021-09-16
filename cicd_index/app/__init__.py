@@ -3,6 +3,7 @@ import time
 import os
 import subprocess
 from flask import Flask
+from flask_caching import Cache
 from bson.json_util import dumps
 import flask_login
 import logging
@@ -76,14 +77,22 @@ if os.getenv("CICD_CRONJOBS") == "1":
         time.sleep(1000)
 
 app = None
+cache = None
 
 def create_app():
     global app
+    global cache
     app = Flask(
         __name__,
         static_url_path='/static', 
         static_folder='templates/static'
     )
+    app.config.from_mapping({
+        # "DEBUG": True, 
+        "CACHE_TYPE": "SimpleCache",
+        "CACHE_DEFAULT_TIMEOUT": 300
+    })
+    cache = Cache(app)
     app.secret_key = 'asajdkasj24242184*$@'
     from .app_utils.tools import JSONEncoder
     app.json_encoder = JSONEncoder

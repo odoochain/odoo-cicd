@@ -371,7 +371,6 @@ def debug_instance():
 @app.route("/get_resources")
 @cache.cached(timeout=120)
 def get_free_resources():
-    print("get free")
     return render_template(
         'resources.html',
         resources=_get_resources(),
