@@ -370,7 +370,7 @@ def clone_repo(url, path):
         repo = Repo(path)
     return repo
 
-def _get_main_repo(tempfolder=False):
+def _get_main_repo(tempfolder=False, destination_folder=False):
     from . import GIT_LOCK
     with GIT_LOCK:
         from . import WORKSPACE
@@ -379,8 +379,13 @@ def _get_main_repo(tempfolder=False):
         path = WORKSPACE / MAIN_FOLDER_NAME
         repo = clone_repo(URL, path)
 
-        if tempfolder:
+        if destination_folder:
+            temppath = destination_folder
+        elif tempfolder:
             temppath = tempfile.mktemp()
+        else:
+            temppath = None
+        if temppath:
             subprocess.check_call(['rsync', f"{path}/", f"{temppath}/", "-ar"])
             repo = Repo(temppath)
             

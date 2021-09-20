@@ -118,9 +118,10 @@ def transform_input_dump():
             write_rolling_log(rolling_file, "Preparing instance folder")
             source = str(Path("/cicd_workspace") / "master") + "/"
             dest = str(instance_folder) + "/"
-            write_rolling_log(rolling_file, f"rsync from {source} to {dest}")
+            branch = 'master'
+            write_rolling_log(rolling_file, f"checking out {branch} to {dest}")
 
-            repo = _get_main_repo(dest)
+            repo = _get_main_repo(destination_folder=dest)
             repo.git.checkout('master', force=True)
             repo.git.pull()
 
