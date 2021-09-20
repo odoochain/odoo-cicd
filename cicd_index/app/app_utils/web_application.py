@@ -119,11 +119,11 @@ def transform_input_dump():
             source = str(Path("/cicd_workspace") / "master") + "/"
             dest = str(instance_folder) + "/"
             write_rolling_log(rolling_file, f"rsync from {source} to {dest}")
-            subprocess.check_call([
-                "rsync", source, dest,
-                "-ar",
-                "--exclude=.odoo"
-            ])
+
+            repo = _get_main_repo(dest)
+            repo.git.checkout('master', force=True)
+            repo.git.pull()
+
             # #update_instance_folder(site, rolling_file, instance_folder=instance_folder)
             custom_settings = """
 RUN_POSTGRES=1
