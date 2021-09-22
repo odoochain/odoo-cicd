@@ -433,7 +433,7 @@ def cleanup():
 
         # drop transfer rests:
         for folder in Path("/cicd_workspace").glob("*"):
-            if folder.startswith(PREFIX_PREPARE_DUMP):
+            if str(folder).startswith(PREFIX_PREPARE_DUMP):
                 shutil.rmtree(folder)
 
     finally:

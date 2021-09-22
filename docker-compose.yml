@@ -28,6 +28,7 @@ services:
         WEBSSH_CICD_WORKSPACE: /cicd_workspace
         PYTHONPATH: /app1
         DUMPS_PATH_MAPPED: /opt/dumps
+        #DISPLAY_RESOURCES: /var/lib/docker;/
     command: ["python3", "-m", "app1"]
     volumes:
         - log_history:/log_history
@@ -36,8 +37,6 @@ services:
         - ${ODOO_SETTINGS}:/odoo_settings
         - ./cicd_index/app:/app1
         - /var/run/docker.sock:/var/run/docker.sock
-        - /var/lib/docker:/display_resources/docker
-        - /:/display_resources/root
         - rolling_log:/tmp/rolling_log
   cicd_index:
     build: ./cicd_index
@@ -66,7 +65,6 @@ services:
         - ${ODOO_SETTINGS}:/odoo_settings
         - ./cicd_index/app:/app1
         - /var/run/docker.sock:/var/run/docker.sock
-        - /var/lib/docker:/display_resources/docker
         - rolling_log:/tmp/rolling_log
         - uploaded_dumps:/input_dumps/uploaded
         
