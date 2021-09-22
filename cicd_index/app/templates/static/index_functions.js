@@ -11,7 +11,8 @@ function update_odoo_configuration(e) {
 
 function clear_db(sitename) {
     var sitename = sitename || current_details;
-    var url = "/cicd/cleardb?name=" + sitename;
+    var url = "/cicd/clear_db?name=" + sitename;
+    webix.message("Minimizing in background...");
     webix.ajax().get(url).then(function(res) {
         webix.message("Minimized DB " + sitename);
     }).fail(function(response) {
