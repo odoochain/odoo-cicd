@@ -14,4 +14,4 @@ var current_details = null;
 {% include "static/index_ui.js" %}
 
 setTimeout(update_live_values, 2000);
-setTimeout(update_resources, 2000);
+setTimeout(update_resources, 100);

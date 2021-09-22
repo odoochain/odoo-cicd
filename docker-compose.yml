@@ -67,7 +67,6 @@ services:
         - ./cicd_index/app:/app1
         - /var/run/docker.sock:/var/run/docker.sock
         - /var/lib/docker:/display_resources/docker
-        - /:/display_resources/root
         - rolling_log:/tmp/rolling_log
         - uploaded_dumps:/input_dumps/uploaded
         

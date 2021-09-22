@@ -16,6 +16,7 @@ var menu = {
                 { $template:"Separator" },
                 { view:"button", id:"restart", value:"Restart Containers"},
                 { view:"button", id:"clear_webassets", value:"Clear Webassets" },
+                { view:"button", id:"clear_db", value:"Minimize DB" },
                 { view:"button", id:"reload_restart", value:"Reload & Restart" },
                 { view:"button", id:"build_again", value:"Update recently changed modules" },
                 { view:"button", id:"build_again_all", value:"Update all modules" },
@@ -91,6 +92,7 @@ webix.ready(function() {
                             id: "resources-view",
                             view: "template",
                             type: "header",
+                            height: HEIGHT_RESOURCES,
                             template: "<div id='resources'></div>",
                         },
                         {

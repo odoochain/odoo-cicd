@@ -9,6 +9,17 @@ function update_odoo_configuration(e) {
     debugger;
 }
 
+function clear_db(sitename) {
+    var sitename = sitename || current_details;
+    var url = "/cicd/cleardb?name=" + sitename;
+    webix.ajax().get(url).then(function(res) {
+        webix.message("Minimized DB " + sitename);
+    }).fail(function(response) {
+        webix.message("Error: " + response.statusText, "error");
+    });
+
+}
+
 function clear_webassets(sitename) {
     var sitename = sitename || current_details;
     var url = "/cicd/clear_webassets?name=" + sitename;

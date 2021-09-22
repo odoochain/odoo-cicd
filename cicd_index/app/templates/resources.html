@@ -1,10 +1,17 @@
 <div>
-
-Resources used:
+    <table>
+        <tr>
+            <td>Mountpoint</td>
+            <td style="text-align: right;">Used</td>
+            <td style="text-align: right;">Free</td>
+        </tr>
 {% for res in resources %}
+<tr>
+    <td style="color: {{ res['color'] }};">{{ res['name'] }}</td>
+    <td style="text-align: right; color: {{ res['color'] }};">{{ res['used_percent'] }}</td>
+    <td style="text-align: right; color: {{ res['color'] }};">{{ res['free'] }}</td>
 
-    <span style="color: {{ res['color'] }};">
-    {{ res['name'] }}: {{ res['used_percent'] }}% 
-    </span>
+</tr>
 {% endfor %}
+    </table>
 </div>

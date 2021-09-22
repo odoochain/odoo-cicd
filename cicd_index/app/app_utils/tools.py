@@ -193,15 +193,21 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
 
     
 def _get_resources():
-    for disk in Path("/display_resources").glob("*"):
-        total, used, free = shutil.disk_usage(disk)
+    parent = Path("/display_resources")
+    for disk in os.getenv("DISPLAY_RESOURCES", "").split(";"):
+        res, stdout, stderr = _execute_shell(["/usr/bin/df", '-h', disk])
+        # /dev/sdb     1.5T  1.1T  393G  74% /var/lib/docker
+        stdout = stdout.split("\n")[1]
+        while "  " in stdout:
+            stdout = stdout.replace("  ", " ")
+        disk_device, size, used, avail, use_percent, mountpoint = stdout.strip().split(" ")
         yield {
-            'name': disk.name,
-            'total': total // (2**30),
-            'used': used // (2**30),
-            'free': free // (2**30),
-            'used_percent': round(used / total * 100),
-            'color': 'green' if round(used / total * 100) < 80 else 'red',
+            'name': disk,
+            'total': size,
+            'used': use_percent,
+            'free': avail,
+            'used_percent': use_percent,
+            'color': 'green' if round(int(use_percent.replace("%", ""))) < 80 else 'red',
         }
 
     """
@@ -219,8 +225,8 @@ Swap:             0           0           0
         'name': "RAM",
         'total': int(ram[1]) / 1024 / 1024,
         'used': int(ram[2]) / 1024 / 1024,
-        'free': int(ram[6]) / 1024 / 1024,
-        'used_percent': round(float(ram[2]) / float(ram[1]) * 100, 0),
+        'free': str(int(round(int(ram[6]) / 1024 / 1024, 0))) + "GB",
+        'used_percent': str(int(round(float(ram[2]) / float(ram[1]) * 100, 0))) + "%",
         'color': 'green' if round(int(ram[6]) / 1024 / 1024) > 4 else 'red',
     }
 

@@ -52,6 +52,7 @@ def index_func():
 
     return render_template(
         'index.html',
+        HEIGHT_RESOURCES=len(os.environ['DISPLAY_RESOURCES'].split(";")),
         DATE_FORMAT=os.environ['DATE_FORMAT'].replace("_", "%"),
     )
 
@@ -655,6 +656,18 @@ def start_info():
     return jsonify({
         'is_admin': u.is_authenticated and u.is_admin
     })
+
+@app.route("/clear_db")
+def clear_db():
+    from .web_instance_control import _restart_docker
+    site = db.sites.find_one({'name': request.args['name']})
+    _odoo_framework(site, ['cleardb'])
+    _restart_docker(site['name'], kill_before=False)
+
+    return jsonify({
+        'result': 'ok',
+    })
+
 
 @app.route("/clear_webassets")
 def clear_webassets():

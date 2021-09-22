@@ -3,7 +3,6 @@ import docker as Docker
 from datetime import datetime
 import requests
 from functools import partial
-import shutil
 from pathlib import Path
 import subprocess
 import os
