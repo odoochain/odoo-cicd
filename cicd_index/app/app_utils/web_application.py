@@ -448,6 +448,8 @@ def cleanup():
 @app.route("/delete")
 def delete_instance():
     name = request.args.get('name')
+    if not name:
+        raise Exception("Name is missing!")
     site = db.sites.find_one({'name': name})
 
     _delete_sourcecode(name)
