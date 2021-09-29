@@ -21,7 +21,7 @@ var menu = {
                 { view:"button", id:"build_again", value:"Update recently changed modules" },
                 { view:"button", id:"build_again_all", value:"Update all modules" },
                 { view:"button", id:"rebuild", value:"Rebuild from Dump (Data lost)" },
-                { view:"button", id:"delete_instance", value:"Destroy (unrecoverable)", click: delete_instance_ask },
+                { view:"button", id:"delete_instance_ask", value:"Destroy (unrecoverable)" },
                 { $template:"Separator" },
                 { view:"button", id:"backup_db", value:"Make Database Dump", click: backup_db },
                 { $template:"Separator" },

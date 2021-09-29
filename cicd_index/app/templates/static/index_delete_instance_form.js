@@ -1,5 +1,6 @@
 
 function delete_instance_ask() {
+    debugger;
     var form_reset = webix.ui({
         view: "window", 
         position: 'center',
@@ -11,13 +12,13 @@ function delete_instance_ask() {
             complexData: true,
             elements: [
                 // { view:"combo", name: 'dump', label:"Dump", options: dumps },
-                { view: 'template', template: "Going to erase this instance."},
+                { view: 'template', template: "Going to erase" + current_details},
                 {
                     cols:[
                         { view:"button", value:"OK", css:"webix_primary", click: function() { 
-                                var values = this.getParentView().getFormView().getValues();
-                                form_reset.hide();
-                                delete_instance(current_details);
+                                    var values = this.getParentView().getFormView().getValues();
+                                    form_reset.hide();
+                                    delete_instance(current_details);
                                 }
                         },
                         { view:"button", value:"Cancel", click: function() {
