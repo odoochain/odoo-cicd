@@ -54,7 +54,7 @@
                             ]},
                             { cols: [
                                 { view: "label", label: "Author"}, 
-                                { view: 'text', name: 'git_authored_date', readonly: true},
+                                { view: 'text', name: 'git_author', readonly: true},
                             ]},
                             { cols: [
                                 { view: "label", label: "SHA"}, 
@@ -95,12 +95,12 @@
                     body: {
                         rows: [
                             { cols: [
-                                { view: "label", label: "Description"}, 
-                                { view: 'textarea', name: 'git_desc', readonly: true, height: 80},
-                            ]},
-                            { cols: [
                                 { view: "label", label: "Note"}, 
                                 { view: 'textarea', height: 150, name: 'note', },
+                            ]},
+                            { cols: [
+                                { view: "label", label: "Description"}, 
+                                { view: 'textarea', name: 'git_desc', readonly: true, height: 300},
                             ]},
                         ]
                     }

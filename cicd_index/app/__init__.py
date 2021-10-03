@@ -59,11 +59,11 @@ logger.info(f"Host IP: {host_ip}")
 """
                      APP SETUP                                         
 """
-from .app_utils import cronjob_builder
-from .app_utils import cronjob_usage
-from .app_utils import cronjob_docker
-from .app_utils import cronjob_fetch_git
-from .app_utils import cronjob_backup
+from .controller import cronjob_builder
+from .controller import cronjob_usage
+from .controller import cronjob_docker
+from .controller import cronjob_fetch_git
+from .controller import cronjob_backup
 
 if os.getenv("CICD_CRONJOBS") == "1":
 
@@ -94,15 +94,15 @@ def create_app():
     })
     cache = Cache(app)
     app.secret_key = 'asajdkasj24242184*$@'
-    from .app_utils.tools import JSONEncoder
+    from .controller.tools import JSONEncoder
     app.json_encoder = JSONEncoder
     login_manager.init_app(app)
-    from .app_utils import auth
-    from .app_utils import web_application
-    from .app_utils import logs
-    from .app_utils import web_user_admin
-    from .app_utils import web_instance_control
-    from .app_utils import web_app_settings
-    from .app_utils.tools import JSONEncoder
-    from . import app_utils
+    from .controller import auth
+    from .controller import web_application
+    from .controller import logs
+    from .controller import web_user_admin
+    from .controller import web_instance_control
+    from .controller import web_app_settings
+    from .controller.tools import JSONEncoder
+    from . import controller
     return app

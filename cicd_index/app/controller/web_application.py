@@ -1,8 +1,10 @@
 from .. import MAIN_FOLDER_NAME
 import time
+from pydriller import Repository as PyDrillerRepo
 import traceback
 import subprocess
 from functools import partial
+from .tools import _get_src_path
 import threading
 import tempfile
 import humanize
@@ -213,6 +215,42 @@ def site_jenkins():
         'sites': sites,
     })
 
+def _load_detail_data(site_dict, count_history=10):
+    path = _get_src_path(site_dict['name'])
+
+    repo = PyDrillerRepo(
+        [str(path)],
+        only_in_branch="origin/" + site_dict['name'],
+        num_workers=10,
+        order="reverse"
+        )
+
+    git_desc = []
+    git_author = ""
+    for i, commit in enumerate(repo.traverse_commits()):
+        # print(commit.hash)
+        # print(commit.msg)
+        # print(commit.author.name)
+        if i > count_history:
+            break
+
+        # if not i:
+        #     site_dict['git_author'] = commit.author.name
+
+        for file in commit.modified_files:
+            print(file.filename, ' has changed')
+
+        modified_files = '\n'.join([x.filename for x in commit.modified_files])
+
+        part = (
+            f"Date: {commit.committer_date}\n"
+            f"Author: {commit.author.name}\n"
+            f"Modified Files:\n{modified_files}\n"
+            f"{commit.msg}\n"
+        )
+        git_desc.append(part)
+    site_dict['git_desc'] = '\n----------------------------------------\n'.join(git_desc)
+
 @app.route("/data/sites", methods=["GET", "POST"])
 def data_variants():
     _filter = {}
@@ -246,6 +284,9 @@ def data_variants():
         sites = [x for x in sites if x['name'] in user_db.get('sites')]
 
     sites = list(sorted(sites, key=lambda x: (1 if x.get('archive') else 0, x.get('name').lower())))
+
+    if len(sites) == 1:
+        _load_detail_data(sites[0])
 
     return jsonify(sites)
 
