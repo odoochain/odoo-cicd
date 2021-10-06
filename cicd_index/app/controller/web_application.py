@@ -219,7 +219,7 @@ def _load_detail_data(site_dict, count_history=10):
     path = _get_src_path(site_dict['name'])
 
     if not path.exists():
-        git_desc = 'no source found'
+        git_desc = ['no source found']
     else:
         repo = PyDrillerRepo(
             [str(path)],
