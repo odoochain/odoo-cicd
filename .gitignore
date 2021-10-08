@@ -7,5 +7,4 @@ mongo_data
 .vscode/tags
 .vscode/settings.json
 docker-compose.override.yml
-cicd_index/app/controller/cronjob_backup.py
 .debug
