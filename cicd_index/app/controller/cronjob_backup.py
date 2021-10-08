@@ -24,7 +24,6 @@ def _get_dump_name(site_name):
     return f"{site_name}.dump"
 
 def _do_backups():
-
     while True:
         try:
             sites = list(db.sites.find({'do_backup_regularly': True}))
