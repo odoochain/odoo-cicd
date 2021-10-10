@@ -224,7 +224,7 @@ def _load_detail_data(site_dict, count_history=10):
         repo = PyDrillerRepo(
             [str(path)],
             only_in_branch="origin/" + site_dict['name'],
-            num_workers=10,
+            num_workers=int(os.getenv("GIT_HISTORY_BACK", "20")),
             order="reverse"
             )
 

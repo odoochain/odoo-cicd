@@ -28,7 +28,7 @@ services:
         WEBSSH_CICD_WORKSPACE: /cicd_workspace
         PYTHONPATH: /app1
         DUMPS_PATH_MAPPED: /opt/dumps
-        #DISPLAY_RESOURCES: /var/lib/docker;/
+        #DISPLAY_RESOURCES: "/var/lib/docker;/"
     command: ["python3", "-m", "app1"]
     volumes:
         - log_history:/log_history
@@ -58,6 +58,7 @@ services:
         WEBSSH_CICD_WORKSPACE: /cicd_workspace
         DUMPS_PATH_MAPPED: /opt/dumps
         INPUT_DUMPS_PATH_MAPPED: /input_dumps
+        GIT_HISTORY_BACK: 30
     volumes:
         - log_history:/log_history
         - ${DUMPS_PATH}:/opt/dumps
