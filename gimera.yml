@@ -1,0 +1,8 @@
+repos:
+- branch: master
+  patches:
+  - logs/log.io.patches
+  path: logs/log.io
+  sha: ad925e1387af63c329ac0e68db7dd92185c20cb6
+  type: integrated
+  url: https://github.com/NarrativeScience/log.io.git
