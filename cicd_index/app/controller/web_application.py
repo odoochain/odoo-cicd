@@ -215,43 +215,46 @@ def site_jenkins():
         'sites': sites,
     })
 
+def _get_commits(repo_path, commits=10):
+    return []
+
 def _load_detail_data(site_dict, count_history=10):
     path = _get_src_path(site_dict['name'])
 
     if not path.exists():
         git_desc = ['no source found']
     else:
-        repo = PyDrillerRepo(
-            [str(path)],
-            only_in_branch="origin/" + site_dict['name'],
-            num_workers=int(os.getenv("GIT_HISTORY_BACK", "20")),
-            order="reverse"
-            )
+        git_desc = _get_commits(path, 10)
+        # repo = PyDrillerRepo(
+        #     [str(path)],
+        #     only_in_branch="origin/" + site_dict['name'],
+        #     num_workers=int(os.getenv("GIT_HISTORY_BACK", "20")),
+        #     order="reverse"
+        #     )
 
-        git_desc = []
-        git_author = ""
-        for i, commit in enumerate(repo.traverse_commits()):
-            # print(commit.hash)
-            # print(commit.msg)
-            # print(commit.author.name)
-            if i > count_history:
-                break
+        # git_author = ""
+        # for i, commit in enumerate(repo.traverse_commits()):
+        #     # print(commit.hash)
+        #     # print(commit.msg)
+        #     # print(commit.author.name)
+        #     if i > count_history:
+        #         break
 
-            # if not i:
-            #     site_dict['git_author'] = commit.author.name
+        #     # if not i:
+        #     #     site_dict['git_author'] = commit.author.name
 
-            for file in commit.modified_files:
-                print(file.filename, ' has changed')
+        #     for file in commit.modified_files:
+        #         print(file.filename, ' has changed')
 
-            modified_files = '\n'.join([x.filename for x in commit.modified_files])
+        #     modified_files = '\n'.join([x.filename for x in commit.modified_files])
 
-            part = (
-                f"Date: {commit.committer_date}\n"
-                f"Author: {commit.author.name}\n"
-                f"Modified Files:\n{modified_files}\n"
-                f"{commit.msg}\n"
-            )
-            git_desc.append(part)
+        #     part = (
+        #         f"Date: {commit.committer_date}\n"
+        #         f"Author: {commit.author.name}\n"
+        #         f"Modified Files:\n{modified_files}\n"
+        #         f"{commit.msg}\n"
+        #     )
+        #     git_desc.append(part)
     site_dict['git_desc'] = '\n----------------------------------------\n'.join(git_desc)
 
 @app.route("/data/sites", methods=["GET", "POST"])
