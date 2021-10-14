@@ -107,7 +107,7 @@ def _odoo_framework(site_name, command, logs_writer, instance_folder=None):
 
     def on_input(prefix, line):
         if line:
-            logs_writer.write_text(prefix + line)
+            logs_writer.write_text(line)
 
     res, stdout, stderr = _execute_shell(
         ["/opt/odoo/odoo", "-f", "--project-name", site_name] + command,
