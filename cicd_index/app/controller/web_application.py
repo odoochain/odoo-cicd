@@ -1,10 +1,10 @@
 from .. import MAIN_FOLDER_NAME
 import time
-from pydriller import Repository as PyDrillerRepo
 import traceback
 import subprocess
 from functools import partial
 from .tools import _get_src_path
+from .tools import get_logs_url
 import threading
 import tempfile
 import humanize
@@ -14,7 +14,7 @@ import base64
 import arrow
 from .tools import _get_host_path, _get_main_repo
 from .tools import PREFIX_PREPARE_DUMP
-from .tools import _delete_sourcecode, get_output, write_rolling_log
+from .tools import _delete_sourcecode, get_output
 from .tools import _get_db_conn
 from pathlib import Path
 from flask import redirect
@@ -39,9 +39,8 @@ import logging
 from datetime import datetime
 import docker as Docker
 from .tools import get_output
-from .tools import update_instance_folder
 from .tools import _get_repo
-from .. import rolling_log_dir
+from .logsio_writer import LogsIOWriter
 import flask_login
 import shutil
 logger = logging.getLogger(__name__)
@@ -106,7 +105,7 @@ def transform_input_dump():
     erase = request.args['erase'] == '1'
     anonymize = request.args['anonymize'] == '1'
     site = 'master'
-    rolling_file = rolling_log_dir / f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
+    logger = LogsIOWriter("input_dump", f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}")
 
     def do():
         instance_folder = Path("/cicd_workspace") / f"{PREFIX_PREPARE_DUMP}{Path(tempfile.mktemp()).name}"
@@ -115,20 +114,24 @@ def transform_input_dump():
             real_path = _get_host_path(Path("/input_dumps") / dump.parent) / dump.name
 
             def of(*args):
-                _odoo_framework(instance_folder.name, list(args), rolling_file_name=rolling_file, instance_folder=instance_folder)
+                _odoo_framework(
+                    instance_folder.name,
+                    list(args),
+                    log_writer=logger,
+                    instance_folder=instance_folder
+                    )
 
-            write_rolling_log(rolling_file, f"Preparing Input Dump: {dump.name}")
-            write_rolling_log(rolling_file, "Preparing instance folder")
+            logger.info(f"Preparing Input Dump: {dump.name}")
+            logger.info("Preparing instance folder")
             source = str(Path("/cicd_workspace") / "master") + "/"
             dest = str(instance_folder) + "/"
             branch = 'master'
-            write_rolling_log(rolling_file, f"checking out {branch} to {dest}")
+            logger.info(f"checking out {branch} to {dest}")
 
             repo = _get_main_repo(destination_folder=dest)
             repo.git.checkout('master', force=True)
             repo.git.pull()
 
-            # #update_instance_folder(site, rolling_file, instance_folder=instance_folder)
             custom_settings = """
 RUN_POSTGRES=1
 DB_PORT=5432
@@ -140,7 +143,7 @@ DB_PWD=odoo
             of("down", "-v")
 
             # to avoid orphan messages, that return error codes although warning
-            write_rolling_log(rolling_file, f"Starting local postgres")
+            logger.info(f"Starting local postgres")
             of("up", "-d", 'postgres')
 
             of("restore", "odoo-db", str(real_path))
@@ -155,7 +158,7 @@ DB_PWD=odoo
             of("down", "-v")
         except Exception as ex:
             msg = traceback.format_exc()
-            write_rolling_log(rolling_file, msg)
+            logger.info(msg)
         finally:
             if instance_folder.exists(): 
                 shutil.rmtree(instance_folder)
@@ -163,8 +166,10 @@ DB_PWD=odoo
     t = threading.Thread(target=do)
     t.start()
 
+    
+
     return jsonify({
-        'live_url': "/cicd/live_log?name=" + rolling_file.name
+        'live_url': get_logs_url([rolling_file.source]),
     })
 
 @app.route("/turn_into_dev")
@@ -174,12 +179,13 @@ def _turn_into_dev():
     site = db.sites.find_one({'name': request.args.get('site')})
     if site:
         site = site['name']
-        _reload_instance(site)
-        _odoo_framework(site, ["turn-into-dev"])
+        logger = LogsIOWriter(site, 'misc')
+        _reload_instance(site, logs_writer=logger)
+        _odoo_framework(site, ["turn-into-dev"], logs_writer=logger)
     return jsonify({'result': 'ok'})
 
-def _reload_instance(site):
-    _odoo_framework(site, ["reload", "-d", site])
+def _reload_instance(site, logs_writer):
+    _odoo_framework(site, ["reload", "-d", site], logs_writer=logs_writer)
 
     
 @app.route('/trigger/rebuild')
@@ -215,47 +221,21 @@ def site_jenkins():
         'sites': sites,
     })
 
-def _get_commits(repo_path, commits=10):
-    return []
-
+def get_git_commits(path, count=30):
+    return subprocess.check_output([
+        "/usr/bin/git",
+        "log",
+        "-n", str(count),
+    ], cwd=path).strip().decode('utf-8')
+    
 def _load_detail_data(site_dict, count_history=10):
     path = _get_src_path(site_dict['name'])
 
     if not path.exists():
         git_desc = ['no source found']
     else:
-        git_desc = _get_commits(path, 10)
-        # repo = PyDrillerRepo(
-        #     [str(path)],
-        #     only_in_branch="origin/" + site_dict['name'],
-        #     num_workers=int(os.getenv("GIT_HISTORY_BACK", "20")),
-        #     order="reverse"
-        #     )
-
-        # git_author = ""
-        # for i, commit in enumerate(repo.traverse_commits()):
-        #     # print(commit.hash)
-        #     # print(commit.msg)
-        #     # print(commit.author.name)
-        #     if i > count_history:
-        #         break
-
-        #     # if not i:
-        #     #     site_dict['git_author'] = commit.author.name
-
-        #     for file in commit.modified_files:
-        #         print(file.filename, ' has changed')
-
-        #     modified_files = '\n'.join([x.filename for x in commit.modified_files])
-
-        #     part = (
-        #         f"Date: {commit.committer_date}\n"
-        #         f"Author: {commit.author.name}\n"
-        #         f"Modified Files:\n{modified_files}\n"
-        #         f"{commit.msg}\n"
-        #     )
-        #     git_desc.append(part)
-    site_dict['git_desc'] = '\n----------------------------------------\n'.join(git_desc)
+        git_desc = get_git_commits(path)
+    site_dict['git_desc'] = git_desc
 
 @app.route("/data/sites", methods=["GET", "POST"])
 def data_variants():
@@ -284,6 +264,7 @@ def data_variants():
         site['repo_url'] = f"{os.environ['REPO_URL']}/-/commit/{site.get('git_sha')}"
         site['build_state'] = _get_build_state(site)
         site['duration'] = site.get('duration', 0)
+        site['last_access'] = arrow.get(site['last_access']).to(os.environ['DISPLAY_TIMEZONE']).strftime("%Y-%m-%d %H:%M:%S")
 
     if user.is_authenticated and not user.is_admin:
         user_db = db.users.find_one({'login': user.id})
@@ -405,9 +386,10 @@ def pgcli():
 @app.route("/debug_instance")
 def debug_instance():
     site_name = request.args.get('name')
+    logger = LogsIOWriter(site_name, 'misc')
 
-    _odoo_framework(site_name, ['kill', 'odoo'])
-    _odoo_framework(site_name, ['kill', 'odoo_debug'])
+    _odoo_framework(site_name, ['kill', 'odoo'], logs_writer=logger)
+    _odoo_framework(site_name, ['kill', 'odoo_debug'], logs_writer=logger)
 
     shell_url = _get_shell_url([
         "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{site_name}", ";",
@@ -560,7 +542,8 @@ def build_log():
 def backup_db():
     site = db.sites.find_one({'name': request.args.get('name')})
     dump_name = request.args.get('dumpname')
-    _odoo_framework(site, ['backup', 'odoo-db', dump_name])
+    logger = LogsIOWriter(site['name'], 'misc')
+    _odoo_framework(site, ['backup', 'odoo-db', dump_name], logs_writer=logger)
     return jsonify({
         'result': 'ok',
     })
@@ -710,7 +693,8 @@ def start_info():
 def clear_db():
     from .web_instance_control import _restart_docker
     site = db.sites.find_one({'name': request.args['name']})
-    _odoo_framework(site, ['cleardb'])
+    logger = LogsIOWriter(site['name'], 'misc')
+    _odoo_framework(site, ['cleardb'], logs_writer=logger)
     _restart_docker(site['name'], kill_before=False)
 
     return jsonify({
@@ -788,41 +772,14 @@ def make_custom_instance():
 @app.route("/live_log")
 def livelog():
     name = request.args['name']
-    return render_template(
-        'live_log.html',
-        site=name,
-    )
-
-@app.route("/live_log/new_lines")
-def fetch_new_lines():
-    MAX_LINES = 1000
-    name = request.args.get('name')
-    name = name.replace('/', '_')
-    file = rolling_log_dir / name
-    result = {
-        'content': [],
-        'next_line_number': 0,
-    }
-
-    next_line_number = int(request.args.get('next_line_number') or '0')
-    if file.exists():
-        content = file.read_text().strip().split("\n")
-    else:
-        content = []
-    if next_line_number > len(content) + 1:
-        next_line_number = 0
-    content = content[next_line_number:next_line_number + MAX_LINES]
-    lines = len(content)
-    result['content'] = content
-    result['next_line_number'] = next_line_number + lines
-
-    return jsonify(result)
+    get_logs_url(name)
+    return redirect(get_logs_url(name))
 
 @app.route("/run_robot_tests")
 def run_robot_tests():
     site = request.args.get('site')
-    rolling_file = rolling_log_dir / f"{site}_robottests_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}"
+    logs_writer = LogsIOWriter(site, 'robot')
     def _run():
-        _odoo_framework(site, ['robot', '-a'], rolling_file_name=rolling_file)
+        _odoo_framework(site, ['robot', '-a'], logs_writer=logs_writer)
     threading.Thread(target=_run).start()
     return jsonify({'result': 'ok'})

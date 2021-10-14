@@ -68,6 +68,23 @@ services:
         - /var/run/docker.sock:/var/run/docker.sock
         - rolling_log:/tmp/rolling_log
         - uploaded_dumps:/input_dumps/uploaded
+
+  logs:
+    build:
+      context:
+        logs
+      args:
+        LOGIO_RELATIVE_PATH: '/logs'
+    environment:
+      TIMEZONE: Europe/Berlin
+    expose:
+        - 6689
+    networks:
+      - internal
+    volumes:
+      - rolling_log:/rolling
+    privileged: true
+
         
   cicd_postgres:
     image: postgres:13
@@ -79,6 +96,7 @@ services:
         POSTGRES_USER: ${DB_USER}
     volumes:
         - cicd_postgres_data:/var/lib/postgresql/data
+        - /tmp/dump:/tmp/dump
     ports:
         - "${DB_HOST}:${DB_PORT}:5432"
     healthcheck:
