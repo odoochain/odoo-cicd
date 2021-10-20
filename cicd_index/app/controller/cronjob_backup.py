@@ -47,7 +47,7 @@ def _do_backups():
                         _odoo_framework(
                             site,
                             ['backup', 'odoo-db', str(Path(os.environ['DUMPS_PATH']) / dump_name)],
-                            log_writer=logger
+                            logs_writer=logger
                             )
                     except Exception as ex:
                         msg = traceback.format_exc()
