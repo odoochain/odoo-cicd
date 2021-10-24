@@ -222,11 +222,14 @@ def site_jenkins():
     })
 
 def get_git_commits(path, count=30):
-    return subprocess.check_output([
-        "/usr/bin/git",
-        "log",
-        "-n", str(count),
-    ], cwd=path).strip().decode('utf-8')
+    try:
+        return subprocess.check_output([
+            "/usr/bin/git",
+            "log",
+            "-n", str(count),
+        ], cwd=path).strip().decode('utf-8')
+    except:
+        return ""
     
 def _load_detail_data(site_dict, count_history=10):
     path = _get_src_path(site_dict['name'])
