@@ -6,3 +6,10 @@ repos:
   sha: ad925e1387af63c329ac0e68db7dd92185c20cb6
   type: integrated
   url: https://github.com/NarrativeScience/log.io.git
+- branch: 15.0
+  patches:
+  - odoo_admin.patches
+  path: odoo_admin/odoo
+  sha: 1ace6a4a51a86922c9632614c4043e85f6ef1d6e
+  type: integrated
+  url: https://github.com/odoo/odoo
