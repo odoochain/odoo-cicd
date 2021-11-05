@@ -20,3 +20,4 @@ ODOO_SETTINGS=/home/jenkins/.odoo
 REPO_URL=https://git.clear-consulting.de/odoo/customs/ipe
 DISK_RESOURCES=/,/var/lib/docker
 MONGO_DATA_DIR=../mongo_data
+POSTGRES_VERSION=13

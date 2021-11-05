@@ -37,6 +37,9 @@ threads = {} # for multitasking
 #     f"Instance updated {name} in {duration} seconds."
 # )
 
+class ContinueFullUpdateException(Exception):
+    pass
+
 def _make_instance_docker_configs(site):
     instance_name = site['name']
     odoo_settings = Path("/odoo_settings")  # e.g. /home/odoo/.odoo
@@ -292,11 +295,29 @@ def build_instance(site):
                         )
                 last_sha = _last_success_full_sha(site)
 
-                files = [Path(x) for x in _odoo_framework(
-                    site,
-                    ["list-changed-files", "-s", last_sha],
-                    logs_writer=logger,
-                ).split("---")[1].split("\n") if x]
+                def _continue_with_full_update():
+                    logger.error("error getting diffs - doing full update")
+                    db.sites.update_one({
+                        'name': site['name']
+                    }, {'$set': {
+                        'build_mode': 'update-all-modules'
+                        }
+                    }, upsert=True)
+                    raise ContinueFullUpdateException()
+
+                if not last_sha:
+                    _continue_with_full_update()
+
+                try:
+                    files = [Path(x) for x in _odoo_framework(
+                        site,
+                        ["list-changed-files", "-s", last_sha],
+                        logs_writer=logger,
+                    ).split("---")[1].split("\n") if x]
+                except Exception as ex:
+                    logger.error(str(ex))
+                    _continue_with_full_update()
+                    raise
 
                 suffixes = set(x.suffix for x in files if x)
                 output = ""
