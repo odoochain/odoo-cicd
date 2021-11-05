@@ -3,4 +3,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class Repository(models.Model):
     _name = 'cicd.git.repo'
 
-    name = fields.Char("URL")
+    name = fields.Char("URL", required=True)
+    _sql_constraints = [
+        ('name_unique', "unique(named)", _("Only one unique entry allowed.")),
+    ]

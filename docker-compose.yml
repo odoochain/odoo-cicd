@@ -7,7 +7,7 @@ services:
       PORT: 5432
       USER: odoo
       PASSWORD: odoo
-    command: odoo --addons-path=/mnt/extra-addons -u cicd
+    command: odoo --addons-path=/mnt/extra-addons -u cicd --dev=reload
     ports:
         - 8881:8069
     volumes:
