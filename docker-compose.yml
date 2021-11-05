@@ -1,5 +1,25 @@
 version: '3.7'
 services:
+  adminodoo:
+    image: wbms/odoo14-multiarch
+    environment:
+      HOST: adminpostgres
+      PORT: 5432
+      USER: odoo
+      PASSWORD: odoo
+    command: odoo --addons-path=/mnt/extra-addons -u cicd
+    ports:
+        - 8881:8069
+    volumes:
+      - ./odoo_admin/odoo.conf:/etc/odoo/odoo.conf
+      - ./odoo_admin/addons:/mnt/extra-addons
+  adminpostgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: postgres
+
   cicd_delegator:
     env_file: .env
     build: ./cicd_delegator
@@ -147,6 +167,8 @@ services:
       - /opt/odoo:/opt/odoo
       - ${ODOO_SETTINGS}:/root/.odoo
       - ${CICD_WORKSPACE}:/cicd_workspace
+
+    
 volumes:
     cicd_postgres_data:
     rolling_log:
