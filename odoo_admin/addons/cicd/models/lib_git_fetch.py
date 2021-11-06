@@ -41,41 +41,31 @@ def _get_git_state(odoo_repo):
                     continue
                 
 
-def _make_new_instances(repo):
-    while True:
-        try:
+def _make_new_instances(odoo_repo):
+    new_commits = db.git_commits.find({'triggered_update': False})
+    new_branches = set([x['branch'] for x in new_commits])
+    for new_branch in new_branches:
+        with BUILDING_LOCK:
+            existing_site = db.sites.find_one({'name': new_branch})
+            data = {
+                'name': new_branch,
+                'needs_build': True,
+                'build_mode': 'update-recent',
+            }
+            if not existing_site:
+                data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+                if _get_config('auto_create_new_branches', default=False):
+                    data['build_mode'] = 'reset'
+                else:
+                    # If switching auto create new branches prevent that 1000s branches are built
+                    data['archive'] = True
+            else:
+                if existing_site.get('is_building') or existing_site.get('archive'):
+                    continue
 
-            new_commits = db.git_commits.find({'triggered_update': False})
-            new_branches = set([x['branch'] for x in new_commits])
-            for new_branch in new_branches:
-                with BUILDING_LOCK:
-                    existing_site = db.sites.find_one({'name': new_branch})
-                    data = {
-                        'name': new_branch,
-                        'needs_build': True,
-                        'build_mode': 'update-recent',
-                    }
-                    if not existing_site:
-                        data['date_registered'] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-                        if _get_config('auto_create_new_branches', default=False):
-                            data['build_mode'] = 'reset'
-                        else:
-                            # If switching auto create new branches prevent that 1000s branches are built
-                            data['archive'] = True
-                    else:
-                        if existing_site.get('is_building') or existing_site.get('archive'):
-                            continue
-
-                    db.sites.update_one({
-                        'name': new_branch,
-                    }, {'$set': data}, upsert=True)
-                    db.git_commits.update_many(
-                        {'branch': new_branch},
-                        {'$set': {'triggered_update': True}})
-
-        except Exception as ex:
-            msg = traceback.format_exc()
-            logger.error(msg)
-
-        finally:
-            time.sleep(5)
+            db.sites.update_one({
+                'name': new_branch,
+            }, {'$set': data}, upsert=True)
+            db.git_commits.update_many(
+                {'branch': new_branch},
+                {'$set': {'triggered_update': True}})

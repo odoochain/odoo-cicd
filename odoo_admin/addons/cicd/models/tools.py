@@ -1,6 +1,3 @@
-from .. import db
-from flask import Flask
-from flask_caching import Cache
 import tempfile
 import socket
 from io import BytesIO ## for Python 3
@@ -19,13 +16,11 @@ from bson import ObjectId
 import docker as Docker
 import logging
 import os
-from .. import host_ip
 from git import Repo
 from .logsio_writer import LogsIOWriter
-from .. import MAIN_FOLDER_NAME
 
+MAIN_FOLDER_NAME = "_main"
 PREFIX_PREPARE_DUMP = "prepare_dump_"
-
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +125,10 @@ def _odoo_framework(site_name, command, logs_writer, instance_folder=None):
     logger.info(f"Executed command: {site_name} {command}")
     return output
 
+def get_host_ip():
+    host_ip = '.'.join(subprocess.check_output(["/usr/bin/hostname", "-I"]).decode('utf-8').strip().split(".")[:3]) + '.1'
+    return host_ip
+
 def _execute_shell(command, cwd=None, env=None, callback=None):
     if isinstance(command, str):
         command = [command]
@@ -163,7 +162,7 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
 
 
     with spur.SshShell(
-        hostname=host_ip,
+        hostname=get_host_ip(),
         username=os.environ['HOST_SSH_USER'],
         private_key_file="/root/.ssh/id_rsa",
         missing_host_key=spur.ssh.MissingHostKey.accept

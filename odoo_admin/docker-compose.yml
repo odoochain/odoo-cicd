@@ -1,7 +1,9 @@
 services:
   odoo_base:
+    privileged: True
     volumes:
       - ${CICD_WORKSPACE}:/cicd_workspace
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - internal
 

@@ -5,7 +5,9 @@
     'depends': ['base'],
     "external_dependencies": {
         "python": [
-            #"pudb"
+            "pudb",
+            'spur',
+            'bson',
         ]
     },
     'data': [
