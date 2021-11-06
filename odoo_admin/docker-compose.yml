@@ -1,0 +1,10 @@
+services:
+  odoo_base:
+    volumes:
+      - ${CICD_WORKSPACE}:/cicd_workspace
+    networks:
+      - internal
+
+networks:
+    internal:
+        name: "${CICD_NETWORK_NAME}_internal"

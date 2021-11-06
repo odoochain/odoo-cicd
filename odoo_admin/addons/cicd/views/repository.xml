@@ -17,6 +17,10 @@
 					<sheet>
 						<group>
 							<field name="name"/>
+							<field name="login_type"/>
+							<field name="key" attrs="{'invisible': [('login_type', '!=', 'key')]}"/>
+							<field name="username" attrs="{'invisible': [('login_type', '!=', 'username')]}"/>
+							<field name="password" password="True" attrs="{'invisible': [('login_type', '!=', 'username')]}"/>
 						</group>
 					</sheet>
 				</form>

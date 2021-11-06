@@ -1,0 +1,12 @@
+{
+	"server-wide-modules": ['web'],
+	"install": [
+		"cicd"
+	],
+	"version": 15.0,
+	"addons_paths": [
+		"odoo/odoo/addons",
+		"odoo/addons",
+		"addons"
+	]
+}
