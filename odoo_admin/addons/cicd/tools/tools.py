@@ -19,6 +19,7 @@ import os
 from git import Repo
 from .logsio_writer import LogsIOWriter
 
+WORKSPACE = Path(os.environ['CICD_WORKSPACE'])
 MAIN_FOLDER_NAME = "_main"
 PREFIX_PREPARE_DUMP = "prepare_dump_"
 
@@ -359,23 +360,21 @@ def _get_config(name, default):
 def _set_config(name, value):
     db.config.update_one({'name': name}, {'$set': {'name': name, 'value': value}}, upsert=True)
 
-def clone_repo(url, path):
-    if not path.exists():
-        git.Repo.clone_from(url, path)
-    try:
-        repo = Repo(path)
-    except git.exc.InvalidGitRepositoryError:
-        shutil.rmtree(path)
-        git.Repo.clone_from(url, path)
-        repo = Repo(path)
+def clone_repo(odoo_repo, path):
+    with odoo_repo._get_ssh_command() as env:
+        if not path.exists():
+            git.Repo.clone_from(odoo_repo.url, path, env=env)
+        try:
+            repo = Repo(path)
+        except git.exc.InvalidGitRepositoryError:
+            shutil.rmtree(path)
+            git.Repo.clone_from(odoo_repo.url, path, env=env)
+            repo = Repo(path)
     return repo
 
-def _get_main_repo(tempfolder=False, destination_folder=False):
-    from . import WORKSPACE
-    from . import URL
-
+def _get_main_repo(odoo_repo, tempfolder=False, destination_folder=False):
     path = WORKSPACE / MAIN_FOLDER_NAME
-    repo = clone_repo(URL, path)
+    repo = clone_repo(odoo_repo, path)
 
     if destination_folder:
         temppath = destination_folder

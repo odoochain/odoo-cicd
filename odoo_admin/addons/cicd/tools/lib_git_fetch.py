@@ -12,10 +12,9 @@ logger = logging.getLogger(__name__)
 class NewBranch(Exception): pass
 
 def _get_new_commits(odoo_repo):
-    import pudb;pudb.set_trace()
     odoo_repo._lock_git()
         
-    repo = _get_main_repo()
+    repo = _get_main_repo(odoo_repo)
 
     for remote in repo.remotes:
         fetch_info = remote.fetch()

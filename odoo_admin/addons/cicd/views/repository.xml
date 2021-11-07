@@ -12,8 +12,7 @@
 			<field name="name">cicd.git.repo form</field>
 			<field name="model">cicd.git.repo</field>
 			<field name="arch" type="xml">
-				<form string="">
-					<header></header>
+				<form>
 					<sheet>
 						<group>
 							<field name="name"/>
@@ -25,8 +24,10 @@
 						</group>
 						<group>
 							<field name="branch_ids" nolabel="1">
-								<field name="name"/>
-								<field name="date"/>
+								<tree>
+									<field name="name"/>
+									<field name="date_registered"/>
+								</tree>
 							</field>>
 
 						</group>
