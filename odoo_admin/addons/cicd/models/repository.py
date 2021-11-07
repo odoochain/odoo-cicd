@@ -18,7 +18,8 @@ class Repository(models.Model):
     key = fields.Text("Key")
     username = fields.Char("Username")
     password = fields.Char("Password")
-
+    skip_paths = fields.Char("/release/", help="Comma separated list")
+    branch_ids = fields.One2many('cicd.git.branch', 'repo_id', string="Branches")
 
     _sql_constraints = [
         ('name_unique', "unique(named)", _("Only one unique entry allowed.")),

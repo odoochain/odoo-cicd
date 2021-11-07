@@ -1,5 +1,4 @@
 import logging
-import traceback
 import arrow
 from copy import deepcopy
 from datetime import datetime
@@ -14,6 +13,7 @@ class NewBranch(Exception): pass
 
 def _get_new_commits(odoo_repo):
     import pudb;pudb.set_trace()
+    odoo_repo._lock_git()
         
     repo = _get_main_repo()
 
@@ -21,21 +21,30 @@ def _get_new_commits(odoo_repo):
         fetch_info = remote.fetch()
         for fi in fetch_info:
             name = fi.ref.name.split("/")[-1]
-            if '/release/' in fi.ref.name:
-                continue
-            key = {
-                'branch': name,
-                'sha': str(fi.commit),
-            }
-            if not db.git_commits.find_one(key):
-                data = deepcopy(key)
-                data['triggered_update'] = False
-                data['date'] = arrow.get().strftime("%Y-%m-%d %H:%M:%S")
-                db.git_commits.update_one(key, {"$set": data}, upsert=True)
-                # trigger onetime only for new branch
+            for skip in (odoo_repo.skip_paths or '').split(","):
+                if skip in fi.ref.name: # e.g. '/release/'
+                    continue
+            sha = fi.commit
+
+            if not (branch := odoo_repo.branch_ids.filtered(lambda x: x.name == name)):
+                branch = odoo_repo.branch_ids.create({
+                    'name': name,
+                    'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H%:M%:%S"),
+                    'repo_id': odoo_repo.id,
+                })
+
+            new_commit = False
+            if not (commit := branch.commit_ids.filtered(lambda x: x.name == name)):
+                new_commit = True
+                commit = branch.commit_ids.create({
+                    'name': name,
+                    'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H%:M%:%S"),
+                    'branch_id': branch.id,
+                })
+
+            if new_commit:
                 try:
                     repo.git.checkout(name, force=True)
                     repo.git.pull()
                 except Exception as ex:
                     logger.error(ex)
-                    continue

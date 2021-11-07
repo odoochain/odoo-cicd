@@ -1,5 +1,5 @@
 {
-	"server-wide-modules": ['web'],
+	"server-wide-modules": ["web"],
 	"install": [
 		"cicd"
 	],

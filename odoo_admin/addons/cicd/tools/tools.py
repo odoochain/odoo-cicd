@@ -371,77 +371,73 @@ def clone_repo(url, path):
     return repo
 
 def _get_main_repo(tempfolder=False, destination_folder=False):
-    from . import GIT_LOCK
-    with GIT_LOCK:
-        from . import WORKSPACE
-        from . import URL
+    from . import WORKSPACE
+    from . import URL
 
-        path = WORKSPACE / MAIN_FOLDER_NAME
-        repo = clone_repo(URL, path)
+    path = WORKSPACE / MAIN_FOLDER_NAME
+    repo = clone_repo(URL, path)
 
-        if destination_folder:
-            temppath = destination_folder
-        elif tempfolder:
-            temppath = tempfile.mktemp()
-        else:
-            temppath = None
-        if temppath:
-            subprocess.check_call(['rsync', f"{path}/", f"{temppath}/", "-ar"])
-            repo = Repo(temppath)
+    if destination_folder:
+        temppath = destination_folder
+    elif tempfolder:
+        temppath = tempfile.mktemp()
+    else:
+        temppath = None
+    if temppath:
+        subprocess.check_call(['rsync', f"{path}/", f"{temppath}/", "-ar"])
+        repo = Repo(temppath)
             
     return repo
 
 def update_instance_folder(branch, logs_writer, instance_folder=None):
-    from . import GIT_LOCK
     from . import URL
     from . import WORKSPACE
     instance_folder = Path(instance_folder or WORKSPACE / branch)
     tries = 0
-    with GIT_LOCK:
-        while tries < 3:
-            try:
-                tries += 1
-                logs_writer.write_text(f"Updating instance folder {branch}")
-                _store(branch, {'is_building': True})
-                logs_writer.write_text(f"Cloning {branch} {URL} to {instance_folder}")
-                repo = clone_repo(URL, instance_folder)
-                logs_writer.write_text(f"Checking out {branch}")
-                repo.git.checkout(branch, force=True)
-                logs_writer.write_text(f"Pulling {branch}")
-                repo.git.pull()
-                logs_writer.write_text(f"Clean git")
-                run = subprocess.run(
-                    ["git", "clean", "-xdff"],
-                    capture_output=True,
-                    cwd=instance_folder,
-                    env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
-                    )
+    while tries < 3:
+        try:
+            tries += 1
+            logs_writer.write_text(f"Updating instance folder {branch}")
+            _store(branch, {'is_building': True})
+            logs_writer.write_text(f"Cloning {branch} {URL} to {instance_folder}")
+            repo = clone_repo(URL, instance_folder)
+            logs_writer.write_text(f"Checking out {branch}")
+            repo.git.checkout(branch, force=True)
+            logs_writer.write_text(f"Pulling {branch}")
+            repo.git.pull()
+            logs_writer.write_text(f"Clean git")
+            run = subprocess.run(
+                ["git", "clean", "-xdff"],
+                capture_output=True,
+                cwd=instance_folder,
+                env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
+                )
 
-                run = subprocess.run(
-                    ["git", "submodule", "update", "--init", "--force", "--recursive"],
-                    capture_output=True,
-                    cwd=instance_folder,
-                    env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
-                    )
-                if run.returncode:
-                    msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
-                    logs_writer.write_text(rolling_file, msg)
-                    raise Exception(msg)
-                commit = repo.refs[branch].commit
-                user_id = get_sshuser_id()
-                logs_writer.write_text(f"Setting access rights in {instance_folder} to {user_id}")
-                subprocess.check_call(["/usr/bin/chown", f"{user_id}:{user_id}", "-R", str(instance_folder)])
-                return str(commit)
+            run = subprocess.run(
+                ["git", "submodule", "update", "--init", "--force", "--recursive"],
+                capture_output=True,
+                cwd=instance_folder,
+                env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
+                )
+            if run.returncode:
+                msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
+                logs_writer.write_text(rolling_file, msg)
+                raise Exception(msg)
+            commit = repo.refs[branch].commit
+            user_id = get_sshuser_id()
+            logs_writer.write_text(f"Setting access rights in {instance_folder} to {user_id}")
+            subprocess.check_call(["/usr/bin/chown", f"{user_id}:{user_id}", "-R", str(instance_folder)])
+            return str(commit)
 
-            except Exception as ex:
-                if tries < 3:
-                    logs_writer.write_text(str(ex))
-                    logger.warn(ex)
-                    logs_writer.write_text(f"Retrying update instance folder for {branch}")
-                    if instance_folder.exists():
-                        shutil.rmtree(instance_folder)
-                else:
-                    raise
+        except Exception as ex:
+            if tries < 3:
+                logs_writer.write_text(str(ex))
+                logger.warn(ex)
+                logs_writer.write_text(f"Retrying update instance folder for {branch}")
+                if instance_folder.exists():
+                    shutil.rmtree(instance_folder)
+            else:
+                raise
 
 def get_sshuser_id():
     user_name = os.environ['HOST_SSH_USER']
