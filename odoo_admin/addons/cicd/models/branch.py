@@ -5,8 +5,8 @@ class GitBranch(models.Model):
 
     name = fields.Char("Git Branch", required=True)
     repo_id = fields.Many2one('cicd.git.repo', string="Repository", required=True)
+    active = fields.Boolean("Active", default=True)
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
-        
     ]

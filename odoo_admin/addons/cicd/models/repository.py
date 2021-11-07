@@ -1,7 +1,12 @@
+import random
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
-from . import lib_git_fetch
-from . import lib_get_fetch
+from ..tools import lib_git_fetch
+from . import pg_try_advisory_lock
+from odoo.addons.queue_job.exception import (
+    RetryableJobError,
+    JobError,
+)
 class Repository(models.Model):
     _name = 'cicd.git.repo'
 
@@ -22,9 +27,14 @@ class Repository(models.Model):
     @api.model
     def _cron_fetch(self):
         for repo in self.search([]):
-            lib_git_fetch._make_new_instances(self)
+            lib_git_fetch._get_new_commits(self)
 
-    @api.model
-    def _cron_git_state(self):
-        for repo in self.search([]):
-            lib_git_fetch._git_state(self)
+    def _lock_git(self): 
+
+        def retry(lock):
+            raise RetryableJobError(f'Could not acquire advisory lock (stock move line {lock})', seconds=random.randint(5, 15), ignore_retry=True)
+
+        for rec in self:
+            lock = rec.name
+            if not pg_try_advisory_lock(self.env.cr, lock):
+                retry(lock)

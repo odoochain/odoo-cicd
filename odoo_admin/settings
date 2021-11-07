@@ -1,4 +1,5 @@
 RUN_POSTGRES=0
+INSTALL_DOCKER_CLIENTS=1
 DB_NAME=admincicd
 DB_HOST=adminpostgres
 DB_USER=odoo
