@@ -26,7 +26,6 @@ def _get_new_commits(odoo_repo):
                         continue
                 sha = fi.commit
 
-                import pudb;pudb.set_trace()
                 if not (branch := odoo_repo.branch_ids.filtered(lambda x: x.name == name)):
                     branch = odoo_repo.branch_ids.create({
                         'name': name,
@@ -39,13 +38,13 @@ def _get_new_commits(odoo_repo):
                     new_commit = True
                     commit = branch.commit_ids.create({
                         'name': name,
-                        'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:M:%S"),
-                        'branch_id': branch.id,
+                        'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                        'branch_ids': [[4, branch.id]],
                     })
 
                 if new_commit:
                     try:
                         repo.git.checkout(name, force=True)
-                        repo.git.pull()
+                        repo.git.pull(env=env)
                     except Exception as ex:
                         logger.error(ex)
