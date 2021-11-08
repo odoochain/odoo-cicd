@@ -9,6 +9,10 @@ class GitBranch(models.Model):
     repo_id = fields.Many2one('cicd.git.repo', string="Repository", required=True)
     active = fields.Boolean("Active", default=True)
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
+    state = fields.Selection([
+        ('new', 'New'),
+        ('approved', 'Approved'),
+    ], string="State", default="new", required=True)
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),

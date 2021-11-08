@@ -6,6 +6,7 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools import lib_git_fetch
 from . import pg_try_advisory_lock
+from ..tools.tools import _execute_shell
 from odoo.addons.queue_job.exception import (
     RetryableJobError,
     JobError,

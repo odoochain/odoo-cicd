@@ -8,6 +8,7 @@
             "pudb",
             'spur',
             'bson',
+            'humanize',
         ]
     },
     'data': [

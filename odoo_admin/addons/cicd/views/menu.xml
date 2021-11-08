@@ -17,5 +17,12 @@
 			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
 		</record>
 		<menuitem parent="config_menu" id="menu_repos" action="configuration_action"/>
+		<record id='machines_action' model='ir.actions.act_window'>
+			<field name='name'>Machines</field>
+			<field name='res_model'>cicd.machine</field>
+			<field name='view_mode'>form</field>
+			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
+		</record>
+		<menuitem parent="config_menu" id="menu_machines" action="machines_action"/>
 	</data>
 </odoo>
