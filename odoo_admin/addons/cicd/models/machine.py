@@ -38,6 +38,7 @@ class CicdMachine(models.Model):
 
     def test_ssh(self):
         self._execute_shell(["ls"])
+        raise ValidationError(_("Everyhing Works!"))
 
     def _execute_shell(self, cmd):
         res, stdout, stderr = _execute_shell(self, cmd)
