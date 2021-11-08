@@ -30,13 +30,17 @@ class Repository(models.Model):
     ]
 
     def _compute_url(self):
-        import pudb;pudb.set_trace()
         for rec in self:
             if rec.login_type == 'username':
-                if rec.name.startswith('https:'):
-                    rec = f'https://{rec.username}:{rec.password}@{rec.name[8]}'
-                else:
-                    raise NotImplementedError(rec.name)
+                url = ""
+                for prefix in [
+                    'https://',
+                    'http://',
+                    'ssh://',
+                    'ssh+git://'
+                ]:
+                    if rec.name.startswith(prefix):
+                        url = f'{prefix}{rec.username}:{rec.password}@{rec.name[len(prefix):]}'
                 rec.url = url
             else:
                 rec.url = rec.name
@@ -48,14 +52,16 @@ class Repository(models.Model):
         env = {}
 
         try:
+            env['GIT_SSH_COMMAND'] = f'ssh -o StrictHostKeyChecking=no'
             if self.login_type == 'key':
-                env['GIT_SSH_COMMAND'] = f'ssh -i {file}'
+                env['GIT_SSH_COMMAND'] += ['f-i {file}']
                 file.write_text(self.key)
             else:
                 pass
             yield env
         finally:
-            file.unlink()
+            if file.exists():
+                file.unlink()
 
 
     @api.model

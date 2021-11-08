@@ -29,3 +29,4 @@ def pg_advisory_lock(cr, lock):
 
 from . import branch
 from . import repository
+from . import commit

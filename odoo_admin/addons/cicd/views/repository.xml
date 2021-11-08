@@ -28,7 +28,7 @@
 									<field name="name"/>
 									<field name="date_registered"/>
 								</tree>
-							</field>>
+							</field>
 
 						</group>
 					</sheet>
