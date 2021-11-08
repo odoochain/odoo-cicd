@@ -166,10 +166,11 @@ def _execute_shell(odoo_machine, command, cwd=None, env=None, callback=None):
     ssh_dir = Path(os.path.expanduser("~/.ssh"))
     ssh_dir.mkdir(exist_ok=True)
     os.chmod(ssh_dir, 0o500)
+    import pudb;pudb.set_trace()
 
     ssh_keyfile = ssh_dir / odoo_machine.name
-    ssh_keyfile.write
-
+    ssh_keyfile.write_text(odoo_machine.ssh_key)
+    os.chmod(ssh_keyfile, 0o400)
 
 
     with spur.SshShell(

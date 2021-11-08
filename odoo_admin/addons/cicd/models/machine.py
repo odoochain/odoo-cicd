@@ -40,7 +40,7 @@ class CicdMachine(models.Model):
         self._execute_shell(["ls"])
 
     def _execute_shell(self, cmd):
-        res, stdout, stderr = _execute_shell(cmd)
+        res, stdout, stderr = _execute_shell(self, cmd)
         if stderr:
             raise Exception(stderr)
         return stdout
