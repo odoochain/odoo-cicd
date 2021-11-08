@@ -13,10 +13,16 @@
 								<field name="name" colspan="4" class="oe_inline" />
 							</h1>
 						</div>
+						<group>
+							<field name="ssh_user"/>
+							<field name="ssh_pubkey"/>
+
+						</group>
 						<group string="Volumes" col="4">
-							<field name="volume_ids">
+							<field name="volume_ids" nolabel='1'>
 								<tree>
 									<field name="name" />
+									<field name="size_human"/>
 								</tree>
 							</field>
 						</group>
