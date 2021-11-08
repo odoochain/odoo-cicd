@@ -16,6 +16,8 @@ class CicdMachine(models.Model):
     ssh_user = fields.Char("SSH User")
     ssh_pubkey = fields.Text("SSH Pubkey")
     ssh_key = fields.Text("SSH Key")
+    dump_paths = fields.Char("Dump Paths")
+    dump_ids = fields.One2many('cicd.dump', 'machine_id', string="Dumps")
 
     def generate_ssh_key(self):
         self.ensure_one()
@@ -45,18 +47,16 @@ class CicdMachine(models.Model):
         if stderr:
             raise Exception(stderr)
         return stdout
+
+    def update_dumps(self):
+        self.ensure_one()
+        self.env['cicd.dump']._update_dumps(self)
 class CicdVolumes(models.Model):
+    _inherit = ['cicd.mixin.size']
     _name = 'cicd.machine.volume'
 
     name = fields.Char("Path")
-    size = fields.Integer("Size")
-    size_human = fields.Char("Size", compute="_humanize")
     machine_id = fields.Many2one('cicd.machine', string="Machine")
-
-    @api.depends('size')
-    def _humanize(self):
-        for rec in self:
-            rec.size_human = humanize.naturalsize(rec.size)
 
     def update_values(self):
         try:

@@ -8,6 +8,7 @@
 					<header>
 						<button name="test_ssh" string="Test SSH Connection" type="object" />
 						<button name="generate_ssh_key" string="Generate SSH Key" type="object" confirm="Old key will be lost. Continue?"/>
+						<button name="update_dumps" string="Update Dumps" type="object" />
 					</header>
 					<sheet>
 						<div class="oe_title">
@@ -20,14 +21,28 @@
 							<field name="ssh_pubkey"/>
 
 						</group>
-						<group string="Volumes" col="4">
-							<field name="volume_ids" nolabel='1'>
-								<tree>
-									<field name="name" />
-									<field name="size_human"/>
-								</tree>
-							</field>
-						</group>
+						<notebook>
+							<page name="volumes" string="Volumes">
+								<group string="" col="2">
+									<field name="volume_ids" nolabel='1'>
+										<tree>
+											<field name="name" />
+											<field name="size_human"/>
+										</tree>
+									</field>
+								</group>
+							</page>
+							<page name="dumps" string="Dumps">
+								<group>
+									<field name="dump_ids" nolabel='1'>
+										<tree>
+											<field name="name"/>
+											<field name="size_human"/>
+										</tree>
+									</field>
+								</group>
+							</page>
+						</notebook>
 					</sheet>
 				</form>
 			</field>

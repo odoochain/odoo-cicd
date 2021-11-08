@@ -5,11 +5,16 @@
 			<field name="model">cicd.git.branch</field>
 			<field name="arch" type="xml">
 				<form string="">
-					<header></header>
+					<header>
+						<button name="build" string="Build Now" type="object" />
+						<button string="Confirm" name="hr_verify_sheet" states="draft" class="oe_highlight"/>
+						<field name="state" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'readonly': True}" clickable='True'/>
+					</header>
 					<sheet>
 						<group string="Branch" col="4">
 							<field name="name" />
 							<field name="repo_id" />
+							<field name="build_state"/>
 						</group>
 						<group string="Commits">
 							<field name="commit_ids" nolabel='1' readonly='1'>

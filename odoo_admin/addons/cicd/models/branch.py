@@ -1,3 +1,4 @@
+from odoo import registry
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class GitBranch(models.Model):
@@ -13,7 +14,28 @@ class GitBranch(models.Model):
         ('new', 'New'),
         ('approved', 'Approved'),
     ], string="State", default="new", required=True)
+    build_state = fields.Selection([
+        ('new', 'New'),
+        ('fail', 'Failed'),
+        ('ready', 'Ready'),
+        ('building', 'Building'),
+    ], default="new")
+    lock_building = fields.Datetime("Lock Building")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    def build(self):
+        self.ensure_one()
+
+        # check if building then dont touch
+        # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+        db_registry = registry(self.env.cr.dbname)
+        with api.Environment.manage(), db_registry.cursor() as cr:
+            env = api.Environment(cr, SUPERUSER_ID, {})
+            branch2 = env[GitBranch._name].browse(self.id)
+            branch2.lock_building = fields.Datetime.now()
+            cr.commit()
+        
+        self.ensure_one()
