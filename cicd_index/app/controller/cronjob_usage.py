@@ -1,22 +1,14 @@
 import logging
 import humanize 
-import pymongo
 import time
 import threading
 from .. import db
 from .tools import _get_db_conn
 from .tools import _get_config, _set_config
 from .tools import _get_instance_config
-import os
-import re
-import subprocess
-import sys
+from .logsio_writer import LogsIOWriter
 from pathlib import Path
-import json
-import requests
 import time
-import arrow
-import click
 from .tools import _get_repo
 from dotenv import load_dotenv
 from datetime import datetime
@@ -41,6 +33,7 @@ def _usages():
     while True:
         try:
             for site in db.sites.find({}):
+                logger = LogsIOWriter(site['name'], 'usage-statistics')
                 name = site['name']
 
                 path = Path('/cicd_workspace') / name
@@ -49,12 +42,14 @@ def _usages():
                 if path.exists():
                     source_size = round(sum(f.stat().st_size for f in path.glob('**/*') if f.is_file()), 0)
                     source_size_humanize = humanize.naturalsize(source_size)
+                logger.info(f"Size source: {source_size_humanize }")
 
                 settings = _get_instance_config(name)
                 dbname = settings.get('DBNAME', "")
                 db_size = 0
                 if dbname:
                     db_size = _get_db_size(dbname)
+                logger.info(f"DB size: {db_size}")
 
                 db.sites.update_one({'_id': site['_id']}, {'$set': {
                     'db_size': db_size,
@@ -62,6 +57,7 @@ def _usages():
                     'source_size': source_size,
                     'source_size_humanize': source_size_humanize,
                 }}, upsert=False)
+                logger.info(f"Usage collected for {site['name']}")
 
         except Exception as ex:
             logger.error(ex)
