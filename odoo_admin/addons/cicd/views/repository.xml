@@ -17,13 +17,13 @@
 						<group>
 							<field name="name"/>
 							<field name="login_type"/>
-							<field name="skip_paths"/>
+							<field name="skip_paths" placeholder='/release/'/>
 							<field name="key" attrs="{'invisible': [('login_type', '!=', 'key')]}"/>
 							<field name="username" attrs="{'invisible': [('login_type', '!=', 'username')]}"/>
 							<field name="password" password="True" attrs="{'invisible': [('login_type', '!=', 'username')]}"/>
 						</group>
 						<group>
-							<field name="branch_ids" nolabel="1">
+							<field name="branch_ids" nolabel="1" readonly='1'>
 								<tree>
 									<field name="name"/>
 									<field name="date_registered"/>

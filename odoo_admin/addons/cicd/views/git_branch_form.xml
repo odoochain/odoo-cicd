@@ -12,7 +12,7 @@
 							<field name="repo_id" />
 						</group>
 						<group string="Commits">
-							<field name="commit_ids">
+							<field name="commit_ids" nolabel='1' readonly='1'>
 								<tree>
 									<field name="name" />
 									<field name="date_registered" />

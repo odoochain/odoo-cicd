@@ -1,3 +1,5 @@
 model_id:id,group_id:id,id,name,perm_read,perm_write,perm_create,perm_unlink
 model_cicd_git_branch,base.group_user,access_cicd_git_branch_base_group_user,cicd.git.branch_base_group_user,1,1,1,1
 model_cicd_git_repo,base.group_system,cicd_git_repo_base_group_system,cicd.git.repo - base_group_system,1,1,1,1
+model_cicd_git_commit,base.group_user,cicd_git_commit_base_group_user,cicd.git.commit - base_group_user,1,0,0,0
+

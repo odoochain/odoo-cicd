@@ -21,7 +21,7 @@ class Repository(models.Model):
     key = fields.Text("Key")
     username = fields.Char("Username")
     password = fields.Char("Password")
-    skip_paths = fields.Char("/release/", help="Comma separated list")
+    skip_paths = fields.Char("Skip Paths", help="Comma separated list")
     branch_ids = fields.One2many('cicd.git.branch', 'repo_id', string="Branches")
     url = fields.Char(compute="_compute_url")
 
