@@ -18,6 +18,7 @@ import logging
 import os
 from git import Repo
 from .logsio_writer import LogsIOWriter
+from contextlib import contextmanager
 
 WORKSPACE = Path(os.environ['CICD_WORKSPACE'])
 MAIN_FOLDER_NAME = "_main"
@@ -127,10 +128,10 @@ def _odoo_framework(site_name, command, logs_writer, instance_folder=None):
     return output
 
 def get_host_ip():
-    host_ip = '.'.join(subprocess.check_output(["/usr/bin/hostname", "-I"]).decode('utf-8').strip().split(".")[:3]) + '.1'
+    host_ip = '.'.join(subprocess.check_output(["/bin/hostname", "-I"]).decode('utf-8').strip().split(".")[:3]) + '.1'
     return host_ip
 
-def _execute_shell(command, cwd=None, env=None, callback=None):
+def _execute_shell(odoo_machine, command, cwd=None, env=None, callback=None):
     if isinstance(command, str):
         command = [command]
 
@@ -161,10 +162,19 @@ def _execute_shell(command, cwd=None, env=None, callback=None):
 
     stdout, stderr = MyWriter('stdout'), MyWriter('stderr')
 
+    # place private keyfile
+    ssh_dir = Path(os.path.expanduser("~/.ssh"))
+    ssh_dir.mkdir(exist_ok=True)
+    os.chmod(ssh_dir, 0o500)
+
+    ssh_keyfile = ssh_dir / odoo_machine.name
+    ssh_keyfile.write
+
+
 
     with spur.SshShell(
         hostname=get_host_ip(),
-        username=os.environ['HOST_SSH_USER'],
+        username=odoo_machine.ssh_user,
         private_key_file="/root/.ssh/id_rsa",
         missing_host_key=spur.ssh.MissingHostKey.accept
         ) as shell:
@@ -473,3 +483,14 @@ def get_logs_url(site_name, sources=[]):
         arr.append (f"{site_name}|{source}")
     arr = str(arr).replace("'", '"')
     return f"/logs#{{\"{nr}\": {arr}}}"
+
+
+
+@contextmanager
+def tempdir():
+    dir = Path(tempfile.mktemp(suffix='.'))
+    try:
+        dir.mkdir(exist_ok=True, parents=True)
+        yield Path(dir)
+    finally:
+        shutil.rmtree(dir)
