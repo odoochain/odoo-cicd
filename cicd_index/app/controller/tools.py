@@ -426,7 +426,7 @@ def update_instance_folder(branch, logs_writer, instance_folder=None):
                     )
                 if run.returncode:
                     msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
-                    logs_writer.write_text(rolling_file, msg)
+                    logs_writer.write_text(msg)
                     raise Exception(msg)
                 commit = repo.refs[branch].commit
                 user_id = get_sshuser_id()
