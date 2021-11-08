@@ -11,6 +11,18 @@
 							<field name="name" />
 							<field name="repo_id" />
 						</group>
+						<group string="Commits">
+							<field name="commit_ids">
+								<tree>
+									<field name="name" />
+									<field name="date_registered" />
+									<field name="date" />
+
+								</tree>
+
+							</field>
+
+						</group>
 					</sheet>
 				</form>
 			</field>
