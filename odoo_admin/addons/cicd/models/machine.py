@@ -6,10 +6,10 @@ from ..tools.tools import _execute_shell
 class CicdMachine(models.Model):
     _name = 'cicd.machine'
 
-    volume_ids = fields.One2many("cicd.volume", 'machine_id', string="Volumes")
+    volume_ids = fields.One2many("cicd.machine.volume", 'machine_id', string="Volumes")
 
 class CicdVolumes(models.Model):
-    _name = 'cicd.volume'
+    _name = 'cicd.machine.volume'
 
     name = fields.Char("Path")
     size = fields.Integer("Size")

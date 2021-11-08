@@ -1,24 +1,19 @@
-{
-    'name': 'cicd',
-    'version': '14.0.1.0',
+{   'application': False,
     'auto_install': True,
+    'css': [],
+    'data': [   'data/cronjobs.xml',
+                'data/data.xml',
+                'views/git_branch_form.xml',
+                'views/git_branch_kanban.xml',
+                'views/git_branch_tree.xml',
+                'views/machine_form.xml',
+                'views/repository.xml',
+                'views/menu.xml',
+                'security/ir.model.access.csv'],
+    'demo': [],
     'depends': ['base'],
-    "external_dependencies": {
-        "python": [
-            "pudb",
-            'spur',
-            'bson',
-            'humanize',
-        ]
-    },
-    'data': [
-        'data/data.xml',
-        'data/cronjobs.xml',
-        'security/ir.model.access.csv',
-        'views/repository.xml',
-        'views/git_branch_form.xml',
-        'views/git_branch_tree.xml',
-        'views/git_branch_kanban.xml',
-        'views/menu.xml',
-    ],
-}
+    'external_dependencies': {'python': ['pudb', 'spur', 'bson', 'humanize']},
+    'name': 'cicd',
+    'qweb': [],
+    'test': [],
+    'version': '14.0.1.0'}

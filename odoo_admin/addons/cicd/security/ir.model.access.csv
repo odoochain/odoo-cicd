@@ -3,3 +3,6 @@ model_cicd_git_branch,base.group_user,access_cicd_git_branch_base_group_user,cic
 model_cicd_git_repo,base.group_system,cicd_git_repo_base_group_system,cicd.git.repo - base_group_system,1,1,1,1
 model_cicd_git_commit,base.group_user,cicd_git_commit_base_group_user,cicd.git.commit - base_group_user,1,0,0,0
 
+model_cicd_machine_volume,base.group_user,cicd_machine_volume_base_group_user,cicd.machine.volume - base_group_user,1,0,0,0
+model_cicd_machine,base.group_user,cicd_machine_base_group_user,cicd.machine - base_group_user,1,0,0,0
+
