@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class GitBranch(models.Model):
     _name = 'cicd.git.branch'
 
+    machine_id = fields.Many2one('cicd.machine', string="Machine", compute="_compute_machine")
     name = fields.Char("Git Branch", required=True)
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
@@ -20,13 +21,17 @@ class GitBranch(models.Model):
         ('fail', 'Failed'),
         ('building', 'Building'),
     ], default="new", compute="_compute_build_state")
-    lock_building = fields.Datetime("Lock Building")
+    dump_id = fields.Many2one("cicd.dump", string="Dump")
 
     # autobackup = fields.Boolean("Autobackup")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    def _compute_machine(self):
+        for rec in self:
+            rec.machine_id = self.machine_id.sudo().search([], limit=1)
 
     @api.depends('task_ids', 'task_ids.state')
     def _compute_build_state(self):
@@ -41,9 +46,13 @@ class GitBranch(models.Model):
                 else:
                     rec.build_state = 'new'
 
-    def build(self):
+    def reload_and_restart(self):
         self.ensure_one()
-        self._make_task("obj._build()")
+        self._make_task("obj._reload_and_restart()")
+
+    def restore_dump(self):
+        self.ensure_one()
+        self._make_task("obj._restore_dump()")
 
     def _make_task(self, execute):
         if self.task_ids.filtered(lambda x: x.state == 'new' and x.name == execute):
@@ -81,6 +90,29 @@ class GitBranch(models.Model):
         tasks = tasks[-1]
         tasks.perform()
 
-    def _build(self, task):
-        import pudb;pudb.set_trace()
-        raise Exception("BUILD!")
+    def _restore_dump(self, task):
+        log = self.machine_id._execute_shell([
+            'odoo', '--project-name', self.name, 'reload',
+        ])
+        log += self.machine_id._execute_shell([
+            'odoo', '--project-name', self.name, 'build',
+        ])
+        log += self.machine_id._execute_shell([
+            'odoo', '--project-name', self.name, 'down',
+        ])
+        log += self.machine_id._execute_shell([
+            'odoo', '--project-name', self.name, '-f', 'restore', 'odoo-db', self.dump_id.name
+        ])
+
+    def _reload_and_restart(self, task):
+        task.dump_used = self.dump_id.name
+        log = self.machine_id._execute_shell([
+            'odoo', '--project-name', self.name, 'reload',
+        ])
+        log += self.machine_id._execute_shell([
+            'odoo', '--project-name', self.name, 'build',
+        ])
+        log += self.machine_id._execute_shell([
+            'odoo', '--project-name', self.name, 'up', '-d',
+        ])
+        task.log = log

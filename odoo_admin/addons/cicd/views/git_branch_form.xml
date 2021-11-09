@@ -6,9 +6,10 @@
 			<field name="arch" type="xml">
 				<form string="">
 					<header>
-						<button name="build" string="Build Now" type="object" />
+						<button name="reload_and_restart" string="Reload and Restart" type="object" />
+						<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>
 						<!-- at debugging - remove auto created at create-->
-						<button string="Make Cronjob" name="make_cron"  type="object"/>
+						<button string="Make Cronjob" name="make_cron"  type="object" groups="base.group_no_one"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'readonly': True}" clickable="True" />
 					</header>
 					<sheet>
@@ -16,23 +17,24 @@
 							<field name="name" />
 							<field name="repo_id" />
 							<field name="build_state" />
+							<field name="dump_id"/>
 						</group>
 						<notebook>
-							<page string="Commits" name="commits">
-								<field name="commit_ids" nolabel="1" readonly="1">
-									<tree>
-										<field name="name" />
-										<field name="date_registered" />
-										<field name="date" />
-									</tree>
-								</field>
-							</page>
 							<page string="Tasks" name="tasks">
 								<field name="task_ids" nolabel="1" readonly="1">
 									<tree>
 										<field name="name" />
 										<field name="date" />
 										<field name="state" />
+									</tree>
+								</field>
+							</page>
+							<page string="Commits" name="commits">
+								<field name="commit_ids" nolabel="1" readonly="1">
+									<tree>
+										<field name="name" />
+										<field name="date_registered" />
+										<field name="date" />
 									</tree>
 								</field>
 							</page>

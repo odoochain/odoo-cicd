@@ -19,7 +19,6 @@ class Task(models.Model):
     ], required=True, default='new')
     log = fields.Text("Log")
     error = fields.Text("Exception")
-    dump_id = fields.Many2one('cicd.dump', string="Dump")
     dump_used = fields.Char("Dump used")
 
     def perform(self):
