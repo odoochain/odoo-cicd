@@ -18,9 +18,8 @@ class GitBranch(models.Model):
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
-        ('ready', 'Ready'),
         ('building', 'Building'),
-    ], default="new")
+    ], default="new", compute="_compute_build_state")
     lock_building = fields.Datetime("Lock Building")
 
     # autobackup = fields.Boolean("Autobackup")
@@ -28,6 +27,20 @@ class GitBranch(models.Model):
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    @api.depends('task_ids', 'task_ids.state')
+    def _compute_build_state(self):
+        for rec in self:
+            if 'new' in rec.mapped('task_ids.state'): 
+                rec.build_state = 'building'
+            else:
+                if rec.task_ids and rec.task_ids[0].state == 'fail':
+                    rec.build_state = 'failed'
+                elif rec.task_ids and rec.task_ids[0].state == 'done':
+                    rec.build_state = 'done'
+                elif not rec.task_ids:
+                    rec.build_state = 'new'
+
 
     def build(self):
         self.ensure_one()
@@ -46,11 +59,17 @@ class GitBranch(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
-        self.env['cicd.task']._make_cron(res, active=True)
+        res.make_cron()
         return res
+
+    def make_cron(self):
+        self.ensure_one()
+        self.env['cicd.task']._make_cron(
+            'branches job', self, active=self.active
+        )
 
     @api.constrains('active')
     def _onchange_active(self):
         for rec in self:
-            self.env['cicd.task']._make_cron(res, active=rec.active)
+            rec.make_cron()
                 

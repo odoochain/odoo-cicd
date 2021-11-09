@@ -28,12 +28,16 @@ class Task(models.Model):
         ]):
             task.perform()
 
-    def _make_cronjob(self, branch, active):
-        key = f"tasks_branch_{branch.id}"
+    def _make_cron(self, uuid, object, active):
+        key = f"{uuid}_{object._name}_{object.id}"
         crons = self.env['ir.cron'].with_context(active_test=False).search([('name', '=', key)], limit=1)
         if not crons:
             crons = crons.create({
                 'name': key,
+                'model_id': self.env['ir.model'].search([('model', '=', object._name)]).id,
+                'interval_number': 1,
+                'numbercall': -1,
+                'interval_type': 'minutes',
             })
         if crons.active != active:
             crons.active = active

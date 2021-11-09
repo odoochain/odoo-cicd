@@ -7,7 +7,8 @@
 				<form string="">
 					<header>
 						<button name="build" string="Build Now" type="object" />
-						<button string="Confirm" name="hr_verify_sheet" states="draft" class="oe_highlight" />
+						<!-- at debugging - remove auto created at create-->
+						<button string="Make Cronjob" name="make_cron"  type="object"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'readonly': True}" clickable="True" />
 					</header>
 					<sheet>

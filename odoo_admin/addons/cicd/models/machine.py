@@ -24,7 +24,7 @@ class CicdMachine(models.Model):
     host = fields.Char("Host")
     volume_ids = fields.One2many("cicd.machine.volume", 'machine_id', string="Volumes")
     ssh_user = fields.Char("SSH User")
-    ssh_pubkey = fields.Text("SSH Pubkey")
+    ssh_pubkey = fields.Text("SSH Pubkey", readonly=True)
     ssh_key = fields.Text("SSH Key")
     dump_paths = fields.Char("Dump Paths")
     dump_ids = fields.One2many('cicd.dump', 'machine_id', string="Dumps")
