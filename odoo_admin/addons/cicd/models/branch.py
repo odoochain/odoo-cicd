@@ -162,7 +162,7 @@ class GitBranch(models.Model):
                 if tries < 3:
                     logsio.write_text(str(ex))
                     logsio.warn(ex)
-                    logsio.write_text(f"Retrying update instance folder for {branch}")
+                    logsio.write_text(f"Retrying update instance folder for {self.name}")
                     if instance_folder.exists():
                         shutil.rmtree(instance_folder)
                 else:
