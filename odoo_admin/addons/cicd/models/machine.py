@@ -26,7 +26,6 @@ class CicdMachine(models.Model):
     ssh_user = fields.Char("SSH User")
     ssh_pubkey = fields.Text("SSH Pubkey", readonly=True)
     ssh_key = fields.Text("SSH Key")
-    dump_paths = fields.Char("Dump Paths")
     dump_ids = fields.One2many('cicd.dump', 'machine_id', string="Dumps")
     effective_host = fields.Char(compute="_compute_effective_host", store=False)
 
@@ -96,38 +95,12 @@ class CicdMachine(models.Model):
         return stdout
 
     def update_dumps(self):
-        self.ensure_one()
-        self.env['cicd.dump']._update_dumps(self)
-
-class CicdVolumes(models.Model):
-    _inherit = ['cicd.mixin.size']
-    _name = 'cicd.machine.volume'
-
-    name = fields.Char("Path")
-    machine_id = fields.Many2one('cicd.machine', string="Machine")
-    contains_dumps = fields.Boolean("Contains Dumps")
-    used_size_human = fields.Char("Used Size", compute="_compute_numbers")
-    free_size_human = fields.Char("Free Size", compute="_compute_numbers")
-    total_size_human = fields.Char("Total Size", compute="_compute_numbers")
-    used_size = fields.Integer("Used Size", compute="_compute_numbers")
-    free_size = fields.Integer("Free Size", compute="_compute_numbers")
-    total_size = fields.Integer("Total Size", compute="_compute_numbers")
-    used_percent = fields.Float("Used %", compute="_compute_numbers")
-
-    def update_values(self):
-        try:
-            stdout = self.machine_id._execute_shell(["/usr/bin/df", '-h', '/'])
-        except Exception as ex:
-            logger.error(ex)
-        else:
-            import pudb;pudb.set_trace()
-            self.size = 1
-
-    def update_sizes(self):
         for rec in self:
-            rec.machine
-            with rec._shell() as shell:
-                stdout = rec.machine_id._execute_shell([
-                    "df", rec.name
-                ])
-                import pudb;pudb.set_trace()
+            rec.env['cicd.dump']._update_dumps(rec)
+
+    def update_volumes(self):
+        self.mapped('volume_ids')._update_sizes()
+
+    def update_all_values(self):
+        self.update_dumps()
+        self.update_volumes()

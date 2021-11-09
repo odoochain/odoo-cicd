@@ -31,6 +31,7 @@ from . import mixin_size
 from . import branch
 from . import commit
 from . import machine
+from . import volume
 from . import repository
 from . import dump
 from . import task

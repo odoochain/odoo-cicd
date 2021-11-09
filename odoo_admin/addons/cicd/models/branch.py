@@ -38,23 +38,21 @@ class GitBranch(models.Model):
                     rec.build_state = 'failed'
                 elif rec.task_ids and rec.task_ids[0].state == 'done':
                     rec.build_state = 'done'
-                elif not rec.task_ids:
+                else:
                     rec.build_state = 'new'
-
 
     def build(self):
         self.ensure_one()
+        self._make_task("obj._build()")
 
-        # check if building then dont touch
-        # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
-        db_registry = registry(self.env.cr.dbname)
-        with api.Environment.manage(), db_registry.cursor() as cr:
-            env = api.Environment(cr, SUPERUSER_ID, {})
-            branch2 = env[GitBranch._name].browse(self.id)
-            branch2.lock_building = fields.Datetime.now()
-            cr.commit()
-        
-        self.ensure_one()
+    def _make_task(self, execute):
+        if self.task_ids.filtered(lambda x: x.state == 'new' and x.name == execute):
+            raise ValidationError(_("Task already exists. Not triggered again."))
+        self.env['cicd.task'].sudo().create({
+            'name': 'obj._build()',
+            'branch_id': self.id
+        })
+        return True
 
     @api.model
     def create(self, vals):
@@ -65,7 +63,7 @@ class GitBranch(models.Model):
     def make_cron(self):
         self.ensure_one()
         self.env['cicd.task']._make_cron(
-            'branches job', self, active=self.active
+            'branches job', self, '_cron_execute_task', active=self.active
         )
 
     @api.constrains('active')
@@ -73,3 +71,14 @@ class GitBranch(models.Model):
         for rec in self:
             rec.make_cron()
                 
+
+    def _cron_execute_task(self):
+        self.ensure_one()
+        tasks = self.task_ids.filtered(lambda x: x.state == 'new')
+        if not tasks:
+            return
+        tasks = tasks[-1]
+        tasks.perform()
+
+    def _build(self):
+        raise Exception("BUILD!")

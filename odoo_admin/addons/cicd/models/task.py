@@ -1,4 +1,6 @@
+import traceback
 from odoo import _, api, fields, models, SUPERUSER_ID
+from odoo import registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from . import pg_advisory_lock
 import threading
@@ -14,13 +16,31 @@ class Task(models.Model):
         ('new', 'New'),
         ('done', 'Done'),
         ('failed', 'Failed'),
-    ])
+    ], required=True, default='new')
     log = fields.Text("Log")
     lockbit = fields.Datetime()
+    error = fields.Text("Exception")
 
     def perform(self):
         self.ensure_one()
-        pg_advisory_lock(self.env.cr, f"performat_task_{self.id}")
+        self2 = self.sudo()
+        # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+        db_registry = registry(self.env.cr.dbname)
+        with api.Environment.manage(), db_registry.cursor() as cr:
+            env = api.Environment(cr, self.env.user.id, {})
+            self = self.with_env(env).sudo()
+        
+            pg_advisory_lock(cr, f"performat_task_{self.branch_id.id}")
+            try:
+                exec(self.name, {'obj': self.branch_id})
+
+            except Exception as ex:
+                msg = traceback.format_exc()
+                self2.state = 'failed'
+                self2.error = msg
+
+            else:
+                self2.state = 'done'
 
     def _cron_run(self):
         for task in self.search([
@@ -28,7 +48,8 @@ class Task(models.Model):
         ]):
             task.perform()
 
-    def _make_cron(self, uuid, object, active):
+    def _make_cron(self, uuid, object, method, active):
+        object.ensure_one()
         key = f"{uuid}_{object._name}_{object.id}"
         crons = self.env['ir.cron'].with_context(active_test=False).search([('name', '=', key)], limit=1)
         if not crons:
@@ -38,6 +59,7 @@ class Task(models.Model):
                 'interval_number': 1,
                 'numbercall': -1,
                 'interval_type': 'minutes',
+                'code': f"env['{object._name}'].browse({object.id}).{method}()"
             })
         if crons.active != active:
             crons.active = active
