@@ -1,8 +1,10 @@
+import arrow
 import traceback
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo import registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from . import pg_advisory_lock
+from ..tools.logsio_writer import LogsIOWriter
 import threading
 
 class Task(models.Model):
@@ -21,6 +23,12 @@ class Task(models.Model):
     error = fields.Text("Exception")
     dump_used = fields.Char("Dump used")
 
+    def _get_new_logsio_instance(self):
+        self.ensure_one()
+        rolling_file = LogsIOWriter(f"{self.branch_id.name}", f'{self.id} - {self.name}')
+        rolling_file.write_text(f"Started: {arrow.get()}")
+        return rolling_file
+
     def perform(self):
         self.ensure_one()
         self2 = self.sudo()
@@ -31,8 +39,13 @@ class Task(models.Model):
             self = self.with_env(env).sudo()
         
             pg_advisory_lock(cr, f"performat_task_{self.branch_id.id}")
+
             try:
-                exec(self.name, {'obj': self.branch_id, 'task': self})
+                exec(self.name, {
+                    'obj': self.branch_id,
+                    'task': self,
+                    'logsio': self._get_new_logsio_instance(),
+                    })
 
             except Exception as ex:
                 msg = traceback.format_exc()

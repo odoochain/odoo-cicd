@@ -1,6 +1,11 @@
+import os
 import hashlib
 import struct
+from pathlib import Path
 
+WORKSPACE = Path(os.environ['CICD_WORKSPACE'])
+MAIN_FOLDER_NAME = "_main"
+PREFIX_PREPARE_DUMP = "prepare_dump_"
 
 def is_lock_set(cr, lock):
     lock = _int_lock(lock)
@@ -26,6 +31,7 @@ def pg_try_advisory_lock(cr, lock):
 
 def pg_advisory_lock(cr, lock):
     cr.execute("SELECT pg_advisory_xact_lock(%s);", (_int_lock(lock),))
+
 
 from . import mixin_size
 from . import branch

@@ -28,6 +28,11 @@ class CicdMachine(models.Model):
     ssh_key = fields.Text("SSH Key")
     dump_ids = fields.One2many('cicd.dump', 'machine_id', string="Dumps")
     effective_host = fields.Char(compute="_compute_effective_host", store=False)
+    workspace = fields.Char("Workspace", compute="_compute_workspace")
+
+    def _compute_workspace(self):
+        for rec in self:
+            rec.workspace = os.environ['CICD_WORKSPACE']
 
     def _compute_effective_host(self):
         for rec in self:
@@ -104,3 +109,9 @@ class CicdMachine(models.Model):
     def update_all_values(self):
         self.update_dumps()
         self.update_volumes()
+
+    def get_sshuser_id():
+        user_name = os.environ['HOST_SSH_USER']
+        res, stdout, stderr = _execute_shell(["/usr/bin/id", '-u', user_name])
+        user_id = stdout.strip()
+        return user_id
