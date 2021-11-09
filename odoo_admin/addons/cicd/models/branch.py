@@ -48,8 +48,9 @@ class GitBranch(models.Model):
     def _make_task(self, execute):
         if self.task_ids.filtered(lambda x: x.state == 'new' and x.name == execute):
             raise ValidationError(_("Task already exists. Not triggered again."))
+        execute = execute.replace("()", "(task)")
         self.env['cicd.task'].sudo().create({
-            'name': 'obj._build()',
+            'name': execute,
             'branch_id': self.id
         })
         return True
@@ -80,5 +81,6 @@ class GitBranch(models.Model):
         tasks = tasks[-1]
         tasks.perform()
 
-    def _build(self):
+    def _build(self, task):
+        import pudb;pudb.set_trace()
         raise Exception("BUILD!")

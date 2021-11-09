@@ -18,8 +18,9 @@ class Task(models.Model):
         ('failed', 'Failed'),
     ], required=True, default='new')
     log = fields.Text("Log")
-    lockbit = fields.Datetime()
     error = fields.Text("Exception")
+    dump_id = fields.Many2one('cicd.dump', string="Dump")
+    dump_used = fields.Char("Dump used")
 
     def perform(self):
         self.ensure_one()
@@ -32,7 +33,7 @@ class Task(models.Model):
         
             pg_advisory_lock(cr, f"performat_task_{self.branch_id.id}")
             try:
-                exec(self.name, {'obj': self.branch_id})
+                exec(self.name, {'obj': self.branch_id, 'task': self})
 
             except Exception as ex:
                 msg = traceback.format_exc()
