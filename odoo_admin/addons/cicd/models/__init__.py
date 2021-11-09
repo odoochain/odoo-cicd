@@ -33,3 +33,4 @@ from . import commit
 from . import machine
 from . import repository
 from . import dump
+from . import task

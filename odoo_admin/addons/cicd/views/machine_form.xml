@@ -19,15 +19,19 @@
 						<group>
 							<field name="ssh_user"/>
 							<field name="ssh_pubkey"/>
+							<field name="is_docker_host"/>
+							<field name="effective_host" attrs="{'invisible': [('is_docker_host', '=', False)]}"/>
+							<field name="host" attrs="{'required': [('is_docker_host', '=', False)], 'invisible': [('is_docker_host', '=', True)]}"/>
 
 						</group>
 						<notebook>
 							<page name="volumes" string="Volumes">
 								<group string="" col="2">
 									<field name="volume_ids" nolabel='1'>
-										<tree>
+										<tree editable='bottom'>
 											<field name="name" />
 											<field name="size_human"/>
+											<field name="contains_dumps"/>
 										</tree>
 									</field>
 								</group>
@@ -36,6 +40,7 @@
 								<group>
 									<field name="dump_ids" nolabel='1'>
 										<tree>
+											<field name="active"/>
 											<field name="name"/>
 											<field name="size_human"/>
 										</tree>

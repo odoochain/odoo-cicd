@@ -6,7 +6,6 @@ from io import BytesIO ## for Python 3
 import docker as Docker
 import base64
 import psycopg2
-import spur
 import git
 import arrow
 import os
@@ -163,27 +162,7 @@ def _execute_shell(odoo_machine, command, cwd=None, env=None, callback=None):
 
     stdout, stderr = MyWriter('stdout'), MyWriter('stderr')
 
-    # place private keyfile
-    ssh_dir = Path(os.path.expanduser("~/.ssh"))
-    ssh_dir.mkdir(exist_ok=True)
-    os.chown(ssh_dir, pwd.getpwnam('odoo').pw_uid, grp.getgrnam('odoo').gr_gid)
-    os.chmod(ssh_dir, 0o700)
-
-    ssh_keyfile = ssh_dir / odoo_machine.name
-    rights_keyfile = 0o600
-    if ssh_keyfile.exists():
-        os.chmod(ssh_keyfile, rights_keyfile)
-    ssh_keyfile.write_text(odoo_machine.ssh_key)
-    os.chmod(ssh_keyfile, rights_keyfile)
-    test = ssh_keyfile.read_text()
-
-
-    with spur.SshShell(
-        hostname=get_host_ip(),
-        username=odoo_machine.ssh_user,
-        private_key_file=ssh_keyfile,
-        missing_host_key=spur.ssh.MissingHostKey.accept
-        ) as shell:
+    with odoo_machine._shell() as shell:
         try:
             result = shell.run(
                 command,

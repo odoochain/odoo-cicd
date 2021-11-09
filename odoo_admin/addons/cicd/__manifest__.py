@@ -12,7 +12,7 @@
                 'security/ir.model.access.csv'],
     'demo': [],
     'depends': ['base'],
-    'external_dependencies': {'python': ['pudb', 'spur', 'bson', 'humanize']},
+    'external_dependencies': {'python': ['pudb', 'spur', 'bson', 'humanize', 'paramiko']},
     'name': 'cicd',
     'qweb': [],
     'test': [],

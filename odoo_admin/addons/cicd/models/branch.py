@@ -10,6 +10,7 @@ class GitBranch(models.Model):
     repo_id = fields.Many2one('cicd.git.repo', string="Repository", required=True)
     active = fields.Boolean("Active", default=True)
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
+    task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     state = fields.Selection([
         ('new', 'New'),
         ('approved', 'Approved'),
@@ -21,6 +22,8 @@ class GitBranch(models.Model):
         ('building', 'Building'),
     ], default="new")
     lock_building = fields.Datetime("Lock Building")
+
+    # autobackup = fields.Boolean("Autobackup")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
@@ -39,3 +42,15 @@ class GitBranch(models.Model):
             cr.commit()
         
         self.ensure_one()
+
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        self.env['cicd.task']._make_cron(res, active=True)
+        return res
+
+    @api.constrains('active')
+    def _onchange_active(self):
+        for rec in self:
+            self.env['cicd.task']._make_cron(res, active=rec.active)
+                

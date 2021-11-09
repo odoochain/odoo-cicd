@@ -8,3 +8,8 @@ model_cicd_machine,base.group_user,cicd_machine_base_group_user,cicd.machine - b
 
 model_cicd_machine_volume,base.group_system,cicd_machine_volume_base_group_system,cicd.machine.volume - base_group_system,1,1,1,1
 model_cicd_machine,base.group_system,cicd_machine_base_group_system,cicd.machine - base_group_system,1,1,1,1
+
+
+model_cicd_dump,base.group_user,cicd_dump_base_group_user,cicd.dump - base_group_user,1,0,0,0
+
+model_cicd_task,base.group_user,cicd_task_base_group_user,cicd.task - base_group_user,1,0,0,0
