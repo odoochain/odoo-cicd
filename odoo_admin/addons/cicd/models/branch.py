@@ -26,6 +26,7 @@ class GitBranch(models.Model):
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
+        ('done', 'Done'),
         ('building', 'Building'),
     ], default="new", compute="_compute_build_state")
     dump_id = fields.Many2one("cicd.dump", string="Dump")
@@ -58,9 +59,9 @@ class GitBranch(models.Model):
         self._make_task("obj._restore_dump()")
 
     def _make_task(self, execute):
+        execute = execute.replace("()", "(task, logsio)")
         if self.task_ids.filtered(lambda x: x.state == 'new' and x.name == execute):
             raise ValidationError(_("Task already exists. Not triggered again."))
-        execute = execute.replace("()", "(task, logsio)")
         self.env['cicd.task'].sudo().create({
             'name': execute,
             'branch_id': self.id
@@ -127,7 +128,6 @@ class GitBranch(models.Model):
         tries = 0
         while tries < 3:
             try:
-                import pudb;pudb.set_trace()
                 tries += 1
                 logsio.write_text(f"Updating instance folder {self.name}")
                 logsio.write_text(f"Cloning {self.name} to {instance_folder}")

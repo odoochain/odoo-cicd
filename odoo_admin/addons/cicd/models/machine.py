@@ -95,7 +95,7 @@ class CicdMachine(models.Model):
 
     def _execute_shell(self, cmd, cwd=None, env=None, callback=None):
         res, stdout, stderr = _execute_shell(self, cmd, cwd=cwd, env=env, callback=callback)
-        if stderr:
+        if res == 'error':
             raise Exception(stderr)
         return stdout
 

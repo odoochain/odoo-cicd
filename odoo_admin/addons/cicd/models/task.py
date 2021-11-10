@@ -49,11 +49,11 @@ class Task(models.Model):
 
             except Exception as ex:
                 msg = traceback.format_exc()
-                self2.state = 'failed'
-                self2.error = msg
+                self.state = 'failed'
+                self.error = msg
 
             else:
-                self2.state = 'done'
+                self.state = 'done'
 
     def _cron_run(self):
         for task in self.search([
