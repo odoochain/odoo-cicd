@@ -3,7 +3,6 @@ import hashlib
 import struct
 from pathlib import Path
 
-WORKSPACE = Path(os.environ['CICD_WORKSPACE'])
 MAIN_FOLDER_NAME = "_main"
 PREFIX_PREPARE_DUMP = "prepare_dump_"
 

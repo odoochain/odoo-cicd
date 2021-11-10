@@ -32,7 +32,7 @@ class CicdMachine(models.Model):
 
     def _compute_workspace(self):
         for rec in self:
-            rec.workspace = os.environ['CICD_WORKSPACE']
+            rec.workspace = os.environ['CONTAINER_CICD_WORKSPACE']
 
     def _compute_effective_host(self):
         for rec in self:
@@ -94,6 +94,7 @@ class CicdMachine(models.Model):
         raise ValidationError(_("Everyhing Works!"))
 
     def _execute_shell(self, cmd, cwd=None, env=None, callback=None):
+        import pudb;pudb.set_trace()
         res, stdout, stderr = _execute_shell(self, cmd, cwd=cwd, env=env, callback=callback)
         if res == 'error':
             raise Exception(stderr)

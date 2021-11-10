@@ -1,10 +1,7 @@
 services:
   odoo_base:
     privileged: True
-    environment:
-      CICD_WORKSPACE: /cicd_workspace
     volumes:
-      - ${CICD_WORKSPACE}:/cicd_workspace
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - internal

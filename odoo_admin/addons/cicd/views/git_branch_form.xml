@@ -23,7 +23,7 @@
 							<page string="Tasks" name="tasks">
 								<field name="task_ids" nolabel="1" readonly="1">
 									<tree>
-										<field name="name" />
+										<field name="display_name" />
 										<field name="date" />
 										<field name="state" />
 									</tree>

@@ -11,6 +11,7 @@ class Task(models.Model):
     _name = 'cicd.task'
     _order = 'date desc'
 
+    display_name = fields.Char(compute="_compute_display_name")
     branch_id = fields.Many2one('cicd.git.branch', string="Branch")
     name = fields.Char("Name")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now())
@@ -22,6 +23,15 @@ class Task(models.Model):
     log = fields.Text("Log")
     error = fields.Text("Exception")
     dump_used = fields.Char("Dump used")
+
+    def _compute_display_name(self):
+        for rec in self:
+            name = rec.name
+            name = name.replace("obj.", "")
+            if name.startswith("_"):
+                name = name[1:]
+            name = name.split("(")[0]
+            rec.display_name = name
 
     def _get_new_logsio_instance(self):
         self.ensure_one()
