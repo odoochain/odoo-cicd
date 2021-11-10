@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from ..tools.tools import _set_owner
 class GitBranch(models.Model):
     _name = 'cicd.git.branch'
 
@@ -156,7 +157,6 @@ class GitBranch(models.Model):
                 commit = repo.refs[self.name].commit
                 user_id = self.machine_id._get_sshuser_id()
                 logsio.write_text(f"Setting access rights in {instance_folder} to {user_id}")
-                subprocess.check_call(["/usr/bin/chown", f"{user_id}:{user_id}", "-R", str(instance_folder)])
                 return str(commit)
 
             except Exception as ex:

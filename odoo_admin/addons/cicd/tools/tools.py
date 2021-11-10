@@ -392,3 +392,9 @@ def tempdir():
         yield Path(dir)
     finally:
         shutil.rmtree(dir)
+
+def _set_owner(user, group, path):
+    chown = Path("/usr/bin/chown")
+    if not chown.exists():
+        chown = Path("/bin/chown")
+    subprocess.check_call(["sudo", str(chown), f"{user}:{group}", "-R", str(path)])

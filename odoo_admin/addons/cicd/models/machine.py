@@ -110,8 +110,8 @@ class CicdMachine(models.Model):
         self.update_dumps()
         self.update_volumes()
 
-    def _get_sshuser_id():
-        user_name = os.environ['HOST_SSH_USER']
-        res, stdout, stderr = _execute_shell(["/usr/bin/id", '-u', user_name])
+    def _get_sshuser_id(self):
+        user_name = self.ssh_user
+        res, stdout, stderr = _execute_shell(self, ["/usr/bin/id", '-u', user_name])
         user_id = stdout.strip()
         return user_id
