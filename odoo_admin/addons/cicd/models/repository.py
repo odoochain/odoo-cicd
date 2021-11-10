@@ -151,11 +151,11 @@ class Repository(models.Model):
     def clone_repo(self, path):
         with self._get_ssh_command() as env:
             if not path.exists():
-                git.Repo.clone_from(self.effective_url, path, env=env)
+                git.Repo.clone_from(self.url, path, env=env)
             try:
                 repo = Repo(path)
             except git.exc.InvalidGitRepositoryError:
                 shutil.rmtree(path)
-                git.Repo.clone_from(self.effective_url, path, env=env)
+                git.Repo.clone_from(self.url, path, env=env)
                 repo = Repo(path)
         return repo

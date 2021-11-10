@@ -21,6 +21,10 @@ class CicdVolumes(models.Model):
     total_size = fields.Integer("Total Size", compute="_compute_numbers")
     used_percent = fields.Float("Used %", compute="_compute_numbers")
 
+    @api.model
+    def _cron_update(self):
+        self.sudo().search([])._update_sizes()
+
     def _update_sizes(self):
         for rec in self:
             with rec.machine_id._shell() as shell:
@@ -33,10 +37,11 @@ class CicdVolumes(models.Model):
                 else:
                     while "  " in stdout:
                         stdout = stdout.replace("  ", " ")
-                    import pudb;pudb.set_trace()
                     stdout = stdout.split("\n")
                     if len(stdout) > 1:
-                        rec.used_percent = used_percent = stdout[4].replace("%", "")
+                        stdout = stdout[-1]
+                    stdout = stdout.split(" ")
+                    rec.used_percent = used_percent = stdout[4].replace("%", "")
                     rec.total_size = int(stdout[1])
                     rec.used_size = int(stdout[2])
                     rec.free_size = int(stdout[3])

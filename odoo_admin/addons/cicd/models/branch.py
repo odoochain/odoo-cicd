@@ -126,13 +126,14 @@ class GitBranch(models.Model):
         tries = 0
         while tries < 3:
             try:
+                import pudb;pudb.set_trace()
                 tries += 1
                 logsio.write_text(f"Updating instance folder {self.name}")
-                logsio.write_text(f"Cloning {self.name} {self.url} to {instance_folder}")
-                repo = self.clone_repo(instance_folder)
-                logsio.write_text(f"Checking out {self.branch}")
-                repo.git.checkout(self.branch, force=True)
-                logsio.write_text(f"Pulling {self.branch}")
+                logsio.write_text(f"Cloning {self.name} to {instance_folder}")
+                repo = self.repo_id.clone_repo(instance_folder)
+                logsio.write_text(f"Checking out {self.name}")
+                repo.git.checkout(self.name, force=True)
+                logsio.write_text(f"Pulling {self.name}")
                 repo.git.pull()
                 logsio.write_text(f"Clean git")
                 run = subprocess.run(
@@ -150,9 +151,9 @@ class GitBranch(models.Model):
                     )
                 if run.returncode:
                     msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
-                    logsio.write_text(rolling_file, msg)
+                    logsio.write_text(logsio, msg)
                     raise Exception(msg)
-                commit = repo.refs[self.anme].commit
+                commit = repo.refs[self.name].commit
                 user_id = self.machine_id._get_sshuser_id()
                 logsio.write_text(f"Setting access rights in {instance_folder} to {user_id}")
                 subprocess.check_call(["/usr/bin/chown", f"{user_id}:{user_id}", "-R", str(instance_folder)])

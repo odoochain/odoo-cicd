@@ -12,6 +12,11 @@ class Dump(models.Model):
     name = fields.Char("Name", required=True)
     machine_id = fields.Many2one("cicd.machine", string="Machine", required=True)
 
+    @api.model
+    def _cron_update(self):
+        for machine in self.env['cicd.machine'].sudo().search([]):
+            self._update_dumps(machine)
+
     @api.constrains("name")
     def _check_name(self):
         for rec in self:

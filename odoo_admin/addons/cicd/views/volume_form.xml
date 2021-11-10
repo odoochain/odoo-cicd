@@ -1,0 +1,29 @@
+<odoo>
+	<data noupdate='0'>
+
+	<record id="view_cicd_volume_form" model="ir.ui.view">
+		<field name="name">cicd.machine.volume form</field>
+		<field name="model">cicd.machine.volume</field>
+		<field name="arch" type="xml">
+			<form string="">
+				<header></header>
+				<sheet>
+					<group string="Volume" col="2">
+						<field name="name" />
+						<field name="machine_id"/>
+						<field name="contains_dumps"/>
+						<field name="used_size_human"/>
+						<field name="free_size_human"/>
+						<field name="total_size_human"/>
+						<field name="used_size"/>
+						<field name="free_size"/>
+						<field name="total_size"/>
+						<field name="used_percent"/>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	</data>
+</odoo>
