@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
-
-import re
 from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from http.cookies import SimpleCookie
-import arrow
 import argparse
 import os
-import random
 import sys
 import requests
 import logging
-import json
-from pathlib import Path
+import traceback
 from urllib import parse
 
 cicd_index_url = os.environ['INDEX_HOST']
@@ -116,15 +111,11 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             # set touched date:
             requests.get(cicd_index_url + "/last_access", params={'site': delegator_path}).raise_for_status()
 
-        logger.debug(f"rewrite path: self.path: {self.path}, delegator_path: {delegator_path}")
-
         path = (self.path or '').split("?")[0]
         if path in ['/index', '/index/'] or "/__start_cicd" in path or not delegator_path or path.startswith("/cicd/"):
             path = self.path
             if path.split("/")[1] == 'index':
                 path = '/'
-            else:
-                path = '/' + '/'.join(path.split("/")[2:])
             url = f'{cicd_index_url}{path}'
         elif path.startswith("/mailer/") and delegator_path:
             host = f"{delegator_path}_proxy"
@@ -198,7 +189,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(resp.content)
             return
         except Exception as ex:
-            import traceback
             msg = traceback.format_exc()
             logger.error(msg)
         finally:
