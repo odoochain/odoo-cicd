@@ -67,6 +67,7 @@ services:
         - internal
     environment:
       PROXY_PASS_INDEX: "${CICD_NETWORK_NAME}adminodoo_proxy:80"
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     ports:
         - ${CICD_BINDING}:80
 
