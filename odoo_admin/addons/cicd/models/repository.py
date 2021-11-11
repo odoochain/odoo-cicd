@@ -23,6 +23,7 @@ class NewBranch(Exception): pass
 class Repository(models.Model):
     _name = 'cicd.git.repo'
 
+    short = fields.Char(compute="_compute_shortname", string="Name")
     machine_id = fields.Many2one('cicd.machine', string="Machine", compute="_compute_machine")
     name = fields.Char("URL", required=True)
     login_type = fields.Selection([
@@ -39,6 +40,10 @@ class Repository(models.Model):
     _sql_constraints = [
         ('name_unique', "unique(named)", _("Only one unique entry allowed.")),
     ]
+
+    def _compute_shortname(self):
+        for rec in self:
+            rec.short = rec.name.split("/")[-1]
 
     def _compute_machine(self):
         for rec in self:

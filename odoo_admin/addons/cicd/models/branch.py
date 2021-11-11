@@ -16,6 +16,7 @@ class GitBranch(models.Model):
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one('cicd.git.repo', string="Repository", required=True)
+    repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True)
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
