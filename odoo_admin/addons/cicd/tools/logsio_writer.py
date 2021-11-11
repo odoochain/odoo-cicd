@@ -8,6 +8,7 @@ class LogsIOWriter(object):
     def __init__(self, stream, source, host='logs', port=6689):
         if isinstance(stream, dict):
             stream = stream['name']
+        self.lines = []
         stream = stream.replace("|", "_")
         source = source.replace("|", "_")
         self.stream = stream
@@ -48,6 +49,7 @@ class LogsIOWriter(object):
 
     def _write_text(self, msg):
         self._send(f"+msg|{self.stream}|{self.source}|{msg.replace('|', '_')}")
+        self.lines += msg.split("\n")
 
     def write_text(self, msg):
         self.info(msg)

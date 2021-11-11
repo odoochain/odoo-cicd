@@ -97,11 +97,44 @@ class CicdMachine(models.Model):
         self._execute_shell(["ls"])
         raise ValidationError(_("Everyhing Works!"))
 
-    def _execute_shell(self, cmd, cwd=None, env=None, callback=None):
+    def _execute_shell(self, cmd, cwd=None, env=None, logsio=None):
+
+        class MyWriter(object):
+            def __init__(self, ttype):
+                self.text = [""]
+                self.ttype = ttype
+                self.line = ""
+
+            def finish(self):
+                self._write_line()
+
+            def write(self, text):
+                if not logsio:
+                    return
+                if '\n' in text and len(text) == 1:
+                    self._write_line()
+                    self.line = ""
+                else:
+                    self.line += text
+                    return
+
+            def _write_line(self):
+                if not self.line:
+                    return
+                if self.ttype == 'error':
+                    logsio.error(self.line)
+                else:
+                    logsio.info(self.line)
+
         with self._shell() as shell:
+            stdwriter, errwriter = MyWriter('info'), MyWriter('error')
+
             res = shell.run(
-                cmd, cwd=cwd, update_env=env or {}
+                cmd, cwd=cwd, update_env=env or {},
+                stdout=stdwriter, stderr=errwriter,
             )
+            stdwriter.finish()
+            errwriter.finish()
             return res
 
     def update_dumps(self):
@@ -117,9 +150,8 @@ class CicdMachine(models.Model):
 
     def _get_sshuser_id(self):
         user_name = self.ssh_user
-        import pudb;pudb.set_trace()
-        res, stdout, stderr = _execute_shell(self, ["/usr/bin/id", '-u', user_name])
-        user_id = stdout.strip()
+        res = self._execute_shell(self, ["/usr/bin/id", '-u', user_name])
+        user_id = res.output.strip()
         return user_id
 
     def _get_volume(self, ttype):

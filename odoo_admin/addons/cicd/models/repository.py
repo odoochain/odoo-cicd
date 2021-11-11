@@ -83,7 +83,7 @@ class Repository(models.Model):
         self.ensure_one()
         from . import MAIN_FOLDER_NAME
         path = WORKSPACE / MAIN_FOLDER_NAME
-        repo = self.clone_repo(path)
+        repo = self.clone_repo(path, logsio)
 
         if destination_folder:
             temppath = destination_folder
@@ -147,11 +147,12 @@ class Repository(models.Model):
             if not pg_try_advisory_lock(self.env.cr, lock):
                 retry(lock)
 
-    def clone_repo(self, machine, path):
+    def clone_repo(self, machine, path, logsio):
         with self._get_ssh_command() as env:
             with machine._shell() as shell:
                 if not shell.exists(path):
-                    shell.run(
+                    machine._execute_shell(
                         ["git", "clone", self.url, path],
-                        update_env=env,
+                        env=env,
+                        logsio=logsio,
                     )

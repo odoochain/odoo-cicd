@@ -51,11 +51,14 @@ class Task(models.Model):
             pg_advisory_lock(cr, f"performat_task_{self.branch_id.id}")
 
             try:
+                logsio = self._get_new_logsio_instance()
                 exec(self.name, {
                     'obj': self.branch_id,
                     'task': self,
-                    'logsio': self._get_new_logsio_instance(),
+                    'logsio': logsio,
                     })
+
+                self.log = '\n'.join(logsio.lines)
 
             except Exception as ex:
                 msg = traceback.format_exc()

@@ -95,18 +95,21 @@ class GitBranch(models.Model):
         tasks.perform()
 
     def _restore_dump(self, task, logsio):
-        log = self.machine_id._execute_shell([
+        instance_folder = self._get_instance_folder(self.machine_id)
+        self.machine_id._execute_shell([
             'odoo', '--project-name', self.name, 'reload',
-        ])
-        log += self.machine_id._execute_shell([
+        ], cwd=instance_folder, logsio=logsio)
+        self.machine_id._execute_shell([
             'odoo', '--project-name', self.name, 'build',
-        ])
-        log += self.machine_id._execute_shell([
+        ], cwd=instance_folder, logsio=logsio)
+        self.machine_id._execute_shell([
             'odoo', '--project-name', self.name, 'down',
-        ])
-        log += self.machine_id._execute_shell([
-            'odoo', '--project-name', self.name, '-f', 'restore', 'odoo-db', self.dump_id.name
-        ])
+        ], cwd=instance_folder, logsio=logsio)
+        self.machine_id._execute_shell([
+            'odoo', '--project-name', self.name,
+            '-f', 'restore', 'odoo-db',
+            self.dump_id.name
+        ], cwd=instance_folder, logsio=logsio)
 
     def _get_instance_folder(self, machine):
         return machine._get_volume('source') / self.name
@@ -115,16 +118,17 @@ class GitBranch(models.Model):
         self._checkout_latest(self.machine_id, logsio)
         instance_folder = self._get_instance_folder(self.machine_id)
         task.dump_used = self.dump_id.name
-        log = self.machine_id._execute_shell([
-            'odoo', '--project-name', self.name, 'reload',
-        ], cwd=instance_folder).output
-        log += self.machine_id._execute_shell([
-            'odoo', '--project-name', self.name, 'build',
-        ], cwd=instance_folder).output
-        log += self.machine_id._execute_shell([
-            'odoo', '--project-name', self.name, 'up', '-d',
-        ], cwd=instance_folder).output
-        task.log = log
+        with self.machine_id._shell() as shell:
+            self.machine_id._execute_shell([
+                'odoo', '--project-name', self.name, 'reload',
+            ], cwd=instance_folder, logsio=logsio)
+
+            self.machine_id._execute_shell([
+                'odoo', '--project-name', self.name, 'build',
+            ], cwd=instance_folder, logsio=logsio)
+            self.machine_id._execute_shell([
+                'odoo', '--project-name', self.name, 'up', '-d',
+            ], cwd=instance_folder, logsio=logsio)
         
     def _checkout_latest(self, machine, logsio):
         instance_folder = self._get_instance_folder(machine)
@@ -135,19 +139,19 @@ class GitBranch(models.Model):
                 with machine._shell() as shell:
                     logsio.write_text(f"Updating instance folder {self.name}")
                     logsio.write_text(f"Cloning {self.name} to {instance_folder}")
-                    self.repo_id.clone_repo(machine, instance_folder)
+                    self.repo_id.clone_repo(machine, instance_folder, logsio)
                     logsio.write_text(f"Checking out {self.name}")
-                    shell.run(["git", "checkout", "-f", self.name], cwd=instance_folder)
+                    machine._execute_shell(["git", "checkout", "-f", self.name], cwd=instance_folder, logsio=logsio)
                     logsio.write_text(f"Pulling {self.name}")
-                    shell.run(["git", "pull"], cwd=instance_folder)
+                    machine._execute_shell(["git", "pull"], cwd=instance_folder, logsio=logsio)
                     logsio.write_text(f"Clean git")
-                    shell.run(["git", "clean", "-xdff"], cwd=instance_folder, update_env={
+                    machine._execute_shell(["git", "clean", "-xdff"], cwd=instance_folder, env={
                         "GIT_TERMINAL_PROMPT": "0",
-                    })
-                    shell.run(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=instance_folder, update_env={
+                    }, logsio=logsio)
+                    machine._execute_shell(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=instance_folder, env={
                         "GIT_TERMINAL_PROMPT": "0",
-                    })
-                    commit = shell.run(["git", "rev-parse", "HEAD"], cwd=instance_folder).output.strip()
+                    }, logsio=logsio)
+                    commit = machine._execute_shell(["git", "rev-parse", "HEAD"], cwd=instance_folder, logsio=logsio).output.strip()
                     return str(commit)
 
             except Exception as ex:
