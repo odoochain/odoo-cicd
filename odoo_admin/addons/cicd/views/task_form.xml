@@ -15,8 +15,8 @@
 					<group string="Error">
 						<field name="error" attrs="{'invisible': [('error', '=', False)]}"/>
 					</group>
-					<group>
-						<field name="log" label="False"/>
+					<group string="Log">
+						<field name="log" nolabel='1'/>
 					</group>
 				</sheet>
 			</form>
