@@ -118,17 +118,21 @@ class GitBranch(models.Model):
         self._checkout_latest(self.machine_id, logsio)
         instance_folder = self._get_instance_folder(self.machine_id)
         task.dump_used = self.dump_id.name
-        with self.machine_id._shell() as shell:
-            self.machine_id._execute_shell([
-                'odoo', '--project-name', self.name, 'reload',
-            ], cwd=instance_folder, logsio=logsio)
+        with self.machine_id._shellexec(
+            cwd=instance_folder,
+            logsio=logsio,
 
-            self.machine_id._execute_shell([
+        ) as shell:
+            shell.X([
+                'odoo', '--project-name', self.name, 'reload',
+            ])
+
+            shell.X([
                 'odoo', '--project-name', self.name, 'build',
-            ], cwd=instance_folder, logsio=logsio)
-            self.machine_id._execute_shell([
+            ])
+            shell.X([
                 'odoo', '--project-name', self.name, 'up', '-d',
-            ], cwd=instance_folder, logsio=logsio)
+            ])
         
     def _checkout_latest(self, machine, logsio):
         instance_folder = self._get_instance_folder(machine)
@@ -137,22 +141,26 @@ class GitBranch(models.Model):
             try:
                 tries += 1
                 with machine._shell() as shell:
-                    logsio.write_text(f"Updating instance folder {self.name}")
-                    logsio.write_text(f"Cloning {self.name} to {instance_folder}")
-                    self.repo_id.clone_repo(machine, instance_folder, logsio)
-                    logsio.write_text(f"Checking out {self.name}")
-                    machine._execute_shell(["git", "checkout", "-f", self.name], cwd=instance_folder, logsio=logsio)
-                    logsio.write_text(f"Pulling {self.name}")
-                    machine._execute_shell(["git", "pull"], cwd=instance_folder, logsio=logsio)
-                    logsio.write_text(f"Clean git")
-                    machine._execute_shell(["git", "clean", "-xdff"], cwd=instance_folder, env={
-                        "GIT_TERMINAL_PROMPT": "0",
-                    }, logsio=logsio)
-                    machine._execute_shell(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=instance_folder, env={
-                        "GIT_TERMINAL_PROMPT": "0",
-                    }, logsio=logsio)
-                    commit = machine._execute_shell(["git", "rev-parse", "HEAD"], cwd=instance_folder, logsio=logsio).output.strip()
-                    return str(commit)
+                    with machine._shellexec(
+                        cwd=instance_folder,
+                        logsio=logsio,
+                        env={
+                            "GIT_TERMINAL_PROMPT": "0",
+                        }
+
+                    ) as shell_exec:
+                        logsio.write_text(f"Updating instance folder {self.name}")
+                        logsio.write_text(f"Cloning {self.name} to {instance_folder}")
+                        self.repo_id.clone_repo(machine, instance_folder, logsio)
+                        logsio.write_text(f"Checking out {self.name}")
+                        shell_exec.X(["git", "checkout", "-f", self.name])
+                        logsio.write_text(f"Pulling {self.name}")
+                        shell_exec.X(["git", "pull"])
+                        logsio.write_text(f"Clean git")
+                        shell_exec.X(["git", "clean", "-xdff"])
+                        shell_exec.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
+                        commit = shell_exec.X(["git", "rev-parse", "HEAD"]).output.strip()
+                        return str(commit)
 
             except Exception as ex:
                 if tries < 3:

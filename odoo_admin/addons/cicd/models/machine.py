@@ -16,6 +16,17 @@ from ..tools.tools import get_host_ip
 import logging
 logger = logging.getLogger(__name__)
 
+class ShellExecutor(object):
+    def __init__(self, machine, cwd, logsio, env):
+        self.machine = machine
+        self.cwd = cwd
+        self.logsio = logsio
+        self.env = env
+    def X(self, cmd):
+        return self.machine._execute_shell(
+            cmd, cwd=self.cwd, env=self.env, logsio=self.logsio
+        )
+
 class CicdMachine(models.Model):
     _name = 'cicd.machine'
 
@@ -73,6 +84,11 @@ class CicdMachine(models.Model):
             ) as shell:
             yield shell
 
+    @contextmanager
+    def _shellexec(self, cwd, logsio, env=None):
+        self.ensure_one()
+        executor = ShellExecutor(self, cwd, logsio, env or {})
+        yield executor
 
     def generate_ssh_key(self):
         self.ensure_one()

@@ -26328,7 +26328,6 @@ view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/v
 model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
 model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
 model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
-model	[cicd]	cicd.machine	:::addons/cicd/models/machine.py:19
 model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
 model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
 model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
@@ -26356,23 +26355,6 @@ def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
 def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
 def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
 def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
-def	[cicd]	cicd.machine._compute_workspace	:::addons/cicd/models/machine.py:37
-def	[cicd]	cicd.machine._compute_effective_host	:::addons/cicd/models/machine.py:41
-def	[cicd]	cicd.machine._place_ssh_credentials	:::addons/cicd/models/machine.py:48
-def	[cicd]	cicd.machine._shell	:::addons/cicd/models/machine.py:65
-def	[cicd]	cicd.machine.generate_ssh_key	:::addons/cicd/models/machine.py:77
-def	[cicd]	cicd.machine.create	:::addons/cicd/models/machine.py:90
-def	[cicd]	cicd.machine.test_ssh	:::addons/cicd/models/machine.py:96
-def	[cicd]	cicd.machine._execute_shell	:::addons/cicd/models/machine.py:100
-def	[cicd]	cicd.machine.__init__	:::addons/cicd/models/machine.py:103
-def	[cicd]	cicd.machine.finish	:::addons/cicd/models/machine.py:108
-def	[cicd]	cicd.machine.write	:::addons/cicd/models/machine.py:111
-def	[cicd]	cicd.machine._write_line	:::addons/cicd/models/machine.py:121
-def	[cicd]	cicd.machine.update_dumps	:::addons/cicd/models/machine.py:140
-def	[cicd]	cicd.machine.update_volumes	:::addons/cicd/models/machine.py:144
-def	[cicd]	cicd.machine.update_all_values	:::addons/cicd/models/machine.py:147
-def	[cicd]	cicd.machine._get_sshuser_id	:::addons/cicd/models/machine.py:151
-def	[cicd]	cicd.machine._get_volume	:::addons/cicd/models/machine.py:157
 def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
 def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
 def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
@@ -26400,17 +26382,6 @@ field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
 field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
 field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
 field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
-field	[cicd]	cicd.machine.name	:::addons/cicd/models/machine.py:22
-field	[cicd]	cicd.machine.is_docker_host	:::addons/cicd/models/machine.py:23
-field	[cicd]	cicd.machine.host	:::addons/cicd/models/machine.py:24
-field	[cicd]	cicd.machine.volume_ids	:::addons/cicd/models/machine.py:25
-field	[cicd]	cicd.machine.ssh_user	:::addons/cicd/models/machine.py:26
-field	[cicd]	cicd.machine.ssh_pubkey	:::addons/cicd/models/machine.py:27
-field	[cicd]	cicd.machine.ssh_key	:::addons/cicd/models/machine.py:28
-field	[cicd]	cicd.machine.dump_ids	:::addons/cicd/models/machine.py:29
-field	[cicd]	cicd.machine.effective_host	:::addons/cicd/models/machine.py:30
-field	[cicd]	cicd.machine.workspace	:::addons/cicd/models/machine.py:31
-field	[cicd]	cicd.machine.ttype	:::addons/cicd/models/machine.py:32
 field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
 field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
 field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
@@ -26444,7 +26415,6 @@ view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/v
 model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
 model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
 model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
-model	[cicd]	cicd.machine	:::addons/cicd/models/machine.py:19
 model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
 model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
 model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
@@ -26472,23 +26442,6 @@ def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
 def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
 def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
 def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
-def	[cicd]	cicd.machine._compute_workspace	:::addons/cicd/models/machine.py:37
-def	[cicd]	cicd.machine._compute_effective_host	:::addons/cicd/models/machine.py:41
-def	[cicd]	cicd.machine._place_ssh_credentials	:::addons/cicd/models/machine.py:48
-def	[cicd]	cicd.machine._shell	:::addons/cicd/models/machine.py:65
-def	[cicd]	cicd.machine.generate_ssh_key	:::addons/cicd/models/machine.py:77
-def	[cicd]	cicd.machine.create	:::addons/cicd/models/machine.py:90
-def	[cicd]	cicd.machine.test_ssh	:::addons/cicd/models/machine.py:96
-def	[cicd]	cicd.machine._execute_shell	:::addons/cicd/models/machine.py:100
-def	[cicd]	cicd.machine.__init__	:::addons/cicd/models/machine.py:103
-def	[cicd]	cicd.machine.finish	:::addons/cicd/models/machine.py:108
-def	[cicd]	cicd.machine.write	:::addons/cicd/models/machine.py:111
-def	[cicd]	cicd.machine._write_line	:::addons/cicd/models/machine.py:121
-def	[cicd]	cicd.machine.update_dumps	:::addons/cicd/models/machine.py:140
-def	[cicd]	cicd.machine.update_volumes	:::addons/cicd/models/machine.py:144
-def	[cicd]	cicd.machine.update_all_values	:::addons/cicd/models/machine.py:147
-def	[cicd]	cicd.machine._get_sshuser_id	:::addons/cicd/models/machine.py:151
-def	[cicd]	cicd.machine._get_volume	:::addons/cicd/models/machine.py:157
 def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
 def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
 def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
@@ -26516,17 +26469,6 @@ field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
 field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
 field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
 field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
-field	[cicd]	cicd.machine.name	:::addons/cicd/models/machine.py:22
-field	[cicd]	cicd.machine.is_docker_host	:::addons/cicd/models/machine.py:23
-field	[cicd]	cicd.machine.host	:::addons/cicd/models/machine.py:24
-field	[cicd]	cicd.machine.volume_ids	:::addons/cicd/models/machine.py:25
-field	[cicd]	cicd.machine.ssh_user	:::addons/cicd/models/machine.py:26
-field	[cicd]	cicd.machine.ssh_pubkey	:::addons/cicd/models/machine.py:27
-field	[cicd]	cicd.machine.ssh_key	:::addons/cicd/models/machine.py:28
-field	[cicd]	cicd.machine.dump_ids	:::addons/cicd/models/machine.py:29
-field	[cicd]	cicd.machine.effective_host	:::addons/cicd/models/machine.py:30
-field	[cicd]	cicd.machine.workspace	:::addons/cicd/models/machine.py:31
-field	[cicd]	cicd.machine.ttype	:::addons/cicd/models/machine.py:32
 field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
 field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
 field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
@@ -26560,7 +26502,702 @@ view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/v
 model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
 model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
 model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
-model	[cicd]	cicd.machine	:::addons/cicd/models/machine.py:19
+model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
+model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
+model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
+xmlid	[cicd]	cicd.branches_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:6
+xmlid	[cicd]	cicd.config_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:4
+xmlid	[cicd]	cicd.configuration_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:13
+xmlid	[cicd]	cicd.fetch_new_branches model:ir.cron	:::addons/cicd/data/cronjobs.xml:3
+xmlid	[cicd]	cicd.machines_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:20
+xmlid	[cicd]	cicd.menu_branches model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:12
+xmlid	[cicd]	cicd.menu_machines model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:26
+xmlid	[cicd]	cicd.menu_repos model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:19
+xmlid	[cicd]	cicd.root_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:3
+xmlid	[cicd]	cicd.update_volumes_dumps model:ir.cron	:::addons/cicd/data/cronjobs.xml:13
+xmlid	[cicd]	cicd.view_cicd_dump_form model:ir.ui.view	:::addons/cicd/views/dump_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_git_branch_form model:ir.ui.view	:::addons/cicd/views/git_branch_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_branch_kanban model:ir.ui.view	:::addons/cicd/views/git_branch_kanban.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_repo_form model:ir.ui.view	:::addons/cicd/views/repository.xml:11
+xmlid	[cicd]	cicd.view_cicd_git_repo_tree model:ir.ui.view	:::addons/cicd/views/repository.xml:3
+xmlid	[cicd]	cicd.view_cicd_machine_form model:ir.ui.view	:::addons/cicd/views/machine_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_task_form model:ir.ui.view	:::addons/cicd/views/task_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_volume_form model:ir.ui.view	:::addons/cicd/views/volume_form.xml:4
+def	[cicd]	cicd.mixin.size._humanize	:::addons/cicd/models/mixin_size.py:12
+def	[cicd]	cicd.task._compute_display_name	:::addons/cicd/models/task.py:27
+def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
+def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
+def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
+def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
+def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
+def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
+def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
+def	[cicd]	cicd.machine.volume._cron_update	:::addons/cicd/models/volume.py:30
+def	[cicd]	cicd.machine.volume._update_sizes	:::addons/cicd/models/volume.py:33
+def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
+def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
+def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
+def	[cicd]	cicd.git.repo._get_main_repo	:::addons/cicd/models/repository.py:82
+def	[cicd]	cicd.git.repo._cron_fetch	:::addons/cicd/models/repository.py:101
+def	[cicd]	cicd.git.repo._lock_git	:::addons/cicd/models/repository.py:141
+def	[cicd]	cicd.git.repo.retry	:::addons/cicd/models/repository.py:142
+def	[cicd]	cicd.git.repo.clone_repo	:::addons/cicd/models/repository.py:150
+field	[cicd]	cicd.mixin.size.size	:::addons/cicd/models/mixin_size.py:8
+field	[cicd]	cicd.mixin.size.size_human	:::addons/cicd/models/mixin_size.py:9
+field	[cicd]	cicd.git.commit.name	:::addons/cicd/models/commit.py:7
+field	[cicd]	cicd.git.commit.branch_ids	:::addons/cicd/models/commit.py:8
+field	[cicd]	cicd.git.commit.date_registered	:::addons/cicd/models/commit.py:9
+field	[cicd]	cicd.git.commit.date	:::addons/cicd/models/commit.py:10
+field	[cicd]	cicd.task.display_name	:::addons/cicd/models/task.py:14
+field	[cicd]	cicd.task.branch_id	:::addons/cicd/models/task.py:15
+field	[cicd]	cicd.task.name	:::addons/cicd/models/task.py:16
+field	[cicd]	cicd.task.date	:::addons/cicd/models/task.py:17
+field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
+field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
+field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
+field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
+field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
+field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
+field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
+field	[cicd]	cicd.machine.volume.name	:::addons/cicd/models/volume.py:13
+field	[cicd]	cicd.machine.volume.machine_id	:::addons/cicd/models/volume.py:14
+field	[cicd]	cicd.machine.volume.ttype	:::addons/cicd/models/volume.py:15
+field	[cicd]	cicd.machine.volume.used_size_human	:::addons/cicd/models/volume.py:21
+field	[cicd]	cicd.machine.volume.free_size_human	:::addons/cicd/models/volume.py:22
+field	[cicd]	cicd.machine.volume.total_size_human	:::addons/cicd/models/volume.py:23
+field	[cicd]	cicd.machine.volume.used_size	:::addons/cicd/models/volume.py:24
+field	[cicd]	cicd.machine.volume.free_size	:::addons/cicd/models/volume.py:25
+field	[cicd]	cicd.machine.volume.total_size	:::addons/cicd/models/volume.py:26
+field	[cicd]	cicd.machine.volume.used_percent	:::addons/cicd/models/volume.py:27
+field	[cicd]	cicd.git.repo.machine_id	:::addons/cicd/models/repository.py:26
+field	[cicd]	cicd.git.repo.name	:::addons/cicd/models/repository.py:27
+field	[cicd]	cicd.git.repo.login_type	:::addons/cicd/models/repository.py:28
+field	[cicd]	cicd.git.repo.key	:::addons/cicd/models/repository.py:32
+field	[cicd]	cicd.git.repo.username	:::addons/cicd/models/repository.py:33
+field	[cicd]	cicd.git.repo.password	:::addons/cicd/models/repository.py:34
+field	[cicd]	cicd.git.repo.skip_paths	:::addons/cicd/models/repository.py:35
+field	[cicd]	cicd.git.repo.branch_ids	:::addons/cicd/models/repository.py:36
+field	[cicd]	cicd.git.repo.url	:::addons/cicd/models/repository.py:37
+view	[cicd]	 ~form cicd.view_cicd_dump_form [inherit_id=]	:::addons/cicd/views/dump_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_task_form [inherit_id=]	:::addons/cicd/views/task_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_machine_form [inherit_id=]	:::addons/cicd/views/machine_form.xml:3
+view	[cicd]	 ~kanban cicd.view_cicd_git_branch_kanban [inherit_id=]	:::addons/cicd/views/git_branch_kanban.xml:3
+view	[cicd]	 ~form cicd.view_cicd_volume_form [inherit_id=]	:::addons/cicd/views/volume_form.xml:4
+view	[cicd]	 ~tree cicd.view_cicd_git_repo_tree [inherit_id=]	:::addons/cicd/views/repository.xml:3
+view	[cicd]	 ~ cicd.view_cicd_git_repo_form [inherit_id=]	:::addons/cicd/views/repository.xml:11
+view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/views/git_branch_form.xml:3
+model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
+model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
+model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
+model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
+model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
+model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
+xmlid	[cicd]	cicd.branches_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:6
+xmlid	[cicd]	cicd.config_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:4
+xmlid	[cicd]	cicd.configuration_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:13
+xmlid	[cicd]	cicd.fetch_new_branches model:ir.cron	:::addons/cicd/data/cronjobs.xml:3
+xmlid	[cicd]	cicd.machines_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:20
+xmlid	[cicd]	cicd.menu_branches model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:12
+xmlid	[cicd]	cicd.menu_machines model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:26
+xmlid	[cicd]	cicd.menu_repos model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:19
+xmlid	[cicd]	cicd.root_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:3
+xmlid	[cicd]	cicd.update_volumes_dumps model:ir.cron	:::addons/cicd/data/cronjobs.xml:13
+xmlid	[cicd]	cicd.view_cicd_dump_form model:ir.ui.view	:::addons/cicd/views/dump_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_git_branch_form model:ir.ui.view	:::addons/cicd/views/git_branch_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_branch_kanban model:ir.ui.view	:::addons/cicd/views/git_branch_kanban.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_repo_form model:ir.ui.view	:::addons/cicd/views/repository.xml:11
+xmlid	[cicd]	cicd.view_cicd_git_repo_tree model:ir.ui.view	:::addons/cicd/views/repository.xml:3
+xmlid	[cicd]	cicd.view_cicd_machine_form model:ir.ui.view	:::addons/cicd/views/machine_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_task_form model:ir.ui.view	:::addons/cicd/views/task_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_volume_form model:ir.ui.view	:::addons/cicd/views/volume_form.xml:4
+def	[cicd]	cicd.mixin.size._humanize	:::addons/cicd/models/mixin_size.py:12
+def	[cicd]	cicd.task._compute_display_name	:::addons/cicd/models/task.py:27
+def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
+def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
+def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
+def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
+def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
+def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
+def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
+def	[cicd]	cicd.machine.volume._cron_update	:::addons/cicd/models/volume.py:30
+def	[cicd]	cicd.machine.volume._update_sizes	:::addons/cicd/models/volume.py:33
+def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
+def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
+def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
+def	[cicd]	cicd.git.repo._get_main_repo	:::addons/cicd/models/repository.py:82
+def	[cicd]	cicd.git.repo._cron_fetch	:::addons/cicd/models/repository.py:101
+def	[cicd]	cicd.git.repo._lock_git	:::addons/cicd/models/repository.py:141
+def	[cicd]	cicd.git.repo.retry	:::addons/cicd/models/repository.py:142
+def	[cicd]	cicd.git.repo.clone_repo	:::addons/cicd/models/repository.py:150
+field	[cicd]	cicd.mixin.size.size	:::addons/cicd/models/mixin_size.py:8
+field	[cicd]	cicd.mixin.size.size_human	:::addons/cicd/models/mixin_size.py:9
+field	[cicd]	cicd.git.commit.name	:::addons/cicd/models/commit.py:7
+field	[cicd]	cicd.git.commit.branch_ids	:::addons/cicd/models/commit.py:8
+field	[cicd]	cicd.git.commit.date_registered	:::addons/cicd/models/commit.py:9
+field	[cicd]	cicd.git.commit.date	:::addons/cicd/models/commit.py:10
+field	[cicd]	cicd.task.display_name	:::addons/cicd/models/task.py:14
+field	[cicd]	cicd.task.branch_id	:::addons/cicd/models/task.py:15
+field	[cicd]	cicd.task.name	:::addons/cicd/models/task.py:16
+field	[cicd]	cicd.task.date	:::addons/cicd/models/task.py:17
+field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
+field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
+field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
+field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
+field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
+field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
+field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
+field	[cicd]	cicd.machine.volume.name	:::addons/cicd/models/volume.py:13
+field	[cicd]	cicd.machine.volume.machine_id	:::addons/cicd/models/volume.py:14
+field	[cicd]	cicd.machine.volume.ttype	:::addons/cicd/models/volume.py:15
+field	[cicd]	cicd.machine.volume.used_size_human	:::addons/cicd/models/volume.py:21
+field	[cicd]	cicd.machine.volume.free_size_human	:::addons/cicd/models/volume.py:22
+field	[cicd]	cicd.machine.volume.total_size_human	:::addons/cicd/models/volume.py:23
+field	[cicd]	cicd.machine.volume.used_size	:::addons/cicd/models/volume.py:24
+field	[cicd]	cicd.machine.volume.free_size	:::addons/cicd/models/volume.py:25
+field	[cicd]	cicd.machine.volume.total_size	:::addons/cicd/models/volume.py:26
+field	[cicd]	cicd.machine.volume.used_percent	:::addons/cicd/models/volume.py:27
+field	[cicd]	cicd.git.repo.machine_id	:::addons/cicd/models/repository.py:26
+field	[cicd]	cicd.git.repo.name	:::addons/cicd/models/repository.py:27
+field	[cicd]	cicd.git.repo.login_type	:::addons/cicd/models/repository.py:28
+field	[cicd]	cicd.git.repo.key	:::addons/cicd/models/repository.py:32
+field	[cicd]	cicd.git.repo.username	:::addons/cicd/models/repository.py:33
+field	[cicd]	cicd.git.repo.password	:::addons/cicd/models/repository.py:34
+field	[cicd]	cicd.git.repo.skip_paths	:::addons/cicd/models/repository.py:35
+field	[cicd]	cicd.git.repo.branch_ids	:::addons/cicd/models/repository.py:36
+field	[cicd]	cicd.git.repo.url	:::addons/cicd/models/repository.py:37
+view	[cicd]	 ~form cicd.view_cicd_dump_form [inherit_id=]	:::addons/cicd/views/dump_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_task_form [inherit_id=]	:::addons/cicd/views/task_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_machine_form [inherit_id=]	:::addons/cicd/views/machine_form.xml:3
+view	[cicd]	 ~kanban cicd.view_cicd_git_branch_kanban [inherit_id=]	:::addons/cicd/views/git_branch_kanban.xml:3
+view	[cicd]	 ~form cicd.view_cicd_volume_form [inherit_id=]	:::addons/cicd/views/volume_form.xml:4
+view	[cicd]	 ~tree cicd.view_cicd_git_repo_tree [inherit_id=]	:::addons/cicd/views/repository.xml:3
+view	[cicd]	 ~ cicd.view_cicd_git_repo_form [inherit_id=]	:::addons/cicd/views/repository.xml:11
+view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/views/git_branch_form.xml:3
+model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
+model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
+model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
+model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
+model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
+model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
+xmlid	[cicd]	cicd.branches_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:6
+xmlid	[cicd]	cicd.config_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:4
+xmlid	[cicd]	cicd.configuration_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:13
+xmlid	[cicd]	cicd.fetch_new_branches model:ir.cron	:::addons/cicd/data/cronjobs.xml:3
+xmlid	[cicd]	cicd.machines_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:20
+xmlid	[cicd]	cicd.menu_branches model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:12
+xmlid	[cicd]	cicd.menu_machines model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:26
+xmlid	[cicd]	cicd.menu_repos model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:19
+xmlid	[cicd]	cicd.root_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:3
+xmlid	[cicd]	cicd.update_volumes_dumps model:ir.cron	:::addons/cicd/data/cronjobs.xml:13
+xmlid	[cicd]	cicd.view_cicd_dump_form model:ir.ui.view	:::addons/cicd/views/dump_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_git_branch_form model:ir.ui.view	:::addons/cicd/views/git_branch_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_branch_kanban model:ir.ui.view	:::addons/cicd/views/git_branch_kanban.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_repo_form model:ir.ui.view	:::addons/cicd/views/repository.xml:11
+xmlid	[cicd]	cicd.view_cicd_git_repo_tree model:ir.ui.view	:::addons/cicd/views/repository.xml:3
+xmlid	[cicd]	cicd.view_cicd_machine_form model:ir.ui.view	:::addons/cicd/views/machine_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_task_form model:ir.ui.view	:::addons/cicd/views/task_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_volume_form model:ir.ui.view	:::addons/cicd/views/volume_form.xml:4
+def	[cicd]	cicd.mixin.size._humanize	:::addons/cicd/models/mixin_size.py:12
+def	[cicd]	cicd.task._compute_display_name	:::addons/cicd/models/task.py:27
+def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
+def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
+def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
+def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
+def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
+def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
+def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
+def	[cicd]	cicd.machine.volume._cron_update	:::addons/cicd/models/volume.py:30
+def	[cicd]	cicd.machine.volume._update_sizes	:::addons/cicd/models/volume.py:33
+def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
+def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
+def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
+def	[cicd]	cicd.git.repo._get_main_repo	:::addons/cicd/models/repository.py:82
+def	[cicd]	cicd.git.repo._cron_fetch	:::addons/cicd/models/repository.py:101
+def	[cicd]	cicd.git.repo._lock_git	:::addons/cicd/models/repository.py:141
+def	[cicd]	cicd.git.repo.retry	:::addons/cicd/models/repository.py:142
+def	[cicd]	cicd.git.repo.clone_repo	:::addons/cicd/models/repository.py:150
+field	[cicd]	cicd.mixin.size.size	:::addons/cicd/models/mixin_size.py:8
+field	[cicd]	cicd.mixin.size.size_human	:::addons/cicd/models/mixin_size.py:9
+field	[cicd]	cicd.git.commit.name	:::addons/cicd/models/commit.py:7
+field	[cicd]	cicd.git.commit.branch_ids	:::addons/cicd/models/commit.py:8
+field	[cicd]	cicd.git.commit.date_registered	:::addons/cicd/models/commit.py:9
+field	[cicd]	cicd.git.commit.date	:::addons/cicd/models/commit.py:10
+field	[cicd]	cicd.task.display_name	:::addons/cicd/models/task.py:14
+field	[cicd]	cicd.task.branch_id	:::addons/cicd/models/task.py:15
+field	[cicd]	cicd.task.name	:::addons/cicd/models/task.py:16
+field	[cicd]	cicd.task.date	:::addons/cicd/models/task.py:17
+field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
+field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
+field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
+field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
+field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
+field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
+field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
+field	[cicd]	cicd.machine.volume.name	:::addons/cicd/models/volume.py:13
+field	[cicd]	cicd.machine.volume.machine_id	:::addons/cicd/models/volume.py:14
+field	[cicd]	cicd.machine.volume.ttype	:::addons/cicd/models/volume.py:15
+field	[cicd]	cicd.machine.volume.used_size_human	:::addons/cicd/models/volume.py:21
+field	[cicd]	cicd.machine.volume.free_size_human	:::addons/cicd/models/volume.py:22
+field	[cicd]	cicd.machine.volume.total_size_human	:::addons/cicd/models/volume.py:23
+field	[cicd]	cicd.machine.volume.used_size	:::addons/cicd/models/volume.py:24
+field	[cicd]	cicd.machine.volume.free_size	:::addons/cicd/models/volume.py:25
+field	[cicd]	cicd.machine.volume.total_size	:::addons/cicd/models/volume.py:26
+field	[cicd]	cicd.machine.volume.used_percent	:::addons/cicd/models/volume.py:27
+field	[cicd]	cicd.git.repo.machine_id	:::addons/cicd/models/repository.py:26
+field	[cicd]	cicd.git.repo.name	:::addons/cicd/models/repository.py:27
+field	[cicd]	cicd.git.repo.login_type	:::addons/cicd/models/repository.py:28
+field	[cicd]	cicd.git.repo.key	:::addons/cicd/models/repository.py:32
+field	[cicd]	cicd.git.repo.username	:::addons/cicd/models/repository.py:33
+field	[cicd]	cicd.git.repo.password	:::addons/cicd/models/repository.py:34
+field	[cicd]	cicd.git.repo.skip_paths	:::addons/cicd/models/repository.py:35
+field	[cicd]	cicd.git.repo.branch_ids	:::addons/cicd/models/repository.py:36
+field	[cicd]	cicd.git.repo.url	:::addons/cicd/models/repository.py:37
+view	[cicd]	 ~form cicd.view_cicd_dump_form [inherit_id=]	:::addons/cicd/views/dump_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_task_form [inherit_id=]	:::addons/cicd/views/task_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_machine_form [inherit_id=]	:::addons/cicd/views/machine_form.xml:3
+view	[cicd]	 ~kanban cicd.view_cicd_git_branch_kanban [inherit_id=]	:::addons/cicd/views/git_branch_kanban.xml:3
+view	[cicd]	 ~form cicd.view_cicd_volume_form [inherit_id=]	:::addons/cicd/views/volume_form.xml:4
+view	[cicd]	 ~tree cicd.view_cicd_git_repo_tree [inherit_id=]	:::addons/cicd/views/repository.xml:3
+view	[cicd]	 ~ cicd.view_cicd_git_repo_form [inherit_id=]	:::addons/cicd/views/repository.xml:11
+view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/views/git_branch_form.xml:3
+model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
+model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
+model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
+model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
+model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
+model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
+xmlid	[cicd]	cicd.branches_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:6
+xmlid	[cicd]	cicd.config_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:4
+xmlid	[cicd]	cicd.configuration_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:13
+xmlid	[cicd]	cicd.fetch_new_branches model:ir.cron	:::addons/cicd/data/cronjobs.xml:3
+xmlid	[cicd]	cicd.machines_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:20
+xmlid	[cicd]	cicd.menu_branches model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:12
+xmlid	[cicd]	cicd.menu_machines model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:26
+xmlid	[cicd]	cicd.menu_repos model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:19
+xmlid	[cicd]	cicd.root_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:3
+xmlid	[cicd]	cicd.update_volumes_dumps model:ir.cron	:::addons/cicd/data/cronjobs.xml:13
+xmlid	[cicd]	cicd.view_cicd_dump_form model:ir.ui.view	:::addons/cicd/views/dump_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_git_branch_form model:ir.ui.view	:::addons/cicd/views/git_branch_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_branch_kanban model:ir.ui.view	:::addons/cicd/views/git_branch_kanban.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_repo_form model:ir.ui.view	:::addons/cicd/views/repository.xml:11
+xmlid	[cicd]	cicd.view_cicd_git_repo_tree model:ir.ui.view	:::addons/cicd/views/repository.xml:3
+xmlid	[cicd]	cicd.view_cicd_machine_form model:ir.ui.view	:::addons/cicd/views/machine_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_task_form model:ir.ui.view	:::addons/cicd/views/task_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_volume_form model:ir.ui.view	:::addons/cicd/views/volume_form.xml:4
+def	[cicd]	cicd.mixin.size._humanize	:::addons/cicd/models/mixin_size.py:12
+def	[cicd]	cicd.task._compute_display_name	:::addons/cicd/models/task.py:27
+def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
+def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
+def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
+def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
+def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
+def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
+def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
+def	[cicd]	cicd.machine.volume._cron_update	:::addons/cicd/models/volume.py:30
+def	[cicd]	cicd.machine.volume._update_sizes	:::addons/cicd/models/volume.py:33
+def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
+def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
+def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
+def	[cicd]	cicd.git.repo._get_main_repo	:::addons/cicd/models/repository.py:82
+def	[cicd]	cicd.git.repo._cron_fetch	:::addons/cicd/models/repository.py:101
+def	[cicd]	cicd.git.repo._lock_git	:::addons/cicd/models/repository.py:141
+def	[cicd]	cicd.git.repo.retry	:::addons/cicd/models/repository.py:142
+def	[cicd]	cicd.git.repo.clone_repo	:::addons/cicd/models/repository.py:150
+field	[cicd]	cicd.mixin.size.size	:::addons/cicd/models/mixin_size.py:8
+field	[cicd]	cicd.mixin.size.size_human	:::addons/cicd/models/mixin_size.py:9
+field	[cicd]	cicd.git.commit.name	:::addons/cicd/models/commit.py:7
+field	[cicd]	cicd.git.commit.branch_ids	:::addons/cicd/models/commit.py:8
+field	[cicd]	cicd.git.commit.date_registered	:::addons/cicd/models/commit.py:9
+field	[cicd]	cicd.git.commit.date	:::addons/cicd/models/commit.py:10
+field	[cicd]	cicd.task.display_name	:::addons/cicd/models/task.py:14
+field	[cicd]	cicd.task.branch_id	:::addons/cicd/models/task.py:15
+field	[cicd]	cicd.task.name	:::addons/cicd/models/task.py:16
+field	[cicd]	cicd.task.date	:::addons/cicd/models/task.py:17
+field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
+field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
+field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
+field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
+field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
+field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
+field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
+field	[cicd]	cicd.machine.volume.name	:::addons/cicd/models/volume.py:13
+field	[cicd]	cicd.machine.volume.machine_id	:::addons/cicd/models/volume.py:14
+field	[cicd]	cicd.machine.volume.ttype	:::addons/cicd/models/volume.py:15
+field	[cicd]	cicd.machine.volume.used_size_human	:::addons/cicd/models/volume.py:21
+field	[cicd]	cicd.machine.volume.free_size_human	:::addons/cicd/models/volume.py:22
+field	[cicd]	cicd.machine.volume.total_size_human	:::addons/cicd/models/volume.py:23
+field	[cicd]	cicd.machine.volume.used_size	:::addons/cicd/models/volume.py:24
+field	[cicd]	cicd.machine.volume.free_size	:::addons/cicd/models/volume.py:25
+field	[cicd]	cicd.machine.volume.total_size	:::addons/cicd/models/volume.py:26
+field	[cicd]	cicd.machine.volume.used_percent	:::addons/cicd/models/volume.py:27
+field	[cicd]	cicd.git.repo.machine_id	:::addons/cicd/models/repository.py:26
+field	[cicd]	cicd.git.repo.name	:::addons/cicd/models/repository.py:27
+field	[cicd]	cicd.git.repo.login_type	:::addons/cicd/models/repository.py:28
+field	[cicd]	cicd.git.repo.key	:::addons/cicd/models/repository.py:32
+field	[cicd]	cicd.git.repo.username	:::addons/cicd/models/repository.py:33
+field	[cicd]	cicd.git.repo.password	:::addons/cicd/models/repository.py:34
+field	[cicd]	cicd.git.repo.skip_paths	:::addons/cicd/models/repository.py:35
+field	[cicd]	cicd.git.repo.branch_ids	:::addons/cicd/models/repository.py:36
+field	[cicd]	cicd.git.repo.url	:::addons/cicd/models/repository.py:37
+view	[cicd]	 ~form cicd.view_cicd_dump_form [inherit_id=]	:::addons/cicd/views/dump_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_task_form [inherit_id=]	:::addons/cicd/views/task_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_machine_form [inherit_id=]	:::addons/cicd/views/machine_form.xml:3
+view	[cicd]	 ~kanban cicd.view_cicd_git_branch_kanban [inherit_id=]	:::addons/cicd/views/git_branch_kanban.xml:3
+view	[cicd]	 ~form cicd.view_cicd_volume_form [inherit_id=]	:::addons/cicd/views/volume_form.xml:4
+view	[cicd]	 ~tree cicd.view_cicd_git_repo_tree [inherit_id=]	:::addons/cicd/views/repository.xml:3
+view	[cicd]	 ~ cicd.view_cicd_git_repo_form [inherit_id=]	:::addons/cicd/views/repository.xml:11
+view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/views/git_branch_form.xml:3
+model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
+model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
+model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
+model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
+model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
+model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
+xmlid	[cicd]	cicd.branches_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:6
+xmlid	[cicd]	cicd.config_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:4
+xmlid	[cicd]	cicd.configuration_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:13
+xmlid	[cicd]	cicd.fetch_new_branches model:ir.cron	:::addons/cicd/data/cronjobs.xml:3
+xmlid	[cicd]	cicd.machines_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:20
+xmlid	[cicd]	cicd.menu_branches model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:12
+xmlid	[cicd]	cicd.menu_machines model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:26
+xmlid	[cicd]	cicd.menu_repos model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:19
+xmlid	[cicd]	cicd.root_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:3
+xmlid	[cicd]	cicd.update_volumes_dumps model:ir.cron	:::addons/cicd/data/cronjobs.xml:13
+xmlid	[cicd]	cicd.view_cicd_dump_form model:ir.ui.view	:::addons/cicd/views/dump_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_git_branch_form model:ir.ui.view	:::addons/cicd/views/git_branch_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_branch_kanban model:ir.ui.view	:::addons/cicd/views/git_branch_kanban.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_repo_form model:ir.ui.view	:::addons/cicd/views/repository.xml:11
+xmlid	[cicd]	cicd.view_cicd_git_repo_tree model:ir.ui.view	:::addons/cicd/views/repository.xml:3
+xmlid	[cicd]	cicd.view_cicd_machine_form model:ir.ui.view	:::addons/cicd/views/machine_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_task_form model:ir.ui.view	:::addons/cicd/views/task_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_volume_form model:ir.ui.view	:::addons/cicd/views/volume_form.xml:4
+def	[cicd]	cicd.mixin.size._humanize	:::addons/cicd/models/mixin_size.py:12
+def	[cicd]	cicd.task._compute_display_name	:::addons/cicd/models/task.py:27
+def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
+def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
+def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
+def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
+def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
+def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
+def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
+def	[cicd]	cicd.machine.volume._cron_update	:::addons/cicd/models/volume.py:30
+def	[cicd]	cicd.machine.volume._update_sizes	:::addons/cicd/models/volume.py:33
+def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
+def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
+def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
+def	[cicd]	cicd.git.repo._get_main_repo	:::addons/cicd/models/repository.py:82
+def	[cicd]	cicd.git.repo._cron_fetch	:::addons/cicd/models/repository.py:101
+def	[cicd]	cicd.git.repo._lock_git	:::addons/cicd/models/repository.py:141
+def	[cicd]	cicd.git.repo.retry	:::addons/cicd/models/repository.py:142
+def	[cicd]	cicd.git.repo.clone_repo	:::addons/cicd/models/repository.py:150
+field	[cicd]	cicd.mixin.size.size	:::addons/cicd/models/mixin_size.py:8
+field	[cicd]	cicd.mixin.size.size_human	:::addons/cicd/models/mixin_size.py:9
+field	[cicd]	cicd.git.commit.name	:::addons/cicd/models/commit.py:7
+field	[cicd]	cicd.git.commit.branch_ids	:::addons/cicd/models/commit.py:8
+field	[cicd]	cicd.git.commit.date_registered	:::addons/cicd/models/commit.py:9
+field	[cicd]	cicd.git.commit.date	:::addons/cicd/models/commit.py:10
+field	[cicd]	cicd.task.display_name	:::addons/cicd/models/task.py:14
+field	[cicd]	cicd.task.branch_id	:::addons/cicd/models/task.py:15
+field	[cicd]	cicd.task.name	:::addons/cicd/models/task.py:16
+field	[cicd]	cicd.task.date	:::addons/cicd/models/task.py:17
+field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
+field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
+field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
+field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
+field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
+field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
+field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
+field	[cicd]	cicd.machine.volume.name	:::addons/cicd/models/volume.py:13
+field	[cicd]	cicd.machine.volume.machine_id	:::addons/cicd/models/volume.py:14
+field	[cicd]	cicd.machine.volume.ttype	:::addons/cicd/models/volume.py:15
+field	[cicd]	cicd.machine.volume.used_size_human	:::addons/cicd/models/volume.py:21
+field	[cicd]	cicd.machine.volume.free_size_human	:::addons/cicd/models/volume.py:22
+field	[cicd]	cicd.machine.volume.total_size_human	:::addons/cicd/models/volume.py:23
+field	[cicd]	cicd.machine.volume.used_size	:::addons/cicd/models/volume.py:24
+field	[cicd]	cicd.machine.volume.free_size	:::addons/cicd/models/volume.py:25
+field	[cicd]	cicd.machine.volume.total_size	:::addons/cicd/models/volume.py:26
+field	[cicd]	cicd.machine.volume.used_percent	:::addons/cicd/models/volume.py:27
+field	[cicd]	cicd.git.repo.machine_id	:::addons/cicd/models/repository.py:26
+field	[cicd]	cicd.git.repo.name	:::addons/cicd/models/repository.py:27
+field	[cicd]	cicd.git.repo.login_type	:::addons/cicd/models/repository.py:28
+field	[cicd]	cicd.git.repo.key	:::addons/cicd/models/repository.py:32
+field	[cicd]	cicd.git.repo.username	:::addons/cicd/models/repository.py:33
+field	[cicd]	cicd.git.repo.password	:::addons/cicd/models/repository.py:34
+field	[cicd]	cicd.git.repo.skip_paths	:::addons/cicd/models/repository.py:35
+field	[cicd]	cicd.git.repo.branch_ids	:::addons/cicd/models/repository.py:36
+field	[cicd]	cicd.git.repo.url	:::addons/cicd/models/repository.py:37
+view	[cicd]	 ~form cicd.view_cicd_dump_form [inherit_id=]	:::addons/cicd/views/dump_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_task_form [inherit_id=]	:::addons/cicd/views/task_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_machine_form [inherit_id=]	:::addons/cicd/views/machine_form.xml:3
+view	[cicd]	 ~kanban cicd.view_cicd_git_branch_kanban [inherit_id=]	:::addons/cicd/views/git_branch_kanban.xml:3
+view	[cicd]	 ~form cicd.view_cicd_volume_form [inherit_id=]	:::addons/cicd/views/volume_form.xml:4
+view	[cicd]	 ~tree cicd.view_cicd_git_repo_tree [inherit_id=]	:::addons/cicd/views/repository.xml:3
+view	[cicd]	 ~ cicd.view_cicd_git_repo_form [inherit_id=]	:::addons/cicd/views/repository.xml:11
+view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/views/git_branch_form.xml:3
+model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
+model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
+model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
+model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
+model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
+model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
+xmlid	[cicd]	cicd.branches_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:6
+xmlid	[cicd]	cicd.config_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:4
+xmlid	[cicd]	cicd.configuration_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:13
+xmlid	[cicd]	cicd.fetch_new_branches model:ir.cron	:::addons/cicd/data/cronjobs.xml:3
+xmlid	[cicd]	cicd.machines_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:20
+xmlid	[cicd]	cicd.menu_branches model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:12
+xmlid	[cicd]	cicd.menu_machines model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:26
+xmlid	[cicd]	cicd.menu_repos model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:19
+xmlid	[cicd]	cicd.root_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:3
+xmlid	[cicd]	cicd.update_volumes_dumps model:ir.cron	:::addons/cicd/data/cronjobs.xml:13
+xmlid	[cicd]	cicd.view_cicd_dump_form model:ir.ui.view	:::addons/cicd/views/dump_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_git_branch_form model:ir.ui.view	:::addons/cicd/views/git_branch_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_branch_kanban model:ir.ui.view	:::addons/cicd/views/git_branch_kanban.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_repo_form model:ir.ui.view	:::addons/cicd/views/repository.xml:11
+xmlid	[cicd]	cicd.view_cicd_git_repo_tree model:ir.ui.view	:::addons/cicd/views/repository.xml:3
+xmlid	[cicd]	cicd.view_cicd_machine_form model:ir.ui.view	:::addons/cicd/views/machine_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_task_form model:ir.ui.view	:::addons/cicd/views/task_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_volume_form model:ir.ui.view	:::addons/cicd/views/volume_form.xml:4
+def	[cicd]	cicd.mixin.size._humanize	:::addons/cicd/models/mixin_size.py:12
+def	[cicd]	cicd.task._compute_display_name	:::addons/cicd/models/task.py:27
+def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
+def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
+def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
+def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
+def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
+def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
+def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
+def	[cicd]	cicd.machine.volume._cron_update	:::addons/cicd/models/volume.py:30
+def	[cicd]	cicd.machine.volume._update_sizes	:::addons/cicd/models/volume.py:33
+def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
+def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
+def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
+def	[cicd]	cicd.git.repo._get_main_repo	:::addons/cicd/models/repository.py:82
+def	[cicd]	cicd.git.repo._cron_fetch	:::addons/cicd/models/repository.py:101
+def	[cicd]	cicd.git.repo._lock_git	:::addons/cicd/models/repository.py:141
+def	[cicd]	cicd.git.repo.retry	:::addons/cicd/models/repository.py:142
+def	[cicd]	cicd.git.repo.clone_repo	:::addons/cicd/models/repository.py:150
+field	[cicd]	cicd.mixin.size.size	:::addons/cicd/models/mixin_size.py:8
+field	[cicd]	cicd.mixin.size.size_human	:::addons/cicd/models/mixin_size.py:9
+field	[cicd]	cicd.git.commit.name	:::addons/cicd/models/commit.py:7
+field	[cicd]	cicd.git.commit.branch_ids	:::addons/cicd/models/commit.py:8
+field	[cicd]	cicd.git.commit.date_registered	:::addons/cicd/models/commit.py:9
+field	[cicd]	cicd.git.commit.date	:::addons/cicd/models/commit.py:10
+field	[cicd]	cicd.task.display_name	:::addons/cicd/models/task.py:14
+field	[cicd]	cicd.task.branch_id	:::addons/cicd/models/task.py:15
+field	[cicd]	cicd.task.name	:::addons/cicd/models/task.py:16
+field	[cicd]	cicd.task.date	:::addons/cicd/models/task.py:17
+field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
+field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
+field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
+field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
+field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
+field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
+field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
+field	[cicd]	cicd.machine.volume.name	:::addons/cicd/models/volume.py:13
+field	[cicd]	cicd.machine.volume.machine_id	:::addons/cicd/models/volume.py:14
+field	[cicd]	cicd.machine.volume.ttype	:::addons/cicd/models/volume.py:15
+field	[cicd]	cicd.machine.volume.used_size_human	:::addons/cicd/models/volume.py:21
+field	[cicd]	cicd.machine.volume.free_size_human	:::addons/cicd/models/volume.py:22
+field	[cicd]	cicd.machine.volume.total_size_human	:::addons/cicd/models/volume.py:23
+field	[cicd]	cicd.machine.volume.used_size	:::addons/cicd/models/volume.py:24
+field	[cicd]	cicd.machine.volume.free_size	:::addons/cicd/models/volume.py:25
+field	[cicd]	cicd.machine.volume.total_size	:::addons/cicd/models/volume.py:26
+field	[cicd]	cicd.machine.volume.used_percent	:::addons/cicd/models/volume.py:27
+field	[cicd]	cicd.git.repo.machine_id	:::addons/cicd/models/repository.py:26
+field	[cicd]	cicd.git.repo.name	:::addons/cicd/models/repository.py:27
+field	[cicd]	cicd.git.repo.login_type	:::addons/cicd/models/repository.py:28
+field	[cicd]	cicd.git.repo.key	:::addons/cicd/models/repository.py:32
+field	[cicd]	cicd.git.repo.username	:::addons/cicd/models/repository.py:33
+field	[cicd]	cicd.git.repo.password	:::addons/cicd/models/repository.py:34
+field	[cicd]	cicd.git.repo.skip_paths	:::addons/cicd/models/repository.py:35
+field	[cicd]	cicd.git.repo.branch_ids	:::addons/cicd/models/repository.py:36
+field	[cicd]	cicd.git.repo.url	:::addons/cicd/models/repository.py:37
+view	[cicd]	 ~form cicd.view_cicd_dump_form [inherit_id=]	:::addons/cicd/views/dump_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_task_form [inherit_id=]	:::addons/cicd/views/task_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_machine_form [inherit_id=]	:::addons/cicd/views/machine_form.xml:3
+view	[cicd]	 ~kanban cicd.view_cicd_git_branch_kanban [inherit_id=]	:::addons/cicd/views/git_branch_kanban.xml:3
+view	[cicd]	 ~form cicd.view_cicd_volume_form [inherit_id=]	:::addons/cicd/views/volume_form.xml:4
+view	[cicd]	 ~tree cicd.view_cicd_git_repo_tree [inherit_id=]	:::addons/cicd/views/repository.xml:3
+view	[cicd]	 ~ cicd.view_cicd_git_repo_form [inherit_id=]	:::addons/cicd/views/repository.xml:11
+view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/views/git_branch_form.xml:3
+model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
+model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
+model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
+model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
+model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
+model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
+xmlid	[cicd]	cicd.branches_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:6
+xmlid	[cicd]	cicd.config_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:4
+xmlid	[cicd]	cicd.configuration_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:13
+xmlid	[cicd]	cicd.fetch_new_branches model:ir.cron	:::addons/cicd/data/cronjobs.xml:3
+xmlid	[cicd]	cicd.machines_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:20
+xmlid	[cicd]	cicd.menu_branches model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:12
+xmlid	[cicd]	cicd.menu_machines model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:26
+xmlid	[cicd]	cicd.menu_repos model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:19
+xmlid	[cicd]	cicd.root_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:3
+xmlid	[cicd]	cicd.update_volumes_dumps model:ir.cron	:::addons/cicd/data/cronjobs.xml:13
+xmlid	[cicd]	cicd.view_cicd_dump_form model:ir.ui.view	:::addons/cicd/views/dump_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_git_branch_form model:ir.ui.view	:::addons/cicd/views/git_branch_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_branch_kanban model:ir.ui.view	:::addons/cicd/views/git_branch_kanban.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_repo_form model:ir.ui.view	:::addons/cicd/views/repository.xml:11
+xmlid	[cicd]	cicd.view_cicd_git_repo_tree model:ir.ui.view	:::addons/cicd/views/repository.xml:3
+xmlid	[cicd]	cicd.view_cicd_machine_form model:ir.ui.view	:::addons/cicd/views/machine_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_task_form model:ir.ui.view	:::addons/cicd/views/task_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_volume_form model:ir.ui.view	:::addons/cicd/views/volume_form.xml:4
+def	[cicd]	cicd.mixin.size._humanize	:::addons/cicd/models/mixin_size.py:12
+def	[cicd]	cicd.task._compute_display_name	:::addons/cicd/models/task.py:27
+def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
+def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
+def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
+def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
+def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
+def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
+def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
+def	[cicd]	cicd.machine.volume._cron_update	:::addons/cicd/models/volume.py:30
+def	[cicd]	cicd.machine.volume._update_sizes	:::addons/cicd/models/volume.py:33
+def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
+def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
+def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
+def	[cicd]	cicd.git.repo._get_main_repo	:::addons/cicd/models/repository.py:82
+def	[cicd]	cicd.git.repo._cron_fetch	:::addons/cicd/models/repository.py:101
+def	[cicd]	cicd.git.repo._lock_git	:::addons/cicd/models/repository.py:141
+def	[cicd]	cicd.git.repo.retry	:::addons/cicd/models/repository.py:142
+def	[cicd]	cicd.git.repo.clone_repo	:::addons/cicd/models/repository.py:150
+field	[cicd]	cicd.mixin.size.size	:::addons/cicd/models/mixin_size.py:8
+field	[cicd]	cicd.mixin.size.size_human	:::addons/cicd/models/mixin_size.py:9
+field	[cicd]	cicd.git.commit.name	:::addons/cicd/models/commit.py:7
+field	[cicd]	cicd.git.commit.branch_ids	:::addons/cicd/models/commit.py:8
+field	[cicd]	cicd.git.commit.date_registered	:::addons/cicd/models/commit.py:9
+field	[cicd]	cicd.git.commit.date	:::addons/cicd/models/commit.py:10
+field	[cicd]	cicd.task.display_name	:::addons/cicd/models/task.py:14
+field	[cicd]	cicd.task.branch_id	:::addons/cicd/models/task.py:15
+field	[cicd]	cicd.task.name	:::addons/cicd/models/task.py:16
+field	[cicd]	cicd.task.date	:::addons/cicd/models/task.py:17
+field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
+field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
+field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
+field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
+field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
+field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
+field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
+field	[cicd]	cicd.machine.volume.name	:::addons/cicd/models/volume.py:13
+field	[cicd]	cicd.machine.volume.machine_id	:::addons/cicd/models/volume.py:14
+field	[cicd]	cicd.machine.volume.ttype	:::addons/cicd/models/volume.py:15
+field	[cicd]	cicd.machine.volume.used_size_human	:::addons/cicd/models/volume.py:21
+field	[cicd]	cicd.machine.volume.free_size_human	:::addons/cicd/models/volume.py:22
+field	[cicd]	cicd.machine.volume.total_size_human	:::addons/cicd/models/volume.py:23
+field	[cicd]	cicd.machine.volume.used_size	:::addons/cicd/models/volume.py:24
+field	[cicd]	cicd.machine.volume.free_size	:::addons/cicd/models/volume.py:25
+field	[cicd]	cicd.machine.volume.total_size	:::addons/cicd/models/volume.py:26
+field	[cicd]	cicd.machine.volume.used_percent	:::addons/cicd/models/volume.py:27
+field	[cicd]	cicd.git.repo.machine_id	:::addons/cicd/models/repository.py:26
+field	[cicd]	cicd.git.repo.name	:::addons/cicd/models/repository.py:27
+field	[cicd]	cicd.git.repo.login_type	:::addons/cicd/models/repository.py:28
+field	[cicd]	cicd.git.repo.key	:::addons/cicd/models/repository.py:32
+field	[cicd]	cicd.git.repo.username	:::addons/cicd/models/repository.py:33
+field	[cicd]	cicd.git.repo.password	:::addons/cicd/models/repository.py:34
+field	[cicd]	cicd.git.repo.skip_paths	:::addons/cicd/models/repository.py:35
+field	[cicd]	cicd.git.repo.branch_ids	:::addons/cicd/models/repository.py:36
+field	[cicd]	cicd.git.repo.url	:::addons/cicd/models/repository.py:37
+view	[cicd]	 ~form cicd.view_cicd_dump_form [inherit_id=]	:::addons/cicd/views/dump_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_task_form [inherit_id=]	:::addons/cicd/views/task_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_machine_form [inherit_id=]	:::addons/cicd/views/machine_form.xml:3
+view	[cicd]	 ~kanban cicd.view_cicd_git_branch_kanban [inherit_id=]	:::addons/cicd/views/git_branch_kanban.xml:3
+view	[cicd]	 ~form cicd.view_cicd_volume_form [inherit_id=]	:::addons/cicd/views/volume_form.xml:4
+view	[cicd]	 ~tree cicd.view_cicd_git_repo_tree [inherit_id=]	:::addons/cicd/views/repository.xml:3
+view	[cicd]	 ~ cicd.view_cicd_git_repo_form [inherit_id=]	:::addons/cicd/views/repository.xml:11
+view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/views/git_branch_form.xml:3
+model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
+model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
+model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
+model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
+model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
+model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
+xmlid	[cicd]	cicd.branches_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:6
+xmlid	[cicd]	cicd.config_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:4
+xmlid	[cicd]	cicd.configuration_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:13
+xmlid	[cicd]	cicd.fetch_new_branches model:ir.cron	:::addons/cicd/data/cronjobs.xml:3
+xmlid	[cicd]	cicd.machines_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:20
+xmlid	[cicd]	cicd.menu_branches model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:12
+xmlid	[cicd]	cicd.menu_machines model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:26
+xmlid	[cicd]	cicd.menu_repos model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:19
+xmlid	[cicd]	cicd.root_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:3
+xmlid	[cicd]	cicd.update_volumes_dumps model:ir.cron	:::addons/cicd/data/cronjobs.xml:13
+xmlid	[cicd]	cicd.view_cicd_dump_form model:ir.ui.view	:::addons/cicd/views/dump_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_git_branch_form model:ir.ui.view	:::addons/cicd/views/git_branch_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_branch_kanban model:ir.ui.view	:::addons/cicd/views/git_branch_kanban.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_repo_form model:ir.ui.view	:::addons/cicd/views/repository.xml:11
+xmlid	[cicd]	cicd.view_cicd_git_repo_tree model:ir.ui.view	:::addons/cicd/views/repository.xml:3
+xmlid	[cicd]	cicd.view_cicd_machine_form model:ir.ui.view	:::addons/cicd/views/machine_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_task_form model:ir.ui.view	:::addons/cicd/views/task_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_volume_form model:ir.ui.view	:::addons/cicd/views/volume_form.xml:4
+def	[cicd]	cicd.mixin.size._humanize	:::addons/cicd/models/mixin_size.py:12
+def	[cicd]	cicd.task._compute_display_name	:::addons/cicd/models/task.py:27
+def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
+def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
+def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
+def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
+def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
+def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
+def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
+def	[cicd]	cicd.machine.volume._cron_update	:::addons/cicd/models/volume.py:30
+def	[cicd]	cicd.machine.volume._update_sizes	:::addons/cicd/models/volume.py:33
+def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
+def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
+def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
+def	[cicd]	cicd.git.repo._get_main_repo	:::addons/cicd/models/repository.py:82
+def	[cicd]	cicd.git.repo._cron_fetch	:::addons/cicd/models/repository.py:101
+def	[cicd]	cicd.git.repo._lock_git	:::addons/cicd/models/repository.py:141
+def	[cicd]	cicd.git.repo.retry	:::addons/cicd/models/repository.py:142
+def	[cicd]	cicd.git.repo.clone_repo	:::addons/cicd/models/repository.py:150
+field	[cicd]	cicd.mixin.size.size	:::addons/cicd/models/mixin_size.py:8
+field	[cicd]	cicd.mixin.size.size_human	:::addons/cicd/models/mixin_size.py:9
+field	[cicd]	cicd.git.commit.name	:::addons/cicd/models/commit.py:7
+field	[cicd]	cicd.git.commit.branch_ids	:::addons/cicd/models/commit.py:8
+field	[cicd]	cicd.git.commit.date_registered	:::addons/cicd/models/commit.py:9
+field	[cicd]	cicd.git.commit.date	:::addons/cicd/models/commit.py:10
+field	[cicd]	cicd.task.display_name	:::addons/cicd/models/task.py:14
+field	[cicd]	cicd.task.branch_id	:::addons/cicd/models/task.py:15
+field	[cicd]	cicd.task.name	:::addons/cicd/models/task.py:16
+field	[cicd]	cicd.task.date	:::addons/cicd/models/task.py:17
+field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
+field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
+field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
+field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
+field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
+field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
+field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
+field	[cicd]	cicd.machine.volume.name	:::addons/cicd/models/volume.py:13
+field	[cicd]	cicd.machine.volume.machine_id	:::addons/cicd/models/volume.py:14
+field	[cicd]	cicd.machine.volume.ttype	:::addons/cicd/models/volume.py:15
+field	[cicd]	cicd.machine.volume.used_size_human	:::addons/cicd/models/volume.py:21
+field	[cicd]	cicd.machine.volume.free_size_human	:::addons/cicd/models/volume.py:22
+field	[cicd]	cicd.machine.volume.total_size_human	:::addons/cicd/models/volume.py:23
+field	[cicd]	cicd.machine.volume.used_size	:::addons/cicd/models/volume.py:24
+field	[cicd]	cicd.machine.volume.free_size	:::addons/cicd/models/volume.py:25
+field	[cicd]	cicd.machine.volume.total_size	:::addons/cicd/models/volume.py:26
+field	[cicd]	cicd.machine.volume.used_percent	:::addons/cicd/models/volume.py:27
+field	[cicd]	cicd.git.repo.machine_id	:::addons/cicd/models/repository.py:26
+field	[cicd]	cicd.git.repo.name	:::addons/cicd/models/repository.py:27
+field	[cicd]	cicd.git.repo.login_type	:::addons/cicd/models/repository.py:28
+field	[cicd]	cicd.git.repo.key	:::addons/cicd/models/repository.py:32
+field	[cicd]	cicd.git.repo.username	:::addons/cicd/models/repository.py:33
+field	[cicd]	cicd.git.repo.password	:::addons/cicd/models/repository.py:34
+field	[cicd]	cicd.git.repo.skip_paths	:::addons/cicd/models/repository.py:35
+field	[cicd]	cicd.git.repo.branch_ids	:::addons/cicd/models/repository.py:36
+field	[cicd]	cicd.git.repo.url	:::addons/cicd/models/repository.py:37
+view	[cicd]	 ~form cicd.view_cicd_dump_form [inherit_id=]	:::addons/cicd/views/dump_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_task_form [inherit_id=]	:::addons/cicd/views/task_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_machine_form [inherit_id=]	:::addons/cicd/views/machine_form.xml:3
+view	[cicd]	 ~kanban cicd.view_cicd_git_branch_kanban [inherit_id=]	:::addons/cicd/views/git_branch_kanban.xml:3
+view	[cicd]	 ~form cicd.view_cicd_volume_form [inherit_id=]	:::addons/cicd/views/volume_form.xml:4
+view	[cicd]	 ~tree cicd.view_cicd_git_repo_tree [inherit_id=]	:::addons/cicd/views/repository.xml:3
+view	[cicd]	 ~ cicd.view_cicd_git_repo_form [inherit_id=]	:::addons/cicd/views/repository.xml:11
+view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/views/git_branch_form.xml:3
+model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
+model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
+model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
 model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
 model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
 model	[cicd]	cicd.git.branch	:::addons/cicd/models/branch.py:11
@@ -26589,23 +27226,6 @@ def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
 def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
 def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
 def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
-def	[cicd]	cicd.machine._compute_workspace	:::addons/cicd/models/machine.py:37
-def	[cicd]	cicd.machine._compute_effective_host	:::addons/cicd/models/machine.py:41
-def	[cicd]	cicd.machine._place_ssh_credentials	:::addons/cicd/models/machine.py:48
-def	[cicd]	cicd.machine._shell	:::addons/cicd/models/machine.py:65
-def	[cicd]	cicd.machine.generate_ssh_key	:::addons/cicd/models/machine.py:77
-def	[cicd]	cicd.machine.create	:::addons/cicd/models/machine.py:90
-def	[cicd]	cicd.machine.test_ssh	:::addons/cicd/models/machine.py:96
-def	[cicd]	cicd.machine._execute_shell	:::addons/cicd/models/machine.py:100
-def	[cicd]	cicd.machine.__init__	:::addons/cicd/models/machine.py:103
-def	[cicd]	cicd.machine.finish	:::addons/cicd/models/machine.py:108
-def	[cicd]	cicd.machine.write	:::addons/cicd/models/machine.py:111
-def	[cicd]	cicd.machine._write_line	:::addons/cicd/models/machine.py:121
-def	[cicd]	cicd.machine.update_dumps	:::addons/cicd/models/machine.py:140
-def	[cicd]	cicd.machine.update_volumes	:::addons/cicd/models/machine.py:144
-def	[cicd]	cicd.machine.update_all_values	:::addons/cicd/models/machine.py:147
-def	[cicd]	cicd.machine._get_sshuser_id	:::addons/cicd/models/machine.py:151
-def	[cicd]	cicd.machine._get_volume	:::addons/cicd/models/machine.py:157
 def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
 def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
 def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
@@ -26622,7 +27242,7 @@ def	[cicd]	cicd.git.branch._cron_execute_task	:::addons/cicd/models/branch.py:89
 def	[cicd]	cicd.git.branch._restore_dump	:::addons/cicd/models/branch.py:97
 def	[cicd]	cicd.git.branch._get_instance_folder	:::addons/cicd/models/branch.py:114
 def	[cicd]	cicd.git.branch._reload_and_restart	:::addons/cicd/models/branch.py:117
-def	[cicd]	cicd.git.branch._checkout_latest	:::addons/cicd/models/branch.py:133
+def	[cicd]	cicd.git.branch._checkout_latest	:::addons/cicd/models/branch.py:137
 def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
 def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
 def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
@@ -26645,17 +27265,149 @@ field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
 field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
 field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
 field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
-field	[cicd]	cicd.machine.name	:::addons/cicd/models/machine.py:22
-field	[cicd]	cicd.machine.is_docker_host	:::addons/cicd/models/machine.py:23
-field	[cicd]	cicd.machine.host	:::addons/cicd/models/machine.py:24
-field	[cicd]	cicd.machine.volume_ids	:::addons/cicd/models/machine.py:25
-field	[cicd]	cicd.machine.ssh_user	:::addons/cicd/models/machine.py:26
-field	[cicd]	cicd.machine.ssh_pubkey	:::addons/cicd/models/machine.py:27
-field	[cicd]	cicd.machine.ssh_key	:::addons/cicd/models/machine.py:28
-field	[cicd]	cicd.machine.dump_ids	:::addons/cicd/models/machine.py:29
-field	[cicd]	cicd.machine.effective_host	:::addons/cicd/models/machine.py:30
-field	[cicd]	cicd.machine.workspace	:::addons/cicd/models/machine.py:31
-field	[cicd]	cicd.machine.ttype	:::addons/cicd/models/machine.py:32
+field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
+field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
+field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
+field	[cicd]	cicd.machine.volume.name	:::addons/cicd/models/volume.py:13
+field	[cicd]	cicd.machine.volume.machine_id	:::addons/cicd/models/volume.py:14
+field	[cicd]	cicd.machine.volume.ttype	:::addons/cicd/models/volume.py:15
+field	[cicd]	cicd.machine.volume.used_size_human	:::addons/cicd/models/volume.py:21
+field	[cicd]	cicd.machine.volume.free_size_human	:::addons/cicd/models/volume.py:22
+field	[cicd]	cicd.machine.volume.total_size_human	:::addons/cicd/models/volume.py:23
+field	[cicd]	cicd.machine.volume.used_size	:::addons/cicd/models/volume.py:24
+field	[cicd]	cicd.machine.volume.free_size	:::addons/cicd/models/volume.py:25
+field	[cicd]	cicd.machine.volume.total_size	:::addons/cicd/models/volume.py:26
+field	[cicd]	cicd.machine.volume.used_percent	:::addons/cicd/models/volume.py:27
+field	[cicd]	cicd.git.branch.machine_id	:::addons/cicd/models/branch.py:14
+field	[cicd]	cicd.git.branch.name	:::addons/cicd/models/branch.py:15
+field	[cicd]	cicd.git.branch.date_registered	:::addons/cicd/models/branch.py:16
+field	[cicd]	cicd.git.branch.date	:::addons/cicd/models/branch.py:17
+field	[cicd]	cicd.git.branch.repo_id	:::addons/cicd/models/branch.py:18
+field	[cicd]	cicd.git.branch.active	:::addons/cicd/models/branch.py:19
+field	[cicd]	cicd.git.branch.commit_ids	:::addons/cicd/models/branch.py:20
+field	[cicd]	cicd.git.branch.task_ids	:::addons/cicd/models/branch.py:21
+field	[cicd]	cicd.git.branch.state	:::addons/cicd/models/branch.py:22
+field	[cicd]	cicd.git.branch.build_state	:::addons/cicd/models/branch.py:26
+field	[cicd]	cicd.git.branch.dump_id	:::addons/cicd/models/branch.py:32
+field	[cicd]	cicd.git.repo.machine_id	:::addons/cicd/models/repository.py:26
+field	[cicd]	cicd.git.repo.name	:::addons/cicd/models/repository.py:27
+field	[cicd]	cicd.git.repo.login_type	:::addons/cicd/models/repository.py:28
+field	[cicd]	cicd.git.repo.key	:::addons/cicd/models/repository.py:32
+field	[cicd]	cicd.git.repo.username	:::addons/cicd/models/repository.py:33
+field	[cicd]	cicd.git.repo.password	:::addons/cicd/models/repository.py:34
+field	[cicd]	cicd.git.repo.skip_paths	:::addons/cicd/models/repository.py:35
+field	[cicd]	cicd.git.repo.branch_ids	:::addons/cicd/models/repository.py:36
+field	[cicd]	cicd.git.repo.url	:::addons/cicd/models/repository.py:37
+view	[cicd]	 ~form cicd.view_cicd_dump_form [inherit_id=]	:::addons/cicd/views/dump_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_task_form [inherit_id=]	:::addons/cicd/views/task_form.xml:4
+view	[cicd]	 ~form cicd.view_cicd_machine_form [inherit_id=]	:::addons/cicd/views/machine_form.xml:3
+view	[cicd]	 ~kanban cicd.view_cicd_git_branch_kanban [inherit_id=]	:::addons/cicd/views/git_branch_kanban.xml:3
+view	[cicd]	 ~form cicd.view_cicd_volume_form [inherit_id=]	:::addons/cicd/views/volume_form.xml:4
+view	[cicd]	 ~tree cicd.view_cicd_git_repo_tree [inherit_id=]	:::addons/cicd/views/repository.xml:3
+view	[cicd]	 ~ cicd.view_cicd_git_repo_form [inherit_id=]	:::addons/cicd/views/repository.xml:11
+view	[cicd]	 ~form cicd.view_cicd_git_branch_form [inherit_id=]	:::addons/cicd/views/git_branch_form.xml:3
+model	[cicd]	cicd.mixin.size	:::addons/cicd/models/mixin_size.py:5
+model	[cicd]	cicd.git.commit	:::addons/cicd/models/commit.py:4
+model	[cicd]	cicd.task	:::addons/cicd/models/task.py:10
+model	[cicd]	cicd.machine	:::addons/cicd/models/machine.py:30
+model	[cicd]	cicd.dump	:::addons/cicd/models/dump.py:7
+model	[cicd]	cicd.machine.volume	:::addons/cicd/models/volume.py:9
+model	[cicd]	cicd.git.branch	:::addons/cicd/models/branch.py:11
+model	[cicd]	cicd.git.repo	:::addons/cicd/models/repository.py:23
+xmlid	[cicd]	cicd.branches_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:6
+xmlid	[cicd]	cicd.config_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:4
+xmlid	[cicd]	cicd.configuration_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:13
+xmlid	[cicd]	cicd.fetch_new_branches model:ir.cron	:::addons/cicd/data/cronjobs.xml:3
+xmlid	[cicd]	cicd.machines_action model:ir.actions.act_window	:::addons/cicd/views/menu.xml:20
+xmlid	[cicd]	cicd.menu_branches model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:12
+xmlid	[cicd]	cicd.menu_machines model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:26
+xmlid	[cicd]	cicd.menu_repos model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:19
+xmlid	[cicd]	cicd.root_menu model:ir.ui.menuitem	:::addons/cicd/views/menu.xml:3
+xmlid	[cicd]	cicd.update_volumes_dumps model:ir.cron	:::addons/cicd/data/cronjobs.xml:13
+xmlid	[cicd]	cicd.view_cicd_dump_form model:ir.ui.view	:::addons/cicd/views/dump_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_git_branch_form model:ir.ui.view	:::addons/cicd/views/git_branch_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_branch_kanban model:ir.ui.view	:::addons/cicd/views/git_branch_kanban.xml:3
+xmlid	[cicd]	cicd.view_cicd_git_repo_form model:ir.ui.view	:::addons/cicd/views/repository.xml:11
+xmlid	[cicd]	cicd.view_cicd_git_repo_tree model:ir.ui.view	:::addons/cicd/views/repository.xml:3
+xmlid	[cicd]	cicd.view_cicd_machine_form model:ir.ui.view	:::addons/cicd/views/machine_form.xml:3
+xmlid	[cicd]	cicd.view_cicd_task_form model:ir.ui.view	:::addons/cicd/views/task_form.xml:4
+xmlid	[cicd]	cicd.view_cicd_volume_form model:ir.ui.view	:::addons/cicd/views/volume_form.xml:4
+def	[cicd]	cicd.mixin.size._humanize	:::addons/cicd/models/mixin_size.py:12
+def	[cicd]	cicd.task._compute_display_name	:::addons/cicd/models/task.py:27
+def	[cicd]	cicd.task._get_new_logsio_instance	:::addons/cicd/models/task.py:36
+def	[cicd]	cicd.task.perform	:::addons/cicd/models/task.py:42
+def	[cicd]	cicd.task._cron_run	:::addons/cicd/models/task.py:71
+def	[cicd]	cicd.task._make_cron	:::addons/cicd/models/task.py:77
+def	[cicd]	None.__init__	:::addons/cicd/models/machine.py:20
+def	[cicd]	None.X	:::addons/cicd/models/machine.py:25
+def	[cicd]	cicd.machine._compute_workspace	:::addons/cicd/models/machine.py:48
+def	[cicd]	cicd.machine._compute_effective_host	:::addons/cicd/models/machine.py:52
+def	[cicd]	cicd.machine._place_ssh_credentials	:::addons/cicd/models/machine.py:59
+def	[cicd]	cicd.machine._shell	:::addons/cicd/models/machine.py:76
+def	[cicd]	cicd.machine._shellexec	:::addons/cicd/models/machine.py:88
+def	[cicd]	cicd.machine.generate_ssh_key	:::addons/cicd/models/machine.py:93
+def	[cicd]	cicd.machine.create	:::addons/cicd/models/machine.py:106
+def	[cicd]	cicd.machine.test_ssh	:::addons/cicd/models/machine.py:112
+def	[cicd]	cicd.machine._execute_shell	:::addons/cicd/models/machine.py:116
+def	[cicd]	cicd.machine.__init__	:::addons/cicd/models/machine.py:119
+def	[cicd]	cicd.machine.finish	:::addons/cicd/models/machine.py:124
+def	[cicd]	cicd.machine.write	:::addons/cicd/models/machine.py:127
+def	[cicd]	cicd.machine._write_line	:::addons/cicd/models/machine.py:137
+def	[cicd]	cicd.machine.update_dumps	:::addons/cicd/models/machine.py:156
+def	[cicd]	cicd.machine.update_volumes	:::addons/cicd/models/machine.py:160
+def	[cicd]	cicd.machine.update_all_values	:::addons/cicd/models/machine.py:163
+def	[cicd]	cicd.machine._get_sshuser_id	:::addons/cicd/models/machine.py:167
+def	[cicd]	cicd.machine._get_volume	:::addons/cicd/models/machine.py:173
+def	[cicd]	cicd.dump._cron_update	:::addons/cicd/models/dump.py:16
+def	[cicd]	cicd.dump._check_name	:::addons/cicd/models/dump.py:21
+def	[cicd]	cicd.dump._update_dumps	:::addons/cicd/models/dump.py:26
+def	[cicd]	cicd.machine.volume._cron_update	:::addons/cicd/models/volume.py:30
+def	[cicd]	cicd.machine.volume._update_sizes	:::addons/cicd/models/volume.py:33
+def	[cicd]	cicd.git.branch._compute_build_state	:::addons/cicd/models/branch.py:41
+def	[cicd]	cicd.git.branch.reload_and_restart	:::addons/cicd/models/branch.py:53
+def	[cicd]	cicd.git.branch.restore_dump	:::addons/cicd/models/branch.py:57
+def	[cicd]	cicd.git.branch._make_task	:::addons/cicd/models/branch.py:61
+def	[cicd]	cicd.git.branch.create	:::addons/cicd/models/branch.py:72
+def	[cicd]	cicd.git.branch.make_cron	:::addons/cicd/models/branch.py:77
+def	[cicd]	cicd.git.branch._onchange_active	:::addons/cicd/models/branch.py:84
+def	[cicd]	cicd.git.branch._cron_execute_task	:::addons/cicd/models/branch.py:89
+def	[cicd]	cicd.git.branch._restore_dump	:::addons/cicd/models/branch.py:97
+def	[cicd]	cicd.git.branch._get_instance_folder	:::addons/cicd/models/branch.py:114
+def	[cicd]	cicd.git.branch._reload_and_restart	:::addons/cicd/models/branch.py:117
+def	[cicd]	cicd.git.branch._checkout_latest	:::addons/cicd/models/branch.py:137
+def	[cicd]	cicd.git.repo._compute_machine	:::addons/cicd/models/repository.py:43
+def	[cicd]	cicd.git.repo._compute_url	:::addons/cicd/models/repository.py:47
+def	[cicd]	cicd.git.repo._get_ssh_command	:::addons/cicd/models/repository.py:64
+def	[cicd]	cicd.git.repo._get_main_repo	:::addons/cicd/models/repository.py:82
+def	[cicd]	cicd.git.repo._cron_fetch	:::addons/cicd/models/repository.py:101
+def	[cicd]	cicd.git.repo._lock_git	:::addons/cicd/models/repository.py:141
+def	[cicd]	cicd.git.repo.retry	:::addons/cicd/models/repository.py:142
+def	[cicd]	cicd.git.repo.clone_repo	:::addons/cicd/models/repository.py:150
+field	[cicd]	cicd.mixin.size.size	:::addons/cicd/models/mixin_size.py:8
+field	[cicd]	cicd.mixin.size.size_human	:::addons/cicd/models/mixin_size.py:9
+field	[cicd]	cicd.git.commit.name	:::addons/cicd/models/commit.py:7
+field	[cicd]	cicd.git.commit.branch_ids	:::addons/cicd/models/commit.py:8
+field	[cicd]	cicd.git.commit.date_registered	:::addons/cicd/models/commit.py:9
+field	[cicd]	cicd.git.commit.date	:::addons/cicd/models/commit.py:10
+field	[cicd]	cicd.task.display_name	:::addons/cicd/models/task.py:14
+field	[cicd]	cicd.task.branch_id	:::addons/cicd/models/task.py:15
+field	[cicd]	cicd.task.name	:::addons/cicd/models/task.py:16
+field	[cicd]	cicd.task.date	:::addons/cicd/models/task.py:17
+field	[cicd]	cicd.task.state	:::addons/cicd/models/task.py:18
+field	[cicd]	cicd.task.log	:::addons/cicd/models/task.py:23
+field	[cicd]	cicd.task.error	:::addons/cicd/models/task.py:24
+field	[cicd]	cicd.task.dump_used	:::addons/cicd/models/task.py:25
+field	[cicd]	cicd.machine.name	:::addons/cicd/models/machine.py:33
+field	[cicd]	cicd.machine.is_docker_host	:::addons/cicd/models/machine.py:34
+field	[cicd]	cicd.machine.host	:::addons/cicd/models/machine.py:35
+field	[cicd]	cicd.machine.volume_ids	:::addons/cicd/models/machine.py:36
+field	[cicd]	cicd.machine.ssh_user	:::addons/cicd/models/machine.py:37
+field	[cicd]	cicd.machine.ssh_pubkey	:::addons/cicd/models/machine.py:38
+field	[cicd]	cicd.machine.ssh_key	:::addons/cicd/models/machine.py:39
+field	[cicd]	cicd.machine.dump_ids	:::addons/cicd/models/machine.py:40
+field	[cicd]	cicd.machine.effective_host	:::addons/cicd/models/machine.py:41
+field	[cicd]	cicd.machine.workspace	:::addons/cicd/models/machine.py:42
+field	[cicd]	cicd.machine.ttype	:::addons/cicd/models/machine.py:43
 field	[cicd]	cicd.dump.active	:::addons/cicd/models/dump.py:11
 field	[cicd]	cicd.dump.name	:::addons/cicd/models/dump.py:12
 field	[cicd]	cicd.dump.machine_id	:::addons/cicd/models/dump.py:13
