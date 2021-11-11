@@ -23,6 +23,7 @@
 							<page string="Tasks" name="tasks">
 								<field name="task_ids" nolabel="1" readonly="1">
 									<tree>
+										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
 										<field name="display_name" />
 										<field name="date" />
 										<field name="state" />

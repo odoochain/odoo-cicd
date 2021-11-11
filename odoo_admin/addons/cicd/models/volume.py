@@ -12,7 +12,12 @@ class CicdVolumes(models.Model):
 
     name = fields.Char("Path")
     machine_id = fields.Many2one('cicd.machine', string="Machine")
-    contains_dumps = fields.Boolean("Contains Dumps")
+    ttype = fields.Selection([
+        ('dumps', 'Dumps'),
+        ('source', 'Source'),
+        ('other', 'Other'),
+
+    ], string="Type", required=True)
     used_size_human = fields.Char("Used Size", compute="_compute_numbers")
     free_size_human = fields.Char("Free Size", compute="_compute_numbers")
     total_size_human = fields.Char("Total Size", compute="_compute_numbers")

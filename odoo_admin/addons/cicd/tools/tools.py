@@ -128,57 +128,6 @@ def get_host_ip():
     host_ip = '.'.join(subprocess.check_output(["/bin/hostname", "-I"]).decode('utf-8').strip().split(".")[:3]) + '.1'
     return host_ip
 
-def _execute_shell(odoo_machine, command, cwd=None, env=None, callback=None):
-    if isinstance(command, str):
-        command = [command]
-
-    env = env or {}
-
-    class MyWriter(object):
-        def __init__(self, prefix):
-            self.text = [""]
-            self.prefix = prefix
-
-        def write(self, bytes):
-            s = bytes.decode('utf-8', errors='ignore')
-            for c in s:
-                if c == '\n':
-                    line = self.text[-1]
-                    # if self.prefix == 'stderr':
-                    #     logger.error(line)
-                    # else:
-                    #     logger.debug(line)
-                    self.text.append("")
-                    if callback:
-                        callback(self.prefix, line)
-                else:
-                    self.text[-1] += c
-
-        def getall(self):
-            return '\n'.join(self.text)
-
-    stdout, stderr = MyWriter('stdout'), MyWriter('stderr')
-
-    with odoo_machine._shell() as shell:
-        try:
-            result = shell.run(
-                command,
-                cwd=str(cwd) if cwd else cwd,
-                update_env=env,
-                stdout=stdout,
-                stderr=stderr,
-                )
-        except Exception as ex:
-            logger.error(ex)
-            if callback:
-                callback('stderr', f"Process aborted")
-            return 'error', stdout.getall(), stderr.getall()
-
-    if callback:
-        callback('stdout', f"Successfully Finished.")
-    return result, stdout.getall(), stderr.getall()
-
-    
 def _get_resources():
     parent = Path("/display_resources")
     for disk in os.getenv("DISPLAY_RESOURCES", "").split(";"):

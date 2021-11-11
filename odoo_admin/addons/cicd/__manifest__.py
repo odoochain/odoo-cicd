@@ -17,6 +17,7 @@
     'depends': ['base'],
     'external_dependencies': {   'python': [   'pudb',
                                                'spur',
+                                               'spurplus',
                                                'bson',
                                                'humanize',
                                                'paramiko']},

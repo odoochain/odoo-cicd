@@ -17,6 +17,7 @@
 							</h1>
 						</div>
 						<group>
+							<field name="ttype"/>
 							<field name="ssh_user"/>
 							<field name="ssh_pubkey"/>
 							<field name="is_docker_host"/>
@@ -31,7 +32,7 @@
 										<tree editable='bottom'>
 											<field name="name" />
 											<field name="size_human"/>
-											<field name="contains_dumps"/>
+											<field name="ttype"/>
 										</tree>
 									</field>
 								</group>

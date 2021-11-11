@@ -11,7 +11,7 @@
 					<group string="Volume" col="2">
 						<field name="name" />
 						<field name="machine_id"/>
-						<field name="contains_dumps"/>
+						<field name="ttype"/>
 						<field name="used_size_human"/>
 						<field name="free_size_human"/>
 						<field name="total_size_human"/>

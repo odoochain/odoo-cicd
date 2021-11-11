@@ -26,7 +26,7 @@ class Dump(models.Model):
     def _update_dumps(self, machine):
 
         with machine._shell() as shell:
-            for volume in machine.volume_ids.filtered(lambda x: x.contains_dumps):
+            for volume in machine.volume_ids.filtered(lambda x: x.ttype == 'dumps'):
                 files = machine._execute_shell([
                     "ls", volume.name + "/"
                 ]).strip().split("\n")

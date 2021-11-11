@@ -108,56 +108,47 @@ class GitBranch(models.Model):
             'odoo', '--project-name', self.name, '-f', 'restore', 'odoo-db', self.dump_id.name
         ])
 
+    def _get_instance_folder(self, machine):
+        return machine._get_volume('source') / self.name
+
     def _reload_and_restart(self, task, logsio):
-        self._checkout_latest(logsio)
+        self._checkout_latest(self.machine_id, logsio)
+        instance_folder = self._get_instance_folder(self.machine_id)
         task.dump_used = self.dump_id.name
         log = self.machine_id._execute_shell([
             'odoo', '--project-name', self.name, 'reload',
-        ])
+        ], cwd=instance_folder).output
         log += self.machine_id._execute_shell([
             'odoo', '--project-name', self.name, 'build',
-        ])
+        ], cwd=instance_folder).output
         log += self.machine_id._execute_shell([
             'odoo', '--project-name', self.name, 'up', '-d',
-        ])
+        ], cwd=instance_folder).output
         task.log = log
         
-    def _checkout_latest(self, logsio):
-        from . import WORKSPACE
-        instance_folder = Path(WORKSPACE / self.name)
+    def _checkout_latest(self, machine, logsio):
+        instance_folder = self._get_instance_folder(machine)
         tries = 0
         while tries < 3:
             try:
                 tries += 1
-                logsio.write_text(f"Updating instance folder {self.name}")
-                logsio.write_text(f"Cloning {self.name} to {instance_folder}")
-                repo = self.repo_id.clone_repo(instance_folder)
-                logsio.write_text(f"Checking out {self.name}")
-                repo.git.checkout(self.name, force=True)
-                logsio.write_text(f"Pulling {self.name}")
-                repo.git.pull()
-                logsio.write_text(f"Clean git")
-                run = subprocess.run(
-                    ["git", "clean", "-xdff"],
-                    capture_output=True,
-                    cwd=instance_folder,
-                    env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
-                    )
-
-                run = subprocess.run(
-                    ["git", "submodule", "update", "--init", "--force", "--recursive"],
-                    capture_output=True,
-                    cwd=instance_folder,
-                    env=dict(os.environ, GIT_TERMINAL_PROMPT="0")
-                    )
-                if run.returncode:
-                    msg = run.stdout.decode('utf-8') + "\n" + run.stderr.decode('utf-8')
-                    logsio.write_text(logsio, msg)
-                    raise Exception(msg)
-                commit = repo.refs[self.name].commit
-                user_id = self.machine_id._get_sshuser_id()
-                logsio.write_text(f"Setting access rights in {instance_folder} to {user_id}")
-                return str(commit)
+                with machine._shell() as shell:
+                    logsio.write_text(f"Updating instance folder {self.name}")
+                    logsio.write_text(f"Cloning {self.name} to {instance_folder}")
+                    self.repo_id.clone_repo(machine, instance_folder)
+                    logsio.write_text(f"Checking out {self.name}")
+                    shell.run(["git", "checkout", "-f", self.name], cwd=instance_folder)
+                    logsio.write_text(f"Pulling {self.name}")
+                    shell.run(["git", "pull"], cwd=instance_folder)
+                    logsio.write_text(f"Clean git")
+                    shell.run(["git", "clean", "-xdff"], cwd=instance_folder, update_env={
+                        "GIT_TERMINAL_PROMPT": "0",
+                    })
+                    shell.run(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=instance_folder, update_env={
+                        "GIT_TERMINAL_PROMPT": "0",
+                    })
+                    commit = shell.run(["git", "rev-parse", "HEAD"], cwd=instance_folder).output.strip()
+                    return str(commit)
 
             except Exception as ex:
                 if tries < 3:

@@ -3,6 +3,7 @@ import pwd
 import grp
 from pathlib import Path
 import spur
+import spurplus
 from contextlib import contextmanager
 from odoo import _, api, fields, models, SUPERUSER_ID
 import tempfile
@@ -10,7 +11,6 @@ import paramiko
 import subprocess
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import humanize
-from ..tools.tools import _execute_shell
 from ..tools.tools import tempdir
 from ..tools.tools import get_host_ip
 import logging
@@ -29,6 +29,10 @@ class CicdMachine(models.Model):
     dump_ids = fields.One2many('cicd.dump', 'machine_id', string="Dumps")
     effective_host = fields.Char(compute="_compute_effective_host", store=False)
     workspace = fields.Char("Workspace", compute="_compute_workspace")
+    ttype = fields.Selection([
+        ('dev', 'Development-Machine'),
+        ('prod', 'Production System'),
+    ], required=True)
 
     def _compute_workspace(self):
         for rec in self:
@@ -61,11 +65,11 @@ class CicdMachine(models.Model):
     def _shell(self):
         self.ensure_one()
         ssh_keyfile = self._place_ssh_credentials()
-        with spur.SshShell(
+        with spurplus.connect_with_retries(
             hostname=get_host_ip(),
             username=self.ssh_user,
             private_key_file=str(ssh_keyfile),
-            missing_host_key=spur.ssh.MissingHostKey.accept
+            missing_host_key=spur.ssh.MissingHostKey.accept,
             ) as shell:
             yield shell
 
@@ -94,11 +98,11 @@ class CicdMachine(models.Model):
         raise ValidationError(_("Everyhing Works!"))
 
     def _execute_shell(self, cmd, cwd=None, env=None, callback=None):
-        import pudb;pudb.set_trace()
-        res, stdout, stderr = _execute_shell(self, cmd, cwd=cwd, env=env, callback=callback)
-        if res == 'error':
-            raise Exception(stderr)
-        return stdout
+        with self._shell() as shell:
+            res = shell.run(
+                cmd, cwd=cwd, update_env=env or {}
+            )
+            return res
 
     def update_dumps(self):
         for rec in self:
@@ -113,6 +117,13 @@ class CicdMachine(models.Model):
 
     def _get_sshuser_id(self):
         user_name = self.ssh_user
+        import pudb;pudb.set_trace()
         res, stdout, stderr = _execute_shell(self, ["/usr/bin/id", '-u', user_name])
         user_id = stdout.strip()
         return user_id
+
+    def _get_volume(self, ttype):
+        res = self.volume_ids.filtered(lambda x: x.ttype == ttype)
+        if not res:
+            raise ValidationError(_("Could not find: {}").format(ttype))
+        return Path(res[0].name)

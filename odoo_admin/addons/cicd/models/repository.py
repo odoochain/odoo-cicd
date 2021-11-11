@@ -1,3 +1,4 @@
+import arrow
 import os
 import shutil
 import subprocess
@@ -10,7 +11,6 @@ import tempfile
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from . import pg_try_advisory_lock
-from ..tools.tools import _execute_shell
 from odoo.addons.queue_job.exception import (
     RetryableJobError,
     JobError,
@@ -69,7 +69,7 @@ class Repository(models.Model):
         try:
             env['GIT_SSH_COMMAND'] = f'ssh -o StrictHostKeyChecking=no'
             if self.login_type == 'key':
-                env['GIT_SSH_COMMAND'] += ['f-i {file}']
+                env['GIT_SSH_COMMAND'] += [f'-i {file}']
                 file.write_text(self.key)
             else:
                 pass
@@ -81,7 +81,6 @@ class Repository(models.Model):
 
     def _get_main_repo(self, tempfolder=False, destination_folder=False):
         self.ensure_one()
-        from . import WORKSPACE
         from . import MAIN_FOLDER_NAME
         path = WORKSPACE / MAIN_FOLDER_NAME
         repo = self.clone_repo(path)
@@ -148,14 +147,11 @@ class Repository(models.Model):
             if not pg_try_advisory_lock(self.env.cr, lock):
                 retry(lock)
 
-    def clone_repo(self, path):
+    def clone_repo(self, machine, path):
         with self._get_ssh_command() as env:
-            if not path.exists():
-                git.Repo.clone_from(self.url, path, env=env)
-            try:
-                repo = Repo(path)
-            except git.exc.InvalidGitRepositoryError:
-                shutil.rmtree(path)
-                git.Repo.clone_from(self.url, path, env=env)
-                repo = Repo(path)
-        return repo
+            with machine._shell() as shell:
+                if not shell.exists(path):
+                    shell.run(
+                        ["git", "clone", self.url, path],
+                        update_env=env,
+                    )
