@@ -18,67 +18,10 @@ services:
         - internal
         - cicd_delegator
     environment:
-        INDEX_HOST: http://cicd_index:5000
+        INDEX_HOST: http://odooadmin_proxy:80
     restart: "unless-stopped"
     volumes:
         - ./cicd_delegator/app:/usr/src/app
-  cicd_cronjobs:
-    build: ./cicd_index
-    env_file: .env
-    networks:
-        - internal
-    restart: "unless-stopped"
-    environment:
-        CICD_CRONJOBS: 1
-        DISPLAY_TIMEZONE: Europe/Berlin
-        DATE_FORMAT: '_d._m._Y _H:_M:_S'
-        MONGO_HOST: mongo
-        MONGO_PORT: 27017
-        MONGO_USERNAME: admin
-        MONGO_PASSWORD: 1
-        WEBSSH_CICD_WORKSPACE: /cicd_workspace
-        PYTHONPATH: /app1
-        DUMPS_PATH_MAPPED: /opt/dumps
-        #DISPLAY_RESOURCES: "/var/lib/docker;/"
-    command: ["python3", "-m", "app1"]
-    volumes:
-        - log_history:/log_history
-        - ${DUMPS_PATH}:/opt/dumps
-        - ${CICD_WORKSPACE}:/cicd_workspace
-        - ${ODOO_SETTINGS}:/odoo_settings
-        - ./cicd_index/app:/app1
-        - /var/run/docker.sock:/var/run/docker.sock
-        - rolling_log:/tmp/rolling_log
-  cicd_index:
-    build: ./cicd_index
-    env_file: .env
-    privileged: True
-    networks:
-        - internal
-    restart: "unless-stopped"
-    expose:
-        - 8080
-    environment:
-        CICD_CRONJOBS: 0
-        DISPLAY_TIMEZONE: Europe/Berlin
-        DATE_FORMAT: '_d._m._Y _H:_M:_S'
-        MONGO_HOST: mongo
-        MONGO_PORT: 27017
-        MONGO_USERNAME: admin
-        MONGO_PASSWORD: 1
-        WEBSSH_CICD_WORKSPACE: /cicd_workspace
-        DUMPS_PATH_MAPPED: /opt/dumps
-        INPUT_DUMPS_PATH_MAPPED: /input_dumps
-        GIT_HISTORY_BACK: 30
-    volumes:
-        - log_history:/log_history
-        - ${DUMPS_PATH}:/opt/dumps
-        - ${CICD_WORKSPACE}:/cicd_workspace
-        - ${ODOO_SETTINGS}:/odoo_settings
-        - ./cicd_index/app:/app1
-        - /var/run/docker.sock:/var/run/docker.sock
-        - rolling_log:/tmp/rolling_log
-        - uploaded_dumps:/input_dumps/uploaded
 
   logs:
     build:
@@ -115,29 +58,6 @@ services:
         interval: 3s
         timeout: 5s
         retries: 5
-  mongo:
-    image: mongo:4.4.7
-    restart: "unless-stopped"
-    networks:
-        - internal
-    volumes:
-        - ${MONGO_DATA_DIR}:/data/db
-    expose:
-        - 27017
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: 1
-
-  mongo-express:
-    image: mongo-express
-    restart: "unless-stopped"
-    ports: 
-        - "0.0.0.0:5002:8081"
-    networks:
-        - internal
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: 1
 
   nginx:
     build: nginx

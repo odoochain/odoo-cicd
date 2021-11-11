@@ -1,4 +1,7 @@
 services:
+  proxy:
+    networks:
+      - internal
   odoo_base:
     privileged: True
     volumes:
