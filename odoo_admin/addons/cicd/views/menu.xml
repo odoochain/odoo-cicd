@@ -24,5 +24,19 @@
 			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
 		</record>
 		<menuitem parent="config_menu" id="menu_machines" action="machines_action"/>
+
+		<record id="open_logsio" model="ir.actions.act_url">
+			<field name="name">Logsio</field>
+			<field name="target">new</field>
+			<field name="url">/logs</field>
+		</record>
+		<menuitem parent="root_menu" id="menu_logsio" action="open_logsio"/>
+
+		<record id="open_mailer" model="ir.actions.act_url">
+			<field name="name">Mailer</field>
+			<field name="target">new</field>
+			<field name="url">/mailer</field>
+		</record>
+		<menuitem parent="root_menu" id="menu_mailer" action="open_mailer"/>
 	</data>
 </odoo>
