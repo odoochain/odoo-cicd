@@ -1,13 +1,15 @@
-import shutil
-import os
-import git
+import base64
+import arrow
 from git import Repo
 from odoo import registry
-import subprocess
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from ..tools.logsio_writer import LogsIOWriter
 from ..tools.tools import _set_owner
+from contextlib import contextmanager
+import humanize
+
 class GitBranch(models.Model):
     _name = 'cicd.git.branch'
 
@@ -31,12 +33,19 @@ class GitBranch(models.Model):
         ('building', 'Building'),
     ], default="new", compute="_compute_build_state")
     dump_id = fields.Many2one("cicd.dump", string="Dump")
-
-    # autobackup = fields.Boolean("Autobackup")
+    db_size = fields.Integer("DB Size Bytes")
+    db_size_humanize = fields.Char("DB Size", compute="_compute_human")
+    reload_config = fields.Text("Reload Config")
+    autobackup = fields.Boolean("Autobackup") # TODO implement
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    @api.depends("db_size")
+    def _compute_human(self):
+        for rec in self:
+            rec.db_size_humanize = humanize.naturalsize(rec.db_size)
 
     @api.model
     def create(self, vals):
@@ -68,15 +77,23 @@ class GitBranch(models.Model):
                 else:
                     rec.build_state = 'new'
 
-    def _make_task(self, execute):
-        execute = execute.replace("()", "(task, logsio)")
-        if self.task_ids.filtered(lambda x: x.state == 'new' and x.name == execute):
+    def _make_task(self, execute, now=False, machine=None):
+        if not now and self.task_ids.filtered(lambda x: x.state == 'new' and x.name == execute):
             raise ValidationError(_("Task already exists. Not triggered again."))
-        self.env['cicd.task'].sudo().create({
+        task = self.env['cicd.task'].sudo().create({
+            'model': self._name,
+            'res_id': self.id,
             'name': execute,
-            'branch_id': self.id
+            'branch_id': self.id,
+            'machine_id': (machine and machine.id) or self.machine_id.id,
         })
+        if now:
+            task.perform(now=now)
         return True
+
+    @api.model
+    def _cron_update_docker_states(self):
+        self.search([])._docker_get_state()
 
     def _cron_execute_task(self):
         self.ensure_one()
@@ -89,80 +106,11 @@ class GitBranch(models.Model):
     def _get_instance_folder(self, machine):
         return machine._get_volume('source') / self.name
 
-    def _checkout_latest(self, machine, logsio):
-        instance_folder = self._get_instance_folder(machine)
-        with machine._shell() as shell:
-            with machine._shellexec(
-                cwd=instance_folder,
-                logsio=logsio,
-                env={
-                    "GIT_TERMINAL_PROMPT": "0",
-                }
-
-            ) as shell_exec:
-                logsio.write_text(f"Updating instance folder {self.name}")
-
-                logsio.write_text(f"Cloning {self.name} to {instance_folder}")
-                self.repo_id.clone_repo(machine, instance_folder, logsio)
-
-                logsio.write_text(f"Checking out {self.name}")
-                shell_exec.X(["git", "checkout", "-f", self.name])
-
-                logsio.write_text(f"Pulling {self.name}")
-                shell_exec.X(["git", "pull"])
-
-                logsio.write_text(f"Clean git")
-                shell_exec.X(["git", "clean", "-xdff"])
-
-                logsio.write_text("Updating submodules")
-                shell_exec.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
-
-                logsio.write_text("Getting current commit")
-                commit = shell_exec.X(["git", "rev-parse", "HEAD"]).output.strip()
-                logsio.write_text(commit)
-
-                return str(commit)
-
-    # *************************************************************8
-    # Button Actions
-    # *************************************************************8
-    def reload_and_restart(self):
-        self.ensure_one()
-        self._make_task("obj._reload_and_restart()")
-
-    def restore_dump(self):
-        self.ensure_one()
-        self._make_task("obj._restore_dump()")
-
-
-    # *************************************************************8
-    # Worker Scripts
-    # *************************************************************8
-
-    def _reload_and_restart(self, task, logsio):
-        self._checkout_latest(self.machine_id, logsio)
-        instance_folder = self._get_instance_folder(self.machine_id)
-        task.dump_used = self.dump_id.name
+    @contextmanager
+    def _shellexec(self, task, logsio, cwd=None):
+        instance_folder = self._get_instance_folder(task.machine_id)
         with self.machine_id._shellexec(
-            cwd=instance_folder,
+            cwd=cwd or instance_folder,
             logsio=logsio,
-
         ) as shell:
-            shell.X(['odoo', '--project-name', self.name, 'reload'])
-            shell.X(['odoo', '--project-name', self.name, 'build'])
-            shell.X(['odoo', '--project-name', self.name, 'up', '-d'])
-
-    def _restore_dump(self, task, logsio):
-        instance_folder = self._get_instance_folder(self.machine_id)
-        with self.machine_id._shellexec(
-            cwd=instance_folder,
-            logsio=logsio) as shell:
-
-            shell.X(['odoo', '--project-name', self.name, 'reload'])
-            shell.X(['odoo', '--project-name', self.name, 'build'])
-            shell.X(['odoo', '--project-name', self.name, 'down'])
-            shell.X([
-                'odoo', '--project-name', self.name,
-                '-f', 'restore', 'odoo-db',
-                self.dump_id.name
-            ])
+            yield shell

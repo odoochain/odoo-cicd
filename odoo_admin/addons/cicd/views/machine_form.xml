@@ -37,6 +37,11 @@
 									</field>
 								</group>
 							</page>
+							<page name="reload_config" string="Configuration">
+								<group>
+									<field name="reload_config"/>
+								</group>
+							</page>
 							<page name="dumps" string="Dumps">
 								<group>
 									<field name="dump_ids" nolabel='1'>

@@ -4,6 +4,7 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo import registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from . import pg_advisory_lock
+from contextlib import contextmanager
 from ..tools.logsio_writer import LogsIOWriter
 import threading
 
@@ -11,7 +12,10 @@ class Task(models.Model):
     _name = 'cicd.task'
     _order = 'date desc'
 
+    model = fields.Char("Model")
+    res_id = fields.Integer("ID")
     display_name = fields.Char(compute="_compute_display_name")
+    machine_id = fields.Many2one('cicd.machine', string="Machine")
     branch_id = fields.Many2one('cicd.git.branch', string="Branch")
     name = fields.Char("Name")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now())
@@ -23,6 +27,7 @@ class Task(models.Model):
     log = fields.Text("Log")
     error = fields.Text("Exception")
     dump_used = fields.Char("Dump used")
+    duration = fields.Integer("Duration [s]")
 
     def _compute_display_name(self):
         for rec in self:
@@ -39,24 +44,38 @@ class Task(models.Model):
         rolling_file.write_text(f"Started: {arrow.get()}")
         return rolling_file
 
-    def perform(self):
-        self.ensure_one()
-        self2 = self.sudo()
-        # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+    @contextmanager
+    def _get_env(self, new_one):
+        if not new_one:
+            yield self
+            return
+        
         db_registry = registry(self.env.cr.dbname)
         with api.Environment.manage(), db_registry.cursor() as cr:
             env = api.Environment(cr, self.env.user.id, {})
             self = self.with_env(env).sudo()
-        
-            pg_advisory_lock(cr, f"performat_task_{self.branch_id.id}")
+            yield self
+
+    def perform(self, now=False):
+        started = arrow.get()
+        self.ensure_one()
+        self2 = self.sudo()
+        # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+        db_registry = registry(self.env.cr.dbname)
+        with self._get_env(new_one=not now) as self:
+            pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
 
             try:
                 logsio = self._get_new_logsio_instance()
-                exec(self.name, {
-                    'obj': self.branch_id,
-                    'task': self,
-                    'logsio': logsio,
-                    })
+
+                with self.branch_id._shellexec(self, logsio) as shell:
+                    obj = self.env[self.model].sudo().browse(self.res_id)
+                    args = {
+                        'task': self,
+                        'logsio': logsio,
+                        'shell': shell,
+                        }
+                    exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
 
                 self.log = '\n'.join(logsio.lines)
 
@@ -67,6 +86,9 @@ class Task(models.Model):
 
             else:
                 self.state = 'done'
+
+            duration = (arrow.get() - started).total_seconds()
+            self.duration = duration
 
     def _cron_run(self):
         for task in self.search([

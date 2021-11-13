@@ -7,7 +7,14 @@
 				<form string="">
 					<header>
 						<button name="reload_and_restart" string="Reload and Restart" type="object" />
+						<button name="dump" string="Dump" type="object"/>
 						<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>
+						<button name="reload" string="Reload" type="object"/>
+						<button name="docker_start" string="Start/Restart Containers" type="object"/>
+						<button name="docker_stop" string="Stop Containers" type="object"/>
+						<button name="docker_get_state" string="Update Docker State" type="object"/>
+						<button name="update_git_commits" string="Update Git Commits" type="object"/>
+						<button name="start" string="Start" type="object"/>
 						<!-- at debugging - remove auto created at create-->
 						<button string="Make Cronjob" name="make_cron"  type="object" groups="base.group_no_one"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'readonly': True}" clickable="True" />
@@ -25,10 +32,16 @@
 									<tree>
 										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
 										<field name="display_name" />
+										<field name="duration"/>
 										<field name="date" />
 										<field name="state" />
 									</tree>
 								</field>
+							</page>
+							<page name="config_page" string="Configuration">
+								<group>
+									<field name="reload_config"/>
+								</group>
 							</page>
 							<page string="Commits" name="commits">
 								<field name="commit_ids" nolabel="1" readonly="1">

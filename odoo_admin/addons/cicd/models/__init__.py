@@ -34,6 +34,8 @@ def pg_advisory_lock(cr, lock):
 
 from . import mixin_size
 from . import branch
+from . import branch_button_actions
+from . import branch_actions
 from . import commit
 from . import machine
 from . import volume

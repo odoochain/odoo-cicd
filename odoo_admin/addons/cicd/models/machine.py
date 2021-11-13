@@ -13,6 +13,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import humanize
 from ..tools.tools import tempdir
 from ..tools.tools import get_host_ip
+from contextlib import contextmanager
 import logging
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ class CicdMachine(models.Model):
         ('dev', 'Development-Machine'),
         ('prod', 'Production System'),
     ], required=True)
+    reload_config = fields.Text("Settings")
 
     def _compute_workspace(self):
         for rec in self:
@@ -175,3 +177,85 @@ class CicdMachine(models.Model):
         if not res:
             raise ValidationError(_("Could not find: {}").format(ttype))
         return Path(res[0].name)
+
+    def restart_delegator(self):
+        docker_project_name = os.environ['PROJECT_NAME']
+        names = []
+        names.append(f"{docker_project_name}_cicd_delegator")
+        names.append(f"{docker_project_name}_nginx")
+        for name in names:
+            containers = docker.containers.list(all=True, filters={'name': [name]})
+            for container in containers:
+                try:
+                    container.stop()
+                except Exception:
+                    logger.info(f"Container not stoppable - maybe ok: {container.name}")
+                container.start()
+        return jsonify({
+            'result': 'ok',
+        })
+
+    def cleanup(self, shell, **args):
+        """
+        Removes all unused source directories, databases
+        and does a docker system prune.
+        """
+        conn = _get_db_conn()
+        try:
+            cr = conn.cursor()
+
+            dbnames = _get_all_databases(cr)
+
+            sites = set([x['name'] for x in db.sites.find({}) if not x.get('archive')])
+            for dbname in dbnames:
+                if dbname.startswith('template') or dbname == 'postgres':
+                    continue
+
+                # critical: reverse dbname to instance name
+                def match(site, dbname):
+                    ignored_chars = "-!@#$%^&*()_-+=][{}';:,.<>/"
+                    site = site.lower()
+                    dbname = dbname.lower()
+                    for c in ignored_chars:
+                        site = site.replace(c, '')
+                        dbname = dbname.replace(c, '')
+                    return dbname == site
+
+                if not [x for x in sites if match(x, dbname)]:
+                    _drop_db(cr, dbname)
+
+
+            # Drop also old sourcecodes
+            for dir in Path("/cicd_workspace").glob("*"):
+                if dir.name == MAIN_FOLDER_NAME:
+                    continue
+                instance_name = dir.name
+                if instance_name not in sites:
+                    _delete_sourcecode(instance_name)
+
+            # remove artefacts from ~/.odoo/
+            os.system("docker system prune -f -a")
+
+            # drop old docker containers
+            cicd_prefix = os.environ['CICD_PREFIX']
+            containers = docker.containers.list(all=True, filters={'label': f'ODOO_CICD={cicd_prefix}'})
+            for container in containers:
+                site_name = container.labels.get('ODOO_CICD_INSTANCE_NAME', '')
+                if not site_name: continue
+                if site_name not in sites:
+                    if container.status == 'running':
+                        container.kill()
+                    container.remove(force=True)
+
+            # drop transfer rests:
+            for folder in Path("/cicd_workspace").glob("*"):
+                if str(folder).startswith(PREFIX_PREPARE_DUMP):
+                    shutil.rmtree(folder)
+
+        finally:
+            cr.close()
+            conn.close()
+
+        return jsonify({'result': 'ok'})
+
+        

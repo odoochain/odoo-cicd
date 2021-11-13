@@ -8,6 +8,8 @@ class GitCommit(models.Model):
     branch_ids = fields.Many2many('cicd.git.branch', string="Repo", required=True)
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
+    author = fields.Char("Author")
+    text = fields.Text("Text")
 
     _sql_constraints = [
         ('name', "unique(name)", _("Only one unique entry allowed.")),
