@@ -44,12 +44,11 @@ class Branch(models.Model):
             shell.X(['odoo', '--project-name', 'turn-into-dev'])
 
     def _reload(self, shell, task, logsio, **args):
-        import pudb;pudb.set_trace()
         raw_settings = (task.machine_id.reload_config or '') + "\n" + (self.reload_config or '')
         odoo_settings = base64.encodestring((raw_settings).encode('utf-8').strip()).decode('utf-8')
         shell.X([
             'odoo', '--project-name', self.name,
-            'reload', '--additional-config', odoo_settings
+            'reload', '--additional_config', odoo_settings
             ])
 
     def _build(self, shell, task, logsio, **args):
