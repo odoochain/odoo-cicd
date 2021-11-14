@@ -3,6 +3,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 class GitCommit(models.Model):
     _name = 'cicd.git.commit'
+    _order = 'date desc'
 
     name = fields.Char("SHA", required=True)
     branch_ids = fields.Many2many('cicd.git.branch', string="Repo", required=True)

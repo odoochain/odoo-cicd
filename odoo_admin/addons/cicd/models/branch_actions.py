@@ -68,34 +68,55 @@ class Branch(models.Model):
     def _update_git_commits(self, shell, task, logsio, **kwargs):
         self.ensure_one()
         instance_folder = self._get_instance_folder(self.machine_id)
-
-        commits = shell.check_output([
-            "/usr/bin/git",
-            "log",
-            "--pretty=format:%H,%ct",
-            "--since='last month'",
-        ], cwd=instance_folder).output
-        for line in commits:
-            date = arrow.get(int(line.split(",")[-1]))
-            sha = arrow.get(line.split(",")[0])
-            commit = self.commit_ids.filtered(lambda x: x.name == sha)
-            if commit:
-                continue
-
-            logsio.info(f"Found new commit: {commit}")
-            import pudb;pudb.set_trace()
-
-            info = shell.check_output([
+        with shell.shell() as shell:
+            commits = shell.check_output([
                 "/usr/bin/git",
                 "log",
-                "-n1",
-            ], cwd=instance_folder).output.split("\n")
-            self.commit_ids = [[0, 0, {
-                'name': sha,
-                'author': info[1].replace("Author: ", ""),
-                'date': arrow.get(info[1].replace("Date: ", "").strip()).datetime,
-                'text': '\n'.join(info[3:]).strip(),
-            }]]
+                "--pretty=format:%H,%ct",
+                "--since='last 4 months'",
+            ], cwd=instance_folder)
+
+            all_commits = self.env['cicd.git.commit'].search([])
+            all_commits = dict((x.name, x.branch_ids) for x in all_commits)
+
+            for line in commits.split("\n"):
+                date = arrow.get(int(line.split(",")[-1]))
+                sha = line.split(",")[0]
+                if sha in all_commits:
+                    if self not in all_commits[sha]:
+                        self.env['cicd.git.commit'].search([('name', '=', sha)]).branch_ids = [[4, self.id]]
+                    continue
+
+                logsio.info(f"Found new commit: {sha}")
+
+                info = shell.check_output([
+                    "/usr/bin/git",
+                    "log",
+                    sha,
+                    "--date=format:%Y-%m-%d %H:%M:%S",
+                    "-n1",
+                ], cwd=instance_folder, update_env={
+                    "TZ": "UTC0"
+                }).split("\n")
+
+                def _get_item(name):
+                    for line in info:
+                        if line.strip().startswith(f"{name}:"):
+                            return line.split(":", 1)[-1].strip()
+
+                def _get_body():
+                    for i, line in enumerate(info):
+                        if not line:
+                            return info[i + 1:]
+
+                text = ('\n'.join(_get_body())).strip()
+                self.commit_ids = [[0, 0, {
+                    'name': sha,
+                    'author': _get_item("Author"),
+                    'date': date.strftime("%Y-%m-%d %H:%M:%S"),
+                    'text': text,
+                    'branch_ids': [[4, self.id]],
+                }]]
     
     def _remove_web_assets(self, shell, tasks, logsio, **kwargs):
         shell.X([
@@ -189,7 +210,6 @@ class Branch(models.Model):
 
         
     def _after_build(self, shell, logsio, **kwargs):
-        import pudb;pudb.set_trace()
         cmd = ['odoo', '--project-name', self.name]
         shell.X(cmd + ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
         shell.X(cmd + ["update-setting", 'web.base.url', shell.machine.external_url])
@@ -344,7 +364,7 @@ networks:
             name: {}
         """.format(os.environ["CICD_NETWORK_NAME"]))
 
-            ssh_shell.write_text(home_dir + f'/settings.{self.name}', """
+            ssh_shell.write_text(home_dir + f'/.odoo/settings.{self.name}', """
 DEVMODE=1
 PROJECT_NAME={}
 RUN_PROXY_PUBLISHED=0

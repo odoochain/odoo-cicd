@@ -21,7 +21,8 @@
 							<page string="Tasks" name="tasks">
 								<field name="task_ids" nolabel="1" readonly="1">
 									<tree>
-										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
+										<!-- <button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/> -->
+										<button name="perform" string="Perform" type="object" groups="base.group_no_one"/>
 										<field name="display_name" />
 										<field name="duration"/>
 										<field name="date" />
@@ -110,8 +111,9 @@
 								<field name="commit_ids" nolabel="1" readonly="1">
 									<tree>
 										<field name="name" />
-										<field name="date_registered" />
 										<field name="date" />
+										<field name="author"/>
+										<field name="text"/>
 									</tree>
 								</field>
 							</page>

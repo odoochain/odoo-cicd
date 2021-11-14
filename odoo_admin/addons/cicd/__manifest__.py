@@ -3,6 +3,7 @@
     'css': [],
     'data': [   'data/cronjobs.xml',
                 'data/data.xml',
+                'views/commit_form.xml',
                 'views/dump_form.xml',
                 'views/git_branch_form.xml',
                 'views/git_branch_kanban.xml',

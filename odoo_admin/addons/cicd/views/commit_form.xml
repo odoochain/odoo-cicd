@@ -1,0 +1,25 @@
+<odoo>
+	<data noupdate='0'>
+
+	<record id="view_cic_git_commit_form" model="ir.ui.view">
+		<field name="name">cicd.git.commit form</field>
+		<field name="model">cicd.git.commit</field>
+		<field name="arch" type="xml">
+			<form>
+				<header></header>
+				<sheet>
+					<group col="2">
+						<field name="name"  />
+						<field name="date" />
+						<field name="author" />
+					</group>
+					<group>
+						<field name="text" nolabel="1"/>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	</data>
+</odoo>
