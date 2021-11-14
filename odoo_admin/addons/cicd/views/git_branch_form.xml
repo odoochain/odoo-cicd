@@ -81,6 +81,10 @@
 									<div>
 										Retrieve State of docker
 									</div>
+									<button name="build" string="Build" type="object" />
+									<div>
+										Builds docker machines
+									</div>
 								</group>
 								<group string="Source Code">
 									<button name="update_git_commits" string="Update Git Commits" type="object"/>

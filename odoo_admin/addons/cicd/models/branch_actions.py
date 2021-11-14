@@ -55,7 +55,7 @@ class Branch(models.Model):
             ])
 
     def _build(self, shell, task, logsio, **kwargs):
-        self._reload()
+        self._reload(shell, task, logsio, **kwargs)
         shell.X(['odoo', '--project-name', self.name, 'build'])
 
     def _dump(self, shell, task, logsio, **kwargs):
@@ -330,7 +330,6 @@ class Branch(models.Model):
             time.sleep(10)
 
     def _make_instance_docker_configs(self, shell):
-        import pudb;pudb.set_trace()
         with shell.shell() as ssh_shell:
             home_dir = shell._get_home_dir()
             ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{self.name}.yml", """
@@ -351,9 +350,6 @@ RUN_PROXY_PUBLISHED=0
 RUN_CRONJOBS=0
 RUN_CUPS=0
 RUN_POSTGRES=0
-
-DOCKER_LABEL_ODOO_CICD=1
-DOCKER_LABEL_ODOO_CICD_INSTANCE_NAME={}
 
 DB_HOST={}
 DB_USER={}
