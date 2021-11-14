@@ -14,13 +14,14 @@ class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
     def _reload_and_restart(self, shell, task, logsio, **kwargs):
-        self._reload(task, logsio)
-        self._checkout_latest(self.machine_id, logsio)
+        self._reload(shell, task, logsio)
+        self._checkout_latest(shell, self.machine_id, logsio)
         shell.X(['odoo', '--project-name', self.name, 'build'])
         shell.X(['odoo', '--project-name', self.name, 'up', '-d'])
+        self._after_build(shell, logsio)
 
     def _restore_dump(self, shell, task, logsio, **kwargs):
-        self._reload(task, logsio)
+        self._reload(shell, task, logsio)
         task.dump_used = self.dump_id.name
         shell.X(['odoo', '--project-name', self.name, 'reload'])
         shell.X(['odoo', '--project-name', self.name, 'build'])
@@ -191,7 +192,7 @@ class Branch(models.Model):
         import pudb;pudb.set_trace()
         cmd = ['odoo', '--project-name', self.name]
         shell.X(cmd + ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
-        shell.X(cmd + ["update-setting", 'web.base.url', machine.external_url])
+        shell.X(cmd + ["update-setting", 'web.base.url', shell.machine.external_url])
         shell.X(cmd + ["set-ribbon", self.name])
         shell.X(cmd + ["prolong"])
 
@@ -206,36 +207,36 @@ class Branch(models.Model):
 
     def _checkout_latest(self, shell, machine, logsio, **kwargs):
         instance_folder = self._get_instance_folder(machine)
-        with machine._shell() as shell:
-            with machine._shellexec(
-                logsio=logsio,
-                env={
-                    "GIT_TERMINAL_PROMPT": "0",
-                }
+        with machine._shellexec(
+            logsio=logsio,
+            cwd=instance_folder,
+            env={
+                "GIT_TERMINAL_PROMPT": "0",
+            }
 
-            ) as shell_exec:
-                logsio.write_text(f"Updating instance folder {self.name}")
+        ) as shell_exec:
+            logsio.write_text(f"Updating instance folder {self.name}")
 
-                logsio.write_text(f"Cloning {self.name} to {instance_folder}")
-                self.repo_id.clone_repo(machine, instance_folder, logsio)
+            logsio.write_text(f"Cloning {self.name} to {instance_folder}")
+            self.repo_id.clone_repo(machine, instance_folder, logsio)
 
-                logsio.write_text(f"Checking out {self.name}")
-                shell_exec.X(["git", "checkout", "-f", self.name])
+            logsio.write_text(f"Checking out {self.name}")
+            shell_exec.X(["git", "checkout", "-f", self.name])
 
-                logsio.write_text(f"Pulling {self.name}")
-                shell_exec.X(["git", "pull"])
+            logsio.write_text(f"Pulling {self.name}")
+            shell_exec.X(["git", "pull"])
 
-                logsio.write_text(f"Clean git")
-                shell_exec.X(["git", "clean", "-xdff"])
+            logsio.write_text(f"Clean git")
+            shell_exec.X(["git", "clean", "-xdff"])
 
-                logsio.write_text("Updating submodules")
-                shell_exec.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
+            logsio.write_text("Updating submodules")
+            shell_exec.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
 
-                logsio.write_text("Getting current commit")
-                commit = shell_exec.X(["git", "rev-parse", "HEAD"]).output.strip()
-                logsio.write_text(commit)
+            logsio.write_text("Getting current commit")
+            commit = shell_exec.X(["git", "rev-parse", "HEAD"]).output.strip()
+            logsio.write_text(commit)
 
-                return str(commit)
+            return str(commit)
 
     def debug_instance(self):
         site_name = request.args.get('name')

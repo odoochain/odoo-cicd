@@ -23,7 +23,7 @@
 							<field name="is_docker_host"/>
 							<field name="effective_host" attrs="{'invisible': [('is_docker_host', '=', False)]}"/>
 							<field name="host" attrs="{'required': [('is_docker_host', '=', False)], 'invisible': [('is_docker_host', '=', True)]}"/>
-
+							<field name="external_url"/>
 						</group>
 						<notebook>
 							<page name="volumes" string="Volumes">
