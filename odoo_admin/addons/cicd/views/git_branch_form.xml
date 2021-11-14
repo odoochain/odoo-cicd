@@ -6,17 +6,8 @@
 			<field name="arch" type="xml">
 				<form string="">
 					<header>
-						<button name="reload_and_restart" string="Reload and Restart" type="object" />
-						<button name="dump" string="Dump" type="object"/>
-						<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>
-						<button name="reload" string="Reload" type="object"/>
-						<button name="docker_start" string="Start/Restart Containers" type="object"/>
-						<button name="docker_stop" string="Stop Containers" type="object"/>
-						<button name="docker_get_state" string="Update Docker State" type="object"/>
-						<button name="update_git_commits" string="Update Git Commits" type="object"/>
-						<button name="start" string="Start" type="object"/>
+						<button name="start" string="Start Instance" type="object"/>
 						<!-- at debugging - remove auto created at create-->
-						<button string="Make Cronjob" name="make_cron"  type="object" groups="base.group_no_one"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'readonly': True}" clickable="True" />
 					</header>
 					<sheet>
@@ -37,6 +28,74 @@
 										<field name="state" />
 									</tree>
 								</field>
+							</page>
+							<page name="actions" string="Actions">
+								<group col='2'>
+									<button name="reload" string="Reload" type="object"/>
+									<div>
+										Applies configuration files and prepares docker-compose file.
+									</div>
+									<button name="reload_and_restart" string="Restart" type="object" />
+									<div>
+										Stops and restarts all containers.
+									</div>
+									<button string="Make Cronjob" name="make_cron"  type="object" groups="base.group_no_one"/>
+									<div>
+										Recreates the missing cronjob to execute the tasks of the branch in the background.
+									</div>
+								</group>
+								<group string="Debug">
+									<button name="open_shell" string="Open Shell" type="object"/>
+									<div>
+										Opens a command line shell of this odoo instance.
+									</div>
+									<button name="debug_webcontainer" string="Debug" type="object"/>
+									<div>
+										Runs odoo webcontainer in debug mode.
+									</div>
+									<button name="start_webmailer" string="Show Webmailer" type="object"/>
+									<div>
+										Shows the web mailer.
+									</div>
+								</group>
+								<group string="Backup">
+									<button name="dump" string="Dump" type="object"/>
+									<div>
+										Save database into a file.
+									</div>
+									<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>
+									<div>
+										Restores the selected dump.
+									</div>
+								</group>
+								<group string="Docker">
+									<button name="docker_start" string="Start/Restart Containers" type="object"/>
+									<div>
+										Executes docker-compose start.
+									</div>
+									<button name="docker_stop" string="Stop Containers" type="object"/>
+									<div>
+										Executes docker-compose stop.
+									</div>
+									<button name="docker_get_state" string="Update Docker State" type="object"/>
+									<div>
+										Retrieve State of docker
+									</div>
+								</group>
+								<group string="Source Code">
+									<button name="update_git_commits" string="Update Git Commits" type="object"/>
+									<div>
+										Fetches new git commits and shows them here.
+									</div>
+
+								</group>
+								<group string="Miscellaneous">
+									<button string="Make Cronjob" name="make_cron"  type="object" groups="base.group_no_one"/>
+									<div>
+										Recreates the missing cronjob to execute the tasks of the branch in the background.
+									</div>
+								</group>
+
 							</page>
 							<page name="config_page" string="Configuration">
 								<group>
