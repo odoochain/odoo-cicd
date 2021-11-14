@@ -357,8 +357,8 @@ DB_PWD={}
 DB_PORT={}
     """.format(
             self.name,
-            os.environ['CICD_DB_HOST'],
-            os.environ['CICD_DB_USER'],
-            os.environ['CICD_DB_PASSWORD'],
-            os.environ['CICD_DB_PORT'],
+            shell.machine.db_host,
+            shell.machine.db_user,
+            shell.machine.db_pwd,
+            shell.machine.db_port,
         ))
