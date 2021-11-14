@@ -301,18 +301,6 @@ def _get_config(name, default):
 def _set_config(name, value):
     db.config.update_one({'name': name}, {'$set': {'name': name, 'value': value}}, upsert=True)
 
-def _get_instance_config(sitename):
-    settings = Path("/odoo_settings/run") / sitename / 'settings'
-    dbname = ""
-    if settings.exists():
-        try:
-            dbname = [x for x in settings.read_text().split("\n") if 'DBNAME=' in x][0].split("=")[1]
-        except IndexError: pass
-    
-    return {
-        "DBNAME": dbname
-    }
-
 def _get_host_path(path):
     """
     For the given path inside container the host path is returned.

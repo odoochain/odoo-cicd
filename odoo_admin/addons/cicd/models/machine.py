@@ -23,6 +23,20 @@ class ShellExecutor(object):
         self.cwd = cwd
         self.logsio = logsio
         self.env = env
+
+    def _get_home_dir(self):
+        res = self.machine._execute_shell(
+            ['realpath', '~'],
+        ).output.strip()
+        if res.endswith("/~"):
+            res = res[:-2]
+        return res
+
+    @contextmanager
+    def shell(self):
+        with self.machine._shell() as shell:
+            yield shell
+
     def X(self, cmd):
         return self.machine._execute_shell(
             cmd, cwd=self.cwd, env=self.env, logsio=self.logsio

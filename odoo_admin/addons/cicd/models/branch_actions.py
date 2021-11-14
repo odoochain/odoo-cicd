@@ -1,11 +1,13 @@
+# TODO turn into dev an?
+import time
+import shutil
+import traceback
 from pathlib import Path
 import threading
 import os
-import requests
 import arrow
-# TODO turn into dev an?
 import base64
-from odoo import _, api, fields, models, SUPERUSER_ID
+from odoo import _, api, models
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 class Branch(models.Model):
@@ -46,6 +48,7 @@ class Branch(models.Model):
     def _reload(self, shell, task, logsio, **args):
         raw_settings = (task.machine_id.reload_config or '') + "\n" + (self.reload_config or '')
         odoo_settings = base64.encodestring((raw_settings).encode('utf-8').strip()).decode('utf-8')
+        self._make_instance_docker_configs(shell) 
         shell.X([
             'odoo', '--project-name', self.name,
             'reload', '--additional_config', odoo_settings
@@ -187,7 +190,7 @@ class Branch(models.Model):
     def _after_build(self, shell, logsio):
         cmd = ['odoo', '--project-name', self.name]
         shell.X(cmd + ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
-        shell.X(cmd + ["update-setting", 'web.base.url', os.environ['CICD_URL']])
+        shell.X(cmd + ["update-setting", 'web.base.url', hier war mal CICD_URL muss nun aus machine kommen])
         shell.X(cmd + ["set-ribbon", site['name']])
         shell.X(cmd + ["prolong"])
 
@@ -285,6 +288,7 @@ class Branch(models.Model):
 
 
     def clear_instance(self):
+        instance_folder = self._get_instance_folder(self.machine_id)
         _delete_sourcecode(name)
         _delete_dockercontainers(name)
 
@@ -320,48 +324,44 @@ class Branch(models.Model):
                             _odoo_framework(site['name'], 'kill', logs_writer=logger)
 
                 except Exception as ex:
-                    import traceback
                     msg = traceback.format_exc()
                     logger.error(msg)
             time.sleep(10)
 
-    def _make_instance_docker_configs(site):
-        instance_name = site['name']
-        odoo_settings = Path("/odoo_settings")  # e.g. /home/odoo/.odoo
-        file = odoo_settings / f'docker-compose.{instance_name}.yml'
-        file.write_text("""
-    services:
-        proxy:
-            networks:
-                - cicd_network
-    networks:
-        cicd_network:
-            external:
-                name: {}
+    def _make_instance_docker_configs(self, shell):
+        import pudb;pudb.set_trace()
+        with shell.shell() as ssh_shell:
+            home_dir = shell._get_home_dir()
+            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{self.name}.yml", """
+services:
+    proxy:
+        networks:
+            - cicd_network
+networks:
+    cicd_network:
+        external:
+            name: {}
         """.format(os.environ["CICD_NETWORK_NAME"]))
 
-        (odoo_settings / f'settings.{instance_name}').write_text("""
-    DEVMODE=1
-    PROJECT_NAME={}
-    DUMPS_PATH={}
-    RUN_PROXY_PUBLISHED=0
-    RUN_CRONJOBS=0
-    RUN_CUPS=0
-    RUN_POSTGRES=0
+            ssh_shell.write_text(home_dir + f'/settings.{self.name}', """
+DEVMODE=1
+PROJECT_NAME={}
+RUN_PROXY_PUBLISHED=0
+RUN_CRONJOBS=0
+RUN_CUPS=0
+RUN_POSTGRES=0
 
-    DOCKER_LABEL_ODOO_CICD=1
-    DOCKER_LABEL_ODOO_CICD_INSTANCE_NAME={}
+DOCKER_LABEL_ODOO_CICD=1
+DOCKER_LABEL_ODOO_CICD_INSTANCE_NAME={}
 
-    DB_HOST={}
-    DB_USER={}
-    DB_PWD={}
-    DB_PORT={}
+DB_HOST={}
+DB_USER={}
+DB_PWD={}
+DB_PORT={}
     """.format(
-            instance_name,
-            os.environ['DUMPS_PATH'],
-            instance_name,
-            os.environ['DB_HOST'],
-            os.environ['DB_USER'],
-            os.environ['DB_PASSWORD'],
-            os.environ['DB_PORT'],
+            self.name,
+            os.environ['CICD_DB_HOST'],
+            os.environ['CICD_DB_USER'],
+            os.environ['CICD_DB_PASSWORD'],
+            os.environ['CICD_DB_PORT'],
         ))

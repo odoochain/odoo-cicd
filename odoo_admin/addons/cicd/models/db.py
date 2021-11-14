@@ -35,7 +35,7 @@ def _usages():
                     source_size_humanize = humanize.naturalsize(source_size)
                 logger.info(f"Size source: {source_size_humanize }")
 
-                settings = _get_instance_config(name)
+                settings = _get_instance_config(name)  # gibts nicht mehr anders machen
                 dbname = settings.get('DBNAME', "")
                 db_size = 0
                 if dbname:
