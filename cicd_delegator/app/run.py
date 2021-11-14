@@ -112,6 +112,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             requests.get(cicd_index_url + "/last_access/" + delegator_path).raise_for_status()
 
         path = (self.path or '').split("?")[0]
+        import pudb;pudb.set_trace()
         if path in ['/index', '/index/'] or not delegator_path:
             path = self.path
             if path.split("/")[1] == 'index':

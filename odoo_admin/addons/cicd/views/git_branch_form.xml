@@ -106,6 +106,13 @@
 								<group>
 									<field name="reload_config"/>
 								</group>
+								<div>
+									Additional configuration like for example:<br/>
+									<br/>
+									RUN_ODOO_QUEUEJOBS=1<br/>
+									RUN_ODOO_CRONJOBS=1<br/>
+
+								</div>
 							</page>
 							<page string="Commits" name="commits">
 								<field name="commit_ids" nolabel="1" readonly="1">
