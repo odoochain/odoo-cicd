@@ -4,14 +4,14 @@ from odoo.http import request
 
 class Controller(http.Controller):
 
-    @http.route("/last_access/<name>", type="json")
-    def last_access(name):
+    @http.route("/last_access/<name>", type="http", auth="public")
+    def last_access(self, name):
         branch = request.env['cicd.git.branch'].sudo().search([('name', '=', name)])
-        branch.last_access = arrow.utcnow().datetime
-        return {'result': 'ok'}
+        branch.last_access = arrow.utcnow().datetime.strftime("%Y-%m-%d %H:%M:%S")
+        return "OK"
 
     @http.route("/start/<name>")
-    def start_instance(name):
+    def start_instance(self, name):
         branch = request.env['cicd.git.branch'].sudo().search([('name', '=', name)])
 
         redirect = request.redirect("/web/login")

@@ -12,10 +12,10 @@
 						<field name="name" />
 						<field name="state" />
 					</group>
-					<group string="Error">
+					<group string="Error" style="font-size: 7pt;">
 						<field name="error" attrs="{'invisible': [('error', '=', False)]}"/>
 					</group>
-					<group string="Log">
+					<group string="Log" style="font-size: 7pt;">
 						<field name="log" nolabel='1'/>
 					</group>
 				</sheet>

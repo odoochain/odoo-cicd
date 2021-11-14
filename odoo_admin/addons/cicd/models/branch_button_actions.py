@@ -59,7 +59,7 @@ class Branch(models.Model):
     def start(self):
         return {
             'type': 'ir.actions.act_url',
-            'url': '/start_instance/' + self.name,
+            'url': '/start/' + self.name,
             'target': 'new'
         }
 
@@ -70,3 +70,15 @@ class Branch(models.Model):
     def transform_input_dump(self):
         self.ensure_one()
         self._make_task("_transform_input_dump")
+
+    def open_shell(self):
+        self.ensure_one()
+        import pudb;pudb.set_trace()
+
+    def debug_webcontainer(self):
+        self.ensure_one()
+        import pudb;pudb.set_trace()
+
+    def start_webmailer(self):
+        self.ensure_one()
+        import pudb;pudb.set_trace()

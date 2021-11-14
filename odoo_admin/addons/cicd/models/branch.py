@@ -14,6 +14,7 @@ class GitBranch(models.Model):
     _name = 'cicd.git.branch'
 
     machine_id = fields.Many2one(related='repo_id.machine_id')
+    last_access = fields.Datetime("Last Access")
     name = fields.Char("Git Branch", required=True)
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
