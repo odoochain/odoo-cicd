@@ -13,13 +13,13 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
-    def _reload_and_restart(self, shell, task, logsio, **args):
+    def _reload_and_restart(self, shell, task, logsio, **kwargs):
         self._reload(task, logsio)
         self._checkout_latest(self.machine_id, logsio)
         shell.X(['odoo', '--project-name', self.name, 'build'])
         shell.X(['odoo', '--project-name', self.name, 'up', '-d'])
 
-    def _restore_dump(self, shell, task, logsio, **args):
+    def _restore_dump(self, shell, task, logsio, **kwargs):
         self._reload(task, logsio)
         task.dump_used = self.dump_id.name
         shell.X(['odoo', '--project-name', self.name, 'reload'])
@@ -31,21 +31,21 @@ class Branch(models.Model):
             self.dump_id.name
         ])
     
-    def _docker_start(self, shell, task, logsio, **args):
+    def _docker_start(self, shell, task, logsio, **kwargs):
         shell.X(['odoo', '--project-name', self.name, 'up', '-d'])
 
-    def _docker_stop(self, shell, task, logsio, **args):
+    def _docker_stop(self, shell, task, logsio, **kwargs):
         shell.X(['odoo', '--project-name', self.name, 'kill'])
 
-    def _docker_get_state(self, shell, task, logsio, **args):
+    def _docker_get_state(self, shell, task, logsio, **kwargs):
         import pudb;pudb.set_trace()
         info = shell.X(['odoo', '--project-name', self.name, 'ps', 'kill']).output
             
-    def _turn_into_dev(self, task, logsio, **args):
+    def _turn_into_dev(self, task, logsio, **kwargs):
         with self._shellexec(logsio=logsio) as shell:
             shell.X(['odoo', '--project-name', 'turn-into-dev'])
 
-    def _reload(self, shell, task, logsio, **args):
+    def _reload(self, shell, task, logsio, **kwargs):
         raw_settings = (task.machine_id.reload_config or '') + "\n" + (self.reload_config or '')
         odoo_settings = base64.encodestring((raw_settings).encode('utf-8').strip()).decode('utf-8')
         self._make_instance_docker_configs(shell) 
@@ -54,17 +54,17 @@ class Branch(models.Model):
             'reload', '--additional_config', odoo_settings
             ])
 
-    def _build(self, shell, task, logsio, **args):
+    def _build(self, shell, task, logsio, **kwargs):
         self._reload()
         shell.X(['odoo', '--project-name', self.name, 'build'])
 
-    def _dump(self, shell, task, logsio, **args):
+    def _dump(self, shell, task, logsio, **kwargs):
         shell.X([
             'odoo', '--project-name', self.name, 
             'backup', 'odoo-db', self.name + ".dump.gz"
             ])
 
-    def _update_git_commits(self, shell, task, logsio, **args):
+    def _update_git_commits(self, shell, task, logsio, **kwargs):
         self.ensure_one()
         instance_folder = self._get_instance_folder(self.machine_id)
 
@@ -96,25 +96,25 @@ class Branch(models.Model):
                 'text': '\n'.join(info[3:]).strip(),
             }]]
     
-    def _remove_web_assets(self, shell, tasks, logsio, **args):
+    def _remove_web_assets(self, shell, tasks, logsio, **kwargs):
         shell.X([
             'odoo', '--project-name', self.name,
             'remove-web-assets'
             ])
 
-    def _clear_db(self, shell, tasks, logsio, **args):
+    def _clear_db(self, shell, tasks, logsio, **kwargs):
         shell.X([
             'odoo', '--project-name', self.name,
             'cleardb'
             ])
 
-    def _run_robot_tests(self, shell, tasks, logsio, **args):
+    def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
         shell.X([
             'odoo', '--project-name', self.name,
             'robot', '-a',
         ])
 
-    def _run_unit_tests(self, shell, tasks, logsio, **args):
+    def _run_unit_tests(self, shell, tasks, logsio, **kwargs):
         shell.X([
             'odoo', '--project-name', self.name,
             'run-tests',
@@ -187,23 +187,24 @@ class Branch(models.Model):
         t.start()
 
         
-    def _after_build(self, shell, logsio):
+    def _after_build(self, shell, logsio, **kwargs):
+        import pudb;pudb.set_trace()
         cmd = ['odoo', '--project-name', self.name]
         shell.X(cmd + ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
-        shell.X(cmd + ["update-setting", 'web.base.url', hier war mal CICD_URL muss nun aus machine kommen])
-        shell.X(cmd + ["set-ribbon", site['name']])
+        shell.X(cmd + ["update-setting", 'web.base.url', machine.external_url])
+        shell.X(cmd + ["set-ribbon", self.name])
         shell.X(cmd + ["prolong"])
 
-    def _build_since_last_gitsha(self, shell, logsio):
+    def _build_since_last_gitsha(self, shell, logsio, **kwargs):
         # todo make button
-        self._after_build(shell=shell, logsio=logsio, **args)
+        self._after_build(shell=shell, logsio=logsio, **kwargs)
 
-    def _reset(self, task, shell, **args):
+    def _reset(self, task, shell, **kwargs):
         shell.X(
             ['odoo', '--project-name', self.name, 'db', 'reset', '--do-not-install-base'],
         )
 
-    def _checkout_latest(self, shell, machine, logsio, **args):
+    def _checkout_latest(self, shell, machine, logsio, **kwargs):
         instance_folder = self._get_instance_folder(machine)
         with machine._shell() as shell:
             with machine._shellexec(

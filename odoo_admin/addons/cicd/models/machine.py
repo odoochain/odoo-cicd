@@ -6,11 +6,8 @@ import spur
 import spurplus
 from contextlib import contextmanager
 from odoo import _, api, fields, models, SUPERUSER_ID
-import tempfile
-import paramiko
 import subprocess
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
-import humanize
 from ..tools.tools import tempdir
 from ..tools.tools import get_host_ip
 from contextlib import contextmanager
@@ -60,10 +57,21 @@ class CicdMachine(models.Model):
         ('prod', 'Production System'),
     ], required=True)
     reload_config = fields.Text("Settings")
+    external_url = fields.Char("External http-Address")
+    db_host = fields.Char("DB Host")
+    db_user = fields.Char("DB User", default="cicd")
+    db_pwd = fields.Char("DB Password", default="cicd_is_cool")
+    db_port = fields.Integer("DB Port", default=5432)
 
     def _compute_workspace(self):
         for rec in self:
             rec.workspace = os.environ['CONTAINER_CICD_WORKSPACE']
+
+    @api.model
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        res['db_host'] = get_host_ip()
+        return res
 
     def _compute_effective_host(self):
         for rec in self:

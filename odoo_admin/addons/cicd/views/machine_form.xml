@@ -43,7 +43,13 @@
 								</group>
 							</page>
 							<page name="dumps" string="Dumps">
-								<group>
+								<group string="Database Connection">
+									<field name="db_host"/>
+									<field name="db_port"/>
+									<field name="db_user"/>
+									<field name="db_pwd" password="True"/>
+								</group>
+								<group string="Dumps">
 									<field name="dump_ids" nolabel='1'>
 										<tree>
 											<field name="active"/>
