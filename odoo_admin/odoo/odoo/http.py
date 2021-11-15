@@ -737,7 +737,7 @@ class HttpRequest(WebRequest):
         params = collections.OrderedDict(self.httprequest.args)
         params.update(self.httprequest.form)
         params.update(self.httprequest.files)
-        params.pop('session_id', None)
+        params.pop('admin_session_id', None)
         self.params = params
 
     def _handle_exception(self, exception):
@@ -1343,12 +1343,12 @@ class Root(object):
         # recover or create session
         session_gc(self.session_store)
 
-        sid = httprequest.args.get('session_id')
+        sid = httprequest.args.get('admin_session_id')
         explicit_session = True
         if not sid:
             sid =  httprequest.headers.get("X-Openerp-Session-Id")
         if not sid:
-            sid = httprequest.cookies.get('session_id')
+            sid = httprequest.cookies.get('admin_session_id')
             explicit_session = False
         if sid is None:
             httprequest.session = self.session_store.new()
@@ -1424,7 +1424,7 @@ class Root(object):
         # - It could allow session fixation attacks.
         if not explicit_session and hasattr(response, 'set_cookie'):
             response.set_cookie(
-                'session_id', httprequest.session.sid, max_age=90 * 24 * 60 * 60, httponly=True)
+                'admin_session_id', httprequest.session.sid, max_age=90 * 24 * 60 * 60, httponly=True)
 
         return response
 

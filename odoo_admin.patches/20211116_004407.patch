@@ -1,0 +1,90 @@
+From 3edf664b7415bddbe079427581ff17bca362b3f2 Mon Sep 17 00:00:00 2001
+From: marc <marc@itewimmer.de>
+Date: Tue, 16 Nov 2021 00:44:07 +0100
+Subject: [PATCH] for patch
+
+---
+ odoo/addons/base/models/ir_actions_report.py | 2 +-
+ odoo/http.py                                 | 8 ++++----
+ odoo/tests/common.py                         | 6 +++---
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/odoo/addons/base/models/ir_actions_report.py b/odoo/addons/base/models/ir_actions_report.py
+index 6c718d24..acd9f531 100644
+--- a/odoo/addons/base/models/ir_actions_report.py
++++ b/odoo/addons/base/models/ir_actions_report.py
+@@ -278,7 +278,7 @@ class IrActionsReport(models.Model):
+         # Passing the cookie to wkhtmltopdf in order to resolve internal links.
+         try:
+             if request:
+-                command_args.extend(['--cookie', 'session_id', request.session.sid])
++                command_args.extend(['--cookie', 'admin_session_id', request.session.sid])
+         except AttributeError:
+             pass
+ 
+diff --git a/odoo/http.py b/odoo/http.py
+index 0f382ae4..9a811386 100644
+--- a/odoo/http.py
++++ b/odoo/http.py
+@@ -737,7 +737,7 @@ class HttpRequest(WebRequest):
+         params = collections.OrderedDict(self.httprequest.args)
+         params.update(self.httprequest.form)
+         params.update(self.httprequest.files)
+-        params.pop('session_id', None)
++        params.pop('admin_session_id', None)
+         self.params = params
+ 
+     def _handle_exception(self, exception):
+@@ -1343,12 +1343,12 @@ class Root(object):
+         # recover or create session
+         session_gc(self.session_store)
+ 
+-        sid = httprequest.args.get('session_id')
++        sid = httprequest.args.get('admin_session_id')
+         explicit_session = True
+         if not sid:
+             sid =  httprequest.headers.get("X-Openerp-Session-Id")
+         if not sid:
+-            sid = httprequest.cookies.get('session_id')
++            sid = httprequest.cookies.get('admin_session_id')
+             explicit_session = False
+         if sid is None:
+             httprequest.session = self.session_store.new()
+@@ -1424,7 +1424,7 @@ class Root(object):
+         # - It could allow session fixation attacks.
+         if not explicit_session and hasattr(response, 'set_cookie'):
+             response.set_cookie(
+-                'session_id', httprequest.session.sid, max_age=90 * 24 * 60 * 60, httponly=True)
++                'admin_session_id', httprequest.session.sid, max_age=90 * 24 * 60 * 60, httponly=True)
+ 
+         return response
+ 
+diff --git a/odoo/tests/common.py b/odoo/tests/common.py
+index 42346d94..c0d04efc 100644
+--- a/odoo/tests/common.py
++++ b/odoo/tests/common.py
+@@ -1527,10 +1527,10 @@ class HttpCase(TransactionCase):
+         # An alternative would be to set the cookie to None (unsetting it
+         # completely) or clear-ing session.cookies.
+         self.opener = Opener(self.cr)
+-        self.opener.cookies['session_id'] = session.sid
++        self.opener.cookies['admin_session_id'] = session.sid
+         if self.browser:
+             self._logger.info('Setting session cookie in browser')
+-            self.browser.set_cookie('session_id', session.sid, '/', HOST)
++            self.browser.set_cookie('admin_session_id', session.sid, '/', HOST)
+ 
+         return session
+ 
+@@ -1588,7 +1588,7 @@ class HttpCase(TransactionCase):
+         finally:
+             # clear browser to make it stop sending requests, in case we call
+             # the method several times in a test method
+-            self.browser.delete_cookie('session_id', domain=HOST)
++            self.browser.delete_cookie('admin_session_id', domain=HOST)
+             self.browser.clear()
+             self._wait_remaining_requests()
+ 
+-- 
+2.25.1
+

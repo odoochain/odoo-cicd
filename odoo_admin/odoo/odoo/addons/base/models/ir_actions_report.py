@@ -278,7 +278,7 @@ class IrActionsReport(models.Model):
         # Passing the cookie to wkhtmltopdf in order to resolve internal links.
         try:
             if request:
-                command_args.extend(['--cookie', 'session_id', request.session.sid])
+                command_args.extend(['--cookie', 'admin_session_id', request.session.sid])
         except AttributeError:
             pass
 
