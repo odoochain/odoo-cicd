@@ -60,7 +60,7 @@ class Branch(models.Model):
         return {
             'type': 'ir.actions.act_url',
             'url': '/start/' + self.name,
-            'target': 'new'
+            'target': 'self'
         }
 
     def update_git_commits(self):
