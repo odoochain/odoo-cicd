@@ -34,6 +34,16 @@ def split_set_cookie(cookie, as_simple_cookie=False):
     HttpOnly, roundcube_sessid=93gt0c9a8c7njtt5f6tpa0t1h2; path=/; HttpOnly,
     roundcube_sessauth=Od9cAxp8lkWwbsjjQ8KWMNQBRW-1614702900; path=/; HttpOnly'
     """
+
+
+
+
+
+
+
+
+
+    import pudb;pudb.set_trace()
     orig_cookie = cookie
     while ' =' in cookie:
         cookie = cookie.replace(' =', '=')
@@ -60,6 +70,7 @@ def split_set_cookie(cookie, as_simple_cookie=False):
                 filtered.append(x)
         return found, ','.join(filtered)
 
+    import pudb;pudb.set_trace()
     for part in arr:
         part = part.strip()
 
@@ -69,9 +80,12 @@ def split_set_cookie(cookie, as_simple_cookie=False):
         if '=' in part:
             if not any(part.strip().lower().startswith(x + '=') for x in keywords):
                 cookies.append([])
+            else:
+                continue
+        else:
+            continue
 
-        if cookies:
-            cookies[-1].append(part.strip())
+        cookies[-1].append(part.strip())
         if append:
             cookies[-1] += append
             append = []
@@ -130,9 +144,21 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def _redirect_to_index(self):
         # do logout to odoo to be clean; but redirect to index
-        self.send_response(302)
-        self.send_header('Location', '/index')
+
+        content = """
+        Redirecting to cicd application...
+        <script>
+        window.location = "/index";
+        </script>
+        """.encode('utf-8')
+
+        self.send_response(200)
+        self.send_header("Set-Cookie", "delegator-path=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT")
+        self.send_header("Set-Cookie", "session_id=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT")
+        self.send_header("content-type", "text/html; charset=UTF-8")
+        self.send_header("content-length", str(len(content)))
         self.end_headers()
+        self.wfile.write(content)
 
     def do_GET(self, body=True):
         sent = False
@@ -240,10 +266,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
         if resp.headers.get('set-cookie'):
             for cookie in split_set_cookie(resp.headers.get('set-cookie')):
-                print("############################################\n")
-                print(cookie)
-                print("\n")
-                print("############################################\n")
                 self.send_header("Set-Cookie", cookie)
 
         self.end_headers()
