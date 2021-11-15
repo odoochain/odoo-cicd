@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
-from http.cookies import SimpleCookie
+import datetime
 import argparse
 import os
 import sys
@@ -28,23 +28,14 @@ def ignore_case_get(dict, key):
         return dict[keys[idx]]
     return None
 
-def split_set_cookie(cookie, as_simple_cookie=False):
+def parse_cookies(cookie):
     """
     roundcube_sessauth=-del-; expires=Tue, 02-Mar-2021 16:36:26 GMT; Max-Age=0; path=/;
     HttpOnly, roundcube_sessid=93gt0c9a8c7njtt5f6tpa0t1h2; path=/; HttpOnly,
     roundcube_sessauth=Od9cAxp8lkWwbsjjQ8KWMNQBRW-1614702900; path=/; HttpOnly'
+
+    SIMPLE Cookie is buggy cannot parse im_live_chat=['asd']; admin_sesseion_id=...
     """
-
-
-
-
-
-
-
-
-
-    import pudb;pudb.set_trace()
-    orig_cookie = cookie
     while ' =' in cookie:
         cookie = cookie.replace(' =', '=')
     arr = cookie.split(";")
@@ -54,6 +45,10 @@ def split_set_cookie(cookie, as_simple_cookie=False):
 
     def extract_keywords(s):
         found = []
+        s = s.strip()
+        if 'set-cookie:' in s.lower():
+            s = s[s.lower().index('set-cookie:') + len('set-cookie:'):]
+            s = s.strip()
         splitted = s.split(',')
         filtered = []
         for x in splitted:
@@ -70,7 +65,6 @@ def split_set_cookie(cookie, as_simple_cookie=False):
                 filtered.append(x)
         return found, ','.join(filtered)
 
-    import pudb;pudb.set_trace()
     for part in arr:
         part = part.strip()
 
@@ -90,12 +84,7 @@ def split_set_cookie(cookie, as_simple_cookie=False):
             cookies[-1] += append
             append = []
 
-    cookies = [';'.join(x) for x in cookies]
-    if as_simple_cookie:
-        cookies = ';\n'.join(cookies)
-        cookies = SimpleCookie(cookies)
-
-    print(f"{orig_cookie} -----------> {cookies}")
+    cookies = dict(x[0].split("=", 1) for x in cookies)
     return cookies
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -116,7 +105,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         url = ""
         if cookies and cookies.get('delegator-path'):
             delegator_path = cookies.get('delegator-path', "")
-            delegator_path = delegator_path and delegator_path.value
+            delegator_path = delegator_path
         else:
             delegator_path = 'not-set'
         if delegator_path == 'not-set':
@@ -153,8 +142,9 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         """.encode('utf-8')
 
         self.send_response(200)
-        self.send_header("Set-Cookie", "delegator-path=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT")
-        self.send_header("Set-Cookie", "session_id=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT")
+        null = "deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+        self.send_header("Set-Cookie", "delegator-path=" + null)
+        self.send_header("Set-Cookie", "session_id=" + null)
         self.send_header("content-type", "text/html; charset=UTF-8")
         self.send_header("content-length", str(len(content)))
         self.end_headers()
@@ -170,16 +160,13 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             resp = requests.get(
                 url, headers=req_header, verify=False,
                 allow_redirects=False, params=query_params,
-                cookies={k: v.value for k, v in cookies.items()},
+                cookies=cookies,
             )
             sent = True
 
-            if self.path.endswith('/web/session/logout'):
+            if self.path == "/_" or self.path.endswith('/web/session/logout'):
                 self._redirect_to_index()
             else:
-                print("--------------------------------")
-                print(cookies)
-                print("--------------------------------")
                 self.send_response(resp.status_code)
                 self.send_resp_headers(resp, cookies)
                 if body:
@@ -204,7 +191,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             resp = requests.post(
                 url, data=post_body,  headers=req_header,
                 verify=False, allow_redirects=False,
-                cookies={k: v.value for k, v in cookies.items()},
+                cookies=cookies,
             )
             sent = True
 
@@ -233,9 +220,9 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     key = 'Cookie'
                 req_header[key] = line_parts[1]
 
-        cookies = SimpleCookie()
+        cookies = {}
         if req_header.get('Cookie'):
-            cookies = split_set_cookie(req_header['Cookie'], as_simple_cookie=True)
+            cookies = parse_cookies(req_header['Cookie'])
 
         return req_header, cookies
 
@@ -264,9 +251,23 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_header(key, respheaders[key])
         self.send_header('Content-Length', len(resp.content))
 
+        cookies_dict = {}
+        for key, morsel in cookies.items():
+            cookies_dict[key] = morsel
         if resp.headers.get('set-cookie'):
-            for cookie in split_set_cookie(resp.headers.get('set-cookie')):
-                self.send_header("Set-Cookie", cookie)
+            for key, morsel in parse_cookies(resp.headers['set-cookie']).items():
+                cookies_dict[key] = morsel
+
+        def set_cookie_value_item(cookie_value, item, value):
+            cookie_value = cookie_value.split(";")
+            cookie_value = [x for x in cookie_value if item.lower() + "=" not in x.lower()]
+            cookie_value.append(f"{item}={value}")
+            return "; ".join(cookie_value)
+
+        for key, value in cookies_dict.items():
+            value = set_cookie_value_item(value, "path", "/")
+            value = set_cookie_value_item(value, "Expires", (datetime.datetime.utcnow() + datetime.timedelta(days=30)).strftime("%a, %d %b %Y %H:%M:%S GMT"))
+            self.send_header('Set-Cookie', f"{key}={value}")
 
         self.end_headers()
 
