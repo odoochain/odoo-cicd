@@ -70,7 +70,8 @@ def split_set_cookie(cookie, as_simple_cookie=False):
             if not any(part.strip().lower().startswith(x + '=') for x in keywords):
                 cookies.append([])
 
-        cookies[-1].append(part.strip())
+        if cookies:
+            cookies[-1].append(part.strip())
         if append:
             cookies[-1] += append
             append = []
@@ -112,7 +113,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             requests.get(cicd_index_url + "/last_access/" + delegator_path).raise_for_status()
 
         path = (self.path or '').split("?")[0]
-        import pudb;pudb.set_trace()
         if path in ['/index', '/index/'] or not delegator_path:
             path = self.path
             if path.split("/")[1] == 'index':
@@ -148,9 +148,12 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             )
             sent = True
 
-            if self.path == '/web/session/logout':
+            if self.path.endswith('/web/session/logout'):
                 self._redirect_to_index()
             else:
+                print("--------------------------------")
+                print(cookies)
+                print("--------------------------------")
                 self.send_response(resp.status_code)
                 self.send_resp_headers(resp, cookies)
                 if body:
@@ -218,7 +221,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             cookie['delegator-path'] = site
             cookie['delegator-path']['max-age'] = 365 * 24 * 3600
             cookie['delegator-path']['path'] = '/'
-        elif self.path in ['/index', '/index/', '/web/session/logout']:
+        elif self.path in ['/index', '/index/'] or self.path.endswith('/web/session/logout'):
             cookie['delegator-path'] = "not-set"
             cookie['delegator-path']['path'] = '/'
 
@@ -237,6 +240,10 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
         if resp.headers.get('set-cookie'):
             for cookie in split_set_cookie(resp.headers.get('set-cookie')):
+                print("############################################\n")
+                print(cookie)
+                print("\n")
+                print("############################################\n")
                 self.send_header("Set-Cookie", cookie)
 
         self.end_headers()
