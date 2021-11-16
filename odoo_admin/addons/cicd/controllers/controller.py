@@ -11,7 +11,8 @@ class Controller(http.Controller):
         return "OK"
 
     @http.route(["/start/<name>", "/start/<name>/<action>"])
-    def start_instance(self, name, action):
+    def start_instance(self, name, **args):
+        action = args.get('action')
         branch = request.env['cicd.git.branch'].sudo().search([('name', '=', name)])
 
         redirect = request.redirect("/web/login" if not action else "/" + action + "/") # e.g. mailer/

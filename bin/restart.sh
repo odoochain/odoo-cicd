@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 export COMPOSE_HTTP_TIMEOUT=1200
 docker-compose build

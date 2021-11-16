@@ -140,7 +140,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         content = """
         Redirecting to cicd application...
         <script>
-        window.location = "/index";
+        window.location = "/";
         </script>
         """.encode('utf-8')
 
