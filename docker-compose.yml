@@ -20,6 +20,8 @@ services:
     environment:
         INDEX_HOST: http://${CICD_NETWORK_NAME}adminodoo_proxy:80
     restart: "unless-stopped"
+    ports:
+      - "5555:80"
     volumes:
         - ./cicd_delegator/app:/usr/src/app
 

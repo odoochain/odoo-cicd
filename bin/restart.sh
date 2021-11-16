@@ -7,4 +7,5 @@ docker-compose down
 cd odoo_admin
 ./odoo.sh reload
 ./odoo.sh up -d
+cd ..
 docker-compose up -d

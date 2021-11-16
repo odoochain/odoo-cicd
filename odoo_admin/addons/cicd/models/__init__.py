@@ -42,3 +42,4 @@ from . import volume
 from . import repository
 from . import dump
 from . import task
+from . import release

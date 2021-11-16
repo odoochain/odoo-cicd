@@ -13,6 +13,7 @@ import humanize
 class GitBranch(models.Model):
     _name = 'cicd.git.branch'
 
+    approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
     machine_id = fields.Many2one(related='repo_id.machine_id')
     last_access = fields.Datetime("Last Access")
     name = fields.Char("Git Branch", required=True)
@@ -26,6 +27,8 @@ class GitBranch(models.Model):
     state = fields.Selection([
         ('new', 'New'),
         ('approved', 'Approved'),
+        ('to_deploy', 'To Deploy'),
+        ('Live', 'Live'),
     ], string="State", default="new", required=True)
     build_state = fields.Selection([
         ('new', 'New'),
@@ -38,6 +41,7 @@ class GitBranch(models.Model):
     db_size_humanize = fields.Char("DB Size", compute="_compute_human")
     reload_config = fields.Text("Reload Config")
     autobackup = fields.Boolean("Autobackup") # TODO implement
+    enduser_summary = fields.Text("Enduser Summary")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),

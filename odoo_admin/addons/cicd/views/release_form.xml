@@ -1,0 +1,36 @@
+<odoo>
+	<data noupdate="0">
+		<record id="view_cicd_release_form" model="ir.ui.view">
+			<field name="name">cicd.release form</field>
+			<field name="model">cicd.release</field>
+			<field name="arch" type="xml">
+				<form string="">
+					<header>
+						<button name="start" string="Start Instance" type="object"/>
+						<!-- at debugging - remove auto created at create-->
+						<field name="state" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'readonly': True}" clickable="True" />
+					</header>
+					<sheet>
+						<group string="Release" col="4">
+							<field name="name" />
+							<field name="target_branch" placeholder="master"/>
+							<field name="machine_ids" widget="many2many_tags" />
+							<field name="branche_ids" widget="many2many_tags" />
+						</group>
+						<notebook>
+							<page string="New Commits">
+								<field name="diff_commit_ids">
+									<tree>
+										<field name="name"/>
+										<field name="date"/>
+										<field name="author"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+					</sheet>
+				</form>
+			</field>
+		</record>
+	</data>
+</odoo>

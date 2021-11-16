@@ -16,6 +16,10 @@
 							<field name="repo_id" />
 							<field name="build_state" />
 							<field name="dump_id"/>
+							<field name="approver_ids" widget="many2many_tags"/>
+						</group>
+						<group string="Enduser Summary">
+							<field name="enduser_summary" nolabel='1'/>
 						</group>
 						<notebook>
 							<page string="Tasks" name="tasks">
@@ -121,7 +125,6 @@
 							<page string="Commits" name="commits">
 								<field name="commit_ids" nolabel="1" readonly="1">
 									<tree>
-										<field name="name" />
 										<field name="date" />
 										<field name="author"/>
 										<field name="text"/>
