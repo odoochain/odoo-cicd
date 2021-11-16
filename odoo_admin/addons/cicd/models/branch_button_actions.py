@@ -26,11 +26,11 @@ class Branch(models.Model):
 
     def dump(self):
         self.ensure_one()
-        self._make_task("_dump", True)
+        self._make_task("_dump")
 
     def turn_into_dev(self):
         self.ensure_one()
-        self._make_task("_turn_into_dev", True)
+        self._make_task("_turn_into_dev")
 
     def reload(self):
         self.ensure_one()
@@ -81,4 +81,16 @@ class Branch(models.Model):
 
     def start_webmailer(self):
         self.ensure_one()
-        import pudb;pudb.set_trace()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/start/' + self.name + "/mailer/",
+            'target': 'new'
+        }
+
+    def start_logs(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/start/' + self.name + "/logs/",
+            'target': 'new'
+        }

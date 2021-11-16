@@ -28,7 +28,7 @@ services:
       context:
         logs
       args:
-        LOGIO_RELATIVE_PATH: '/logs'
+        LOGIO_RELATIVE_PATH: '/cicd_logs'
     environment:
       TIMEZONE: Europe/Berlin
     expose:

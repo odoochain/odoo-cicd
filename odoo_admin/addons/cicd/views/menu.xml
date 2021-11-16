@@ -28,7 +28,7 @@
 		<record id="open_logsio" model="ir.actions.act_url">
 			<field name="name">Logsio</field>
 			<field name="target">new</field>
-			<field name="url">/logs</field>
+			<field name="url">/cicd_logs</field>
 		</record>
 		<menuitem parent="root_menu" id="menu_logsio" action="open_logsio"/>
 

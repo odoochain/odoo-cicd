@@ -124,6 +124,9 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         elif path.startswith("/mailer/") and delegator_path:
             host = f"{delegator_path}_proxy"
             url = f'http://{host}{path}'
+        elif path.startswith("/logs/") and delegator_path:
+            host = f"{delegator_path}_proxy"
+            url = f'http://{host}{path}'
         else:
             host = f"{delegator_path}_proxy"
             url = f'http://{host}{path}'

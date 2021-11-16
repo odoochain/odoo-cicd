@@ -58,6 +58,10 @@
 									<div>
 										Shows the web mailer.
 									</div>
+									<button name="start_logs" string="Show Active Logs" type="object"/>
+									<div>
+										Shows the logs outputs of the containers.
+									</div>
 								</group>
 								<group string="Backup">
 									<button name="dump" string="Dump" type="object"/>

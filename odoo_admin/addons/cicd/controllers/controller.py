@@ -10,11 +10,11 @@ class Controller(http.Controller):
         branch.last_access = arrow.utcnow().datetime.strftime("%Y-%m-%d %H:%M:%S")
         return "OK"
 
-    @http.route("/start/<name>")
-    def start_instance(self, name):
+    @http.route(["/start/<name>", "/start/<name>/<action>"])
+    def start_instance(self, name, action):
         branch = request.env['cicd.git.branch'].sudo().search([('name', '=', name)])
 
-        redirect = request.redirect("/web/login")
+        redirect = request.redirect("/web/login" if not action else "/" + action + "/") # e.g. mailer/
         redirect.set_cookie('delegator-path', name)
         redirect.set_cookie('frontend_lang', '', expires=0)
         redirect.set_cookie('im_livechat_history', '', expires=0)
