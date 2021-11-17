@@ -3,6 +3,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from . import pg_advisory_lock
 import threading
 import logging
+import humanize
 logger = logging.getLogger(__name__)
 
 
@@ -21,10 +22,18 @@ class CicdVolumes(models.Model):
     used_size_human = fields.Char("Used Size", compute="_compute_numbers")
     free_size_human = fields.Char("Free Size", compute="_compute_numbers")
     total_size_human = fields.Char("Total Size", compute="_compute_numbers")
-    used_size = fields.Integer("Used Size", compute="_compute_numbers")
-    free_size = fields.Integer("Free Size", compute="_compute_numbers")
-    total_size = fields.Integer("Total Size", compute="_compute_numbers")
+    used_size = fields.Integer("Used Size")
+    free_size = fields.Integer("Free Size")
+    total_size = fields.Integer("Total Size")
     used_percent = fields.Float("Used %", compute="_compute_numbers")
+
+    @api.depends("used_size", "total_size", "free_size")
+    def _compute_numbers(self):
+        for rec in self:
+            rec.used_size_human = humanize.naturalsize(rec.used_size * 1024)
+            rec.free_size_human = humanize.naturalsize(rec.free_size * 1024)
+            rec.total_size_human = humanize.naturalsize(rec.total_size * 1024)
+            rec.used_percent = 100 * rec.used_size / rec.total_size if rec.total_size else 0
 
     @api.model
     def _cron_update(self):
@@ -36,7 +45,7 @@ class CicdVolumes(models.Model):
                 try:
                     stdout = rec.machine_id._execute_shell([
                         "df", rec.name
-                    ]).strip()
+                    ]).output.strip()
                 except Exception as ex:
                     logger.error(ex)
                 else:
@@ -46,9 +55,7 @@ class CicdVolumes(models.Model):
                     if len(stdout) > 1:
                         stdout = stdout[-1]
                     stdout = stdout.split(" ")
-                    rec.used_percent = used_percent = stdout[4].replace("%", "")
+                    rec.used_percent = stdout[4].replace("%", "")
                     rec.total_size = int(stdout[1])
                     rec.used_size = int(stdout[2])
                     rec.free_size = int(stdout[3])
-                    used = int(stdout[1])
-                    stdout[1]

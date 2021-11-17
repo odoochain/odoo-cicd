@@ -6,7 +6,6 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from . import pg_advisory_lock
 from contextlib import contextmanager
 from ..tools.logsio_writer import LogsIOWriter
-import threading
 
 class Task(models.Model):
     _name = 'cicd.task'

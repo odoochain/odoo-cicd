@@ -31,7 +31,9 @@
 									<field name="volume_ids" nolabel='1'>
 										<tree editable='bottom'>
 											<field name="name" />
-											<field name="size_human"/>
+											<field name="total_size_human"/>
+											<field name="free_size_human"/>
+											<field name="used_percent"/>
 											<field name="ttype"/>
 										</tree>
 									</field>

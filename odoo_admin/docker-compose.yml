@@ -1,3 +1,4 @@
+version: '3.7'
 services:
   proxy:
     networks:
@@ -9,6 +10,95 @@ services:
     networks:
       - internal
 
+  adminpostgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: postgres
+    volumes:
+        - admin_postgres_data:/var/lib/postgresql/data
+    networks:
+        - internal
+
+  cicd_delegator:
+    build: ${CUSTOMS_DIR}/../cicd_delegator
+    networks:
+        - internal
+        - cicd_delegator
+    environment:
+        INDEX_HOST: http://${CICD_NETWORK_NAME}adminodoo_proxy:80
+    restart: "unless-stopped"
+    ports:
+      - "5555:80"
+    volumes:
+        - ${CUSTOMS_DIR}/../cicd_delegator/app:/usr/src/app
+
+  cicd_logs:
+    build:
+      context:
+        ${CUSTOMS_DIR}/../logs
+      args:
+        LOGIO_RELATIVE_PATH: '/cicd_logs'
+    environment:
+      TIMEZONE: Europe/Berlin
+    expose:
+        - 6689
+    networks:
+      - internal
+    privileged: true
+
+        
+  cicd_postgres:
+    image: postgres:${CICD_POSTGRES_VERSION}
+    restart: 'unless-stopped'
+    command: postgres -c 'max_connections=1000'
+    shm_size: 1G
+    environment:
+        POSTGRES_PASSWORD: ${CICD_DB_PASSWORD}
+        POSTGRES_USER: ${CICD_DB_USER}
+    volumes:
+        - cicd_postgres_data:/var/lib/postgresql/data
+    ports:
+        - "${CICD_DB_HOST}:${CICD_DB_PORT}:5432"
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
+        interval: 3s
+        timeout: 5s
+        retries: 5
+
+  nginx:
+    build: ${CUSTOMS_DIR}/../nginx
+    restart: unless-stopped
+    networks:
+        - cicd_delegator
+        - internal
+    environment:
+      PROXY_PASS_INDEX: "${CICD_NETWORK_NAME}adminodoo_proxy:80"
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
+    ports:
+        - ${CICD_BINDING}:80
+
+  webssh:
+    build: ${CUSTOMS_DIR}/../webssh
+    restart: unless-stopped
+    networks:
+      - cicd_delegator
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/odoo:/opt/odoo
+      #- ${ODOO_SETTINGS}:/root/.odoo
+      #- ${CICD_WORKSPACE}:/cicd_workspace
+
+    
+volumes:
+    admin_postgres_data:
+    cicd_postgres_data:
+    rolling_log:
+    uploaded_dumps:
+    log_history:
 networks:
+    cicd_delegator:
+        name: ${CICD_NETWORK_NAME}
     internal:
         name: "${CICD_NETWORK_NAME}_internal"

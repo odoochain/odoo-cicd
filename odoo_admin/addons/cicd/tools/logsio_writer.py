@@ -5,7 +5,7 @@ import arrow
 logger = logging.getLogger(__name__)
 
 class LogsIOWriter(object):
-    def __init__(self, stream, source, host='logs', port=6689):
+    def __init__(self, stream, source, host='cicd_logs', port=6689):
         if isinstance(stream, dict):
             stream = stream['name']
         self.lines = []

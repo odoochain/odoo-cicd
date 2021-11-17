@@ -29,7 +29,7 @@ class Dump(models.Model):
             for volume in machine.volume_ids.filtered(lambda x: x.ttype == 'dumps'):
                 files = machine._execute_shell([
                     "ls", volume.name + "/"
-                ]).strip().split("\n")
+                ]).output.strip().split("\n")
 
                 for file in files:
                     if not file:
@@ -48,4 +48,4 @@ class Dump(models.Model):
                     else:
                         dumps.size = int(machine._execute_shell([
                             'stat', '-c', '%s', path
-                        ]).strip())
+                        ]).output.strip())

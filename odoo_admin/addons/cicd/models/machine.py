@@ -10,7 +10,6 @@ import subprocess
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.tools import tempdir
 from ..tools.tools import get_host_ip
-from contextlib import contextmanager
 import logging
 logger = logging.getLogger(__name__)
 
@@ -65,7 +64,7 @@ class CicdMachine(models.Model):
 
     def _compute_workspace(self):
         for rec in self:
-            rec.workspace = os.environ['CONTAINER_CICD_WORKSPACE']
+            rec.workspace = rec.volume_ids.filtered(lambda x: x.ttype == 'source').name
 
     @api.model
     def default_get(self, fields):
@@ -138,6 +137,13 @@ class CicdMachine(models.Model):
         raise ValidationError(_("Everyhing Works!"))
 
     def _execute_shell(self, cmd, cwd=None, env=None, logsio=None):
+
+        def convert(x):
+            if isinstance(x, Path):
+                x = str(x)
+            return x
+
+        cmd = list(map(convert, cmd))
 
         class MyWriter(object):
             def __init__(self, ttype):
