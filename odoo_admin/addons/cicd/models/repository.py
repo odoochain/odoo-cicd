@@ -109,6 +109,17 @@ class Repository(models.Model):
         return list(set(remotes))
 
     @api.model
+    def _clear_branch_name(self, branch):
+        branch = branch.strip()
+
+        if "->" in branch:
+            branch = branch.split("->")[-1].strip()
+
+        if "* " in branch:
+            branch = branch.replace("* ", "")
+        return branch
+
+    @api.model
     def _cron_fetch(self):
         for repo in self.search([]):
 
@@ -127,32 +138,32 @@ class Repository(models.Model):
                 for remote in self._get_remotes(shell):
                     shell.X(["git", "fetch"])
                     for branch in all_remote_branches:
-                        branch = branch.strip()
-                        if "->" in branch:
-                            branch = branch.split("->")[-1].strip()
+                        branch = self._clear_branch_name(branch)
                         only_branch = branch.split("/")[1]
                         shell.X(["git", "checkout", "-f", only_branch])
+                        del only_branch
+                        del branch
 
                 for branch in shell.X(["git", "branch", "-a"]).output.strip().split("\n"):
-                    if "->" in branch:
-                        branch = branch.split("->")[-1].strip()
-                    branch = branch.strip()
+                    branch = self._clear_branch_name(branch)
                     branch = branch.split("/")[-1]
                     shell.X(["git", "checkout", "-f", branch])
+                    import pudb;pudb.set_trace()
                     name = branch
                     del branch
 
                     if name in all_remote_branches:
                         shell.X(["git", "pull"])
-                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == only_branch)):
+                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
                         branch = repo.branch_ids.create({
-                            'name': only_branch,
+                            'name': name,
                             'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                             'repo_id': repo.id,
                         })
                         branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
 
                     shell.X(["git", "checkout", "-f", "master"])
+                    del name
 
     def _lock_git(self): 
         def retry(lock):
