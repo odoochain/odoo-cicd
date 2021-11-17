@@ -120,10 +120,9 @@ class Repository(models.Model):
             env = {
                 "GIT_ASK_YESNO": "false",
                 "GIT_SSH_COMMAND": f'ssh -o StrictHostKeyChecking=no',
+                "GIT_TERMINAL_PROMPT": "0",
             }
-
             with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
-                import pudb;pudb.set_trace()
                 all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
                 for remote in self._get_remotes(shell):
                     shell.X(["git", "fetch"])
@@ -145,13 +144,13 @@ class Repository(models.Model):
 
                     if name in all_remote_branches:
                         shell.X(["git", "pull"])
-                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
+                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == only_name)):
                         branch = repo.branch_ids.create({
                             'name': only_branch,
                             'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                             'repo_id': repo.id,
                         })
-                        branch._update_commits()
+                        branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
 
                     shell.X(["git", "checkout", "-f", "master"])
 

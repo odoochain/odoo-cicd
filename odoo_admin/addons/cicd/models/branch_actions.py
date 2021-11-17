@@ -65,9 +65,9 @@ class Branch(models.Model):
             'backup', 'odoo-db', self.name + ".dump.gz"
             ])
 
-    def _update_git_commits(self, shell, task, logsio, **kwargs):
+    def _update_git_commits(self, shell, logsio, force_instance_folder=None, **kwargs):
         self.ensure_one()
-        instance_folder = self._get_instance_folder(self.machine_id)
+        instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
         with shell.shell() as shell:
             commits = shell.check_output([
                 "/usr/bin/git",
@@ -80,6 +80,8 @@ class Branch(models.Model):
             all_commits = dict((x.name, x.branch_ids) for x in all_commits)
 
             for line in commits.split("\n"):
+                if not line:
+                    continue
                 date = arrow.get(int(line.split(",")[-1]))
                 sha = line.split(",")[0]
                 if sha in all_commits:
