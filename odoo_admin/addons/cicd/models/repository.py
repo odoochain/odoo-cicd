@@ -123,37 +123,36 @@ class Repository(models.Model):
             }
 
             with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+                import pudb;pudb.set_trace()
+                all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
                 for remote in self._get_remotes(shell):
                     shell.X(["git", "fetch"])
-                    all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
                     for branch in all_remote_branches:
                         branch = branch.strip()
                         if "->" in branch:
                             branch = branch.split("->")[-1].strip()
                         only_branch = branch.split("/")[1]
                         shell.X(["git", "checkout", "-f", only_branch])
-                        new_commits = shell.X(["git", "log", f"HEAD..{branch}", "--format=%H"]).output.strip().split("\n")
 
-                        if not (branch := repo.branch_ids.filtered(lambda x: x.name == only_branch)):
-                            branch = repo.branch_ids.create({
-                                'name': only_branch,
-                                'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-                                'repo_id': repo.id,
-                            })
+                for branch in shell.X(["git", "branch", "-a"]).output.strip().split("\n"):
+                    if "->" in branch:
+                        branch = branch.split("->")[-1].strip()
+                    branch = branch.strip()
+                    branch = branch.split("/")[-1]
+                    shell.X(["git", "checkout", "-f", branch])
+                    name = branch
+                    del branch
 
-                        for new_commit in new_commits:
-                            if not new_commit:
-                                continue
-                            has_new_commit = False
-                            if not (commit := branch.commit_ids.filtered(lambda x: x.name == new_commit)):
-                                has_new_commit = True
-                                commit = branch.commit_ids.create({
-                                    'name': new_commit,
-                                    'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-                                    'branch_ids': [[4, branch.id]],
-                                })
-
+                    if name in all_remote_branches:
                         shell.X(["git", "pull"])
+                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
+                        branch = repo.branch_ids.create({
+                            'name': only_branch,
+                            'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                            'repo_id': repo.id,
+                        })
+                        branch._update_commits()
+
                     shell.X(["git", "checkout", "-f", "master"])
 
     def _lock_git(self): 
