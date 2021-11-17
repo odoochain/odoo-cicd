@@ -148,7 +148,6 @@ class Repository(models.Model):
                     branch = self._clear_branch_name(branch)
                     branch = branch.split("/")[-1]
                     shell.X(["git", "checkout", "-f", branch])
-                    import pudb;pudb.set_trace()
                     name = branch
                     del branch
 
