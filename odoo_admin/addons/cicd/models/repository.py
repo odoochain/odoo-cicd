@@ -144,7 +144,7 @@ class Repository(models.Model):
 
                     if name in all_remote_branches:
                         shell.X(["git", "pull"])
-                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == only_name)):
+                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == only_branch)):
                         branch = repo.branch_ids.create({
                             'name': only_branch,
                             'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
