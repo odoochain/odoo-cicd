@@ -14,7 +14,11 @@ class Release(models.Model):
         ("ready", "Ready"),
     ], string="State")
     diff_commit_ids = fields.Many2many('cicd.git.commit', string="New Commits", compute="_compute_diff_commits")
-    target_branch = fields.Char("Target Branch", default="master", required=True)
+    target_branch = fields.Many2one('cicd.git.branch', "Target Branch", default="master", required=True)
+    candidate_branch = fields.Many2one('cicd.git.branch', string="Candidate", default="pre_master", required=True)
+    final_curtains = fields.Datetime("Final Curtains")
+    run_unittests = fields.Boolean("Run Unittests", default=True)
+    run_robottests = fields.Boolean("Run Robot-Tests", default=True)
 
     def _compute_summary(self):
         for rec in self:
