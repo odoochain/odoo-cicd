@@ -22,7 +22,7 @@
 							<field name="run_unittests"/>
 							<field name="run_robottests"/>
 							<field name="simulate_empty_install"/>
-							<field name="simulate_update"/>
+							<field name="simulate_install_id"/>
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>
