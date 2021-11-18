@@ -27,7 +27,7 @@ class Task(models.Model):
     error = fields.Text("Exception", readonly=True)
     dump_used = fields.Char("Dump used", readonly=True)
     duration = fields.Integer("Duration [s]", readonly=True)
-    commit = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
+    commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
 
     def _compute_display_name(self):
         for rec in self:

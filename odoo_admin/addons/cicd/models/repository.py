@@ -135,17 +135,28 @@ class Repository(models.Model):
                 "GIT_TERMINAL_PROMPT": "0",
             }
             with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+                shell.X(["git", "clean", "-xdff"])
                 all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
+                new_commits, updated_branches = {}, set()
+
                 for remote in self._get_remotes(shell):
-                    shell.X(["git", "fetch"])
+                    shell.X(["git", "fetch", remote])
                     for branch in all_remote_branches:
                         branch = self._clear_branch_name(branch)
                         only_branch = branch.split("/")[1]
-                        shell.X(["git", "checkout", "-f", only_branch])
+                        new_commits.setdefault(only_branch, set())
+                        if "Switched to a new branch" in shell.X(["git", "checkout", only_branch]).output.strip():
+                            updated_branches.add(only_branch)
+                            new_commits[only_branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
+                        else:
+                            new_commits[only_branch] |= set([x.split(" ")[1] for x in shell.X(["git", "cherry", only_branch, f"{remote}/{only_branch}"]).output.strip().split("\n") if x.startswith("+ ")])
+                        if new_commits:
+                            updated_branches.add(only_branch)
+                        shell.X(["git", "checkout", "-B", only_branch, f"{remote}/{only_branch}"])  # recreate branch
                         del only_branch
                         del branch
 
-                for branch in shell.X(["git", "branch", "-a"]).output.strip().split("\n"):
+                for branch in updated_branches:
                     branch = self._clear_branch_name(branch)
                     branch = branch.split("/")[-1]
                     shell.X(["git", "checkout", "-f", branch])
@@ -160,7 +171,7 @@ class Repository(models.Model):
                             'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                             'repo_id': repo.id,
                         })
-                        branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+                        branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
                     shell.X(["git", "checkout", "-f", "master"])
                     del name

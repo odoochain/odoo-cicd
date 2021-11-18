@@ -65,30 +65,47 @@ class Branch(models.Model):
             'backup', 'odoo-db', self.name + ".dump.gz"
             ])
 
-    def _update_git_commits(self, shell, logsio, force_instance_folder=None, **kwargs):
+    def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):
         self.ensure_one()
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
         with shell.shell() as shell:
-            commits = shell.check_output([
-                "/usr/bin/git",
-                "log",
-                "--pretty=format:%H,%ct",
-                "--since='last 4 months'",
-            ], cwd=instance_folder)
+
+            def _extract_commits():
+                return list(filter(bool, shell.check_output([
+                    "/usr/bin/git",
+                    "log",
+                    "--pretty=format:%H%ct",
+                    "--since='last 4 months'",
+                ], cwd=instance_folder).strip().split("\n")))
+
+            if force_commits:
+                commits = force_commits
+            else:
+                commits = _extract_commits()
 
             all_commits = self.env['cicd.git.commit'].search([])
             all_commits = dict((x.name, x.branch_ids) for x in all_commits)
 
-            for line in commits.split("\n"):
-                if not line:
-                    continue
-                date = arrow.get(int(line.split(",")[-1]))
-                sha = line.split(",")[0]
+            for sha in commits:
                 if sha in all_commits:
                     if self not in all_commits[sha]:
                         self.env['cicd.git.commit'].search([('name', '=', sha)]).branch_ids = [[4, self.id]]
                     continue
 
+                env = update_env={
+                    "TZ": "UTC0"
+                }
+                
+                line = shell.check_output([
+                    "/usr/bin/git",
+                    "log",
+                    sha,
+                    "-n1",
+                    "--pretty=format:%ct",
+                    "--since='last 4 months'",
+                ], cwd=instance_folder, update_env=env).strip().split(',')
+
+                date = arrow.get(int(line[0]))
                 logsio.info(f"Found new commit: {sha}")
 
                 info = shell.check_output([
@@ -97,9 +114,7 @@ class Branch(models.Model):
                     sha,
                     "--date=format:%Y-%m-%d %H:%M:%S",
                     "-n1",
-                ], cwd=instance_folder, update_env={
-                    "TZ": "UTC0"
-                }).split("\n")
+                ], cwd=instance_folder, update_env=env).split("\n")
 
                 def _get_item(name):
                     for line in info:
