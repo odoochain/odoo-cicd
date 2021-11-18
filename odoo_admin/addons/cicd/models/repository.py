@@ -120,9 +120,13 @@ class Repository(models.Model):
             branch = branch.replace("* ", "")
         return branch
 
+    def fetch(self):
+        self._cron_fetch()
+
     @api.model
     def _cron_fetch(self):
         for repo in self.search([]):
+            import pudb;pudb.set_trace()
 
             self._lock_git()
             logsio = LogsIOWriter(repo.name, 'fetch')
@@ -183,7 +187,7 @@ class Repository(models.Model):
         for rec in self:
             lock = rec.name
             if not pg_try_advisory_lock(self.env.cr, lock):
-                retry(lock)
+                raise ValidationError(_("Git is in other use at the moment"))
 
     def clone_repo(self, machine, path, logsio):
         with self._get_ssh_command() as env:

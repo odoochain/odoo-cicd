@@ -9,6 +9,8 @@
                 'views/git_branch_kanban.xml',
                 'views/git_branch_tree.xml',
                 'views/machine_form.xml',
+                'views/registry.xml',
+                'views/release_form.xml',
                 'views/repository.xml',
                 'views/task_form.xml',
                 'views/volume_form.xml',

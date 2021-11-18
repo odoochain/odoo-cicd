@@ -13,6 +13,9 @@
 			<field name="model">cicd.git.repo</field>
 			<field name="arch" type="xml">
 				<form>
+					<header>
+						<button name="fetch" string="Fetch" type="object" />
+					</header>
 					<sheet>
 						<group>
 							<field name="name"/>
