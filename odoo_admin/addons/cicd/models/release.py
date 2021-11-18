@@ -19,6 +19,19 @@ class Release(models.Model):
     final_curtains = fields.Datetime("Final Curtains")
     run_unittests = fields.Boolean("Run Unittests", default=True)
     run_robottests = fields.Boolean("Run Robot-Tests", default=True)
+    release_type = fields.Selection([
+        ('standard', 'Standard'),
+        ('hotfix', 'Hotfix'),
+    ], default="Standard", required=True)
+    
+    @api.onchange("release_type")
+    def _onchange_release_type(self):
+        if self.release_type == 'hotfix':
+            self.run_unittests = False
+            self.run_robottests = False
+        elif self.release_type == 'standard':
+            self.run_unittests = True
+            self.run_robottests = True
 
     def _compute_summary(self):
         for rec in self:
