@@ -118,7 +118,7 @@ class Repository(models.Model):
 
         if "* " in branch:
             branch = branch.replace("* ", "")
-        return branch
+        return branch.strip()
 
     def fetch(self):
         self._cron_fetch()
@@ -126,8 +126,6 @@ class Repository(models.Model):
     @api.model
     def _cron_fetch(self):
         for repo in self.search([]):
-            import pudb;pudb.set_trace()
-
             self._lock_git()
             logsio = LogsIOWriter(repo.name, 'fetch')
                 
@@ -143,26 +141,22 @@ class Repository(models.Model):
                 all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
                 new_commits, updated_branches = {}, set()
 
+                import pudb;pudb.set_trace()
                 for remote in self._get_remotes(shell):
-                    shell.X(["git", "fetch", remote])
-                    for branch in all_remote_branches:
-                        branch = self._clear_branch_name(branch)
-                        only_branch = branch.split("/")[1]
-                        new_commits.setdefault(only_branch, set())
-                        if "Switched to a new branch" in shell.X(["git", "checkout", only_branch]).output.strip():
-                            updated_branches.add(only_branch)
-                            new_commits[only_branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
+                    fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote]).stderr_output.strip().split("\n")))
+                    for fi in fetch_info:
+                        while "  " in fi:
+                            fi = fi.replace("  ", " ")
+                        if '[new branch]' in fi:
+                            branch = fi.replace("[new branch]", "").split("->")[0].strip()
                         else:
-                            new_commits[only_branch] |= set([x.split(" ")[1] for x in shell.X(["git", "cherry", only_branch, f"{remote}/{only_branch}"]).output.strip().split("\n") if x.startswith("+ ")])
-                        if new_commits:
-                            updated_branches.add(only_branch)
-                        shell.X(["git", "checkout", "-B", only_branch, f"{remote}/{only_branch}"])  # recreate branch
-                        del only_branch
-                        del branch
+                            branch = fi.split("/")[-1]
+                        branch = self._clear_branch_name(branch)
+                        updated_branches.add(branch)
+                        new_commits.setdefault(branch, set())
+                        new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
                 for branch in updated_branches:
-                    branch = self._clear_branch_name(branch)
-                    branch = branch.split("/")[-1]
                     shell.X(["git", "checkout", "-f", branch])
                     name = branch
                     del branch

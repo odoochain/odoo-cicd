@@ -6,9 +6,8 @@
 			<field name="arch" type="xml">
 				<form string="">
 					<header>
-						<button name="start" string="Start Instance" type="object"/>
 						<!-- at debugging - remove auto created at create-->
-						<field name="state" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'readonly': True}" clickable="True" />
+						<field name="state" widget="statusbar" attrs="{'readonly': True}" />
 					</header>
 					<sheet>
 						<group string="Release" col="4">
@@ -17,7 +16,6 @@
 							<field name="target_branch" placeholder="master"/>
 							<field name="machine_ids" widget="many2many_tags" />
 							<field name="branch_ids" widget="many2many_tags" />
-
 						</group>
 						<notebook>
 							<page string="New Commits">

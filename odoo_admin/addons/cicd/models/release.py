@@ -6,6 +6,8 @@ class Release(models.Model):
     name = fields.Char("Name")
     machine_ids = fields.Many2many('cicd.machine', string="Machines")
     branch_id = fields.Many2one('cicd.git.branch', string="Branch")
+    candidate_branch = fields.Many2one('cicd.git.branch', string="Candidate", default="pre_master", required=True)
+    branch_ids = fields.Many2one('cicd.git.branch', string="Consolidated Branches")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
     planned_date = fields.Datetime("Planned Deploy Date")
@@ -15,7 +17,6 @@ class Release(models.Model):
     ], string="State")
     diff_commit_ids = fields.Many2many('cicd.git.commit', string="New Commits", compute="_compute_diff_commits")
     target_branch = fields.Many2one('cicd.git.branch', "Target Branch", default="master", required=True)
-    candidate_branch = fields.Many2one('cicd.git.branch', string="Candidate", default="pre_master", required=True)
     final_curtains = fields.Datetime("Final Curtains")
 
     release_type = fields.Selection([

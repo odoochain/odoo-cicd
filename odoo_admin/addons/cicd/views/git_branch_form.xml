@@ -8,7 +8,7 @@
 					<header>
 						<button name="start" string="Start Instance" type="object"/>
 						<!-- at debugging - remove auto created at create-->
-						<field name="state" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'readonly': True}" clickable="True" />
+						<field name="state" widget="statusbar" attrs="{'readonly': True}" />
 					</header>
 					<sheet>
 						<group string="Branch" col="4">
