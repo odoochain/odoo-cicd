@@ -43,3 +43,4 @@ from . import repository
 from . import dump
 from . import task
 from . import release
+from . import registry
