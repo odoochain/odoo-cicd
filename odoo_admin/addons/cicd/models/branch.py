@@ -45,6 +45,11 @@ class GitBranch(models.Model):
     enduser_summary = fields.Text("Enduser Summary")
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
 
+    run_unittests = fields.Boolean("Run Unittests", default=False)
+    run_robottests = fields.Boolean("Run Robot-Tests", default=False)
+    simulate_empty_install = fields.Boolean("Simulate Empty Install")
+    simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install")
+
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]

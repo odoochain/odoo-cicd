@@ -18,6 +18,12 @@
 							<field name="dump_id"/>
 							<field name="approver_ids" widget="many2many_tags"/>
 						</group>
+						<group string="Quality Assurance">
+							<field name="run_unittests"/>
+							<field name="run_robottests"/>
+							<field name="simulate_empty_install"/>
+							<field name="simulate_update"/>
+						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>
 						</group>
