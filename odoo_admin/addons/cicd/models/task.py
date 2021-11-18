@@ -14,19 +14,20 @@ class Task(models.Model):
     model = fields.Char("Model")
     res_id = fields.Integer("ID")
     display_name = fields.Char(compute="_compute_display_name")
-    machine_id = fields.Many2one('cicd.machine', string="Machine")
+    machine_id = fields.Many2one('cicd.machine', string="Machine", readonly=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Branch")
     name = fields.Char("Name")
-    date = fields.Datetime("Date", default=lambda self: fields.Datetime.now())
+    date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), readonly=True)
     state = fields.Selection([
         ('new', 'New'),
         ('done', 'Done'),
         ('failed', 'Failed'),
     ], required=True, default='new')
-    log = fields.Text("Log")
-    error = fields.Text("Exception")
-    dump_used = fields.Char("Dump used")
-    duration = fields.Integer("Duration [s]")
+    log = fields.Text("Log", readonly=True)
+    error = fields.Text("Exception", readonly=True)
+    dump_used = fields.Char("Dump used", readonly=True)
+    duration = fields.Integer("Duration [s]", readonly=True)
+    commit = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
 
     def _compute_display_name(self):
         for rec in self:
@@ -69,6 +70,12 @@ class Task(models.Model):
 
                 with self.branch_id._shellexec(self, logsio) as shell:
                     obj = self.env[self.model].sudo().browse(self.res_id)
+                    sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                    commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
+                    if not commit:
+                        raise ValidationError(f"Commit {sha} not found in branch.")
+                    self.commit_id = commit
+                    # get current commit
                     args = {
                         'task': self,
                         'logsio': logsio,

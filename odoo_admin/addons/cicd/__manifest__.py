@@ -15,7 +15,7 @@
                 'views/menu.xml',
                 'security/ir.model.access.csv'],
     'demo': [],
-    'depends': ['base'],
+    'depends': ['mail'],
     'external_dependencies': {   'python': [   'pudb',
                                                'spur',
                                                'spurplus',

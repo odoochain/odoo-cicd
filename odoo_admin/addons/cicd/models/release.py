@@ -5,6 +5,7 @@ class Release(models.Model):
 
     name = fields.Char("Name")
     machine_ids = fields.Many2many('cicd.machine', string="Machines")
+    branch_id = fields.Many2one('cicd.git.branch', string="Branch")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
     planned_date = fields.Datetime("Planned Deploy Date")

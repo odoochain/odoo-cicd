@@ -11,6 +11,7 @@ from contextlib import contextmanager
 import humanize
 
 class GitBranch(models.Model):
+    _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
@@ -42,6 +43,7 @@ class GitBranch(models.Model):
     reload_config = fields.Text("Reload Config")
     autobackup = fields.Boolean("Autobackup") # TODO implement
     enduser_summary = fields.Text("Enduser Summary")
+    release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),

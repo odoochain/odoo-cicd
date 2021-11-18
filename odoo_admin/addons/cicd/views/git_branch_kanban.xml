@@ -30,7 +30,7 @@
 						</div>
 						<div>
 							<strong>Repository:</strong>
-							<field name="repo_id"/>
+							<field name="repo_short"/>
 						</div>
 					</div>
 				</t>
