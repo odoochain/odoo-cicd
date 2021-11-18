@@ -25,6 +25,14 @@
 		</record>
 		<menuitem parent="config_menu" id="menu_machines" action="machines_action"/>
 
+		<record id='registry_server_action' model='ir.actions.act_window'>
+			<field name='name'>Registries</field>
+			<field name='res_model'>cicd.registry</field>
+			<field name='view_mode'>tree,form</field>
+			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
+		</record>
+		<menuitem parent="config_menu" id="menu_registry_server" action="registry_server_action"/>
+
 		<record id="open_logsio" model="ir.actions.act_url">
 			<field name="name">Logsio</field>
 			<field name="target">new</field>
