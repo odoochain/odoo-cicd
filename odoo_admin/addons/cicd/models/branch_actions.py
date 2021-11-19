@@ -104,7 +104,7 @@ class Branch(models.Model):
                     "--pretty=format:%ct",
                     "--since='last 4 months'",
                 ], cwd=instance_folder, update_env=env).strip().split(',')
-                if not line:
+                if not line or not any(line):
                     continue
 
                 date = arrow.get(int(line[0]))

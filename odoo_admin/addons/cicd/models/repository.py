@@ -128,6 +128,7 @@ class Repository(models.Model):
         for repo in self.search([]):
             self._lock_git()
             logsio = LogsIOWriter(repo.name, 'fetch')
+            TAG_LAST_CHECK = "tag_cicd_repo_fetched_"
                 
             repo_path = repo._get_main_repo(logsio=logsio)
 
@@ -141,20 +142,29 @@ class Repository(models.Model):
                 all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
                 new_commits, updated_branches = {}, set()
 
-                import pudb;pudb.set_trace()
                 for remote in self._get_remotes(shell):
                     fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote]).stderr_output.strip().split("\n")))
                     for fi in fetch_info:
                         while "  " in fi:
                             fi = fi.replace("  ", " ")
+                        fi = fi.strip()
                         if '[new branch]' in fi:
                             branch = fi.replace("[new branch]", "").split("->")[0].strip()
+                            start_commit = None
+                            end_commit = None
                         else:
                             branch = fi.split("/")[-1]
+                            start_commit = fi.split("..")[0]
+                            end_commit = fi.split("..")[1].split(" ")[0]
                         branch = self._clear_branch_name(branch)
                         updated_branches.add(branch)
                         new_commits.setdefault(branch, set())
-                        new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
+                        if start_commit and end_commit:
+                            start_commit = shell.X(["git", "rev-parse", start_commit]).output.strip()
+                            end_commit = shell.X(["git", "rev-parse", end_commit]).output.strip()
+                            new_commits[branch] |= set(shell.X(["git", "rev-list", "--ancestry-path", f"{start_commit}..{end_commit}"]).output.strip().split("\n"))
+                        else:
+                            new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
                 for branch in updated_branches:
                     shell.X(["git", "checkout", "-f", branch])
