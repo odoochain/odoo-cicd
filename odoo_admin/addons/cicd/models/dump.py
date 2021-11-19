@@ -12,6 +12,14 @@ class Dump(models.Model):
     name = fields.Char("Name", required=True)
     machine_id = fields.Many2one("cicd.machine", string="Machine", required=True)
 
+    def unlink(self):
+        for rec in self:
+            with self.machine_id._shell() as shell:
+                if shell.exists(rec.name):
+                    shell.unlink(rec.name)
+
+        return super().unlink()
+
     @api.model
     def _cron_update(self):
         for machine in self.env['cicd.machine'].sudo().search([]):
