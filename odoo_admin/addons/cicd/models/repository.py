@@ -37,6 +37,7 @@ class Repository(models.Model):
     skip_paths = fields.Char("Skip Paths", help="Comma separated list")
     branch_ids = fields.One2many('cicd.git.branch', 'repo_id', string="Branches")
     url = fields.Char(compute="_compute_url")
+    default_branch = fields.Char(default="master", required=True)
 
     _sql_constraints = [
         ('name_unique', "unique(named)", _("Only one unique entry allowed.")),
@@ -181,7 +182,7 @@ class Repository(models.Model):
                         })
                         branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
-                    shell.X(["git", "checkout", "-f", "master"])
+                    shell.X(["git", "checkout", "-f", self.default_branch])
                     del name
 
     def _lock_git(self): 

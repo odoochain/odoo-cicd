@@ -24,6 +24,7 @@
 							<field name="key" attrs="{'invisible': [('login_type', '!=', 'key')]}"/>
 							<field name="username" attrs="{'invisible': [('login_type', '!=', 'username')]}"/>
 							<field name="password" password="True" attrs="{'invisible': [('login_type', '!=', 'username')]}"/>
+							<field name="default_branch" placeholder="master"/>
 						</group>
 						<group>
 							<field name="branch_ids" nolabel="1" readonly='1'>
