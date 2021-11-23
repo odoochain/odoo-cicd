@@ -129,7 +129,6 @@ class Repository(models.Model):
         for repo in self.search([]):
             self._lock_git()
             logsio = LogsIOWriter(repo.name, 'fetch')
-            TAG_LAST_CHECK = "tag_cicd_repo_fetched_"
                 
             repo_path = repo._get_main_repo(logsio=logsio)
 
@@ -167,6 +166,13 @@ class Repository(models.Model):
                         else:
                             new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
+                # if completely new then all branches:
+                if not repo.branch_ids:
+                    for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
+                        branch = self._clear_branch_name(branch)
+                        updated_branches.add(branch)
+                        new_commits[branch] = None # for the parameter laster as None
+
                 for branch in updated_branches:
                     shell.X(["git", "checkout", "-f", branch])
                     name = branch
@@ -180,6 +186,7 @@ class Repository(models.Model):
                             'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                             'repo_id': repo.id,
                         })
+                        import pudb;pudb.set_trace()
                         branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
                     shell.X(["git", "checkout", "-f", self.default_branch])

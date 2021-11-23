@@ -74,7 +74,7 @@ class Branch(models.Model):
                 return list(filter(bool, shell.check_output([
                     "/usr/bin/git",
                     "log",
-                    "--pretty=format:%H%ct",
+                    "--pretty=format:%H",
                     "--since='last 4 months'",
                 ], cwd=instance_folder).strip().split("\n")))
 
@@ -102,7 +102,6 @@ class Branch(models.Model):
                     sha,
                     "-n1",
                     "--pretty=format:%ct",
-                    "--since='last 4 months'",
                 ], cwd=instance_folder, update_env=env).strip().split(',')
                 if not line or not any(line):
                     continue
