@@ -5,7 +5,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class MixinSize(models.AbstractModel):
     _name = 'cicd.mixin.size'
 
-    size = fields.Integer("Size")
+    size = fields.Float("Size")
     size_human = fields.Char("Size", compute="_humanize")
 
     @api.depends('size')
