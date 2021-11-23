@@ -40,11 +40,5 @@
 		</record>
 		<menuitem parent="root_menu" id="menu_logsio" action="open_logsio"/>
 
-		<record id="open_mailer" model="ir.actions.act_url">
-			<field name="name">Mailer</field>
-			<field name="target">new</field>
-			<field name="url">/mailer</field>
-		</record>
-		<menuitem parent="root_menu" id="menu_mailer" action="open_mailer"/>
 	</data>
 </odoo>
