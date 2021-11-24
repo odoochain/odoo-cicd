@@ -68,7 +68,11 @@ class Task(models.Model):
             try:
                 logsio = self._get_new_logsio_instance()
 
-                with self.branch_id._shellexec(self, logsio) as shell:
+                dest_folder = self.machine_id._get_volume('source') / self.branch_id.name
+                with self.machine_id._shellexec(dest_folder, logsio=logsio) as shell:
+                    self.branch_id.repo_id._get_main_repo(
+                        destination_folder=dest_folder
+                        )
                     obj = self.env[self.model].sudo().browse(self.res_id)
                     sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
                     commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)

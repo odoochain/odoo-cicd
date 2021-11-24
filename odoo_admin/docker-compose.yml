@@ -33,7 +33,7 @@ services:
         - internal
         - cicd_delegator
     environment:
-        INDEX_HOST: http://${CICD_NETWORK_NAME}adminodoo_proxy:80
+        INDEX_HOST: http://${PROJECT_NAME}_proxy:80
     restart: "unless-stopped"
     ports:
       - "5555:80"

@@ -87,11 +87,12 @@ class Repository(models.Model):
                 file.unlink()
 
 
-    def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None):
+    def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None, machine=None):
         self.ensure_one()
         from . import MAIN_FOLDER_NAME
-        path = Path(self.machine_id.workspace) / MAIN_FOLDER_NAME
-        self.clone_repo(self.machine_id, path, logsio)
+        machine = machine or self.machine_id
+        path = Path(machine.workspace) / MAIN_FOLDER_NAME
+        self.clone_repo(machine, path, logsio)
 
 
         if destination_folder:
@@ -101,8 +102,8 @@ class Repository(models.Model):
         else:
             temppath = None
         if temppath:
-            subprocess.check_call(['rsync', f"{path}/", f"{temppath}/", "-ar"])
-            repo = Repo(temppath)
+            with machine._shellexec(self.machine_id.workspace, logsio=logsio) as shell:
+                output = shell.X(['rsync', f"{path}/", f"{temppath}/", "-ar"])
         return path
 
     def _get_remotes(self, shell):
