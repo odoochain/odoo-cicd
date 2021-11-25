@@ -187,7 +187,6 @@ class Repository(models.Model):
                             'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                             'repo_id': repo.id,
                         })
-                        import pudb;pudb.set_trace()
                         branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
                     shell.X(["git", "checkout", "-f", self.default_branch])
