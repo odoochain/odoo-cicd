@@ -29,7 +29,6 @@ class CicdVolumes(models.Model):
 
     @api.depends("used_size", "total_size", "free_size")
     def _compute_numbers(self):
-        import pudb;pudb.set_trace()
         for rec in self:
             rec.used_size_human = humanize.naturalsize(rec.used_size * 1024 * 1024 * 1024)
             rec.free_size_human = humanize.naturalsize(rec.free_size * 1024 * 1024 * 1024)
@@ -41,7 +40,6 @@ class CicdVolumes(models.Model):
         self.sudo().search([])._update_sizes()
 
     def _update_sizes(self):
-        import pudb;pudb.set_trace()
         for rec in self:
             with rec.machine_id._shell() as shell:
                 try:
