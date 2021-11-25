@@ -26,6 +26,7 @@ services:
         - admin_postgres_data:/var/lib/postgresql/data
     networks:
         - internal
+        - cicd_delegator
 
   cicd_delegator:
     build: ${CUSTOMS_DIR}/../cicd_delegator
@@ -33,7 +34,7 @@ services:
         - internal
         - cicd_delegator
     environment:
-        INDEX_HOST: http://${PROJECT_NAME}_proxy:80
+        INDEX_HOST: http://${CICD_NETWORK_NAME}proxy:80
     restart: "unless-stopped"
     ports:
       - "5555:80"
@@ -80,7 +81,7 @@ services:
         - cicd_delegator
         - internal
     environment:
-      PROXY_PASS_INDEX: "${PROJECT_NAME}_proxy:80"
+      PROXY_PASS_INDEX: "${CICD_NETWORK_NAME}proxy:80"
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     ports:
         - ${CICD_BINDING}:80

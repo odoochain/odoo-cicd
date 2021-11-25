@@ -15,6 +15,9 @@ class Controller(http.Controller):
         action = args.get('action')
         branch = request.env['cicd.git.branch'].sudo().search([('name', '=', name)])
 
+        # first try to get login page, if this not success then try to start containers
+        branch.make_instance_ready_to_login()
+
         redirect = request.redirect("/web/login" if not action else "/" + action + "/") # e.g. mailer/
         redirect.set_cookie('delegator-path', name)
         redirect.set_cookie('frontend_lang', '', expires=0)

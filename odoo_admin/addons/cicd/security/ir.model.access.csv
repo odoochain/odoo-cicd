@@ -15,3 +15,9 @@ model_cicd_release,base.group_user,cicd_release_base_group_user,cicd.release - b
 
 model_cicd_registry,base.group_user,cicd_registry_base_group_user,cicd.registry - base_group_user,1,0,0,0
 model_cicd_registry,base.group_system,cicd_registry_base_group_system,cicd.registry - base_group_system,1,1,1,1
+
+
+model_cicd_branch_approval,base.group_user,cicd_branch_approval_base_group_user,cicd.branch.approval - base_group_user,1,1,1,0
+model_cicd_branch_approval,base.group_system,cicd_branch_approval_base_group_system,cicd.branch.approval - base_group_system,1,1,1,1
+
+model_cicd_test_run,base.group_user,cicd_test_run_base_group_user,cicd.test.run - base_group_user,1,0,0,0

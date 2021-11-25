@@ -11,7 +11,13 @@ class GitCommit(models.Model):
     date = fields.Datetime("Date")
     author = fields.Char("Author")
     text = fields.Text("Text")
+    test_run_ids = fields.Many2many('cicd.test.run', string="Test Runs")
 
     _sql_constraints = [
         ('name', "unique(name)", _("Only one unique entry allowed.")),
     ]
+
+    def run_tests(self, filtered=None):
+        for ttype in self.env['cicd.test.run']._get_types(filtered):
+            # run tests on machine
+            raise NotImplementedError("Need machine to run")

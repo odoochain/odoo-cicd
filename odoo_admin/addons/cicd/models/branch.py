@@ -1,6 +1,5 @@
-import base64
-import arrow
-from git import Repo
+import os
+import requests
 from odoo import registry
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -50,9 +49,19 @@ class GitBranch(models.Model):
     simulate_empty_install = fields.Boolean("Simulate Empty Install")
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install")
 
+    test_run_ids = fields.Many2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
+    after_code_review = fields.Selection([
+        ('deploy', "Deploy"),
+        ('return', "Return to Sender"),
+    ], string="After Code Review", default="deploy", required=True)
+
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    def _compute_test_runs(self):
+        for rec in self:
+            rec.test_run_ids = rec.mapped('commit_ids.test_run_ids')
 
     @api.depends("db_size")
     def _compute_human(self):
@@ -126,3 +135,10 @@ class GitBranch(models.Model):
             logsio=logsio,
         ) as shell:
             yield shell
+
+    def make_instance_ready_to_login(self):
+
+        container_proxy_name = f"{os.environ['CICD_NETWORK_NAME']}proxy"
+
+        def test_request():
+            request.get("/web/login")
