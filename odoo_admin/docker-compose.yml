@@ -36,12 +36,12 @@ services:
     volumes:
         - ${CUSTOMS_DIR}/../cicd_delegator/app:/usr/src/app
 
-  cicd_logs:
+  cicdlogs:
     build:
       context:
         ${CUSTOMS_DIR}/../logs
       args:
-        LOGIO_RELATIVE_PATH: '/cicd_logs'
+        LOGIO_RELATIVE_PATH: '/cicdlogs'
     labels:
       odoo_framework.apply_env: 0
     environment:
