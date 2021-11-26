@@ -29,7 +29,7 @@ services:
     labels:
       odoo_framework.apply_env: 0
     environment:
-        INDEX_HOST: http://${CICD_NETWORK_NAME}_proxy:80
+        INDEX_HOST: http://${PROJECT_NAME}_proxy:80
     restart: "unless-stopped"
     ports:
       - "5555:80"
@@ -82,7 +82,7 @@ services:
     labels:
       odoo_framework.apply_env: 0
     environment:
-      PROXY_PASS_INDEX: "${CICD_NETWORK_NAME}_proxy:80"
+      PROXY_PASS_INDEX: "${PROJECT_NAME}_proxy:80"
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
     ports:
         - ${CICD_BINDING}:80

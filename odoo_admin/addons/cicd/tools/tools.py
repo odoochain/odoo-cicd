@@ -23,7 +23,6 @@ from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 
-docker = Docker.from_env()
 
 BOOL_VALUES = ['1', 1, 'true', 'True', 'y']
 
@@ -167,7 +166,7 @@ Swap:             0           0           0
     }
 
 def _delete_dockercontainers(name):
-    containers = docker.containers.list(all=True, filters={'name': [name]})
+    containers = _get_docker().containers.list(all=True, filters={'name': [name]})
     for container in containers:
         if container.status == 'running':
             container.kill()
@@ -259,8 +258,8 @@ def _export_git_values():
             os.environ['GIT_BRANCH'] = os.environ['BRANCH_NAME']
 
 def _get_docker_state(name):
-    docker.ping()
-    containers = docker.containers.list(all=True, filters={'name': [name]})
+    _get_docker().ping()
+    containers = _get_docker().containers.list(all=True, filters={'name': [name]})
     states = set(map(lambda x: x.status, containers))
     return 'running' in states
 
@@ -306,7 +305,7 @@ def _get_host_path(path):
     For the given path inside container the host path is returned.
     """
     hostname = socket.gethostname()
-    container = [x for x in docker.containers.list(all=True) if x.id.startswith(hostname)][0]
+    container = [x for x in _get_docker().containers.list(all=True) if x.id.startswith(hostname)][0]
     inspect = json.loads(subprocess.check_output(['docker', 'inspect', container.id]))
     source = [x for x in inspect[0]['Mounts'] if x['Destination'] == str(path)][0]['Source']
     return Path(source)
@@ -335,3 +334,7 @@ def _set_owner(user, group, path):
     if not chown.exists():
         chown = Path("/bin/chown")
     subprocess.check_call(["sudo", str(chown), f"{user}:{group}", "-R", str(path)])
+
+def _get_docker():
+    docker = Docker.from_env()
+    return docker

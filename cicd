@@ -3,17 +3,6 @@ set -e
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd $SCRIPT_DIR
 
-# use CICD_NETWORK_NAME as PROJECT_NAME
-PROJECT_NAME="$(python3<<EOF
-from dotenv import dotenv_values
-from pathlib import Path
-import os
-settings = dotenv_values(Path(os.path.expanduser("~/.odoo/cicd")))
-project_name = settings['CICD_NETWORK_NAME']
-print(project_name)
-
-EOF
-)"
 cd odoo_admin
-odoo -xs ~/.odoo/cicd "$@"
+odoo -xs ~/.cicd/settings "$@"
 
