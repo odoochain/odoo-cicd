@@ -3,36 +3,31 @@ services:
   proxy:
     networks:
       - internal
+
+  pgtools:
+    networks:
+      - internal
+
+  cronjobshell:
+    networks:
+      - internal
+      
+  postgres:
+    networks:
+      - internal
   odoo_base:
     privileged: True
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - internal
-    environment:
-      DBNAME: cicdadmin
-      DB_USER: odoo
-      DB_PASSWORD: postgres
-      DB_HOST: adminpostgres
-      DB_PORT: 5432
-
-  adminpostgres:
-    image: postgres:14
-    environment:
-      POSTGRES_USER: odoo
-      POSTGRES_PASSWORD: odoo
-      POSTGRES_DB: postgres
-    volumes:
-        - admin_postgres_data:/var/lib/postgresql/data
-    networks:
-        - internal
-        - cicd_delegator
-
   cicd_delegator:
     build: ${CUSTOMS_DIR}/../cicd_delegator
     networks:
         - internal
         - cicd_delegator
+    labels:
+      odoo_framework.apply_env: 0
     environment:
         INDEX_HOST: http://${CICD_NETWORK_NAME}_proxy:80
     restart: "unless-stopped"
@@ -47,6 +42,8 @@ services:
         ${CUSTOMS_DIR}/../logs
       args:
         LOGIO_RELATIVE_PATH: '/cicd_logs'
+    labels:
+      odoo_framework.apply_env: 0
     environment:
       TIMEZONE: Europe/Berlin
     expose:
@@ -61,6 +58,8 @@ services:
     restart: 'unless-stopped'
     command: postgres -c 'max_connections=1000'
     shm_size: 1G
+    labels:
+      odoo_framework.apply_env: 0
     environment:
         POSTGRES_PASSWORD: ${CICD_DB_PASSWORD}
         POSTGRES_USER: ${CICD_DB_USER}
@@ -80,6 +79,8 @@ services:
     networks:
         - cicd_delegator
         - internal
+    labels:
+      odoo_framework.apply_env: 0
     environment:
       PROXY_PASS_INDEX: "${CICD_NETWORK_NAME}_proxy:80"
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
@@ -89,6 +90,8 @@ services:
   webssh:
     build: ${CUSTOMS_DIR}/../webssh
     restart: unless-stopped
+    labels:
+      odoo_framework.apply_env: 0
     networks:
       - cicd_delegator
     volumes:
