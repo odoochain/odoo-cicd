@@ -1,3 +1,4 @@
+import threading
 import arrow
 import traceback
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -43,8 +44,7 @@ class Task(models.Model):
         name = self.name or ''
         if name.startswith("_"):
             name = name[1:]
-        id = "{0:06d}".format(self.id)
-        rolling_file = LogsIOWriter(f"{self.branch_id.name}", f'{id}: {name}')
+        rolling_file = LogsIOWriter(f"{self.branch_id.name}", name)
         rolling_file.write_text(f"Started: {arrow.get()}")
         return rolling_file
 
@@ -70,9 +70,10 @@ class Task(models.Model):
 
             try:
                 logsio = self._get_new_logsio_instance()
+                logsio.start_keepalive()
 
-                dest_folder = self.machine_id._get_volume('source') / self.branch_id.name
-                with self.machine_id._shellexec(dest_folder, logsio=logsio) as shell:
+                dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
+                with self.machine_id._shellexec(dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
                     self.branch_id.repo_id._get_main_repo(
                         destination_folder=dest_folder
                         )
@@ -96,12 +97,15 @@ class Task(models.Model):
                 msg = traceback.format_exc()
                 self.state = 'failed'
                 self.error = msg
+                logsio.error(msg)
 
             else:
                 self.state = 'done'
+            logsio.stop_keepalive()
 
             duration = (arrow.get() - started).total_seconds()
             self.duration = duration
+            logsio.info(f"Finished after {duration} seconds!")
 
     def _cron_run(self):
         for task in self.search([

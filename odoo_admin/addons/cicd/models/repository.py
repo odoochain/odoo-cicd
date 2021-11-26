@@ -103,7 +103,7 @@ class Repository(models.Model):
             temppath = None
         if temppath:
             with machine._shellexec(self.machine_id.workspace, logsio=logsio) as shell:
-                output = shell.X(['rsync', f"{path}/", f"{temppath}/", "-ar"])
+                shell.X(['rsync', f"{path}/", f"{temppath}/", "-ar"])
         return path
 
     def _get_remotes(self, shell):

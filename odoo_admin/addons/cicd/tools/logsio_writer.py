@@ -1,3 +1,5 @@
+import threading
+import time
 import socket
 import os
 import logging
@@ -13,6 +15,7 @@ class LogsIOWriter(object):
         source = source.replace("|", "_")
         self.stream = stream
         self.source = source
+        self.keep_alive_thread = None
         try:
             host = socket.gethostbyname_ex(host)
             host = host[-1][0]
@@ -26,6 +29,20 @@ class LogsIOWriter(object):
             self.port = port
         self.tz = os.getenv("TIMEZONE", 'utc')
         self._send(f"+input|{self.stream}|{self.source}")
+
+    def start_keepalive(self):
+        def keep_alive(self):
+            while self.keep_alive_thread:
+                time.sleep(1 if os.getenv("DEVMODE") == "1" else 20)
+                self.info("Keep alive signal - still working")
+
+        self.keep_alive_thread = threading.Thread(target=keep_alive, args=(self,))
+        self.keep_alive_thread.background = True
+        self.keep_alive_thread.start()
+    
+    def stop_keepalive(self):
+        self.keep_alive_thread = False
+
 
     def _send(self, txt):
         try:

@@ -17,6 +17,8 @@ services:
       - internal
   odoo_base:
     privileged: True
+    environment:
+      CICD_PROJECT_NAME: ${PROJECT_NAME}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -58,6 +60,8 @@ services:
     restart: 'unless-stopped'
     command: postgres -c 'max_connections=1000'
     shm_size: 1G
+    networks:
+        - postgres
     labels:
       odoo_framework.apply_env: 0
     environment:
@@ -112,3 +116,5 @@ networks:
         name: ${CICD_NETWORK_NAME}
     internal:
         name: "${CICD_NETWORK_NAME}_internal"
+    postgres:
+        name: "${CICD_NETWORK_NAME}_postgres"

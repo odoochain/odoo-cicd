@@ -16,54 +16,48 @@ class Branch(models.Model):
     def _reload_and_restart(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
         self._checkout_latest(shell, self.machine_id, logsio)
-        shell.X(['odoo', '--project-name', self.name, 'build'])
-        shell.X(['odoo', '--project-name', self.name, 'up', '-d'])
+        shell.odoo('build')
+        shell.odoo("up", "-d")
         self._after_build(shell, logsio)
 
     def _restore_dump(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
         task.dump_used = self.dump_id.name
-        shell.X(['odoo', '--project-name', self.name, 'reload'])
-        shell.X(['odoo', '--project-name', self.name, 'build'])
-        shell.X(['odoo', '--project-name', self.name, 'down'])
-        shell.X([
-            'odoo', '--project-name', self.name,
-            '-f', 'restore', 'odoo-db',
-            self.dump_id.name
-        ])
+        logsio.info("Reloading")
+        shell.odoo('reload')
+        logsio.info("Building")
+        shell.odoo('build')
+        logsio.info("Downing")
+        shell.odoo('down')
+        import pudb;pudb.set_trace()
+        logsio.info(f"Restoring {self.dump_id.name}")
+        shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
     
     def _docker_start(self, shell, task, logsio, **kwargs):
-        shell.X(['odoo', '--project-name', self.name, 'up', '-d'])
+        shell.odoo('up', '-d')
 
     def _docker_stop(self, shell, task, logsio, **kwargs):
-        shell.X(['odoo', '--project-name', self.name, 'kill'])
+        shell.odoo('kill')
 
     def _docker_get_state(self, shell, task, logsio, **kwargs):
         import pudb;pudb.set_trace()
-        info = shell.X(['odoo', '--project-name', self.name, 'ps', 'kill']).output
+        info = shell.odoo('ps').output
             
-    def _turn_into_dev(self, task, logsio, **kwargs):
-        with self._shellexec(logsio=logsio) as shell:
-            shell.X(['odoo', '--project-name', 'turn-into-dev'])
+    def _turn_into_dev(self, shell, task, logsio, **kwargs):
+        shell.odoo('turn-into-dev')
 
     def _reload(self, shell, task, logsio, **kwargs):
         raw_settings = (task.machine_id.reload_config or '') + "\n" + (self.reload_config or '')
         odoo_settings = base64.encodestring((raw_settings).encode('utf-8').strip()).decode('utf-8')
         self._make_instance_docker_configs(shell) 
-        shell.X([
-            'odoo', '--project-name', self.name,
-            'reload', '--additional_config', odoo_settings
-            ])
+        shell.odoo('reload', '--additional_config', odoo_settings)
 
     def _build(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio, **kwargs)
-        shell.X(['odoo', '--project-name', self.name, 'build'])
+        shell.odoo('build')
 
     def _dump(self, shell, task, logsio, **kwargs):
-        shell.X([
-            'odoo', '--project-name', self.name, 
-            'backup', 'odoo-db', self.name + ".dump.gz"
-            ])
+        shell.odoo('backup', 'odoo-db', self.name + ".dump.gz")
 
     def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):
         self.ensure_one()
@@ -137,28 +131,16 @@ class Branch(models.Model):
                 }]]
     
     def _remove_web_assets(self, shell, tasks, logsio, **kwargs):
-        shell.X([
-            'odoo', '--project-name', self.name,
-            'remove-web-assets'
-            ])
+        shell.odoo('remove-web-assets')
 
     def _clear_db(self, shell, tasks, logsio, **kwargs):
-        shell.X([
-            'odoo', '--project-name', self.name,
-            'cleardb'
-            ])
+        shell.odoo('cleardb')
 
     def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
-        shell.X([
-            'odoo', '--project-name', self.name,
-            'robot', '-a',
-        ])
+        shell.odoo('robot', '-a')
 
     def _run_unit_tests(self, shell, tasks, logsio, **kwargs):
-        shell.X([
-            'odoo', '--project-name', self.name,
-            'run-tests',
-        ])
+        shell.odoo('run-tests')
 
     def _transform_input_dump():
         dump = Path(request.args['dump'])
@@ -228,20 +210,17 @@ class Branch(models.Model):
 
         
     def _after_build(self, shell, logsio, **kwargs):
-        cmd = ['odoo', '--project-name', self.name]
-        shell.X(cmd + ["remove-settings", '--settings', 'web.base.url,web.base.url.freeze'])
-        shell.X(cmd + ["update-setting", 'web.base.url', shell.machine.external_url])
-        shell.X(cmd + ["set-ribbon", self.name])
-        shell.X(cmd + ["prolong"])
+        shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
+        shell.odoo("update-setting", 'web.base.url', shell.machine.external_url)
+        shell.odoo("set-ribbon", self.name)
+        shell.odoo("prolong")
 
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
         # todo make button
         self._after_build(shell=shell, logsio=logsio, **kwargs)
 
     def _reset(self, task, shell, **kwargs):
-        shell.X(
-            ['odoo', '--project-name', self.name, 'db', 'reset', '--do-not-install-base'],
-        )
+        shell.odoo('db', 'reset', '--do-not-install-base')
 
     def _checkout_latest(self, shell, machine, logsio, **kwargs):
         instance_folder = self._get_instance_folder(machine)
@@ -371,18 +350,32 @@ class Branch(models.Model):
     def _make_instance_docker_configs(self, shell):
         with shell.shell() as ssh_shell:
             home_dir = shell._get_home_dir()
-            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{self.name}.yml", """
+            project_name = self.project_name
+            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", """
 services:
     proxy:
         networks:
+            - default
             - cicd_network
+    odoo_base:
+        networks:
+            - default
+            - cicd_network_postgres
 networks:
+    default:
+        name: ${CICD_NETWORK_NAME}_{PROJECT_NAME}
     cicd_network:
         external:
-            name: {}
-        """.format(os.environ["CICD_NETWORK_NAME"]))
+            name: {CICD_NETWORK_NAME}
+    postgres:
+        external:
+            name: {CICD_NETWORK_NAME}_postgres
 
-            ssh_shell.write_text(home_dir + f'/.odoo/settings.{self.name}', """
+
+        """.format(**os.environ))
+
+
+            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', """
 DEVMODE=1
 PROJECT_NAME={}
 RUN_PROXY_PUBLISHED=0
@@ -395,7 +388,7 @@ DB_USER={}
 DB_PWD={}
 DB_PORT={}
     """.format(
-            self.name,
+            project_name,
             shell.machine.db_host,
             shell.machine.db_user,
             shell.machine.db_pwd,

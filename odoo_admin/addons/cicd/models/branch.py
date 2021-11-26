@@ -13,6 +13,7 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
+    project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
     machine_id = fields.Many2one(related='repo_id.machine_id')
     last_access = fields.Datetime("Last Access")
@@ -133,6 +134,7 @@ class GitBranch(models.Model):
         with self.machine_id._shellexec(
             cwd=cwd or instance_folder,
             logsio=logsio,
+            project_name=self.project_name,
         ) as shell:
             yield shell
 
@@ -141,4 +143,8 @@ class GitBranch(models.Model):
         container_proxy_name = f"{os.environ['CICD_NETWORK_NAME']}proxy"
 
         def test_request():
-            request.get("/web/login")
+            requests.get("/web/login")
+
+    def _compute_project_name(self):
+        for rec in self:
+            rec.project_name = os.environ['CICD_PROJECT_NAME'] + "_" + self.repo_id.short + "_" + self.name

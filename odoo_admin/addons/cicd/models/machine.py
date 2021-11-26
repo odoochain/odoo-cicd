@@ -1,7 +1,10 @@
 import os
+import time
+import threading
 import pwd
 import grp
 from pathlib import Path
+from ..tools.logsio_writer import LogsIOWriter
 import spur
 import spurplus
 from contextlib import contextmanager
@@ -10,15 +13,25 @@ import subprocess
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.tools import tempdir
 from ..tools.tools import get_host_ip
+from ..tools.logsio_writer import LogsIOWriter
 import logging
 logger = logging.getLogger(__name__)
 
 class ShellExecutor(object):
-    def __init__(self, machine, cwd, logsio, env):
+    def __init__(self, machine, cwd, logsio, project_name=None, env={}):
         self.machine = machine
         self.cwd = cwd
         self.logsio = logsio
         self.env = env
+        self.project_name = project_name
+        if machine:
+            assert machine._name == 'cicd.machine'
+        if logsio:
+            assert isinstance(logsio, LogsIOWriter)
+        if project_name:
+            assert isinstance(project_name, str)
+        if env:
+            assert isinstance(env, dict)
 
     def _get_home_dir(self):
         res = self.machine._execute_shell(
@@ -32,6 +45,12 @@ class ShellExecutor(object):
     def shell(self):
         with self.machine._shell() as shell:
             yield shell
+
+    def odoo(self, *cmd):
+        if not self.project_name:
+            raise Exception("Requires project_name for odoo execution")
+        cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
+        return self.X(cmd)
 
     def X(self, cmd):
         return self.machine._execute_shell(
@@ -57,7 +76,7 @@ class CicdMachine(models.Model):
     ], required=True)
     reload_config = fields.Text("Settings")
     external_url = fields.Char("External http-Address")
-    db_host = fields.Char("DB Host")
+    db_host = fields.Char("DB Host", default="cicd_postgres")
     db_user = fields.Char("DB User", default="cicd")
     db_pwd = fields.Char("DB Password", default="cicd_is_cool")
     db_port = fields.Integer("DB Port", default=5432)
@@ -108,9 +127,9 @@ class CicdMachine(models.Model):
             yield shell
 
     @contextmanager
-    def _shellexec(self, cwd, logsio, env=None):
+    def _shellexec(self, cwd, logsio, project_name=None, env=None):
         self.ensure_one()
-        executor = ShellExecutor(self, cwd, logsio, env or {})
+        executor = ShellExecutor(self, cwd, logsio, project_name, env or {})
         yield executor
 
     def generate_ssh_key(self):
