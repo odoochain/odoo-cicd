@@ -40,7 +40,11 @@ class Task(models.Model):
 
     def _get_new_logsio_instance(self):
         self.ensure_one()
-        rolling_file = LogsIOWriter(f"{self.branch_id.name}", f'{self.id} - {self.name}')
+        name = self.name or ''
+        if name.startswith("_"):
+            name = name[1:]
+        id = "{0:06d}".format(self.id)
+        rolling_file = LogsIOWriter(f"{self.branch_id.name}", f'{id}: {name}')
         rolling_file.write_text(f"Started: {arrow.get()}")
         return rolling_file
 
@@ -61,7 +65,6 @@ class Task(models.Model):
         self.ensure_one()
         self2 = self.sudo()
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
-        db_registry = registry(self.env.cr.dbname)
         with self._get_env(new_one=not now) as self:
             pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
 
