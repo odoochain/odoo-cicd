@@ -13,7 +13,8 @@ class Controller(http.Controller):
     @http.route(["/start/<name>", "/start/<name>/<action>"])
     def start_instance(self, name, **args):
         action = args.get('action')
-        branch = request.env['cicd.git.branch'].sudo().search([('name', '=', name)])
+        branch = request.env['cicd.git.branch'].sudo().search([])
+        branch = branch.filtered(lambda x: x.project_name == name)
 
         # first try to get login page, if this not success then try to start containers
         branch.make_instance_ready_to_login()

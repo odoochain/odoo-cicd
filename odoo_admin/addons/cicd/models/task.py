@@ -19,6 +19,8 @@ class Task(models.Model):
     branch_id = fields.Many2one('cicd.git.branch', string="Branch")
     name = fields.Char("Name")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), readonly=True)
+    is_done = fields.Boolean(compute="_compute_is_done", store=True)
+
     state = fields.Selection([
         ('new', 'New'),
         ('done', 'Done'),
@@ -29,6 +31,12 @@ class Task(models.Model):
     dump_used = fields.Char("Dump used", readonly=True)
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
+
+    @api.depends('state')
+    def _compute_is_done(self):
+        for rec in self:
+            rec.is_done = rec.state in ['done', 'failed']
+
 
     def _compute_display_name(self):
         for rec in self:

@@ -139,12 +139,26 @@ class GitBranch(models.Model):
             yield shell
 
     def make_instance_ready_to_login(self):
-
-        container_proxy_name = f"{os.environ['CICD_NETWORK_NAME']}proxy"
-
         def test_request():
-            requests.get("/web/login")
+            try:
+                response = requests.get("http://" + self._get_odoo_proxy_container_name() + "/web/login")
+            except requests.exceptions.ConnectionError:
+                return False
+
+            return response.status_code == 200
+
+        if not test_request():
+            if self.task_ids.filtered(lambda x: not x.is_done):
+                raise ValidationError(_("Instance did not respond. Undone task exists. Please retry later!"))
+
+            self._make_task("_reload_and_restart", now=True)
+            if not test_request():
+                raise ValidationError(_("Instance did not respond. It was tried to start the application but this did not succeed. Please check task logs."))
+
+    def _get_odoo_proxy_container_name(self): 
+        return f"{self.project_name}_proxy"
+
 
     def _compute_project_name(self):
         for rec in self:
-            rec.project_name = os.environ['CICD_PROJECT_NAME'] + "_" + self.repo_id.short + "_" + self.name
+            rec.project_name = os.environ['CICD_PROJECT_NAME'] + "_" + rec.repo_id.short + "_" + rec.name

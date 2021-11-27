@@ -59,7 +59,7 @@ class Branch(models.Model):
     def start(self):
         return {
             'type': 'ir.actions.act_url',
-            'url': '/start/' + self.name,
+            'url': '/start/' + self.project_name,
             'target': 'self'
         }
 

@@ -360,10 +360,10 @@ services:
     odoo_base:
         networks:
             - default
-            - cicd_network_postgres
+            - postgres
 networks:
     default:
-        name: ${CICD_NETWORK_NAME}_{PROJECT_NAME}
+        name: {CICD_NETWORK_NAME}_{PROJECT_NAME}
     cicd_network:
         external:
             name: {CICD_NETWORK_NAME}
