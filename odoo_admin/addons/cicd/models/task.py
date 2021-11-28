@@ -1,4 +1,3 @@
-import threading
 import arrow
 import traceback
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -6,7 +5,6 @@ from odoo import registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from . import pg_advisory_lock
 from contextlib import contextmanager
-from ..tools.logsio_writer import LogsIOWriter
 
 class Task(models.Model):
     _name = 'cicd.task'
@@ -21,16 +19,13 @@ class Task(models.Model):
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), readonly=True)
     is_done = fields.Boolean(compute="_compute_is_done", store=True)
 
-    state = fields.Selection([
-        ('new', 'New'),
-        ('done', 'Done'),
-        ('failed', 'Failed'),
-    ], required=True, default='new')
+    state = fields.Selection(related='queue_job_id.state', string="State")
     log = fields.Text("Log", readonly=True)
     error = fields.Text("Exception", readonly=True)
     dump_used = fields.Char("Dump used", readonly=True)
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
+    queue_job_id = fields.Many2one('queue.job', string="Queuejob")
 
     @api.depends('state')
     def _compute_is_done(self):
@@ -47,15 +42,6 @@ class Task(models.Model):
             name = name.split("(")[0]
             rec.display_name = name
 
-    def _get_new_logsio_instance(self):
-        self.ensure_one()
-        name = self.name or ''
-        if name.startswith("_"):
-            name = name[1:]
-        rolling_file = LogsIOWriter(f"{self.branch_id.name}", name)
-        rolling_file.write_text(f"Started: {arrow.get()}")
-        return rolling_file
-
     @contextmanager
     def _get_env(self, new_one):
         if not new_one:
@@ -69,15 +55,25 @@ class Task(models.Model):
             yield self
 
     def perform(self, now=False):
-        started = arrow.get()
         self.ensure_one()
         self2 = self.sudo()
+
+        if not now:
+            self = self.with_delay()
+            
+        self._exec(now)
+
+    def _exec(self, now):
+        started = arrow.get()
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
         with self._get_env(new_one=not now) as self:
             pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
 
             try:
-                logsio = self._get_new_logsio_instance()
+                name = self.name or ''
+                if name.startswith("_"):
+                    name = name[1:]
+                logsio = self.branch_id._get_new_logsio_instance(name)
                 logsio.start_keepalive()
 
                 dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
@@ -97,7 +93,9 @@ class Task(models.Model):
                         'logsio': logsio,
                         'shell': shell,
                         }
-                    exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
+                    cmd = 'obj.' + self.name + "(**args)", {'obj': obj, 'args': args}
+                    
+                    exec()
 
                 self.log = '\n'.join(logsio.lines)
 

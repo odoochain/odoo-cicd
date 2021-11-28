@@ -14,7 +14,9 @@
 						<group string="Branch" col="4">
 							<field name="name" />
 							<field name="repo_id" />
+							<field name="cycle_down_after_seconds"/>
 							<field name="build_state" />
+							<field name="docker_state"/>
 							<field name="dump_id"/>
 							<field name="approver_ids" widget="many2many_tags"/>
 						</group>

@@ -329,23 +329,21 @@ class Branch(models.Model):
             'result': 'ok',
         })
 
-    @api.model
-    def inactivity_cycle_down(shell):
-        while True:
-            sites = db.sites.find({'name': 1, 'last_access': 1})
-            for site in sites:
-                try:
-                    logger = LogsIOWriter(site['name'], 'misc')
-                    logger.debug(f"Checking site to cycle down: {site['name']}")
-                    if (arrow.get() - arrow.get(site.get('last_access', '1980-04-04') or '1980-04-04')).total_seconds() > 2 * 3600: # TODO configurable
-                        if _get_docker_state(site['name']) == 'running':
-                            logger.debug(f"Cycling down instance due to inactivity: {site['name']}")
-                            _odoo_framework(site['name'], 'kill', logs_writer=logger)
+    def inactivity_cycle_down(self):
+        self.ensure_one()
 
-                except Exception as ex:
-                    msg = traceback.format_exc()
-                    logger.error(msg)
-            time.sleep(10)
+        logsio = self._get_new_logsio_instance("inactivity_cycle_down")
+        dest_folder = self.machine_id._get_volume('source') / self.project_name
+        try:
+            with self.machine_id._shellexec(dest_folder, logsio, project_name=self.project_name) as shell:
+                if (arrow.get() - arrow.get(self.last_access or '1980-04-04')).total_seconds() > self.cycle_down_after_seconds:
+                    self._get_docker_state()
+                    if self.docker_state == 'up':
+                        logsio.info(f"Cycling down instance due to inactivity")
+                        shell.odoo('kill')
+
+        except Exception as ex:
+            logsio.error(ex)
 
     def _make_instance_docker_configs(self, shell):
         with shell.shell() as ssh_shell:

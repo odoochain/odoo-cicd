@@ -1,7 +1,8 @@
 {
-	"server-wide-modules": ["web"],
+	"server-wide-modules": ["web", "queue_job"],
 	"install": [
-		"cicd"
+		"cicd",
+		"queue_job",
 	],
 	"version": 15.0,
 	"addons_paths": [
