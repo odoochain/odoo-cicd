@@ -74,23 +74,6 @@ class GitBranch(models.Model):
         for rec in self:
             rec.db_size_humanize = humanize.naturalsize(rec.db_size)
 
-    @api.model
-    def create(self, vals):
-        res = super().create(vals)
-        res.make_cron()
-        return res
-
-    def make_cron(self):
-        self.ensure_one()
-        self.env['cicd.task']._make_cron(
-            'branches job', self, '_cron_execute_task', active=self.active
-        )
-
-    @api.constrains('active')
-    def _onchange_active(self):
-        for rec in self:
-            rec.make_cron()
-                
     @api.depends('task_ids', 'task_ids.state')
     def _compute_build_state(self):
         for rec in self:
@@ -114,8 +97,7 @@ class GitBranch(models.Model):
             'branch_id': self.id,
             'machine_id': (machine and machine.id) or self.machine_id.id,
         })
-        if now:
-            task.perform(now=now)
+        task.perform(now=now)
         return True
 
     @api.model

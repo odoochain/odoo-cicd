@@ -23,9 +23,23 @@ class Task(models.Model):
     log = fields.Text("Log", readonly=True)
     error = fields.Text("Exception", readonly=True)
     dump_used = fields.Char("Dump used", readonly=True)
-    duration = fields.Integer("Duration [s]", readonly=True)
+    duration = fields.Integer("Duration [s]", readonly=True, compute="_compute_duration")
+    directly_executed_duration = fields.Integer()
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
     queue_job_id = fields.Many2one('queue.job', string="Queuejob")
+
+    @api.depends('queue_job_id')
+    def _compute_duration(self):
+        for rec in self:
+            if not rec.queue_job_id:
+                rec.duration = rec.directly_executed_duration
+            else:
+                if rec.queue_job_id.date_started and rec.queue_job_id.date_done:
+                    started = arrow.get(rec.queue_job_id.date_started)
+                    end = arrow.get(rec.queue_job_id.date_done)
+                    rec.duration = (end - started).total_seconds()
+                else:
+                    rec.duration = 0
 
     @api.depends('state')
     def _compute_is_done(self):
@@ -56,12 +70,15 @@ class Task(models.Model):
 
     def perform(self, now=False):
         self.ensure_one()
-        self2 = self.sudo()
 
         if not now:
-            self = self.with_delay()
-            
-        self._exec(now)
+            queuejob = self.with_delay()._exec(now)
+            queuejob = self.env['queue.job'].search([('uuid', '=', queuejob._uuid)])
+            self.queue_job_id = queuejob
+        else:
+            started = arrow.get()
+            self._exec(now)
+            self.directly_executed_duration = (end - started).total_seconds()
 
     def _exec(self, now):
         started = arrow.get()
@@ -93,9 +110,7 @@ class Task(models.Model):
                         'logsio': logsio,
                         'shell': shell,
                         }
-                    cmd = 'obj.' + self.name + "(**args)", {'obj': obj, 'args': args}
-                    
-                    exec()
+                    exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
 
                 self.log = '\n'.join(logsio.lines)
 
@@ -112,25 +127,3 @@ class Task(models.Model):
             duration = (arrow.get() - started).total_seconds()
             self.duration = duration
             logsio.info(f"Finished after {duration} seconds!")
-
-    def _cron_run(self):
-        for task in self.search([
-            ('state', '=', 'new')
-        ]):
-            task.perform()
-
-    def _make_cron(self, uuid, object, method, active):
-        object.ensure_one()
-        key = f"{uuid}_{object._name}_{object.id}"
-        crons = self.env['ir.cron'].with_context(active_test=False).search([('name', '=', key)], limit=1)
-        if not crons:
-            crons = crons.create({
-                'name': key,
-                'model_id': self.env['ir.model'].search([('model', '=', object._name)]).id,
-                'interval_number': 1,
-                'numbercall': -1,
-                'interval_type': 'minutes',
-                'code': f"env['{object._name}'].browse({object.id}).{method}()"
-            })
-        if crons.active != active:
-            crons.active = active

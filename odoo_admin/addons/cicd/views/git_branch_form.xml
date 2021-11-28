@@ -52,10 +52,6 @@
 									<div>
 										Stops and restarts all containers.
 									</div>
-									<button string="Make Cronjob" name="make_cron"  type="object" groups="base.group_no_one"/>
-									<div>
-										Recreates the missing cronjob to execute the tasks of the branch in the background.
-									</div>
 								</group>
 								<group string="Debug">
 									<button name="open_shell" string="Open Shell" type="object"/>
@@ -109,12 +105,6 @@
 										Fetches new git commits and shows them here.
 									</div>
 
-								</group>
-								<group string="Miscellaneous">
-									<button string="Make Cronjob" name="make_cron"  type="object" groups="base.group_no_one"/>
-									<div>
-										Recreates the missing cronjob to execute the tasks of the branch in the background.
-									</div>
 								</group>
 
 							</page>
