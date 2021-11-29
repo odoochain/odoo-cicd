@@ -9,6 +9,10 @@ import arrow
 import base64
 from odoo import _, api, models
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+import inspect
+import os
+from pathlib import Path
+current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
 
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
@@ -57,7 +61,9 @@ class Branch(models.Model):
         shell.odoo('build')
 
     def _dump(self, shell, task, logsio, **kwargs):
-        shell.odoo('backup', 'odoo-db', self.name + ".dump.gz")
+        volume = task.machine_id._get_volume('dumps')
+        logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
+        shell.odoo('backup', 'odoo-db', str(volume / (self.project_name + ".dump.gz")))
 
     def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):
         self.ensure_one()
@@ -349,46 +355,8 @@ class Branch(models.Model):
         with shell.shell() as ssh_shell:
             home_dir = shell._get_home_dir()
             project_name = self.project_name
-            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", """
-services:
-    proxy:
-        networks:
-            - default
-            - cicd_network
-    odoo_base:
-        networks:
-            - default
-            - postgres
-networks:
-    default:
-        name: {CICD_NETWORK_NAME}_{PROJECT_NAME}
-    cicd_network:
-        external:
-            name: {CICD_NETWORK_NAME}
-    postgres:
-        external:
-            name: {CICD_NETWORK_NAME}_postgres
+            content = (current_dir.parent / 'data' / 'template_cicd_instance.yml').read_text()
+            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content.format(**os.environ))
 
-
-        """.format(**os.environ))
-
-
-            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', """
-DEVMODE=1
-PROJECT_NAME={}
-RUN_PROXY_PUBLISHED=0
-RUN_CRONJOBS=0
-RUN_CUPS=0
-RUN_POSTGRES=0
-
-DB_HOST={}
-DB_USER={}
-DB_PWD={}
-DB_PORT={}
-    """.format(
-            project_name,
-            shell.machine.db_host,
-            shell.machine.db_user,
-            shell.machine.db_pwd,
-            shell.machine.db_port,
-        ))
+            content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
+            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(branch=self, machine=self.machine_id))

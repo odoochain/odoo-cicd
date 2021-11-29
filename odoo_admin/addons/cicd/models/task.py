@@ -1,3 +1,4 @@
+import os
 import arrow
 import traceback
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -23,23 +24,9 @@ class Task(models.Model):
     log = fields.Text("Log", readonly=True)
     error = fields.Text("Exception", readonly=True)
     dump_used = fields.Char("Dump used", readonly=True)
-    duration = fields.Integer("Duration [s]", readonly=True, compute="_compute_duration")
-    directly_executed_duration = fields.Integer()
+    duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
     queue_job_id = fields.Many2one('queue.job', string="Queuejob")
-
-    @api.depends('queue_job_id')
-    def _compute_duration(self):
-        for rec in self:
-            if not rec.queue_job_id:
-                rec.duration = rec.directly_executed_duration
-            else:
-                if rec.queue_job_id.date_started and rec.queue_job_id.date_done:
-                    started = arrow.get(rec.queue_job_id.date_started)
-                    end = arrow.get(rec.queue_job_id.date_done)
-                    rec.duration = (end - started).total_seconds()
-                else:
-                    rec.duration = 0
 
     @api.depends('state')
     def _compute_is_done(self):
@@ -65,7 +52,7 @@ class Task(models.Model):
         db_registry = registry(self.env.cr.dbname)
         with api.Environment.manage(), db_registry.cursor() as cr:
             env = api.Environment(cr, self.env.user.id, {})
-            self = self.with_env(env).sudo()
+            self = self.with_env(env)
             yield self
 
     def perform(self, now=False):
@@ -73,16 +60,19 @@ class Task(models.Model):
 
         if not now:
             queuejob = self.with_delay()._exec(now)
-            queuejob = self.env['queue.job'].search([('uuid', '=', queuejob._uuid)])
-            self.queue_job_id = queuejob
+            if queuejob:
+                queuejob = self.env['queue.job'].search([('uuid', '=', queuejob._uuid)])
+                self.sudo().queue_job_id = queuejob
         else:
-            started = arrow.get()
             self._exec(now)
-            self.directly_executed_duration = (end - started).total_seconds()
 
     def _exec(self, now):
         started = arrow.get()
+        self = self.sudo()
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+        if os.getenv("TEST_QUEUE_JOB_NO_DELAY") and not now:
+            # Debugging and clicked on button perform - do it now
+            now = True
         with self._get_env(new_one=not now) as self:
             pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
 
@@ -116,13 +106,19 @@ class Task(models.Model):
 
             except Exception as ex:
                 msg = traceback.format_exc()
-                self.state = 'failed'
-                self.error = msg
+                self.env.cr.rollback()
                 logsio.error(msg)
+                with self._get_env(True) as self2:
+                    self2 = self2.sudo()
+                    self2.state = 'failed'
+                    self2.error = msg
+                    self2.duration = (arrow.get() - started).total_seconds()
+                raise
 
             else:
                 self.state = 'done'
-            logsio.stop_keepalive()
+            finally:
+                logsio.stop_keepalive()
 
             duration = (arrow.get() - started).total_seconds()
             self.duration = duration

@@ -15,6 +15,7 @@ class CicdVolumes(models.Model):
     machine_id = fields.Many2one('cicd.machine', string="Machine")
     ttype = fields.Selection([
         ('dumps', 'Dumps'),
+        ('dumps_in', 'Dumps (just to import)'),
         ('source', 'Source'),
         ('other', 'Other'),
 
