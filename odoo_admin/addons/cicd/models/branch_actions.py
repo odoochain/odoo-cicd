@@ -73,7 +73,7 @@ class Branch(models.Model):
                     'state': state,
                 }]]
             else:
-                container.state = 'state'
+                container.state = state
             updated_containers.add(container_name)
         for container in self.container_ids:
             if container.name not in updated_containers:
@@ -293,57 +293,6 @@ class Branch(models.Model):
             logsio.write_text(commit)
 
             return str(commit)
-
-    def debug_instance(self):
-        site_name = request.args.get('name')
-        logger = LogsIOWriter(site_name, 'misc')
-
-        _odoo_framework(site_name, ['kill', 'odoo'], logs_writer=logger)
-        _odoo_framework(site_name, ['kill', 'odoo_debug'], logs_writer=logger)
-
-        shell_url = _get_shell_url([
-            "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{site_name}", ";",
-            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo", "--command", "/odoolib/debug.py",
-        ])
-        # TODO make safe; no harm on system, probably with ssh authorized_keys
-
-        return redirect(shell_url)
-    
-    def show_pgcli(self):
-        site_name = request.args.get('name')
-
-        shell_url = _get_shell_url([
-            "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{site_name}", ";",
-            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "pgcli",
-            "--host", os.environ['DB_HOST'],
-            "--user", os.environ['DB_USER'],
-            "--password", os.environ['DB_PASSWORD'],
-            "--port", os.environ['DB_PORT'],
-        ])
-        return redirect(shell_url)
-
-    def shell_instance(self):
-        # kill existing container and start odoo with debug command
-        def _get_shell_url(command):
-            pwd = base64.encodestring('odoo'.encode('utf-8')).decode('utf-8')
-            shellurl = f"/console/?encoding=utf-8&term=xterm-256color&hostname=127.0.0.1&username=root&password={pwd}&command="
-            shellurl += ' '.join(command)
-            return shellurl
-
-        containers = docker.containers.list(all=True, filters={'name': [name]})
-        containers = [x for x in containers if x.name == name]
-        shell_url = _get_shell_url([
-            "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{site_name}", ";",
-            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo_debug", "--command", "/odoolib/shell.py",
-        ])
-        # TODO make safe; no harm on system, probably with ssh authorized_keys
-
-        return {
-            'type': 'ir.actions.act_url',
-            'url': 'shell_url',
-            'target': 'self'
-        }
-
 
     def clear_instance(self):
         instance_folder = self._get_instance_folder(self.machine_id)

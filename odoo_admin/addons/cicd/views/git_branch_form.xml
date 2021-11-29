@@ -58,6 +58,10 @@
 									<div>
 										Opens a command line shell of this odoo instance.
 									</div>
+									<button name="pgcli" string="PSQL/PGCLI" type="object"/>
+									<div>
+										Opens psql to enter sql statements.
+									</div>
 									<button name="debug_webcontainer" string="Debug" type="object"/>
 									<div>
 										Runs odoo webcontainer in debug mode.
@@ -90,10 +94,6 @@
 									<div>
 										Executes docker-compose stop.
 									</div>
-									<button name="docker_get_state" string="Update Docker State" type="object"/>
-									<div>
-										Retrieve State of docker
-									</div>
 									<button name="build" string="Build" type="object" />
 									<div>
 										Builds docker machines
@@ -121,6 +121,7 @@
 								</div>
 							</page>
 							<page name="containers" string="Containers">
+								<button name="docker_get_state" string="Update Docker State" type="object"/>
 								<field name="container_ids">
 									<tree>
 										<field name="name"/>

@@ -224,7 +224,6 @@ def _get_shell_url(command):
     return shellurl
 
 
-
 def get_setting(key, default=None):
     config = db.config.find_one({'key': key})
     if not config:

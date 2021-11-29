@@ -75,6 +75,7 @@ class Task(models.Model):
             now = True
         with self._get_env(new_one=not now) as self:
             pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
+            logsio = None
 
             try:
                 name = self.name or ''
@@ -118,8 +119,10 @@ class Task(models.Model):
             else:
                 self.state = 'done'
             finally:
-                logsio.stop_keepalive()
+                if logsio:
+                    logsio.stop_keepalive()
 
             duration = (arrow.get() - started).total_seconds()
             self.duration = duration
-            logsio.info(f"Finished after {duration} seconds!")
+            if logsio:
+                logsio.info(f"Finished after {duration} seconds!")

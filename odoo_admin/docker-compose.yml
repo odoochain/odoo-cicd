@@ -101,10 +101,6 @@ services:
       - cicd_delegator
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/odoo:/opt/odoo
-      #- ${ODOO_SETTINGS}:/root/.odoo
-      #- ${CICD_WORKSPACE}:/cicd_workspace
-
     
 volumes:
     admin_postgres_data:

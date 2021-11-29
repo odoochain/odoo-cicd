@@ -1,5 +1,7 @@
+import os
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from ..tools import _get_shell_url
 
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
@@ -75,10 +77,6 @@ class Branch(models.Model):
         self.ensure_one()
         import pudb;pudb.set_trace()
 
-    def debug_webcontainer(self):
-        self.ensure_one()
-        import pudb;pudb.set_trace()
-
     def start_webmailer(self):
         self.ensure_one()
         return {
@@ -94,3 +92,62 @@ class Branch(models.Model):
             'url': '/start/' + self.name + "/logs/",
             'target': 'new'
         }
+
+    def debug_webcontainer(self):
+        self.ensure_one()
+        logsio = self._get_new_logsio_instance("debugging")
+
+        dest_folder = self.machine_id._get_volume('source') / self.project_name
+        with self.machine_id._shellexec(dest_folder, logsio=logsio, project_name=self.project_name) as shell:
+            logsio.info("Killing odoo web containers")
+            shell.odoo("kill", "odoo")
+            shell.odoo("kill", "odoo_debug")
+
+            shell_url = _get_shell_url([
+                "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{self.project_name}", ";",
+                "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", self.project_name, "debug", "odoo", "--command", "/odoolib/debug.py",
+            ])
+            return {
+                'type': 'ir.actions.act_url',
+                'url': shell_url,
+                'target': 'new'
+            }
+
+    def pgcli(self):
+        import pudb;pudb.set_trace()
+        shell_url = _get_shell_url([
+            "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{self.project_name}", ";",
+            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", self.project_name, "pgcli",
+            "--host", os.environ['DB_HOST'],
+            "--user", os.environ['DB_USER'],
+            "--password", os.environ['DB_PASSWORD'],
+            "--port", os.environ['DB_PORT'],
+        ])
+        return {
+            'type': 'ir.actions.act_url',
+            'url': shell_url,
+            'target': 'new'
+        }
+
+    def shell_instance(self):
+        # kill existing container and start odoo with debug command
+        def _get_shell_url(command):
+            pwd = base64.encodestring('odoo'.encode('utf-8')).decode('utf-8')
+            shellurl = f"/console/?encoding=utf-8&term=xterm-256color&hostname=127.0.0.1&username=root&password={pwd}&command="
+            shellurl += ' '.join(command)
+            return shellurl
+
+        containers = docker.containers.list(all=True, filters={'name': [name]})
+        containers = [x for x in containers if x.name == name]
+        shell_url = _get_shell_url([
+            "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{site_name}", ";",
+            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo_debug", "--command", "/odoolib/shell.py",
+        ])
+        # TODO make safe; no harm on system, probably with ssh authorized_keys
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': 'shell_url',
+            'target': 'self'
+        }
+
