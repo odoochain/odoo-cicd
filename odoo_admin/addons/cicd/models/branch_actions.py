@@ -43,9 +43,42 @@ class Branch(models.Model):
         shell.odoo('kill')
 
     def _docker_get_state(self, shell, task, logsio, **kwargs):
-        import pudb;pudb.set_trace()
         info = shell.odoo('ps').output
+
+        passed = False
+        updated_containers = set()
+        for line in info.split("\n"):
+            if line.startswith("------"):
+                passed = True
+                continue
+            if not passed: continue
+            while "  " in line:
+                line = line.replace("  ", " ")
+
+            if line.startswith("Version:"):
+                continue
+            container_name = line.split(" ")[0]
+            state = line.split(" ", 1)[-1].lower()
+            if 'exit' in state:
+                state = 'down'
+            elif 'up' in state:
+                state = 'up'
+            else:
+                state = False
             
+            container = self.container_ids.filtered(lambda x: x.name == container_name)
+            if not container:
+                self.container_ids = [[0, 0, {
+                    'name': container_name,
+                    'state': state,
+                }]]
+            else:
+                container.state = 'state'
+            updated_containers.add(container_name)
+        for container in self.container_ids:
+            if container.name not in updated_containers:
+                container.unlink()
+
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
 

@@ -46,3 +46,4 @@ from . import release
 from . import registry
 from . import branch_approvals
 from . import test_run
+from . import container

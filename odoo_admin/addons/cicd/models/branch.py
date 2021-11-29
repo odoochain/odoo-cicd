@@ -60,6 +60,7 @@ class GitBranch(models.Model):
         ('deploy', "Deploy"),
         ('return', "Return to Sender"),
     ], string="After Code Review", default="deploy", required=True)
+    container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),

@@ -120,6 +120,15 @@
 
 								</div>
 							</page>
+							<page name="containers" string="Containers">
+								<field name="container_ids">
+									<tree>
+										<field name="name"/>
+										<field name="state"/>
+										<field name="state_string"/>
+									</tree>
+								</field>
+							</page>
 							<page string="Releases" name="releases">
 								<field name="release_ids">
 									<tree>
