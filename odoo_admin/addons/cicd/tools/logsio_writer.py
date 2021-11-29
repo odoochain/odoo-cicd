@@ -6,6 +6,8 @@ import logging
 import arrow
 logger = logging.getLogger(__name__)
 
+KEEP_ALIVE_MESSAGE = "Keep alive signal - still working"
+
 class LogsIOWriter(object):
     def __init__(self, stream, source, host='cicdlogs', port=6689):
         if isinstance(stream, dict):
@@ -30,11 +32,14 @@ class LogsIOWriter(object):
         self.tz = os.getenv("TIMEZONE", 'utc')
         self._send(f"+input|{self.stream}|{self.source}")
 
+    def get_lines(self):
+        return list(filter(lambda x: KEEP_ALIVE_MESSAGE not in x, self.lines))
+
     def start_keepalive(self):
         def keep_alive(self):
             while self.keep_alive_thread:
                 time.sleep(1 if os.getenv("DEVMODE") == "1" else 20)
-                self.info("Keep alive signal - still working")
+                self.info(KEEP_ALIVE_MESSAGE)
 
         self.keep_alive_thread = threading.Thread(target=keep_alive, args=(self,))
         self.keep_alive_thread.background = True

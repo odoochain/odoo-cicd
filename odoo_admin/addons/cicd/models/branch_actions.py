@@ -33,7 +33,6 @@ class Branch(models.Model):
         shell.odoo('build')
         logsio.info("Downing")
         shell.odoo('down')
-        import pudb;pudb.set_trace()
         logsio.info(f"Restoring {self.dump_id.name}")
         shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
     
@@ -64,6 +63,7 @@ class Branch(models.Model):
         volume = task.machine_id._get_volume('dumps')
         logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
         shell.odoo('backup', 'odoo-db', str(volume / (self.project_name + ".dump.gz")))
+        task.machine_id.update_dumps()
 
     def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):
         self.ensure_one()

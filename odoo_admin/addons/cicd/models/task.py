@@ -102,7 +102,7 @@ class Task(models.Model):
                         }
                     exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
 
-                self.log = '\n'.join(logsio.lines)
+                self.log = '\n'.join(logsio.get_lines())
 
             except Exception as ex:
                 msg = traceback.format_exc()
