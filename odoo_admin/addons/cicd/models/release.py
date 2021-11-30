@@ -10,7 +10,7 @@ class Release(models.Model):
     branch_ids = fields.Many2one('cicd.git.branch', string="Consolidated Branches")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
-    planned_date = fields.Datetime("Planned Deploy Date")
+    planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now())
     state = fields.Selection([
         ("new", "New"),
         ("ready", "Ready"),
@@ -22,7 +22,7 @@ class Release(models.Model):
     release_type = fields.Selection([
         ('standard', 'Standard'),
         ('hotfix', 'Hotfix'),
-    ], default="Standard", required=True)
+    ], default="standard", required=True)
     
     def _compute_summary(self):
         for rec in self:

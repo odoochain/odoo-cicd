@@ -64,10 +64,16 @@ class GitBranch(models.Model):
         ('return', "Return to Sender"),
     ], string="After Code Review", default="deploy", required=True)
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
+    auto_release = fields.Boolean("Auto Release")
+    auto_release_cronjob_id = fields.Many2one('ir.cron')
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    def prepare_release(self):
+        self.release_ids = [[0, 0, {
+        }]]
 
     def approve(self):
         self.approver_ids = [[0, 0, {
