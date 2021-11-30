@@ -342,3 +342,7 @@ class Branch(models.Model):
 
             content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
             ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(branch=self, machine=self.machine_id))
+
+    def _cron_auto_backup(self):
+        self.ensure_one()
+        self._make_task("_dump")

@@ -73,10 +73,6 @@ class Branch(models.Model):
         self.ensure_one()
         self._make_task("_transform_input_dump")
 
-    def open_shell(self):
-        self.ensure_one()
-        import pudb;pudb.set_trace()
-
     def start_webmailer(self):
         self.ensure_one()
         return {
@@ -92,26 +88,6 @@ class Branch(models.Model):
             'url': '/start/' + self.name + "/logs/",
             'target': 'new'
         }
-
-    def debug_webcontainer(self):
-        self.ensure_one()
-        logsio = self._get_new_logsio_instance("debugging")
-
-        dest_folder = self.machine_id._get_volume('source') / self.project_name
-        with self.machine_id._shellexec(dest_folder, logsio=logsio, project_name=self.project_name) as shell:
-            logsio.info("Killing odoo web containers")
-            shell.odoo("kill", "odoo")
-            shell.odoo("kill", "odoo_debug")
-
-            shell_url = _get_shell_url([
-                "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{self.project_name}", ";",
-                "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", self.project_name, "debug", "odoo", "--command", "/odoolib/debug.py",
-            ])
-            return {
-                'type': 'ir.actions.act_url',
-                'url': shell_url,
-                'target': 'new'
-            }
 
     def _shell_url(self, cmd, machine=None):
         machine = self.machine_id
@@ -136,7 +112,10 @@ class Branch(models.Model):
         }
 
     def pgcli(self):
-        return self._shell_url(["odoo pgcli"])
+        return self._shell_url(["odoo", "pgcli"])
 
-    def shell_instance(self):
-        return self._shell_url(["odoo shell"])
+    def open_shell(self):
+        return self._shell_url(["odoo", "shell"])
+
+    def debug_webcontainer(self):
+        return self._shell_url(["odoo", "debug", "odoo"])
