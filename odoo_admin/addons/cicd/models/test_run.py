@@ -60,9 +60,8 @@ class CicdTestRun(models.Model):
         self.ensure_one()
         b = self.branch_id
         started = arrow.get()
-        import pudb;pudb.set_trace()
 
-        test_run_fields = [x for x in b._fields if getattr(x, 'test_run_fields', False)]
+        test_run_fields = [k for k, v in b._fields.items() if getattr(v, 'testrun_field', False)]
         if not any(b[f] for f in test_run_fields):
             return
 
