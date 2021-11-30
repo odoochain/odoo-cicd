@@ -118,8 +118,8 @@
 									<field name="simulate_empty_install"/>
 									<field name="simulate_install_id"/>
 								</group>
-								<group>
-									<field name="approver_ids" nocreate='1' nodelete='1'>
+								<group string="Approvals">
+									<field name="approver_ids" nocreate='1' nodelete='1' nolabel='1'>
 										<tree>
 											<field name="user_id"/>
 											<field name="date"/>
