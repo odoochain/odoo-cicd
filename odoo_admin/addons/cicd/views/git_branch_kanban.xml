@@ -25,8 +25,8 @@
 							<field name="build_state"/>
 						</div>
 						<div>
-							<strong>Date:</strong>
-							<field name="date"/>
+							<strong>Date Added:</strong>
+							<field name="create_date"/>
 						</div>
 						<div>
 							<strong>Repository:</strong>

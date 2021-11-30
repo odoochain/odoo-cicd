@@ -27,10 +27,7 @@ class GitBranch(models.Model):
     active = fields.Boolean("Active", default=True)
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
-    docker_state = fields.Selection([
-        ('up', 'Up'),
-        ('down', 'Down'),
-    ], string="Docker State")
+    docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
     state = fields.Selection([
         ('new', 'New'),
         ('rework', "Rework"),
@@ -59,6 +56,7 @@ class GitBranch(models.Model):
     run_robottests = fields.Boolean("Run Robot-Tests", default=False, testrun_field=True)
     simulate_empty_install = fields.Boolean("Simulate Empty Install", testrun_field=True)
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
+    approver_ids = fields.One2many('cicd.git.approval', 'branch_id', string="Approvals")
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     after_code_review = fields.Selection([
@@ -70,6 +68,20 @@ class GitBranch(models.Model):
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    def approve(self):
+        self.approver_ids = [[0, 0, {
+            'approver_id': self.env.user.id,
+            'commit_id': self.commit_ids[0].id,
+        }]]
+        self.state = 'approved'
+
+    @api.depends("container_ids", "container_ids.state")
+    def _compute_docker_state(self):
+        for rec in self:
+            count_up = len(rec.container_ids.filtered(lambda x: x.state == 'up'))
+            count_down = len(rec.container_ids.filtered(lambda x: x.state == 'down'))
+            rec.docker_state = f"Up: {count_up} Down: {count_down}"
 
     @api.fieldchange("state")
     def _onchange_state(self, changeset):
