@@ -24,5 +24,5 @@ model_cicd_test_run,base.group_user,cicd_test_run_base_group_user,cicd.test.run 
 model_cicd_test_run_line,base.group_user,cicd_test_run_line_base_group_user,cicd.test.run.line - base_group_user,1,0,0,0
 model_docker_container,base.group_user,docker_container_base_group_user,docker.container - base_group_user,1,0,0,0
 
-model_cicd_branch_approval,base.group_user,cicd.branch.approvalmpty,cicd_branch_approval empty,1,1,0,0
+model_cicd_branch_approval,base.group_user,cicd.branch.approvalmpty,cicd_branch_approval empty,1,1,1,0
 

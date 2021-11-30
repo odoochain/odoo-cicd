@@ -124,6 +124,8 @@
 											<field name="approver_id"/>
 											<field name="date"/>
 											<field name="commit_id"/>
+											<field name="state"/>
+											<field name="comment"/>
 										</tree>
 									</field>
 								</group>

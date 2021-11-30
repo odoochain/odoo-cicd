@@ -56,7 +56,7 @@ class GitBranch(models.Model):
     run_robottests = fields.Boolean("Run Robot-Tests", default=False, testrun_field=True)
     simulate_empty_install = fields.Boolean("Simulate Empty Install", testrun_field=True)
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
-    approver_ids = fields.One2many('cicd.git.approval', 'branch_id', string="Approvals")
+    approver_ids = fields.One2many('cicd.branch.approval', 'branch_id', string="Approvals")
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     after_code_review = fields.Selection([
