@@ -126,7 +126,8 @@
 									<tree>
 										<field name="date"/>
 										<field name="state"/>
-										<field name="success_date"/>
+										<field name="commit_id"/>
+										<field name="success_rate"/>
 										<field name="duration"/>
 									</tree>
 								</field>

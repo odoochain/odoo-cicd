@@ -60,7 +60,7 @@ class GitBranch(models.Model):
     simulate_empty_install = fields.Boolean("Simulate Empty Install", testrun_field=True)
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
 
-    test_run_ids = fields.Many2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
+    test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     after_code_review = fields.Selection([
         ('deploy', "Deploy"),
         ('return', "Return to Sender"),

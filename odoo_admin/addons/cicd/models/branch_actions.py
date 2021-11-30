@@ -193,9 +193,11 @@ class Branch(models.Model):
         update_state = kwargs.get('update_state', False)
         self._update_git_commits(shell, task=task, logsio=logsio)
 
-        test_run = self.test_run_ids = [[0, 0, {
+        self.test_run_ids = [[0, 0, {
             'commit_id': self.commit_ids[0].id,
+            'branch_id': b.id,
         }]]
+        test_run = self.test_run_ids.sorted(lambda x: x.id, reverse=True)[0]
         test_run.execute(shell, task, logsio)
         if update_state:
             if test_run.state == 'failed':
