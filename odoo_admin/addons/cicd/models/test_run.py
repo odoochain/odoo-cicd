@@ -122,11 +122,11 @@ class CicdTestRun(models.Model):
     def _generic_run(self, shell, logsio, todo, ttype, execute_run):
         for item in todo:
             started = arrow.get()
-            self.line_ids = [[0, 0, {
+            run_record = self.line_ids.create({
                 'name': todo,
                 'ttype': ttype, 
-            }]]
-            run_record = self.line_ids.sorted(lambda x: x.id, reverse=True)[0]
+                'run_id': self.id
+            })
             try:
                 logsio.info(f"Running {item}")
                 execute_run(item)
@@ -157,4 +157,4 @@ class CicdTestRun(models.Model):
         ('open', 'Open'),
         ('success', 'Success'),
         ('failed', 'Failed'),
-    ], state='open', required=True)
+    ], default='open', required=True)
