@@ -121,7 +121,7 @@
 								<group>
 									<field name="approver_ids" nocreate='1' nodelete='1'>
 										<tree>
-											<field name="approver_id"/>
+											<field name="user_id"/>
 											<field name="date"/>
 											<field name="commit_id"/>
 											<field name="state"/>

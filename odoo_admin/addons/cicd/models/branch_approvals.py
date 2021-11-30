@@ -5,6 +5,7 @@ class BranchApproval(models.Model):
 
     user_id = fields.Many2one('res.users', string="User", required=True)
     comment = fields.Text("Comment")
+    date = fields.Datetime("Date", default=lambda self: fields.Datetime.now())
     branch_id = fields.Many2one('cicd.branch', string="Branch", required=True)
     commit_id = fields.Many2one('cicd.git.commit', string="Commit", required=True)
     state = fields.Selection([
