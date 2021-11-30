@@ -18,6 +18,7 @@ class CicdTestRun(models.Model):
     ], string="Result", store=True, compute="_compute_success_rate", required=True)
     success_rate = fields.Integer("Success Rate [%]", compute="_compute_success_rate")
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
+    duration = fields.Integer("Duration [s]")
 
     @api.depends('line_ids', 'line_ids.state')
     def _compute_success_rate(self):
@@ -56,7 +57,7 @@ class CicdTestRun(models.Model):
     def execute(self, shell, task, logsio):
         self.ensure_one()
         b = self.branch_id
-        import pudb;pudb.set_trace()
+        started = arrow.get()
 
         test_run_fields = [x for x in b._fields if getattr(x, 'test_run_fields', False)]
         if not any(b[f] for f in test_run_fields):
@@ -84,6 +85,8 @@ class CicdTestRun(models.Model):
             shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
             shell.odoo('update')
             logsio.info(f"Tested Migrations done after {(arrow.get() - started).total_seconds()}")
+
+        self.duration = (arrow.get() - started).total_seconds()
 
     def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
         raise NotImplementedError("get all tests and make lines")

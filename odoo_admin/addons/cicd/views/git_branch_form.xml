@@ -121,6 +121,16 @@
 
 								</div>
 							</page>
+							<page name="tests" string="Tests">
+								<field name="test_run_ids">
+									<tree>
+										<field name="date"/>
+										<field name="state"/>
+										<field name="success_date"/>
+										<field name="duration"/>
+									</tree>
+								</field>
+							</page>
 							<page name="containers" string="Containers">
 								<button name="docker_get_state" string="Update Docker State" type="object"/>
 								<field name="container_ids">
