@@ -46,7 +46,8 @@ class CicdTestRun(models.Model):
 
     def _compute_name(self):
         for rec in self:
-            rec.name = f"{rec.create_date} - {rec.commit_id.name} - {rec.ttype}"
+            date = rec.create_date.strftime("%Y-%m-%d %H:%M:%S")[:10]
+            rec.name = f"{date} - {rec.branch_id.name}"
 
     @api.model
     def _get_ttypes(self, filtered):
