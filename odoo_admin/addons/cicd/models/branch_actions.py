@@ -188,16 +188,17 @@ class Branch(models.Model):
         """
         If update_state is set, then the state is set to 'tested'
         """
+        # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
         b = task.branch_id
 
         update_state = kwargs.get('update_state', False)
         self._update_git_commits(shell, task=task, logsio=logsio)
 
-        self.test_run_ids = [[0, 0, {
+        test_run = self.test_run_ids.create({
             'commit_id': self.commit_ids[0].id,
             'branch_id': b.id,
-        }]]
-        test_run = self.test_run_ids.sorted(lambda x: x.id, reverse=True)[0]
+        })
+        self.env.cr.commit()
         test_run.execute(shell, task, logsio)
         if update_state:
             if test_run.state == 'failed':

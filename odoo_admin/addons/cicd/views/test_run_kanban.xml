@@ -1,50 +1,48 @@
 <odoo>
 	<data noupdate='0'>
-<record model="ir.ui.view" id="view_cicd_git_branch_kanban">
-	<field name="model">cicd.test.run</field>
-	<field name="name">Tests-Runs</field>
-	<field name='type'>kanban</field>
-	<field name="arch" type="xml">
-		<kanban default_group_by="state">
-			<field name="name"/>
-			<templates>
+		<record model="ir.ui.view" id="view_cicd_test_run_kanban">
+			<field name="model">cicd.test.run</field>
+			<field name="name">Tests-Runs</field>
+			<field name='type'>kanban</field>
+			<field name="arch" type="xml">
+				<kanban default_group_by="state">
+					<field name="name"/>
+					<templates>
 
-				<t t-name="kanban-box">
-					<div t-attf-class="oe_kanban_global_click" style="min-height: 250px;">
-						<div>
-							<i class="fa fa-window-maximize" role="img" aria-label="Enterprise" title="Enterprise"/>
-							<strong><field name="name"/></strong>
-						</div>
-						<hr class="mt4 mb4"/>
-						<div>
-							<strong>State:</strong>
-							<field name="state"/>
-						</div>
-						<div>
-							<strong>Date:</strong>
-							<field name="date"/>
-						</div>
-						<div>
-							<strong>Branches:</strong>
-							<field name="branch_ids"/>
-						</div>
-						<div>
-							<strong>Success-Rate:</strong>
-							<field name="success_rate"/>
-						</div>
-						<div>
-							<strong>Repository:</strong>
-							<field name="repo_short"/>
-						</div>
-					</div>
-				</t>
+						<t t-name="kanban-box">
+							<div t-attf-class="oe_kanban_global_click" style="min-height: 250px;">
+								<div>
+									<i class="fa fa-window-maximize" role="img" aria-label="Enterprise" title="Enterprise"/>
+									<strong><field name="name"/></strong>
+								</div>
+								<hr class="mt4 mb4"/>
+								<div>
+									<strong>State:</strong>
+									<field name="state"/>
+								</div>
+								<div>
+									<strong>Date:</strong>
+									<field name="date"/>
+								</div>
+								<div>
+									<strong>Branches:</strong>
+									<field name="branch_ids"/>
+								</div>
+								<div>
+									<strong>Success-Rate:</strong>
+									<field name="success_rate"/>
+								</div>
+								<div>
+									<strong>Repository:</strong>
+									<field name="repo_short"/>
+								</div>
+							</div>
+						</t>
 
-			</templates>
-		</kanban>
+					</templates>
+				</kanban>
 
-	</field>
-</record>
-	
-
+			</field>
+		</record>
 	</data>
 </odoo>

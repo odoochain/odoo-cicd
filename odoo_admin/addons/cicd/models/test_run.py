@@ -68,6 +68,7 @@ class CicdTestRun(models.Model):
 
         if b.simulate_install_id or b.simulate_empty_install:
             self._run_create_empty_db(shell, task, logsio)
+            self.env.cr.commit()
 
         if b.run_unittests:
             self._run_unit_tests(shell, task, logsio)
@@ -77,6 +78,7 @@ class CicdTestRun(models.Model):
 
         if b.simulate_install_id:
             self._run_update_db(shell, task, logsio)
+            self.env.cr.commit()
 
         self.duration = (arrow.get() - started).total_seconds()
         self._compute_success_rate()
@@ -140,6 +142,7 @@ class CicdTestRun(models.Model):
                 run_record.state = 'success'
             end = arrow.get()
             run_record.duration = (end - started).total_seconds()
+            self.env.cr.commit()
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
