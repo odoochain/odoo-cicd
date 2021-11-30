@@ -54,9 +54,9 @@ class Branch(models.Model):
         self.ensure_one()
         self._make_task("_restore_dump")
 
-    def run_tests(self):
+    def run_tests(self, update_state=True):
         self.ensure_one()
-        self._make_task("_run_tests")
+        self._make_task("_run_tests", kwargs={'update_state': True})
 
     def start(self):
         return {

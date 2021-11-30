@@ -16,6 +16,7 @@
                 'views/task_form.xml',
                 'views/test_run_form.xml',
                 'views/test_run_kanban.xml',
+                'views/test_run_search.xml',
                 'views/test_run_tree.xml',
                 'views/volume_form.xml',
                 'views/menu.xml',

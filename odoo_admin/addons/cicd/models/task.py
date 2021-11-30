@@ -1,3 +1,4 @@
+import json
 import os
 import arrow
 import traceback
@@ -27,6 +28,7 @@ class Task(models.Model):
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
     queue_job_id = fields.Many2one('queue.job', string="Queuejob")
+    kwargs = fields.Text("KWargs")
 
     @api.depends('state')
     def _compute_is_done(self):
@@ -81,7 +83,6 @@ class Task(models.Model):
     def _exec(self, now):
         started = arrow.get()
         self = self.sudo()
-        import pudb;pudb.set_trace()
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
         if os.getenv("TEST_QUEUE_JOB_NO_DELAY") and not now:
             # Debugging and clicked on button perform - do it now
@@ -111,6 +112,8 @@ class Task(models.Model):
                         'logsio': logsio,
                         'shell': shell,
                         }
+                    if self.kwargs:
+                        args.update(json.loads(self.kwargs))
                     exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
 
                 self.log = '\n'.join(logsio.get_lines())

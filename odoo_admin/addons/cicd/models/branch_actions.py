@@ -185,25 +185,23 @@ class Branch(models.Model):
         shell.odoo('-f', 'db' 'reset')
 
     def _run_tests(self, shell, task, logsio, **kwargs):
+        """
+        If update_state is set, then the state is set to 'tested'
+        """
         b = task.branch_id
 
-        if b.simulate_install_id or b.simulate_empty_install:
-            self._create_empty_db(shell, task, logsio, **kwargs)
+        update_state = kwargs.get('update_state', False)
+        self._update_git_commits(shell, task=task, logsio=logsio)
 
-        if b.run_robottests:
-            self._run_robot_tests()
-        if b.run_unittests:
-            self._run_unittests()
-        if b.simulate_install_id:
-            logsio.info(f"Restoring {self.dump_id.name}")
-            task.dump_used = self.dump_id.name
-            shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
-
-    def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
-        shell.odoo('robot', '-a')
-
-    def _run_unit_tests(self, shell, tasks, logsio, **kwargs):
-        shell.odoo('run-tests')
+        test_run = self.test_run_ids = [[0, 0, {
+            'commit_id': self.commit_ids[0].id,
+        }]]
+        test_run.execute(shell, task, logsio)
+        if update_state:
+            if test_run.state == 'failed':
+                self.state = 'rework'
+            else:
+                self.state = 'tested'
 
     def _transform_input_dump():
         dump = Path(request.args['dump'])

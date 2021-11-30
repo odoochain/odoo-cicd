@@ -1,3 +1,4 @@
+import json
 import arrow
 import os
 import requests
@@ -32,10 +33,14 @@ class GitBranch(models.Model):
     ], string="Docker State")
     state = fields.Selection([
         ('new', 'New'),
+        ('rework', "Rework"),
+        ('to_approve', "To Approve"),
         ('approved', 'Approved'),
         ('to_deploy', 'To Deploy'),
+        ('to_test', 'Ready to Test'),
+        ('tested', 'Tested'),
         ('Live', 'Live'),
-    ], string="State", default="new", required=True)
+    ], string="State", default="new", required=True, track=True)
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
@@ -50,10 +55,10 @@ class GitBranch(models.Model):
     enduser_summary = fields.Text("Enduser Summary")
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
 
-    run_unittests = fields.Boolean("Run Unittests", default=False)
-    run_robottests = fields.Boolean("Run Robot-Tests", default=False)
-    simulate_empty_install = fields.Boolean("Simulate Empty Install")
-    simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install")
+    run_unittests = fields.Boolean("Run Unittests", default=False, testrun_field=True)
+    run_robottests = fields.Boolean("Run Robot-Tests", default=False, testrun_field=True)
+    simulate_empty_install = fields.Boolean("Simulate Empty Install", testrun_field=True)
+    simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
 
     test_run_ids = fields.Many2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     after_code_review = fields.Selection([
@@ -65,6 +70,24 @@ class GitBranch(models.Model):
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    @api.fieldchange("state")
+    def _onchange_state(self, changeset):
+        for rec in self:
+            F = changeset['state']
+            if F['old'] == 'to_approve' and F['new'] == 'approved':
+                if rec.run_unittests or rec.run_robottests or rec.simulate_empty_install or rec.simulate_install_id:
+                    rec.state = 'to_test'
+                    rec.run_tests(update_state=True)
+                elif rec.after_code_review == 'deploy':
+                    rec.state = 'to_deploy'
+                else:
+                    rec.state = 'approved'
+            elif F['new'] == 'tested':
+                if rec.after_code_review == 'deploy':
+                    rec.state = 'to_deploy'
+                else:
+                    rec.state = 'tested'
 
     def _compute_test_runs(self):
         for rec in self:
@@ -88,7 +111,7 @@ class GitBranch(models.Model):
                 else:
                     rec.build_state = 'new'
 
-    def _make_task(self, execute, now=False, machine=None):
+    def _make_task(self, execute, now=False, machine=None, kwargs=None):
         if not now and self.task_ids.filtered(lambda x: x.state == 'new' and x.name == execute):
             raise ValidationError(_("Task already exists. Not triggered again."))
         task = self.env['cicd.task'].sudo().create({
@@ -97,6 +120,7 @@ class GitBranch(models.Model):
             'name': execute,
             'branch_id': self.id,
             'machine_id': (machine and machine.id) or self.machine_id.id,
+            'kwargs': json.dumps(kwargs),
         })
         task.perform(now=now)
         return True

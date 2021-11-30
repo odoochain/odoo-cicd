@@ -25,6 +25,10 @@
 							<field name="date"/>
 						</div>
 						<div>
+							<strong>Success-Rate:</strong>
+							<field name="success_rate"/>
+						</div>
+						<div>
 							<strong>Repository:</strong>
 							<field name="repo_short"/>
 						</div>
