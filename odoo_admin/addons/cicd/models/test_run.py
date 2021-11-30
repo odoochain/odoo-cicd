@@ -34,7 +34,7 @@ class CicdTestRun(models.Model):
             if not self.line_ids:
                 rec.success_rate = 0
             else:
-                rec.success_rate = int(100 / float(len(self.line_ids)) * float(self.line_ids.filtered(lambda x: x.state == 'success')))
+                rec.success_rate = int(100 / float(len(self.line_ids)) * float(len(self.line_ids.filtered(lambda x: x.state == 'success'))))
 
     @api.constrains('branch_ids')
     def _check_branches(self):
