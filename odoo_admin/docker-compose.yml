@@ -21,6 +21,8 @@ services:
       CICD_PROJECT_NAME: ${PROJECT_NAME}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      # so that i can be distributed to a machine
+      - ${CUSTOMS_DIR}/../webssh/sshkey:/opt/cicd_sshkey
     networks:
       - internal
       - cicd_delegator
@@ -101,6 +103,7 @@ services:
       - cicd_delegator
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ${CUSTOMS_DIR}/../webssh/programs/pgcli:/root/programs/pgcli
     
 volumes:
     admin_postgres_data:

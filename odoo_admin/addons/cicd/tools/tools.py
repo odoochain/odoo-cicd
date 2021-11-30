@@ -217,9 +217,9 @@ def _get_db_conn():
     return conn
 
 
-def _get_shell_url(command):
-    pwd = base64.encodestring('odoo'.encode('utf-8')).decode('utf-8')
-    shellurl = f"/console/?hostname=127.0.0.1&username=root&password={pwd}&command="
+def _get_shell_url(host, user, password, command):
+    pwd = base64.encodestring(password.encode('utf-8')).decode('utf-8')
+    shellurl = f"/console/?hostname={host}&username={user}&password={pwd}&command="
     shellurl += ' '.join(command)
     return shellurl
 

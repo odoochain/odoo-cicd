@@ -1,0 +1,14 @@
+#!/bin/bash
+set -r
+echo "Postgres Client: Working Dir $3"
+# ssh -o StrictHostKeyChecking=No -o LocalCommand=htop "$1@$2"
+echo "$1" "$2"
+ssh -tt -o StrictHostKeyChecking=No "$1@$2" <<EOF
+set -x
+exec /usr/bin/bash -l -c htop
+cd "$3"
+#export TERM=xterm-color
+#htop
+#odoo pgcli
+
+EOF

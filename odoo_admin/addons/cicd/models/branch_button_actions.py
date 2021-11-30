@@ -1,7 +1,7 @@
 import os
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
-from ..tools import _get_shell_url
+from ..tools.tools import _get_shell_url
 
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
@@ -113,41 +113,30 @@ class Branch(models.Model):
                 'target': 'new'
             }
 
-    def pgcli(self):
-        import pudb;pudb.set_trace()
-        shell_url = _get_shell_url([
-            "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{self.project_name}", ";",
-            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", self.project_name, "pgcli",
-            "--host", os.environ['DB_HOST'],
-            "--user", os.environ['DB_USER'],
-            "--password", os.environ['DB_PASSWORD'],
-            "--port", os.environ['DB_PORT'],
-        ])
+    def _shell_url(self, cmd, machine=None):
+        machine = self.machine_id
+        machine.make_login_possible_for_webssh_container()
+        path = machine._get_volume('source')
+        path = path / self.project_name 
+        shell_url = _get_shell_url(
+            machine.effective_host,
+            machine.ssh_user_cicdlogin,
+            machine.ssh_user_cicdlogin_password,
+            [
+                f"CICD_WORKSPACE={self.machine_id._get_volume('source')}",
+                f"PROJECT_NAME={self.project_name}",
+            ] + cmd + [
+                'exit'
+            ],
+        )
         return {
             'type': 'ir.actions.act_url',
             'url': shell_url,
             'target': 'new'
         }
 
+    def pgcli(self):
+        return self._shell_url(["odoo pgcli"])
+
     def shell_instance(self):
-        # kill existing container and start odoo with debug command
-        def _get_shell_url(command):
-            pwd = base64.encodestring('odoo'.encode('utf-8')).decode('utf-8')
-            shellurl = f"/console/?encoding=utf-8&term=xterm-256color&hostname=127.0.0.1&username=root&password={pwd}&command="
-            shellurl += ' '.join(command)
-            return shellurl
-
-        containers = docker.containers.list(all=True, filters={'name': [name]})
-        containers = [x for x in containers if x.name == name]
-        shell_url = _get_shell_url([
-            "cd", f"/{os.environ['WEBSSH_CICD_WORKSPACE']}/{site_name}", ";",
-            "/usr/bin/python3",  "/opt/odoo/odoo", "-f", "--project-name", site_name, "debug", "odoo_debug", "--command", "/odoolib/shell.py",
-        ])
-        # TODO make safe; no harm on system, probably with ssh authorized_keys
-
-        return {
-            'type': 'ir.actions.act_url',
-            'url': 'shell_url',
-            'target': 'self'
-        }
-
+        return self._shell_url(["odoo shell"])

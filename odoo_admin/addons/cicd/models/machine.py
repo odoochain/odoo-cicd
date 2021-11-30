@@ -1,8 +1,8 @@
+import arrow
 import os
-import time
-import threading
 import pwd
 import grp
+import hashlib
 from pathlib import Path
 from ..tools.logsio_writer import LogsIOWriter
 import spur
@@ -80,6 +80,19 @@ class CicdMachine(models.Model):
     db_user = fields.Char("DB User", default="cicd")
     db_pwd = fields.Char("DB Password", default="cicd_is_cool")
     db_port = fields.Integer("DB Port", default=5432)
+
+    ssh_user_cicdlogin = fields.Char(compute="_compute_ssh_user_cicd_login")
+    ssh_user_cicdlogin_password_salt = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
+    ssh_user_cicdlogin_password = fields.Char(compute="_compute_ssh_user_cicd_login")
+
+    @api.depends('ssh_user')
+    def _compute_ssh_user_cicd_login(self):
+        for rec in self:
+            rec.ssh_user_cicdlogin = self.ssh_user + "_restricted_cicdlogin"
+            if not rec.ssh_user_cicdlogin_password_salt:
+                rec.ssh_user_cicdlogin_password_salt = str(arrow.get())
+            ho = hashlib.md5((rec.ssh_user_cicdlogin + self.ssh_user_cicdlogin_password_salt).encode('utf-8'))
+            rec.ssh_user_cicdlogin_password = ho.hexdigest()
 
     def _compute_workspace(self):
         for rec in self:
@@ -306,3 +319,63 @@ class CicdMachine(models.Model):
         return jsonify({'result': 'ok'})
 
         
+    def make_login_possible_for_webssh_container(self):
+        pubkey = Path("/opt/cicd_sshkey/id_rsa.pub").read_text().strip()
+        for rec in self:
+            with rec._shell() as shell:
+
+                command_file = '/tmp/commands.cicd'
+                homedir = '/home/' + rec.ssh_user_cicdlogin
+                user_upper = rec.ssh_user_cicdlogin.upper()
+
+                # allow per sudo execution of just the odoo script
+                commands = """
+#!/bin/bash
+
+tee "/etc/sudoers.d/{rec.ssh_user_cicdlogin}_odoo" <<EOF
+Cmnd_Alias ODOO_COMMANDS_{user_upper} = /opt/odoo/odoo *
+{rec.ssh_user_cicdlogin} ALL=({rec.ssh_user}) NOPASSWD:SETENV: ODOO_COMMANDS_{user_upper}
+EOF
+                """.format(**locals())
+                shell.write_text(command_file, commands.strip() + "\n")
+                shell.run(["sudo", "/bin/bash", command_file])
+
+                commands = """
+
+#!/bin/bash
+set -x
+echo 'doing' > /tmp/1
+grep -q "{rec.ssh_user_cicdlogin}" /etc/passwd || adduser --disabled-password --gecos "" {rec.ssh_user_cicdlogin}
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+grep -q "{pubkey}" ~/.ssh/authorized_keys || echo "\n{pubkey}" >> ~/.ssh/authorized_keys
+usermod --shell /bin/rbash "{rec.ssh_user_cicdlogin}"
+
+mkdir -p "{homedir}/programs"
+echo 'readonly PATH={homedir}/programs' > "{homedir}/.bash_profile"
+echo 'export PATH' >> "{homedir}/.bash_profile"
+chown -R "{rec.ssh_user_cicdlogin}":"{rec.ssh_user_cicdlogin}" "{homedir}"
+ln -sf /usr/bin/sudo "{homedir}/programs/sudo"
+ln -sf /usr/bin/python3 "{homedir}/programs/python3"
+
+echo -e "{rec.ssh_user_cicdlogin_password}\n{rec.ssh_user_cicdlogin_password}" | passwd "{rec.ssh_user_cicdlogin}"
+
+                """.format(**locals())
+                # in this path there ar, the keys that are used by web ssh container /opt/cicd_sshkey
+                shell.write_text(command_file, commands.strip() + "\n")
+                shell.run(["sudo", "/bin/bash", command_file])
+
+                commands = """
+
+#!/bin/bash
+tee "{homedir}/programs/odoo" <<EOF
+#!/bin/bash
+sudo -u {rec.ssh_user} /opt/odoo/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" -p "\$PROJECT_NAME" "\$@"
+EOF
+chmod a+x "{homedir}/programs/odoo"
+
+                """.format(**locals())
+                # in this path there ar, the keys that are used by web ssh container /opt/cicd_sshkey
+                shell.write_text(command_file, commands.strip() + "\n")
+                shell.run(["sudo", "/bin/bash", command_file])
+                shell.run(["rm", command_file])
