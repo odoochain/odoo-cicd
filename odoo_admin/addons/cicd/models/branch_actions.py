@@ -169,11 +169,35 @@ class Branch(models.Model):
                     'branch_ids': [[4, self.id]],
                 }]]
     
-    def _remove_web_assets(self, shell, tasks, logsio, **kwargs):
+    def _remove_web_assets(self, shell, task, logsio, **kwargs):
         shell.odoo('remove-web-assets')
 
-    def _clear_db(self, shell, tasks, logsio, **kwargs):
+    def _clear_db(self, shell, task, logsio, **kwargs):
         shell.odoo('cleardb')
+
+    def _create_empty_db(self, shell, task, logsio, **kwargs):
+        logsio.info("Reloading")
+        shell.odoo('reload')
+        logsio.info("Building")
+        shell.odoo('build')
+        logsio.info("Downing")
+        shell.odoo('down')
+        shell.odoo('-f', 'db' 'reset')
+
+    def _run_tests(self, shell, task, logsio, **kwargs):
+        b = task.branch_id
+
+        if b.simulate_install_id or b.simulate_empty_install:
+            self._create_empty_db(shell, task, logsio, **kwargs)
+
+        if b.run_robottests:
+            self._run_robot_tests()
+        if b.run_unittests:
+            self._run_unittests()
+        if b.simulate_install_id:
+            logsio.info(f"Restoring {self.dump_id.name}")
+            task.dump_used = self.dump_id.name
+            shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
 
     def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
         shell.odoo('robot', '-a')
@@ -337,12 +361,12 @@ class Branch(models.Model):
         with shell.shell() as ssh_shell:
             home_dir = shell._get_home_dir()
             project_name = self.project_name
-            content = (current_dir.parent / 'data' / 'template_cicd_instance.yml').read_text()
+            content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
             ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content.format(**os.environ))
 
             content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
             ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(branch=self, machine=self.machine_id))
 
-    def _cron_auto_backup(self):
-        self.ensure_one()
-        self._make_task("_dump")
+    def _cron_autobackup(self):
+        for rec in self:
+            rec._make_task("_dump")

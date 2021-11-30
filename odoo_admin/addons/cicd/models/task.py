@@ -59,16 +59,29 @@ class Task(models.Model):
         self.ensure_one()
 
         if not now:
-            queuejob = self.with_delay()._exec(now)
+            queuejob = self.with_delay(
+                identity_key=self._get_identity_key()
+            )._exec(now)
             if queuejob:
                 queuejob = self.env['queue.job'].search([('uuid', '=', queuejob._uuid)])
                 self.sudo().queue_job_id = queuejob
         else:
             self._exec(now)
 
+    def _get_identity_key(self):
+        name = self._get_short_name()
+        return f"{self.branch_id.project_name}_{name}"
+
+    def _get_short_name(self):
+        name = self.name or ''
+        if name.startswith("_"):
+            name = name[1:]
+        return name
+
     def _exec(self, now):
         started = arrow.get()
         self = self.sudo()
+        import pudb;pudb.set_trace()
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
         if os.getenv("TEST_QUEUE_JOB_NO_DELAY") and not now:
             # Debugging and clicked on button perform - do it now
@@ -78,10 +91,7 @@ class Task(models.Model):
             logsio = None
 
             try:
-                name = self.name or ''
-                if name.startswith("_"):
-                    name = name[1:]
-                logsio = self.branch_id._get_new_logsio_instance(name)
+                logsio = self.branch_id._get_new_logsio_instance(self._get_short_name())
                 logsio.start_keepalive()
 
                 dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
@@ -94,7 +104,7 @@ class Task(models.Model):
                     commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
                     if not commit:
                         raise ValidationError(f"Commit {sha} not found in branch.")
-                    self.commit_id = commit
+                    self.sudo().commit_id = commit
                     # get current commit
                     args = {
                         'task': self,

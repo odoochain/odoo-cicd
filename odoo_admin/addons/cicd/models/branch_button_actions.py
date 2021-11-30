@@ -26,6 +26,10 @@ class Branch(models.Model):
         self.ensure_one()
         self._make_task("_docker_get_state", True)
 
+    def create_empty_db(self):
+        self.ensure_one()
+        self._make_task("_create_empty_db")
+
     def dump(self):
         self.ensure_one()
         self._make_task("_dump")
@@ -50,14 +54,10 @@ class Branch(models.Model):
         self.ensure_one()
         self._make_task("_restore_dump")
 
-    def run_robot_tests(self):
+    def run_tests(self):
         self.ensure_one()
-        self._make_task("_run_robot_tests")
+        self._make_task("_run_tests")
 
-    def run_unit_tests(self):
-        self.ensure_one()
-        self._make_task("_run_unit_tests")
-        
     def start(self):
         return {
             'type': 'ir.actions.act_url',

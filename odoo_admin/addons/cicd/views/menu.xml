@@ -40,5 +40,13 @@
 		</record>
 		<menuitem parent="root_menu" id="menu_logsio" action="open_logsio"/>
 
+		<record id='testruns_action' model='ir.actions.act_window'>
+			<field name='name'>Test Runs</field>
+			<field name='res_model'>cicd.test.run</field>
+			<field name='view_mode'>kanban,tree,form</field>
+			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
+		</record>
+		<menuitem parent="root_menu" id="menu_testruns" action="testruns_action"/>
+
 	</data>
 </odoo>
