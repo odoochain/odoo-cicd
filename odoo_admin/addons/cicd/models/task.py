@@ -112,7 +112,7 @@ class Task(models.Model):
                         'logsio': logsio,
                         'shell': shell,
                         }
-                    if self.kwargs:
+                    if self.kwargs and self.kwargs != 'null':
                         args.update(json.loads(self.kwargs))
                     exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
 

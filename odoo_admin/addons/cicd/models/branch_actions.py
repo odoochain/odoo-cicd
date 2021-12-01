@@ -38,9 +38,11 @@ class Branch(models.Model):
     
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
+        self._get_docker_state()
 
     def _docker_stop(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
+        self._get_docker_state()
 
     def _docker_get_state(self, shell, task, logsio, **kwargs):
         info = shell.odoo('ps').output
@@ -278,6 +280,7 @@ class Branch(models.Model):
         shell.odoo("update-setting", 'web.base.url', shell.machine.external_url)
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
+        self._get_docker_state()
 
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
         # todo make button
