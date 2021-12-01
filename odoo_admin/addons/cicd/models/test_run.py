@@ -11,7 +11,7 @@ class CicdTestRun(models.Model):
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), required=True)
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Initiating branch", required=True)
-    branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids")
+    branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids", string="Branches")
     repo_short = fields.Char(related="branch_ids.repo_id.short")
     state = fields.Selection([
         ('open', 'Open'),

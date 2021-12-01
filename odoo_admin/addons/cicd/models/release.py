@@ -13,6 +13,7 @@ class Release(models.Model):
     auto_release = fields.Boolean("Auto Release")
     auto_release_cronjob_id = fields.Many2one('ir.cron', string="Scheduled Release")
     sequence_id = fields.Many2one('ir.sequence', string="Version Sequence", required=True)
+    countdown_minutes = fields.Integer("Countdown Minutes")
 
     @api.recordchange('auto_release')
     def _onchange_autorelease(self):

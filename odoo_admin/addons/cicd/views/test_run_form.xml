@@ -13,7 +13,7 @@
 						<field name="branch_ids" widget="many2many_tags"/>
 					</group>
 					<group string="Details">
-						<field name="line_ids">
+						<field name="line_ids" nolabel='1'>
 							<tree>
 								<field name="ttype"/>
 								<field name="name"/>

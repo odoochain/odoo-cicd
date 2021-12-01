@@ -89,7 +89,7 @@ class GitBranch(models.Model):
         self.approve_message = False
         self.state = 'approved'
 
-    def not_approve(self):
+    def decline(self):
         self.approver_ids = [[0, 0, {
             'user_id': self.env.user.id,
             'commit_id': self.commit_ids[0].id,

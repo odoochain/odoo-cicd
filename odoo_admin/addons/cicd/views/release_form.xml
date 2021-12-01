@@ -14,6 +14,7 @@
 							<field name="sequence_id"/>
 						</group>
 						<group string="Continuous Deployment">
+							<field name="countdown_minutes"/>
 							<field name="auto_release"/>
 							<field name="auto_release_cronjob_id" attrs="{'invisible': [('auto_release', '=', False)]}" readonly='1'/>
 						</group>
