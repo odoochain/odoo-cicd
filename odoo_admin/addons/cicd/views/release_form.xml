@@ -5,18 +5,14 @@
 			<field name="model">cicd.release</field>
 			<field name="arch" type="xml">
 				<form string="">
-					<header>
-						<!-- at debugging - remove auto created at create-->
-						<field name="state" widget="statusbar" attrs="{'readonly': True}" />
-					</header>
 					<sheet>
 						<group string="Release" col="4">
 							<field name="name" />
-							<field name="target_branch" placeholder="master"/>
+							<field name="branch_id" placeholder="master"/>
 							<field name="machine_ids" widget="many2many_tags" />
-							<field name="branch_ids" widget="many2many_tags" />
 							<field name="auto_release"/>
 							<field name="auto_release_cronjob_id"/>
+							<field name="sequence_id"/>
 						</group>
 						<notebook>
 							<page string="Versions">
@@ -24,9 +20,9 @@
 									<tree>
 										<field name="name"/>
 										<field name="release_type"/>
-										<field name="planned_date"/>
-										<field name="done"/>
 										<field name="final_curtain"/>
+										<field name="planned_date"/>
+										<field name="done_date"/>
 										<field name="state"/>
 									</tree>
 								</field>

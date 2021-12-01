@@ -11,6 +11,7 @@ class Release(models.Model):
     item_ids = fields.One2many('cicd.release.item', 'release_id', string="Release")
     auto_release = fields.Boolean("Auto Release")
     auto_release_cronjob_id = fields.Many2one('ir.cron', string="Scheduled Release")
+    sequence_id = fields.Many2one('ir.sequence', string="Version Sequence", required=True)
 
     @api.recordchange('auto_release')
     def _onchange_autorelease(self):
@@ -30,6 +31,7 @@ class ReleaseItem(models.Model):
     _name = 'cicd.release.item'
     _order = 'id desc'
 
+    name = fields.Char("Version")
     release_id = fields.Many2one('cicd.release', string="Release")
     planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now())
     done_date = fields.Datetime("Done")
@@ -49,7 +51,14 @@ class ReleaseItem(models.Model):
         ('standard', 'Standard'),
         ('hotfix', 'Hotfix'),
     ], default="standard", required=True)
-    
+
+    @api.model
+    def create(self, vals):
+        release = self.env['cicd.release'].browse(vals['release_id'])
+        vals['name'] = release.sequence_id.next_by_id()
+        res = super().create(vals)
+        return res
+
     def _compute_summary(self):
         for rec in self:
             summary = []
