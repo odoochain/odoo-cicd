@@ -101,9 +101,7 @@ class Branch(models.Model):
             [
                 f"CICD_WORKSPACE={self.machine_id._get_volume('source')}",
                 f"PROJECT_NAME={self.project_name}",
-            ] + cmd + [
-                'exit'
-            ],
+            ] + cmd
         )
         return {
             'type': 'ir.actions.act_url',

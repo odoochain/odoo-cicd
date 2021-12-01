@@ -4,11 +4,11 @@ class Release(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.release'
 
-    name = fields.Char("Name")
+    name = fields.Char("Name", required=True)
     machine_ids = fields.Many2many('cicd.machine', string="Machines")
     repo_id = fields.Many2one(related="branch_id.repo_id", string="Repo", store=True)
-    branch_id = fields.Many2one('cicd.git.branch', string="Branch")
-    candidate_branch = fields.Many2one('cicd.git.branch', string="Candidate", default="pre_master", required=True)
+    branch_id = fields.Many2one('cicd.git.branch', string="Branch", required=True)
+    candidate_branch_id = fields.Many2one('cicd.git.branch', string="Candidate", required=True)
     item_ids = fields.One2many('cicd.release.item', 'release_id', string="Release")
     auto_release = fields.Boolean("Auto Release")
     auto_release_cronjob_id = fields.Many2one('ir.cron', string="Scheduled Release")
@@ -18,14 +18,20 @@ class Release(models.Model):
     def _onchange_autorelease(self):
         for rec in self:
             if not rec.auto_release and rec.auto_release_cronjob_id:
-                rec.auto_releae_cronjob_id.sudo().unlink()
+                rec.auto_release_cronjob_id.sudo().unlink()
             elif rec.auto_release and not rec.auto_release_cronjob_id:
                 rec._make_cronjob()
 
     def _make_cronjob(self):
+        models = self.env['ir.model'].search([('model', '=', self._name)])
         self.auto_release_cronjob_id = self.env['ir.cron'].create({
-            'name': self.name + " scheduled release"
+            'name': self.name + " scheduled release",
+            'model_id': models.id,
+            'code': f'model.browse({self.id})._cron_prepare_release()'
         })
+
+    def _cron_prepare_release(self):
+        raise NotImplementedError()
 
 
 class ReleaseItem(models.Model):

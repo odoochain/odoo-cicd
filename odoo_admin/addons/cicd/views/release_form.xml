@@ -6,17 +6,20 @@
 			<field name="arch" type="xml">
 				<form string="">
 					<sheet>
-						<group string="Release" col="4">
+						<group string="Release" col="2">
 							<field name="name" />
-							<field name="branch_id" placeholder="master"/>
-							<field name="machine_ids" widget="many2many_tags" />
-							<field name="auto_release"/>
-							<field name="auto_release_cronjob_id"/>
+							<field name="branch_id"/>
+							<field name="candidate_branch_id" />
+							<field name="machine_ids" widget="many2many_tags" required='1' />
 							<field name="sequence_id"/>
+						</group>
+						<group string="Continuous Deployment">
+							<field name="auto_release"/>
+							<field name="auto_release_cronjob_id" attrs="{'invisible': [('auto_release', '=', False)]}" readonly='1'/>
 						</group>
 						<notebook>
 							<page string="Versions">
-								<field name="item_ids">
+								<field name="item_ids" readonly='1'>
 									<tree>
 										<field name="name"/>
 										<field name="release_type"/>
