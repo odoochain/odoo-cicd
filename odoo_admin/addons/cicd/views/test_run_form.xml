@@ -18,6 +18,7 @@
 								<field name="ttype"/>
 								<field name="name"/>
 								<field name="state"/>
+								<field name="exc_info"/>
 							</tree>
 						</field>
 					</group>

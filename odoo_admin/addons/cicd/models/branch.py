@@ -34,9 +34,9 @@ class GitBranch(models.Model):
         ('rework', "Rework"),
         ('to_approve', "To Approve"),
         ('approved', 'Approved'),
-        ('to_deploy', 'To Deploy'),
         ('to_test', 'Ready to Test'),
         ('tested', 'Tested'),
+        ('to_deploy', 'To Deploy'),
         ('Live', 'Live'),
     ], string="State", default="new", required=True, track_visibility='onchange')
     build_state = fields.Selection([
