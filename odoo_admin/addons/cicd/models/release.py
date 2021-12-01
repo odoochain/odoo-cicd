@@ -31,8 +31,12 @@ class Release(models.Model):
         })
 
     def _cron_prepare_release(self):
-        raise NotImplementedError()
-
+        self.ensure_one()
+        if self.item_ids.filtered(lambda x: x.state == 'new'):
+            return
+        self.item_ids = [[0, 0, {
+            'release_type': 'standard',
+        }]]
 
 class ReleaseItem(models.Model):
     _name = 'cicd.release.item'
@@ -43,7 +47,6 @@ class ReleaseItem(models.Model):
     planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now())
     done_date = fields.Datetime("Done")
     final_curtain = fields.Datetime("Final Curtains")
-    target_branch = fields.Many2one('cicd.git.branch', "Target Branch", default="master", required=True)
 
     diff_commit_ids = fields.Many2many('cicd.git.commit', string="New Commits", compute="_compute_diff_commits")
     state = fields.Selection([
@@ -57,7 +60,7 @@ class ReleaseItem(models.Model):
     release_type = fields.Selection([
         ('standard', 'Standard'),
         ('hotfix', 'Hotfix'),
-    ], default="standard", required=True)
+    ], default="standard", required=True, readonly=True)
 
     @api.model
     def create(self, vals):

@@ -19,7 +19,7 @@
 						</group>
 						<notebook>
 							<page string="Versions">
-								<field name="item_ids" readonly='1'>
+								<field name="item_ids" nocreate='1' nodelete='1'>
 									<tree>
 										<field name="name"/>
 										<field name="release_type"/>
