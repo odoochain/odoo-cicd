@@ -48,5 +48,12 @@
 		</record>
 		<menuitem parent="root_menu" id="menu_testruns" action="testruns_action"/>
 
+		<record id='releases_action' model='ir.actions.act_window'>
+			<field name='name'>Releases</field>
+			<field name='res_model'>cicd.release</field>
+			<field name='view_mode'>tree,form</field>
+		</record>
+		<menuitem parent="root_menu" id="menu_releases" action="releases_action"/>
+
 	</data>
 </odoo>

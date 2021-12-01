@@ -12,20 +12,23 @@
 					<sheet>
 						<group string="Release" col="4">
 							<field name="name" />
-							<field name="release_type"/>
 							<field name="target_branch" placeholder="master"/>
 							<field name="machine_ids" widget="many2many_tags" />
 							<field name="branch_ids" widget="many2many_tags" />
 						</group>
 						<notebook>
-							<page string="New Commits">
-								<field name="diff_commit_ids">
+							<page string="Versions">
+								<field name="item_ids">
 									<tree>
 										<field name="name"/>
-										<field name="date"/>
-										<field name="author"/>
+										<field name="release_type"/>
+										<field name="planned_date"/>
+										<field name="done"/>
+										<field name="final_curtain"/>
+										<field name="state"/>
 									</tree>
 								</field>
+
 							</page>
 						</notebook>
 					</sheet>
