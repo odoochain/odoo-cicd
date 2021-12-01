@@ -120,10 +120,10 @@
 								</group>
 								<group string="Approvals">
 									<field name="approver_ids" nocreate='1' nodelete='1' nolabel='1'>
-										<tree>
-											<field name="user_id"/>
-											<field name="date"/>
-											<field name="commit_id"/>
+										<tree editable="bottom">
+											<field name="user_id" readonly='1'/>
+											<field name="date" readonly='1'/>
+											<field name="commit_id" readonly='1'/>
 											<field name="state"/>
 											<field name="comment"/>
 										</tree>

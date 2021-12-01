@@ -13,6 +13,14 @@ class BranchApproval(models.Model):
         ('not ok', 'not OK'),
     ], string="OK?", required=True)
 
+    @api.model
+    def create(self, vals):
+        branch = self.env['cicd.git.branch'].browse(vals['branch_id'])
+        vals['commit_id'] = branch.commit_ids.sorted(lambda x: x.date, reverse=True)[0].id
+        vals['user_id'] = self.env.user.id
+        res = super().create(vals)
+        return res
+
     @api.fieldchange("state")
     def _onchange_state(self):
         for rec in self:
