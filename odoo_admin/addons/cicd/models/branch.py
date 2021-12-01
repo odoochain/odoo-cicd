@@ -38,7 +38,7 @@ class GitBranch(models.Model):
         ('to_test', 'Ready to Test'),
         ('tested', 'Tested'),
         ('Live', 'Live'),
-    ], string="State", default="new", required=True, track=True)
+    ], string="State", default="new", required=True, track_visibility='onchange')
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
@@ -59,6 +59,7 @@ class GitBranch(models.Model):
     simulate_empty_install = fields.Boolean("Simulate Empty Install", testrun_field=True)
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
     approver_ids = fields.One2many('cicd.branch.approval', 'branch_id', string="Approvals")
+    approve_message = fields.Text("Comment")
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     after_code_review = fields.Selection([
@@ -80,10 +81,23 @@ class GitBranch(models.Model):
 
     def approve(self):
         self.approver_ids = [[0, 0, {
-            'approver_id': self.env.user.id,
+            'user_id': self.env.user.id,
             'commit_id': self.commit_ids[0].id,
+            'comment': self.approve_message,
+            'state': 'ok',
         }]]
+        self.approve_message = False
         self.state = 'approved'
+
+    def not_approve(self):
+        self.approver_ids = [[0, 0, {
+            'user_id': self.env.user.id,
+            'commit_id': self.commit_ids[0].id,
+            'comment': self.approve_message,
+            'state': 'not ok',
+        }]]
+        self.approve_message = False
+        self.state = 'rework'
 
     @api.depends("container_ids", "container_ids.state")
     def _compute_docker_state(self):

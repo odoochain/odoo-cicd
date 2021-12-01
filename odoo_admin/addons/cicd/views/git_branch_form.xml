@@ -111,15 +111,15 @@
 								</field>
 							</page>
 							<page name="qa" string="Quality">
-								<group string="Quality Assurance" col='4'>
-									<field name="after_code_review"/>
-									<field name="run_unittests"/>
-									<field name="run_robottests"/>
-									<field name="simulate_empty_install"/>
-									<field name="simulate_install_id"/>
+								<group string="Approvals">
+									<field name="approve_message"/>
+									<newline/>
+									<button name="approve" string="Approve" type="object" />
+									<button name="decline" string="Decline" type="object" />
+									<newline/>
 								</group>
 								<group string="Approvals">
-									<field name="approver_ids" nocreate='1' nodelete='1' nolabel='1'>
+									<field name="approver_ids" nocreate='1' nodelete='1' nolabel='1' readonly='1'>
 										<tree editable="bottom">
 											<field name="user_id" readonly='1'/>
 											<field name="date" readonly='1'/>
@@ -129,7 +129,13 @@
 										</tree>
 									</field>
 								</group>
-
+								<group string="Quality Assurance Settings" col='4'>
+									<field name="after_code_review"/>
+									<field name="run_unittests"/>
+									<field name="run_robottests"/>
+									<field name="simulate_empty_install"/>
+									<field name="simulate_install_id"/>
+								</group>
 							</page>
 							<page string="Releases" name="releases">
 								<field name="release_item_ids">

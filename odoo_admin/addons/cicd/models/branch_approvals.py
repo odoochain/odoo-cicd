@@ -30,3 +30,9 @@ class BranchApproval(models.Model):
             else:
                 if rec.branch_id.state == 'to_approve':
                     rec.branch_id.state == 'rework'
+
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        # res.branch_id.message_post(type="notification", subtype="mt_comment", body="Approval done: " + res.state)
+        return res
