@@ -5,18 +5,35 @@ class Release(models.Model):
 
     name = fields.Char("Name")
     machine_ids = fields.Many2many('cicd.machine', string="Machines")
-    repo_id = fields.Many2one(related="branch_id.repo_id", string="Repo", store=True))
+    repo_id = fields.Many2one(related="branch_id.repo_id", string="Repo", store=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Branch")
     candidate_branch = fields.Many2one('cicd.git.branch', string="Candidate", default="pre_master", required=True)
     item_ids = fields.One2many('cicd.release.item', 'release_id', string="Release")
+    auto_release = fields.Boolean("Auto Release")
+    auto_release_cronjob_id = fields.Many2one('ir.cron', string="Scheduled Release")
+
+    @api.recordchange('auto_release')
+    def _onchange_autorelease(self):
+        for rec in self:
+            if not rec.auto_release and rec.auto_release_cronjob_id:
+                rec.auto_releae_cronjob_id.sudo().unlink()
+            elif rec.auto_release and not rec.auto_release_cronjob_id:
+                rec._make_cronjob()
+
+    def _make_cronjob(self):
+        self.auto_release_cronjob_id = self.env['ir.cron'].create({
+            'name': self.name + " scheduled release"
+        })
+
 
 class ReleaseItem(models.Model):
     _name = 'cicd.release.item'
+    _order = 'id desc'
 
     release_id = fields.Many2one('cicd.release', string="Release")
     planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now())
     done_date = fields.Datetime("Done")
-    final_curtains = fields.Datetime("Final Curtains")
+    final_curtain = fields.Datetime("Final Curtains")
     target_branch = fields.Many2one('cicd.git.branch', "Target Branch", default="master", required=True)
 
     diff_commit_ids = fields.Many2many('cicd.git.commit', string="New Commits", compute="_compute_diff_commits")

@@ -26,6 +26,7 @@ class GitBranch(models.Model):
     repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True)
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
+    success_tested_commit_ids = fields.Many2many('cicd.git.commit', 'cicd_git_branch_success_commit_ids', 'branch_id', 'commit_id', string="Success Commits")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
     state = fields.Selection([
@@ -51,6 +52,7 @@ class GitBranch(models.Model):
     autobackup = fields.Boolean("Autobackup") # TODO implement
     enduser_summary = fields.Text("Enduser Summary")
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
+    release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
 
     run_unittests = fields.Boolean("Run Unittests", default=False, testrun_field=True)
     run_robottests = fields.Boolean("Run Robot-Tests", default=False, testrun_field=True)
@@ -64,16 +66,17 @@ class GitBranch(models.Model):
         ('return', "Return to Sender"),
     ], string="After Code Review", default="deploy", required=True)
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
-    auto_release = fields.Boolean("Auto Release")
-    auto_release_cronjob_id = fields.Many2one('ir.cron')
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
 
-    def prepare_release(self):
-        self.release_ids = [[0, 0, {
-        }]]
+    def _compute_releases(self):
+        for rec in self:
+            release_items = self.env['cicd.release.item'].search([
+                ('commit_ids', 'in', rec.commit_ids.ids)
+            ])
+            rec.release_item_ids = release_items.ids
 
     def approve(self):
         self.approver_ids = [[0, 0, {
@@ -102,6 +105,7 @@ class GitBranch(models.Model):
                 else:
                     rec.state = 'approved'
             elif F['new'] == 'tested':
+                self.success_tested_commit_ids = [[6, 0, self.commit_ids.ids]]
                 if rec.after_code_review == 'deploy':
                     rec.state = 'to_deploy'
                 else:

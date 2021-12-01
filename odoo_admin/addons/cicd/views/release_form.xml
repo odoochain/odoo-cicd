@@ -15,6 +15,8 @@
 							<field name="target_branch" placeholder="master"/>
 							<field name="machine_ids" widget="many2many_tags" />
 							<field name="branch_ids" widget="many2many_tags" />
+							<field name="auto_release"/>
+							<field name="auto_release_cronjob_id"/>
 						</group>
 						<notebook>
 							<page string="Versions">
