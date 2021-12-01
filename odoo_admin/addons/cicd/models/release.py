@@ -1,6 +1,7 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class Release(models.Model):
+    _inherit = ['mail.thread']
     _name = 'cicd.release'
 
     name = fields.Char("Name")
