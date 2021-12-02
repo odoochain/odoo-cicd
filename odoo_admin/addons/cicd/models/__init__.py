@@ -4,7 +4,6 @@ import struct
 from pathlib import Path
 
 MAIN_FOLDER_NAME = "_main"
-PREFIX_PREPARE_DUMP = "prepare_dump_"
 
 def is_lock_set(cr, lock):
     lock = _int_lock(lock)
