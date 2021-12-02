@@ -91,7 +91,7 @@ class Repository(models.Model):
         self.ensure_one()
         from . import MAIN_FOLDER_NAME
         machine = machine or self.machine_id
-        path = Path(machine.workspace) / MAIN_FOLDER_NAME
+        path = Path(machine.workspace) / (MAIN_FOLDER_NAME + "_" + self.short)
         self.clone_repo(machine, path, logsio)
 
 
