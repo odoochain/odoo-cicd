@@ -218,3 +218,10 @@ class GitBranch(models.Model):
         rolling_file = LogsIOWriter(f"{self.project_name}", source)
         rolling_file.write_text(f"Started: {arrow.get()}")
         return rolling_file
+
+    @api.constrains("backup_filename")
+    def _check_backup_filename(self):
+        for rec in self:
+            if not rec.backup_filename: continue
+            if '/' in rec.backup_filename:
+                raise ValidationError("No slashes in backup filename allowed!")
