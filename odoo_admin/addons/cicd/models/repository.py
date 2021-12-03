@@ -215,3 +215,50 @@ class Repository(models.Model):
                         env=env,
                         logsio=logsio,
                     )
+
+    def _collect_branches(self, target_branch, logsio):
+        """
+        Iterate all branches and get the latest commit that fall into the countdown criteria.
+        """
+        self.ensure_one()
+        import pudb;pudb.set_trace()
+
+        # we use a working repo
+        repo = self.release_id.repo_id
+        machine = repo.machine_id
+        repo_path = self.release_id.repo_id._get_main_repo(tempfolder=True)
+        with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+            try:
+                env = repo._get_git_non_interactive()
+
+                # clear the current candidate
+                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + repo.candidate_branch_id.name)
+                if not res.return_code:
+                    shell.X(["/usr/bin/git", "branch", "-D", repo.candidate_branch_id.name, "-f", branch.name])
+                logsio.info(f"Pulling master branch {repo.branch_id.name}")
+                shell.X(["/usr/bin/git", "checkout", "-f", repo.branch_id.name])
+                logsio.info(f"Pulling master branch {repo.branch_id.name}")
+                shell.X(["/usr/bin/git", "pull"])
+                logsio.info(f"Making candidate branch {repo.candidate_branch_id.name}")
+                shell.X(["/usr/bin/git", "checkout", "-b", repo.candidate_branch_id.name])
+
+                for branch in self.branch_ids:
+                    for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
+                        if self.final_curtain:
+                            if commit.date > self.final_curtain:
+                                continue
+
+                        if not commit.force_approved and (commit.test_state != 'successful' or commit.approval_state != 'approved'):
+                            continue
+
+                        self.commit_ids = [[4, commit.id]]
+
+                        # we use git functions to retrieve deltas, git sorting and so;
+                        # we want to rely on stand behaviour git.
+                        shell.X(["/usr/bin/git", "checkout", "-f", branch.name])
+                        commits = shell.X(["/usr/bin/git", "log", "--pretty=format:%H", f"..{commit.name}"]).output.strip().split("\n")
+                        for commit in commits:
+                            # if 
+
+            finally:
+                shell.X(["rm", "-Rf", repo_path])
