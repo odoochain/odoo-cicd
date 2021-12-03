@@ -33,20 +33,22 @@ class GitBranch(models.Model):
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
     state = fields.Selection([
         ('new', 'New'),
-        ('rework', "Rework"),
-        ('to_approve', "To Approve"),
-        ('approved', 'Approved'),
-        ('to_test', 'Ready to Test'),
+        ('development', "Dev"),
+        ('approve', "Approve"),
+        ('testable', 'Testable'), 
         ('tested', 'Tested'),
-        ('to_deploy', 'To Deploy'),
-        ('live', 'Live'),
-    ], string="State", default="new", required=True, track_visibility='onchange')
+        ('blocked', "Blocked"),
+        ('candidate', 'Candidate'),
+        ('release', 'Release'),
+        ('done', "Done"),
+        ('cancel', "Cancel"),
+    ], string="State", default="new", required=True, track_visibility='onchange', compute="_compute_state", inverse="_set_state", store=True)
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
         ('done', 'Done'),
         ('building', 'Building'),
-    ], default="new", compute="_compute_build_state")
+    ], default="new", compute="_compute_build_state", string="Instance State")
     dump_id = fields.Many2one("cicd.dump", string="Dump")
     db_size = fields.Integer("DB Size Bytes")
     db_size_humanize = fields.Char("DB Size", compute="_compute_human")
@@ -60,14 +62,9 @@ class GitBranch(models.Model):
     run_robottests = fields.Boolean("Run Robot-Tests", default=False, testrun_field=True)
     simulate_empty_install = fields.Boolean("Simulate Empty Install", testrun_field=True)
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
-    approver_ids = fields.One2many('cicd.branch.approval', 'branch_id', string="Approvals")
-    approve_message = fields.Text("Comment")
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
-    after_code_review = fields.Selection([
-        ('deploy', "Deploy"),
-        ('return', "Return to Sender"),
-    ], string="After Code Review", default="deploy", required=True)
+    block_release = fields.Boolean("Block Release")
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
 
     _sql_constraints = [
@@ -111,15 +108,39 @@ class GitBranch(models.Model):
     def set_state(self, state, raise_exception=False):
         self.state = state
 
+    @api.depends(
+        "commit_ids",
+        "commit_ids.approval_state",
+        "commit_ids.test_state"
+    )
+    def _compute_state(self):
+        for rec in self:
+            if not rec.commit_ids and rec.build_state == 'new':
+                rec.state = 'new'
+                continue
+            commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
+
+            if commit.test_state == 'success' and commit.approval_state == 'approved':
+                rec.state = ''
+                continue
+        
+            rec.state = 'new'
+
+    def _set_state(self):
+        for rec in self:
+            if rec.state == 'new':
+                pass
+
     @api.fieldchange("state")
     def _onchange_state(self, changeset):
         for rec in self:
+            import pudb;pudb.set_trace()
             F = changeset['state']
             if F['old'] == 'to_approve' and F['new'] == 'approved':
                 if rec.run_unittests or rec.run_robottests or rec.simulate_empty_install or rec.simulate_install_id:
                     rec.state = 'to_test'
                     rec.run_tests(update_state=True)
-                elif rec.after_code_review == 'deploy':
+                elif rec.block_release == 'deploy':
                     rec.state = 'to_deploy'
                 else:
                     rec.state = 'approved'

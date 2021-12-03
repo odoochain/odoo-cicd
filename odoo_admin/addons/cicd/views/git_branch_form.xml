@@ -12,22 +12,45 @@
 						<button name="run_tests" string="Run Tests" type="object" groups="cicd.group_developer"/>
 						<button name="approve" string="Approve" states='to_approve'/>
 						<button name="pgcli" string="SQL" type="object" groups="cicd.group_developer"/>
+						<button name="open_odoo_shell" string="Odoo-Shell" type="object" groups="cicd.group_developer"/>
 						<button name="open_shell" string="Shell" type="object" groups="cicd.group_developer"/>
 						<button name="start_webmailer" string="Webmailer" type="object" groups="cicd.group_developer"/>
 						<button name="start_logs" string="Logs" type="object" groups="cicd.group_developer"/>
 						<button name="debug_webcontainer" string="Debug" type="object" groups="cicd.group_developer"/>
-						<field name="state" widget="statusbar" options="{'clickable': 1}"/>
+						<field name="state" widget="statusbar" options="{'clickable': 1}" context="{'from_ui': 1}"/>
 					</header>
 					<sheet>
 						<group string="Branch" col="4">
 							<field name="name" readonly='1' />
 							<field name="repo_id" readonly='1' />
 							<field name="build_state" readonly='1' />
+							<field name="block_release"/>
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>
 						</group>
 						<notebook>
+							<page string="Commits" name="commits" groups="cicd.group_developer">
+								<div>
+									Fetches new git commits and shows them here.
+								</div>
+								<button name="update_git_commits" string="Update Git Commits" type="object" groups="cicd.group_developer"/>
+								<field name="commit_ids" nolabel="1" readonly="1">
+									<tree
+										decoration-danger="approval_state == 'declined' or test_state == 'failed'"
+										decoration-muted="not approval_state and not test_state"
+										decoration-success="force_approved or approval_state == 'approved' or test_state == 'success'"
+									>
+										<button name="open_window" string="" icon="fa-external-link" type="object" />
+										<field name="test_state"/>
+										<field name="approval_state"/>
+										<field name="force_approved"/>
+										<field name="date" />
+										<field name="author"/>
+										<field name="text"/>
+									</tree>
+								</field>
+							</page>
 							<page string="Tasks" name="tasks">
 								<field name="task_ids" nolabel="1" readonly="1">
 									<tree>
@@ -81,26 +104,7 @@
 								</field>
 							</page>
 							<page name="qa" string="Quality">
-								<group string="Approvals">
-									<field name="approve_message"/>
-									<newline/>
-									<button name="approve" string="Approve" type="object" />
-									<button name="decline" string="Decline" type="object" />
-									<newline/>
-								</group>
-								<group string="Approvals">
-									<field name="approver_ids" nocreate='1' nodelete='1' nolabel='1' readonly='1'>
-										<tree editable="bottom">
-											<field name="user_id" readonly='1'/>
-											<field name="date" readonly='1'/>
-											<field name="commit_id" readonly='1'/>
-											<field name="state"/>
-											<field name="comment"/>
-										</tree>
-									</field>
-								</group>
 								<group string="Quality Assurance Settings" col='4' groups="cicd.group_developer">
-									<field name="after_code_review"/>
 									<field name="run_unittests"/>
 									<field name="run_robottests"/>
 									<field name="simulate_empty_install"/>
@@ -116,19 +120,6 @@
 										<field name="release_type"/>
 										<field name="final_curtain"/>
 										<field name="computed_summary"/>
-									</tree>
-								</field>
-							</page>
-							<page string="Commits" name="commits" groups="cicd.group_developer">
-								<div>
-									Fetches new git commits and shows them here.
-								</div>
-								<button name="update_git_commits" string="Update Git Commits" type="object" groups="cicd.group_developer"/>
-								<field name="commit_ids" nolabel="1" readonly="1">
-									<tree>
-										<field name="date" />
-										<field name="author"/>
-										<field name="text"/>
 									</tree>
 								</field>
 							</page>

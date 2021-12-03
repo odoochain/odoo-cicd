@@ -106,8 +106,8 @@ class Branch(models.Model):
             machine.ssh_user_cicdlogin,
             machine.ssh_user_cicdlogin_password,
             [
-                f"CICD_WORKSPACE={self.machine_id._get_volume('source')}",
-                f"PROJECT_NAME={self.project_name}",
+                f"export CICD_WORKSPACE={self.machine_id._get_volume('source')};",
+                f"export PROJECT_NAME={self.project_name};",
             ] + cmd
         )
         return {
@@ -119,8 +119,11 @@ class Branch(models.Model):
     def pgcli(self):
         return self._shell_url(["odoo", "pgcli"])
 
-    def open_shell(self):
+    def open_odoo_shell(self):
         return self._shell_url(["odoo", "shell"])
 
     def debug_webcontainer(self):
         return self._shell_url(["odoo", "debug", "odoo"])
+
+    def open_shell(self):
+        return self._shell_url(["odoo", "ps"])

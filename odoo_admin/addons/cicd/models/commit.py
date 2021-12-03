@@ -2,6 +2,7 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 class GitCommit(models.Model):
+    _inherit = ['mail.thread']
     _name = 'cicd.git.commit'
     _order = 'date desc'
 
@@ -15,11 +16,12 @@ class GitCommit(models.Model):
     test_state = fields.Selection([
         ('success', 'Success'),
         ('failed', 'Failed'),
-    ], compute="_compute_test_state")
+    ])# TODO undo, compute="_compute_test_state")
     approval_state = fields.Selection([
         ('approved', 'Approved'),
         ('declined', 'Declined'),
     ])
+    force_approved = fields.Boolean("Force Approved")
 
     _sql_constraints = [
         ('name', "unique(name)", _("Only one unique entry allowed.")),
@@ -51,3 +53,13 @@ class GitCommit(models.Model):
             if "REVIEW" in rec.text:
                 rec.branch_ids.set_state('to_review')
         pass
+
+    def open_window(self):
+        return {
+            'view_type': 'form',
+            'res_model': 'cicd.git.commit',
+            'res_id': self.id,
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }
