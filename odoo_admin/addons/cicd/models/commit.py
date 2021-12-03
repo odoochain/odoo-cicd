@@ -21,3 +21,16 @@ class GitCommit(models.Model):
         for ttype in self.env['cicd.test.run']._get_types(filtered):
             # run tests on machine
             raise NotImplementedError("Need machine to run")
+
+    @api.model
+    def create(self, vals):
+        import pudb;pudb.set_trace()
+        res = super().create(vals)
+        self._evaluate_message()
+        return res
+
+    def _evaluate_message(self):
+        for rec in self:
+            if "REVIEW" in rec.text:
+                rec.branch_ids.set_state('to_review')
+        pass

@@ -39,7 +39,7 @@ class GitBranch(models.Model):
         ('to_test', 'Ready to Test'),
         ('tested', 'Tested'),
         ('to_deploy', 'To Deploy'),
-        ('Live', 'Live'),
+        ('live', 'Live'),
     ], string="State", default="new", required=True, track_visibility='onchange')
     build_state = fields.Selection([
         ('new', 'New'),
@@ -107,6 +107,9 @@ class GitBranch(models.Model):
             count_up = len(rec.container_ids.filtered(lambda x: x.state == 'up'))
             count_down = len(rec.container_ids.filtered(lambda x: x.state == 'down'))
             rec.docker_state = f"Up: {count_up} Down: {count_down}"
+
+    def set_state(self, state, raise_exception=False):
+        self.state = state
 
     @api.fieldchange("state")
     def _onchange_state(self, changeset):
