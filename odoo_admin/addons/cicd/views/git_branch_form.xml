@@ -6,21 +6,23 @@
 			<field name="arch" type="xml">
 				<form string="">
 					<header>
-						<button name="start" string="Start Instance" type="object"/>
-						<button name="run_tests" string="Run Tests" type="object"/>
+						<button name="start" string="Odoo Login" type="object"/>
+						<button name="reload_and_restart" string="Restart" type="object" />
+						<button name="reload" string="Reload" type="object" groups="cicd.group_developer"/>
+						<button name="run_tests" string="Run Tests" type="object" groups="cicd.group_developer"/>
 						<button name="approve" string="Approve" states='to_approve'/>
 						<button name="pgcli" string="SQL" type="object" groups="cicd.group_developer"/>
 						<button name="open_shell" string="Shell" type="object" groups="cicd.group_developer"/>
 						<button name="start_webmailer" string="Webmailer" type="object" groups="cicd.group_developer"/>
 						<button name="start_logs" string="Logs" type="object" groups="cicd.group_developer"/>
-						<!-- at debugging - remove auto created at create-->
-						<field name="state" widget="statusbar" clickable='True'/>
+						<button name="debug_webcontainer" string="Debug" type="object" groups="cicd.group_developer"/>
+						<field name="state" widget="!statusbar" clickable="True"/>
 					</header>
 					<sheet>
 						<group string="Branch" col="4">
-							<field name="name" />
-							<field name="repo_id" />
-							<field name="build_state" />
+							<field name="name" readonly='1' />
+							<field name="repo_id" readonly='1' />
+							<field name="build_state" readonly='1' />
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>
@@ -38,41 +40,6 @@
 										<field name="state" />
 									</tree>
 								</field>
-							</page>
-							<page name="actions" string="Actions">
-								<group col='2'>
-									<button name="reload" string="Reload" type="object"/>
-									<div>
-										Applies configuration files and prepares docker-compose file.
-									</div>
-									<button name="reload_and_restart" string="Restart" type="object" />
-									<div>
-										Stops and restarts all containers.
-									</div>
-								</group>
-								<group string="Debug">
-									<button name="open_shell" string="Open Shell" type="object"/>
-									<div>
-										Opens a command line shell of this odoo instance.
-									</div>
-									<button name="pgcli" string="PSQL/PGCLI" type="object"/>
-									<div>
-										Opens psql to enter sql statements.
-									</div>
-									<button name="debug_webcontainer" string="Debug" type="object"/>
-									<div>
-										Runs odoo webcontainer in debug mode.
-									</div>
-									<button name="start_webmailer" string="Show Webmailer" type="object"/>
-									<div>
-										Shows the web mailer.
-									</div>
-									<button name="start_logs" string="Show Active Logs" type="object"/>
-									<div>
-										Shows the logs outputs of the containers.
-									</div>
-								</group>
-
 							</page>
 							<page name="backup" string="Backup/Restore">
 								<group string="Machine">
