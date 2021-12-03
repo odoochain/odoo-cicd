@@ -14,6 +14,8 @@ class Release(models.Model):
     auto_release_cronjob_id = fields.Many2one('ir.cron', string="Scheduled Release")
     sequence_id = fields.Many2one('ir.sequence', string="Version Sequence", required=True)
     countdown_minutes = fields.Integer("Countdown Minutes")
+    commit_ids = fields.Many2many("cicd.git.commit", "Released Commits")
+    branch_ids = fields.Many2many(related="commit_ids.branch_ids")
 
     @api.recordchange('auto_release')
     def _onchange_autorelease(self):

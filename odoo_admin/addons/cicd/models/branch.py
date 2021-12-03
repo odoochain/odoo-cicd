@@ -42,13 +42,25 @@ class GitBranch(models.Model):
         ('release', 'Release'),
         ('done', "Done"),
         ('cancel', "Cancel"),
-    ], string="State", default="new", required=True, track_visibility='onchange', compute="_compute_state", inverse="_set_state", store=True)
+    ], string="State", default="new", track_visibility='onchange', compute="_compute_state", inverse="_set_state")
+    state_for_groupby = fields.Selection([
+        ('new', 'New'),
+        ('development', "Dev"),
+        ('approve', "Approve"),
+        ('testable', 'Testable'), 
+        ('tested', 'Tested'),
+        ('blocked', "Blocked"),
+        ('candidate', 'Candidate'),
+        ('release', 'Release'),
+        ('done', "Done"),
+        ('cancel', "Cancel"),
+    ], string="State", compute="_compute_state_groupby", required=True, store=True)
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
         ('done', 'Done'),
         ('building', 'Building'),
-    ], default="new", compute="_compute_build_state", string="Instance State")
+    ], default="new", required=True, compute="_compute_build_state", string="Instance State")
     dump_id = fields.Many2one("cicd.dump", string="Dump")
     db_size = fields.Integer("DB Size Bytes")
     db_size_humanize = fields.Char("DB Size", compute="_compute_human")
@@ -108,10 +120,16 @@ class GitBranch(models.Model):
     def set_state(self, state, raise_exception=False):
         self.state = state
 
+    @api.depends('state')
+    def _compute_state_groupby(self):
+        for rec in self:
+            rec.state_for_groupby = 'new'
+
     @api.depends(
         "commit_ids",
         "commit_ids.approval_state",
-        "commit_ids.test_state"
+        "commit_ids.test_state",
+        "commit_ids.force_approved",
     )
     def _compute_state(self):
         for rec in self:
@@ -120,11 +138,20 @@ class GitBranch(models.Model):
                 continue
             commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
 
+            if commit.test_state == 'failed' or commit.approval_state == 'declined':
+                rec.state = 'dev'
+                continue
+
             if commit.test_state == 'success' and commit.approval_state == 'approved':
-                rec.state = ''
+                if rec.block_release:
+                    rec.state = 'blocked'
+                else:
+                    # ........
+                    rec.state = 'tested'
                 continue
         
             rec.state = 'new'
+            rec._compute_state_groupby()
 
     def _set_state(self):
         for rec in self:
