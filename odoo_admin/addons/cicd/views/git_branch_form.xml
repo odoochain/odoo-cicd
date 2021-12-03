@@ -84,7 +84,7 @@
 								</group>
 								<group string="Restore">
 									<div>
-										Select a dump an click restore.
+										Select a dump an click restore. Choose a machine before!
 									</div>
 									<field name="dump_id" domain="[('machine_id', '=', backup_machine_id)]"/>
 									<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>

@@ -97,7 +97,10 @@ class Branch(models.Model):
     def _dump(self, shell, task, logsio, **kwargs):
         volume = task.machine_id._get_volume('dumps')
         logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
-        shell.odoo('backup', 'odoo-db', str(volume / (self.project_name + ".dump.gz")))
+        filename = task.branch_id.backup_filename or (self.project_name + ".dump.gz")
+        if '/' in filename:
+            raise ValidationError("Filename mustn't contain slashses!")
+        shell.odoo('backup', 'odoo-db', str(volume / filename))
         task.machine_id.update_dumps()
 
     def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):

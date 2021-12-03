@@ -58,7 +58,7 @@ class Branch(models.Model):
     def restore_dump(self):
         self.ensure_one()
         self._check_dump_requirements()
-        
+
         self._make_task("_restore_dump", machine=self.backup_machine_id)
 
     def run_tests(self, update_state=True):
