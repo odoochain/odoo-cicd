@@ -9,15 +9,18 @@
 						<button name="start" string="Start Instance" type="object"/>
 						<button name="run_tests" string="Run Tests" type="object"/>
 						<button name="approve" string="Approve" states='to_approve'/>
+						<button name="pgcli" string="SQL" type="object" groups="cicd.group_developer"/>
+						<button name="open_shell" string="Shell" type="object" groups="cicd.group_developer"/>
+						<button name="start_webmailer" string="Webmailer" type="object" groups="cicd.group_developer"/>
+						<button name="start_logs" string="Logs" type="object" groups="cicd.group_developer"/>
 						<!-- at debugging - remove auto created at create-->
-						<field name="state" widget="statusbar"  />
+						<field name="state" widget="statusbar" clickable='True'/>
 					</header>
 					<sheet>
 						<group string="Branch" col="4">
 							<field name="name" />
 							<field name="repo_id" />
 							<field name="build_state" />
-							<field name="dump_id"/>
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>
@@ -30,6 +33,7 @@
 										<button name="perform" string="Perform" type="object" groups="base.group_no_one"/>
 										<field name="display_name" />
 										<field name="duration"/>
+										<field name="machine_id"/>
 										<field name="date" />
 										<field name="state" />
 									</tree>
@@ -68,26 +72,25 @@
 										Shows the logs outputs of the containers.
 									</div>
 								</group>
-								<group string="Backup">
-									<button name="dump" string="Dump" type="object"/>
-									<div>
-										Save database into a file.
-									</div>
-									<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>
-									<div>
-										Restores the selected dump.
-									</div>
-								</group>
-								<group string="Source Code">
-									<button name="update_git_commits" string="Update Git Commits" type="object"/>
-									<div>
-										Fetches new git commits and shows them here.
-									</div>
-
-								</group>
 
 							</page>
-							<page name="config_page" string="Configuration">
+							<page name="backup" string="Backup/Restore">
+								<group string="Machine">
+									<field name="backup_machine_id"/>
+								</group>
+								<group string="Backup">
+									<field name="backup_filename" placeholder="Enter a filename - if empty then project name is used."/>
+									<button name="dump" string="Dump" type="object"/>
+								</group>
+								<group string="Restore">
+									<div>
+										Select a dump an click restore.
+									</div>
+									<field name="dump_id" domain="[('machine_id', '=', backup_machine_id)]"/>
+									<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>
+								</group>
+							</page>
+							<page name="config_page" string="Configuration" groups="cicd.group_developer">
 								<group>
 									<field name="reload_config"/>
 								</group>
@@ -129,7 +132,7 @@
 										</tree>
 									</field>
 								</group>
-								<group string="Quality Assurance Settings" col='4'>
+								<group string="Quality Assurance Settings" col='4' groups="cicd.group_developer">
 									<field name="after_code_review"/>
 									<field name="run_unittests"/>
 									<field name="run_robottests"/>
@@ -149,7 +152,11 @@
 									</tree>
 								</field>
 							</page>
-							<page string="Commits" name="commits">
+							<page string="Commits" name="commits" groups="cicd.group_developer">
+								<div>
+									Fetches new git commits and shows them here.
+								</div>
+								<button name="update_git_commits" string="Update Git Commits" type="object" groups="cicd.group_developer"/>
 								<field name="commit_ids" nolabel="1" readonly="1">
 									<tree>
 										<field name="date" />

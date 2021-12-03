@@ -1,0 +1,9 @@
+<odoo>
+	<data noupdate='0'>
+
+	<record id="group_developer" model="res.groups">
+		<field name="name">cicd.developer</field>
+	</record>
+
+	</data>
+</odoo>

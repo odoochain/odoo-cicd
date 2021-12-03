@@ -17,6 +17,8 @@ class GitBranch(models.Model):
     project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
     machine_id = fields.Many2one(related='repo_id.machine_id')
+    backup_machine_id = fields.Many2one('cicd.machine', string="Machine for backup/restore")
+    backup_filename = fields.Char("Backup Filename")
     last_access = fields.Datetime("Last Access")
     cycle_down_after_seconds = fields.Integer("Cycle Down After Seconds", default=3600)
     name = fields.Char("Git Branch", required=True)

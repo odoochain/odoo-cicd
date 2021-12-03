@@ -86,14 +86,12 @@ class Repository(models.Model):
             if file.exists():
                 file.unlink()
 
-
     def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None, machine=None):
         self.ensure_one()
         from . import MAIN_FOLDER_NAME
         machine = machine or self.machine_id
         path = Path(machine.workspace) / (MAIN_FOLDER_NAME + "_" + self.short)
         self.clone_repo(machine, path, logsio)
-
 
         if destination_folder:
             temppath = destination_folder
@@ -189,7 +187,7 @@ class Repository(models.Model):
                         })
                         branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
-                    shell.X(["git", "checkout", "-f", self.default_branch])
+                    shell.X(["git", "checkout", "-f", repo.default_branch])
                     del name
 
     def _lock_git(self): 
