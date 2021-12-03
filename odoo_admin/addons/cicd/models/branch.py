@@ -45,7 +45,7 @@ class GitBranch(models.Model):
     ], string="State", default="new", track_visibility='onchange', compute="_compute_state", inverse="_set_state")
     state_for_groupby = fields.Selection([
         ('new', 'New'),
-        ('development', "Dev"),
+        ('dev', "Dev"),
         ('approve', "Approve"),
         ('testable', 'Testable'), 
         ('tested', 'Tested'),
