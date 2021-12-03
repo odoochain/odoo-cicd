@@ -30,9 +30,14 @@ class Branch(models.Model):
         self.ensure_one()
         self._make_task("_create_empty_db")
 
+    def _check_dump_requirements(self):
+        if not self.backup_machine_id:
+            raise ValidationError(_("Please choose a machine where dump/restoring happens."))
+
     def dump(self):
         self.ensure_one()
-        self._make_task("_dump")
+        self._check_dump_requirements()
+        self._make_task("_dump", machine=self.backup_machine_id)
 
     def turn_into_dev(self):
         self.ensure_one()
@@ -52,7 +57,9 @@ class Branch(models.Model):
 
     def restore_dump(self):
         self.ensure_one()
-        self._make_task("_restore_dump")
+        self._check_dump_requirements()
+        
+        self._make_task("_restore_dump", machine=self.backup_machine_id)
 
     def run_tests(self, update_state=True):
         self.ensure_one()
