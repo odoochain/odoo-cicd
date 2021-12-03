@@ -28,12 +28,12 @@ class GitBranch(models.Model):
     repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True)
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
-    success_tested_commit_ids = fields.Many2many('cicd.git.commit', 'cicd_git_branch_success_commit_ids', 'branch_id', 'commit_id', string="Success Commits")
+    ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
     state = fields.Selection([
         ('new', 'New'),
-        ('development', "Dev"),
+        ('dev', "Dev"),
         ('approve', "Approve"),
         ('testable', 'Testable'), 
         ('tested', 'Tested'),
@@ -123,7 +123,7 @@ class GitBranch(models.Model):
     @api.depends('state')
     def _compute_state_groupby(self):
         for rec in self:
-            rec.state_for_groupby = 'new'
+            rec.state_for_groupby = self.state
 
     @api.depends(
         "commit_ids",
@@ -136,13 +136,33 @@ class GitBranch(models.Model):
             if not rec.commit_ids and rec.build_state == 'new':
                 rec.state = 'new'
                 continue
+            import pudb;pudb.set_trace()
             commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
+
+            if commit.approval_state == 'check':
+                rec.state = 'approve'
+                continue
+
+            if commit.approval_state == 'approved' and commit.test_state in [False, 'open']:
+                rec.state = 'testable'
+                continue
 
             if commit.test_state == 'failed' or commit.approval_state == 'declined':
                 rec.state = 'dev'
                 continue
 
             if commit.test_state == 'success' and commit.approval_state == 'approved':
+
+                repo = commit.mapped('branch_ids.repo_id')
+                releases = repo.release_ids
+                candidates = releases.mapped('candidate_branch_id')
+                branches = releases.mapped('branch_id')
+                
+                if repo.
+                if commit.repo_id.
+
+
+
                 if rec.block_release:
                     rec.state = 'blocked'
                 else:
@@ -151,7 +171,13 @@ class GitBranch(models.Model):
                 continue
         
             rec.state = 'new'
-            rec._compute_state_groupby()
+
+    @api.depends("name")
+    def _compute_ticket_system_url(self):
+        for rec in self:
+            url = rec.repo_id.ticket_system_base_url
+            regex = rec.repo_id.ticket_system_regex
+            rec.ticket_system_url = url + rec.name
 
     def _set_state(self):
         for rec in self:
@@ -160,23 +186,8 @@ class GitBranch(models.Model):
 
     @api.fieldchange("state")
     def _onchange_state(self, changeset):
-        for rec in self:
-            import pudb;pudb.set_trace()
-            F = changeset['state']
-            if F['old'] == 'to_approve' and F['new'] == 'approved':
-                if rec.run_unittests or rec.run_robottests or rec.simulate_empty_install or rec.simulate_install_id:
-                    rec.state = 'to_test'
-                    rec.run_tests(update_state=True)
-                elif rec.block_release == 'deploy':
-                    rec.state = 'to_deploy'
-                else:
-                    rec.state = 'approved'
-            elif F['new'] == 'tested':
-                self.success_tested_commit_ids = [[6, 0, self.commit_ids.ids]]
-                if rec.after_code_review == 'deploy':
-                    rec.state = 'to_deploy'
-                else:
-                    rec.state = 'tested'
+        import pudb;pudb.set_trace()
+        self._compute_state_groupby()
 
     def _compute_test_runs(self):
         for rec in self:

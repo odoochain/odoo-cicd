@@ -38,6 +38,9 @@ class Repository(models.Model):
     branch_ids = fields.One2many('cicd.git.branch', 'repo_id', string="Branches")
     url = fields.Char(compute="_compute_url")
     default_branch = fields.Char(default="master", required=True)
+    ticket_system_base_url = fields.Char("Ticket System Base URL")
+    ticket_system_regex = fields.Char("Ticket System Regex")
+    release_ids = fields.One2many('cicd.release', 'repo_id', string="Releases")
 
     _sql_constraints = [
         ('name_unique', "unique(named)", _("Only one unique entry allowed.")),
@@ -124,18 +127,22 @@ class Repository(models.Model):
         self._cron_fetch()
 
     @api.model
+    def _get_git_non_interactive(self):
+        env = {
+            "GIT_ASK_YESNO": "false",
+            "GIT_SSH_COMMAND": f'ssh -o StrictHostKeyChecking=no',
+            "GIT_TERMINAL_PROMPT": "0",
+        }
+        return env
+
+    @api.model
     def _cron_fetch(self):
         for repo in self.search([]):
             self._lock_git()
             logsio = LogsIOWriter(repo.name, 'fetch')
                 
             repo_path = repo._get_main_repo(logsio=logsio)
-
-            env = {
-                "GIT_ASK_YESNO": "false",
-                "GIT_SSH_COMMAND": f'ssh -o StrictHostKeyChecking=no',
-                "GIT_TERMINAL_PROMPT": "0",
-            }
+            env = self._get_git_non_interactive()
             with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
                 shell.X(["git", "clean", "-xdff"])
                 all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")

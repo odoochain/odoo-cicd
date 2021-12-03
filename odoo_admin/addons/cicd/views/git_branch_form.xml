@@ -25,6 +25,7 @@
 							<field name="repo_id" readonly='1' />
 							<field name="build_state" readonly='1' />
 							<field name="block_release"/>
+							<field name="ticket_system_url" widget="url"/>
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>

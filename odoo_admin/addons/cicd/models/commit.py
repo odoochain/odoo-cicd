@@ -18,6 +18,7 @@ class GitCommit(models.Model):
         ('failed', 'Failed'),
     ])# TODO undo, compute="_compute_test_state")
     approval_state = fields.Selection([
+        ('check', "Check"),
         ('approved', 'Approved'),
         ('declined', 'Declined'),
     ])
