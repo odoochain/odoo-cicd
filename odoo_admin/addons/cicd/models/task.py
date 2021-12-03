@@ -103,8 +103,8 @@ class Task(models.Model):
                     obj = self.env[self.model].sudo().browse(self.res_id)
                     sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
                     commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
-                    if not commit:
-                        raise ValidationError(f"Commit {sha} not found in branch.")
+                    # if not commit:
+                    #     raise ValidationError(f"Commit {sha} not found in branch.")
                     self.sudo().commit_id = commit
                     # get current commit
                     args = {

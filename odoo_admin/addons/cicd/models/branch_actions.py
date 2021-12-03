@@ -105,6 +105,8 @@ class Branch(models.Model):
 
     def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):
         self.ensure_one()
+        import pudb;pudb.set_trace()
+        self._checkout_latest(shell, self.machine_id, logsio)
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
         with shell.shell() as shell:
 

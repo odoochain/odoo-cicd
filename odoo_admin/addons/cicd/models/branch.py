@@ -179,7 +179,7 @@ class GitBranch(models.Model):
         tasks.perform()
 
     def _get_instance_folder(self, machine):
-        return machine._get_volume('source') / self.name
+        return machine._get_volume('source') / self.project_name
 
     @contextmanager
     def _shellexec(self, task, logsio, cwd=None):
