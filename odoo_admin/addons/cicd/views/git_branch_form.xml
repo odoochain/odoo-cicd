@@ -16,7 +16,7 @@
 						<button name="start_webmailer" string="Webmailer" type="object" groups="cicd.group_developer"/>
 						<button name="start_logs" string="Logs" type="object" groups="cicd.group_developer"/>
 						<button name="debug_webcontainer" string="Debug" type="object" groups="cicd.group_developer"/>
-						<field name="state" widget="!statusbar" clickable="True"/>
+						<field name="state" widget="statusbar" options="{'clickable': 1}"/>
 					</header>
 					<sheet>
 						<group string="Branch" col="4">
