@@ -216,7 +216,7 @@ class Repository(models.Model):
                         logsio=logsio,
                     )
 
-    def _collect_branches(self, target_branch, logsio):
+    def _collect_branches(self, source_branches, target_branch, logsio):
         """
         Iterate all branches and get the latest commit that fall into the countdown criteria.
         """
@@ -224,31 +224,34 @@ class Repository(models.Model):
         import pudb;pudb.set_trace()
 
         # we use a working repo
+        assert target_branch._name == 'cicd.git.branch'
+        assert target_branch
+        assert source_branches == 'cicd.git.branch'
         repo = self.release_id.repo_id
         machine = repo.machine_id
         repo_path = self.release_id.repo_id._get_main_repo(tempfolder=True)
+        env = repo._get_git_non_interactive()
         with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
             try:
-                env = repo._get_git_non_interactive()
 
                 # clear the current candidate
-                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + repo.candidate_branch_id.name)
+                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + target_branch])
                 if not res.return_code:
-                    shell.X(["/usr/bin/git", "branch", "-D", repo.candidate_branch_id.name, "-f", branch.name])
-                logsio.info(f"Pulling master branch {repo.branch_id.name}")
-                shell.X(["/usr/bin/git", "checkout", "-f", repo.branch_id.name])
-                logsio.info(f"Pulling master branch {repo.branch_id.name}")
+                    shell.X(["/usr/bin/git", "branch", "-D", target_branch])
+                logsio.info("Pulling branch {target_branch}")
+                shell.X(["/usr/bin/git", "checkout", "-f", target_branch])
+                logsio.info("Pulling branch {repo.branch_id.name}")
                 shell.X(["/usr/bin/git", "pull"])
-                logsio.info(f"Making candidate branch {repo.candidate_branch_id.name}")
+                logsio.info("Making target branch {target_branch}")
                 shell.X(["/usr/bin/git", "checkout", "-b", repo.candidate_branch_id.name])
 
-                for branch in self.branch_ids:
+                for branch in source_branches:
                     for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
                         if self.final_curtain:
                             if commit.date > self.final_curtain:
                                 continue
 
-                        if not commit.force_approved and (commit.test_state != 'successful' or commit.approval_state != 'approved'):
+                        if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
                             continue
 
                         self.commit_ids = [[4, commit.id]]
@@ -256,9 +259,11 @@ class Repository(models.Model):
                         # we use git functions to retrieve deltas, git sorting and so;
                         # we want to rely on stand behaviour git.
                         shell.X(["/usr/bin/git", "checkout", "-f", branch.name])
-                        commits = shell.X(["/usr/bin/git", "log", "--pretty=format:%H", f"..{commit.name}"]).output.strip().split("\n")
-                        for commit in commits:
-                            # if 
+                        shell.X(["/usr/bin/git", "reset", "--hard", commit.name])
+                        shell.X(["/usr/bin/git", "checkout", "-f", target_branch.name])
+                        shell.X(["/usr/bin/git", "merge", "-f", branch.name])
+                        shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch.name])
+
 
             finally:
                 shell.X(["rm", "-Rf", repo_path])

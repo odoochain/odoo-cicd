@@ -64,6 +64,7 @@ class ReleaseItem(models.Model):
     release_id = fields.Many2one('cicd.release', string="Release")
     planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now())
     done_date = fields.Datetime("Done")
+    changed_lines = fields.Integer("Changed Lines")
     final_curtain = fields.Datetime("Final Curtains")
 
     diff_commit_ids = fields.Many2many('cicd.git.commit', string="New Commits", compute="_compute_diff_commits", help="Commits that are new since the last release")
@@ -82,13 +83,32 @@ class ReleaseItem(models.Model):
 
     def do_release(self):
         self.ensure_one()
-        logsio = LogsIOWriter(self.release_id.repo_id.short, "Release")
+        for machine in self.machine_ids:
+            res = self.repo_id._merge(
+                self.release_id.candidate_branch_id,
+                self.release_id.branch_id,
+            )
+            if not res.diffs_exists:
+                self._on_done()
+                continue
 
-        self._select_latest_commits(logsio=logsio)
-        if not self.commit_ids:
-            return
+            raise NotImplementedError("Go to machine pull and update")
+
 
     def collect_branches_on_candidate(self, logsio):
+        logsio = LogsIOWriter(self.release_id.repo_id.short, "Release")
+        self.repo_id._collect_branches(
+            source_branches=self.release_id.branch_ids,
+            target_branch=self.release_id.candidate_branch_id,
+            logsio=logsio,
+        )
+
+    def on_done(self):
+        if not self.changed_lines:
+            msg = "Nothing new to deploy"
+        msg = '\n'.join(filter(bool, self.mapped('commit_ids.branch_ids.enduser_summary')))
+        self.release_id.message_post(body=msg)
+        self.done_date = fields.Datetime.now()
     
     @api.model
     def create(self, vals):
