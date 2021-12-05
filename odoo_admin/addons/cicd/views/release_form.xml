@@ -7,11 +7,13 @@
 				<form string="">
 					<header>
 						<button string="Collect Branches" name="collect_branches_on_candidate" class="oe_highlight" type="object"/>
+						<button string="Make Hotfix" name="make_hotfix" type="object"/>
 						<field name="state" widget="statusbar" />
 					</header>
 					<sheet>
 						<group string="Release" col="2">
 							<field name="name" />
+							<field name="project_name"/>
 							<field name="branch_id"/>
 							<field name="candidate_branch_id" />
 							<field name="machine_ids" widget="many2many_tags" required='1' />
@@ -28,6 +30,7 @@
 									<tree>
 										<field name="name"/>
 										<field name="release_type"/>
+										<field name="branch_ids" widget='many2many_tags'/>
 										<field name="final_curtain"/>
 										<field name="planned_date"/>
 										<field name="done_date"/>

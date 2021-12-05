@@ -17,6 +17,7 @@
 						<field name="final_curtain"/>
 						<field name="release_type"/>
 						<field name="computed_summary"/>
+						<field name="branch_ids"/>
 					</group>
 					<notebook>
 							<page string="New Commits">

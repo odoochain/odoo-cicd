@@ -6,6 +6,7 @@ class Release(models.Model):
     _name = 'cicd.release'
 
     name = fields.Char("Name", required=True)
+    project_name = fields.Char("Project Name", required=True, help="techincal name - no special characters")
     machine_ids = fields.Many2many('cicd.machine', string="Machines")
     repo_id = fields.Many2one(related="branch_id.repo_id", string="Repo", store=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Branch", required=True)
@@ -17,6 +18,22 @@ class Release(models.Model):
     countdown_minutes = fields.Integer("Countdown Minutes")
     is_latest_release_done = fields.Boolean("Latest Release Done", compute="_compute_latest_release_done")
     state = fields.Selection(related='item_ids.state')
+    interval = fields.Selection([('daily', "Daily"), 
+
+    @api.constrains(project_name)
+    def _check_project_name(self):
+        for rec in self:
+            for c in " !?#/\\+:,":
+                if c in rec.project_name:
+                    raise ValidationError("Invalid Project-Name")
+
+    def make_hotfix(self):
+        existing = self.item_ids.filtered(lambda x: x.release_type == 'hotfix' and x.state not in ['done', 'failed'])
+        if existing:
+            raise ValidationError("Hotfix already exists. Please finish it before")
+        self.item_ids = [[0, 0, {
+            'release_type': 'hotfix',
+        }]]
 
     def _compute_latest_release_done(self):
         for rec in self:
@@ -65,6 +82,7 @@ class Release(models.Model):
             new_items = self.item_ids.create({
                 'release_id': self.id,
                 'release_type': 'standard',
+                'final_curtain': 
             })
         
         # check branches to put on the release
@@ -88,7 +106,7 @@ class Release(models.Model):
         )
 
     def _ensure_item(self):
-        items = self.item_ids.sorted(lambda x: x.id, reverse=True)
+        items = self.item_ids.sorted(lambda x: x.id, reverse=True).filtered(lambda x: x. release_type == 'standard')
         if not items or items[0].state in ['done', 'failed']:
             items = self.item_ids.create({
                 'release_id': self.id,
@@ -100,18 +118,10 @@ class Release(models.Model):
     def do_release(self):
         self.ensure_one()
         logsio = self._get_logsio()
-        self.ensure_item()
-        for machine in self.machine_ids:
-            res = self.repo_id._merge(
-                self.release_id.candidate_branch_id,
-                self.release_id.branch_id,
-            )
-            if not res.diffs_exists:
-                self._on_done()
-                continue
-
-            raise NotImplementedError("Go to machine pull and update")
-
+        item = self.item_ids.filtered(lambda x: x.state == 'new')
+        if not item:
+            return
+        item._do_release()
 
 class ReleaseItem(models.Model):
     _name = 'cicd.release.item'
@@ -123,8 +133,9 @@ class ReleaseItem(models.Model):
     done_date = fields.Datetime("Done")
     changed_lines = fields.Integer("Changed Lines")
     final_curtain = fields.Datetime("Final Curtains")
+    log_release = fields.Text("Log")
 
-    diff_commit_ids = fields.Many2many('cicd.git.commit', string="New Commits", compute="_compute_diff_commits", help="Commits that are new since the last release")
+    # diff_commit_ids = fields.Many2many('cicd.git.commit', string="New Commits", compute="_compute_diff_commits", help="Commits that are new since the last release")
     state = fields.Selection([
         ("new", "New"),
         ("ready", "Ready"),
@@ -162,12 +173,33 @@ class ReleaseItem(models.Model):
                 summary.append(f"* {branch.enduser_summary}")
             rec.computed_summary = '\n'.join(summary)
 
-    def _compute_diff_commits(self):
-        for rec in self:
-            previous_release = self.release_id.item_ids.filtered(
-                lambda x: x.id < rec.id).sorted(
-                    lambda x: x.id, reverse=True)
-            if not previous_release:
-                rec.diff_commit_ids = [[6, 0, []]]
-            else:
-                rec.diff_commit_ids = [[6, 0, (rec.commit_ids - previous_release[0].commit_ids).ids]]
+    # def _compute_diff_commits(self):
+    #     for rec in self:
+    #         previous_release = self.release_id.item_ids.filtered(
+    #             lambda x: x.id < rec.id).sorted(
+    #                 lambda x: x.id, reverse=True)
+    #         if not previous_release:
+    #             rec.diff_commit_ids = [[6, 0, []]]
+    #         else:
+    #             rec.diff_commit_ids = [[6, 0, (rec.commit_ids - previous_release[0].commit_ids).ids]]
+
+    def _do_release(self):
+        self.ensure_item()
+        logs = self.release_id._get_logs()
+        for machine in self.release_id.machine_ids:
+            res = self.repo_id._merge(
+                self.release_id.candidate_branch_id,
+                self.release_id.branch_id,
+            )
+            if not res.diffs_exists:
+                self._on_done()
+                continue
+
+            path = machine._get_volume("source") / self.release_id.project_name
+            self.repo_id._get_main_repo(destination_folder=path, machine=machine)
+            with machine._shell_exec(cwd=path, logsio=logsio) as shell:
+                shell.X("odoo", "reload")
+                shell.X("odoo", "build")
+                shell.X("odoo", "update")
+
+        self.log = logs.get_final_text()
