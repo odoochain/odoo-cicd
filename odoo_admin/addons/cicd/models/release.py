@@ -195,6 +195,7 @@ class ReleaseItem(models.Model):
     def _do_release(self):
         self.ensure_item()
         logsio = self.release_id._get_logs()
+        import pudb;pudb.set_trace()
         for machine in self.release_id.machine_ids:
             res = self.repo_id._merge(
                 self.release_id.candidate_branch_id,

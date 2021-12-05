@@ -9,6 +9,7 @@
 						<button name="test_ssh" string="Test SSH Connection" type="object" />
 						<button name="generate_ssh_key" string="Generate SSH Key" type="object" confirm="Old key will be lost. Continue?"/>
 						<button name="update_all_values" string="Update All Values" type="object" />
+						<button name="springclean" string="Spring Clean" type="object" />
 					</header>
 					<sheet>
 						<div class="oe_title">

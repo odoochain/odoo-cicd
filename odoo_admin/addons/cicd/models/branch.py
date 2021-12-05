@@ -274,3 +274,9 @@ class GitBranch(models.Model):
             if not rec.backup_filename: continue
             if '/' in rec.backup_filename:
                 raise ValidationError("No slashes in backup filename allowed!")
+
+    @api.constrains('active')
+    def _on_active_change(self):
+        for rec in self:
+            if not rec.active:
+                
