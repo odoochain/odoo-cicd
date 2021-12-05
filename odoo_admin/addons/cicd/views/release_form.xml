@@ -5,6 +5,10 @@
 			<field name="model">cicd.release</field>
 			<field name="arch" type="xml">
 				<form string="">
+					<header>
+						<button string="Collect Branches" name="collect_branches_on_candidate" class="oe_highlight" type="object"/>
+						<field name="state" widget="statusbar" />
+					</header>
 					<sheet>
 						<group string="Release" col="2">
 							<field name="name" />

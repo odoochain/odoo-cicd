@@ -16,6 +16,7 @@ class Release(models.Model):
     sequence_id = fields.Many2one('ir.sequence', string="Version Sequence", required=True)
     countdown_minutes = fields.Integer("Countdown Minutes")
     is_latest_release_done = fields.Boolean("Latest Release Done", compute="_compute_latest_release_done")
+    state = fields.Selection(related='item_ids.state')
 
     def _compute_latest_release_done(self):
         for rec in self:
@@ -65,6 +66,44 @@ class Release(models.Model):
             'release_type': 'standard',
         }]]
 
+    def _get_logsio(self):
+        logsio = LogsIOWriter(self.repo_id.short, "Release")
+        return logsio
+
+    def collect_branches_on_candidate(self):
+        logsio = self._get_logsio()
+        item = self._ensure_item()
+        self.repo_id._collect_branches(
+            source_branches=item.branch_ids,
+            target_branch=self.candidate_branch_id,
+            logsio=logsio,
+        )
+
+    def _ensure_item(self):
+        items = self.item_ids.sorted(lambda x: x.id, reverse=True)
+        if not items or items[0].state in ['done', 'failed']:
+            items = self.item_ids.create({
+            })
+        else:
+            items = items[0]
+        return items
+
+    def do_release(self):
+        self.ensure_one()
+        logsio = self._get_logsio()
+        self.ensure_item()
+        for machine in self.machine_ids:
+            res = self.repo_id._merge(
+                self.release_id.candidate_branch_id,
+                self.release_id.branch_id,
+            )
+            if not res.diffs_exists:
+                self._on_done()
+                continue
+
+            raise NotImplementedError("Go to machine pull and update")
+
+
 class ReleaseItem(models.Model):
     _name = 'cicd.release.item'
     _order = 'id desc'
@@ -81,6 +120,7 @@ class ReleaseItem(models.Model):
         ("new", "New"),
         ("ready", "Ready"),
         ('done', 'Done'),
+        ('failed', 'Failed'),
     ], string="State")
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.")
@@ -91,27 +131,6 @@ class ReleaseItem(models.Model):
         ('hotfix', 'Hotfix'),
     ], default="standard", required=True, readonly=True)
 
-    def do_release(self):
-        self.ensure_one()
-        for machine in self.machine_ids:
-            res = self.repo_id._merge(
-                self.release_id.candidate_branch_id,
-                self.release_id.branch_id,
-            )
-            if not res.diffs_exists:
-                self._on_done()
-                continue
-
-            raise NotImplementedError("Go to machine pull and update")
-
-
-    def collect_branches_on_candidate(self, logsio):
-        logsio = LogsIOWriter(self.release_id.repo_id.short, "Release")
-        self.repo_id._collect_branches(
-            source_branches=self.release_id.branch_ids,
-            target_branch=self.release_id.candidate_branch_id,
-            logsio=logsio,
-        )
 
     def on_done(self):
         if not self.changed_lines:
