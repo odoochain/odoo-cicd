@@ -83,6 +83,13 @@ class GitBranch(models.Model):
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
 
+    @api.model
+    def create(self, vals):
+        if not vals.get('state_for_groupby'):
+            vals['state_for_groupby'] = 'new'
+        res = super().create(vals)
+        return res
+
     def _compute_releases(self):
         for rec in self:
             release_items = self.env['cicd.release.item'].search([
@@ -181,7 +188,6 @@ class GitBranch(models.Model):
 
     @api.fieldchange("state")
     def _onchange_state(self, changeset):
-        import pudb;pudb.set_trace()
         self._compute_state_groupby()
 
     def _compute_test_runs(self):
