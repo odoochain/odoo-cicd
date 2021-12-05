@@ -19,7 +19,7 @@
 						<field name="computed_summary"/>
 						<field name="branch_ids"/>
 					</group>
-					<notebook>
+					<!-- <notebook>
 							<page string="New Commits">
 								<field name="diff_commit_ids">
 									<tree>
@@ -30,7 +30,7 @@
 								</field>
 							</page>
 
-					</notebook>
+					</notebook> -->
 
 				</sheet>
 			</form>

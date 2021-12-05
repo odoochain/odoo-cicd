@@ -81,6 +81,7 @@ class CicdMachine(models.Model):
     db_user = fields.Char("DB User", default="cicd")
     db_pwd = fields.Char("DB Password", default="cicd_is_cool")
     db_port = fields.Integer("DB Port", default=5432)
+    database_ids = fields.One2many('cicd.database', 'machine_id', string="Databases")
 
     ssh_user_cicdlogin = fields.Char(compute="_compute_ssh_user_cicd_login")
     ssh_user_cicdlogin_password_salt = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
@@ -238,23 +239,6 @@ class CicdMachine(models.Model):
         if not res:
             raise ValidationError(_("Could not find: {}").format(ttype))
         return Path(res[0].name)
-
-    def restart_delegator(self):
-        docker_project_name = os.environ['PROJECT_NAME']
-        names = []
-        names.append(f"{docker_project_name}_cicd_delegator")
-        names.append(f"{docker_project_name}_nginx")
-        for name in names:
-            containers = docker.containers.list(all=True, filters={'name': [name]})
-            for container in containers:
-                try:
-                    container.stop()
-                except Exception:
-                    logger.info(f"Container not stoppable - maybe ok: {container.name}")
-                container.start()
-        return jsonify({
-            'result': 'ok',
-        })
 
     def cleanup(self, shell, **args):
         """

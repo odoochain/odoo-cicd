@@ -1,3 +1,4 @@
+import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
@@ -18,9 +19,9 @@ class Release(models.Model):
     countdown_minutes = fields.Integer("Countdown Minutes")
     is_latest_release_done = fields.Boolean("Latest Release Done", compute="_compute_latest_release_done")
     state = fields.Selection(related='item_ids.state')
-    interval = fields.Selection([('daily', "Daily"), 
+    planned_timestamp_after_preparation = fields.Integer("Release after preparation in minutes", default=60)
 
-    @api.constrains(project_name)
+    @api.constrains("project_name")
     def _check_project_name(self):
         for rec in self:
             for c in " !?#/\\+:,":
@@ -78,11 +79,13 @@ class Release(models.Model):
     def _cron_prepare_release(self):
         self.ensure_one()
         new_items = self.item_ids.filtered(lambda x: x.state == 'new')
+        final_curtain_dt = arrow.get().shift(minutes=self.countdown_minutes).datetime,
         if not new_items:
             new_items = self.item_ids.create({
                 'release_id': self.id,
                 'release_type': 'standard',
-                'final_curtain': 
+                'final_curtain': final_curtain_dt,
+                'planned_date': arrow.get().shift(minutes=self.planned_timestamp_after_preparation),
             })
         
         # check branches to put on the release
@@ -91,6 +94,9 @@ class Release(models.Model):
             if branch.state == 'candidate':
                 branches |= branch
         new_items.branch_ids = [[6, 0, branches.ids]]
+
+        # if release did not happen or so, then update final curtain:
+        new_items.final_curtain = final_curtain_dt
 
     def _get_logsio(self):
         logsio = LogsIOWriter(self.repo_id.short, "Release")
@@ -121,6 +127,9 @@ class Release(models.Model):
         item = self.item_ids.filtered(lambda x: x.state == 'new')
         if not item:
             return
+        if item.planned_date > arrow.get().datetime:
+            return
+
         item._do_release()
 
 class ReleaseItem(models.Model):
@@ -185,7 +194,7 @@ class ReleaseItem(models.Model):
 
     def _do_release(self):
         self.ensure_item()
-        logs = self.release_id._get_logs()
+        logsio = self.release_id._get_logs()
         for machine in self.release_id.machine_ids:
             res = self.repo_id._merge(
                 self.release_id.candidate_branch_id,
@@ -195,6 +204,15 @@ class ReleaseItem(models.Model):
                 self._on_done()
                 continue
 
+            main_repo_path = self.release_id.repo_id._get_main_repo(tempfolder=True)
+            with self.release_id.repo_id.machine_id._shell_exec(cwd=main_repo_path, logsio=logsio) as shell:
+                try:
+                    shell.X("git", "checkout", "-f", self.release_id.branch_id.name)
+                    shell.X("git", "tag", "-f", self.name)
+                    shell.X("git", "push", "--follow-tags")
+                finally:
+                    shell.X("rm", "-Rf", main_repo_path)
+
             path = machine._get_volume("source") / self.release_id.project_name
             self.repo_id._get_main_repo(destination_folder=path, machine=machine)
             with machine._shell_exec(cwd=path, logsio=logsio) as shell:
@@ -202,4 +220,4 @@ class ReleaseItem(models.Model):
                 shell.X("odoo", "build")
                 shell.X("odoo", "update")
 
-        self.log = logs.get_final_text()
+        self.log = logsio.get_lines()
