@@ -172,8 +172,6 @@ class GitBranch(models.Model):
                     rec.state = 'candidate'
                 elif rec.block_release:
                     rec.state = 'blocked'
-            else:
-                raise NotImplementedError("unknown state")
 
     @api.depends("name")
     def _compute_ticket_system_url(self):
