@@ -130,7 +130,7 @@ class ReleaseItem(models.Model):
         ("ready", "Ready"),
         ('done', 'Done'),
         ('failed', 'Failed'),
-    ], string="State")
+    ], string="State", state='new')
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.")
     branch_ids = fields.Many2one('cicd.git.branch', string="Merged Branches")
