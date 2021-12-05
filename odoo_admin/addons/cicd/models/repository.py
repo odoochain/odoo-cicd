@@ -96,12 +96,11 @@ class Repository(models.Model):
         path = Path(machine.workspace) / (MAIN_FOLDER_NAME + "_" + self.short)
         self.clone_repo(machine, path, logsio)
 
+        temppath = None
         if destination_folder:
             temppath = destination_folder
         elif tempfolder:
             temppath = tempfile.mktemp()
-        else:
-            temppath = None
         if temppath:
             with machine._shellexec(self.machine_id.workspace, logsio=logsio) as shell:
                 shell.X(['rsync', f"{path}/", f"{temppath}/", "-ar"])

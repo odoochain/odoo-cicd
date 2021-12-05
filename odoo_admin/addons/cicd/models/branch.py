@@ -133,44 +133,37 @@ class GitBranch(models.Model):
     )
     def _compute_state(self):
         for rec in self:
+            rec.state = 'new'
             if not rec.commit_ids and rec.build_state == 'new':
-                rec.state = 'new'
                 continue
-            import pudb;pudb.set_trace()
+
             commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
 
             if commit.approval_state == 'check':
                 rec.state = 'approve'
-                continue
 
-            if commit.approval_state == 'approved' and commit.test_state in [False, 'open']:
+            elif commit.approval_state == 'approved' and commit.test_state in [False, 'open']:
                 rec.state = 'testable'
-                continue
 
-            if commit.test_state == 'failed' or commit.approval_state == 'declined':
+            elif commit.test_state == 'failed' or commit.approval_state == 'declined':
                 rec.state = 'dev'
-                continue
 
-            if commit.test_state == 'success' and commit.approval_state == 'approved':
+            elif commit.test_state == 'success' and commit.approval_state == 'approved':
 
                 repo = commit.mapped('branch_ids.repo_id')
-                releases = repo.release_ids
+                releases = repo.release_ids.filtered(lambda x: rec in x.mapped('item_ids.branch_ids'))
                 candidates = releases.mapped('candidate_branch_id')
                 branches = releases.mapped('branch_id')
-                
-                if repo.
-                if commit.repo_id.
 
-
-
-                if rec.block_release:
+                if any(x.contains_branch(commit) for x in branches):
+                    if releases.is_latest_release_done:
+                        rec.state = 'done'
+                    else:
+                        rec.state = 'release'
+                elif any(x.contains_branch(commit) for x in candidates):
+                    rec.state = 'candidate'
+                elif rec.block_release:
                     rec.state = 'blocked'
-                else:
-                    # ........
-                    rec.state = 'tested'
-                continue
-        
-            rec.state = 'new'
 
     @api.depends("name")
     def _compute_ticket_system_url(self):

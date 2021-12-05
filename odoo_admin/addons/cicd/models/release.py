@@ -1,6 +1,6 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
-from odoo_admin.addons.cicd.tools.logsio_writer import LogsIOWriter
+from ..tools.logsio_writer import LogsIOWriter
 class Release(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.release'
@@ -15,6 +15,15 @@ class Release(models.Model):
     auto_release_cronjob_id = fields.Many2one('ir.cron', string="Scheduled Release")
     sequence_id = fields.Many2one('ir.sequence', string="Version Sequence", required=True)
     countdown_minutes = fields.Integer("Countdown Minutes")
+    is_latest_release_done = fields.Boolean("Latest Release Done", compute="_compute_latest_release_done")
+
+    def _compute_latest_release_done(self):
+        for rec in self:
+            items = rec.item_ids.sorted(lambda x: x.create_date, reverse=True)
+            if not items:
+                rec.is_latest_release_done = False
+            else:
+                rec.is_latest_release_done = items[0].date_done
 
     @api.constrains("candidate_branch_id", "branch_id")
     def _check_branches(self):
@@ -71,6 +80,7 @@ class ReleaseItem(models.Model):
     state = fields.Selection([
         ("new", "New"),
         ("ready", "Ready"),
+        ('done', 'Done'),
     ], string="State")
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.")

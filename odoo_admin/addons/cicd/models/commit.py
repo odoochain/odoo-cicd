@@ -1,5 +1,7 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
+import spur
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from ..tools.logsio_writer import LogsIOWriter
 
 class GitCommit(models.Model):
     _inherit = ['mail.thread']
@@ -16,7 +18,7 @@ class GitCommit(models.Model):
     test_state = fields.Selection([
         ('success', 'Success'),
         ('failed', 'Failed'),
-    ])# TODO undo, compute="_compute_test_state")
+    ], compute="_compute_test_state")
     approval_state = fields.Selection([
         ('check', "Check"),
         ('approved', 'Approved'),
@@ -64,3 +66,21 @@ class GitCommit(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
+
+    # TODO caching
+    def contains_commit(self, commit):
+        self.ensure_one()
+        repo = self.mapped('branch_ids.repo_id')
+
+        logsio = LogsIOWriter("contains_commit", "Check")
+
+        repo_path = repo._get_main_repo(logsio=logsio, machine=repo.machine_id)
+        with repo.machine_id._shellexec(repo_path, logsio=logsio) as shell:
+            try:
+                test = shell.X(['git', 'merge-base', commit.name, self.name], allow_error=False)  # order seems to be egal
+            except spur.results.RunProcessError as ex:
+                if 'fatal: Not a valid commit name' in ex.stderr_output:
+                    return False
+                else:
+                    raise
+            return not test.return_code

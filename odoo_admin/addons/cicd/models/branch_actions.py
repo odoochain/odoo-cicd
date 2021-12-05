@@ -213,71 +213,71 @@ class Branch(models.Model):
             else:
                 self.state = 'tested'
 
-    def _transform_input_dump():
-        dump = Path(request.args['dump'])
-        erase = request.args['erase'] == '1'
-        anonymize = request.args['anonymize'] == '1'
-        site = 'master'
-        logger = LogsIOWriter("input_dump", f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}")
+    # def _transform_input_dump():
+    #     dump = Path(request.args['dump'])
+    #     erase = request.args['erase'] == '1'
+    #     anonymize = request.args['anonymize'] == '1'
+    #     site = 'master'
+    #     logger = LogsIOWriter("input_dump", f"{site}_{arrow.get().strftime('%Y-%m-%d_%H%M%S')}")
 
-        def do():
-            instance_folder = Path("/cicd_workspace") / f"{PREFIX_PREPARE_DUMP}{Path(tempfile.mktemp()).name}"
-            try:
-                # reverse lookup the path
-                real_path = _get_host_path(Path("/input_dumps") / dump.parent) / dump.name
+    #     def do():
+    #         instance_folder = Path("/cicd_workspace") / f"{PREFIX_PREPARE_DUMP}{Path(tempfile.mktemp()).name}"
+    #         try:
+    #             # reverse lookup the path
+    #             real_path = _get_host_path(Path("/input_dumps") / dump.parent) / dump.name
 
-                def of(*args):
-                    _odoo_framework(
-                        instance_folder.name,
-                        list(args),
-                        log_writer=logger,
-                        instance_folder=instance_folder
-                        )
+    #             def of(*args):
+    #                 _odoo_framework(
+    #                     instance_folder.name,
+    #                     list(args),
+    #                     log_writer=logger,
+    #                     instance_folder=instance_folder
+    #                     )
 
-                logger.info(f"Preparing Input Dump: {dump.name}")
-                logger.info("Preparing instance folder")
-                source = str(Path("/cicd_workspace") / "master") + "/"
-                dest = str(instance_folder) + "/"
-                branch = 'master'
-                logger.info(f"checking out {branch} to {dest}")
+    #             logger.info(f"Preparing Input Dump: {dump.name}")
+    #             logger.info("Preparing instance folder")
+    #             source = str(Path("/cicd_workspace") / "master") + "/"
+    #             dest = str(instance_folder) + "/"
+    #             branch = 'master'
+    #             logger.info(f"checking out {branch} to {dest}")
 
-                repo = _get_main_repo(destination_folder=dest)
-                repo.git.checkout('master', force=True)
-                repo.git.pull()
+    #             repo = _get_main_repo(destination_folder=dest)
+    #             repo.git.checkout('master', force=True)
+    #             repo.git.pull()
 
-                custom_settings = """
-    RUN_POSTGRES=1
-    DB_PORT=5432
-    DB_HOST=postgres
-    DB_USER=odoo
-    DB_PWD=odoo
-                """
-                of("reload", '--additional_config', base64.encodestring(custom_settings.encode('utf-8')).strip().decode('utf-8'))
-                of("down", "-v")
+    #             custom_settings = """
+    # RUN_POSTGRES=1
+    # DB_PORT=5432
+    # DB_HOST=postgres
+    # DB_USER=odoo
+    # DB_PWD=odoo
+    #             """
+    #             of("reload", '--additional_config', base64.encodestring(custom_settings.encode('utf-8')).strip().decode('utf-8'))
+    #             of("down", "-v")
 
-                # to avoid orphan messages, that return error codes although warning
-                logger.info(f"Starting local postgres")
-                of("up", "-d", 'postgres')
+    #             # to avoid orphan messages, that return error codes although warning
+    #             logger.info(f"Starting local postgres")
+    #             of("up", "-d", 'postgres')
 
-                of("restore", "odoo-db", str(real_path))
-                suffix =''
-                if erase:
-                    of("cleardb")
-                    suffix += '.cleared'
-                if anonymize:
-                    of("anonymize")
-                    suffix += '.anonym'
-                of("backup", "odoo-db", str(Path(os.environ['DUMPS_PATH']) / (dump.name + suffix + '.cicd_ready')))
-                of("down", "-v")
-            except Exception as ex:
-                msg = traceback.format_exc()
-                logger.info(msg)
-            finally:
-                if instance_folder.exists(): 
-                    shutil.rmtree(instance_folder)
+    #             of("restore", "odoo-db", str(real_path))
+    #             suffix =''
+    #             if erase:
+    #                 of("cleardb")
+    #                 suffix += '.cleared'
+    #             if anonymize:
+    #                 of("anonymize")
+    #                 suffix += '.anonym'
+    #             of("backup", "odoo-db", str(Path(os.environ['DUMPS_PATH']) / (dump.name + suffix + '.cicd_ready')))
+    #             of("down", "-v")
+    #         except Exception as ex:
+    #             msg = traceback.format_exc()
+    #             logger.info(msg)
+    #         finally:
+    #             if instance_folder.exists(): 
+    #                 shutil.rmtree(instance_folder)
 
-        t = threading.Thread(target=do)
-        t.start()
+    #     t = threading.Thread(target=do)
+    #     t.start()
 
         
     def _after_build(self, shell, logsio, **kwargs):
