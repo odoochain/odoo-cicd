@@ -119,6 +119,7 @@ class GitBranch(models.Model):
         for rec in self:
             rec.state = 'new'
             if not rec.commit_ids and rec.build_state == 'new':
+                rec._update_release_branches()
                 continue
 
             commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
@@ -148,6 +149,20 @@ class GitBranch(models.Model):
                     rec.state = 'candidate'
                 elif rec.block_release:
                     rec.state = 'blocked'
+            rec._update_release_branches()
+
+    def _update_release_branches(self):
+        """
+        If state changes and branch is ready to be released or not,
+        then update the current release items of that branch
+        """
+        self.ensure_one()
+        items = self.env['cicd.release.item'].search([('state', '=', 'new')])
+        for item in items:
+            if self.state == 'candidate':
+                item.branch_ids += self
+            else:
+                item.branch_ids -= self
 
     @api.depends("name")
     def _compute_ticket_system_url(self):

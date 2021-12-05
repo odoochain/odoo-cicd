@@ -60,11 +60,19 @@ class Release(models.Model):
 
     def _cron_prepare_release(self):
         self.ensure_one()
-        if self.item_ids.filtered(lambda x: x.state == 'new'):
-            return
-        self.item_ids = [[0, 0, {
-            'release_type': 'standard',
-        }]]
+        new_items = self.item_ids.filtered(lambda x: x.state == 'new')
+        if not new_items:
+            new_items = self.item_ids.create({
+                'release_id': self.id,
+                'release_type': 'standard',
+            })
+        
+        # check branches to put on the release
+        branches = self.env[new_items.branch_ids]
+        for branch in self.repo_id.branch_ids:
+            if branch.state == 'candidate':
+                branches |= branch
+        new_items.branch_ids = [[6, 0, branches.ids]]
 
     def _get_logsio(self):
         logsio = LogsIOWriter(self.repo_id.short, "Release")
