@@ -9,7 +9,7 @@ class Release(models.Model):
     name = fields.Char("Name", required=True)
     project_name = fields.Char("Project Name", required=True, help="techincal name - no special characters")
     machine_ids = fields.Many2many('cicd.machine', string="Machines")
-    repo_id = fields.Many2one(related="branch_id.repo_id", string="Repo", store=True)
+    repo_id = fields.Many2one("cicd.git.repo", required=True, string="Repo", store=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Branch", required=True)
     candidate_branch_id = fields.Many2one('cicd.git.branch', string="Candidate", required=True)
     item_ids = fields.One2many('cicd.release.item', 'release_id', string="Release")
@@ -51,6 +51,7 @@ class Release(models.Model):
                 'candidate_branch_id',
                 'branch_id',
             ]:
+                import pudb;pudb.set_trace()
                 if not self[field]:
                     continue
                 if self.search_count([

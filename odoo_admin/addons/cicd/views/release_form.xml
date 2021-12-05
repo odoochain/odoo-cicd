@@ -13,9 +13,10 @@
 					<sheet>
 						<group string="Release" col="2">
 							<field name="name" />
+							<field name="repo_id"/>
 							<field name="project_name"/>
-							<field name="branch_id"/>
-							<field name="candidate_branch_id" />
+							<field name="branch_id" domain="[('repo_id', '=', repo_id)]"/>
+							<field name="candidate_branch_id" domain="[('repo_id', '=', repo_id)]"/>
 							<field name="machine_ids" widget="many2many_tags" required='1' />
 							<field name="sequence_id"/>
 						</group>

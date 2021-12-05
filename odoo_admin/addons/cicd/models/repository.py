@@ -96,15 +96,15 @@ class Repository(models.Model):
         path = Path(machine.workspace) / (MAIN_FOLDER_NAME + "_" + self.short)
         self.clone_repo(machine, path, logsio)
 
-        temppath = None
+        temppath = path
         if destination_folder:
-            temppath = destination_folder
+            path = destination_folder
         elif tempfolder:
             temppath = tempfile.mktemp()
-        if temppath:
+        if temppath and temppath != path:
             with machine._shellexec(self.machine_id.workspace, logsio=logsio) as shell:
                 shell.X(['rsync', f"{path}/", f"{temppath}/", "-ar"])
-        return path
+        return temppath
 
     def _get_remotes(self, shell):
         remotes = shell.X(["git", "remote", "-v"]).output.strip().split("\n")
@@ -229,6 +229,7 @@ class Repository(models.Model):
         assert target_branch
         assert source_branches._name == 'cicd.git.branch'
         machine = self.machine_id
+        import pudb;pudb.set_trace()
         repo_path = self._get_main_repo(tempfolder=True)
         env = self._get_git_non_interactive()
         with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
@@ -262,4 +263,5 @@ class Repository(models.Model):
 
 
             finally:
+                import pudb;pudb.set_trace()
                 shell.X(["rm", "-Rf", repo_path])
