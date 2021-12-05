@@ -26,6 +26,7 @@
 							<field name="build_state" readonly='1' />
 							<field name="block_release"/>
 							<field name="ticket_system_url" widget="url"/>
+							<field name="active" />
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>

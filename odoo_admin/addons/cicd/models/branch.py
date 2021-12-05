@@ -257,7 +257,6 @@ class GitBranch(models.Model):
     def _get_odoo_proxy_container_name(self): 
         return f"{self.project_name}_proxy"
 
-
     def _compute_project_name(self):
         for rec in self:
             rec.project_name = os.environ['CICD_PROJECT_NAME'] + "_" + rec.repo_id.short + "_" + rec.name
@@ -279,4 +278,15 @@ class GitBranch(models.Model):
     def _on_active_change(self):
         for rec in self:
             if not rec.active:
-                
+                logsio = LogsIOWriter(self.project_name, 'set_inactive')
+                for machine in self.env['cicd.machine'].search([]):
+                    path = machine._get_volume('source')
+                    # delete instance folder
+                    with machine._shellexec(cwd=path, logsio=logsio) as shell:
+                        with shell.shell() as spurplus:
+                            project_path = path / rec.project_name
+                            if spurplus.exists(project_path):
+                                spurplus.remove(project_path, recursive=True)
+
+                    # delete db
+                    db = machine.database_ids.filtered(lambda x: x.name == rec.project_name).delete_db()

@@ -144,7 +144,6 @@ class ReleaseItem(models.Model):
     final_curtain = fields.Datetime("Final Curtains")
     log_release = fields.Text("Log")
 
-    # diff_commit_ids = fields.Many2many('cicd.git.commit', string="New Commits", compute="_compute_diff_commits", help="Commits that are new since the last release")
     state = fields.Selection([
         ("new", "New"),
         ("ready", "Ready"),
@@ -182,43 +181,37 @@ class ReleaseItem(models.Model):
                 summary.append(f"* {branch.enduser_summary}")
             rec.computed_summary = '\n'.join(summary)
 
-    # def _compute_diff_commits(self):
-    #     for rec in self:
-    #         previous_release = self.release_id.item_ids.filtered(
-    #             lambda x: x.id < rec.id).sorted(
-    #                 lambda x: x.id, reverse=True)
-    #         if not previous_release:
-    #             rec.diff_commit_ids = [[6, 0, []]]
-    #         else:
-    #             rec.diff_commit_ids = [[6, 0, (rec.commit_ids - previous_release[0].commit_ids).ids]]
-
     def _do_release(self):
         self.ensure_item()
         logsio = self.release_id._get_logs()
-        import pudb;pudb.set_trace()
-        for machine in self.release_id.machine_ids:
-            res = self.repo_id._merge(
-                self.release_id.candidate_branch_id,
-                self.release_id.branch_id,
-            )
-            if not res.diffs_exists:
-                self._on_done()
-                continue
+        try:
+            import pudb;pudb.set_trace()
+            for machine in self.release_id.machine_ids:
+                res = self.repo_id._merge(
+                    self.release_id.candidate_branch_id,
+                    self.release_id.branch_id,
+                )
+                if not res.diffs_exists:
+                    self._on_done()
+                    continue
 
-            main_repo_path = self.release_id.repo_id._get_main_repo(tempfolder=True)
-            with self.release_id.repo_id.machine_id._shell_exec(cwd=main_repo_path, logsio=logsio) as shell:
-                try:
-                    shell.X("git", "checkout", "-f", self.release_id.branch_id.name)
-                    shell.X("git", "tag", "-f", self.name)
-                    shell.X("git", "push", "--follow-tags")
-                finally:
-                    shell.X("rm", "-Rf", main_repo_path)
+                main_repo_path = self.release_id.repo_id._get_main_repo(tempfolder=True)
+                with self.release_id.repo_id.machine_id._shell_exec(cwd=main_repo_path, logsio=logsio) as shell:
+                    try:
+                        shell.X("git", "checkout", "-f", self.release_id.branch_id.name)
+                        shell.X("git", "tag", "-f", self.name)
+                        shell.X("git", "push", "--follow-tags")
+                    finally:
+                        shell.X("rm", "-Rf", main_repo_path)
 
-            path = machine._get_volume("source") / self.release_id.project_name
-            self.repo_id._get_main_repo(destination_folder=path, machine=machine)
-            with machine._shell_exec(cwd=path, logsio=logsio) as shell:
-                shell.X("odoo", "reload")
-                shell.X("odoo", "build")
-                shell.X("odoo", "update")
+                path = machine._get_volume("source") / self.release_id.project_name
+                self.repo_id._get_main_repo(destination_folder=path, machine=machine)
+                with machine._shell_exec(cwd=path, logsio=logsio) as shell:
+                    shell.X("odoo", "reload")
+                    shell.X("odoo", "build")
+                    shell.X("odoo", "update")
+            self.release_id.message_post(body=f"Deployment of version {self.version} succeeded!")
+        except Exception as ex:
+            self.release_id.message_post(body=f"Deployment of version {self.version} failed: {ex}")
 
         self.log = logsio.get_lines()

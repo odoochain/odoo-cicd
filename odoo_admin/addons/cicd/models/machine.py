@@ -248,46 +248,10 @@ class CicdMachine(models.Model):
         Removes all unused source directories, databases
         and does a docker system prune.
         """
-        logsio = LogsIOWriter(repo.name, 'fetch')
-        with self._shellexec(cwd="~", logsio=logsio)
-        # remove artefacts from ~/.odoo/
-        os.system("docker system prune -f -a")
-        conn = _get_db_conn()
-        try:
-            cr = conn.cursor()
+        logsio = LogsIOWriter(self.name, 'spring_clean')
+        with self._shellexec(cwd="~", logsio=logsio) as shell:
+            shell.X(["/usr/bin/docker", "system", "prune", "-f"])
 
-            # Drop also old sourcecodes
-            for dir in Path("/cicd_workspace").glob("*"):
-                if dir.name == MAIN_FOLDER_NAME:
-                    continue
-                instance_name = dir.name
-                if instance_name not in sites:
-                    _delete_sourcecode(instance_name)
-
-
-            # drop old docker containers
-            cicd_prefix = os.environ['CICD_PREFIX']
-            containers = docker.containers.list(all=True, filters={'label': f'ODOO_CICD={cicd_prefix}'})
-            for container in containers:
-                site_name = container.labels.get('ODOO_CICD_INSTANCE_NAME', '')
-                if not site_name: continue
-                if site_name not in sites:
-                    if container.status == 'running':
-                        container.kill()
-                    container.remove(force=True)
-
-            # drop transfer rests:
-            for folder in Path("/cicd_workspace").glob("*"):
-                if str(folder).startswith(PREFIX_PREPARE_DUMP):
-                    shutil.rmtree(folder)
-
-        finally:
-            cr.close()
-            conn.close()
-
-        return jsonify({'result': 'ok'})
-
-        
     def make_login_possible_for_webssh_container(self):
         pubkey = Path("/opt/cicd_sshkey/id_rsa.pub").read_text().strip()
         for rec in self:

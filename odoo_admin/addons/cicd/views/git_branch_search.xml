@@ -1,0 +1,16 @@
+<odoo>
+	<data noupdate="0">
+		<record id="view_cicd_git_branch_search" model="ir.ui.view">
+			<field name="model">cicd.git.branch</field>
+			<field name="arch" type="xml">
+				<search string="Branches">
+					<field name="name"/>
+					<filter name="active" string="Active" domain="[('active', '=', True)]" />
+					<filter name="inactive" string="Inactive" domain="[('active', '=', False)]" />
+					<filter name="group_by_repo" string="Repo" domain="[]" context="{'group_by': 'repo_id'}" />
+					<filter name="group_by_state" string="State" domain="[]" context="{'group_by': 'state'}" />
+				</search>
+			</field>
+		</record>
+	</data>
+</odoo>

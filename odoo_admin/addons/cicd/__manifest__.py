@@ -9,6 +9,7 @@
                 'views/dump_form.xml',
                 'views/git_branch_form.xml',
                 'views/git_branch_kanban.xml',
+                'views/git_branch_search.xml',
                 'views/git_branch_tree.xml',
                 'views/machine_form.xml',
                 'views/registry.xml',

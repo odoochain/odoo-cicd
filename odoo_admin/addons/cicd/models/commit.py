@@ -46,7 +46,6 @@ class GitCommit(models.Model):
 
     @api.model
     def create(self, vals):
-        import pudb;pudb.set_trace()
         res = super().create(vals)
         self._evaluate_message()
         return res
