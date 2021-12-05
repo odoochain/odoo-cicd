@@ -91,6 +91,7 @@ class Release(models.Model):
         items = self.item_ids.sorted(lambda x: x.id, reverse=True)
         if not items or items[0].state in ['done', 'failed']:
             items = self.item_ids.create({
+                'release_id': self.id,
             })
         else:
             items = items[0]

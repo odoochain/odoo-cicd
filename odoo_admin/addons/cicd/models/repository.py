@@ -223,29 +223,27 @@ class Repository(models.Model):
         Iterate all branches and get the latest commit that fall into the countdown criteria.
         """
         self.ensure_one()
-        import pudb;pudb.set_trace()
 
         # we use a working repo
         assert target_branch._name == 'cicd.git.branch'
         assert target_branch
-        assert source_branches == 'cicd.git.branch'
-        repo = self.release_id.repo_id
-        machine = repo.machine_id
-        repo_path = self.release_id.repo_id._get_main_repo(tempfolder=True)
-        env = repo._get_git_non_interactive()
-        with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+        assert source_branches._name == 'cicd.git.branch'
+        machine = self.machine_id
+        repo_path = self._get_main_repo(tempfolder=True)
+        env = self._get_git_non_interactive()
+        with self.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
             try:
 
                 # clear the current candidate
-                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + target_branch])
+                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + target_branch.name], allow_error=True)
                 if not res.return_code:
-                    shell.X(["/usr/bin/git", "branch", "-D", target_branch])
-                logsio.info("Pulling branch {target_branch}")
-                shell.X(["/usr/bin/git", "checkout", "-f", target_branch])
-                logsio.info("Pulling branch {repo.branch_id.name}")
-                shell.X(["/usr/bin/git", "pull"])
-                logsio.info("Making target branch {target_branch}")
-                shell.X(["/usr/bin/git", "checkout", "-b", repo.candidate_branch_id.name])
+                    shell.X(["/usr/bin/git", "branch", "-D", target_branch.name])
+                # logsio.info("Pulling branch {target_branch}")
+                # shell.X(["/usr/bin/git", "checkout", "-f", target_branch.name])
+                # logsio.info("Pulling branch {repo.branch_id.name}")
+                # shell.X(["/usr/bin/git", "pull"])
+                logsio.info("Making target branch {target_branch.name}")
+                shell.X(["/usr/bin/git", "checkout", "-b", target_branch.name])
 
                 for branch in source_branches:
                     for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
