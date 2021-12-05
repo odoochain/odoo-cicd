@@ -193,8 +193,10 @@ class GitBranch(models.Model):
                 else:
                     rec.build_state = 'new'
 
-    def _make_task(self, execute, now=False, machine=None, kwargs=None):
+    def _make_task(self, execute, now=False, machine=None, silent=False, kwargs=None):
         if not now and self.task_ids.filtered(lambda x: x.state == 'new' and x.name == execute):
+            if silent:
+                return
             raise ValidationError(_("Task already exists. Not triggered again."))
         task = self.env['cicd.task'].sudo().create({
             'model': self._name,
@@ -293,3 +295,7 @@ class GitBranch(models.Model):
     def toggle_block_release(self):
         for rec in self:
             rec.block_release = not rec.block_release
+
+    def _cron_run_tests(self):
+        for rec in self:
+            rec._make_task("_run_tests", silent=True, kwargs={'update_state': True})
