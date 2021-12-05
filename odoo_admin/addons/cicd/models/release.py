@@ -51,7 +51,6 @@ class Release(models.Model):
                 'candidate_branch_id',
                 'branch_id',
             ]:
-                import pudb;pudb.set_trace()
                 if not self[field]:
                     continue
                 if self.search_count([

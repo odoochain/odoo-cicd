@@ -229,7 +229,6 @@ class Repository(models.Model):
         assert target_branch
         assert source_branches._name == 'cicd.git.branch'
         machine = self.machine_id
-        import pudb;pudb.set_trace()
         repo_path = self._get_main_repo(tempfolder=True)
         env = self._get_git_non_interactive()
         with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
@@ -263,5 +262,4 @@ class Repository(models.Model):
 
 
             finally:
-                import pudb;pudb.set_trace()
                 shell.X(["rm", "-Rf", repo_path])
