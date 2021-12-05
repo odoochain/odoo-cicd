@@ -5,7 +5,7 @@
 	<field name="name">Branches</field>
 	<field name='type'>kanban</field>
 	<field name="arch" type="xml">
-		<kanban default_group_by="state_for_groupby">
+		<kanban default_group_by="state">
 			<field name="name"/>
 			<templates>
 

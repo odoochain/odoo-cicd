@@ -196,7 +196,10 @@ class Repository(models.Model):
                     shell.X(["git", "checkout", "-f", repo.default_branch])
                     del name
 
-            repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
+                if updated_branches:
+                    repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
+                    repo.branch_ids._compute_state()
+                del updated_branches
 
     def _lock_git(self): 
         for rec in self:

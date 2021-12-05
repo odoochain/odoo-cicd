@@ -42,19 +42,7 @@ class GitBranch(models.Model):
         ('release', 'Release'),
         ('done', "Done"),
         ('cancel', "Cancel"),
-    ], string="State", default="new", track_visibility='onchange', compute="_compute_state", inverse="_set_state")
-    state_for_groupby = fields.Selection([
-        ('new', 'New'),
-        ('dev', "Dev"),
-        ('approve', "Approve"),
-        ('testable', 'Testable'), 
-        ('tested', 'Tested'),
-        ('blocked', "Blocked"),
-        ('candidate', 'Candidate'),
-        ('release', 'Release'),
-        ('done', "Done"),
-        ('cancel', "Cancel"),
-    ], string="State", compute="_compute_state_groupby", required=True, store=True)
+    ], string="State", default="new", track_visibility='onchange', compute="_compute_state", inverse="_set_state", store=True)
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
@@ -82,13 +70,6 @@ class GitBranch(models.Model):
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
-
-    @api.model
-    def create(self, vals):
-        if not vals.get('state_for_groupby'):
-            vals['state_for_groupby'] = 'new'
-        res = super().create(vals)
-        return res
 
     def _compute_releases(self):
         for rec in self:
@@ -127,11 +108,6 @@ class GitBranch(models.Model):
     def set_state(self, state, raise_exception=False):
         self.ensure_one()
         self.state = state
-
-    @api.depends('state')
-    def _compute_state_groupby(self):
-        for rec in self:
-            rec.state_for_groupby = rec.state
 
     @api.depends(
         "commit_ids",
@@ -184,10 +160,6 @@ class GitBranch(models.Model):
         for rec in self:
             if rec.state == 'new':
                 pass
-
-    @api.fieldchange("state")
-    def _onchange_state(self, changeset):
-        self._compute_state_groupby()
 
     def _compute_test_runs(self):
         for rec in self:
