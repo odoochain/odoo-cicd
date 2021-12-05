@@ -290,3 +290,11 @@ class GitBranch(models.Model):
 
                     # delete db
                     db = machine.database_ids.filtered(lambda x: x.name == rec.project_name).delete_db()
+
+    def toggle_active(self):
+        for rec in self:
+            rec.active = not rec.active
+
+    def toggle_block_release(self):
+        for rec in self:
+            rec.block_release = not rec.block_release
