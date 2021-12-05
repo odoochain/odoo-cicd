@@ -153,9 +153,9 @@ class GitBranch(models.Model):
                 repo = commit.mapped('branch_ids.repo_id')
                 releases = repo.release_ids.filtered(lambda x: rec in x.mapped('item_ids.branch_ids'))
                 candidates = releases.mapped('candidate_branch_id')
-                branches = releases.mapped('branch_id')
+                released_branches = releases.mapped('branch_id')
 
-                if any(x.contains_branch(commit) for x in branches):
+                if any(x.contains_branch(commit) for x in released_branches):
                     if releases.is_latest_release_done:
                         rec.state = 'done'
                     else:
@@ -164,13 +164,15 @@ class GitBranch(models.Model):
                     rec.state = 'candidate'
                 elif rec.block_release:
                     rec.state = 'blocked'
+            else:
+                raise NotImplementedError("unknown state")
 
     @api.depends("name")
     def _compute_ticket_system_url(self):
         for rec in self:
             url = rec.repo_id.ticket_system_base_url
             regex = rec.repo_id.ticket_system_regex
-            rec.ticket_system_url = url + rec.name
+            rec.ticket_system_url = (url or '') + rec.name
 
     def _set_state(self):
         for rec in self:

@@ -1,4 +1,4 @@
-from odoo import _, api, fields, models, SUPERUSER_ID
+from odoo import _, api, fields, models, SUPERUSER_ID, tools
 import spur
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
@@ -67,7 +67,7 @@ class GitCommit(models.Model):
             'target': 'current',
         }
 
-    # TODO caching
+    @tools.ormcache('self.id', 'commit')
     def contains_commit(self, commit):
         self.ensure_one()
         repo = self.mapped('branch_ids.repo_id')
@@ -77,7 +77,7 @@ class GitCommit(models.Model):
         repo_path = repo._get_main_repo(logsio=logsio, machine=repo.machine_id)
         with repo.machine_id._shellexec(repo_path, logsio=logsio) as shell:
             try:
-                test = shell.X(['git', 'merge-base', commit.name, self.name], allow_error=False)  # order seems to be egal
+                test = shell.X(['git', 'merge-base', commit.name, self.name], allow_error=False)  # order seems to be irrelevant
             except spur.results.RunProcessError as ex:
                 if 'fatal: Not a valid commit name' in ex.stderr_output:
                     return False

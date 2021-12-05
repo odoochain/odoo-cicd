@@ -8,7 +8,7 @@ from ..tools.logsio_writer import LogsIOWriter
 import spur
 import spurplus
 from contextlib import contextmanager
-from odoo import _, api, fields, models, SUPERUSER_ID
+from odoo import _, api, fields, models, SUPERUSER_ID, tools
 import subprocess
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.tools import tempdir
@@ -52,9 +52,10 @@ class ShellExecutor(object):
         cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
         return self.X(cmd)
 
-    def X(self, cmd):
+    def X(self, cmd, allow_error=False):
         return self.machine._execute_shell(
-            cmd, cwd=self.cwd, env=self.env, logsio=self.logsio
+            cmd, cwd=self.cwd, env=self.env, logsio=self.logsio,
+            allow_error=allow_error,
         )
 
 class CicdMachine(models.Model):
@@ -168,7 +169,7 @@ class CicdMachine(models.Model):
         self._execute_shell(["ls"])
         raise ValidationError(_("Everyhing Works!"))
 
-    def _execute_shell(self, cmd, cwd=None, env=None, logsio=None):
+    def _execute_shell(self, cmd, cwd=None, env=None, logsio=None, allow_error=False):
 
         def convert(x):
             if isinstance(x, Path):
@@ -209,7 +210,7 @@ class CicdMachine(models.Model):
 
             res = shell.run(
                 cmd, cwd=cwd, update_env=env or {},
-                stdout=stdwriter, stderr=errwriter,
+                stdout=stdwriter, stderr=errwriter, allow_error=allow_error,
             )
             stdwriter.finish()
             errwriter.finish()
@@ -379,3 +380,7 @@ chmod a+x "{homedir}/programs/odoo"
                 shell.write_text(command_file, commands.strip() + "\n")
                 shell.run(["sudo", "/bin/bash", command_file])
                 shell.run(["rm", command_file])
+
+    @tools.ormcache()
+    def testoutput(self):
+        print('test')

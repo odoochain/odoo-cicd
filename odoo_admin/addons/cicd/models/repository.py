@@ -196,6 +196,8 @@ class Repository(models.Model):
                     shell.X(["git", "checkout", "-f", repo.default_branch])
                     del name
 
+            repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
+
     def _lock_git(self): 
         def retry(lock):
             raise RetryableJobError(f'Could not acquire advisory lock (stock move line {lock})', seconds=random.randint(5, 15), ignore_retry=True)
