@@ -6,26 +6,27 @@
 		<field name="model">cicd.git.commit</field>
 		<field name="arch" type="xml">
 			<form>
-				<header></header>
+				<header>
+				</header>
 				<sheet>
 					<group col="2">
 						<field name="name" readonly='1' />
 						<field name="date" readonly='1' />
-						<field name="date_registered"/>
+						<field name="date_registered" readonly='1'/>
 						<field name="author" readonly='1' />
-						<field name="branch_ids" widget="many2many_tags"/>
+						<field name="branch_ids" widget="many2many_tags" readonly='1'/>
 					</group>
 					<group>
 						<field name="approval_state"/>
-						<field name="test_state"/>
 						<field name="force_approved"/>
+						<field name="test_state"/>
 					</group>
 					<group>
-						<field name="text" nolabel="1"/>
+						<field name="text" nolabel="1" readonly='1'/>
 					</group>
 					<notebook>
 						<page string="Test Runs">
-							<field name="test_run_ids">
+							<field name="test_run_ids" nocreate='1' nodelete='1'>
 							</field>
 
 						</page>

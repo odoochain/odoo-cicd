@@ -17,7 +17,7 @@
 						<button name="start_webmailer" string="Webmailer" type="object" groups="cicd.group_developer"/>
 						<button name="start_logs" string="Logs" type="object" groups="cicd.group_developer"/>
 						<button name="debug_webcontainer" string="Debug" type="object" groups="cicd.group_developer"/>
-						<field name="state" widget="statusbar" options="{'clickable': 1}" context="{'from_ui': 1}"/>
+						<field name="state" widget="statusbar" options="{'clickable': 0}" />
 					</header>
 					<sheet>
 						<div class="oe_button_box" name="button_box">

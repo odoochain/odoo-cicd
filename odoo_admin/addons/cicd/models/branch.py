@@ -42,7 +42,7 @@ class GitBranch(models.Model):
         ('release', 'Release'),
         ('done', "Done"),
         ('cancel', "Cancel"),
-    ], string="State", default="new", track_visibility='onchange', compute="_compute_state", inverse="_set_state", store=True)
+    ], string="State", default="new", track_visibility='onchange', compute="_compute_state", store=True)
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
@@ -170,11 +170,6 @@ class GitBranch(models.Model):
             url = rec.repo_id.ticket_system_base_url
             regex = rec.repo_id.ticket_system_regex
             rec.ticket_system_url = (url or '') + rec.name
-
-    def _set_state(self):
-        for rec in self:
-            if rec.state == 'new':
-                pass
 
     def _compute_test_runs(self):
         for rec in self:

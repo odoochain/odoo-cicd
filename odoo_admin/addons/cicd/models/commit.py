@@ -18,12 +18,12 @@ class GitCommit(models.Model):
     test_state = fields.Selection([
         ('success', 'Success'),
         ('failed', 'Failed'),
-    ], compute="_compute_test_state")
+    ], compute="_compute_test_state", track_visibility="onchange", string="Test State")
     approval_state = fields.Selection([
         ('check', "Check"),
         ('approved', 'Approved'),
         ('declined', 'Declined'),
-    ])
+    ], track_visibility="onchange", string="Approval")
     force_approved = fields.Boolean("Force Approved")
 
     _sql_constraints = [
