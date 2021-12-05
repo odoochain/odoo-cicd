@@ -98,7 +98,7 @@ class Repository(models.Model):
 
         temppath = path
         if destination_folder:
-            path = destination_folder
+            temppath = destination_folder
         elif tempfolder:
             temppath = tempfile.mktemp()
         if temppath and temppath != path:
