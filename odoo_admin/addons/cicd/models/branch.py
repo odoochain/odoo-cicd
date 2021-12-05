@@ -125,12 +125,13 @@ class GitBranch(models.Model):
             rec.docker_state = f"Up: {count_up} Down: {count_down}"
 
     def set_state(self, state, raise_exception=False):
+        self.ensure_one()
         self.state = state
 
     @api.depends('state')
     def _compute_state_groupby(self):
         for rec in self:
-            rec.state_for_groupby = self.state
+            rec.state_for_groupby = rec.state
 
     @api.depends(
         "commit_ids",
