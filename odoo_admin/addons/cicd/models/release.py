@@ -158,8 +158,7 @@ class ReleaseItem(models.Model):
     def on_done(self):
         if not self.changed_lines:
             msg = "Nothing new to deploy"
-        msg = '\n'.join(filter(bool, self.mapped('commit_ids.branch_ids.enduser_summary')))
-        self.release_id.message_post(body=msg)
+        self.release_id.message_post(body=self.computed_summary)
         self.done_date = fields.Datetime.now()
     
     @api.model
