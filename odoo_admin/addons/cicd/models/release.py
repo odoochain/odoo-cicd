@@ -138,7 +138,6 @@ class ReleaseItem(models.Model):
     changed_lines = fields.Integer("Changed Lines")
     final_curtain = fields.Datetime("Final Curtains")
     log_release = fields.Text("Log")
-
     state = fields.Selection([
         ("new", "New"),
         ("ready", "Ready"),
@@ -147,7 +146,7 @@ class ReleaseItem(models.Model):
     ], string="State", state='new')
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.")
-    branch_ids = fields.Many2one('cicd.git.branch', string="Merged Branches")
+    branch_ids = fields.Many2one('cicd.git.branch', string="Branches")
 
     release_type = fields.Selection([
         ('standard', 'Standard'),
@@ -224,7 +223,6 @@ class ReleaseItem(models.Model):
                 ('state', 'in', ['tested'])
                 ('id', 'not in', (repo.branch_id | repo.candidate_branch_id).ids),
             ]).ids]]
-
 
     @api.constrains("branch_ids")
     def _onchange_branches(self):
