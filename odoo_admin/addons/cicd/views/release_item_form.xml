@@ -11,11 +11,11 @@
 					</header>
 				<sheet>
 					<group >
-						<field name="release_id" />
-						<field name="name"/>
+						<field name="release_id" readonly='1' />
+						<field name="name" readonly='1'/>
 						<field name="planned_date"/>
 						<field name="final_curtain"/>
-						<field name="release_type"/>
+						<field name="release_type" readonly='1'/>
 						<field name="computed_summary"/>
 						<field name="branch_ids"/>
 					</group>

@@ -246,7 +246,7 @@ class Repository(models.Model):
                 for branch in source_branches:
                     for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
                         if critical_date:
-                            if commit.date > critical_date:
+                            if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
                                 continue
 
                         if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):

@@ -140,13 +140,12 @@ class ReleaseItem(models.Model):
     log_release = fields.Text("Log")
     state = fields.Selection([
         ("new", "New"),
-        ("ready", "Ready"),
         ('done', 'Done'),
         ('failed', 'Failed'),
-    ], string="State", state='new')
+    ], string="State", default='new', required=True)
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.")
-    branch_ids = fields.Many2one('cicd.git.branch', string="Branches")
+    branch_ids = fields.Many2many('cicd.git.branch', string="Branches")
 
     release_type = fields.Selection([
         ('standard', 'Standard'),
@@ -176,6 +175,8 @@ class ReleaseItem(models.Model):
 
     def _do_release(self):
         self.ensure_item()
+        if self.state != 'new':
+            raise ValidationError("Needs state new to be validated.")
         if self.release_type == 'hotfix' and not self.branch_ids:
             raise ValidationError("Hotfix requires explicit branches.")
         logsio = self.release_id._get_logs()
@@ -226,14 +227,15 @@ class ReleaseItem(models.Model):
 
     @api.constrains("branch_ids")
     def _onchange_branches(self):
-        import pudb;pudb.set_trace()
         for rec in self:
+            if rec.state != 'new':
+                raise ValidationError("Branches can only be changed in state 'new'")
             # fetch latest commits:
             logsio = self.release_id._get_logsio()
             repo = rec.release_id.repo_id
             commits = repo._collect_latest_tested_commits(
                 source_branches=rec.branch_ids,
-                target_branch=self.candidate_branch_id,
+                target_branch=rec.release_id.candidate_branch_id,
                 logsio=logsio,
                 critical_date=rec.final_curtain or arrow.get().datetime,
             )
