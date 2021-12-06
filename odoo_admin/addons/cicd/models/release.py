@@ -104,7 +104,7 @@ class Release(models.Model):
 
     def collect_branches_on_candidate(self):
         item = self._ensure_item()
-        item.collect_branches()
+        item.trigger_collect_branches()
 
     def _ensure_item(self):
         items = self.item_ids.sorted(lambda x: x.id, reverse=True).filtered(lambda x: x. release_type == 'standard')
@@ -125,7 +125,7 @@ class Release(models.Model):
         if item.planned_date > arrow.get().datetime:
             return
 
-        item._do_release()
+        item._trigger_do_release()
 
 class ReleaseItem(models.Model):
     _name = 'cicd.release.item'
@@ -146,6 +146,7 @@ class ReleaseItem(models.Model):
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.")
     branch_ids = fields.Many2many('cicd.git.branch', string="Branches")
+    queuejob_ids = fields.Many2many('queue.job', string="Queuejobs")
 
     release_type = fields.Selection([
         ('standard', 'Standard'),
@@ -172,6 +173,13 @@ class ReleaseItem(models.Model):
             for branch in rec.branch_ids.sorted(lambda x: x.date):
                 summary.append(f"* {branch.enduser_summary}")
             rec.computed_summary = '\n'.join(summary)
+
+    def _trigger_do_release(self):
+        for rec in self:
+            job = rec.with_delay(
+                identity_key=f"release {rec.release_id.name}",
+            )._do_release()
+            rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
 
     def _do_release(self):
         self.ensure_item()
@@ -212,16 +220,23 @@ class ReleaseItem(models.Model):
 
         self.log = logsio.get_lines()
 
+    def trigger_collect_branches(self):
+        for rec in self:
+            job = rec.with_delay(
+                identity_key=f"collect_branches {rec.release_id.name}",
+            ).collect_branches()
+            rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
+
     def collect_branches(self):
         for rec in self:
             repo = rec.release_id.repo_id
             if rec.state not in ['new']:
                 continue
-            if rec.releasetype != 'standard':
+            if rec.release_type != 'standard':
                 continue
 
             rec.branch_ids = [[6, 0, self.env['cicd.git.branch'].search([
-                ('state', 'in', ['tested'])
+                ('state', 'in', ['tested']),
                 ('id', 'not in', (repo.branch_id | repo.candidate_branch_id).ids),
             ]).ids]]
 

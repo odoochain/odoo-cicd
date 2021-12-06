@@ -39,7 +39,6 @@
 										<field name="state" readonly='1'/>
 									</tree>
 								</field>
-
 							</page>
 						</notebook>
 					</sheet>

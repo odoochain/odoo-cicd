@@ -9,3 +9,4 @@
 
   * clean old sources at spring clean
   * load demo for unittests
+  * merge conflicts on candidate branch
