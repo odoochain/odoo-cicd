@@ -1,8 +1,6 @@
-import os
-from odoo import _, api, fields, models, SUPERUSER_ID
-from odoo.exceptions import UserError, RedirectWarning, ValidationError
-from pathlib import Path
-import humanize
+from odoo import _, api, fields, models
+import logging
+logger = logging.getLogger(__name__)
 
 class Dump(models.Model):
     _inherit = ['cicd.mixin.size']
@@ -51,8 +49,8 @@ class Dump(models.Model):
                         })
                     try:
                         machine._execute_shell(['/usr/bin/test', '-f', path])
-                    except Exception:
-                        import pudb;pudb.set_trace()
+                    except Exception as ex:
+                        logger.error(ex)
                     else:
                         dumps.size = int(machine._execute_shell([
                             'stat', '-c', '%s', path
