@@ -105,6 +105,7 @@ class Release(models.Model):
     def collect_branches_on_candidate(self):
         logsio = self._get_logsio()
         item = self._ensure_item()
+        item.collect_branches()
         self.repo_id._collect_branches(
             source_branches=item.branch_ids,
             target_branch=self.candidate_branch_id,
@@ -215,3 +216,22 @@ class ReleaseItem(models.Model):
             self.release_id.message_post(body=f"Deployment of version {self.version} failed: {ex}")
 
         self.log = logsio.get_lines()
+
+    def collect_branches(self):
+        for rec in self:
+            repo = rec.release_id.repo_id
+            if rec.state not in ['new']:
+                continue
+            branches = self.env['cicd.git.branch'].search([
+                ('state', 'in', ['tested', 'blocked'])
+                ('id', 'not in', (repo.branch_id | repo.candidate_branch_id).ids),
+            ])
+            for x in list(rec.branch_ids):
+                if x not in branches:
+                    rec.branch_ids = [[3, x.id]]
+
+            for branch in branches:
+                if branch.state == 'blocked':
+                    rec.branch_ids = [[3, branch.id]]
+                elif branch.state == 'tested':
+                    rec.branch_ids = [[4, branch.id]]
