@@ -14,7 +14,7 @@ class GitCommit(models.Model):
     date = fields.Datetime("Date")
     author = fields.Char("Author")
     text = fields.Text("Text")
-    test_run_ids = fields.Many2many('cicd.test.run', string="Test Runs", store=True)
+    test_run_ids = fields.One2many('cicd.test.run', 'commit_id', string="Test Runs")
     test_state = fields.Selection([
         ('success', 'Success'),
         ('failed', 'Failed'),
@@ -32,6 +32,7 @@ class GitCommit(models.Model):
 
     @api.depends('test_run_ids', 'test_run_ids.state')
     def _compute_test_state(self):
+        import pudb;pudb.set_trace()
         for rec in self:
             testruns = rec.test_run_ids.sorted(lambda x: x.id)
             if not testruns or testruns[0].state == 'open':
