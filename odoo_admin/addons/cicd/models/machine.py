@@ -49,7 +49,14 @@ class ShellExecutor(object):
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
         cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
-        return self.X(cmd)
+        res = self.X(cmd, allow_error=False)
+        import pudb;pudb.set_trace()
+        if res.error_code:
+            if '.FileNotFoundError: [Errno 2] No such file or directory:' in res.stderr_output:
+                raise Exception("Seems that a reload of the instance is required.")
+            else:
+                raise Exception(res.stderr_output)
+        return res
 
     def X(self, cmd, allow_error=False):
         return self.machine._execute_shell(

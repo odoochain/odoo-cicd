@@ -47,7 +47,7 @@
 							</page>
 							<page name="databases" string="Databases">
 								<group>
-									<field name="database_ids">
+									<field name="database_ids" nolabel='1'>
 										<tree>
 											<button name="delete_db" string="Purge" type="object" confirm="Cannot be undone. Continue?"/>
 											<field name="name"/>

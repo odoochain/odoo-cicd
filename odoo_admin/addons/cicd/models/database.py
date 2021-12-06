@@ -31,7 +31,7 @@ class Database(models.Model):
             with self._get_conn(rec.machine_id) as cr:
                 # requires postgres >= 13
                 cr.execute("drop database %s WITH (FORCE);", (rec.name,))
-            rec.unlink()
+            rec.sudo().unlink()
 
 
     @contextmanager
@@ -48,9 +48,9 @@ class Database(models.Model):
             try:
                 cr = conn.cursor()
                 yield cr
-                cr.commit()
+                conn.commit()
             except:
-                cr.rollback()
+                conn.rollback()
         finally:
             conn.close()
 
@@ -62,16 +62,20 @@ class Database(models.Model):
 
     def _update_dbs(self, machine):
         with self._get_conn(machine) as cr:
-            cr.execute("\l+")
+            cr.execute("""
+                SELECT datname, pg_database_size(datname)
+                FROM pg_database
+                WHERE datistemplate = false;
+            """)
             dbs = cr.fetchall()
             all_dbs = set()
             for db in dbs:
                 dbname = db[0]
-                dbsize = db[3]
+                dbsize = db[1]
                 all_dbs.add(dbname)
                 db_db = machine.database_ids.filtered(lambda x: x.name == dbname)
                 if not db_db:
-                    db_db = machine.database_ids.create({
+                    db_db = machine.database_ids.sudo().create({
                         'machine_id': machine.id,
                         'name': dbname
                     })
@@ -79,4 +83,4 @@ class Database(models.Model):
 
             for db in machine.database_ids:
                 if db.name not in all_dbs:
-                    db.unlink()
+                    db.sudo().unlink()

@@ -26,6 +26,7 @@ services:
     networks:
       - internal
       - cicd_delegator
+      - postgres
   cicd_delegator:
     build: ${CUSTOMS_DIR}/../cicd_delegator
     networks:
