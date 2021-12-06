@@ -326,29 +326,6 @@ class Branch(models.Model):
 
             return str(commit)
 
-    def clear_instance(self):
-        instance_folder = self._get_instance_folder(self.machine_id)
-        _delete_sourcecode(name)
-        _delete_dockercontainers(name)
-
-        conn = _get_db_conn()
-        try:
-            cr = conn.cursor()
-            _drop_db(cr, name)
-        finally:
-            cr.close()
-            conn.close()
-            
-        db.sites.update_one(
-            {'_id': site['_id']},
-            {"$set": {'archive': True}}
-            )
-        db.updates.remove({'name': name})
-
-        return jsonify({
-            'result': 'ok',
-        })
-
     def inactivity_cycle_down(self):
         self.ensure_one()
 

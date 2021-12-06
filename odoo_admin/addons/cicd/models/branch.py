@@ -292,6 +292,16 @@ class GitBranch(models.Model):
                             if spurplus.exists(project_path):
                                 spurplus.remove(project_path, recursive=True)
 
+                        try:
+                            shell.odoo("kill")
+                        except Exception as ex:
+                            logsio.error(str(ex))
+
+                        try:
+                            shell.odoo("rm")
+                        except Exception as ex:
+                            logsio.error(str(ex))
+
                     # delete db
                     db = machine.database_ids.filtered(lambda x: x.name == rec.project_name).delete_db()
 
