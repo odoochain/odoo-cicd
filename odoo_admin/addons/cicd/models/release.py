@@ -147,18 +147,22 @@ class ReleaseItem(models.Model):
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.")
     branch_ids = fields.Many2many('cicd.git.branch', string="Branches")
     queuejob_ids = fields.Many2many('queue.job', string="Queuejobs")
+    count_failed_queuejobs = fields.Integer("Failed Jobs", compute="_compute_failed_jobs")
 
     release_type = fields.Selection([
         ('standard', 'Standard'),
         ('hotfix', 'Hotfix'),
     ], default="standard", required=True, readonly=True)
 
-
     def on_done(self):
         if not self.changed_lines:
             msg = "Nothing new to deploy"
         self.release_id.message_post(body=self.computed_summary)
         self.done_date = fields.Datetime.now()
+
+    def _compute_failed_jobs(self):
+        for rec in self:
+            rec.count_failed_queuejobs = len(rec.count_failed_queuejobs.filtered(lambda x: x.state == 'failed'))
     
     @api.model
     def create(self, vals):
