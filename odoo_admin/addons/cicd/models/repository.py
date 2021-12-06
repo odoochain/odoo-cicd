@@ -219,7 +219,7 @@ class Repository(models.Model):
                         logsio=logsio,
                     )
 
-    def _collect_branches(self, source_branches, target_branch, logsio):
+    def _collect_latest_tested_commits(self, source_branches, target_branch, logsio, critical_date):
         """
         Iterate all branches and get the latest commit that fall into the countdown criteria.
         """
@@ -232,6 +232,7 @@ class Repository(models.Model):
         machine = self.machine_id
         repo_path = self._get_main_repo(tempfolder=True)
         env = self._get_git_non_interactive()
+        commits = self.env['cicd.git.commit']
         with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
             try:
 
@@ -244,14 +245,14 @@ class Repository(models.Model):
 
                 for branch in source_branches:
                     for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
-                        if self.final_curtain:
-                            if commit.date > self.final_curtain:
+                        if critical_date:
+                            if commit.date > critical_date:
                                 continue
 
                         if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
                             continue
 
-                        self.commit_ids = [[4, commit.id]]
+                        commits |= commit
 
                         # we use git functions to retrieve deltas, git sorting and so;
                         # we want to rely on stand behaviour git.
@@ -264,3 +265,4 @@ class Repository(models.Model):
 
             finally:
                 shell.X(["rm", "-Rf", repo_path])
+        return commits

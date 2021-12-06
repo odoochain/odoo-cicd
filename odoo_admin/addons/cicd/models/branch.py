@@ -143,7 +143,7 @@ class GitBranch(models.Model):
             if commit.approval_state == 'check':
                 rec.state = 'approve'
 
-            elif commit.approval_state == 'approved' and commit.test_state in [False, 'open'] and rec.any_testing:
+            elif commit.approval_state == 'approved' and commit.test_state in [False, 'open'] and rec.any_testing and not commit.force_approved:
                 rec.state = 'testable'
 
             elif commit.test_state == 'failed' or commit.approval_state == 'declined':
@@ -166,7 +166,7 @@ class GitBranch(models.Model):
                     rec.state = 'candidate'
                 elif rec.block_release:
                     rec.state = 'blocked'
-                elif commit.test_state in [False, 'open'] and not rec.any_testing:
+                elif (commit.test_state in [False, 'open'] and not rec.any_testing) or commit.force_approved:
                     rec.state = 'tested'
 
             rec._update_release_branches()
