@@ -7,6 +7,7 @@
 	<field name="arch" type="xml">
 		<kanban default_group_by="state">
 			<field name="name"/>
+			<field name="last_access"/>
 			<templates>
 
 				<t t-name="kanban-box">
@@ -31,6 +32,10 @@
 						<div>
 							<strong>Repository:</strong>
 							<field name="repo_short"/>
+						</div>
+						<div>
+							<strong>Last Access:</strong>
+							<field name="last_access"/>
 						</div>
 					</div>
 				</t>

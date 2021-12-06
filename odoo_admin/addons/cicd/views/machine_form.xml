@@ -45,7 +45,7 @@
 									<field name="reload_config"/>
 								</group>
 							</page>
-							<page name="databases" strings="Databases">
+							<page name="databases" string="Databases">
 								<group>
 									<field name="database_ids">
 										<tree>

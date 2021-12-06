@@ -9,6 +9,7 @@
 					<filter name="inactive" string="Inactive" domain="[('active', '=', False)]" />
 					<filter name="group_by_repo" string="Repo" domain="[]" context="{'group_by': 'repo_id'}" />
 					<filter name="group_by_state" string="State" domain="[]" context="{'group_by': 'state'}" />
+					<filter name="group_by_last_access" string="Last Access" domain="[]" context="{'group_by': 'last_access:month'}" />
 				</search>
 			</field>
 		</record>

@@ -23,8 +23,8 @@ class Branch(models.Model):
         self._make_task("_docker_stop", True)
 
     def docker_get_state(self):
-        self.ensure_one()
-        self._make_task("_docker_get_state", True)
+        for rec in self:
+            rec._make_task("_docker_get_state", True)
 
     def create_empty_db(self):
         self.ensure_one()

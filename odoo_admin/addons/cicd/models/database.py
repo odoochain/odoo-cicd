@@ -38,11 +38,11 @@ class Database(models.Model):
     @api.model
     def _get_conn(self, machine):
         conn = psycopg2.connect(
-            db_user=machine.db_user,
-            db_host=machine.db_host,
-            db_port=machine.db_port,
-            db_password=machine.db_password,
-            db_name='postgres',
+            user=machine.db_user,
+            host=machine.db_host,
+            port=machine.db_port,
+            password=machine.db_pwd,
+            dbname='postgres',
         )
         try:
             try:

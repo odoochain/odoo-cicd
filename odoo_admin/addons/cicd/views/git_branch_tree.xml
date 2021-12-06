@@ -11,6 +11,7 @@
 					<field name="state"/>
 					<field name="build_state"/>
 					<field name="dump_id"/>
+					<field name="last_access"/>
 				</tree>
 			</field>
 		</record>

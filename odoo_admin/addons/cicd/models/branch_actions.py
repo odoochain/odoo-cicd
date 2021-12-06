@@ -284,7 +284,7 @@ class Branch(models.Model):
         shell.odoo("update-setting", 'web.base.url', shell.machine.external_url)
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
-        self._docker_get_state(shell)
+        self._docker_get_state(shell=shell)
 
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
         # todo make button
@@ -357,7 +357,7 @@ class Branch(models.Model):
         try:
             with self.machine_id._shellexec(dest_folder, logsio, project_name=self.project_name) as shell:
                 if (arrow.get() - arrow.get(self.last_access or '1980-04-04')).total_seconds() > self.cycle_down_after_seconds:
-                    self._docker_get_state(shell)
+                    self._docker_get_state(shell=shell)
                     if self.docker_state == 'up':
                         logsio.info(f"Cycling down instance due to inactivity")
                         shell.odoo('kill')
