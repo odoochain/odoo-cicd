@@ -59,6 +59,7 @@ class GitBranch(models.Model):
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
     release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
 
+    any_testing = fields.Boolean(compute="_compute_any_testing")
     run_unittests = fields.Boolean("Run Unittests", default=True, testrun_field=True)
     run_robottests = fields.Boolean("Run Robot-Tests", default=True, testrun_field=True)
     simulate_empty_install = fields.Boolean("Simulate Empty Install", default=True, testrun_field=True)
@@ -71,6 +72,11 @@ class GitBranch(models.Model):
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    def _compute_any_testing(self):
+        for rec in self:
+            fields = [k for k, v in rec._fields.items() if getattr(v, 'testrun_field', False)]
+            rec.any_testing = any(rec[f] for f in fields)
 
     @api.model
     def create(self, vals):
@@ -122,6 +128,8 @@ class GitBranch(models.Model):
         "commit_ids.approval_state",
         "commit_ids.test_state",
         "commit_ids.force_approved",
+        "commit_ids.test_run_ids",
+        "commit_ids.test_run_ids.state",
     )
     def _compute_state(self):
         for rec in self:
@@ -135,13 +143,14 @@ class GitBranch(models.Model):
             if commit.approval_state == 'check':
                 rec.state = 'approve'
 
-            elif commit.approval_state == 'approved' and commit.test_state in [False, 'open']:
+            elif commit.approval_state == 'approved' and commit.test_state in [False, 'open'] and rec.any_testing:
                 rec.state = 'testable'
 
             elif commit.test_state == 'failed' or commit.approval_state == 'declined':
                 rec.state = 'dev'
 
-            elif commit.test_state == 'success' and commit.approval_state == 'approved':
+            elif (commit.test_state == 'success' or not rec.any_testing and commit.test_state in [False, 'open']) and commit.approval_state == 'approved':
+
 
                 repo = commit.mapped('branch_ids.repo_id')
                 releases = repo.release_ids.filtered(lambda x: rec in x.mapped('item_ids.branch_ids'))
@@ -157,6 +166,9 @@ class GitBranch(models.Model):
                     rec.state = 'candidate'
                 elif rec.block_release:
                     rec.state = 'blocked'
+                elif commit.test_state in [False, 'open'] and not rec.any_testing:
+                    rec.state = 'tested'
+
             rec._update_release_branches()
 
     def _update_release_branches(self):

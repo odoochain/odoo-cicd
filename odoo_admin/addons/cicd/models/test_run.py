@@ -62,10 +62,10 @@ class CicdTestRun(models.Model):
         b = self.branch_id
         started = arrow.get()
 
-        test_run_fields = [k for k, v in b._fields.items() if getattr(v, 'testrun_field', False)]
-        if not any(b[f] for f in test_run_fields):
+        if not b.any_testing:
             self.success_rate = 100
             self.state = 'success'
+            b._compute_state()
             return
 
         if b.simulate_install_id or b.simulate_empty_install:
