@@ -74,7 +74,7 @@ class Database(models.Model):
                 dbname = db[0]
                 dbsize = db[1]
                 all_dbs.add(dbname)
-                db_db = machine.database_ids.filtered(lambda x: x.name == dbname)
+                db_db = machine.database_ids.sudo().filtered(lambda x: x.name == dbname)
                 if not db_db:
                     db_db = machine.database_ids.sudo().create({
                         'machine_id': machine.id,
