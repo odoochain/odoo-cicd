@@ -65,7 +65,8 @@ class Database(models.Model):
             cr.execute("""
                 SELECT datname, pg_database_size(datname)
                 FROM pg_database
-                WHERE datistemplate = false;
+                WHERE datistemplate = false
+                AND datname not in ('postgres');
             """)
             dbs = cr.fetchall()
             all_dbs = set()
