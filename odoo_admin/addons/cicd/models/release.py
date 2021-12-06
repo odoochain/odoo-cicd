@@ -178,6 +178,8 @@ class ReleaseItem(models.Model):
 
     def _do_release(self):
         self.ensure_item()
+        if self.release_type == 'hotfix' and not self.branch_ids:
+            raise ValidationError("Hotfix requires explicit branches.")
         logsio = self.release_id._get_logs()
         try:
             import pudb;pudb.set_trace()
@@ -213,32 +215,29 @@ class ReleaseItem(models.Model):
 
     def collect_branches(self):
         for rec in self:
-            logsio = self.release_id._get_logsio()
             repo = rec.release_id.repo_id
             if rec.state not in ['new']:
                 continue
             if rec.releasetype != 'standard':
                 continue
 
-            branches = self.env['cicd.git.branch'].search([
-                ('state', 'in', ['tested', 'blocked'])
+            rec.branch_ids = [[6, 0, self.env['cicd.git.branch'].search([
+                ('state', 'in', ['tested'])
                 ('id', 'not in', (repo.branch_id | repo.candidate_branch_id).ids),
-            ])
-            for x in list(rec.branch_ids):
-                if x not in branches:
-                    rec.branch_ids = [[3, x.id]]
+            ]).ids]]
 
-            for branch in branches:
-                if branch.state == 'blocked':
-                    rec.branch_ids = [[3, branch.id]]
-                elif branch.state == 'tested':
-                    rec.branch_ids = [[4, branch.id]]
 
+    @api.constrains("branch_ids")
+    def _onchange_branches(self):
+        import pudb;pudb.set_trace()
+        for rec in self:
             # fetch latest commits:
+            logsio = self.release_id._get_logsio()
+            repo = rec.release_id.repo_id
             commits = repo._collect_latest_tested_commits(
                 source_branches=rec.branch_ids,
                 target_branch=self.candidate_branch_id,
                 logsio=logsio,
-                critical_date=rec.date_planned or arrow.get().datetime,
+                critical_date=rec.final_curtain or arrow.get().datetime,
             )
             rec.commit_ids = [[6, 0, commits.ids]]
