@@ -249,7 +249,7 @@ class CicdMachine(models.Model):
             raise ValidationError(_("Could not find: {}").format(ttype))
         return Path(res[0].name)
 
-    def springclean(self, shell, **args):
+    def springclean(self, **args):
         """
         Removes all unused source directories, databases
         and does a docker system prune.
