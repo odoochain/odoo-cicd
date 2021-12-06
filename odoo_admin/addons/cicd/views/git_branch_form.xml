@@ -40,10 +40,7 @@
 						</group>
 						<notebook>
 							<page string="Commits" name="commits" groups="cicd.group_developer">
-								<div>
-									Fetches new git commits and shows them here.
-								</div>
-								<button name="update_git_commits" string="Update Git Commits" type="object" groups="cicd.group_developer"/>
+								<button name="update_git_commits" string="Refresh" type="object" groups="cicd.group_developer"/>
 								<field name="commit_ids" nolabel="1" readonly="1">
 									<tree
 										decoration-danger="approval_state == 'declined' or test_state == 'failed'"
