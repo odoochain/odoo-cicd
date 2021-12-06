@@ -1,4 +1,5 @@
 import json
+import re
 import arrow
 import os
 import requests
@@ -176,7 +177,11 @@ class GitBranch(models.Model):
         for rec in self:
             url = rec.repo_id.ticket_system_base_url
             regex = rec.repo_id.ticket_system_regex
-            rec.ticket_system_url = (url or '') + rec.name
+            name = rec.name or ''
+            if regex:
+                m = re.match(regex, name)
+                name = m.groups() and m.groups()[0] or ''
+            rec.ticket_system_url = (url or '') + (rec.name or '')
 
     def _compute_test_runs(self):
         for rec in self:
