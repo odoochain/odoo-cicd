@@ -64,6 +64,8 @@ class CicdTestRun(models.Model):
 
         test_run_fields = [k for k, v in b._fields.items() if getattr(v, 'testrun_field', False)]
         if not any(b[f] for f in test_run_fields):
+            import pudb;pudb.set_trace()
+            self._compute_success_rate()
             return
 
         if b.simulate_install_id or b.simulate_empty_install:

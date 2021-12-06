@@ -41,6 +41,7 @@ class Repository(models.Model):
     ticket_system_base_url = fields.Char("Ticket System Base URL")
     ticket_system_regex = fields.Char("Ticket System Regex")
     release_ids = fields.One2many('cicd.release', 'repo_id', string="Releases")
+    default_simulate_install_id_dump_id = fields.Many2one('cicd.dump', string="Default Simluate Install Dump")
 
     _sql_constraints = [
         ('name_unique', "unique(named)", _("Only one unique entry allowed.")),

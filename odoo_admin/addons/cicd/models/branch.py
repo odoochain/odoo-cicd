@@ -58,9 +58,9 @@ class GitBranch(models.Model):
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
     release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
 
-    run_unittests = fields.Boolean("Run Unittests", default=False, testrun_field=True)
-    run_robottests = fields.Boolean("Run Robot-Tests", default=False, testrun_field=True)
-    simulate_empty_install = fields.Boolean("Simulate Empty Install", testrun_field=True)
+    run_unittests = fields.Boolean("Run Unittests", default=True, testrun_field=True)
+    run_robottests = fields.Boolean("Run Robot-Tests", default=True, testrun_field=True)
+    simulate_empty_install = fields.Boolean("Simulate Empty Install", default=True, testrun_field=True)
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
@@ -70,6 +70,13 @@ class GitBranch(models.Model):
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        if not res.simulate_install_id:
+            res.simulate_install_id = res.repo_id.default_simulate_install_id_dump_id
+        return res
 
     def _compute_releases(self):
         for rec in self:
@@ -296,6 +303,6 @@ class GitBranch(models.Model):
         for rec in self:
             rec.block_release = not rec.block_release
 
-    def _cron_run_tests(self):
+    def _cron_make_test_runs(self):
         for rec in self:
             rec._make_task("_run_tests", silent=True, kwargs={'update_state': True})
