@@ -131,27 +131,28 @@ class Release(models.Model):
             item._trigger_do_release()
 
 class ReleaseItem(models.Model):
+    _inherit = ['mail.thread']
     _name = 'cicd.release.item'
     _order = 'id desc'
 
     name = fields.Char("Version")
     release_id = fields.Many2one('cicd.release', string="Release")
-    planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now())
-    done_date = fields.Datetime("Done")
-    changed_lines = fields.Integer("Changed Lines")
-    final_curtain = fields.Datetime("Final Curtains")
+    planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now(), track_visibility="onchange")
+    done_date = fields.Datetime("Done", track_visibility="onchange")
+    changed_lines = fields.Integer("Changed Lines", track_visibility="onchange")
+    final_curtain = fields.Datetime("Final Curtains", track_visibility="onchange")
     log_release = fields.Text("Log")
     state = fields.Selection([
         ("new", "New"),
         ('done', 'Done'),
         ('failed', 'Failed'),
-    ], string="State", default='new', required=True)
-    computed_summary = fields.Text("Computed Summary", compute="_compute_summary")
-    commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.")
-    branch_ids = fields.Many2many('cicd.git.branch', string="Branches")
+    ], string="State", default='new', required=True, track_visibility="onchange")
+    computed_summary = fields.Text("Computed Summary", compute="_compute_summary", track_visibility="onchange")
+    commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.", track_visibility="onchange")
+    branch_ids = fields.Many2many('cicd.git.branch', string="Branches", track_visibility="onchange")
     queuejob_ids = fields.Many2many('queue.job', string="Queuejobs")
     count_failed_queuejobs = fields.Integer("Failed Jobs", compute="_compute_failed_jobs")
-    try_counter = fields.Integer("Try Counter")
+    try_counter = fields.Integer("Try Counter", track_visibility="onchange")
 
     release_type = fields.Selection([
         ('standard', 'Standard'),
