@@ -48,3 +48,4 @@ from . import test_run
 from . import container
 from . import database
 from . import postgres_server
+from . import user
