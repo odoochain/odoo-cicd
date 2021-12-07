@@ -262,3 +262,32 @@ class Repository(models.Model):
             finally:
                 shell.X(["rm", "-Rf", repo_path])
         return commits
+
+    def _merge(self, source, dest, set_tags, logsio=None):
+        import pudb;pudb.set_trace()
+        assert source._name == 'cicd.git.branch'
+        assert dest._name == 'cicd.git.branch'
+        source.ensure_one()
+        dest.ensure_one()
+
+        machine = self.machine_id
+        repo_path = self._get_main_repo(tempfolder=True)
+        env = self._get_git_non_interactive()
+        with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+            try:
+                shell.X(["/usr/bin/git", "checkout", "-f", dest.name])
+                commitid = shell.X(["/usr/bin/git", "log", "-n1", "--format=%H"]).output.strip()
+                branches = [self._clear_branch_name(x) for x in shell.X(["/usr/bin/git", "branch", "--contains", commitid]).output.strip().split("\n")]
+                if dest.name in branches:
+                    return False
+                shell.X(["/usr/bin/git", "checkout", "-f", dest.name])
+                count_lines = shell.X(["/usr/bin/git", "diff", "-p", source.name]).output.strip().split("\n")
+                shell.X(["/usr/bin/git", "merge", source.name])
+                for tag in set_tags:
+                    shell.X(["/usr/bin/git", "tag", '-f', tag])
+                shell.X(["/usr/bin/git", "push", '--follow-tags', '-f'])
+
+                return count_lines
+
+            finally:
+                shell.X(["/usr/bin/rm", "-rf", repo_path])

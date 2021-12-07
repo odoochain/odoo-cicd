@@ -148,17 +148,19 @@ class ReleaseItem(models.Model):
     branch_ids = fields.Many2many('cicd.git.branch', string="Branches")
     queuejob_ids = fields.Many2many('queue.job', string="Queuejobs")
     count_failed_queuejobs = fields.Integer("Failed Jobs", compute="_compute_failed_jobs")
+    try_counter = fields.Integer("Try Counter")
 
     release_type = fields.Selection([
         ('standard', 'Standard'),
         ('hotfix', 'Hotfix'),
     ], default="standard", required=True, readonly=True)
 
-    def on_done(self):
+    def _on_done(self):
         if not self.changed_lines:
             msg = "Nothing new to deploy"
         self.release_id.message_post(body=self.computed_summary)
         self.done_date = fields.Datetime.now()
+            release.message_post(body=f"Deployment of version {self.name} succeeded!")
 
     @api.depends('queuejob_ids')
     def _compute_failed_jobs(self):
@@ -187,43 +189,42 @@ class ReleaseItem(models.Model):
             rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
 
     def _do_release(self):
-        self.ensure_item()
+        import pudb;pudb.set_trace()
         if self.state != 'new':
             raise ValidationError("Needs state new to be validated.")
         if self.release_type == 'hotfix' and not self.branch_ids:
             raise ValidationError("Hotfix requires explicit branches.")
-        logsio = self.release_id._get_logs()
+        logsio = self.release_id._get_logsio()
         try:
+            self.try_counter += 1
+            release = self.release_id
             import pudb;pudb.set_trace()
+            changed_lines = release.repo_id._merge(
+                release.candidate_branch_id,
+                release.branch_id,
+                set_tags=f'release-{self.name}',
+                logsio=logsio,
+            )
+            self.changed_lines += changed_lines
+
+            if not self.changed_lines:
+                self._on_done()
+                return
+
             for machine in self.release_id.machine_ids:
-                res = self.repo_id._merge(
-                    self.release_id.candidate_branch_id,
-                    self.release_id.branch_id,
-                )
-                if not res.diffs_exists:
-                    self._on_done()
-                    continue
-
-                main_repo_path = self.release_id.repo_id._get_main_repo(tempfolder=True)
-                with self.release_id.repo_id.machine_id._shell_exec(cwd=main_repo_path, logsio=logsio) as shell:
-                    try:
-                        shell.X("git", "checkout", "-f", self.release_id.branch_id.name)
-                        shell.X("git", "tag", "-f", self.name)
-                        shell.X("git", "push", "--follow-tags")
-                    finally:
-                        shell.X("rm", "-Rf", main_repo_path)
-
-                path = machine._get_volume("source") / self.release_id.project_name
+                path = machine._get_volume("source") / release.project_name
                 self.repo_id._get_main_repo(destination_folder=path, machine=machine)
                 with machine._shell_exec(cwd=path, logsio=logsio) as shell:
                     shell.X("odoo", "reload")
                     shell.X("odoo", "build")
                     shell.X("odoo", "update")
-            self.release_id.message_post(body=f"Deployment of version {self.version} succeeded!")
-        except Exception as ex:
-            self.release_id.message_post(body=f"Deployment of version {self.version} failed: {ex}")
 
-        self.log = logsio.get_lines()
+            self._on_done()
+
+        except Exception as ex:
+            self.release_id.message_post(body=f"Deployment of version {self.name} failed: {ex}")
+
+        self.log_release = logsio.get_lines()
 
     def trigger_collect_branches(self):
         for rec in self:
