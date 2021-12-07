@@ -11,6 +11,7 @@
 					<sheet>
 						<div class="oe_button_box" name="button_box">
 							<button type="object" class="oe_stat_button" icon="fa-times" name="set_to_ignore" string="Ignore Release" states='new,failed' />
+							<button type="object" class="oe_stat_button" icon="fa-check" name="reschedule" string="Reschedule" states="ignore"/>
 						</div>
 						<group>
 							<field name="release_id" readonly="1" />
@@ -26,9 +27,11 @@
 							</page>
 							<page string="Branches">
 								<field name="branch_ids">
-									<field name="name"/>
-									<field name="state"/>
-									<field name="enduser_summary"/>
+									<tree>
+										<field name="name"/>
+										<field name="state"/>
+										<field name="enduser_summary"/>
+									</tree>
 								</field>
 
 							</page>

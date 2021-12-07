@@ -162,3 +162,9 @@ class ReleaseItem(models.Model):
             if rec.state not in ['failed', 'new']:
                 raise ValidationError("Cannot set state to ignore")
             rec.state = 'ignore'
+    
+    def reschedule(self):
+        for rec in self:
+            if rec.state not in ['ignore']:
+                raise ValidationError("Cannot set state to new")
+            rec.state = 'new'
