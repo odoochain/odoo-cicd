@@ -25,7 +25,7 @@ class Repository(models.Model):
     _name = 'cicd.git.repo'
 
     short = fields.Char(compute="_compute_shortname", string="Name")
-    machine_id = fields.Many2one('cicd.machine', string="Development Machine", required=True)
+    machine_id = fields.Many2one('cicd.machine', string="Development Machine", required=True, domain=[('ttype', '=', 'dev')])
     name = fields.Char("URL", required=True)
     login_type = fields.Selection([
         ('username', 'Username'),

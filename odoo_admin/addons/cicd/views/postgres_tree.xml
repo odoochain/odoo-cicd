@@ -1,0 +1,15 @@
+<odoo>
+	<data noupdate='0'>
+	<record id="view_postgres_server_tree" model="ir.ui.view">
+		<field name="model">cicd.postgres</field>
+		<field name="arch" type="xml">
+			<tree default_order="" string="" >
+				<field name="name"/>
+				<field name="db_host"/>
+				<field name="database_ids" widget="many2many_tags"/>
+				
+			</tree>
+		</field>
+	</record>
+	</data>
+</odoo>

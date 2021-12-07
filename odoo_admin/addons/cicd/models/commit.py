@@ -30,6 +30,12 @@ class GitCommit(models.Model):
         ('name', "unique(name)", _("Only one unique entry allowed.")),
     ]
 
+    def set_approved(self):
+        self.write({'approval_state': 'approved'})
+
+    def set_declined(self):
+        self.write({'approval_state': 'declined'})
+
     @api.depends('test_run_ids', 'test_run_ids.state')
     def _compute_test_state(self):
         for rec in self:

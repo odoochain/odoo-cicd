@@ -82,15 +82,11 @@ class CicdMachine(models.Model):
     ], required=True)
     reload_config = fields.Text("Settings")
     external_url = fields.Char("External http-Address")
-    db_host = fields.Char("DB Host", default="cicd_postgres")
-    db_user = fields.Char("DB User", default="cicd")
-    db_pwd = fields.Char("DB Password", default="cicd_is_cool")
-    db_port = fields.Integer("DB Port", default=5432)
-    database_ids = fields.One2many('cicd.database', 'machine_id', string="Databases")
 
     ssh_user_cicdlogin = fields.Char(compute="_compute_ssh_user_cicd_login")
     ssh_user_cicdlogin_password_salt = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
     ssh_user_cicdlogin_password = fields.Char(compute="_compute_ssh_user_cicd_login")
+    postgres_server_id = fields.Many2one('cicd.postgres', string="Postgres Server")
 
     @api.depends('ssh_user')
     def _compute_ssh_user_cicd_login(self):
@@ -222,13 +218,10 @@ class CicdMachine(models.Model):
     def update_volumes(self):
         self.mapped('volume_ids')._update_sizes()
 
-    def update_databases(self):
-        self.env['cicd.database']._update_dbs(self)
 
     def update_all_values(self):
         self.update_dumps()
         self.update_volumes()
-        self.update_databases()
 
     def _get_sshuser_id(self):
         user_name = self.ssh_user

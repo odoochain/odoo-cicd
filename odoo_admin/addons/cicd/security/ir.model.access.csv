@@ -22,3 +22,4 @@ model_cicd_test_run_line,base.group_user,cicd_test_run_line_base_group_user,cicd
 model_docker_container,base.group_user,docker_container_base_group_user,docker.container - base_group_user,1,0,0,0
 
 model_cicd_database,base.group_user,cicd_database_base_group_user,cicd.database - base_group_user,1,0,0,0
+model_cicd_postgres,base.group_user,cicd_postgres_base_group_user,cicd.postgres - base_group_user,1,1,1,1

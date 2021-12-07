@@ -1,0 +1,38 @@
+<odoo>
+	<data noupdate="0">
+		<record id="view_cicd_postgres_form" model="ir.ui.view">
+			<field name="name">cicd.postgres form</field>
+			<field name="model">cicd.postgres</field>
+			<field name="arch" type="xml">
+				<form string="">
+					<header>
+						<button name="update_databases" string="Update Databases" type="object" />
+					</header>
+					<sheet>
+						<group string="title" col="2">
+							<field name="name" />
+							<field name="db_host" />
+							<field name="db_host" />
+							<field name="db_port" />
+							<field name="db_user" />
+							<field name="db_pwd" password="True" />
+						</group>
+						<notebook>
+							<page name="databases" string="Databases">
+								<group>
+									<field name="database_ids" nolabel="1">
+										<tree>
+											<button name="delete_db" string="Purge" type="object" confirm="Cannot be undone. Continue?" />
+											<field name="name" />
+											<field name="size_human" />
+										</tree>
+									</field>
+								</group>
+							</page>
+						</notebook>
+					</sheet>
+				</form>
+			</field>
+		</record>
+	</data>
+</odoo>

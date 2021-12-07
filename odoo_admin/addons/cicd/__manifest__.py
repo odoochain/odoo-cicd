@@ -12,6 +12,8 @@
                 'views/git_branch_search.xml',
                 'views/git_branch_tree.xml',
                 'views/machine_form.xml',
+                'views/postgres_form.xml',
+                'views/postgres_tree.xml',
                 'views/registry.xml',
                 'views/release_form.xml',
                 'views/release_item_form.xml',

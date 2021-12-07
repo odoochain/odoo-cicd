@@ -9,6 +9,10 @@
 				<header>
 				</header>
 				<sheet>
+					<div class="oe_button_box" name="button_box">
+						<button type="object" class="oe_stat_button" icon="fa-times" name="set_declined" string="Decline" />
+						<button type="object" class="oe_stat_button" icon="fa-check" name="set_approved" string="Approve" />
+					</div>
 					<group col="2">
 						<field name="name" readonly='1' />
 						<field name="date" readonly='1' />
