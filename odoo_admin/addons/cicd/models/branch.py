@@ -149,22 +149,20 @@ class GitBranch(models.Model):
                 rec.state = 'dev'
 
             elif (commit.test_state == 'success' or not rec.any_testing and commit.test_state in [False, 'open']) and commit.approval_state == 'approved':
-
-                repo = commit.mapped('branch_ids.repo_id')
-                releases = repo.release_ids.filtered(lambda x: rec in x.mapped('item_ids.branch_ids'))
-                candidates = releases.mapped('candidate_branch_id')
-                released_branches = releases.mapped('branch_id')
                 import pudb;pudb.set_trace()
 
-                if any(x.contains_branch(commit) for x in released_branches):
-                    if releases.is_latest_release_done:
-                        rec.state = 'done'
-                    else:
-                        rec.state = 'release'
-                elif any(x.contains_branch(commit) for x in candidates):
-                    rec.state = 'candidate'
-                elif rec.block_release:
+                repo = commit.mapped('branch_ids.repo_id')
+                latest_release_items = self.env['cicd.release.item']
+                for release in repo.release_ids:
+                    if release.item_ids.filtered(lambda x: x.state != 'ignore'):
+                        latest_release_items |= release.item_ids[0]
+
+                if rec.block_release:
                     rec.state = 'blocked'
+                elif any(x.mapped('branch_ids').contains_commit(commit) for x in latest_release_items.filtered(lambda x: x.state in ['new', 'failed'])):
+                    rec.state = 'candidate'
+                elif any(x.mapped('branch_ids').contains_commit(commit) for x in latest_release_items.filtered(lambda x: x.state in ['done'])):
+                    rec.state = 'done'
                 elif (commit.test_state in [False, 'open'] and not rec.any_testing) or commit.force_approved:
                     rec.state = 'tested'
 
@@ -335,3 +333,6 @@ class GitBranch(models.Model):
         """
         for rec in self:
             rec._make_task("_build", silent=True)
+
+    def contains_commit(self, commit):
+        return commit in self.mapped('commit_ids')

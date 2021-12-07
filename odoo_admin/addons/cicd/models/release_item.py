@@ -153,6 +153,8 @@ class ReleaseItem(models.Model):
         # fetch latest commits:
         logsio = self.release_id._get_logsio()
         repo = self.release_id.repo_id
+        # remove blocked 
+        self.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release)
         commits = repo._collect_latest_tested_commits(
             source_branches=self.branch_ids,
             target_branch=self.release_id.candidate_branch_id,
@@ -160,6 +162,7 @@ class ReleaseItem(models.Model):
             critical_date=self.final_curtain or arrow.get().datetime,
         )
         self.commit_ids = [[6, 0, commits.ids]]
+        (self.branch_ids | self.release_id.candidate_branch_id)._compute_state()
 
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
