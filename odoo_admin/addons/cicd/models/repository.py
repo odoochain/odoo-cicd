@@ -133,7 +133,6 @@ class Repository(models.Model):
 
     @api.model
     def _cron_fetch(self):
-        import pudb;pudb.set_trace()
         for repo in self.search([]):
             self._lock_git()
             logsio = LogsIOWriter(repo.name, 'fetch')
