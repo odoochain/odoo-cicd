@@ -333,3 +333,10 @@ class GitBranch(models.Model):
     def _cron_make_test_runs(self):
         for rec in self:
             rec._make_task("_run_tests", silent=True, kwargs={'update_state': True})
+
+    def _trigger_rebuild_after_fetch(self):
+        """
+        After new source is fetched then the instance is rebuilt.
+        """
+        for rec in self:
+            rec.build()

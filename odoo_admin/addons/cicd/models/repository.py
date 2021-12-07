@@ -197,6 +197,7 @@ class Repository(models.Model):
                     repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
                     repo.branch_ids._compute_state()
                     repo.release_ids.collect_branches_on_candidate()
+                    repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch()
                 del updated_branches
 
     def _lock_git(self): 
