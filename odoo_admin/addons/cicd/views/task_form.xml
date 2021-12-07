@@ -14,6 +14,7 @@
 						<field name="date"/>
 						<field name="duration"/>
 						<field name="commit_id"/>
+						<field name="dump_used"/>
 					</group>
 					<group string="Error" style="font-size: 7pt;">
 						<field name="error" attrs="{'invisible': [('error', '=', False)]}"/>

@@ -12,7 +12,6 @@
 						<group string="title" col="2">
 							<field name="name" />
 							<field name="db_host" />
-							<field name="db_host" />
 							<field name="db_port" />
 							<field name="db_user" />
 							<field name="db_pwd" password="True" />

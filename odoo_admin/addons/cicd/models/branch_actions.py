@@ -26,7 +26,7 @@ class Branch(models.Model):
 
     def _restore_dump(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
-        task.dump_used = self.dump_id.name
+        task.sudo().write({'dump_used': self.dump_id.name})
         logsio.info("Reloading")
         shell.odoo('reload')
         logsio.info("Building")
