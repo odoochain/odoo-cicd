@@ -12,7 +12,7 @@ class Database(models.Model):
     _name = 'cicd.database'
 
     name = fields.Char("Name", required=True)
-    server_id = fields.Many2one("cicd.postgres", string="Postgres")
+    server_id = fields.Many2one("cicd.postgres", string="Postgres", required=True)
 
     _sql_constraints = [
         ('name_postgres_unique', "unique(name, server_id)", _("Only one unique entry allowed.")),
@@ -30,29 +30,3 @@ class Database(models.Model):
     def _cron_update(self):
         for machine in self.env['cicd.machine'].sudo().search([]):
             self._update_dumps(machine)
-
-    def _update_dbs(self, machine):
-        with self.server_id._get_conn() as cr:
-            cr.execute("""
-                SELECT datname, pg_database_size(datname)
-                FROM pg_database
-                WHERE datistemplate = false
-                AND datname not in ('postgres');
-            """)
-            dbs = cr.fetchall()
-            all_dbs = set()
-            for db in dbs:
-                dbname = db[0]
-                dbsize = db[1]
-                all_dbs.add(dbname)
-                db_db = machine.database_ids.sudo().filtered(lambda x: x.name == dbname)
-                if not db_db:
-                    db_db = machine.database_ids.sudo().create({
-                        'machine_id': machine.id,
-                        'name': dbname
-                    })
-                db_db.size = dbsize
-
-            for db in machine.database_ids:
-                if db.name not in all_dbs:
-                    db.sudo().unlink()

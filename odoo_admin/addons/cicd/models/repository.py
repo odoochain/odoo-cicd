@@ -69,7 +69,7 @@ class Repository(models.Model):
                 rec.url = rec.name
 
     @contextmanager
-    def _get_ssh_command(self):
+    def _get_ssh_command(self, shell):
         self.ensure_one()
         file = Path(tempfile.mktemp(suffix='.'))
         env = {}
@@ -77,14 +77,15 @@ class Repository(models.Model):
         try:
             env['GIT_SSH_COMMAND'] = f'ssh -o StrictHostKeyChecking=no'
             if self.login_type == 'key':
-                env['GIT_SSH_COMMAND'] += [f'-i {file}']
-                file.write_text(self.key)
+                env['GIT_SSH_COMMAND'] += f'   -i {file}  '
+                shell.write_text(file, self.key)
+                shell.run(["chmod", '400', str(file)])
             else:
                 pass
             yield env
         finally:
-            if file.exists():
-                file.unlink()
+            if shell.exists(file):
+                shell.remove(file)
 
     def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None, machine=None):
         self.ensure_one()
@@ -210,8 +211,8 @@ class Repository(models.Model):
                 raise ValidationError(_("Git is in other use at the moment"))
 
     def clone_repo(self, machine, path, logsio):
-        with self._get_ssh_command() as env:
-            with machine._shell() as shell:
+        with machine._shell() as shell:
+            with self._get_ssh_command(shell) as env:
                 if not shell.exists(path):
                     machine._execute_shell(
                         ["git", "clone", self.url, path],

@@ -1,3 +1,4 @@
+import psycopg2
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.tools import get_host_ip
@@ -13,9 +14,6 @@ class PostgresServer(models.Model):
     db_pwd = fields.Char("DB Password", default="cicd_is_cool")
     db_port = fields.Integer("DB Port", default=5432)
     database_ids = fields.One2many('cicd.database', 'server_id', string="Databases")
-
-    def update_databases(self):
-        self.env['cicd.database']._update_dbs(self)
 
     @api.model
     def default_get(self, fields):
@@ -43,3 +41,28 @@ class PostgresServer(models.Model):
         finally:
             conn.close()
 
+    def update_databases(self):
+        with self._get_conn() as cr:
+            cr.execute("""
+                SELECT datname, pg_database_size(datname)
+                FROM pg_database
+                WHERE datistemplate = false
+                AND datname not in ('postgres');
+            """)
+            dbs = cr.fetchall()
+            all_dbs = set()
+            for db in dbs:
+                dbname = db[0]
+                dbsize = db[1]
+                all_dbs.add(dbname)
+                db_db = self.database_ids.sudo().filtered(lambda x: x.name == dbname)
+                if not db_db:
+                    db_db = machine.database_ids.sudo().create({
+                        'server_id': self.id,
+                        'name': dbname
+                    })
+                db_db.size = dbsize
+
+            for db in self.database_ids:
+                if db.name not in all_dbs:
+                    db.sudo().unlink()
