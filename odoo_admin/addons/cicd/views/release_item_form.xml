@@ -26,7 +26,7 @@
 								<field name="log_release"/>
 							</page>
 							<page string="Branches">
-								<field name="branch_ids">
+								<field name="branch_ids" attrs="{'readonly': [('release_type', '!=', 'hotfix')]}">
 									<tree>
 										<field name="name"/>
 										<field name="state"/>
