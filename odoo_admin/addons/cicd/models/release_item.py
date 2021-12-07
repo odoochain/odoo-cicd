@@ -129,17 +129,23 @@ class ReleaseItem(models.Model):
         self.log_release = logsio.get_lines()
 
     def _collect_tested_branches(self):
+        import pudb;pudb.set_trace()
         for rec in self:
             repo = rec.release_id.repo_id
             if rec.state not in ['new', 'failed']:
                 continue
             if rec.release_type != 'standard':
                 continue
-
-            rec.branch_ids = [[6, 0, self.env['cicd.git.branch'].search([
+            branches = self.env['cicd.git.branch'].search([
                 ('state', 'in', ['tested']),
                 ('id', 'not in', (rec.release_id.branch_id | rec.release_id.candidate_branch_id).ids),
-            ]).ids]]
+            ])
+            for b in branches:
+                if b not in rec.branch_ids:
+                    rec.branch_ids += b
+            for b in rec.branch_ids:
+                if b.state not in ['tested', 'candidate', 'done', 'release']:
+                    rec.branch_ids -= b
             rec._trigger_recreate_candidate_branch_in_git()
 
     def _recreate_candidate_branch_in_git(self):
@@ -173,9 +179,12 @@ class ReleaseItem(models.Model):
         qj = self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
         self.queuejob_ids |= qj
 
-    @api.recordchange("branch_ids")
-    def _on_change_branches(self):
-        self._trigger_recreate_candidate_branch_in_git()
+    @api.fieldchange("branch_ids")
+    def _on_change_branches(self, changeset):
+        import pudb;pudb.set_trace()
+        for rec in self:
+            rec._trigger_recreate_candidate_branch_in_git()
+            (changeset['branch_ids']['old'] | changeset['branch_ids']['new'])._compute_state()
 
     def set_to_ignore(self):
         for rec in self:

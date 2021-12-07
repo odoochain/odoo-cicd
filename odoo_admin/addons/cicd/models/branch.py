@@ -10,6 +10,8 @@ from odoo.exceptions import ValidationError
 from ..tools.logsio_writer import LogsIOWriter
 from contextlib import contextmanager
 import humanize
+import logging
+logger = logging.getLogger(__name__)
 
 class GitBranch(models.Model):
     _inherit = ['mail.thread']
@@ -133,20 +135,23 @@ class GitBranch(models.Model):
     )
     def _compute_state(self):
         for rec in self:
-            rec.state = 'new'
+            logger.info(f"Computing branch state for {rec.id}")
             if not rec.commit_ids and rec.build_state == 'new':
+                if rec.state != 'new':
+                    rec.state = 'new'
                 continue
+            state = 'new'
 
             commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
 
             if commit.approval_state == 'check':
-                rec.state = 'approve'
+                state = 'approve'
 
             elif commit.approval_state == 'approved' and commit.test_state in [False, 'open'] and rec.any_testing and not commit.force_approved:
-                rec.state = 'testable'
+                state = 'testable'
 
             elif commit.test_state == 'failed' or commit.approval_state == 'declined':
-                rec.state = 'dev'
+                state = 'dev'
 
             elif (commit.test_state == 'success' or not rec.any_testing and commit.test_state in [False, 'open']) and commit.approval_state == 'approved':
                 repo = commit.mapped('branch_ids.repo_id')
@@ -154,26 +159,42 @@ class GitBranch(models.Model):
                 for release in repo.release_ids:
                     if release.item_ids.filtered(lambda x: x.state != 'ignore'):
                         latest_release_items |= release.item_ids[0]
+                import pudb;pudb.set_trace()
 
                 if rec.block_release:
-                    rec.state = 'blocked'
+                    state = 'blocked'
                 elif any(x.mapped('branch_ids').contains_commit(commit) for x in latest_release_items.filtered(lambda x: x.state in ['new', 'failed'])):
-                    rec.state = 'candidate'
+                    state = 'candidate'
                 elif any(x.mapped('branch_ids').contains_commit(commit) for x in latest_release_items.filtered(lambda x: x.state in ['done'])):
-                    rec.state = 'done'
+                    state = 'done'
                 elif (commit.test_state in [False, 'open'] and not rec.any_testing) or commit.force_approved:
-                    rec.state = 'tested'
+                    state = 'tested'
 
-    @api.fieldchange('state')
+            if state != rec.state:
+                rec.state = state
+
+    @api.fieldchange('state', 'block_release')
     def _onchange_state_event(self, changeset):
         for rec in self:
-            old_state = changeset['state']['old']
-            new_state = changeset['state']['new']
-            if new_state == 'tested' or old_state == 'tested':
+
+            def _update():
                 self.env['cicd.release.item'].search([
                     ('state', '=', 'new'),
                     ('release_id.repo_id', '=', rec.repo_id.id)
                 ])._collect_tested_branches()
+
+            if 'block_release' in changeset:
+                rec._compute_state()
+                _update()
+                continue
+
+            if 'state' in changeset:
+                old_state = changeset['state']['old']
+                new_state = changeset['state']['new']
+                if new_state == 'tested' or old_state == 'tested':
+                    _update()
+                    continue
+
 
     @api.depends("name")
     def _compute_ticket_system_url(self):
