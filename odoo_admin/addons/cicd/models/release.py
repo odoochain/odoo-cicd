@@ -105,10 +105,6 @@ class Release(models.Model):
         logsio = LogsIOWriter(self.repo_id.short, "Release")
         return logsio
 
-    def collect_branches_on_candidate(self):
-        item = self._ensure_item()
-        item.trigger_collect_branches()
-
     def _ensure_item(self):
         items = self.item_ids.sorted(lambda x: x.id, reverse=True).filtered(lambda x: x. release_type == 'standard')
         if not items or items[0].state in ['done', 'failed']:

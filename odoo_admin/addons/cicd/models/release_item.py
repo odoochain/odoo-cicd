@@ -37,6 +37,13 @@ class ReleaseItem(models.Model):
         ('hotfix', 'Hotfix'),
     ], default="standard", required=True, readonly=True)
 
+    @api.constrains("state")
+    def _ensure_one_item_only(self):
+        for rec in self:
+            if rec.state in ['new', 'failed']:
+                if rec.release_id.item_ids.filtered(lambda x: x.id != rec.id and x.state in ['new', 'failed']):
+                    raise ValidationError(_("There may only be one new or failed item"))
+
     def open_window(self):
         self.ensure_one()
         return {
@@ -121,17 +128,10 @@ class ReleaseItem(models.Model):
 
         self.log_release = logsio.get_lines()
 
-    def trigger_collect_branches(self):
-        for rec in self:
-            job = rec.with_delay(
-                identity_key=f"collect_branches {rec.release_id.name}",
-            ).collect_branches()
-            rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
-
-    def collect_branches(self):
+    def collect_tested_branches(self):
         for rec in self:
             repo = rec.release_id.repo_id
-            if rec.state not in ['new']:
+            if rec.state not in ['new', 'failed']:
                 continue
             if rec.release_type != 'standard':
                 continue
@@ -140,22 +140,39 @@ class ReleaseItem(models.Model):
                 ('state', 'in', ['tested']),
                 ('id', 'not in', (repo.branch_id | repo.candidate_branch_id).ids),
             ]).ids]]
+            rec._trigger_recreate_candidate_branch_in_git()
 
-    @api.constrains("branch_ids")
-    def _onchange_branches(self):
-        for rec in self:
-            if rec.state != 'new':
-                raise ValidationError("Branches can only be changed in state 'new'")
-            # fetch latest commits:
-            logsio = self.release_id._get_logsio()
-            repo = rec.release_id.repo_id
-            commits = repo._collect_latest_tested_commits(
-                source_branches=rec.branch_ids,
-                target_branch=rec.release_id.candidate_branch_id,
-                logsio=logsio,
-                critical_date=rec.final_curtain or arrow.get().datetime,
-            )
-            rec.commit_ids = [[6, 0, commits.ids]]
+    def _recreate_candidate_branch_in_git(self):
+        """
+        Heavy function - takes longer and does quite some work.
+        """
+        self.ensure_one()
+        if self.state not in ('new', 'failed', 'ignore'):
+            raise ValidationError("Branches can only be changed in state 'new', 'failed' or 'ignore'")
+
+        # fetch latest commits:
+        logsio = self.release_id._get_logsio()
+        repo = self.release_id.repo_id
+        commits = repo._collect_latest_tested_commits(
+            source_branches=self.branch_ids,
+            target_branch=self.release_id.candidate_branch_id,
+            logsio=logsio,
+            critical_date=self.final_curtain or arrow.get().datetime,
+        )
+        self.commit_ids = [[6, 0, commits.ids]]
+
+    def _trigger_recreate_candidate_branch_in_git(self):
+        self.ensure_one()
+        job = self.with_delay(
+            identity_key=f"recreate_candidate_branch_in_git{self.release_id.name}",
+            eta=arrow.get().shift(minutes=1).datetime,
+        )._trigger_recreate_candidate_branch_in_git()
+        qj = self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
+        self.queuejob_ids |= qj
+
+    @api.recordchange("branch_ids")
+    def _on_change_branches(self):
+        self._trigger_pull_branches_into_candidate()
 
     def set_to_ignore(self):
         for rec in self:

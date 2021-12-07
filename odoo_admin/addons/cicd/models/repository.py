@@ -133,14 +133,15 @@ class Repository(models.Model):
 
     @api.model
     def _cron_fetch(self):
+        import pudb;pudb.set_trace()
         for repo in self.search([]):
             self._lock_git()
             logsio = LogsIOWriter(repo.name, 'fetch')
                 
             repo_path = repo._get_main_repo(logsio=logsio)
+            repo_path_temp = repo._get_main_repo(tempfolder=True, logsio=logsio)
             env = self._get_git_non_interactive()
-            with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
-                shell.X(["git", "clean", "-xdff"])
+            with repo.machine_id._shellexec(cwd=repo_path_temp, logsio=logsio, env=env) as shell:
                 all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
                 new_commits, updated_branches = {}, set()
 
@@ -196,9 +197,12 @@ class Repository(models.Model):
                 if updated_branches:
                     repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
                     repo.branch_ids._compute_state()
-                    repo.release_ids.collect_branches_on_candidate()
                     repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch()
                 del updated_branches
+
+                # now transfer this state to the original place:
+                shell.X(["rsync", str(repo_path_temp) + "/", str(repo_path) + "/", "-ar", "--delete-after"])
+                shell.X(["rm", "-Rf", str(repo_path_temp)])
 
     def _lock_git(self): 
         for rec in self:

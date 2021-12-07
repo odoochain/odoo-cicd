@@ -135,7 +135,6 @@ class GitBranch(models.Model):
         for rec in self:
             rec.state = 'new'
             if not rec.commit_ids and rec.build_state == 'new':
-                rec._update_release_branches()
                 continue
 
             commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
@@ -151,11 +150,11 @@ class GitBranch(models.Model):
 
             elif (commit.test_state == 'success' or not rec.any_testing and commit.test_state in [False, 'open']) and commit.approval_state == 'approved':
 
-
                 repo = commit.mapped('branch_ids.repo_id')
                 releases = repo.release_ids.filtered(lambda x: rec in x.mapped('item_ids.branch_ids'))
                 candidates = releases.mapped('candidate_branch_id')
                 released_branches = releases.mapped('branch_id')
+                import pudb;pudb.set_trace()
 
                 if any(x.contains_branch(commit) for x in released_branches):
                     if releases.is_latest_release_done:
@@ -169,20 +168,16 @@ class GitBranch(models.Model):
                 elif (commit.test_state in [False, 'open'] and not rec.any_testing) or commit.force_approved:
                     rec.state = 'tested'
 
-            rec._update_release_branches()
-
-    def _update_release_branches(self):
-        """
-        If state changes and branch is ready to be released or not,
-        then update the current release items of that branch
-        """
-        self.ensure_one()
-        items = self.env['cicd.release.item'].search([('state', '=', 'new')])
-        for item in items:
-            if self.state == 'candidate':
-                item.branch_ids += self
-            else:
-                item.branch_ids -= self
+    @api.fieldchange('state')
+    def _onchange_state_event(self, changeset):
+        for rec in self:
+            old_state = changeset['state']['old']
+            new_state = changeset['state']['new']
+            if new_state == 'tested' or old_state == 'tested':
+                self.env['cicd.release.item'].search([
+                    ('state', '=', 'new'),
+                    ('release_id.repo_id', '=', rec.repo_id.id)
+                ])._collect_tested_branches()
 
     @api.depends("name")
     def _compute_ticket_system_url(self):

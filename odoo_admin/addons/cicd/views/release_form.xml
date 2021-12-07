@@ -6,7 +6,7 @@
 			<field name="arch" type="xml">
 				<form string="">
 					<header>
-						<button string="Pull into candidate" name="collect_branches_on_candidate" class="oe_highlight" type="object"/>
+						<button string="Pull into candidate" name="collect_tested_branches" class="oe_highlight" type="object"/>
 						<button string="Make Hotfix" name="make_hotfix" type="object"/>
 						<field name="state" widget="statusbar" />
 					</header>
