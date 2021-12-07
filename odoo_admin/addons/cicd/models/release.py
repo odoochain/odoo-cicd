@@ -2,6 +2,8 @@ import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
+import logging
+logger = logging.getLogger(__name__)
 class Release(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.release'
@@ -160,7 +162,8 @@ class ReleaseItem(models.Model):
             msg = "Nothing new to deploy"
         self.release_id.message_post(body=self.computed_summary)
         self.done_date = fields.Datetime.now()
-            release.message_post(body=f"Deployment of version {self.name} succeeded!")
+        self.release_id.message_post(body=f"Deployment of version {self.name} succeeded!")
+        self.state = 'done'
 
     @api.depends('queuejob_ids')
     def _compute_failed_jobs(self):
@@ -189,7 +192,6 @@ class ReleaseItem(models.Model):
             rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
 
     def _do_release(self):
-        import pudb;pudb.set_trace()
         if self.state != 'new':
             raise ValidationError("Needs state new to be validated.")
         if self.release_type == 'hotfix' and not self.branch_ids:
@@ -198,11 +200,10 @@ class ReleaseItem(models.Model):
         try:
             self.try_counter += 1
             release = self.release_id
-            import pudb;pudb.set_trace()
             changed_lines = release.repo_id._merge(
                 release.candidate_branch_id,
                 release.branch_id,
-                set_tags=f'release-{self.name}',
+                set_tags=[f'release-{self.name}'],
                 logsio=logsio,
             )
             self.changed_lines += changed_lines
@@ -210,11 +211,12 @@ class ReleaseItem(models.Model):
             if not self.changed_lines:
                 self._on_done()
                 return
+            import pudb;pudb.set_trace()
 
             for machine in self.release_id.machine_ids:
                 path = machine._get_volume("source") / release.project_name
-                self.repo_id._get_main_repo(destination_folder=path, machine=machine)
-                with machine._shell_exec(cwd=path, logsio=logsio) as shell:
+                release.repo_id._get_main_repo(destination_folder=path, machine=machine)
+                with machine._shellexec(cwd=path, logsio=logsio) as shell:
                     shell.X("odoo", "reload")
                     shell.X("odoo", "build")
                     shell.X("odoo", "update")
@@ -223,6 +225,7 @@ class ReleaseItem(models.Model):
 
         except Exception as ex:
             self.release_id.message_post(body=f"Deployment of version {self.name} failed: {ex}")
+            logger.error(ex)
 
         self.log_release = logsio.get_lines()
 

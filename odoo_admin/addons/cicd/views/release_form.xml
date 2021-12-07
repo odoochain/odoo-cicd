@@ -31,6 +31,7 @@
 								<field name="item_ids" nocreate='1' nodelete='1'>
 									<tree editable="bottom">
 										<field name="name" readonly='1'/>
+										<field name="try_counter"/>
 										<field name="release_type"/>
 										<field name="branch_ids" widget='many2many_tags' attrs="{'readonly': [('release_type', '!=', 'hotfix')]}"/>
 										<field name="final_curtain"/>
