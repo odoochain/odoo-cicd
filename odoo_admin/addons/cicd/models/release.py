@@ -1,3 +1,4 @@
+import traceback
 import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -211,21 +212,21 @@ class ReleaseItem(models.Model):
             if not self.changed_lines:
                 self._on_done()
                 return
-            import pudb;pudb.set_trace()
 
             for machine in self.release_id.machine_ids:
                 path = machine._get_volume("source") / release.project_name
                 release.repo_id._get_main_repo(destination_folder=path, machine=machine)
                 with machine._shellexec(cwd=path, logsio=logsio) as shell:
-                    shell.X("odoo", "reload")
-                    shell.X("odoo", "build")
-                    shell.X("odoo", "update")
+                    shell.odoo("reload")
+                    shell.odoo("build")
+                    shell.odoo("update")
 
             self._on_done()
 
         except Exception as ex:
             self.release_id.message_post(body=f"Deployment of version {self.name} failed: {ex}")
-            logger.error(ex)
+            msg = traceback.format_exc()
+            logger.error(msg)
 
         self.log_release = logsio.get_lines()
 
