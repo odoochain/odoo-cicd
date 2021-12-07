@@ -121,7 +121,7 @@ class Release(models.Model):
 
     def do_release(self):
         for rec in self:
-            item = rec.item_ids.filtered(lambda x: x.state == 'new').sorted(lambda x: x.id)
+            item = rec.item_ids.filtered(lambda x: x.state in ('new', 'failed')).sorted(lambda x: x.id)
             if not item:
                 continue
             item = item[0]
