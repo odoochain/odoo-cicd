@@ -160,9 +160,10 @@ class ReleaseItem(models.Model):
         self.release_id.message_post(body=self.computed_summary)
         self.done_date = fields.Datetime.now()
 
+    @api.depends('queuejob_ids')
     def _compute_failed_jobs(self):
         for rec in self:
-            rec.count_failed_queuejobs = len(rec.count_failed_queuejobs.filtered(lambda x: x.state == 'failed'))
+            rec.count_failed_queuejobs = len(rec.queuejobs.filtered(lambda x: x.state == 'failed'))
     
     @api.model
     def create(self, vals):
