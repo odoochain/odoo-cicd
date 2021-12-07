@@ -82,17 +82,17 @@ class Release(models.Model):
     def _cron_prepare_release(self):
         self.ensure_one()
         new_items = self.item_ids.filtered(lambda x: x.state == 'new')
-        final_curtain_dt = arrow.get().shift(minutes=self.countdown_minutes).datetime,
+        final_curtain_dt = arrow.get().shift(minutes=self.countdown_minutes).strftime("%Y-%m-%d %H:%M:%S")
         if not new_items:
             new_items = self.item_ids.create({
                 'release_id': self.id,
                 'release_type': 'standard',
                 'final_curtain': final_curtain_dt,
-                'planned_date': arrow.get().shift(minutes=self.planned_timestamp_after_preparation),
+                'planned_date': arrow.get().shift(minutes=self.planned_timestamp_after_preparation).strftime("%Y-%m-%d %H:%M:%S"),
             })
         
         # check branches to put on the release
-        branches = self.env[new_items.branch_ids]
+        branches = self.env[new_items.branch_ids._name]
         for branch in self.repo_id.branch_ids:
             if branch.state == 'candidate':
                 branches |= branch

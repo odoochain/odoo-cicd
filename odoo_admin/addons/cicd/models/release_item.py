@@ -138,7 +138,7 @@ class ReleaseItem(models.Model):
 
             rec.branch_ids = [[6, 0, self.env['cicd.git.branch'].search([
                 ('state', 'in', ['tested']),
-                ('id', 'not in', (repo.branch_id | repo.candidate_branch_id).ids),
+                ('id', 'not in', (rec.release_id.branch_id | rec.release_id.candidate_branch_id).ids),
             ]).ids]]
             rec._trigger_recreate_candidate_branch_in_git()
 
@@ -164,15 +164,15 @@ class ReleaseItem(models.Model):
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
         job = self.with_delay(
-            identity_key=f"recreate_candidate_branch_in_git{self.release_id.name}",
-            eta=arrow.get().shift(minutes=1).datetime,
-        )._trigger_recreate_candidate_branch_in_git()
+            identity_key=f"recreate_candidate_branch_in_git: {self.release_id.name}",
+            eta=arrow.get().shift(minutes=1).datetime.strftime("%Y-%m-%d %H:%M:%S"),
+        )._recreate_candidate_branch_in_git()
         qj = self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
         self.queuejob_ids |= qj
 
     @api.recordchange("branch_ids")
     def _on_change_branches(self):
-        self._trigger_pull_branches_into_candidate()
+        self._trigger_recreate_candidate_branch_in_git()
 
     def set_to_ignore(self):
         for rec in self:
