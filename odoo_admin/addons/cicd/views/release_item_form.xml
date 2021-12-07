@@ -16,9 +16,19 @@
 							<field name="final_curtain" />
 							<field name="release_type" readonly="1" />
 							<field name="computed_summary" />
-							<field name="branch_ids" />
 						</group>
 						<notebook>
+							<page string="Log">
+								<field name="log_release"/>
+							</page>
+							<page string="Branches">
+								<field name="branch_ids">
+									<field name="name"/>
+									<field name="state"/>
+									<field name="enduser_summary"/>
+								</field>
+
+							</page>
 							<page string="Queuejobs">
 								<field name="queuejob_ids">
 									<tree>

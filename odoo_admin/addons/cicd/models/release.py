@@ -158,6 +158,17 @@ class ReleaseItem(models.Model):
         ('hotfix', 'Hotfix'),
     ], default="standard", required=True, readonly=True)
 
+    def open_window(self):
+        self.ensure_one()
+        return {
+            'view_type': 'form',
+            'res_model': self._name,
+            'res_id': self.id,
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }
+
     def _on_done(self):
         if not self.changed_lines:
             msg = "Nothing new to deploy"
@@ -224,8 +235,9 @@ class ReleaseItem(models.Model):
             self._on_done()
 
         except Exception as ex:
-            self.release_id.message_post(body=f"Deployment of version {self.name} failed: {ex}")
             msg = traceback.format_exc()
+            self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
+            self.state = 'failed'
             logger.error(msg)
 
         self.log_release = logsio.get_lines()

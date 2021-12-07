@@ -30,6 +30,7 @@
 							<page string="Versions">
 								<field name="item_ids" nocreate='1' nodelete='1'>
 									<tree editable="bottom">
+										<button name="open_window" string="" icon='fa-external-link' type="object" />
 										<field name="name" readonly='1'/>
 										<field name="try_counter"/>
 										<field name="release_type"/>
