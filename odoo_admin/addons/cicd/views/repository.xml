@@ -4,7 +4,11 @@
 			<field name="model">cicd.git.repo</field>
 			<field name="arch" type="xml">
 				<tree default_order="" string="" >
+					<field name="short"/>
 					<field name="name"/>
+					<field name="machine_id"/>
+					<field name="default_branch"/>
+					<field name="ticket_system_base_url"/>
 				</tree>
 			</field>
 		</record>
