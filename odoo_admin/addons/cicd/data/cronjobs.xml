@@ -1,0 +1,87 @@
+<odoo>
+	<data noupdate='0'>
+		<record id="fetch_new_branches" model="ir.cron">
+			<field name="name">fetch_new_branches</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_git_repo" />
+			<field name="state">code</field>
+			<field name="code">model._cron_fetch()</field>
+			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="update_docker_states" model="ir.cron">
+			<field name="name">update_docker_states</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_git_branch" />
+			<field name="state">code</field>
+			<field name="code">model.with_context(active_test=False).search([]).docker_get_state(now=False)</field>
+			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="inactivity_cycle_down" model="ir.cron">
+			<field name="name">cycle down inactive sites</field>
+			<field name="interval_number">10</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_git_branch" />
+			<field name="state">code</field>
+			<field name="code">model.with_context(active_test=False).search([]).inactivity_cycle_down()</field>
+			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="update_volumes_dumps" model="ir.cron">
+			<field name="name">update_volumes_dumps</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_machine" />
+			<field name="state">code</field>
+			<field name="code">
+env['cicd.machine.volume']._cron_update()
+env['cicd.dump']._cron_update()
+			</field>
+			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="autobackup" model="ir.cron">
+			<field name="name">autobackup</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">days</field>
+			<field name="model_id" ref="model_cicd_git_branch" />
+			<field name="state">code</field>
+			<field name="code">model.search([('autobackup', '=', True)])._cron_autobackup()</field>
+			<field name="nextcall" eval="'2000-01-01 02:00:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="perform_release" model="ir.cron">
+			<field name="name">perform release</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_release" />
+			<field name="state">code</field>
+			<field name="code">model.search([]).do_release()</field>
+			<field name="nextcall" eval="'2000-01-01 02:00:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="testruns" model="ir.cron">
+			<field name="name">testruns</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_git_branch" />
+			<field name="state">code</field>
+			<field name="code">model.search([('state', '=', 'testable')])._cron_make_test_runs()</field>
+			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="update_candidates" model="ir.cron">
+			<field name="name">add tested branches to candidates</field>
+			<field name="interval_number">5</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_release" />
+			<field name="state">code</field>
+			<field name="code">model.search([]).collect_tested_branches()</field>
+			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+	</data>
+</odoo>

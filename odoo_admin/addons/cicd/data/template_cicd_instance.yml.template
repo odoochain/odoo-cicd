@@ -1,0 +1,29 @@
+services:
+    proxy:
+        networks:
+            - default
+            - cicd_network
+    cronjobshell:
+        networks:
+            - default
+            - cicd_network
+            - postgres
+
+    pgtools:
+        networks:
+            - cicd_network
+            - postgres
+
+    odoo_base:
+        networks:
+            - default
+            - postgres
+networks:
+    default:
+        name: {CICD_NETWORK_NAME}_{PROJECT_NAME}
+    cicd_network:
+        external:
+            name: {CICD_NETWORK_NAME}
+    postgres:
+        external:
+            name: {CICD_NETWORK_NAME}_postgres
