@@ -159,13 +159,13 @@ class GitBranch(models.Model):
                 for release in repo.release_ids:
                     if release.item_ids.filtered(lambda x: x.state != 'ignore'):
                         latest_release_items |= release.item_ids[0]
-                import pudb;pudb.set_trace()
+                all_done_items = repo.mapped('release_ids.item_ids').filtered(lambda x: x.state in ['done'])
 
                 if rec.block_release:
                     state = 'blocked'
                 elif any(x.mapped('branch_ids').contains_commit(commit) for x in latest_release_items.filtered(lambda x: x.state in ['new', 'failed'])):
                     state = 'candidate'
-                elif any(x.mapped('branch_ids').contains_commit(commit) for x in latest_release_items.filtered(lambda x: x.state in ['done'])):
+                elif any(x.mapped('branch_ids').contains_commit(commit) for x in all_done_items):
                     state = 'done'
                 elif (commit.test_state in [False, 'open'] and not rec.any_testing) or commit.force_approved:
                     state = 'tested'
