@@ -128,7 +128,7 @@ class ReleaseItem(models.Model):
 
         self.log_release = logsio.get_lines()
 
-    def collect_tested_branches(self):
+    def _collect_tested_branches(self):
         for rec in self:
             repo = rec.release_id.repo_id
             if rec.state not in ['new', 'failed']:

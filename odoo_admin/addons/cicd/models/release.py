@@ -125,3 +125,7 @@ class Release(models.Model):
                 continue
 
             item._trigger_do_release()
+
+    def collect_tested_branches(self):
+        for rec in self:
+            rec.item_ids.filtered(lambda x: x.state == 'new')._collect_tested_branches()
