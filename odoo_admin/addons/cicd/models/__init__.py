@@ -42,6 +42,7 @@ from . import repository
 from . import dump
 from . import task
 from . import release
+from . import release_item
 from . import registry
 from . import test_run
 from . import container
