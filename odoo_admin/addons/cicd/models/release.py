@@ -117,15 +117,16 @@ class Release(models.Model):
         return items
 
     def do_release(self):
-        self.ensure_one()
-        logsio = self._get_logsio()
-        item = self.item_ids.filtered(lambda x: x.state == 'new')
-        if not item:
-            return
-        if item.planned_date > arrow.get().datetime:
-            return
+        for rec in self:
+            rec.ensure_one()
+            logsio = rec._get_logsio()
+            item = rec.item_ids.filtered(lambda x: x.state == 'new')
+            if not item:
+                continue
+            if item.planned_date > arrow.get().datetime:
+                continue
 
-        item._trigger_do_release()
+            item._trigger_do_release()
 
 class ReleaseItem(models.Model):
     _name = 'cicd.release.item'
