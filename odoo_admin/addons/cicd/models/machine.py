@@ -45,12 +45,12 @@ class ShellExecutor(object):
         with self.machine._shell() as shell:
             yield shell
 
-    def odoo(self, *cmd):
+    def odoo(self, *cmd, allow_error=True):
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
         cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
-        res = self.X(cmd, allow_error=False)
-        if res.return_code:
+        res = self.X(cmd, allow_error=allow_error)
+        if res.return_code and not allow_error:
             if '.FileNotFoundError: [Errno 2] No such file or directory:' in res.stderr_output:
                 raise Exception("Seems that a reload of the instance is required.")
             else:

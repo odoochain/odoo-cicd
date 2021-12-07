@@ -32,7 +32,7 @@ class Branch(models.Model):
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Downing")
-        shell.odoo('down')
+        shell.odoo('down', allow_error=False)
         logsio.info(f"Restoring {self.dump_id.name}")
         shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
     
