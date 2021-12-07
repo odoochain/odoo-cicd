@@ -118,11 +118,10 @@ class Release(models.Model):
 
     def do_release(self):
         for rec in self:
-            rec.ensure_one()
-            logsio = rec._get_logsio()
-            item = rec.item_ids.filtered(lambda x: x.state == 'new')
+            item = rec.item_ids.filtered(lambda x: x.state == 'new').sorted(lambda x: x.id)
             if not item:
                 continue
+            item = item[0]
             if item.planned_date > arrow.get().datetime:
                 continue
 
