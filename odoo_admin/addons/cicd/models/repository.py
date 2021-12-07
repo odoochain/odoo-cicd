@@ -25,7 +25,7 @@ class Repository(models.Model):
     _name = 'cicd.git.repo'
 
     short = fields.Char(compute="_compute_shortname", string="Name")
-    machine_id = fields.Many2one('cicd.machine', string="Machine", compute="_compute_machine")
+    machine_id = fields.Many2one('cicd.machine', string="Development Machine", required=True)
     name = fields.Char("URL", required=True)
     login_type = fields.Selection([
         ('username', 'Username'),
@@ -51,10 +51,6 @@ class Repository(models.Model):
     def _compute_shortname(self):
         for rec in self:
             rec.short = rec.name.split("/")[-1]
-
-    def _compute_machine(self):
-        for rec in self:
-            rec.machine_id = self.machine_id.sudo().search([], limit=1)
 
     def _compute_url(self):
         for rec in self:

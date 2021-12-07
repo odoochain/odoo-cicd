@@ -164,13 +164,6 @@ class CicdMachine(models.Model):
             self.ssh_key = keyfile.read_text()
             self.ssh_pubkey = pubkeyfile.read_text()
 
-    @api.model
-    def create(self, vals):
-        res = super().create(vals)
-        if len(self.search([])) > 1:
-            raise ValidationError(_("Maximum one machine support!"))
-        return res
-
     def test_ssh(self):
         self._execute_shell(["ls"])
         raise ValidationError(_("Everyhing Works!"))

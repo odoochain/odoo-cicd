@@ -25,7 +25,7 @@
 							<field name="username" attrs="{'invisible': [('login_type', '!=', 'username')]}"/>
 							<field name="password" password="True" attrs="{'invisible': [('login_type', '!=', 'username')]}"/>
 							<field name="default_branch" placeholder="master"/>
-							<field name="machine_id" invisible="1"/>
+							<field name="machine_id" invisible="0"/>
 							<field name="default_simulate_install_id_dump_id" domain="[('machine_id', '=', machine_id)]"/>
 						</group>
 						<group>
