@@ -122,7 +122,7 @@ class Release(models.Model):
             if not item:
                 continue
             item = item[0]
-            if item.planned_date > arrow.get().datetime:
+            if item.planned_date > fields.Datetime.now():
                 continue
 
             item._trigger_do_release()
