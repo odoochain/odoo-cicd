@@ -1,5 +1,7 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from ..tools.tools import get_host_ip
+
 class PostgresServer(models.Model):
     _name = 'cicd.postgres'
 
@@ -13,3 +15,9 @@ class PostgresServer(models.Model):
 
     def update_databases(self):
         self.env['cicd.database']._update_dbs(self)
+
+    @api.model
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        res['db_host'] = get_host_ip()
+        return res

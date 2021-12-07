@@ -104,7 +104,6 @@ class CicdMachine(models.Model):
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)
-        res['db_host'] = get_host_ip()
         return res
 
     def _compute_effective_host(self):
