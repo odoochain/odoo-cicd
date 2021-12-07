@@ -216,6 +216,7 @@ class ReleaseItem(models.Model):
             for machine in self.release_id.machine_ids:
                 path = machine._get_volume("source") / release.project_name
                 release.repo_id._get_main_repo(destination_folder=path, machine=machine)
+                import pudb;pudb.set_trace()
                 with machine._shellexec(cwd=path, logsio=logsio, project_name=release.project_name) as shell:
                     shell.odoo("reload")
                     shell.odoo("build")
