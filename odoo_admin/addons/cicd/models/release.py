@@ -163,7 +163,7 @@ class ReleaseItem(models.Model):
     @api.depends('queuejob_ids')
     def _compute_failed_jobs(self):
         for rec in self:
-            rec.count_failed_queuejobs = len(rec.queuejobs.filtered(lambda x: x.state == 'failed'))
+            rec.count_failed_queuejobs = len(rec.queuejob_ids.filtered(lambda x: x.state == 'failed'))
     
     @api.model
     def create(self, vals):
