@@ -339,4 +339,4 @@ class GitBranch(models.Model):
         After new source is fetched then the instance is rebuilt.
         """
         for rec in self:
-            rec.build()
+            rec._make_task("_build", silent=True)
