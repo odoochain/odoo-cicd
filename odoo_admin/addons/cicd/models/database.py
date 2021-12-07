@@ -12,47 +12,18 @@ class Database(models.Model):
     _name = 'cicd.database'
 
     name = fields.Char("Name", required=True)
-    machine_id = fields.Many2one("cicd.machine", string="Machine", required=True)
+    server_id = fields.Many2one("cicd.postgres", string="Postgres")
 
     _sql_constraints = [
-        ('name_machine_unique', "unique(name, machine_id)", _("Only one unique entry allowed.")),
+        ('name_postgres_unique', "unique(name, server_id)", _("Only one unique entry allowed.")),
     ]
-
-    # def unlink(self):
-    #     for rec in self:
-    #         with self.machine_id._shell() as shell:
-    #             if shell.exists(rec.name):
-    #                 shell.unlink(rec.name)
-
-    #     return super().unlink()
 
     def delete_db(self):
         for rec in self:
-            with self._get_conn(rec.machine_id) as cr:
+            with self.server_id._get_conn() as cr:
                 # requires postgres >= 13
                 cr.execute("drop database %s WITH (FORCE);", (rec.name,))
             rec.sudo().unlink()
-
-
-    @contextmanager
-    @api.model
-    def _get_conn(self, machine):
-        conn = psycopg2.connect(
-            user=machine.db_user,
-            host=machine.db_host,
-            port=machine.db_port,
-            password=machine.db_pwd,
-            dbname='postgres',
-        )
-        try:
-            try:
-                cr = conn.cursor()
-                yield cr
-                conn.commit()
-            except:
-                conn.rollback()
-        finally:
-            conn.close()
 
 
     @api.model
@@ -61,7 +32,7 @@ class Database(models.Model):
             self._update_dumps(machine)
 
     def _update_dbs(self, machine):
-        with self._get_conn(machine) as cr:
+        with self.server_id._get_conn() as cr:
             cr.execute("""
                 SELECT datname, pg_database_size(datname)
                 FROM pg_database

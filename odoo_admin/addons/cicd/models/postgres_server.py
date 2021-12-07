@@ -1,6 +1,7 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.tools import get_host_ip
+from contextlib import contextmanager
 
 class PostgresServer(models.Model):
     _name = 'cicd.postgres'
@@ -11,7 +12,7 @@ class PostgresServer(models.Model):
     db_user = fields.Char("DB User", default="cicd")
     db_pwd = fields.Char("DB Password", default="cicd_is_cool")
     db_port = fields.Integer("DB Port", default=5432)
-    database_ids = fields.One2many('cicd.database', 'machine_id', string="Databases")
+    database_ids = fields.One2many('cicd.database', 'server_id', string="Databases")
 
     def update_databases(self):
         self.env['cicd.database']._update_dbs(self)
@@ -21,3 +22,24 @@ class PostgresServer(models.Model):
         res = super().default_get(fields)
         res['db_host'] = get_host_ip()
         return res
+
+    @contextmanager
+    @api.model
+    def _get_conn(self):
+        conn = psycopg2.connect(
+            user=self.db_user,
+            host=self.db_host,
+            port=self.db_port,
+            password=self.db_pwd,
+            dbname='postgres',
+        )
+        try:
+            try:
+                cr = conn.cursor()
+                yield cr
+                conn.commit()
+            except:
+                conn.rollback()
+        finally:
+            conn.close()
+
