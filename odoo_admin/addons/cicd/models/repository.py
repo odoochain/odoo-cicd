@@ -143,9 +143,8 @@ class Repository(models.Model):
             env = self._get_git_non_interactive()
 
             with repo.machine_id._shell() as spurplus_shell:
-                with self._get_ssh_command(spurplus_shell) as env2:
+                with repo._get_ssh_command(spurplus_shell) as env2:
                     env.update(env2)
-                    import pudb;pudb.set_trace()
                     with repo.machine_id._shellexec(cwd=repo_path_temp, logsio=logsio, env=env) as shell:
                         all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
                         new_commits, updated_branches = {}, set()

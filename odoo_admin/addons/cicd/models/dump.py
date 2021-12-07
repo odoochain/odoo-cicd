@@ -30,9 +30,8 @@ class Dump(models.Model):
                 rec.name = rec.name[:-1]
 
     def _update_dumps(self, machine):
-
         with machine._shell() as shell:
-            for volume in machine.volume_ids.filtered(lambda x: x.ttype == 'dumps'):
+            for volume in machine.volume_ids.filtered(lambda x: x.ttype in ['dumps', 'dumps_in']):
                 files = machine._execute_shell([
                     "ls", volume.name + "/"
                 ]).output.strip().split("\n")
