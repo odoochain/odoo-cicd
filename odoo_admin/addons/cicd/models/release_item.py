@@ -1,4 +1,5 @@
 import traceback
+from . import pg_advisory_lock
 import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -94,6 +95,7 @@ class ReleaseItem(models.Model):
             raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
         if self.release_type == 'hotfix' and not self.branch_ids:
             raise ValidationError("Hotfix requires explicit branches.")
+        pg_advisory_lock(self.env.cr, f"release_{self.release_id.id}")
         logsio = self.release_id._get_logsio()
         try:
             self.try_counter += 1
