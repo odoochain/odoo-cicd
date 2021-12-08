@@ -9,7 +9,10 @@ import inspect
 import os
 from pathlib import Path
 from odoo.addons.queue_job.exception import RetryableJobError
+import logging
 current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
+
+logger = logging.getLogger(__name__)
 
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
@@ -21,7 +24,13 @@ class Branch(models.Model):
         if tasks:
             commit = tasks[0].commit_id.name
         if commit:
-            shell.odoo("update", "--since-git-sha", commit)
+            try:
+                shell.odoo("update", "--since-git-sha", commit)
+            except Exception as ex:
+                logger.error(ex)
+                logsio.error(ex)
+                logsio.info(f"Running full update now - update since sha {commit} did not succeed")
+                self._update_all_modules(shell=shell, task=task, logsio=logsio, **kwargs)
         else:
             self._update_all_modules(shell=shell, task=task, logsio=logsio, **kwargs)
 
