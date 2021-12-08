@@ -91,7 +91,7 @@ class ReleaseItem(models.Model):
 
     def _do_release(self):
         if self.state not in ['new', 'failed']:
-            raise ValidationError("Needs state new to be validated.")
+            raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
         if self.release_type == 'hotfix' and not self.branch_ids:
             raise ValidationError("Hotfix requires explicit branches.")
         logsio = self.release_id._get_logsio()

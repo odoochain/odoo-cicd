@@ -172,9 +172,11 @@ class Repository(models.Model):
                                     else:
                                         new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
+                            if not new_commits and not updated_branches:
+                                continue
+
                             self.with_delay(
                                 identity_key=f"cron_fetch_update_branches: {repo.id}",
-
                             )._cron_fetch_update_branches({
                                 'repo': repo,
                                 'new_commits': new_commits,
