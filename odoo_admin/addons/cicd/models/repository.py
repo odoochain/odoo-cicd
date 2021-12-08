@@ -193,9 +193,9 @@ class Repository(models.Model):
         new_commits = data['new_commits']
         repo = data['repo']
         updated_branches = data['updated_branches']
+        logsio = LogsIOWriter(repo.name, 'fetch')
         repo_path = repo._get_main_repo(logsio=logsio)
         env = self._get_git_non_interactive()
-        logsio = LogsIOWriter(repo.name, 'fetch')
         # pg_advisory_lock(self.env.cr, f"fetch_update_{repo.id}")
 
         with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
