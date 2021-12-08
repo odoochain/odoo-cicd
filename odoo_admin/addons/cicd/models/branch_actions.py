@@ -18,7 +18,7 @@ class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
     def _update_odoo(self, shell, task, logsio, **kwargs):
-        if self.block_updates_until > fields.Datetime.now():
+        if self.block_updates_until and self.block_updates_until > fields.Datetime.now():
             raise RetryableJobError("Branch is blocked - have to wait", seconds=60, ignore_retry=True)
         tasks = self.task_ids.filtered(lambda x: x.state == 'done' and x.name in ['_update_all_modules', '_update_odoo']).sorted(lambda x: x.id, reverse=True)
         if tasks:

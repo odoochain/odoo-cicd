@@ -57,18 +57,18 @@ class Task(models.Model):
             self = self.with_env(env)
             yield self
 
-    def perform(self, now=False):
+    def perform(self, now=False, advisory_lock=True):
         self.ensure_one()
 
         if not now:
             queuejob = self.with_delay(
                 identity_key=self._get_identity_key()
-            )._exec(now)
+            )._exec(now, advisory_lock=advisory_lock)
             if queuejob:
                 queuejob = self.env['queue.job'].search([('uuid', '=', queuejob._uuid)])
                 self.sudo().queue_job_id = queuejob
         else:
-            self._exec(now)
+            self._exec(now, advisory_lock=advisory_lock)
 
     def _get_identity_key(self):
         name = self._get_short_name()
@@ -80,7 +80,7 @@ class Task(models.Model):
             name = name[1:]
         return name
 
-    def _exec(self, now):
+    def _exec(self, now, advisory_lock=True):
         started = arrow.get()
         self = self.sudo()
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
@@ -88,7 +88,8 @@ class Task(models.Model):
             # Debugging and clicked on button perform - do it now
             now = True
         with self._get_env(new_one=not now) as self:
-            pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
+            if advisory_lock:
+                pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
             logsio = None
 
             try:

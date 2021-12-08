@@ -16,7 +16,7 @@
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
-			<field name="code">model.with_context(active_test=False).search([]).docker_get_state(now=False)</field>
+			<field name="code">model.with_context(active_test=False).search([]).docker_get_state(now=False, advisory_lock=False)</field>
 			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
