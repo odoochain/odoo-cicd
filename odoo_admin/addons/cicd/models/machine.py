@@ -34,8 +34,9 @@ class ShellExecutor(object):
 
     def rmifexists(self, path):
         with self.shell() as spurplus:
+            path = str(path)
             if spurplus.exists(path):
-                spurplus.remove(path, recurse=True)
+                spurplus.run(["rm", "-Rf", path])
 
     def _get_home_dir(self):
         res = self.machine._execute_shell(

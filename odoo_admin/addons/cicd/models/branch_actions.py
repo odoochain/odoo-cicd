@@ -169,7 +169,6 @@ class Branch(models.Model):
                     continue
 
                 date = arrow.get(int(line[0]))
-                logsio.info(f"Found new commit: {sha}")
 
                 info = shell.check_output([
                     "/usr/bin/git",
@@ -229,7 +228,6 @@ class Branch(models.Model):
         })
 
         # use tempfolder for tests to not interfere with updates or so
-        import pudb;pudb.set_trace()
         repo_path = task.branch_id.repo_id._get_main_repo(tempfolder=True, machine=shell.machine)
         shell.cwd = repo_path
         try:
