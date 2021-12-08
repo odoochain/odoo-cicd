@@ -12,6 +12,9 @@ class Branch(models.Model):
     def build(self):
         self._make_task("_build")
 
+    def anonymize(self):
+        self._make_task("_anonymize")
+
     def cleardb(self):
         self._make_task("_clear_db")
 

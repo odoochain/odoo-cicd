@@ -73,6 +73,13 @@
 									</tree>
 								</field>
 							</page>
+							<page name="instance" string="Instance">
+								<group>
+									<button name="remove_web_assets" string="Remove Web Assets" type="object" />
+									<button name="cleardb" string="Clear DB" type="object" confirm="Deletes plenty of data. Continue?" />
+									<button name="turn_into_dev" string="Turn into DEV (mailserver, logins)" type="object" />
+								</group>
+							</page>
 							<page name="backup" string="Backup/Restore">
 								<group string="Machine">
 									<field name="backup_machine_id"/>

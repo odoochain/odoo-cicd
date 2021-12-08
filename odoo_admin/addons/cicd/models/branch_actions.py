@@ -203,6 +203,10 @@ class Branch(models.Model):
     def _clear_db(self, shell, task, logsio, **kwargs):
         shell.odoo('cleardb')
 
+    def _anonymize(self, shell, task, logsio, **kwargs):
+        shell.odoo('update', 'anonymize')
+        shell.odoo('anonymize')
+
     def _create_empty_db(self, shell, task, logsio, **kwargs):
         logsio.info("Reloading")
         shell.odoo('reload')
