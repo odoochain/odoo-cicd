@@ -9,6 +9,7 @@ class Release(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.release'
 
+    active = fields.Boolean("Active", default=True, store=True)
     name = fields.Char("Name", required=True)
     project_name = fields.Char("Project Name", required=True, help="techincal name - no special characters")
     machine_ids = fields.Many2many('cicd.machine', string="Machines")
@@ -23,6 +24,10 @@ class Release(models.Model):
     is_latest_release_done = fields.Boolean("Latest Release Done", compute="_compute_latest_release_done")
     state = fields.Selection(related='item_ids.state')
     planned_timestamp_after_preparation = fields.Integer("Release after preparation in minutes", default=60)
+
+    def toggle_active(self):
+        for rec in self:
+            rec.active = not rec.active
 
     @api.constrains("project_name")
     def _check_project_name(self):

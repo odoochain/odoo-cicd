@@ -11,6 +11,10 @@
 						<field name="state" widget="statusbar" />
 					</header>
 					<sheet>
+						<div class="oe_button_box" name="button_box">
+							<button type="object" class="oe_stat_button" icon="fa-times" name="toggle_active" string="Disable" attrs="{'invisible': [('active', '=', False)]}" confirm="Deletes database and source-code. Continue?"/>
+							<button type="object" class="oe_stat_button" icon="fa-check" name="toggle_active" string="Activate" attrs="{'invisible': [('active', '=', True)]}"/>
+						</div>
 						<group string="Release" col="2">
 							<field name="name" />
 							<field name="repo_id"/>
