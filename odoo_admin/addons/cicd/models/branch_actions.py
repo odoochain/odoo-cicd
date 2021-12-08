@@ -1,21 +1,35 @@
-# TODO turn into dev an?
-import time
-import shutil
-import traceback
+from odoo import fields
 from pathlib import Path
-import threading
 import os
 import arrow
 import base64
-from odoo import _, api, models
+from odoo import _, api, models, fields
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import inspect
 import os
 from pathlib import Path
+from odoo.addons.queue_job.exception import RetryableJobError
 current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
 
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
+
+    def _update_odoo(self, shell, task, logsio, **kwargs):
+        if self.block_updates_until > fields.Datetime.now():
+            raise RetryableJobError("Branch is blocked - have to wait", seconds=60, ignore_retry=True)
+        tasks = self.task_ids.filtered(lambda x: x.state == 'done' and x.name in ['_update_all_modules', '_update_odoo']).sorted(lambda x: x.id, reverse=True)
+        if tasks:
+            commit = tasks[0].commit_id.name
+        if commit:
+            shell.odoo("update", "--since-git-sha", commit)
+        else:
+            self._update_all_modules(shell=shell, task=task, logsio=logsio, **kwargs)
+
+    def _update_all_modules(self, shell, task, logsio, **kwargs):
+        shell.odoo('reload')
+        shell.odoo('build')
+        shell.odoo('update')
+        shell.odoo("up", "-d")
 
     def _reload_and_restart(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)

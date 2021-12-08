@@ -35,6 +35,7 @@
 							<field name="block_release" invisible='1'/>
 							<field name="ticket_system_url" widget="url"/>
 							<field name="active" invisible='1'/>
+							<field name="block_updates_until"/>
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>

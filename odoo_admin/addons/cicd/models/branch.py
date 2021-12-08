@@ -71,6 +71,7 @@ class GitBranch(models.Model):
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     block_release = fields.Boolean("Block Release")
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
+    block_updates_until = fields.Datetime("Block updates until")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
@@ -231,20 +232,20 @@ class GitBranch(models.Model):
                     rec.build_state = 'new'
 
     def _make_task(self, execute, now=False, machine=None, silent=False, kwargs=None):
-        if not now and self.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started']and x.name == execute):
-            if silent:
-                return
-            raise ValidationError(_("Task already exists. Not triggered again."))
-        task = self.env['cicd.task'].sudo().create({
-            'model': self._name,
-            'res_id': self.id,
-            'name': execute,
-            'branch_id': self.id,
-            'machine_id': (machine and machine.id) or self.machine_id.id,
-            'kwargs': json.dumps(kwargs),
-        })
-        task.perform(now=now)
-        return True
+        for rec in self:
+            if not now and rec.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started']and x.name == execute):
+                if silent:
+                    return
+                raise ValidationError(_("Task already exists. Not triggered again."))
+            task = rec.env['cicd.task'].sudo().create({
+                'model': self._name,
+                'res_id': self.id,
+                'name': execute,
+                'branch_id': self.id,
+                'machine_id': (machine and machine.id) or self.machine_id.id,
+                'kwargs': json.dumps(kwargs),
+            })
+            task.perform(now=now)
 
     @api.model
     def _cron_update_docker_states(self):
@@ -352,7 +353,7 @@ class GitBranch(models.Model):
         After new source is fetched then the instance is rebuilt.
         """
         for rec in self:
-            rec._make_task("_build", silent=True)
+            rec._make_task("_update_odoo", silent=True)
 
     def contains_commit(self, commit):
         return commit in self.mapped('commit_ids')
