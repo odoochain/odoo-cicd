@@ -59,10 +59,10 @@
 									</tree>
 								</field>
 							</page>
-							<page string="Tasks" name="tasks">
+							<!-- <page string="Tasks" name="tasks">
 								<field name="task_ids_filtered" nolabel="1" readonly="1">
 									<tree>
-										<!-- <button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/> -->
+										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
 										<button name="perform" string="Perform" type="object" groups="base.group_no_one"/>
 										<field name="id"/>
 										<field name="display_name" />
@@ -72,7 +72,7 @@
 										<field name="state" />
 									</tree>
 								</field>
-							</page>
+							</page> -->
 							<page name="instance" string="Instance">
 								<group>
 									<button name="remove_web_assets" string="Remove Web Assets" type="object" />

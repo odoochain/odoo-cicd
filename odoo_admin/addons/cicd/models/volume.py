@@ -1,6 +1,5 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
-from . import pg_advisory_lock
 import threading
 import logging
 import humanize
