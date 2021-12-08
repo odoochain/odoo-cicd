@@ -21,6 +21,7 @@ class Branch(models.Model):
         if self.block_updates_until and self.block_updates_until > fields.Datetime.now():
             raise RetryableJobError("Branch is blocked - have to wait", seconds=60, ignore_retry=True)
         tasks = self.task_ids.filtered(lambda x: x.state == 'done' and x.name in ['_update_all_modules', '_update_odoo']).sorted(lambda x: x.id, reverse=True)
+        commit = None
         if tasks:
             commit = tasks[0].commit_id.name
         if commit:
