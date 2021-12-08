@@ -199,6 +199,7 @@ class Branch(models.Model):
     
     def _remove_web_assets(self, shell, task, logsio, **kwargs):
         shell.odoo('remove-web-assets')
+        shell.odoo('restart')
 
     def _clear_db(self, shell, task, logsio, **kwargs):
         shell.odoo('cleardb')
