@@ -89,6 +89,8 @@ class Task(models.Model):
             now = True
         with self._get_env(new_one=not now) as self:
             pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
+            import time
+            time.sleep(10000)
             logsio = None
 
             try:

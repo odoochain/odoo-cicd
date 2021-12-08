@@ -27,6 +27,14 @@ services:
       - internal
       - cicd_delegator
       - postgres
+
+  odoo:
+    healthcheck:
+      test: ["CMD-SHELL", "curl", "-f", "http://localhost:806"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
   cicd_delegator:
     build: ${CUSTOMS_DIR}/../cicd_delegator
     networks:
@@ -76,10 +84,11 @@ services:
     ports:
         - "${CICD_DB_HOST}:${CICD_DB_PORT}:5432"
     healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U postgres"]
-        interval: 3s
-        timeout: 5s
-        retries: 5
+      test: ["CMD-SHELL", "pg_isready -U ${CICD_DB_USER}"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   nginx:
     build: ${CUSTOMS_DIR}/../nginx
@@ -89,6 +98,12 @@ services:
         - internal
     labels:
       odoo_framework.apply_env: 0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     environment:
       PROXY_PASS_INDEX: "${PROJECT_NAME}_proxy:80"
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
