@@ -57,8 +57,6 @@ class Task(models.Model):
     def perform(self, now=False):
         self.ensure_one()
 
-        if now:
-            self._exec(now)
         if not now:
             queuejob = self.with_delay(
                 identity_key=self._get_identity_key(),

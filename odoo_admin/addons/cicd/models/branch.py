@@ -242,7 +242,7 @@ class GitBranch(models.Model):
 
     def _make_task(self, execute, now=False, machine=None, silent=False, kwargs=None):
         for rec in self:
-            if not now and rec.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started']and x.name == execute):
+            if not now and rec.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started'] and x.name == execute):
                 if silent:
                     return
                 raise ValidationError(_("Task already exists. Not triggered again."))
