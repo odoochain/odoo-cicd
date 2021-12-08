@@ -88,8 +88,8 @@ class Task(models.Model):
             # Debugging and clicked on button perform - do it now
             now = True
         with self._get_env(new_one=not now) as self:
-            if advisory_lock:
-                pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
+            # if advisory_lock:
+            #     pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
             logsio = None
 
             try:
