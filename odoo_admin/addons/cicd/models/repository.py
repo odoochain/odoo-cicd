@@ -1,11 +1,7 @@
+import traceback
 from odoo import registry
 import arrow
-import os
-import shutil
-import subprocess
-import git
 from git import Repo
-import random
 from contextlib import contextmanager
 from pathlib import Path
 import tempfile
@@ -142,15 +138,13 @@ class Repository(models.Model):
             logsio = LogsIOWriter(repo.name, 'fetch')
                 
             repo_path = repo._get_main_repo(logsio=logsio)
-            repo_path_temp = repo._get_main_repo(tempfolder=True, logsio=logsio)
             env = self._get_git_non_interactive()
 
             with repo.machine_id._shell() as spurplus_shell:
                 with repo._get_ssh_command(spurplus_shell) as env2:
                     env.update(env2)
-                    with repo.machine_id._shellexec(cwd=repo_path_temp, logsio=logsio, env=env) as shell:
+                    with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
                         try:
-                            all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
                             new_commits, updated_branches = {}, set()
 
                             for remote in self._get_remotes(shell):
@@ -177,47 +171,57 @@ class Repository(models.Model):
                                     else:
                                         new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
-                            # if completely new then all branches:
-                            if not repo.branch_ids:
-                                for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
-                                    branch = self._clear_branch_name(branch)
-                                    updated_branches.add(branch)
-                                    new_commits[branch] = None # for the parameter laster as None
+                            self.with_delay()._cron_fetch_update_branches({
+                                'repo': repo,
+                                'new_commits': new_commits,
+                                'updated_branches': list(updated_branches),
+                            })
 
-                            for branch in updated_branches:
-                                shell.X(["git", "checkout", "-f", branch])
-                                name = branch
-                                del branch
-
-                                if name in all_remote_branches:
-                                    shell.X(["git", "pull"])
-                                if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
-                                    branch = repo.branch_ids.create({
-                                        'name': name,
-                                        'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-                                        'repo_id': repo.id,
-                                    })
-                                    branch._update_git_commits(shell, logsio, force_instance_folder=repo_path_temp, force_commits=new_commits[name])
-
-                                shell.X(["git", "checkout", "-f", repo.default_branch])
-                                del name
-
-                            if updated_branches:
-                                repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
-                                repo.branch_ids._compute_state()
-                                repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch()
-                            del updated_branches
-
-                            # now transfer this state to the original place:
-                            shell.X(["rsync", str(repo_path_temp) + "/", str(repo_path) + "/", "-ar", "--delete-after"])
                         except Exception as ex:
-                            import traceback
                             msg = traceback.format_exc()
                             logsio.error(msg)
                             logger.error(msg)
                             raise
-                        finally:
-                            shell.rmifexists(repo_path_temp)
+
+    def _cron_fetch_update_branches(self, data):
+        new_commits = data['new_commits']
+        repo = data['repo']
+        updated_branches = data['updated_branches']
+        repo_path = repo._get_main_repo(logsio=logsio)
+        env = self._get_git_non_interactive()
+        logsio = LogsIOWriter(repo.name, 'fetch')
+
+        with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+            all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
+            # if completely new then all branches:
+            if not repo.branch_ids:
+                for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
+                    branch = self._clear_branch_name(branch)
+                    updated_branches.add(branch)
+                    new_commits[branch] = None # for the parameter laster as None
+
+            for branch in updated_branches:
+                shell.X(["git", "checkout", "-f", branch])
+                name = branch
+                del branch
+
+                if name in all_remote_branches:
+                    shell.X(["git", "pull"])
+                if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
+                    branch = repo.branch_ids.create({
+                        'name': name,
+                        'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                        'repo_id': repo.id,
+                    })
+                    branch._update_git_commits(shell, logsio, force_instance_folder=repo_path_temp, force_commits=new_commits[name])
+
+                shell.X(["git", "checkout", "-f", repo.default_branch])
+                del name
+
+            if updated_branches:
+                repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
+                repo.branch_ids._compute_state()
+                repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch()
 
     def _lock_git(self): 
         for rec in self:
