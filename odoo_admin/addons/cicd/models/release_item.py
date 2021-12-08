@@ -90,7 +90,7 @@ class ReleaseItem(models.Model):
             rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
 
     def _do_release(self):
-        if self.state != 'new':
+        if self.state not in ['new', 'failed']:
             raise ValidationError("Needs state new to be validated.")
         if self.release_type == 'hotfix' and not self.branch_ids:
             raise ValidationError("Hotfix requires explicit branches.")
