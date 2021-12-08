@@ -37,7 +37,7 @@
 							<strong>Last Access:</strong>
 							<field name="last_access"/>
 						</div>
-						<div>
+						<div t-if="current_task">
 							<strong>Current Activity:</strong>
 							<field name="current_task"/>
 						</div>

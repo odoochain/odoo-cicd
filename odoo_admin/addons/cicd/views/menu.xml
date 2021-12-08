@@ -1,6 +1,6 @@
 <odoo>
 	<data noupdate='0'>
-		<menuitem name="CICD" parent="" id="root_menu" />
+		<menuitem name="CICD" parent="" id="root_menu" sequence="-1000"/>
 		<menuitem name="Configuration" parent="root_menu" id="config_menu" sequence="9999"/>
 		<!-- icon="cicd,static/img/logo.png"/> -->
 		<record id='branches_action' model='ir.actions.act_window'>

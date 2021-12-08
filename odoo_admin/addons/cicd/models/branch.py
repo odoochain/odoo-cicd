@@ -37,7 +37,7 @@ class GitBranch(models.Model):
     @api.depends("task_ids", "task_ids.state")
     def _compute_current_task(self):
         for rec in self:
-            rec.current_taks = ', '.join(rec.task_ids.filtered(lambda x: x.state in ['pending', 'started', 'enqueued']).mapped('name'))
+            rec.current_task = ', '.join(rec.task_ids.filtered(lambda x: x.state in ['pending', 'started', 'enqueued']).mapped('name'))
 
 
     ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
