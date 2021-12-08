@@ -142,6 +142,7 @@ class Task(models.Model):
 
     @api.model
     def _cron_cleanup(self):
-        self.search([('create_date', '<', arrow.get().shift(days=-10).strftime("%Y-%m-%d %H:%M:%S"))].unlink()
-
-        
+        dt = arrow.get().shift(days=-10).strftime("%Y-%m-%d %H:%M:%S")
+        self.search([
+            ('create_date', '<', dt)
+            ].unlink())

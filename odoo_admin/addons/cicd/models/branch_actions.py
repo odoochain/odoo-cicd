@@ -204,13 +204,22 @@ class Branch(models.Model):
             'commit_id': self.commit_ids[0].id,
             'branch_id': b.id,
         })
-        self.env.cr.commit()
-        test_run.execute(shell, task, logsio)
-        if update_state:
-            if test_run.state == 'failed':
-                self.state = 'rework'
-            else:
-                self.state = 'tested'
+
+        # use tempfolder for tests to not interfere with updates or so
+        import pudb;pudb.set_trace()
+        repo_path = task.branch_id.repo_id._get_main_repo(tempfolder=True, machine=shell.machine)
+        shell.cwd = repo_path
+        try:
+            self.env.cr.commit()
+            shell.X(["git", "checkout", "-f", test_run.commit_id.name])
+            test_run.execute(shell, task, logsio)
+            if update_state:
+                if test_run.state == 'failed':
+                    self.state = 'rework'
+                else:
+                    self.state = 'tested'
+        finally:
+            shell.rmifexists(repo_path)
 
     # def _transform_input_dump():
     #     dump = Path(request.args['dump'])

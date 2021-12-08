@@ -32,6 +32,11 @@ class ShellExecutor(object):
         if env:
             assert isinstance(env, dict)
 
+    def rmifexists(self, path):
+        with self.shell() as spurplus:
+            if spurplus.exists(path):
+                spurplus.remove(path, recurse=True)
+
     def _get_home_dir(self):
         res = self.machine._execute_shell(
             ['realpath', '~'],
