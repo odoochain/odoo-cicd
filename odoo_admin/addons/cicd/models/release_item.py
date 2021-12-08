@@ -129,7 +129,6 @@ class ReleaseItem(models.Model):
         self.log_release = logsio.get_lines()
 
     def _collect_tested_branches(self):
-        import pudb;pudb.set_trace()
         for rec in self:
             repo = rec.release_id.repo_id
             if rec.state not in ['new', 'failed']:
@@ -181,7 +180,6 @@ class ReleaseItem(models.Model):
 
     @api.fieldchange("branch_ids")
     def _on_change_branches(self, changeset):
-        import pudb;pudb.set_trace()
         for rec in self:
             rec._trigger_recreate_candidate_branch_in_git()
             (changeset['branch_ids']['old'] | changeset['branch_ids']['new'])._compute_state()
