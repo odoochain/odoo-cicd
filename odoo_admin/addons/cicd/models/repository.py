@@ -1,4 +1,5 @@
 import traceback
+from . import pg_advisory_lock
 from odoo import registry
 import arrow
 from git import Repo
@@ -171,7 +172,10 @@ class Repository(models.Model):
                                     else:
                                         new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
-                            self.with_delay()._cron_fetch_update_branches({
+                            self.with_delay(
+                                identity_key=f"cron_fetch_update_branches: {repo.id}",
+
+                            )._cron_fetch_update_branches({
                                 'repo': repo,
                                 'new_commits': new_commits,
                                 'updated_branches': list(updated_branches),
@@ -190,6 +194,7 @@ class Repository(models.Model):
         repo_path = repo._get_main_repo(logsio=logsio)
         env = self._get_git_non_interactive()
         logsio = LogsIOWriter(repo.name, 'fetch')
+        pg_advisory_lock(self.env.cr, f"fetch_update_{repo.id}")
 
         with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
             all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
