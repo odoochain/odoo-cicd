@@ -206,10 +206,12 @@ class Branch(models.Model):
                 }]]
     
     def _remove_web_assets(self, shell, task, logsio, **kwargs):
+        logsio.info("Killing...")
+        shell.odoo('kill')
         logsio.info("Calling remove-web-assets")
         shell.odoo('-f', 'remove-web-assets')
         logsio.info("Restarting...")
-        shell.odoo('restart')
+        shell.odoo('up', '-d')
 
     def _clear_db(self, shell, task, logsio, **kwargs):
         shell.odoo('cleardb')
