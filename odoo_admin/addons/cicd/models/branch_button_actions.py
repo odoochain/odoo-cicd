@@ -40,7 +40,7 @@ class Branch(models.Model):
         self._make_task("_turn_into_dev")
 
     def reload(self):
-        self._make_task("_reload", True)
+        self._make_task("_reload")
 
     def reload_and_restart(self):
         self._make_task("_reload_and_restart")

@@ -32,6 +32,13 @@ class GitBranch(models.Model):
     active = fields.Boolean("Active", default=True)
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     commit_ids_ui = fields.Many2many('cicd.git.commit', string="Commits", compute="_compute_commit_ids")
+    current_task = fields.Char(compute="_compute_current_task")
+
+    @api.depends("task_ids", "task_ids.state")
+    def _compute_current_task(self):
+        for rec in self:
+            rec.current_taks = ', '.join(rec.task_ids.filtered(lambda x: x.state in ['pending', 'started', 'enqueued']).mapped('name'))
+
 
     ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")

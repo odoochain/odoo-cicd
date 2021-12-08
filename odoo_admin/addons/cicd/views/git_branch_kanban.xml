@@ -37,6 +37,10 @@
 							<strong>Last Access:</strong>
 							<field name="last_access"/>
 						</div>
+						<div>
+							<strong>Current Activity:</strong>
+							<field name="current_task"/>
+						</div>
 					</div>
 				</t>
 
