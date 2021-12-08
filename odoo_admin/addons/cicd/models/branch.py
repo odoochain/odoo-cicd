@@ -33,6 +33,7 @@ class GitBranch(models.Model):
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
+    task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
     state = fields.Selection([
         ('new', 'New'),
@@ -355,3 +356,17 @@ class GitBranch(models.Model):
 
     def contains_commit(self, commit):
         return commit in self.mapped('commit_ids')
+
+    def _compute_tasks(self):
+        for rec in self:
+            tasks = rec.task_ids
+
+            def filter(x):
+                if x.state in ['failed']:
+                    return True
+                if '_docker_get_state' in x.name:
+                    return False
+                return True
+
+            rec.task_ids_filtered = [[6, 0, tasks.filtered(filter).ids]]
+            

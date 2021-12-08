@@ -7,9 +7,7 @@ PROJECT_NAME=cicd1
 DBNAME=cicdadmin
 
 CICD_NETWORK_NAME=cicd_net1
-CICD_PREFIX=devcicd_
 CICD_BINDING=0.0.0.0:9991
-CICD_URL=http://10.211.55.33:9991
 CICD_WORKSPACE=/var/lib/docker/cicd_workspace
 JIRA_URL=
 JIRA_USER=
@@ -22,10 +20,3 @@ CICD_DB_USER=cicd
 CICD_DB_PASSWORD=cicd_is_cool
 CICD_DB_PORT=5434
 CICD_POSTGRES_VERSION=14.0
-REPO_URL=ssh://git@git.itewimmer.de/odoo/customs/ite.git
-REPO_HTML_URL=https://git.itewimmer.de/odoo/customs/ite
-HOST_SSH_USER=cicd
-ODOO_SETTINGS=/home/cicd/.odoo
-PASSWD=dev
-
-OWNER_UID=1003
