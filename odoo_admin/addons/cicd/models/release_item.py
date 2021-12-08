@@ -41,8 +41,8 @@ class ReleaseItem(models.Model):
     def _ensure_one_item_only(self):
         for rec in self:
             if rec.state in ['new', 'failed']:
-                if rec.release_id.item_ids.filtered(lambda x: x.id != rec.id and x.state in ['new', 'failed']):
-                    raise ValidationError(_("There may only be one new or failed item"))
+                if rec.release_id.item_ids.filtered(lambda x: x.release_type == 'standard' and x.id != rec.id and x.state in ['new', 'failed']):
+                    raise ValidationError(_("There may only be one new or failed standard item!"))
 
     def open_window(self):
         self.ensure_one()
