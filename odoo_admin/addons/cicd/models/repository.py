@@ -1,3 +1,4 @@
+from odoo import registry
 import arrow
 import os
 import shutil
@@ -42,6 +43,8 @@ class Repository(models.Model):
     ticket_system_regex = fields.Char("Ticket System Regex")
     release_ids = fields.One2many('cicd.release', 'repo_id', string="Releases")
     default_simulate_install_id_dump_id = fields.Many2one('cicd.dump', string="Default Simluate Install Dump")
+    never_cleanup = fields.Boolean("Never Cleanup")
+    cleanup_untouched = fields.Integer("Cleanup after days", default=20, required=True)
 
     _sql_constraints = [
         ('name_unique', "unique(named)", _("Only one unique entry allowed.")),
@@ -303,3 +306,19 @@ class Repository(models.Model):
 
             finally:
                 shell.X(["/usr/bin/rm", "-rf", repo_path])
+
+    @api.model
+    def _cron_cleanup(self):
+        for repo in self.search([
+            ('never_cleanup', '=', False),
+        ]):
+            dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime("%Y-%m-%d %H:%M:%S")
+            # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+            db_registry = registry(self.env.cr.dbname)
+            branches = repo.branch_ids.filtered(lambda x: (x.last_access or x.date_registered).strftime("%Y-%m-%d %H:%M:%S") < dt)
+            with api.Environment.manage(), db_registry.cursor() as cr:
+                for branch in branches:
+                    env = api.Environment(cr, SUPERUSER_ID, {})
+                    branch = branch.with_env(env)
+                    branch.active = False
+                    env.cr.commit()

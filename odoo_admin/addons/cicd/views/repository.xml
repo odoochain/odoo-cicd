@@ -34,6 +34,10 @@
 							<field name="ticket_system_base_url"/>
 							<field name="ticket_system_regex"/>
 						</group>
+						<group string="Cleanup">
+							<field name="never_cleanup"/>
+							<field name="cleanup_untouched" attrs="{'invisible': [('never_cleanup', '=', True)]}"/>
+						</group>
 						<group>
 							<field name="branch_ids" nolabel="1" readonly='1'>
 								<tree>
