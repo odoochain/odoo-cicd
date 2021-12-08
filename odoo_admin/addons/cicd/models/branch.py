@@ -31,6 +31,8 @@ class GitBranch(models.Model):
     repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True)
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
+    commit_ids_ui = fields.Many2many('cicd.git.commit', string="Commits", compute="_compute_commit_ids")
+
     ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
@@ -370,4 +372,9 @@ class GitBranch(models.Model):
                 return True
 
             rec.task_ids_filtered = [[6, 0, tasks.filtered(filter).ids]]
+            
+    @api.depends('commit_ids')
+    def _compute_commit_ids(self):
+        for rec in self:
+            rec.commit_ids_ui = rec.commit_ids[:200]
             
