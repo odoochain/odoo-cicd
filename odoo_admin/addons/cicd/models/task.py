@@ -106,7 +106,6 @@ class Task(models.Model):
                     commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
                     # if not commit:
                     #     raise ValidationError(f"Commit {sha} not found in branch.")
-                    self.sudo().commit_id = commit
                     # get current commit
                     args = {
                         'task': self,
@@ -116,6 +115,7 @@ class Task(models.Model):
                     if self.kwargs and self.kwargs != 'null':
                         args.update(json.loads(self.kwargs))
                     exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
+                    self.sudo().commit_id = commit
 
                 self.log = '\n'.join(logsio.get_lines())
 

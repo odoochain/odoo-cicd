@@ -26,6 +26,7 @@ class Branch(models.Model):
             commit = tasks[0].commit_id.name
         if commit:
             try:
+                logsio.info("Updating")
                 shell.odoo("update", "--since-git-sha", commit)
             except Exception as ex:
                 logger.error(ex)
@@ -36,15 +37,21 @@ class Branch(models.Model):
             self._update_all_modules(shell=shell, task=task, logsio=logsio, **kwargs)
 
     def _update_all_modules(self, shell, task, logsio, **kwargs):
+        logsio.info("Reloading")
         shell.odoo('reload')
+        logsio.info("Building")
         shell.odoo('build')
+        logsio.info("Updating")
         shell.odoo('update')
+        logsio.info("Upping")
         shell.odoo("up", "-d")
 
     def _reload_and_restart(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
         self._checkout_latest(shell, self.machine_id, logsio)
+        logsio.info("Building")
         shell.odoo('build')
+        logsio.info("Upping")
         shell.odoo("up", "-d")
         self._after_build(shell, logsio)
 
