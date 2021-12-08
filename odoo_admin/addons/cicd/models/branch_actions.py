@@ -207,7 +207,7 @@ class Branch(models.Model):
     
     def _remove_web_assets(self, shell, task, logsio, **kwargs):
         logsio.info("Calling remove-web-assets")
-        shell.odoo('remove-web-assets')
+        shell.odoo('-f', 'remove-web-assets')
         logsio.info("Restarting...")
         shell.odoo('restart')
 
