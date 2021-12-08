@@ -91,6 +91,8 @@ class ReleaseItem(models.Model):
             rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
 
     def _do_release(self):
+        if not self.active:
+            return
         if self.state not in ['new', 'failed']:
             raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
         if self.release_type == 'hotfix' and not self.branch_ids:
