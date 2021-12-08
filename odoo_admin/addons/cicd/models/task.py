@@ -139,3 +139,9 @@ class Task(models.Model):
             self.duration = duration
             if logsio:
                 logsio.info(f"Finished after {duration} seconds!")
+
+    @api.model
+    def _cron_cleanup(self):
+        self.search([('create_date', '<', arrow.get().shift(days=-10).strftime("%Y-%m-%d %H:%M:%S"))].unlink()
+
+        
