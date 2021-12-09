@@ -36,6 +36,13 @@ class GitCommit(models.Model):
     def set_declined(self):
         self.write({'approval_state': 'declined'})
 
+    @api.recordchange('force_approved')
+    def _force_approved_changed(self):
+        for rec in self:
+            if rec.force_approved:
+                if rec.approval_state != 'approved':
+                    rec.approval_state = 'approved'
+
     @api.depends('test_run_ids', 'test_run_ids.state')
     def _compute_test_state(self):
         for rec in self:
