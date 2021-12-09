@@ -220,7 +220,7 @@ class Repository(models.Model):
                         'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                         'repo_id': repo.id,
                     })
-                    branch._update_git_commits(shell, logsio, force_instance_folder=repo_path_temp, force_commits=new_commits[name])
+                    branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
                 shell.X(["git", "checkout", "-f", repo.default_branch])
                 del name

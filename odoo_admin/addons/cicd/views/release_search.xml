@@ -4,8 +4,8 @@
 			<field name="model">cicd.release</field>
 			<field name="arch" type="xml">
 				<search string="">
-					<filter string="Active" domain="[('active', '=', True)]"  />
-					<filter string="Inactive" domain="[('active', '=', False)]"  />
+					<filter name="active" string="Active" domain="[('active', '=', True)]"  />
+					<filter name="inactive" string="Inactive" domain="[('active', '=', False)]"  />
 				</search>
 			</field>
 		</record>
