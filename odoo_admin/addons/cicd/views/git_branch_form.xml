@@ -37,7 +37,6 @@
 							<field name="ticket_system_url" widget="url"/>
 							<field name="active" invisible='1'/>
 							<field name="block_updates_until"/>
-							<field name="database_ids" widget="many2many_tags"/>
 							<field name="database_size_human"/>
 						</group>
 						<group string="Enduser Summary">
