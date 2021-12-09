@@ -129,10 +129,9 @@
 								</group>
 							</page>
 							<page string="Releases" name="releases">
-								<field name="release_item_ids" context="{'active_test': False}">
+								<field name="release_item_ids" >
 									<tree>
 										<field name="planned_date"/>
-										<field name="active" widget="boolean_toggle"/>
 										<field name="done_date"/>
 										<field name="state"/>
 										<field name="release_type"/>
