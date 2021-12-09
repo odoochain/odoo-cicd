@@ -49,3 +49,4 @@ from . import container
 from . import database
 from . import postgres_server
 from . import user
+from . import queue_job
