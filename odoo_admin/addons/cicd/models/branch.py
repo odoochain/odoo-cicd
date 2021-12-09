@@ -164,7 +164,7 @@ class GitBranch(models.Model):
             elif commit.test_state == 'failed' or commit.approval_state == 'declined':
                 state = 'dev'
 
-            elif (commit.test_state == 'success' or not rec.any_testing and commit.test_state in [False, 'open']) and commit.approval_state == 'approved':
+            elif ((commit.test_state == 'success' or (not rec.any_testing and commit.test_state in [False, 'open'])) or commit.force_approved) and commit.approval_state == 'approved':
                 repo = commit.mapped('branch_ids.repo_id')
                 latest_release_items = self.env['cicd.release.item']
                 for release in repo.release_ids:
