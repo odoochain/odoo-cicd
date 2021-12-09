@@ -192,6 +192,15 @@ class Repository(models.Model):
                 logger.error(ex)
                 continue
 
+    def _clean_remote_branches(self, branches):
+        """
+        origin/pre_master1']  --> pre_master1
+        """
+        for branch in branches:
+            if '->' in branch:
+                continue
+            yield branch.split("/")[-1].strip()
+
     def _cron_fetch_update_branches(self, data):
         new_commits = data['new_commits']
         repo = self
@@ -199,10 +208,11 @@ class Repository(models.Model):
         logsio = LogsIOWriter(repo.name, 'fetch')
         repo_path = repo._get_main_repo(logsio=logsio)
         env = self._get_git_non_interactive()
-        # pg_advisory_lock(self.env.cr, f"fetch_update_{repo.id}")
+        repo._lock_git()
+        machine = repo.machine_id
 
-        with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
-            all_remote_branches = shell.X(["git", "branch", "-r"]).output.strip().split("\n")
+        with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+            all_remote_branches = list(self._clean_remote_branches(shell.X(["git", "branch", "-r"]).output.strip().split("\n")))
             # if completely new then all branches:
             if not repo.branch_ids:
                 for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
@@ -231,7 +241,9 @@ class Repository(models.Model):
             if updated_branches:
                 repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
                 repo.branch_ids._compute_state()
-                repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch()
+                repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch(
+                    machine=machine
+                    )
 
     def _lock_git(self): 
         for rec in self:

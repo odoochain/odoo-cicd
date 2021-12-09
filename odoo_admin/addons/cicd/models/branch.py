@@ -272,8 +272,8 @@ class GitBranch(models.Model):
         return machine._get_volume('source') / self.project_name
 
     @contextmanager
-    def _shellexec(self, task, logsio, cwd=None):
-        instance_folder = self._get_instance_folder(task.machine_id)
+    def _shellexec(self, task, logsio, cwd=None, machine=None):
+        instance_folder = self._get_instance_folder(task and task.machine_id or machine)
         with self.machine_id._shellexec(
             cwd=cwd or instance_folder,
             logsio=logsio,
@@ -357,11 +357,22 @@ class GitBranch(models.Model):
         for rec in self:
             rec._make_task("_run_tests", silent=True, kwargs={'update_state': True})
 
-    def _trigger_rebuild_after_fetch(self):
+    def _get_latest_code(self, machine):
+        for rec in self:
+            rec.repo_id._lock_git()
+            repo_path = rec.repo_id._get_main_repo()
+            logsio = rec._get_new_logsio_instance('trigger rebuild')
+            with rec._shellexec(task=None, logsio=logsio, machine=machine) as shell:
+                shell.X(['rsync', str(repo_path) + "/", str(shell.cwd) + "/", "-ar", "--delete-after"])
+                shell.X(['git', 'checkout', '-f', rec.name])
+                shell.X(['git', 'clean', '-xdff'])
+
+    def _trigger_rebuild_after_fetch(self, machine):
         """
         After new source is fetched then the instance is rebuilt.
         """
         for rec in self:
+            rec._get_latest_code(machine)
             rec._make_task("_update_odoo", silent=True)
 
     def contains_commit(self, commit):
