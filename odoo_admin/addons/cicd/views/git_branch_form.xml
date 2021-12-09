@@ -61,7 +61,7 @@
 								</field>
 							</page>
 							<page string="Tasks" name="tasks">
-								<button string="refresh_tasks" name="" icon="fa-recycle" type="action" class="oe_stat_button"/>
+								<button name="refresh_tasks" string="" type="object" icon="fa-recycle"/>
 								<newline/>
 								<field name="task_ids_filtered" nolabel="1" readonly="1">
 									<tree>
