@@ -117,9 +117,8 @@ class Branch(models.Model):
 
     def _reload(self, shell, task, logsio, **kwargs):
         raw_settings = (task.machine_id.reload_config or '') + "\n" + (self.reload_config or '')
-        odoo_settings = base64.encodestring((raw_settings).encode('utf-8').strip()).decode('utf-8')
         self._make_instance_docker_configs(shell) 
-        shell.odoo('reload', '--additional_config', odoo_settings)
+        shell.odoo('reload')
 
     def _build(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio, **kwargs)
@@ -298,7 +297,7 @@ class Branch(models.Model):
     # DB_USER=odoo
     # DB_PWD=odoo
     #             """
-    #             of("reload", '--additional_config', base64.encodestring(custom_settings.encode('utf-8')).strip().decode('utf-8'))
+    #             of("reload")
     #             of("down", "-v")
 
     #             # to avoid orphan messages, that return error codes although warning
@@ -394,6 +393,7 @@ class Branch(models.Model):
             home_dir = shell._get_home_dir()
             project_name = self.project_name
             content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
+            content += "\n" + self.reload_config
             ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content.format(**os.environ))
 
             content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
