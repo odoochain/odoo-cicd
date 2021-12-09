@@ -119,3 +119,6 @@ class Branch(models.Model):
 
     def open_shell(self):
         return self._shell_url(["odoo", "ps"])
+
+    def refresh_tasks(self):
+        return True

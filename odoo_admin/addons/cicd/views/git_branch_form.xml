@@ -61,6 +61,8 @@
 								</field>
 							</page>
 							<page string="Tasks" name="tasks">
+								<button string="refresh_tasks" name="" icon="fa-recycle" type="action" class="oe_stat_button"/>
+								<newline/>
 								<field name="task_ids_filtered" nolabel="1" readonly="1">
 									<tree>
 										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
