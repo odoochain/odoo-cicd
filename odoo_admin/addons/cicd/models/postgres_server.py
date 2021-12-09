@@ -57,7 +57,7 @@ class PostgresServer(models.Model):
                 all_dbs.add(dbname)
                 db_db = self.database_ids.sudo().filtered(lambda x: x.name == dbname)
                 if not db_db:
-                    db_db = machine.database_ids.sudo().create({
+                    db_db = self.database_ids.sudo().create({
                         'server_id': self.id,
                         'name': dbname
                     })
