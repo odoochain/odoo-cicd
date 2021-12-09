@@ -102,11 +102,17 @@
 									<field name="reload_config"/>
 								</group>
 								<div>
-									Additional configuration like for example:<br/>
-									<br/>
-									RUN_ODOO_QUEUEJOBS=1<br/>
-									RUN_ODOO_CRONJOBS=1<br/>
+								<pre>
+									Additional configuration like for example:
+									
+									RUN_ODOO_QUEUEJOBS=1
+									RUN_ODOO_CRONJOBS=1
 
+									Run Odoo on certain port:
+									RUN_PROXY_PUBLISHED=1
+									PROXY_PORT=8505
+									RUN_PROXY=1   (not sure if needed)
+								</pre>
 								</div>
 							</page>
 							<page name="tests" string="Tests">
