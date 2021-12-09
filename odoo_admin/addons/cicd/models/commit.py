@@ -24,7 +24,7 @@ class GitCommit(models.Model):
         ('approved', 'Approved'),
         ('declined', 'Declined'),
     ], track_visibility="onchange", string="Approval")
-    force_approved = fields.Boolean("Force Approved")
+    force_approved = fields.Boolean("Force Approved", track_visibility="onchange")
 
     _sql_constraints = [
         ('name', "unique(name)", _("Only one unique entry allowed.")),

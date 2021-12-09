@@ -91,7 +91,7 @@ class ReleaseItem(models.Model):
             rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
 
     def _do_release(self):
-        if not self.active:
+        if not self.release_id.active:
             return
         if self.state not in ['new', 'failed']:
             raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
