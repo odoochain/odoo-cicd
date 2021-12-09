@@ -53,7 +53,7 @@
 										<button name="open_window" string="" icon="fa-external-link" type="object" />
 										<field name="test_state"/>
 										<field name="approval_state"/>
-										<field name="force_approved"/>
+										<field name="force_approved" widget="boolean_toggle"/>
 										<field name="date" />
 										<field name="author"/>
 										<field name="text"/>

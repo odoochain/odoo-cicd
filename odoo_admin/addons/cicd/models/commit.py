@@ -30,6 +30,10 @@ class GitCommit(models.Model):
         ('name', "unique(name)", _("Only one unique entry allowed.")),
     ]
 
+    @api.recordchange("force_approved", "approval_state")
+    def _update_branches(self):
+        self.mapped('branch_ids')._compute_state()
+
     def set_approved(self):
         self.write({'approval_state': 'approved'})
 
