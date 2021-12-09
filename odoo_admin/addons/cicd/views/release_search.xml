@@ -1,0 +1,13 @@
+<odoo>
+	<data noupdate='0'>
+		<record id="view_cicd_release_search" model="ir.ui.view">
+			<field name="model">cicd.release</field>
+			<field name="arch" type="xml">
+				<search string="">
+					<filter string="Active" domain="[('active', '=', True)]"  />
+					<filter string="Inactive" domain="[('active', '=', False)]"  />
+				</search>
+			</field>
+		</record>
+	</data>
+</odoo>

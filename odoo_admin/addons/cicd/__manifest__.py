@@ -17,6 +17,7 @@
                 'views/registry.xml',
                 'views/release_form.xml',
                 'views/release_item_form.xml',
+                'views/release_search.xml',
                 'views/release_tree.xml',
                 'views/repository.xml',
                 'views/task_form.xml',
