@@ -179,7 +179,7 @@ class Repository(models.Model):
                                 identity_key=f"cron_fetch_update_branches: {repo.id}",
                             )._cron_fetch_update_branches({
                                 'repo': repo,
-                                'new_commits': list(new_commits),
+                                'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
                                 'updated_branches': list(updated_branches),
                             })
 
