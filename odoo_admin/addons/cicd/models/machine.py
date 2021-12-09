@@ -256,47 +256,43 @@ class CicdMachine(models.Model):
 
                 command_file = '/tmp/commands.cicd'
                 homedir = '/home/' + rec.ssh_user_cicdlogin
+                test_file_if_required = homedir + '/.setup_login_done'
                 user_upper = rec.ssh_user_cicdlogin.upper()
 
                 # allow per sudo execution of just the odoo script
                 commands = """
 #!/bin/bash
 
+#------------------------------------------------------------------------------
+# adding sudoer command for restricted user to odoo framework
+
 tee "/etc/sudoers.d/{rec.ssh_user_cicdlogin}_odoo" <<EOF
 Cmnd_Alias ODOO_COMMANDS_{user_upper} = /opt/odoo/odoo *
 {rec.ssh_user_cicdlogin} ALL=({rec.ssh_user}) NOPASSWD:SETENV: ODOO_COMMANDS_{user_upper}
 EOF
-                """.format(**locals())
-                shell.write_text(command_file, commands.strip() + "\n")
-                shell.run(["sudo", "/bin/bash", command_file])
 
-                commands = """
+#------------------------------------------------------------------------------
+# setting up login to restricted user
 
-#!/bin/bash
-set -x
-echo 'doing' > /tmp/1
 grep -q "{rec.ssh_user_cicdlogin}" /etc/passwd || adduser --disabled-password --gecos "" {rec.ssh_user_cicdlogin}
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 grep -q "{pubkey}" ~/.ssh/authorized_keys || echo "\n{pubkey}" >> ~/.ssh/authorized_keys
 usermod --shell /bin/rbash "{rec.ssh_user_cicdlogin}"
 
+#------------------------------------------------------------------------------
+# adding programs to restricted user
+
 mkdir -p "{homedir}/programs"
 echo 'readonly PATH={homedir}/programs' > "{homedir}/.bash_profile"
 echo 'export PATH' >> "{homedir}/.bash_profile"
 chown -R "{rec.ssh_user_cicdlogin}":"{rec.ssh_user_cicdlogin}" "{homedir}"
 ln -sf /usr/bin/sudo "{homedir}/programs/sudo"
-ln -sf /usr/bin/python3 "{homedir}/programs/python3"
 
 echo -e "{rec.ssh_user_cicdlogin_password}\n{rec.ssh_user_cicdlogin_password}" | passwd "{rec.ssh_user_cicdlogin}"
 
-                """.format(**locals())
-                # in this path there ar, the keys that are used by web ssh container /opt/cicd_sshkey
-                shell.write_text(command_file, commands.strip() + "\n")
-                shell.run(["sudo", "/bin/bash", command_file])
-
-                commands = """
-
+#------------------------------------------------------------------------------
+# adding wrapper for calling odoo framework in that instance directory
 #!/bin/bash
 tee "{homedir}/programs/odoo" <<EOF
 #!/bin/bash
@@ -304,11 +300,31 @@ sudo -u {rec.ssh_user} /opt/odoo/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" 
 EOF
 chmod a+x "{homedir}/programs/odoo"
 
+#------------------------------------------------------------------------------
+# make indication file, that it is setup
+echo '1' > '{test_file_if_required}'
+
+#------------------------------------------------------------------------------
+# self destruct
+rm {command_file}
+
+#------------------------------------------------------------------------------
+# give calming success message to admin
+echo "------------------------------------------------------------------------------------"
+echo ""
+echo "Successfully allowing restricted bash access from docker container to only execute odoo framework."
+echo "Care is taken, that system cannot be compromised."
+echo ""
+echo "------------------------------------------------------------------------------------"
+
                 """.format(**locals())
                 # in this path there ar, the keys that are used by web ssh container /opt/cicd_sshkey
-                shell.write_text(command_file, commands.strip() + "\n")
-                shell.run(["sudo", "/bin/bash", command_file])
-                shell.run(["rm", command_file])
+                if not shell.exists(test_file_if_required):
+                    shell.write_text(command_file, commands.strip() + "\n")
+                    cmd = ["sudo", "/bin/bash", command_file]
+                    res = shell.run(cmd, allow_error=True)
+                    if res.return_code:
+                        raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res.stderr_output}")
 
     @tools.ormcache()
     def testoutput(self):
