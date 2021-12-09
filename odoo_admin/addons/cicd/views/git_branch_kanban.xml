@@ -41,6 +41,12 @@
 							<strong>Current Activity:</strong>
 							<field name="current_task"/>
 						</div>
+						<div t-if="database_ids">
+							<strong>Databases:</strong>
+							<t t-foreach="database_ids" t-as="db">
+								<t t-esc="db.name"></t> [<t t-esc="db.size_human"></t>]
+							</t>
+						</div>
 					</div>
 				</t>
 

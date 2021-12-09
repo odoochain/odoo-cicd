@@ -33,13 +33,9 @@ class GitBranch(models.Model):
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     commit_ids_ui = fields.Many2many('cicd.git.commit', string="Commits", compute="_compute_commit_ids")
     current_task = fields.Char(compute="_compute_current_task")
-
-    @api.depends("task_ids", "task_ids.state")
-    def _compute_current_task(self):
-        for rec in self:
-            rec.current_task = ', '.join(rec.task_ids.filtered(lambda x: x.state in ['pending', 'started', 'enqueued']).mapped('name'))
-
-
+    database_ids = fields.Many2many('cicd.database', string="Databases", compute="_compute_databases")
+    database_size = fields.Float("Database Size", compute="_compute_databases")
+    database_size_human = fields.Char("Database Size", compute="_compute_databases")
     ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
@@ -396,3 +392,13 @@ class GitBranch(models.Model):
         for rec in self:
             rec.commit_ids_ui = rec.commit_ids[:200]
             
+    def _compute_databases(self):
+        for rec in self:
+            rec.database_ids = self.env['cicd.database'].sudo().search([('name', '=', rec.project_name)])
+            rec.database_size = sum(rec.database_ids.mapped('size'))
+            rec.database_size_human = humanize.naturalsize(rec.database_size)
+
+    @api.depends("task_ids", "task_ids.state")
+    def _compute_current_task(self):
+        for rec in self:
+            rec.current_task = ', '.join(rec.task_ids.filtered(lambda x: x.state in ['pending', 'started', 'enqueued']).mapped('name'))

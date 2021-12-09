@@ -10,13 +10,20 @@ from contextlib import contextmanager
 class Database(models.Model):
     _inherit = ['cicd.mixin.size']
     _name = 'cicd.database'
+    _rec_name = 'display_name'
 
     name = fields.Char("Name", required=True)
+    display_name = fields.Char("Name", compute="_compute_display_name", store=True)
     server_id = fields.Many2one("cicd.postgres", string="Postgres", required=True)
 
     _sql_constraints = [
         ('name_postgres_unique', "unique(name, server_id)", _("Only one unique entry allowed.")),
     ]
+
+    @api.depends("name", "size_human")
+    def _compute_display_name(self):
+        for rec in self:
+            rec.display_name = f"{rec.name} [{rec.size_human}]"
 
     def delete_db(self):
         for rec in self:
