@@ -1,4 +1,5 @@
 import arrow
+from copy import deepcopy
 import os
 import pwd
 import grp
@@ -52,10 +53,16 @@ class ShellExecutor(object):
             yield shell
 
     def odoo(self, *cmd, allow_error=True):
+        env={
+            'NO_PROXY': "*",
+            'DOCKER_CLIENT_TIMEOUT': "600",
+            'COMPOSE_HTTP_TIMEOUT': "600",
+            'PSYCOPG_TIMEOUT': "120",
+        },
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
         cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
-        res = self.X(cmd, allow_error=allow_error)
+        res = self.X(cmd, allow_error=allow_error, env=env)
         if res.return_code and not allow_error:
             if '.FileNotFoundError: [Errno 2] No such file or directory:' in res.stderr_output:
                 raise Exception("Seems that a reload of the instance is required.")
@@ -63,9 +70,12 @@ class ShellExecutor(object):
                 raise Exception(res.stderr_output)
         return res
 
-    def X(self, cmd, allow_error=False):
+    def X(self, cmd, allow_error=False, env=None):
+        effective_env = deepcopy(self.env)
+        if env:
+            effective_env.update(env)
         return self.machine._execute_shell(
-            cmd, cwd=self.cwd, env=self.env, logsio=self.logsio,
+            cmd, cwd=self.cwd, env=effective_env, logsio=self.logsio,
             allow_error=allow_error,
         )
 
