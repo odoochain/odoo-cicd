@@ -135,63 +135,66 @@ class Repository(models.Model):
     @api.model
     def _cron_fetch(self):
         for repo in self.search([]):
-            self._lock_git()
-            logsio = LogsIOWriter(repo.name, 'fetch')
-                
-            repo_path = repo._get_main_repo(logsio=logsio)
-            env = self._get_git_non_interactive()
+            try:
+                repo._lock_git()
+                logsio = LogsIOWriter(repo.name, 'fetch')
+                    
+                repo_path = repo._get_main_repo(logsio=logsio)
+                env = repo._get_git_non_interactive()
 
-            with repo.machine_id._shell() as spurplus_shell:
-                with repo._get_ssh_command(spurplus_shell) as env2:
-                    env.update(env2)
-                    with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
-                        try:
-                            new_commits, updated_branches = {}, set()
+                with repo.machine_id._shell() as spurplus_shell:
+                    with repo._get_ssh_command(spurplus_shell) as env2:
+                        env.update(env2)
+                        with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+                            try:
+                                new_commits, updated_branches = {}, set()
 
-                            for remote in self._get_remotes(shell):
-                                fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote]).stderr_output.strip().split("\n")))
-                                for fi in fetch_info:
-                                    while "  " in fi:
-                                        fi = fi.replace("  ", " ")
-                                    fi = fi.strip()
-                                    if '[new branch]' in fi:
-                                        branch = fi.replace("[new branch]", "").split("->")[0].strip()
-                                        start_commit = None
-                                        end_commit = None
-                                    else:
-                                        branch = fi.split("/")[-1]
-                                        start_commit = fi.split("..")[0]
-                                        end_commit = fi.split("..")[1].split(" ")[0]
-                                    branch = self._clear_branch_name(branch)
-                                    updated_branches.add(branch)
-                                    new_commits.setdefault(branch, set())
-                                    if start_commit and end_commit:
-                                        start_commit = shell.X(["git", "rev-parse", start_commit]).output.strip()
-                                        end_commit = shell.X(["git", "rev-parse", end_commit]).output.strip()
-                                        new_commits[branch] |= set(shell.X(["git", "rev-list", "--ancestry-path", f"{start_commit}..{end_commit}"]).output.strip().split("\n"))
-                                    else:
-                                        new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
+                                for remote in repo._get_remotes(shell):
+                                    fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote]).stderr_output.strip().split("\n")))
+                                    for fi in fetch_info:
+                                        while "  " in fi:
+                                            fi = fi.replace("  ", " ")
+                                        fi = fi.strip()
+                                        if '[new branch]' in fi:
+                                            branch = fi.replace("[new branch]", "").split("->")[0].strip()
+                                            start_commit = None
+                                            end_commit = None
+                                        else:
+                                            branch = fi.split("/")[-1]
+                                            start_commit = fi.split("..")[0]
+                                            end_commit = fi.split("..")[1].split(" ")[0]
+                                        branch = repo._clear_branch_name(branch)
+                                        updated_branches.add(branch)
+                                        new_commits.setdefault(branch, set())
+                                        if start_commit and end_commit:
+                                            start_commit = shell.X(["git", "rev-parse", start_commit]).output.strip()
+                                            end_commit = shell.X(["git", "rev-parse", end_commit]).output.strip()
+                                            new_commits[branch] |= set(shell.X(["git", "rev-list", "--ancestry-path", f"{start_commit}..{end_commit}"]).output.strip().split("\n"))
+                                        else:
+                                            new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
-                            if not new_commits and not updated_branches:
-                                continue
+                                if not new_commits and not updated_branches:
+                                    continue
 
-                            self.with_delay(
-                                identity_key=f"cron_fetch_update_branches: {repo.id}",
-                            )._cron_fetch_update_branches({
-                                'repo': repo,
-                                'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
-                                'updated_branches': list(updated_branches),
-                            })
+                                repo.with_delay(
+                                    identity_key=f"cron_fetch_update_branches: {repo.id}",
+                                )._cron_fetch_update_branches({
+                                    'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
+                                    'updated_branches': list(updated_branches),
+                                })
 
-                        except Exception as ex:
-                            msg = traceback.format_exc()
-                            logsio.error(msg)
-                            logger.error(msg)
-                            raise
+                            except Exception as ex:
+                                msg = traceback.format_exc()
+                                logsio.error(msg)
+                                logger.error(msg)
+                                raise
+            except Exception as ex:
+                logger.error(ex)
+                continue
 
     def _cron_fetch_update_branches(self, data):
         new_commits = data['new_commits']
-        repo = data['repo']
+        repo = self
         updated_branches = data['updated_branches']
         logsio = LogsIOWriter(repo.name, 'fetch')
         repo_path = repo._get_main_repo(logsio=logsio)
