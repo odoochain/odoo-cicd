@@ -227,6 +227,7 @@ class Repository(models.Model):
 
                     for branch in updated_branches:
                         shell.X(["git", "checkout", "-f", branch])
+                        shell.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
                         name = branch
                         del branch
 
@@ -238,6 +239,7 @@ class Repository(models.Model):
                                 'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                                 'repo_id': repo.id,
                             })
+                            branch._checkout_latest(self, shell, machine, logsio)
                             branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
                         shell.X(["git", "checkout", "-f", repo.default_branch])
