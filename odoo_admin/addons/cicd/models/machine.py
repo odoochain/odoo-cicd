@@ -80,6 +80,7 @@ class ShellExecutor(object):
         )
 
 class CicdMachine(models.Model):
+    _inherit = 'mail.thread'
     _name = 'cicd.machine'
 
     name = fields.Char("Name")
@@ -371,4 +372,4 @@ echo "--------------------------------------------------------------------------
             with shell1.shell() as shell2:
                 path = Path(self.upload_volume_id.name) / filename
                 shell2.write_bytes(path, content)
-        
+        self.message_post(body="New dump uploaded: " + filename)
