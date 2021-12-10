@@ -43,6 +43,8 @@ class Repository(models.Model):
     never_cleanup = fields.Boolean("Never Cleanup")
     cleanup_untouched = fields.Integer("Cleanup after days", default=20, required=True)
 
+    make_dev_dumps = fields.Boolean("Make Dev Dumps")
+
     _sql_constraints = [
         ('name_unique', "unique(named)", _("Only one unique entry allowed.")),
         ('url_unique', "unique(url)", _("Only one unique entry allowed.")),
@@ -69,25 +71,6 @@ class Repository(models.Model):
                 rec.url = url
             else:
                 rec.url = rec.name
-
-    @contextmanager
-    def _get_ssh_command(self, shell):
-        self.ensure_one()
-        file = Path(tempfile.mktemp(suffix='.'))
-        env = {}
-
-        try:
-            env['GIT_SSH_COMMAND'] = f'ssh -o StrictHostKeyChecking=no'
-            if self.login_type == 'key':
-                env['GIT_SSH_COMMAND'] += f'   -i {file}  '
-                shell.write_text(file, self.key)
-                shell.run(["chmod", '400', str(file)])
-            else:
-                pass
-            yield env
-        finally:
-            if shell.exists(file):
-                shell.remove(file)
 
     def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None, machine=None):
         self.ensure_one()
@@ -126,15 +109,6 @@ class Repository(models.Model):
         self._cron_fetch()
 
     @api.model
-    def _get_git_non_interactive(self):
-        env = {
-            "GIT_ASK_YESNO": "false",
-            "GIT_SSH_COMMAND": f'ssh -o StrictHostKeyChecking=no',
-            "GIT_TERMINAL_PROMPT": "0",
-        }
-        return env
-
-    @api.model
     def _cron_fetch(self):
         for repo in self.search([]):
             try:
@@ -142,56 +116,49 @@ class Repository(models.Model):
                 logsio = LogsIOWriter(repo.name, 'fetch')
                     
                 repo_path = repo._get_main_repo(logsio=logsio)
-                env = repo._get_git_non_interactive()
 
-                with repo.machine_id._shell() as spurplus_shell:
-                    with repo._get_ssh_command(spurplus_shell) as env2:
-                        env.update(env2)
-                        with repo.machine_id._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
-                            try:
-                                new_commits, updated_branches = {}, set()
+                with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio, env=env) as shell:
+                    try:
+                        new_commits, updated_branches = {}, set()
 
-                                for remote in repo._get_remotes(shell):
-                                    fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote]).stderr_output.strip().split("\n")))
-                                    for fi in fetch_info:
-                                        while "  " in fi:
-                                            fi = fi.replace("  ", " ")
-                                        fi = fi.strip()
-                                        if '[new branch]' in fi:
-                                            branch = fi.replace("[new branch]", "").split("->")[0].strip()
-                                            start_commit = None
-                                            end_commit = None
-                                        else:
-                                            branch = fi.split("/")[-1]
-                                            start_commit = fi.split("..")[0]
-                                            end_commit = fi.split("..")[1].split(" ")[0]
-                                        branch = repo._clear_branch_name(branch)
-                                        updated_branches.add(branch)
-                                        new_commits.setdefault(branch, set())
-                                        if start_commit and end_commit:
-                                            start_commit = shell.X(["git", "rev-parse", start_commit]).output.strip()
-                                            end_commit = shell.X(["git", "rev-parse", end_commit]).output.strip()
-                                            new_commits[branch] |= set(shell.X(["git", "rev-list", "--ancestry-path", f"{start_commit}..{end_commit}"]).output.strip().split("\n"))
-                                        else:
-                                            new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
+                        for remote in repo._get_remotes(shell):
+                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote]).stderr_output.strip().split("\n")))
+                            for fi in fetch_info:
+                                while "  " in fi:
+                                    fi = fi.replace("  ", " ")
+                                fi = fi.strip()
+                                if '[new branch]' in fi:
+                                    branch = fi.replace("[new branch]", "").split("->")[0].strip()
+                                    start_commit = None
+                                    end_commit = None
+                                else:
+                                    branch = fi.split("/")[-1]
+                                    start_commit = fi.split("..")[0]
+                                    end_commit = fi.split("..")[1].split(" ")[0]
+                                branch = repo._clear_branch_name(branch)
+                                updated_branches.add(branch)
+                                new_commits.setdefault(branch, set())
+                                if start_commit and end_commit:
+                                    start_commit = shell.X(["git", "rev-parse", start_commit]).output.strip()
+                                    end_commit = shell.X(["git", "rev-parse", end_commit]).output.strip()
+                                    new_commits[branch] |= set(shell.X(["git", "rev-list", "--ancestry-path", f"{start_commit}..{end_commit}"]).output.strip().split("\n"))
+                                else:
+                                    new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
-                                if not new_commits and not updated_branches:
-                                    continue
+                        if not new_commits and not updated_branches:
+                            continue
 
-                                repo.with_delay(
-                                    identity_key=f"cron_fetch_update_branches: {repo.id}",
-                                )._cron_fetch_update_branches({
-                                    'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
-                                    'updated_branches': list(updated_branches),
-                                })
+                        repo.with_delay(
+                            identity_key=f"cron_fetch_update_branches: {repo.id}",
+                        )._cron_fetch_update_branches({
+                            'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
+                            'updated_branches': list(updated_branches),
+                        })
 
-                            except Exception as ex:
-                                msg = traceback.format_exc()
-                                logsio.error(msg)
-                                logger.error(msg)
-                                raise
             except Exception as ex:
-                logger.error(ex)
+                msg = traceback.format_exc()
+                logsio.error(msg)
+                logger.error(msg)
                 continue
 
     def _clean_remote_branches(self, branches):
@@ -209,52 +176,48 @@ class Repository(models.Model):
         updated_branches = data['updated_branches']
         logsio = LogsIOWriter(repo.name, 'fetch')
         repo_path = repo._get_main_repo(logsio=logsio)
-        env = self._get_git_non_interactive()
         repo._lock_git()
         machine = repo.machine_id
 
-        with repo.machine_id._shell() as spurplus_shell:
-            with repo._get_ssh_command(spurplus_shell) as env2:
-                env.update(env2)
-                with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
-                    all_remote_branches = list(self._clean_remote_branches(shell.X(["git", "branch", "-r"]).output.strip().split("\n")))
-                    # if completely new then all branches:
-                    if not repo.branch_ids:
-                        for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
-                            branch = self._clear_branch_name(branch)
-                            updated_branches.append(branch)
-                            new_commits[branch] = None # for the parameter laster as None
+        with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio, env=env) as shell:
+            all_remote_branches = list(self._clean_remote_branches(shell.X(["git", "branch", "-r"]).output.strip().split("\n")))
+            # if completely new then all branches:
+            if not repo.branch_ids:
+                for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
+                    branch = self._clear_branch_name(branch)
+                    updated_branches.append(branch)
+                    new_commits[branch] = None # for the parameter laster as None
 
-                    for branch in updated_branches:
-                        shell.X(["git", "checkout", "-f", branch])
-                        shell.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
-                        name = branch
-                        del branch
+            for branch in updated_branches:
+                shell.X(["git", "checkout", "-f", branch])
+                shell.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
+                name = branch
+                del branch
 
-                        if name in all_remote_branches:
-                            shell.X(["git", "pull"])
-                        if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
-                            branch = repo.branch_ids.create({
-                                'name': name,
-                                'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-                                'repo_id': repo.id,
-                            })
-                            branch._checkout_latest(shell, machine, logsio)
-                            branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
+                if name in all_remote_branches:
+                    shell.X(["git", "pull"])
+                if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
+                    branch = repo.branch_ids.create({
+                        'name': name,
+                        'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                        'repo_id': repo.id,
+                    })
+                    branch._checkout_latest(shell, machine, logsio)
+                    branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
-                        shell.X(["git", "checkout", "-f", repo.default_branch])
-                        del name
+                shell.X(["git", "checkout", "-f", repo.default_branch])
+                del name
 
-                    if not repo.branch_ids and not updated_branches:
-                        if repo.default_branch:
-                            updated_branches.append(repo.default_branch)
+            if not repo.branch_ids and not updated_branches:
+                if repo.default_branch:
+                    updated_branches.append(repo.default_branch)
 
-                    if updated_branches:
-                        repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
-                        repo.branch_ids._compute_state()
-                        repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch(
-                            machine=machine
-                            )
+            if updated_branches:
+                repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
+                repo.branch_ids._compute_state()
+                repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch(
+                    machine=machine
+                    )
 
     def _lock_git(self): 
         for rec in self:
@@ -284,43 +247,39 @@ class Repository(models.Model):
         assert source_branches._name == 'cicd.git.branch'
         machine = self.machine_id
         repo_path = self._get_main_repo(tempfolder=True)
-        env = self._get_git_non_interactive()
         commits = self.env['cicd.git.commit']
-        with machine._shell() as spurplus_shell:
-            with self._get_ssh_command(spurplus_shell) as env2:
-                env.update(env2)
-                with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
-                    try:
+        with machine._gitshell(repo, cwd=repo_path, logsio=logsio, env=env):
+            try:
 
-                        # clear the current candidate
-                        res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + target_branch.name], allow_error=True)
-                        if not res.return_code:
-                            shell.X(["/usr/bin/git", "branch", "-D", target_branch.name])
-                        logsio.info("Making target branch {target_branch.name}")
-                        shell.X(["/usr/bin/git", "checkout", "-b", target_branch.name])
+                # clear the current candidate
+                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + target_branch.name], allow_error=True)
+                if not res.return_code:
+                    shell.X(["/usr/bin/git", "branch", "-D", target_branch.name])
+                logsio.info("Making target branch {target_branch.name}")
+                shell.X(["/usr/bin/git", "checkout", "-b", target_branch.name])
 
-                        for branch in source_branches:
-                            for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
-                                if critical_date:
-                                    if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
-                                        continue
+                for branch in source_branches:
+                    for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
+                        if critical_date:
+                            if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
+                                continue
 
-                                if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
-                                    continue
+                        if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
+                            continue
 
-                                commits |= commit
+                        commits |= commit
 
-                                # we use git functions to retrieve deltas, git sorting and so;
-                                # we want to rely on stand behaviour git.
-                                shell.X(["/usr/bin/git", "checkout", "-f", branch.name])
-                                shell.X(["/usr/bin/git", "reset", "--hard", commit.name])
-                                shell.X(["/usr/bin/git", "checkout", "-f", target_branch.name])
-                                shell.X(["/usr/bin/git", "merge", "-f", branch.name])
-                                shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch.name])
+                        # we use git functions to retrieve deltas, git sorting and so;
+                        # we want to rely on stand behaviour git.
+                        shell.X(["/usr/bin/git", "checkout", "-f", branch.name])
+                        shell.X(["/usr/bin/git", "reset", "--hard", commit.name])
+                        shell.X(["/usr/bin/git", "checkout", "-f", target_branch.name])
+                        shell.X(["/usr/bin/git", "merge", "-f", branch.name])
+                        shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch.name])
 
 
-                    finally:
-                        shell.rmifexists(repo_path)
+            finally:
+                shell.rmifexists(repo_path)
         return commits
 
     def _merge(self, source, dest, set_tags, logsio=None):
@@ -331,8 +290,7 @@ class Repository(models.Model):
 
         machine = self.machine_id
         repo_path = self._get_main_repo(tempfolder=True)
-        env = self._get_git_non_interactive()
-        with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+        with machine._gitshell(self, cwd=repo_path, logsio=logsio, env=env) as shell:
             try:
                 shell.X(["/usr/bin/git", "checkout", "-f", dest.name])
                 commitid = shell.X(["/usr/bin/git", "log", "-n1", "--format=%H"]).output.strip()
@@ -367,3 +325,10 @@ class Repository(models.Model):
                     branch = branch.with_env(env)
                     branch.active = False
                     env.cr.commit()
+
+    # def _cron_make_dev_dumps(self):
+    #     for rec in self.search([('make_dev_dumps', '=', True)]):
+    #         if not rec.default_branch: # or a release branch more?
+    #             continue
+
+    #         repo_path = rec._get_main_repo()

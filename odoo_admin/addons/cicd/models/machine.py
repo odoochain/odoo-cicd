@@ -383,3 +383,30 @@ echo "--------------------------------------------------------------------------
         for f in ['upload_volume_id', 'upload_overwrite']:
             if f in vals:
                 vals.pop(f)
+
+    @contextmanager
+    def _gitshell(self, repo, cwd, logsio, env, **kwargs):
+        self.ensure_one()
+        with self._shell() as spurplus_shell:
+            file = Path(tempfile.mktemp(suffix='.'))
+            env = env or {}
+            env.update({
+                "GIT_ASK_YESNO": "false",
+                "GIT_TERMINAL_PROMPT": "0",
+            })
+
+            try:
+                env['GIT_SSH_COMMAND'] = f'ssh -o StrictHostKeyChecking=no'
+                if repo.login_type == 'key':
+                    env['GIT_SSH_COMMAND'] += f'   -i {file}  '
+                    shell.write_text(file, repo.key)
+                    spurplus_shell.run(["chmod", '400', str(file)])
+                else:
+                    pass
+
+                with self._shellexec() as shell:
+                    yield shell
+
+            finally:
+                if spurplus_shell.exists(file):
+                    spurplus_shell.remove(file)
