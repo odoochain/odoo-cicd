@@ -52,6 +52,7 @@ class Repository(models.Model):
         for rec in self:
             rec.short = rec.name.split("/")[-1]
 
+    @api.depends('username', 'password', 'name')
     def _compute_url(self):
         for rec in self:
             if rec.login_type == 'username':
@@ -64,6 +65,7 @@ class Repository(models.Model):
                 ]:
                     if rec.name.startswith(prefix):
                         url = f'{prefix}{rec.username}:{rec.password}@{rec.name[len(prefix):]}'
+                        break
                 rec.url = url
             else:
                 rec.url = rec.name
