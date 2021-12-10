@@ -383,7 +383,7 @@ class Branch(models.Model):
             ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content.format(**os.environ))
 
             content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
-            content += "\n" + self.reload_config
+            content += "\n" + (self.reload_config or '')
             ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(branch=self, machine=self.machine_id))
 
     def _cron_autobackup(self):
