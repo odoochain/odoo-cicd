@@ -241,7 +241,8 @@ class Repository(models.Model):
                 del name
 
             if not repo.branch_ids and not updated_branches:
-                updated_branches.add(repo.default_branch)
+                if repo.default_branch:
+                    updated_branches.add(repo.default_branch)
 
             if updated_branches:
                 repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
