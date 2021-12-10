@@ -1,11 +1,27 @@
 <odoo>
 	<data noupdate='0'>
-
-	<record id="group_developer" model="res.groups">
-		<field name="name">cicd.developer</field>
+	<record model="ir.module.category" id="cicd_cat">
+		<field name="name">cicd</field>
+		<field name="sequence">1</field>
+		<field name="visible" eval="True" />
 	</record>
+
 	<record id="group_download_dumps" model="res.groups">
 		<field name="name">cicd.download.dumps</field>
+	</record>
+	<record id="group_approver" model="res.groups">
+		<field name="name">cicd.approver</field>
+		<field name="category_id" ref="cicd_cat"/>
+	</record>
+	<record id="group_key_user" model="res.groups">
+		<field name="name">cicd.key_user</field>
+		<field name="category_id" ref="cicd_cat"/>
+		<field name="implied_ids" eval="[[6, 0, [group_approver]]]"/>
+	</record>
+	<record id="group_developer" model="res.groups">
+		<field name="name">cicd.developer</field>
+		<field name="category_id" ref="cicd_cat"/>
+		<field name="implied_ids" eval="[[6, 0, [group_key_user]]]"/>
 	</record>
 
 	</data>
