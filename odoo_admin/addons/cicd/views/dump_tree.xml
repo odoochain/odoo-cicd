@@ -9,6 +9,7 @@
 					<field name="name"/>
 					<field name="machine_id"/>
 					<field name="size_human"/>
+					<field name="date_modified"/>
 				</tree>
 			</field>
 		</record>

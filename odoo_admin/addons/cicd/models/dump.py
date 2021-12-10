@@ -5,10 +5,12 @@ logger = logging.getLogger(__name__)
 class Dump(models.Model):
     _inherit = ['cicd.mixin.size']
     _name = 'cicd.dump'
+    _order = 'date_modified desc'
 
     active = fields.Boolean("Active", default=True)
     name = fields.Char("Name", required=True)
     machine_id = fields.Many2one("cicd.machine", string="Machine", required=True)
+    date_modified = fields.Datetime("Date Modified")
 
     def download(self):
         self.ensure_one()
@@ -63,3 +65,6 @@ class Dump(models.Model):
                         dumps.size = int(machine._execute_shell([
                             'stat', '-c', '%s', path
                         ]).output.strip())
+                        dumps.date_modified = machine._execute_shell([
+                            'date', '-r', path, '+%Y-%m-%d %H:%M:%S', '-u',
+                        ]).output.strip()
