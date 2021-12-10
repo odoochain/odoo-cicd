@@ -4,6 +4,9 @@
 	<record id="group_developer" model="res.groups">
 		<field name="name">cicd.developer</field>
 	</record>
+	<record id="group_download_dumps" model="res.groups">
+		<field name="name">cicd.download.dumps</field>
+	</record>
 
 	</data>
 </odoo>

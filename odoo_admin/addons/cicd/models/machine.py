@@ -103,6 +103,10 @@ class CicdMachine(models.Model):
     ssh_user_cicdlogin_password_salt = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
     ssh_user_cicdlogin_password = fields.Char(compute="_compute_ssh_user_cicd_login")
     postgres_server_id = fields.Many2one('cicd.postgres', string="Postgres Server")
+    upload_dump = fields.Binary("Upload Dump")
+    upload_dump_filename = fields.Char("Filename")
+    upload_overwrite = fields.Boolean("Overwrite existing")
+    upload_volume_id = fields.Many2one("Upload Volume", domain=[('ttype', '=', 'dumps')])
 
     @api.depends('ssh_user')
     def _compute_ssh_user_cicd_login(self):
@@ -339,3 +343,32 @@ echo "--------------------------------------------------------------------------
     @tools.ormcache()
     def testoutput(self):
         print('test')
+
+    def write(self, vals):
+        if vals.get('upload_dump'):
+            self._upload(vals)
+        res = super().write(vals)
+
+        # at create if somebody uploaded....mmhh :)
+        for rec in self:
+            if rec.upload_dump:
+                rec.upload_dump = False
+        return res
+
+    def upload(self):
+        pass
+
+    def _upload(self, vals):
+        content = vals.pop('upload_dump')
+        filename = vals.pop('upload_dump_filename')
+
+        if not self.upload_volume_id:
+            vols = self.volume_ids.filtered(lambda x: x.ttype == 'dumps')
+            if len(vols) > 1:
+                raise ValidationError("Please choose a volume!")
+
+        with self._shellexec(cwd='~', logsio=None) as shell1:
+            with shell1.shell() as shell2:
+                path = Path(self.upload_volume_id.name) / filename
+                shell2.write_bytes(path, content)
+        

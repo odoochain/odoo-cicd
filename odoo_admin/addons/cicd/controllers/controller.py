@@ -1,6 +1,7 @@
+import base64
 import arrow
 from odoo import http
-from odoo.http import request
+from odoo.http import content_disposition, request
 
 class Controller(http.Controller):
 
@@ -29,3 +30,23 @@ class Controller(http.Controller):
         redirect.set_cookie('im_livechat_history', '', expires=0)
         redirect.set_cookie('session_id', "", expires=0)
         return redirect
+
+    @http.route(["/download/dump/<id>"])
+    def download_dump(self, id, **args):
+        if not request.env.user.has_group("cicd.group_download_dumps"):
+            return "Forbidden"
+
+        dump = request.env['cicd.dump'].sudo().browse(id)
+        with dump.machine_id._shellexec(cwd='~', logsio=None) as shell1:
+            with shell1.shell() as shell2:
+                content = shell2.read_bytes(dump.name)
+
+        content = base64.b64decode(content)
+        name = dump.name.split("/")[-1]
+        
+        return http.request.make_response(content, [
+            ('Content-Type', 'application/octet-stream; charset=binary'),
+            ('Content-Disposition', content_disposition(name))
+        ])
+        
+

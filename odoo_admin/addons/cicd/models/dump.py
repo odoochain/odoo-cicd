@@ -10,6 +10,15 @@ class Dump(models.Model):
     name = fields.Char("Name", required=True)
     machine_id = fields.Many2one("cicd.machine", string="Machine", required=True)
 
+    def download(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            #'url': 'http://www.mut.de',
+            'url': f'/download/dump/{self.id}',
+            'target': 'new'
+        }
+        
     def unlink(self):
         for rec in self:
             with self.machine_id._shell() as shell:

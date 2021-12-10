@@ -9,9 +9,11 @@
 			<header></header>
 			<sheet>
 				<group string="Dump" col="2">
+					<button name="download" string="Download" type="object" />
 					<field name="name"/>
 					<field name="active" />
 					<field name="machine_id" />
+					<field name="size_human"/>
 				</group>
 			</sheet>
 		</form>

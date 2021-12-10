@@ -50,8 +50,16 @@
 									<field name="postgres_server_id"/>
 								</group>
 								<group string="Dumps">
+									<group>
+										<field name="upload_dump" filename="upload_dump_filename"/>
+										<field name="upload_dump_filename" invisible='1'/>
+										<field name="upload_overwrite"/>
+										<field name="upload_volume_id"/>
+										<button name="upload" string="Upload" type="object" />
+									</group>
 									<field name="dump_ids" nolabel='1'>
 										<tree>
+											<button name="download" string="" type="object" icon="fa-external-href"/>
 											<field name="active"/>
 											<field name="name"/>
 											<field name="size_human"/>
