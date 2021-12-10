@@ -48,7 +48,6 @@ class Branch(models.Model):
 
     def _reload_and_restart(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
-        self._checkout_latest(shell, self.machine_id, logsio)
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Upping")
@@ -135,7 +134,6 @@ class Branch(models.Model):
 
     def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):
         self.ensure_one()
-        self._checkout_latest(shell, self.machine_id, logsio)
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
         with shell.shell() as shell:
 
@@ -340,37 +338,26 @@ class Branch(models.Model):
         shell.odoo('db', 'reset', '--do-not-install-base')
 
     def _checkout_latest(self, shell, machine, logsio, **kwargs):
+        logsio.write_text(f"Updating instance folder {self.name}")
         instance_folder = self._get_instance_folder(machine)
-        with machine._shell() as spurplus_shell:
-            with self.repo_id._get_ssh_command(spurplus_shell) as env:
-                env["GIT_TERMINAL_PROMPT"] = "0"
-                with machine._shellexec(
-                    logsio=logsio,
-                    cwd=instance_folder,
-                    env=env
-                ) as shell_exec:
-                    logsio.write_text(f"Updating instance folder {self.name}")
+        root_folder = self.repo_id._get_main_repo(logsio=logsio)
+        logsio.write_text(f"Cloning {self.name} to {instance_folder}")
+        shell.X(["rsync", str(root_folder) + "/", str(instance_folder) + "/", "-ar", '--delete-after'])
 
-                    logsio.write_text(f"Cloning {self.name} to {instance_folder}")
-                    self.repo_id.clone_repo(machine, instance_folder, logsio)
+        logsio.write_text(f"Checking out {self.name}")
+        shell.X(["git", "checkout", "-f", self.name])
 
-                    logsio.write_text(f"Checking out {self.name}")
-                    shell_exec.X(["git", "checkout", "-f", self.name])
+        logsio.write_text(f"Clean git")
+        shell.X(["git", "clean", "-xdff"])
 
-                    logsio.write_text(f"Pulling {self.name}")
-                    shell_exec.X(["git", "pull"])
+        logsio.write_text("Updating submodules")
+        shell.X(["git", "submodule", "update", "--recursive"])
 
-                    logsio.write_text(f"Clean git")
-                    shell_exec.X(["git", "clean", "-xdff"])
+        logsio.write_text("Getting current commit")
+        commit = shell.X(["git", "rev-parse", "HEAD"]).output.strip()
+        logsio.write_text(commit)
 
-                    logsio.write_text("Updating submodules")
-                    shell_exec.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
-
-                    logsio.write_text("Getting current commit")
-                    commit = shell_exec.X(["git", "rev-parse", "HEAD"]).output.strip()
-                    logsio.write_text(commit)
-
-                    return str(commit)
+        return str(commit)
 
     def inactivity_cycle_down(self):
         self.ensure_one()
@@ -391,13 +378,17 @@ class Branch(models.Model):
     def _make_instance_docker_configs(self, shell):
         with shell.shell() as ssh_shell:
             home_dir = shell._get_home_dir()
+            machine = shell.machine
             project_name = self.project_name
             content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
             ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content.format(**os.environ))
 
             content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
-            content += "\n" + self.reload_config
-            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(branch=self, machine=self.machine_id))
+            assert machine
+            if not machine.postgres_server_id:
+                raise ValidationError(_(f"Please configure a db server for {machine.name}"))
+            content += "\n" + (self.reload_config or '')
+            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(branch=self, machine=machine))
 
     def _cron_autobackup(self):
         for rec in self:

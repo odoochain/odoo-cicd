@@ -52,6 +52,7 @@ class Repository(models.Model):
         for rec in self:
             rec.short = rec.name.split("/")[-1]
 
+    @api.depends('username', 'password', 'name')
     def _compute_url(self):
         for rec in self:
             if rec.login_type == 'username':
@@ -64,6 +65,7 @@ class Repository(models.Model):
                 ]:
                     if rec.name.startswith(prefix):
                         url = f'{prefix}{rec.username}:{rec.password}@{rec.name[len(prefix):]}'
+                        break
                 rec.url = url
             else:
                 rec.url = rec.name
@@ -211,45 +213,54 @@ class Repository(models.Model):
         repo._lock_git()
         machine = repo.machine_id
 
-        with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
-            all_remote_branches = list(self._clean_remote_branches(shell.X(["git", "branch", "-r"]).output.strip().split("\n")))
-            # if completely new then all branches:
-            if not repo.branch_ids:
-                for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
-                    branch = self._clear_branch_name(branch)
-                    updated_branches.add(branch)
-                    new_commits[branch] = None # for the parameter laster as None
+        with repo.machine_id._shell() as spurplus_shell:
+            with repo._get_ssh_command(spurplus_shell) as env2:
+                env.update(env2)
+                with machine._shellexec(cwd=repo_path, logsio=logsio, env=env) as shell:
+                    all_remote_branches = list(self._clean_remote_branches(shell.X(["git", "branch", "-r"]).output.strip().split("\n")))
+                    # if completely new then all branches:
+                    if not repo.branch_ids:
+                        for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
+                            branch = self._clear_branch_name(branch)
+                            updated_branches.append(branch)
+                            new_commits[branch] = None # for the parameter laster as None
 
-            for branch in updated_branches:
-                shell.X(["git", "checkout", "-f", branch])
-                name = branch
-                del branch
+                    for branch in updated_branches:
+                        shell.X(["git", "checkout", "-f", branch])
+                        shell.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
+                        name = branch
+                        del branch
 
-                if name in all_remote_branches:
-                    shell.X(["git", "pull"])
-                if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
-                    branch = repo.branch_ids.create({
-                        'name': name,
-                        'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-                        'repo_id': repo.id,
-                    })
-                    branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
+                        if name in all_remote_branches:
+                            shell.X(["git", "pull"])
+                        if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
+                            branch = repo.branch_ids.create({
+                                'name': name,
+                                'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                                'repo_id': repo.id,
+                            })
+                            branch._checkout_latest(shell, machine, logsio)
+                            branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
-                shell.X(["git", "checkout", "-f", repo.default_branch])
-                del name
+                        shell.X(["git", "checkout", "-f", repo.default_branch])
+                        del name
 
-            if updated_branches:
-                repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
-                repo.branch_ids._compute_state()
-                repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch(
-                    machine=machine
-                    )
+                    if not repo.branch_ids and not updated_branches:
+                        if repo.default_branch:
+                            updated_branches.append(repo.default_branch)
+
+                    if updated_branches:
+                        repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
+                        repo.branch_ids._compute_state()
+                        repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch(
+                            machine=machine
+                            )
 
     def _lock_git(self): 
         for rec in self:
             lock = rec.name
             if not pg_try_advisory_lock(self.env.cr, lock):
-                raise ValidationError(_("Git is in other use at the moment"))
+                raise RetryableJobError(_("Git is in other use at the moment"), seconds=10, ignore_retry=True)
 
     def clone_repo(self, machine, path, logsio):
         with machine._shell() as shell:
