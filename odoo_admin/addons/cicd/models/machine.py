@@ -59,7 +59,7 @@ class ShellExecutor(object):
             'DOCKER_CLIENT_TIMEOUT': "600",
             'COMPOSE_HTTP_TIMEOUT': "600",
             'PSYCOPG_TIMEOUT': "120",
-        },
+        }
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
         cmd = ["odoo", "--project-name", self.project_name] + list(cmd)

@@ -378,13 +378,17 @@ class Branch(models.Model):
     def _make_instance_docker_configs(self, shell):
         with shell.shell() as ssh_shell:
             home_dir = shell._get_home_dir()
+            machine = shell.machine
             project_name = self.project_name
             content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
             ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content.format(**os.environ))
 
             content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
-            content += "\n" + self.reload_config
-            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(branch=self, machine=self.machine_id))
+            assert machine
+            if not machine.postgres_server_id:
+                raise ValidationError(_(f"Please configure a db server for {machine.name}"))
+            content += "\n" + (self.reload_config or '')
+            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(branch=self, machine=machine))
 
     def _cron_autobackup(self):
         for rec in self:
