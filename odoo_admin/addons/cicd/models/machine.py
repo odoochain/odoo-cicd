@@ -379,3 +379,7 @@ echo "--------------------------------------------------------------------------
                 content = base64.b64decode(content)
                 shell2.write_bytes(path, content)
         self.message_post(body="New dump uploaded: " + filename)
+
+        for f in ['upload_volume_id', 'upload_overwrite']:
+            if f in vals:
+                vals.pop(f)

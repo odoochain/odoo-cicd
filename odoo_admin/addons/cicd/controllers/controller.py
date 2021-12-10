@@ -31,17 +31,16 @@ class Controller(http.Controller):
         redirect.set_cookie('session_id', "", expires=0)
         return redirect
 
-    @http.route(["/download/dump/<id>"])
-    def download_dump(self, id, **args):
+    @http.route(["/download/dump/<model('cicd.dump'):dump>"])
+    def download_dump(self, dump, **args):
         if not request.env.user.has_group("cicd.group_download_dumps"):
             return "Forbidden"
 
-        dump = request.env['cicd.dump'].sudo().browse(id)
         with dump.machine_id._shellexec(cwd='~', logsio=None) as shell1:
             with shell1.shell() as shell2:
                 content = shell2.read_bytes(dump.name)
 
-                self.message_post(body="Downloaded dump: " + dump.name)
+                dump.machine_id.message_post(body="Downloaded dump: " + dump.name)
 
         content = base64.b64decode(content)
         name = dump.name.split("/")[-1]
