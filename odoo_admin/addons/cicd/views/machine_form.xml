@@ -60,7 +60,6 @@
 									<field name="dump_ids" nolabel='1'>
 										<tree>
 											<button name="download" string="" type="object" icon="fa-external-link" groups="cicd.group_download_dumps"/>
-											<field name="active" widget="boolean_toggle"/>
 											<field name="name"/>
 											<field name="size_human"/>
 										</tree>

@@ -7,6 +7,7 @@
                 'data/queuejob_functions.xml',
                 'views/commit_form.xml',
                 'views/dump_form.xml',
+                'views/dump_tree.xml',
                 'views/git_branch_form.xml',
                 'views/git_branch_kanban.xml',
                 'views/git_branch_search.xml',

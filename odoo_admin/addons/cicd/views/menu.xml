@@ -64,5 +64,12 @@
 		</record>
 		<menuitem parent="config_menu" id="menu_postgresserver" action="postgresserver_action"/>
 
+		<record id='dumps_action' model='ir.actions.act_window'>
+			<field name='name'>Dumps</field>
+			<field name='res_model'>cicd.dump</field>
+			<field name='view_mode'>tree</field>
+		</record>
+		<menuitem parent="config_menu" id="menu_dumps" action="dumps_action"/>
+
 	</data>
 </odoo>
