@@ -1,3 +1,4 @@
+import base64
 import arrow
 from copy import deepcopy
 import os
@@ -107,7 +108,7 @@ class CicdMachine(models.Model):
     upload_dump = fields.Binary("Upload Dump")
     upload_dump_filename = fields.Char("Filename")
     upload_overwrite = fields.Boolean("Overwrite existing")
-    upload_volume_id = fields.Many2one("Upload Volume", domain=[('ttype', '=', 'dumps')])
+    upload_volume_id = fields.Many2one('cicd.machine.volume', "Upload Volume", domain=[('ttype', '=', 'dumps')])
 
     @api.depends('ssh_user')
     def _compute_ssh_user_cicd_login(self):
@@ -363,13 +364,18 @@ echo "--------------------------------------------------------------------------
         content = vals.pop('upload_dump')
         filename = vals.pop('upload_dump_filename')
 
-        if not self.upload_volume_id:
+        if not vals.get('upload_volume_id'):
             vols = self.volume_ids.filtered(lambda x: x.ttype == 'dumps')
             if len(vols) > 1:
                 raise ValidationError("Please choose a volume!")
+            vol = vols[0]
+            del vols
+        else:
+            vol = self.volume_ids.browse(vals['upload_volume_id'])
 
         with self._shellexec(cwd='~', logsio=None) as shell1:
             with shell1.shell() as shell2:
-                path = Path(self.upload_volume_id.name) / filename
+                path = Path(vol.name) / filename
+                content = base64.b64decode(content)
                 shell2.write_bytes(path, content)
         self.message_post(body="New dump uploaded: " + filename)
