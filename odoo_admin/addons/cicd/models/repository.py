@@ -260,7 +260,7 @@ class Repository(models.Model):
         for rec in self:
             lock = rec.name
             if not pg_try_advisory_lock(self.env.cr, lock):
-                raise ValidationError(_("Git is in other use at the moment"))
+                raise RetryableJobError(_("Git is in other use at the moment"), seconds=10, ignore_retry=True)
 
     def clone_repo(self, machine, path, logsio):
         with machine._shell() as shell:
