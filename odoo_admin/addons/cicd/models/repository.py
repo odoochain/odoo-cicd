@@ -219,7 +219,7 @@ class Repository(models.Model):
             if not repo.branch_ids:
                 for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
                     branch = self._clear_branch_name(branch)
-                    updated_branches.add(branch)
+                    updated_branches.append(branch)
                     new_commits[branch] = None # for the parameter laster as None
 
             for branch in updated_branches:
@@ -242,7 +242,7 @@ class Repository(models.Model):
 
             if not repo.branch_ids and not updated_branches:
                 if repo.default_branch:
-                    updated_branches.add(repo.default_branch)
+                    updated_branches.append(repo.default_branch)
 
             if updated_branches:
                 repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
