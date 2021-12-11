@@ -395,5 +395,7 @@ class Branch(models.Model):
             rec._make_task("_dump")
 
     def _reset_db(self, shell, task, logsio, **kwargs):
+        shell.odoo('reload')
+        shell.odoo('build')
         shell.odoo('-f', 'db', 'reset')
-        shell.odoo('update', 'base')
+        shell.odoo('update')
