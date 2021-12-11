@@ -130,3 +130,7 @@ class Task(models.Model):
         self.search([
             ('create_date', '<', dt)
             ].unlink())
+
+    def requeue(self):
+        for rec in self.filtered(lambda x: x.state in ['failed']):
+            rec.queuejob_id.requeue()

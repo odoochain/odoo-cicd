@@ -20,6 +20,11 @@
 						<field name="state" widget="statusbar" options="{'clickable': 0}" />
 					</header>
 					<sheet>
+						<div class="oe_title">
+							<h1>
+								<field name="name" colspan="4" class="oe_inline" />
+							</h1>
+						</div>
 						<div class="oe_button_box" name="button_box">
 							<field name="active" invisible='1'/>
 							<button type="object" class="oe_stat_button" icon="fa-times" name="toggle_active" string="Disable" attrs="{'invisible': [('active', '=', False)]}" confirm="Deletes database and source-code. Continue?"/>
@@ -30,7 +35,6 @@
 						<widget name="web_ribbon" title="Blocked" bg_color="bg-danger" attrs="{'invisible': [('block_release', '=', False)]}"/>
 						<widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
 						<group string="Branch" col="4">
-							<field name="name" readonly='1' />
 							<field name="repo_id" readonly='1' />
 							<field name="build_state" readonly='1' />
 							<field name="block_release" invisible='1'/>
@@ -68,6 +72,7 @@
 									<tree>
 										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
 										<button name="perform" string="Perform" type="object" groups="base.group_no_one"/>
+										<button name="requeue" string="" type="object" states="failed" icon="fa-redo" />
 										<field name="id"/>
 										<field name="display_name" />
 										<field name="duration"/>

@@ -8,9 +8,9 @@ class Dump(models.Model):
     _order = 'date_modified desc'
 
     active = fields.Boolean("Active", default=True)
-    name = fields.Char("Name", required=True)
-    machine_id = fields.Many2one("cicd.machine", string="Machine", required=True)
-    date_modified = fields.Datetime("Date Modified")
+    name = fields.Char("Name", required=True, readonly=True)
+    machine_id = fields.Many2one("cicd.machine", string="Machine", required=True, readonly=True)
+    date_modified = fields.Datetime("Date Modified", readonly=True)
 
     def download(self):
         self.ensure_one()
