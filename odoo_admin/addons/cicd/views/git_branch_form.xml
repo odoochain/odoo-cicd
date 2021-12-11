@@ -82,6 +82,7 @@
 									<button name="remove_web_assets" string="Remove Web Assets" type="object" />
 									<button name="cleardb" string="Clear DB" type="object" confirm="Deletes plenty of data. Continue?" />
 									<button name="turn_into_dev" string="Turn into DEV (mailserver, logins)" type="object" />
+									<button name="reset_db" string="Reset DB" type="object" confirm="ALL DATA LOST - continue?" style='background-color: #aaaaaa;' />
 								</group>
 							</page>
 							<page name="backup" string="Backup/Restore">

@@ -393,3 +393,7 @@ class Branch(models.Model):
     def _cron_autobackup(self):
         for rec in self:
             rec._make_task("_dump")
+
+    def _reset_db(self):
+        shell.odoo('-f', 'db', 'reset')
+        shell.odoo('update', 'base')
