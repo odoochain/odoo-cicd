@@ -133,4 +133,4 @@ class Task(models.Model):
 
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in ['failed']):
-            rec.queuejob_id.requeue()
+            rec.queue_job_id.requeue()
