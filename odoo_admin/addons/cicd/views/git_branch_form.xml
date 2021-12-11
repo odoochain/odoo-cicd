@@ -72,7 +72,7 @@
 									<tree>
 										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
 										<button name="perform" string="Perform" type="object" groups="base.group_no_one"/>
-										<button name="requeue" string="" type="object" states="failed" icon="fa-retry" />
+										<button name="requeue" type="object" icon="fa-repeat" states='failed'/>
 										<field name="id"/>
 										<field name="display_name" />
 										<field name="duration"/>
