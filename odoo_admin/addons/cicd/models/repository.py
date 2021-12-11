@@ -117,7 +117,7 @@ class Repository(models.Model):
                     
                 repo_path = repo._get_main_repo(logsio=logsio)
 
-                with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio, env=env) as shell:
+                with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio) as shell:
                     new_commits, updated_branches = {}, set()
 
                     for remote in repo._get_remotes(shell):
@@ -225,14 +225,11 @@ class Repository(models.Model):
                 raise RetryableJobError(_("Git is in other use at the moment"), seconds=10, ignore_retry=True)
 
     def clone_repo(self, machine, path, logsio):
-        with machine._shell() as shell:
-            with self._get_ssh_command(shell) as env:
-                if not shell.exists(path):
-                    machine._execute_shell(
-                        ["git", "clone", self.url, path],
-                        env=env,
-                        logsio=logsio,
-                    )
+        with machine._gitshell(self, cwd="~", logsio=logsio) as shell:
+            if not shell.exists(path):
+                shell.X([
+                    ["git", "clone", self.url, path],
+                ])
 
     def _collect_latest_tested_commits(self, source_branches, target_branch, logsio, critical_date):
         """
