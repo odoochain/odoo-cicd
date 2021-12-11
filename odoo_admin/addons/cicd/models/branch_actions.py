@@ -62,7 +62,8 @@ class Branch(models.Model):
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Downing")
-        shell.odoo('down', allow_error=False)
+        shell.odoo('kill')
+        shell.odoo('rm', '-f')
         logsio.info(f"Restoring {self.dump_id.name}")
         shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
     
@@ -223,7 +224,8 @@ class Branch(models.Model):
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Downing")
-        shell.odoo('down')
+        shell.odoo('kill')
+        shell.odoo('rm', '-f')
         shell.odoo('-f', 'db' 'reset')
 
     def _run_tests(self, shell, task, logsio, **kwargs):
