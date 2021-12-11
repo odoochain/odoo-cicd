@@ -178,7 +178,7 @@ class Repository(models.Model):
         repo._lock_git()
         machine = repo.machine_id
 
-        with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio, env=env) as shell:
+        with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
             all_remote_branches = list(self._clean_remote_branches(shell.X(["git", "branch", "-r"]).output.strip().split("\n")))
             # if completely new then all branches:
             if not repo.branch_ids:
