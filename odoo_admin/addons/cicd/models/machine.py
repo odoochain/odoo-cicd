@@ -1,4 +1,5 @@
 import base64
+import tempfile
 import arrow
 from copy import deepcopy
 import os
@@ -33,6 +34,10 @@ class ShellExecutor(object):
             assert isinstance(project_name, str)
         if env:
             assert isinstance(env, dict)
+
+    def exists(self, path):
+        with self.shell() as spurplus:
+            return spurplus.exists(path)
 
     def rmifexists(self, path):
         with self.shell() as spurplus:
@@ -385,7 +390,7 @@ echo "--------------------------------------------------------------------------
                 vals.pop(f)
 
     @contextmanager
-    def _gitshell(self, repo, cwd, logsio, env, **kwargs):
+    def _gitshell(self, repo, cwd, logsio, env=None, **kwargs):
         self.ensure_one()
         with self._shell() as spurplus_shell:
             file = Path(tempfile.mktemp(suffix='.'))
@@ -404,7 +409,7 @@ echo "--------------------------------------------------------------------------
                 else:
                     pass
 
-                with self._shellexec() as shell:
+                with self._shellexec(cwd=cwd, logsio=logsio, env=env) as shell:
                     yield shell
 
             finally:

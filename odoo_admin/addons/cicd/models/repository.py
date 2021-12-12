@@ -117,43 +117,42 @@ class Repository(models.Model):
                     
                 repo_path = repo._get_main_repo(logsio=logsio)
 
-                with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio, env=env) as shell:
-                    try:
-                        new_commits, updated_branches = {}, set()
+                with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio) as shell:
+                    new_commits, updated_branches = {}, set()
 
-                        for remote in repo._get_remotes(shell):
-                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote]).stderr_output.strip().split("\n")))
-                            for fi in fetch_info:
-                                while "  " in fi:
-                                    fi = fi.replace("  ", " ")
-                                fi = fi.strip()
-                                if '[new branch]' in fi:
-                                    branch = fi.replace("[new branch]", "").split("->")[0].strip()
-                                    start_commit = None
-                                    end_commit = None
-                                else:
-                                    branch = fi.split("/")[-1]
-                                    start_commit = fi.split("..")[0]
-                                    end_commit = fi.split("..")[1].split(" ")[0]
-                                branch = repo._clear_branch_name(branch)
-                                updated_branches.add(branch)
-                                new_commits.setdefault(branch, set())
-                                if start_commit and end_commit:
-                                    start_commit = shell.X(["git", "rev-parse", start_commit]).output.strip()
-                                    end_commit = shell.X(["git", "rev-parse", end_commit]).output.strip()
-                                    new_commits[branch] |= set(shell.X(["git", "rev-list", "--ancestry-path", f"{start_commit}..{end_commit}"]).output.strip().split("\n"))
-                                else:
-                                    new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
+                    for remote in repo._get_remotes(shell):
+                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote]).stderr_output.strip().split("\n")))
+                        for fi in fetch_info:
+                            while "  " in fi:
+                                fi = fi.replace("  ", " ")
+                            fi = fi.strip()
+                            if '[new branch]' in fi:
+                                branch = fi.replace("[new branch]", "").split("->")[0].strip()
+                                start_commit = None
+                                end_commit = None
+                            else:
+                                branch = fi.split("/")[-1]
+                                start_commit = fi.split("..")[0]
+                                end_commit = fi.split("..")[1].split(" ")[0]
+                            branch = repo._clear_branch_name(branch)
+                            updated_branches.add(branch)
+                            new_commits.setdefault(branch, set())
+                            if start_commit and end_commit:
+                                start_commit = shell.X(["git", "rev-parse", start_commit]).output.strip()
+                                end_commit = shell.X(["git", "rev-parse", end_commit]).output.strip()
+                                new_commits[branch] |= set(shell.X(["git", "rev-list", "--ancestry-path", f"{start_commit}..{end_commit}"]).output.strip().split("\n"))
+                            else:
+                                new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
-                        if not new_commits and not updated_branches:
-                            continue
+                    if not new_commits and not updated_branches:
+                        continue
 
-                        repo.with_delay(
-                            identity_key=f"cron_fetch_update_branches: {repo.id}",
-                        )._cron_fetch_update_branches({
-                            'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
-                            'updated_branches': list(updated_branches),
-                        })
+                    repo.with_delay(
+                        identity_key=f"cron_fetch_update_branches: {repo.id}",
+                    )._cron_fetch_update_branches({
+                        'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
+                        'updated_branches': list(updated_branches),
+                    })
 
             except Exception as ex:
                 msg = traceback.format_exc()
@@ -179,7 +178,7 @@ class Repository(models.Model):
         repo._lock_git()
         machine = repo.machine_id
 
-        with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio, env=env) as shell:
+        with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
             all_remote_branches = list(self._clean_remote_branches(shell.X(["git", "branch", "-r"]).output.strip().split("\n")))
             # if completely new then all branches:
             if not repo.branch_ids:
@@ -226,14 +225,11 @@ class Repository(models.Model):
                 raise RetryableJobError(_("Git is in other use at the moment"), seconds=10, ignore_retry=True)
 
     def clone_repo(self, machine, path, logsio):
-        with machine._shell() as shell:
-            with self._get_ssh_command(shell) as env:
-                if not shell.exists(path):
-                    machine._execute_shell(
-                        ["git", "clone", self.url, path],
-                        env=env,
-                        logsio=logsio,
-                    )
+        with machine._gitshell(self, cwd="~", logsio=logsio) as shell:
+            if not shell.exists(path):
+                shell.X([
+                    ["git", "clone", self.url, path],
+                ])
 
     def _collect_latest_tested_commits(self, source_branches, target_branch, logsio, critical_date):
         """
