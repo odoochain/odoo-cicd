@@ -77,4 +77,5 @@
 			<field name='view_mode'>tree</field>
 		</record>
 		<menuitem parent="root_menu" id="menu_compressor" action="compressor_action"/>
+	</data>
 </odoo>
