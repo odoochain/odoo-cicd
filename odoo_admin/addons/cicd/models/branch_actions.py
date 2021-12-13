@@ -389,7 +389,11 @@ class Branch(models.Model):
             if not machine.postgres_server_id:
                 raise ValidationError(_(f"Please configure a db server for {machine.name}"))
             content += "\n" + (self.reload_config or '')
-            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(branch=self, machine=machine))
+            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(
+                branch=self,
+                project_name=project_name,
+                machine=machine
+                ))
 
     def _cron_autobackup(self):
         for rec in self:
@@ -435,18 +439,17 @@ class Branch(models.Model):
             with shell.machine._shellexec(instance_path, logsio=logsio, project_name=project_name) as shell2:
                 try:
                     logsio.info(f"Reloading...")
-                    import pudb;pudb.set_trace()
-                    self._reload(shell, task, logsio, project_name=project_name)
+                    self._reload(shell2, task, logsio, project_name=project_name)
                     logsio.info(f"Restoring {effective_dest_file_path}...")
-                    shell2.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
+                    shell2.odoo("-f", "restore", "odoo-db", effective_dest_file_path, allow_error=False)
                     logsio.info(f"Clearing DB...")
-                    shell2.odoo('-f', 'cleardb')
+                    shell2.odoo('-f', 'cleardb', allow_error=False)
                     if compressor.anonymize:
                         logsio.info(f"Anonymizing DB...")
-                        shell2.odoo('-f', 'anonymize')
+                        shell2.odoo('-f', 'anonymize', allow_error=False)
                     logsio.info(f"Dumping compressed dump")
                     output_path = compressor.volume_id.name + "/" + compressor.output_filename
-                    shell2.odoo('backup', 'odoo-db', output_path)
+                    shell2.odoo('backup', 'odoo-db', output_path, allow_error=False)
                     compressor.last_input_size = int(shell2.X(['stat', '-c', '%s', output_path]).output.strip())
                     compressor.date_last_success = fields.Datetime.now()
 
