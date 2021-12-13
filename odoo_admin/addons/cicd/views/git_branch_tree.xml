@@ -3,7 +3,7 @@
 		<record id="view_git_branch_tree" model="ir.ui.view">
 			<field name="model">cicd.git.branch</field>
 			<field name="arch" type="xml">
-				<tree nocreate='1' nodelete='1'>
+				<tree>
 					<field name="repo_short"/>
 					<field name="name"/>
 					<field name="date_registered"/>
