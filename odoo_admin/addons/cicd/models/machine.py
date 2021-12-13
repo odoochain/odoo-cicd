@@ -167,7 +167,6 @@ class CicdMachine(models.Model):
     @contextmanager
     def _shell(self):
         self.ensure_one()
-        import pudb;pudb.set_trace()
         ssh_keyfile = self._place_ssh_credentials()
         with spurplus.connect_with_retries(
             hostname=self.effective_host,
