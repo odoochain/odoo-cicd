@@ -147,9 +147,7 @@ class Repository(models.Model):
                     if not new_commits and not updated_branches:
                         continue
 
-                    repo.with_delay(
-                        identity_key=f"cron_fetch_update_branches: {repo.id}",
-                    )._cron_fetch_update_branches({
+                    repo.with_delay()._cron_fetch_update_branches({
                         'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
                         'updated_branches': list(updated_branches),
                     })
