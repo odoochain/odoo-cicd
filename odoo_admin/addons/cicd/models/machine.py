@@ -153,9 +153,11 @@ class CicdMachine(models.Model):
         ssh_keyfile = ssh_dir / self.effective_host
         ssh_pubkeyfile = ssh_dir / (self.effective_host + '.pub')
         rights_keyfile = 0o600
-        if ssh_keyfile.exists():
-            os.chmod(ssh_keyfile, rights_keyfile)
-            os.chmod(ssh_pubkeyfile, rights_keyfile)
+        for file in [
+            ssh_keyfile, ssh_pubkeyfile,
+        ]:
+            if file.exists():
+                os.chmod(file, rights_keyfile)
         ssh_keyfile.write_text(self.ssh_key)
         ssh_pubkeyfile.write_text(self.ssh_pubkey)
         os.chmod(ssh_keyfile, rights_keyfile)
