@@ -8,7 +8,7 @@ class Compressor(models.Model):
     source_volume_id = fields.Many2one('cicd.volume', string="Source Volume")
     regex = fields.Char("Regex", required=True, default=".*")
     active = fields.Boolean("Active", default=True)
-    cronjob_id = fields.Many2one('ir.cron', string="Cronjob", required=True, ondelete="cascade", readonly=True)
+    cronjob_id = fields.Many2one('ir.cron', string="Cronjob", required=False, ondelete="cascade", readonly=True)
     repo_id = fields.Many2one('cicd.git.repo', related="branch_id.repo_id")
     repo_short = fields.Char(related="repo_id.short", string="Repo")
     machine_id = fields.Many2one('cicd.machine', related="repo_id.machine_id")
@@ -27,7 +27,7 @@ class Compressor(models.Model):
         for rec in self:
             if rec.active and not rec.cronjob_id:
                 model = self.env['ir.model'].sudo().search([('model', '=', self._name)])
-                self.env['ir.cron'].sudo().create({
+                self.cronjob_id = self.env['ir.cron'].sudo().create({
                     'name': self.name + " compressor",
                     'model_id': model.id,
                     'code': f'model.browse({rec.id})._start()'
@@ -35,6 +35,8 @@ class Compressor(models.Model):
 
     def _start(self):
         self.ensure_one()
+        if not self.active:
+            return
         self.branch_id._make_task("_compress", compress_job_id=self.id)
 
 
