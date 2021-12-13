@@ -402,7 +402,7 @@ class Branch(models.Model):
         shell.odoo('update')
 
     def _compress(self, shell, task, logsio, compress_job_id):
-        compressor = self.env['cicd.compressor'].sudo().browse(compress_job_id)
+        compressor = self.env['cicd.compressor'].sudo().browse(compress_job_id).sudo()
         source_host = compressor.source_volume_id.machine_id.effective_host
         # get list of files
         logsio.info("Identifying latest dump")
@@ -426,7 +426,7 @@ class Branch(models.Model):
             shell.machine,
             dest_file_path,
         ) as effective_dest_file_path:
-            compressor.sudo().last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path]).output.strip())
+            compressor.last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path]).output.strip())
 
             instance_path = self.repo_id._get_main_repo(tempfolder=True, logsio=logsio, machine=shell.machine)
             assert shell.machine.ttype == 'dev'
@@ -435,6 +435,7 @@ class Branch(models.Model):
             with shell.machine._shellexec(instance_path, logsio=logsio, project_name=project_name) as shell2:
                 try:
                     logsio.info(f"Reloading...")
+                    import pudb;pudb.set_trace()
                     self._reload(shell, task, logsio, project_name=project_name)
                     logsio.info(f"Restoring {effective_dest_file_path}...")
                     shell2.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
@@ -446,6 +447,7 @@ class Branch(models.Model):
                     logsio.info(f"Dumping compressed dump")
                     output_path = compressor.volume_id.name + "/" + compressor.output_filename
                     shell2.odoo('backup', 'odoo-db', output_path)
+                    compressor.last_input_size = int(shell2.X(['stat', '-c', '%s', output_path]).output.strip())
                     compressor.date_last_success = fields.Datetime.now()
 
                 finally:
