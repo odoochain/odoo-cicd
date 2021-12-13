@@ -108,7 +108,7 @@ class CicdTestRun(models.Model):
 
     def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
         files = shell.odoo('list-robot-test-files').output.strip()
-        files = files.split("!!!")[1].split("\n")
+        files = list(filter(bool, files.split("!!!")[1].split("\n")))
         self._generic_run(
             shell, logsio, files, 
             'robottest',
@@ -117,7 +117,7 @@ class CicdTestRun(models.Model):
 
     def _run_unit_tests(self, shell, tasks, logsio, **kwargs):
         files = shell.odoo('list-unit-test-files').output.strip()
-        files = files.split("!!!")[1].split("\n")
+        files = list(filter(bool, files.split("!!!")[1].split("\n")))
         self._generic_run(
             shell, logsio, files, 
             'unittest',
