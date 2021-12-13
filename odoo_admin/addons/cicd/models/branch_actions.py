@@ -1,3 +1,4 @@
+import re
 from odoo import fields
 from pathlib import Path
 import os
@@ -400,3 +401,52 @@ class Branch(models.Model):
         shell.odoo('build')
         shell.odoo('-f', 'db', 'reset')
         shell.odoo('update')
+
+    def _compress(self, shell, task, logsio, compress_job_id):
+        import pudb;pudb.set_trace()
+        compressor = self.env['cicd.compressor'].sudo().browse(compress_job_id)
+        source_host = compressor.source_volume_id.machine_id.effective_host
+        # get list of files
+        logsio.info("Identifying latest dump")
+        with compressor.source_volume_id.machine_id._shellexec(logsio=logsio) as source_shell:
+            output = list(reversed(source_shell.X(["ls", "-lhtra", compressor.source_volume_id.name]).output.strip().split("\n")))
+            for line in output:
+                if re.findall(compressor.regex, line):
+                    filename = line.strip()
+                    break
+            else:
+                logsio.info("No files found.")
+                return
+
+        dest_file_path = shell.machine._get_volume('dumps') / (self.project_name + "_compressor")
+        logsio.info(f"Copying {filename} to {dest_file_path}")
+        try:
+            shell.X([
+                "rsync",
+                source_host + ":" + compressor.source_volume_id.name + "/" + filename,
+                dest_file_path,
+                "-ar",
+                ])
+            compressor.sudo().last_input_size = int(shell.X(['stat', '-c', '%s', dest_file_path]).output.strip())
+
+            instance_path = self.branch_id.repo_id._get_main_repo(tempfolder=True, logsio=logsio, machine=shell.machine)
+            assert shell.machine.ttype == 'dev'
+            # change working project/directory
+            with shell.machine._shellexec(instance_path, logsio=logsio, project_name=self.project_name + "_compressor_" + str(compressor.id)) as shell2:
+                try:
+                    logsio.info(f"Restoring {dest_file_path}...")
+                    shell2.odoo("-f", "restore", "odoo-db", dest_file_path)
+                    logsio.info(f"Clearing DB...")
+                    shell2.odoo('-f', 'cleardb')
+                    if compressor.anonymize:
+                        logsio.info(f"Anonymizing DB...")
+                        shell2.odoo('-f', 'anonymize')
+                    logsio.info(f"Dumping compressed dump")
+                    output_path = compressor.volume_id.name + "/" + compressor.output_filename
+                    shell2.odoo('backup', 'odoo-db', output_path)
+
+                finally:
+                    shell.rmifexists(instance_path)
+
+        finally:
+            shell.rmifexists(dest_file_path)

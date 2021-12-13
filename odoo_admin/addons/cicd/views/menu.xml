@@ -71,5 +71,10 @@
 		</record>
 		<menuitem parent="root_menu" id="menu_dumps" action="dumps_action" groups="cicd.group_download_dumps"/>
 
-	</data>
+		<record id='compressor_action' model='ir.actions.act_window'>
+			<field name='name'>Compressor</field>
+			<field name='res_model'>cicd.compressor</field>
+			<field name='view_mode'>tree</field>
+		</record>
+		<menuitem parent="root_menu" id="menu_compressor" action="compressor_action"/>
 </odoo>

@@ -15,6 +15,7 @@ class Database(models.Model):
     name = fields.Char("Name", required=True)
     display_name = fields.Char("Name", compute="_compute_display_name", store=True)
     server_id = fields.Many2one("cicd.postgres", string="Postgres", required=True)
+    machine_id = fields.Many2one('cicd.machine', compute="_compute_machine")
 
     _sql_constraints = [
         ('name_postgres_unique', "unique(name, server_id)", _("Only one unique entry allowed.")),
@@ -37,3 +38,8 @@ class Database(models.Model):
     def _cron_update(self):
         for machine in self.env['cicd.machine'].sudo().search([]):
             self._update_dumps(machine)
+
+    def _compute_machine(self):
+        for rec in self:
+            machines = self.env['cicd.machine'].search([('postgres_server_id', '=', rec.server_id.id)])
+            rec.machine_id = machines[0] if machines else False
