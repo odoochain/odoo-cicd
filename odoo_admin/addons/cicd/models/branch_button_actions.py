@@ -63,6 +63,7 @@ class Branch(models.Model):
         self._make_task("_run_tests", kwargs={'update_state': True})
 
     def start(self):
+        self.make_instance_ready_to_login()
         return {
             'type': 'ir.actions.act_url',
             'url': '/start/' + self.project_name,
