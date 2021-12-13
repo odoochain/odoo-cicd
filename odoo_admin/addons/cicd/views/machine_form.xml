@@ -17,16 +17,23 @@
 								<field name="name" colspan="4" class="oe_inline" />
 							</h1>
 						</div>
-						<group>
-							<field name="ttype"/>
-							<field name="ssh_user"/>
-							<field name="ssh_pubkey"/>
-							<field name="is_docker_host"/>
-							<field name="effective_host" attrs="{'invisible': [('is_docker_host', '=', False)]}"/>
-							<field name="host" attrs="{'required': [('is_docker_host', '=', False)], 'invisible': [('is_docker_host', '=', True)]}"/>
-							<field name="external_url"/>
-						</group>
 						<notebook>
+							<page name="settings" string="Settings">
+								<group>
+									<field name="is_docker_host"/>
+									<field name="effective_host" attrs="{'invisible': [('is_docker_host', '=', False)]}"/>
+									<field name="host" attrs="{'required': [('is_docker_host', '=', False)], 'invisible': [('is_docker_host', '=', True)]}"/>
+									<field name="external_url"/>
+									<field name="test_timeout_web_login"/>
+								</group>
+							</page>
+							<page name="credentials" string="Credentials">
+								<group>
+									<field name="ttype"/>
+									<field name="ssh_user"/>
+									<field name="ssh_pubkey"/>
+								</group>
+							</page>
 							<page name="volumes" string="Volumes">
 								<group string="" col="2">
 									<field name="volume_ids" nolabel='1'>

@@ -278,21 +278,22 @@ class GitBranch(models.Model):
             yield shell
 
     def make_instance_ready_to_login(self):
-        def test_request():
-            try:
-                response = requests.get("http://" + self._get_odoo_proxy_container_name() + "/web/login")
-            except requests.exceptions.ConnectionError:
-                return False
+        machine = self.machine_id
+        timeout = machine.test_timeout_web_login
 
+        def test_request():
+            response = requests.get("http://" + self._get_odoo_proxy_container_name() + "/web/login", timeout=timeout)
             return response.status_code == 200
 
-        if not test_request():
-            if self.task_ids.filtered(lambda x: not x.is_done):
-                raise ValidationError(_("Instance did not respond. Undone task exists. Please retry later!"))
+        if test_request():
+            return
 
-            self._make_task("_reload_and_restart", now=True)
-            if not test_request():
-                raise ValidationError(_("Instance did not respond. It was tried to start the application but this did not succeed. Please check task logs."))
+        if self.task_ids.filtered(lambda x: not x.is_done):
+            raise ValidationError(_("Instance did not respond. Undone task exists. Please retry later!"))
+
+        self._make_task("_reload_and_restart", now=True)
+        if not test_request():
+            raise ValidationError(_("Instance did not respond. It was tried to start the application but this did not succeed. Please check task logs."))
 
     def _get_odoo_proxy_container_name(self): 
         return f"{self.project_name}_proxy"

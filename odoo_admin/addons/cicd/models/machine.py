@@ -114,6 +114,7 @@ class CicdMachine(models.Model):
     upload_dump_filename = fields.Char("Filename")
     upload_overwrite = fields.Boolean("Overwrite existing")
     upload_volume_id = fields.Many2one('cicd.machine.volume', "Upload Volume", domain=[('ttype', '=', 'dumps')])
+    test_timeout_web_login = fields.Integer("Timeout Test Weblogin", default=10, required=True)
 
     @api.depends('ssh_user')
     def _compute_ssh_user_cicd_login(self):
