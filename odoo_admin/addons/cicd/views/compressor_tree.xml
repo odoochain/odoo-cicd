@@ -5,7 +5,6 @@
 			<field name="model">cicd.compressor</field>
 			<field name="arch" type="xml">
 				<tree default_order="" string="" editable="bottom">
-					<field name="database_id"/>
 					<field name="active" widget="boolean_toggle"/>
 					<field name="cronjob_id"/>
 					<field name="volume_id"/>
