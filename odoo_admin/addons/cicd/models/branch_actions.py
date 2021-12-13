@@ -38,7 +38,7 @@ class Branch(models.Model):
 
     def _update_all_modules(self, shell, task, logsio, **kwargs):
         logsio.info("Reloading")
-        shell.odoo('reload')
+        self._reload(shell, task, logsio)
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Updating")
@@ -115,9 +115,8 @@ class Branch(models.Model):
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
 
-    def _reload(self, shell, task, logsio, **kwargs):
-        raw_settings = (task.machine_id.reload_config or '') + "\n" + (self.reload_config or '')
-        self._make_instance_docker_configs(shell) 
+    def _reload(self, shell, task, logsio, project_name=None, **kwargs):
+        self._make_instance_docker_configs(shell, forced_project_name=project_name) 
         shell.odoo('reload')
 
     def _build(self, shell, task, logsio, **kwargs):
@@ -377,11 +376,11 @@ class Branch(models.Model):
         except Exception as ex:
             logsio.error(ex)
 
-    def _make_instance_docker_configs(self, shell):
+    def _make_instance_docker_configs(self, shell, forced_project_name=None):
         with shell.shell() as ssh_shell:
             home_dir = shell._get_home_dir()
             machine = shell.machine
-            project_name = self.project_name
+            project_name = forced_project_name or self.project_name
             content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
             ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content.format(**os.environ))
 
@@ -432,8 +431,11 @@ class Branch(models.Model):
             instance_path = self.branch_id.repo_id._get_main_repo(tempfolder=True, logsio=logsio, machine=shell.machine)
             assert shell.machine.ttype == 'dev'
             # change working project/directory
-            with shell.machine._shellexec(instance_path, logsio=logsio, project_name=self.project_name + "_compressor_" + str(compressor.id)) as shell2:
+            project_name = self.project_name + "_compressor_" + str(compressor.id)
+            with shell.machine._shellexec(instance_path, logsio=logsio, project_name=project_name) as shell2:
                 try:
+                    logsio.info(f"Reloading...")
+                    self._reload(shell, task, logsio, project_name=project_name)
                     logsio.info(f"Restoring {dest_file_path}...")
                     shell2.odoo("-f", "restore", "odoo-db", dest_file_path)
                     logsio.info(f"Clearing DB...")
