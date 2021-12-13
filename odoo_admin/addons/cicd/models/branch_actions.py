@@ -2,7 +2,6 @@ from odoo import fields
 from pathlib import Path
 import os
 import arrow
-import base64
 from odoo import _, api, models, fields
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import inspect
