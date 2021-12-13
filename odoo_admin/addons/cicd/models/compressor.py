@@ -11,7 +11,7 @@ class Compressor(models.Model):
     cronjob_id = fields.Many2one('ir.cron', string="Cronjob", required=True, ondelete="cascade")
     repo_id = fields.Many2one('cicd.git.repo', related="branch_id.repo_id")
     machine_id = fields.Many2one('cicd.machine', related="repo_id.machine_id")
-    volume_id = fields.Many2one('cicd.volume', string="Output Volume", required=True, domain=[('machine_id', '=', machine_id)])
+    volume_id = fields.Many2one('cicd.machine.volume', string="Output Volume", required=True, domain=[('machine_id', '=', machine_id)])
     output_filename = fields.Char("Output Filename", required=True)
     anonymize = fields.Boolean("Anonymize", required=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Use Branch for compression", required=True)
