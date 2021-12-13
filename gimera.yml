@@ -14,8 +14,6 @@ repos:
   type: integrated
   url: https://github.com/odoo/odoo
 - branch: 15.0
-  patches:
-  - odoo_admin.patches
   path: odoo_admin/addons/queue
   sha: 8168ca00daaa3944b9d76be0bf90c5bffb447660
   type: integrated
