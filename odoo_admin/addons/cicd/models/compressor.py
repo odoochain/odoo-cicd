@@ -28,7 +28,7 @@ class Compressor(models.Model):
             if rec.active and not rec.cronjob_id:
                 model = self.env['ir.model'].sudo().search([('model', '=', self._name)])
                 self.cronjob_id = self.env['ir.cron'].sudo().create({
-                    'name': self.name + " compressor",
+                    'name': f"compressor {rec.id}",
                     'model_id': model.id,
                     'code': f'model.browse({rec.id})._start()'
                 })
@@ -56,5 +56,7 @@ class Compressor(models.Model):
         for rec in self:
             if rec.last_input_size:
                 rec.performance = 100.0 - (float(rec.last_output_size) / float(rec.last_input_size) * 100)
-                rec.last_input_size_human = humanize.naturalsize(rec.last_input_size)
-                rec.last_output_size_human = humanize.naturalsize(rec.last_output_size)
+            else:
+                rec.performance = 0
+            rec.last_input_size_human = humanize.naturalsize(rec.last_input_size)
+            rec.last_output_size_human = humanize.naturalsize(rec.last_output_size)
