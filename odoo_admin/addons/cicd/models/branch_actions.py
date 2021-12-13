@@ -446,6 +446,7 @@ class Branch(models.Model):
                     logsio.info(f"Dumping compressed dump")
                     output_path = compressor.volume_id.name + "/" + compressor.output_filename
                     shell2.odoo('backup', 'odoo-db', output_path)
+                    compressor.date_last_success = fields.Datetime.now()
 
                 finally:
                     shell.rmifexists(instance_path)

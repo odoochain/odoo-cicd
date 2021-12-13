@@ -4,18 +4,19 @@
 		<record id="view_cicd_compressor_tree" model="ir.ui.view">
 			<field name="model">cicd.compressor</field>
 			<field name="arch" type="xml">
-				<tree default_order="" string="" editable="bottom">
+				<tree editable="bottom">
 					<field name="active" widget="boolean_toggle"/>
+					<field name="branch_id"/>
 					<field name="cronjob_id"/>
 					<field name="volume_id"/>
 					<field name="output_filename"/>
 					<field name="anonymize" widget="boolean_toggle"/>
-					<field name="branch_id"/>
+					<field name="date_last_success"/>
 					<field name="last_input_size_human"/>
 					<field name="last_output_size_human"/>
 					<field name="performance"/>
-					<field name="repo_id" invisible='1'/>
-					<field name="machine_id" invisible='1'/>
+					<field name="repo_id" invisible='0'/>
+					<field name="machine_id" invisible='0'/>
 				</tree>
 			</field>
 		</record>
