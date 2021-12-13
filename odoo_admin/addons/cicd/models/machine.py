@@ -433,7 +433,6 @@ echo "--------------------------------------------------------------------------
             yield source_path
         else:
             filename = tempfile.mktemp(suffix='.')
-            import pudb;pudb.set_trace()
             ssh_keyfile = self._place_ssh_credentials()
             ssh_cmd = f"ssh -o StrictHostKeyChecking=no -i '{ssh_keyfile}'"
             subprocess.run([

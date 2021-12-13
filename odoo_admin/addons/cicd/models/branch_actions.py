@@ -420,7 +420,6 @@ class Branch(models.Model):
         # if the machines are the same, then just rewrite destination path
         # if machines are different then copy locally and then put it on the machine
         dest_file_path = shell.machine._get_volume('dumps') / (self.project_name + "_compressor")
-        import pudb;pudb.set_trace()
         with compressor.source_volume_id.machine_id._put_temporary_file_on_machine(
             logsio,
             compressor.source_volume_id.name + "/" + filename,
