@@ -236,7 +236,7 @@ class GitBranch(models.Model):
                 else:
                     rec.build_state = 'new'
 
-    def _make_task(self, execute, now=False, machine=None, silent=False, kwargs=None):
+    def _make_task(self, execute, now=False, machine=None, silent=False, **kwargs):
         for rec in self:
             if not now and rec.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started'] and x.name == execute):
                 if silent:

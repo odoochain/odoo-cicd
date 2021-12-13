@@ -402,14 +402,14 @@ class Branch(models.Model):
         shell.odoo('update')
 
     def _compress(self, shell, task, logsio, compress_job_id):
-        import pudb;pudb.set_trace()
         compressor = self.env['cicd.compressor'].sudo().browse(compress_job_id)
         source_host = compressor.source_volume_id.machine_id.effective_host
         # get list of files
         logsio.info("Identifying latest dump")
-        with compressor.source_volume_id.machine_id._shellexec(logsio=logsio) as source_shell:
-            output = list(reversed(source_shell.X(["ls", "-lhtra", compressor.source_volume_id.name]).output.strip().split("\n")))
+        with compressor.source_volume_id.machine_id._shellexec(logsio=logsio, cwd="") as source_shell:
+            output = list(reversed(source_shell.X(["ls", "-tra", compressor.source_volume_id.name]).output.strip().split("\n")))
             for line in output:
+                if line == '.' or line == '..': continue
                 if re.findall(compressor.regex, line):
                     filename = line.strip()
                     break
@@ -417,18 +417,19 @@ class Branch(models.Model):
                 logsio.info("No files found.")
                 return
 
+        # if the machines are the same, then just rewrite destination path
+        # if machines are different then copy locally and then put it on the machine
         dest_file_path = shell.machine._get_volume('dumps') / (self.project_name + "_compressor")
-        logsio.info(f"Copying {filename} to {dest_file_path}")
-        try:
-            shell.X([
-                "rsync",
-                source_host + ":" + compressor.source_volume_id.name + "/" + filename,
-                dest_file_path,
-                "-ar",
-                ])
-            compressor.sudo().last_input_size = int(shell.X(['stat', '-c', '%s', dest_file_path]).output.strip())
+        import pudb;pudb.set_trace()
+        with compressor.source_volume_id.machine_id._put_temporary_file_on_machine(
+            logsio,
+            compressor.source_volume_id.name + "/" + filename,
+            shell.machine,
+            dest_file_path,
+        ) as effective_dest_file_path:
+            compressor.sudo().last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path]).output.strip())
 
-            instance_path = self.branch_id.repo_id._get_main_repo(tempfolder=True, logsio=logsio, machine=shell.machine)
+            instance_path = self.repo_id._get_main_repo(tempfolder=True, logsio=logsio, machine=shell.machine)
             assert shell.machine.ttype == 'dev'
             # change working project/directory
             project_name = self.project_name + "_compressor_" + str(compressor.id)
@@ -436,8 +437,8 @@ class Branch(models.Model):
                 try:
                     logsio.info(f"Reloading...")
                     self._reload(shell, task, logsio, project_name=project_name)
-                    logsio.info(f"Restoring {dest_file_path}...")
-                    shell2.odoo("-f", "restore", "odoo-db", dest_file_path)
+                    logsio.info(f"Restoring {effective_dest_file_path}...")
+                    shell2.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
                     logsio.info(f"Clearing DB...")
                     shell2.odoo('-f', 'cleardb')
                     if compressor.anonymize:
@@ -450,6 +451,3 @@ class Branch(models.Model):
 
                 finally:
                     shell.rmifexists(instance_path)
-
-        finally:
-            shell.rmifexists(dest_file_path)

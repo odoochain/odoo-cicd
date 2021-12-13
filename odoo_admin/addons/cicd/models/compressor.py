@@ -5,7 +5,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class Compressor(models.Model):
     _name = 'cicd.compressor'
 
-    source_volume_id = fields.Many2one('cicd.volume', string="Source Volume")
+    source_volume_id = fields.Many2one('cicd.machine.volume', string="Source Volume", required=True)
     regex = fields.Char("Regex", required=True, default=".*")
     active = fields.Boolean("Active", default=True)
     cronjob_id = fields.Many2one('ir.cron', string="Cronjob", required=False, ondelete="cascade", readonly=True)

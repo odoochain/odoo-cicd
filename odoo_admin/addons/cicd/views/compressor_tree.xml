@@ -6,6 +6,8 @@
 			<field name="arch" type="xml">
 				<tree editable="bottom">
 					<field name="active" widget="boolean_toggle"/>
+					<field name="source_volume_id"/>
+					<field name="regex"/>
 					<field name="branch_id"/>
 					<field name="repo_id" invisible='1'/>
 					<field name="repo_short" />

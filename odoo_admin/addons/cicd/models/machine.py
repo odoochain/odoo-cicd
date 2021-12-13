@@ -1,4 +1,5 @@
 import base64
+import subprocess
 import tempfile
 import arrow
 from copy import deepcopy
@@ -150,11 +151,15 @@ class CicdMachine(models.Model):
         os.chmod(ssh_dir, 0o700)
 
         ssh_keyfile = ssh_dir / self.effective_host
+        ssh_pubkeyfile = ssh_dir / (self.effective_host + '.pub')
         rights_keyfile = 0o600
         if ssh_keyfile.exists():
             os.chmod(ssh_keyfile, rights_keyfile)
+            os.chmod(ssh_pubkeyfile, rights_keyfile)
         ssh_keyfile.write_text(self.ssh_key)
+        ssh_pubkeyfile.write_text(self.ssh_pubkey)
         os.chmod(ssh_keyfile, rights_keyfile)
+        os.chmod(ssh_pubkeyfile, rights_keyfile)
         return ssh_keyfile
 
     @contextmanager
@@ -416,3 +421,45 @@ echo "--------------------------------------------------------------------------
             finally:
                 if spurplus_shell.exists(file):
                     spurplus_shell.remove(file)
+
+    @contextmanager
+    def _put_temporary_file_on_machine(self, logsio, source_path, dest_machine, dest_path, delete_copied_file=True):
+        """
+        Copies a file from machine1 to machine2; optimized if same machine;
+        you should not delete the file
+        """
+        self.ensure_one()
+        if 1==2 and self == dest_machine: # TODO undo
+            yield source_path
+        else:
+            filename = tempfile.mktemp(suffix='.')
+            import pudb;pudb.set_trace()
+            ssh_keyfile = self._place_ssh_credentials()
+            ssh_cmd = f"ssh -o StrictHostKeyChecking=no -i '{ssh_keyfile}'"
+            subprocess.run([
+                "rsync",
+                '-e',
+                ssh_cmd,
+                "-ar",
+                self.ssh_user + "@" + self.effective_host + ":" + source_path,
+                filename,
+            ])
+            try:
+                subprocess.run([
+                    "rsync",
+                    '-e',
+                    ssh_cmd,
+                    "-ar",
+                    filename,
+                    dest_machine.ssh_user + "@" + dest_machine.effective_host + ":" + str(dest_path),
+                ])
+                try:
+                    yield dest_path
+
+                finally:
+                    if delete_copied_file:
+                        with dest_machine._shellexec(cwd="") as shell:
+                            shell.rmifexists(dest_path)
+
+            finally:
+                os.unlink(filename)
