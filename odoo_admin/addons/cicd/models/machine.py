@@ -404,7 +404,7 @@ echo "--------------------------------------------------------------------------
                 env['GIT_SSH_COMMAND'] = f'ssh -o StrictHostKeyChecking=no'
                 if repo.login_type == 'key':
                     env['GIT_SSH_COMMAND'] += f'   -i {file}  '
-                    shell.write_text(file, repo.key)
+                    spurplus_shell.write_text(file, repo.key)
                     spurplus_shell.run(["chmod", '400', str(file)])
                 else:
                     pass
