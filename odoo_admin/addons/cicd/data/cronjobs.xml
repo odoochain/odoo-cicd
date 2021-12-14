@@ -138,5 +138,15 @@ env['cicd.dump']._cron_update()
 			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record> -->
+		<record id="reschedule_failed_jobs" model="ir.cron">
+			<field name="name">reschedule_failed_jobs</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="queue_job.model_queue_job" />
+			<field name="state">code</field>
+			<field name="code">model.search([('state', '=', 'failed'), ('exc_info', 'ilike', 'paramiko')).write({'state': 'pending'})</field>
+			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
 	</data>
 </odoo>
