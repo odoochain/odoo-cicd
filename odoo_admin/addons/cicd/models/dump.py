@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+import arrow
 import logging
 logger = logging.getLogger(__name__)
 
@@ -57,14 +58,28 @@ class Dump(models.Model):
                             'name': path,
                             'machine_id': machine.id,
                         })
-                    try:
-                        machine._execute_shell(['/usr/bin/test', '-f', path])
-                    except Exception as ex:
-                        logger.error(ex)
+                        dumps._update_size()
                     else:
-                        dumps.size = int(machine._execute_shell([
-                            'stat', '-c', '%s', path
-                        ]).output.strip())
-                        dumps.date_modified = machine._execute_shell([
-                            'date', '-r', path, '+%Y-%m-%d %H:%M:%S', '-u',
-                        ]).output.strip()
+                        dumps.with_delay(
+                            identity_key=f"get_dump_info_{dumps.ids}",
+                            eta=arrow.get().shift(minutes=60).strftime("%Y-%m-%d %H:%M:%S"),
+                        )._update_size()
+
+    def _update_size(self):
+        for rec in self:
+            with rec.machine_id._shell() as shell:
+                if not shell.exists(rec.name):
+                    rec.unlink()
+                    continue
+
+                try:
+                    machine._execute_shell(['/usr/bin/test', '-f', path])
+                except Exception as ex:
+                    logger.error(ex)
+                else:
+                    rec.size = int(machine._execute_shell([
+                        'stat', '-c', '%s', path
+                    ]).output.strip())
+                    rec.date_modified = machine._execute_shell([
+                        'date', '-r', path, '+%Y-%m-%d %H:%M:%S', '-u',
+                    ]).output.strip()
