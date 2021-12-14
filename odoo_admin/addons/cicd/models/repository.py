@@ -110,6 +110,7 @@ class Repository(models.Model):
 
     @api.model
     def _cron_fetch(self):
+        logsio = None
         for repo in self.search([]):
             try:
                 repo._lock_git()
@@ -154,7 +155,8 @@ class Repository(models.Model):
 
             except Exception as ex:
                 msg = traceback.format_exc()
-                logsio.error(msg)
+                if logsio:
+                    logsio.error(msg)
                 logger.error(msg)
                 continue
 

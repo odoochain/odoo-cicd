@@ -148,6 +148,7 @@ env['cicd.dump']._cron_update()
 reasons = [
 	'could not serialize access due to concurrent update',
 	'paramiko',
+	'cannot stat',
 ]
 for reason in reasons:
 	model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]).write({'state': 'pending'})</field>
