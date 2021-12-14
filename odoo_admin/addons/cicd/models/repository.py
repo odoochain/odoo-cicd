@@ -193,8 +193,6 @@ class Repository(models.Model):
                 name = branch
                 del branch
 
-                if name in all_remote_branches:
-                    shell.X(["git", "pull"])
                 if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
                     branch = repo.branch_ids.create({
                         'name': name,
@@ -213,10 +211,12 @@ class Repository(models.Model):
 
             if updated_branches:
                 repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
-                repo.branch_ids._compute_state()
-                repo.branch_ids.filtered(lambda x: x.name in updated_branches)._trigger_rebuild_after_fetch(
-                    machine=machine
-                    )
+                branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
+                for branch in branches:
+                    branch._checkout_latest(shell, machine, logsio)
+                    branch._update_git_commits(shell, logsio)
+                    branch._compute_state()
+                    branch._trigger_rebuild_after_fetch(machine=machine)
 
     def _lock_git(self): 
         for rec in self:

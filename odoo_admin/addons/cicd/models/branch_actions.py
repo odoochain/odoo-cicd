@@ -134,6 +134,7 @@ class Branch(models.Model):
 
     def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):
         self.ensure_one()
+        logsio.info(f"Updating commits for {self.project_name}")
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
         with shell.shell() as shell:
 
@@ -235,7 +236,7 @@ class Branch(models.Model):
         b = task.branch_id
 
         update_state = kwargs.get('update_state', False)
-        self._update_git_commits(shell, task=task, logsio=logsio)
+        # self._update_git_commits(shell, task=task, logsio=logsio) # why???
 
         test_run = self.test_run_ids.create({
             'commit_id': self.commit_ids[0].id,
