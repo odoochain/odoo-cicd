@@ -340,7 +340,7 @@ class GitBranch(models.Model):
                             logsio.error(str(ex))
 
                     # delete db
-                    db = machine.database_ids.filtered(lambda x: x.name == rec.project_name).delete_db()
+                    db = machine.postgres_server_id.filtered(lambda x: x.name == rec.project_name).delete_db()
 
     def toggle_active(self):
         for rec in self:
