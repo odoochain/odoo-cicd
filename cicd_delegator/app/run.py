@@ -134,15 +134,15 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         logger.debug(f"rewrite path result: {url}")
         return url
 
-    def _redirect_to_index(self):
+    def _redirect_to_index(self, branch=None):
         # do logout to odoo to be clean; but redirect to index
 
         content = """
         Redirecting to cicd application...
         <script>
-        window.location = "/";
+        window.location = "/redirect_from_instance?instance={branch}";
         </script>
-        """.encode('utf-8')
+        """.format(branch=branch).encode('utf-8')
 
         self.send_response(200)
         null = "deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
@@ -168,7 +168,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             sent = True
 
             if self.path == "/_" or self.path.endswith('/web/session/logout'):
-                self._redirect_to_index()
+                self._redirect_to_index(cookies and cookies.get('delegator-path') or None)
             else:
                 self.send_response(resp.status_code)
                 self.send_resp_headers(resp, cookies)
@@ -229,21 +229,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
         return req_header, cookies
 
-    def _set_cookies(self, cookie):
-        logger.debug(f"Path is: {self.path}")
-
-        if '/__start_cicd' in self.path:
-            site = self.path.split("/")[1]
-            cookie['delegator-path'] = site
-            cookie['delegator-path']['max-age'] = 365 * 24 * 3600
-            cookie['delegator-path']['path'] = '/'
-        elif self.path in ['/index', '/index/'] or self.path.endswith('/web/session/logout'):
-            cookie['delegator-path'] = "not-set"
-            cookie['delegator-path']['path'] = '/'
-
     def send_resp_headers(self, resp, cookies):
-        self._set_cookies(cookies)
-
         respheaders = resp.headers
         logger.debug('Response Header')
         for key in respheaders:

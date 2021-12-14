@@ -50,4 +50,15 @@ class Controller(http.Controller):
             ('Content-Disposition', content_disposition(name))
         ])
         
-
+    @http.route('/redirect_from_instance')
+    def _redirect_from_instance(self, instance, **kwargs):
+        """
+        On logout of the instance this url is called and user is redirect to branch.
+        """
+        branch = request.env['cicd.git.branch'].sudo().search([('name', '=', instance)])
+        if branch:
+            url = f"/web#model=cicd.git.branch&id={branch and branch.id or 0}&view_type=form"
+        else:
+            url = f'/web'
+        redirect = request.redirect(url)
+        return redirect
