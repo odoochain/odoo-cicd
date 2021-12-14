@@ -55,7 +55,8 @@ class Controller(http.Controller):
         """
         On logout of the instance this url is called and user is redirect to branch.
         """
-        branch = request.env['cicd.git.branch'].sudo().search([('name', '=', instance)])
+        branch = request.env['cicd.git.branch'].sudo().search([])
+        branch = branch.filtered(lambda x: x.project_name.lower() == instance.lower())
         if branch:
             url = f"/web#model=cicd.git.branch&id={branch and branch.id or 0}&view_type=form"
         else:
