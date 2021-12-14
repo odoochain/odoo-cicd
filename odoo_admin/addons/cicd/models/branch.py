@@ -60,8 +60,6 @@ class GitBranch(models.Model):
         ('building', 'Building'),
     ], default="new", required=True, compute="_compute_build_state", string="Instance State")
     dump_id = fields.Many2one("cicd.dump", string="Dump")
-    db_size = fields.Integer("DB Size Bytes", compute="_compute_dbsize")
-    db_size_humanize = fields.Char("DB Size", compute="_compute_human")
     reload_config = fields.Text("Reload Config")
     autobackup = fields.Boolean("Autobackup") # TODO implement
     enduser_summary = fields.Text("Enduser Summary")
@@ -403,7 +401,7 @@ class GitBranch(models.Model):
             
     def _compute_databases(self):
         for rec in self:
-            rec.database_ids = self.env['cicd.database'].sudo().search([('name', '=', rec.project_name)])
+            rec.database_ids = self.env['cicd.database'].sudo().search([('name', '=', rec.database_project_name)])
             rec.database_size = sum(rec.database_ids.mapped('size'))
             rec.database_size_human = humanize.naturalsize(rec.database_size)
 
@@ -411,12 +409,3 @@ class GitBranch(models.Model):
     def _compute_current_task(self):
         for rec in self:
             rec.current_task = ', '.join(rec.task_ids.filtered(lambda x: x.state in ['pending', 'started', 'enqueued']).mapped('name'))
-
-    def _compute_dbsize(self):
-        for rec in self:
-            server = rec.repo_id.machine_id.postgres_server_id
-            rec.db_size = 0
-            if server:
-                db = server.database_ids.filtered(lambda x: x.name == rec.database_project_name)
-                if db:
-                    rec.db_size = db.size
