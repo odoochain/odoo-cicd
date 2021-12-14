@@ -18,6 +18,7 @@ class GitBranch(models.Model):
     _name = 'cicd.git.branch'
 
     project_name = fields.Char(compute="_compute_project_name", store=False)
+    database_project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
     machine_id = fields.Many2one(related='repo_id.machine_id')
     backup_machine_id = fields.Many2one('cicd.machine', string="Machine for backup/restore")
@@ -306,6 +307,8 @@ class GitBranch(models.Model):
     def _compute_project_name(self):
         for rec in self:
             rec.project_name = os.environ['CICD_PROJECT_NAME'] + "_" + rec.repo_id.short + "_" + rec.name
+            dbname = rec.project_name.lower().replace("-", "_")
+            rec.database_project_name = dbname
 
     def _get_new_logsio_instance(self, source):
         self.ensure_one()
@@ -411,9 +414,9 @@ class GitBranch(models.Model):
 
     def _compute_dbsize(self):
         for rec in self:
-            server = rec.branch_id.repo_id.machine_id.postgres_server_id
+            server = rec.repo_id.machine_id.postgres_server_id
             rec.db_size = 0
             if server:
-                db = server.database_ids.filtered(lambda x: x.name.lower() == rec.project_name.lower())
+                db = server.database_ids.filtered(lambda x: x.name == rec.database_project_name)
                 if db:
                     rec.db_size = db.size
