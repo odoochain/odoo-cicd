@@ -285,8 +285,6 @@ class GitBranch(models.Model):
             response = requests.get("http://" + self._get_odoo_proxy_container_name() + "/web/login", timeout=timeout)
             return response.status_code == 200
 
-            try:
-
         try:
             test_request()
         except Exception:
