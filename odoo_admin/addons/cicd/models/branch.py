@@ -397,7 +397,8 @@ class GitBranch(models.Model):
     @api.depends('commit_ids')
     def _compute_commit_ids(self):
         for rec in self:
-            rec.commit_ids_ui = rec.commit_ids[:200]
+            #rec.commit_ids_ui = rec.commit_ids[:200]
+            rec.commit_ids_ui = rec.commit_ids.sorted(lambda x: x.date, reverse=True)
             
     def _compute_databases(self):
         for rec in self:
