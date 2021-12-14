@@ -278,6 +278,7 @@ class Branch(models.Model):
         root_folder = self.repo_id._get_main_repo(logsio=logsio)
         logsio.write_text(f"Cloning {self.name} to {instance_folder}")
         shell.X(["rsync", str(root_folder) + "/", str(instance_folder) + "/", "-ar", '--delete-after'])
+        shell.cwd = instance_folder
 
         logsio.write_text(f"Checking out {self.name}")
         shell.X(["git", "checkout", "-f", self.name])

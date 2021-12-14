@@ -145,10 +145,17 @@ class Repository(models.Model):
                             else:
                                 new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
+                        del fetch_info
+
                     if not new_commits and not updated_branches:
                         continue
 
-                    fetch_info = shell.X(["git", "fetch"])
+                    # checkout latest / pull latest
+                    for branch in updated_branches:
+                        logsio.info(f"Pulling {branch}...")
+                        shell.X(["git", "checkout", "-f", branch])
+                        shell.X(["git", "pull"])
+                        shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
                     repo.with_delay()._cron_fetch_update_branches({
                         'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
