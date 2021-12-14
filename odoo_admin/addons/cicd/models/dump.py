@@ -48,6 +48,7 @@ class Dump(models.Model):
                     "ls", volume.name + "/"
                 ]).output.strip().split("\n")
 
+                todo = self.env[self._name]
                 for file in files:
                     if not file:
                         continue
@@ -60,26 +61,32 @@ class Dump(models.Model):
                         })
                         dumps._update_size()
                     else:
-                        dumps.with_delay(
-                            identity_key=f"get_dump_info_{dumps.ids}",
-                            eta=arrow.get().shift(minutes=60).strftime("%Y-%m-%d %H:%M:%S"),
-                        )._update_size()
+                        todo |= dumps
+
+                todo.with_delay(
+                    identity_key=f"get_dump_info_{dumps.ids}",
+                    eta=arrow.get().shift(minutes=60).strftime("%Y-%m-%d %H:%M:%S"),
+                )._update_size()
 
     def _update_size(self):
-        for rec in self:
-            with rec.machine_id._shell() as shell:
-                if not shell.exists(rec.name):
-                    rec.unlink()
-                    continue
+        machines = self.mapped('machine_id')
+        for machine in machines:
+            dumps = self.filtered(lambda x: x.machine_id == machine)
+            with machine._shell() as shell:
+                for dump in dumps:
+                    dump = dump.sudo()
+                    if not shell.exists(dump.name):
+                        dump.unlink()
+                        continue
 
-                try:
-                    machine._execute_shell(['/usr/bin/test', '-f', path])
-                except Exception as ex:
-                    logger.error(ex)
-                else:
-                    rec.size = int(machine._execute_shell([
-                        'stat', '-c', '%s', path
-                    ]).output.strip())
-                    rec.date_modified = machine._execute_shell([
-                        'date', '-r', path, '+%Y-%m-%d %H:%M:%S', '-u',
-                    ]).output.strip()
+                    try:
+                        machine._execute_shell(['/usr/bin/test', '-f', dump.name])
+                    except Exception as ex:
+                        logger.error(ex)
+                    else:
+                        dump.size = int(machine._execute_shell([
+                            'stat', '-c', '%s', dump.name
+                        ]).output.strip())
+                        dump.date_modified = machine._execute_shell([
+                            'date', '-r', dump.name, '+%Y-%m-%d %H:%M:%S', '-u',
+                        ]).output.strip()

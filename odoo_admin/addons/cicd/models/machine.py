@@ -459,7 +459,7 @@ echo "--------------------------------------------------------------------------
 
                 finally:
                     if delete_copied_file:
-                        with dest_machine._shellexec(cwd="") as shell:
+                        with dest_machine._shellexec(cwd="", logsio=logsio) as shell:
                             shell.rmifexists(dest_path)
 
             finally:
