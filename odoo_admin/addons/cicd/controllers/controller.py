@@ -7,7 +7,7 @@ class Controller(http.Controller):
 
     @http.route("/last_access/<name>", type="http", auth="public")
     def last_access(self, name):
-        branch = request.env['cicd.git.branch'].sudo().search([('name', '=', name)])
+        branch = request.env['cicd.git.branch'].sudo().search([('project_name', '=', name)])
         branch.last_access = arrow.utcnow().datetime.strftime("%Y-%m-%d %H:%M:%S")
         return "OK"
 

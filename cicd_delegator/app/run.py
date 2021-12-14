@@ -113,7 +113,8 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
         if delegator_path:
             # set touched date:
-            requests.get(cicd_index_url + "/last_access/" + delegator_path).raise_for_status()
+            resp = requests.get(cicd_index_url + "/last_access/" + delegator_path)
+            resp.raise_for_status()
 
         path = (self.path or '').split("?")[0]
         if path in ['/index', '/index/'] or not delegator_path:

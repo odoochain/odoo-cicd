@@ -6,4 +6,4 @@ RUN pip install --no-cache-dir  --trusted-host pypi.org --trusted-host files.pyt
 
 ADD app/ ./
 
-CMD [ "python", "./run.py", "--port=80"]
+CMD ["python", "./run.py", "--port=80"]

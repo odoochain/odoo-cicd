@@ -17,7 +17,7 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
-    project_name = fields.Char(compute="_compute_project_name", store=False)
+    project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name")
     database_project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
     machine_id = fields.Many2one(related='repo_id.machine_id')
@@ -409,3 +409,12 @@ class GitBranch(models.Model):
     def _compute_current_task(self):
         for rec in self:
             rec.current_task = ', '.join(rec.task_ids.filtered(lambda x: x.state in ['pending', 'started', 'enqueued']).mapped('name'))
+
+    def _search_project_name(self, operator, value):
+        assert operator == '='
+
+        if not value:
+            return [('id', '=', 0)]
+
+        ids = self.search([]).filtered(lambda x: x.project_name.lower() == value.lower()).ids
+        return [('id', 'in', ids)]

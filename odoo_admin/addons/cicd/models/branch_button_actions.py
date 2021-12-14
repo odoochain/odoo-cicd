@@ -80,7 +80,7 @@ class Branch(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': '/start/' + self.name + "/mailer/",
+            'url': '/start/' + self.project_name + "/mailer/",
             'target': 'new'
         }
 
@@ -88,7 +88,7 @@ class Branch(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': '/start/' + self.name + "/logs/",
+            'url': '/start/' + self.project_name + "/logs/",
             'target': 'new'
         }
 

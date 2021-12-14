@@ -30,11 +30,12 @@ services:
 
   odoo:
     healthcheck:
-      test: ["CMD-SHELL", "curl", "-f", "http://localhost:806"]
+      test: ["CMD-SHELL", "curl", "-f", "http://localhost:8069"]
       interval: 5s
       timeout: 3s
       retries: 3
       start_period: 20s
+
   cicd_delegator:
     build: ${CUSTOMS_DIR}/../cicd_delegator
     networks:
