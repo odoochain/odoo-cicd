@@ -59,7 +59,7 @@ class GitBranch(models.Model):
         ('building', 'Building'),
     ], default="new", required=True, compute="_compute_build_state", string="Instance State")
     dump_id = fields.Many2one("cicd.dump", string="Dump")
-    db_size = fields.Integer("DB Size Bytes")
+    db_size = fields.Integer("DB Size Bytes", compute="_compute_dbsize")
     db_size_humanize = fields.Char("DB Size", compute="_compute_human")
     reload_config = fields.Text("Reload Config")
     autobackup = fields.Boolean("Autobackup") # TODO implement
@@ -408,3 +408,12 @@ class GitBranch(models.Model):
     def _compute_current_task(self):
         for rec in self:
             rec.current_task = ', '.join(rec.task_ids.filtered(lambda x: x.state in ['pending', 'started', 'enqueued']).mapped('name'))
+
+    def _compute_dbsize(self):
+        for rec in self:
+            server = rec.branch_id.repo_id.machine_id.postgres_server_id
+            rec.db_size = 0
+            if server:
+                db = server.database_ids.filtered(lambda x: x.name.lower() == rec.project_name.lower())
+                if db:
+                    rec.db_size = db.size
