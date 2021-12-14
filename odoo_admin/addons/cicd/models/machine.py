@@ -171,6 +171,7 @@ class CicdMachine(models.Model):
         with spurplus.connect_with_retries(
             hostname=self.effective_host,
             username=self.ssh_user,
+            password="dontuseme",
             private_key_file=str(ssh_keyfile),
             missing_host_key=spur.ssh.MissingHostKey.accept,
             ) as shell:
@@ -409,7 +410,7 @@ echo "--------------------------------------------------------------------------
             })
 
             try:
-                env['GIT_SSH_COMMAND'] = f'ssh -o StrictHostKeyChecking=no'
+                env['GIT_SSH_COMMAND'] = f'ssh -o Batchmode=yes -o StrictHostKeyChecking=no'
                 if repo.login_type == 'key':
                     env['GIT_SSH_COMMAND'] += f'   -i {file}  '
                     spurplus_shell.write_text(file, repo.key)
@@ -436,20 +437,21 @@ echo "--------------------------------------------------------------------------
         else:
             filename = tempfile.mktemp(suffix='.')
             ssh_keyfile = self._place_ssh_credentials()
-            ssh_cmd = f"ssh -o StrictHostKeyChecking=no -i '{ssh_keyfile}'"
+            ssh_cmd_base = f"ssh -o Batchmode=yes -o StrictHostKeyChecking=no -i"
             subprocess.run([
                 "rsync",
                 '-e',
-                ssh_cmd,
+                ssh_cmd_base + str(ssh_keyfile),
                 "-ar",
                 self.ssh_user + "@" + self.effective_host + ":" + source_path,
                 filename,
             ])
             try:
+                ssh_keyfile = dest_machine._place_ssh_credentials()
                 subprocess.run([
                     "rsync",
                     '-e',
-                    ssh_cmd,
+                    ssh_cmd_base + str(ssh_keyfile),
                     "-ar",
                     filename,
                     dest_machine.ssh_user + "@" + dest_machine.effective_host + ":" + str(dest_path),
