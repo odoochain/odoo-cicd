@@ -33,7 +33,6 @@ class Database(models.Model):
                 cr.execute("drop database %s WITH (FORCE);", (rec.name,))
             rec.sudo().unlink()
 
-
     @api.model
     def _cron_update(self):
         for machine in self.env['cicd.machine'].sudo().search([]):
