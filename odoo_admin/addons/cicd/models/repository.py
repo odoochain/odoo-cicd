@@ -122,7 +122,7 @@ class Repository(models.Model):
                     new_commits, updated_branches = {}, set()
 
                     for remote in repo._get_remotes(shell):
-                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote]).stderr_output.strip().split("\n")))
+                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run']).stderr_output.strip().split("\n")))
                         for fi in fetch_info:
                             while "  " in fi:
                                 fi = fi.replace("  ", " ")
@@ -148,10 +148,13 @@ class Repository(models.Model):
                     if not new_commits and not updated_branches:
                         continue
 
+                    fetch_info = shell.X(["git", "fetch"])
+
                     repo.with_delay()._cron_fetch_update_branches({
                         'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
                         'updated_branches': list(updated_branches),
                     })
+
 
             except Exception as ex:
                 msg = traceback.format_exc()
