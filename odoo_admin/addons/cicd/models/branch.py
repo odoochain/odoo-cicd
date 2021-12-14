@@ -78,6 +78,8 @@ class GitBranch(models.Model):
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
     block_updates_until = fields.Datetime("Block updates until")
 
+    test_topics = fields.Text("Test Topics")
+
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]

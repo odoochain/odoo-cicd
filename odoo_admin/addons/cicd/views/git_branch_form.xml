@@ -43,6 +43,9 @@
 							<field name="block_updates_until"/>
 							<field name="database_size_human"/>
 						</group>
+						<group string="Test Topics">
+							<field name="test_topics" nolabel='1'/>
+						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>
 						</group>
