@@ -15,6 +15,8 @@
 						<field name="duration"/>
 						<field name="commit_id"/>
 						<field name="dump_used"/>
+						<field name="branch_id"/>
+						<field name="machine_id"/>
 					</group>
 					<group string="Error" style="font-size: 7pt;">
 						<field name="error" attrs="{'invisible': [('error', '=', False)]}"/>
