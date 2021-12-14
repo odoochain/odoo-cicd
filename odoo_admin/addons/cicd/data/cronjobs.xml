@@ -149,6 +149,7 @@ reasons = [
 	'could not serialize access due to concurrent update',
 	'paramiko',
 	'cannot stat',
+	'server closed the connection unexpectedly',
 ]
 for reason in reasons:
 	model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]).write({'state': 'pending'})</field>
