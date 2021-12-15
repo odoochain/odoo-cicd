@@ -18,6 +18,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class InvalidBranchName(Exception): pass
 class NewBranch(Exception): pass
 class Repository(models.Model):
     _name = 'cicd.git.repo'
@@ -97,6 +98,8 @@ class Repository(models.Model):
     @api.model
     def _clear_branch_name(self, branch):
         branch = branch.strip()
+        if any(x in branch for x in "():?*/\\!\"\'"):
+            raise InvalidBranchName(branch)
 
         if "->" in branch:
             branch = branch.split("->")[-1].strip()
@@ -119,7 +122,7 @@ class Repository(models.Model):
                 repo_path = repo._get_main_repo(logsio=logsio)
 
                 with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio) as shell:
-                    new_commits, updated_branches = {}, set()
+                    updated_branches = set()
 
                     for remote in repo._get_remotes(shell):
                         fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run']).stderr_output.strip().split("\n")))
@@ -129,25 +132,18 @@ class Repository(models.Model):
                             fi = fi.strip()
                             if '[new branch]' in fi:
                                 branch = fi.replace("[new branch]", "").split("->")[0].strip()
-                                start_commit = None
-                                end_commit = None
                             else:
                                 branch = fi.split("/")[-1]
-                                start_commit = fi.split("..")[0]
-                                end_commit = fi.split("..")[1].split(" ")[0]
-                            branch = repo._clear_branch_name(branch)
+                            try:
+                                branch = repo._clear_branch_name(branch)
+                            except InvalidBranchName:
+                                logsio.error("Invalid Branch name: {branch}")
+                                continue
                             updated_branches.add(branch)
-                            new_commits.setdefault(branch, set())
-                            if start_commit and end_commit:
-                                start_commit = shell.X(["git", "rev-parse", start_commit]).output.strip()
-                                end_commit = shell.X(["git", "rev-parse", end_commit]).output.strip()
-                                new_commits[branch] |= set(shell.X(["git", "rev-list", "--ancestry-path", f"{start_commit}..{end_commit}"]).output.strip().split("\n"))
-                            else:
-                                new_commits[branch] |= set(shell.X(["git", "log", "--format=%H"]).output.strip().split("\n"))
 
                         del fetch_info
 
-                    if not new_commits and not updated_branches:
+                    if not updated_branches:
                         continue
 
                     # checkout latest / pull latest
@@ -158,7 +154,6 @@ class Repository(models.Model):
                         shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
                     repo.with_delay()._cron_fetch_update_branches({
-                        'new_commits': dict((x, list(y)) for x, y in new_commits.items()),
                         'updated_branches': list(updated_branches),
                     })
 
@@ -180,7 +175,6 @@ class Repository(models.Model):
             yield branch.split("/")[-1].strip()
 
     def _cron_fetch_update_branches(self, data):
-        new_commits = data['new_commits']
         repo = self
         updated_branches = data['updated_branches']
         logsio = LogsIOWriter(repo.name, 'fetch')
@@ -195,7 +189,6 @@ class Repository(models.Model):
                 for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
                     branch = self._clear_branch_name(branch)
                     updated_branches.append(branch)
-                    new_commits[branch] = None # for the parameter laster as None
 
             for branch in updated_branches:
                 shell.X(["git", "checkout", "-f", branch])
@@ -210,7 +203,7 @@ class Repository(models.Model):
                         'repo_id': repo.id,
                     })
                     branch._checkout_latest(shell, logsio=logsio, machine=machine)
-                    branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
+                    branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
 
                 shell.X(["git", "checkout", "-f", repo.default_branch])
                 del name
