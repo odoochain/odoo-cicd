@@ -408,3 +408,11 @@ class GitBranch(models.Model):
 
         ids = self.search([]).filtered(lambda x: x.project_name.lower() == value.lower()).ids
         return [('id', 'in', ids)]
+
+    @api.model
+    def _cron_check_blocking_done(self):
+        dt = arrow.get().now().strftime("%Y-%m-%d %H:%M:%S")
+        for branch in self.search([('block_updates_until', '<', dt)]):
+            branch.block_updates_until = False
+            branch.update_all_modules()
+

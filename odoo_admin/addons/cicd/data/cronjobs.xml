@@ -119,12 +119,11 @@ env['cicd.dump']._cron_update()
 			<field name="name">clear_old_queuejobs</field>
 			<field name="interval_number">5</field>
 			<field name="interval_type">hours</field>
-			<field name="model_id" ref="queue_job.model_queuejob" />
+			<field name="model_id" ref="queue_job.model_queue_job" />
 			<field name="state">code</field>
 			<field name="code">
-import datetime
 dt = (datetime.datetime.now() - datetime.timedelta(days=20)).strftime("%Y-%m-%d %H:%M:%S")
-model.search([('state', '=', 'done'), ('date_created', '<', dt)]).unlink()</field>
+model.search([('state', '=', 'done'), ('date_created', '&lt;', dt)]).unlink()</field>
 			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
@@ -150,16 +149,9 @@ for reason in reasons:
 			<field name="name">after_blocking_done_update</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">minutes</field>
-			<field name="model_id" ref="" />
+			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
-			<field name="code">
-import datetime
-dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-for branch in model.search([('block_updates_until', '<', dt)]):
-  branch.block_updates_until = False
-  branch.update_all_modules()
-
-</field>
+			<field name="code">model._cron_check_blocking_done()</field>
 			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>

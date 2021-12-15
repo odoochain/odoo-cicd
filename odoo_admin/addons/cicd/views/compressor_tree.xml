@@ -5,6 +5,7 @@
 			<field name="model">cicd.compressor</field>
 			<field name="arch" type="xml">
 				<tree editable="bottom">
+				<button name="show_queuejobs" string="" icon="fa-tasks" type="object" />
 					<field name="active" widget="boolean_toggle"/>
 					<field name="source_volume_id"/>
 					<field name="regex"/>

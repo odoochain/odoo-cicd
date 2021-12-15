@@ -60,3 +60,16 @@ class Compressor(models.Model):
                 rec.performance = 0
             rec.last_input_size_human = humanize.naturalsize(rec.last_input_size or 0)
             rec.last_output_size_human = humanize.naturalsize(rec.last_output_size or 0)
+
+    def show_queuejobs(self):
+        jobs = self.branch_id.mapped('task_ids').filtered(lambda x: 'compress' in x.name).mapped('queue_job_id')
+
+        return {
+            'name': f"Compressor-Jobs of {self.branch_id.name}",
+            'view_type': 'form',
+            'res_model': jobs._name,
+            'domain': [('id', 'in', jobs.ids)],
+            'views': [(False, 'tree'), (False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }
