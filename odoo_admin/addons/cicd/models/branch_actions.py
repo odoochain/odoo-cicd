@@ -273,7 +273,8 @@ class Branch(models.Model):
     def _reset(self, task, shell, **kwargs):
         shell.odoo('db', 'reset', '--do-not-install-base')
 
-    def _checkout_latest(self, shell, machine, logsio, **kwargs):
+    def _checkout_latest(self, shell, logsio, machine=None, **kwargs):
+        machine = machine or shell.machine
         logsio.write_text(f"Updating instance folder {self.name}")
         instance_folder = self._get_instance_folder(machine)
         root_folder = self.repo_id._get_main_repo(logsio=logsio)
@@ -395,4 +396,4 @@ class Branch(models.Model):
     def _make_sure_source_exists(self, shell, logsio):
         instance_folder = self._get_instance_folder(shell.machine)
         if not shell.exists(instance_folder) or not shell.exists(instance_folder / '.git'):
-            self._checkout_latest(shell, shell.machine, logsio=logsio)
+            self._checkout_latest(shell, logsio=logsio)

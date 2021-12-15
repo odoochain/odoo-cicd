@@ -209,7 +209,7 @@ class Repository(models.Model):
                         'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
                         'repo_id': repo.id,
                     })
-                    branch._checkout_latest(shell, machine, logsio)
+                    branch._checkout_latest(shell, logsio=logsio, machine=machine)
                     branch._update_git_commits(shell, logsio, force_instance_folder=repo_path, force_commits=new_commits[name])
 
                 shell.X(["git", "checkout", "-f", repo.default_branch])
@@ -223,7 +223,7 @@ class Repository(models.Model):
                 repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
                 branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
                 for branch in branches:
-                    branch._checkout_latest(shell, machine, logsio)
+                    branch._checkout_latest(shell, logsio=logsio, machine=machine)
                     branch._update_git_commits(shell, logsio)
                     branch._compute_state()
                     branch._trigger_rebuild_after_fetch(machine=machine)
