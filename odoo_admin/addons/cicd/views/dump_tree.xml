@@ -5,7 +5,7 @@
 			<field name="model">cicd.dump</field>
 			<field name="arch" type="xml">
 				<tree default_order="" string="" >
-					<button name="download" string="" type="object" icon="fa-external-link" groups="cicd.group_download_dumps"/>
+					<button name="download" string="" type="object" icon="fa-download" groups="cicd.group_download_dumps"/>
 					<field name="name"/>
 					<field name="machine_id"/>
 					<field name="size_human"/>
