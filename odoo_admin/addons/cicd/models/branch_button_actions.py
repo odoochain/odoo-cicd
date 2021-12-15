@@ -126,3 +126,6 @@ class Branch(models.Model):
 
     def refresh_tasks(self):
         return True
+
+    def checkout_latest(self):
+        self._make_task("_checkout_latest", now=True)
