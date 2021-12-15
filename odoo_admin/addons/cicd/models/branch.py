@@ -75,7 +75,7 @@ class GitBranch(models.Model):
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     block_release = fields.Boolean("Block Release")
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
-    block_updates_until = fields.Datetime("Block updates until")
+    block_updates_until = fields.Datetime("Block updates until", track_visibility='onchange')
 
     test_topics = fields.Text("Test Topics")
 
