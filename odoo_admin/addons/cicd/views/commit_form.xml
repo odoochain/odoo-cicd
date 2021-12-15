@@ -13,6 +13,14 @@
 						<button type="object" class="oe_stat_button" icon="fa-times" name="set_declined" string="Decline" />
 						<button type="object" class="oe_stat_button" icon="fa-check" name="set_approved" string="Approve" />
 					</div>
+					<div>
+					<h2>Following commands are supported within git commits:</h2>
+
+					<ul>
+						<li><b>REVIEW</b> - sets this commit to be reviewed</li>
+					</ul>
+					
+					</div>
 					<group col="2">
 						<field name="name" readonly='1' />
 						<field name="date" readonly='1' />
