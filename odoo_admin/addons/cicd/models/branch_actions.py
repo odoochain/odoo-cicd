@@ -116,6 +116,7 @@ class Branch(models.Model):
         shell.odoo('turn-into-dev')
 
     def _reload(self, shell, task, logsio, project_name=None, **kwargs):
+        self._make_sure_source_exists()
         self._make_instance_docker_configs(shell, forced_project_name=project_name) 
         shell.odoo('reload')
 
@@ -390,3 +391,8 @@ class Branch(models.Model):
 
                 finally:
                     shell.rmifexists(instance_path)
+
+    def _make_sure_source_exists(self, shell, logsio):
+        instance_folder = self._get_instance_folder(shell.machine)
+        if not shell.exists(instance_folder) or not shell.exists(instance_folder / '.git'):
+            self._checkout_latest(shell, shell.machine, logsio=logsio)
