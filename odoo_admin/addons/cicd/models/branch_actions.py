@@ -116,7 +116,7 @@ class Branch(models.Model):
         shell.odoo('turn-into-dev')
 
     def _reload(self, shell, task, logsio, project_name=None, **kwargs):
-        self._make_sure_source_exists()
+        self._make_sure_source_exists(shell, logsio)
         self._make_instance_docker_configs(shell, forced_project_name=project_name) 
         shell.odoo('reload')
 
