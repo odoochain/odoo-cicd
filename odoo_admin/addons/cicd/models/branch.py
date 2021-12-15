@@ -73,7 +73,7 @@ class GitBranch(models.Model):
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
-    block_release = fields.Boolean("Block Release", track_visibility='onchange'))
+    block_release = fields.Boolean("Block Release", track_visibility='onchange')
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
     block_updates_until = fields.Datetime("Block updates until", track_visibility='onchange')
 
