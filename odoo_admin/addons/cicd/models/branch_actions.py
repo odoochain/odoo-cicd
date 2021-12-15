@@ -27,7 +27,7 @@ class Branch(models.Model):
         if commit:
             try:
                 logsio.info("Updating")
-                shell.odoo("update", "--since-git-sha", commit)
+                shell.odoo("update", "--since-git-sha", commit, "--no-dangling-check")
             except Exception as ex:
                 logger.error(ex)
                 logsio.error(ex)
@@ -42,7 +42,7 @@ class Branch(models.Model):
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Updating")
-        shell.odoo('update')
+        shell.odoo('update', "--no-dangling-check")
         logsio.info("Upping")
         shell.odoo("up", "-d")
 
