@@ -30,7 +30,7 @@ class GitBranch(models.Model):
     date = fields.Datetime("Date")
     repo_id = fields.Many2one('cicd.git.repo', string="Repository", required=True)
     repo_short = fields.Char(related="repo_id.short")
-    active = fields.Boolean("Active", default=True)
+    active = fields.Boolean("Active", default=True, track_visibility='onchange')
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     commit_ids_ui = fields.Many2many('cicd.git.commit', string="Commits", compute="_compute_commit_ids")
     current_task = fields.Char(compute="_compute_current_task")
@@ -58,11 +58,11 @@ class GitBranch(models.Model):
         ('fail', 'Failed'),
         ('done', 'Done'),
         ('building', 'Building'),
-    ], default="new", required=True, compute="_compute_build_state", string="Instance State")
+    ], default="new", required=True, compute="_compute_build_state", string="Instance State", track_visibility='onchange')
     dump_id = fields.Many2one("cicd.dump", string="Dump")
-    reload_config = fields.Text("Reload Config")
-    autobackup = fields.Boolean("Autobackup") # TODO implement
-    enduser_summary = fields.Text("Enduser Summary")
+    reload_config = fields.Text("Reload Config", track_visibility='onchange')
+    autobackup = fields.Boolean("Autobackup", track_visibility='onchange') # TODO implement
+    enduser_summary = fields.Text("Enduser Summary", track_visibility='onchange')
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
     release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
 
@@ -73,11 +73,11 @@ class GitBranch(models.Model):
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
-    block_release = fields.Boolean("Block Release")
+    block_release = fields.Boolean("Block Release", track_visibility='onchange'))
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
     block_updates_until = fields.Datetime("Block updates until", track_visibility='onchange')
 
-    test_topics = fields.Text("Test Topics")
+    test_topics = fields.Text("Test Topics", track_visibility='onchange')
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
