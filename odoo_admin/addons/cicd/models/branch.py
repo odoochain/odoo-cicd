@@ -175,7 +175,7 @@ class GitBranch(models.Model):
                     state = 'candidate'
                 elif any(x.mapped('branch_ids').contains_commit(commit) for x in all_done_items):
                     state = 'done'
-                elif (commit.test_state in [False, 'open'] and not rec.any_testing) or commit.force_approved:
+                elif (commit.test_state in [False, 'open'] and not rec.any_testing) or commit.test_state == 'success' or commit.force_approved:
                     state = 'tested'
 
             if state != rec.state:
