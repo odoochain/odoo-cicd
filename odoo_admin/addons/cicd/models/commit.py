@@ -66,8 +66,7 @@ class GitCommit(models.Model):
     def _evaluate_message(self):
         for rec in self:
             if "REVIEW" in rec.text:
-                rec.branch_ids.set_state('to_review')
-        pass
+                rec.approval_state = 'check'
 
     def open_window(self):
         return {
