@@ -416,4 +416,3 @@ class GitBranch(models.Model):
             branch.block_updates_until = False
             branch.update_all_modules()
 
-

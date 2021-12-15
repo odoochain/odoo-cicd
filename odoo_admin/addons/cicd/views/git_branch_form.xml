@@ -73,7 +73,7 @@
 								<button name="refresh_tasks" string="" type="object" icon="fa-recycle"/>
 								<newline/>
 								<field name="task_ids_filtered" nolabel="1" readonly="1">
-									<tree>
+									<tree decoration-danger="state == 'failed'" decoration-success="state == 'done'">
 										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
 										<button name="perform" string="Perform" type="object" groups="base.group_no_one"/>
 										<button name="requeue" type="object" icon="fa-repeat" states='failed'/>
