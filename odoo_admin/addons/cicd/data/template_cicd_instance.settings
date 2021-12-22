@@ -4,6 +4,7 @@ RUN_PROXY_PUBLISHED=0
 RUN_CRONJOBS=0
 RUN_CUPS=0
 RUN_POSTGRES=0
+RUN_MAIL=1
 DB_HOST={machine.postgres_server_id.db_host}
 DB_USER={machine.postgres_server_id.db_user}
 DB_PWD={machine.postgres_server_id.db_pwd}
