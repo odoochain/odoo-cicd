@@ -141,7 +141,7 @@ reasons = [
 	'server closed the connection unexpectedly',
 	'RetryableJobError',
 	'Failed to put the local file',
-	'm = self.BEGIN_TAG.match(lines[start])',  # paramiko
+	'self.BEGIN_TAG.match(lines[start])',  # paramiko
 	'.git/index.lock',
 ]
 for reason in reasons:
