@@ -300,7 +300,7 @@ class Branch(models.Model):
         except Exception as ex:
             logsio.error(ex)
             shell.rmifexists(instance_folder)
-            raise RetryableJobError(ignore_retry=True)
+            raise RetryableJobError("Cleared directory - branch not found - please retry", ignore_retry=True)
 
         shell.X(["git", "pull"])
 
