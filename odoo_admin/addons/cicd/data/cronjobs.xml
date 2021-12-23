@@ -142,6 +142,7 @@ reasons = [
 	'RetryableJobError',
 	'Failed to put the local file',
 	'm = self.BEGIN_TAG.match(lines[start])',  # paramiko
+	'.git/index.lock',
 ]
 for reason in reasons:
 	model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]).write({'state': 'pending'})</field>
