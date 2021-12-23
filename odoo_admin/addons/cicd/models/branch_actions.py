@@ -277,6 +277,7 @@ class Branch(models.Model):
         machine = machine or shell.machine
         logsio.write_text(f"Updating instance folder {self.name}")
         instance_folder = self._get_instance_folder(machine)
+        self.repo_id._lock_git()
         root_folder = self.repo_id._get_main_repo(logsio=logsio)
         logsio.write_text(f"Cloning {self.name} to {instance_folder}")
         shell.X(["rsync", str(root_folder) + "/", str(instance_folder) + "/", "-ar", '--delete-after'])
