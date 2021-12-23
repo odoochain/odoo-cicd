@@ -273,6 +273,15 @@ class Branch(models.Model):
     def _reset(self, task, shell, **kwargs):
         shell.odoo('db', 'reset', '--do-not-install-base')
 
+    @api.model
+    def _cron_garbage_collect(self):
+        for branch in self.search([('garbage_collect', '=', True)]):
+            branch.garbage_collect()
+
+    def _gc(self, shell, logsio, **kwargs):
+        logsio.write_text(f"Compressing git")
+        shell.X(["git", "gc", "--aggressive", "--prune=now"])
+
     def _checkout_latest(self, shell, logsio, machine=None, **kwargs):
         machine = machine or shell.machine
         logsio.write_text(f"Updating instance folder {self.name}")
@@ -295,10 +304,6 @@ class Branch(models.Model):
             if branch == self.name: continue
             shell.X(["git", "branch", "-D", branch])
             del branch
-
-        if self.repo_id.garbage_collect:
-            logsio.write_text(f"Compressing git")
-            shell.X(["git", "gc", "--aggressive", "--prune=now"])
 
         logsio.write_text(f"Clean git")
         shell.X(["git", "clean", "-xdff"])

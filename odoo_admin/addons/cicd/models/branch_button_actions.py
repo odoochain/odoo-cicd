@@ -129,3 +129,6 @@ class Branch(models.Model):
 
     def checkout_latest(self):
         self._make_task("_checkout_latest", now=False)
+
+    def garbage_collect(self):
+        self._make_task("_gc")

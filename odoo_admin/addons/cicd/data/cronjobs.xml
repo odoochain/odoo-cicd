@@ -158,5 +158,15 @@ for reason in reasons:
 			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
+		<record id="garbage_collect_job" model="ir.cron">
+			<field name="name">garbage_collect git</field>
+			<field name="interval_number">4</field>
+			<field name="interval_type">hours</field>
+			<field name="model_id" ref="model_cicd_git_branch" />
+			<field name="state">code</field>
+			<field name="code">model._cron_garbage_collect()</field>
+			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
 	</data>
 </odoo>
