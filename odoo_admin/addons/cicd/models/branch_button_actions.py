@@ -128,4 +128,4 @@ class Branch(models.Model):
         return True
 
     def checkout_latest(self):
-        self._make_task("_checkout_latest", now=True)
+        self._make_task("_checkout_latest", now=False)

@@ -245,10 +245,10 @@ class GitBranch(models.Model):
                 raise ValidationError(_("Task already exists. Not triggered again."))
             task = rec.env['cicd.task'].sudo().create({
                 'model': self._name,
-                'res_id': self.id,
+                'res_id': rec.id,
                 'name': execute,
-                'branch_id': self.id,
-                'machine_id': (machine and machine.id) or self.machine_id.id,
+                'branch_id': rec.id,
+                'machine_id': (machine and machine.id) or rec.machine_id.id,
                 'kwargs': json.dumps(kwargs),
             })
             task.perform(now=now)

@@ -139,6 +139,9 @@ reasons = [
 	'paramiko',
 	'cannot stat',
 	'server closed the connection unexpectedly',
+	'RetryableJobError',
+	'Failed to put the local file',
+	'm = self.BEGIN_TAG.match(lines[start])',  # paramiko
 ]
 for reason in reasons:
 	model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]).write({'state': 'pending'})</field>

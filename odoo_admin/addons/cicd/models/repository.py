@@ -44,6 +44,7 @@ class Repository(models.Model):
     never_cleanup = fields.Boolean("Never Cleanup")
     cleanup_untouched = fields.Integer("Cleanup after days", default=20, required=True)
     autofetch = fields.Boolean("Autofetch", default=True)
+    garbage_collect = fields.Boolean("Garbage Collect to reduce size", default=True)
 
     make_dev_dumps = fields.Boolean("Make Dev Dumps")
 
@@ -74,7 +75,7 @@ class Repository(models.Model):
             else:
                 rec.url = rec.name
 
-    def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None, machine=None):
+    def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None, machine=None, limit_branch=None):
         self.ensure_one()
         from . import MAIN_FOLDER_NAME
         machine = machine or self.machine_id
@@ -88,7 +89,12 @@ class Repository(models.Model):
             temppath = tempfile.mktemp()
         if temppath and temppath != path:
             with machine._shellexec(self.machine_id.workspace, logsio=logsio) as shell:
-                shell.X(['rsync', f"{path}/", f"{temppath}/", "-ar"])
+                if not shell.exists(temppath):
+                    cmd = ["git", "clone"]
+                    if limit_branch:
+                        cmd += ["--branch", limit_branch]
+                    cmd += [path, temppath]
+                    shell.X(cmd)
         return temppath
 
     def _get_remotes(self, shell):
@@ -233,6 +239,7 @@ class Repository(models.Model):
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
             if not shell.exists(path):
+                self._lock_git()
                 shell.X([
                     "git", "clone", self.url,
                     path

@@ -277,14 +277,28 @@ class Branch(models.Model):
         machine = machine or shell.machine
         logsio.write_text(f"Updating instance folder {self.name}")
         instance_folder = self._get_instance_folder(machine)
-        self.repo_id._lock_git()
-        root_folder = self.repo_id._get_main_repo(logsio=logsio)
         logsio.write_text(f"Cloning {self.name} to {instance_folder}")
-        shell.X(["rsync", str(root_folder) + "/", str(instance_folder) + "/", "-ar", '--delete-after'])
+        self.repo_id._get_main_repo(
+            logsio=logsio,
+            destination_folder=instance_folder,
+            limit_branch=self.name,
+            machine=machine,
+        )
         shell.cwd = instance_folder
-
         logsio.write_text(f"Checking out {self.name}")
         shell.X(["git", "checkout", "-f", self.name])
+        shell.X(["git", "pull"])
+
+        # delete all other branches:
+        for branch in list(filter(lambda x: '* ' not in x, shell.X(["git", "branch"]).output.strip().split("\n"))):
+            branch = self.repo_id._clear_branch_name(branch)
+            if branch == self.name: continue
+            shell.X(["git", "branch", "-D", branch])
+            del branch
+
+        if self.repo_id.garbage_collect:
+            logsio.write_text(f"Compressing git")
+            shell.X(["git", "gc", "--aggressive", "--prune=now"])
 
         logsio.write_text(f"Clean git")
         shell.X(["git", "clean", "-xdff"])

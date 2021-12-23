@@ -30,6 +30,7 @@
 							<field name="ticket_system_base_url"/>
 							<field name="ticket_system_regex"/>
 							<field name="autofetch"/>
+							<field name="garbage_collect"/>
 						</group>
 						<notebook>
 							<page name="cleanup" string="Cleanup">
