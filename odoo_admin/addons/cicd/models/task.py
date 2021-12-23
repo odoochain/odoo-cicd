@@ -90,7 +90,9 @@ class Task(models.Model):
             dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
             with self.machine_id._shellexec(dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
                 self.branch_id.repo_id._get_main_repo(
-                    destination_folder=dest_folder
+                    destination_folder=dest_folder,
+                    machine=self.machine_id,
+                    limit_branch=self.branch_id.name,
                     )
                 obj = self.env[self.model].sudo().browse(self.res_id)
                 sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()

@@ -295,7 +295,13 @@ class Branch(models.Model):
         )
         shell.cwd = instance_folder
         logsio.write_text(f"Checking out {self.name}")
-        shell.X(["git", "checkout", "-f", self.name])
+        try:
+            shell.X(["git", "checkout", "-f", self.name])
+        except Exception as ex:
+            logsio.error(ex)
+            shell.rmifexists(instance_folder)
+            raise RetryableJobError(ignore_retry=True)
+
         shell.X(["git", "pull"])
 
         # delete all other branches:
@@ -424,4 +430,8 @@ class Branch(models.Model):
     def _make_sure_source_exists(self, shell, logsio):
         instance_folder = self._get_instance_folder(shell.machine)
         if not shell.exists(instance_folder) or not shell.exists(instance_folder / '.git'):
-            self._checkout_latest(shell, logsio=logsio)
+            try:
+                self._checkout_latest(shell, logsio=logsio)
+            except Exception as ex:
+                shell.rmifexists(instance_folder)
+                self._checkout_latest(shell, logsio=logsio)
