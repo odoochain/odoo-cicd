@@ -305,6 +305,14 @@ class Branch(models.Model):
             shell.X(["git", "branch", "-D", branch])
             del branch
 
+        current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"]).output.strip().split("\n")))
+        if not current_branch:
+            raise Exception(f"Somehow no current branch found")
+        branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
+        if branch_in_dir != self.name:
+            shell.rmifexists(instance_folder)
+            raise Exception(f"Branch could not be checked out! Was {branch_in_dir} - but should be {self.name}")
+
         logsio.write_text(f"Clean git")
         shell.X(["git", "clean", "-xdff"])
 

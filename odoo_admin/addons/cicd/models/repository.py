@@ -90,6 +90,11 @@ class Repository(models.Model):
         if temppath and temppath != path:
             with machine._shellexec(self.machine_id.workspace, logsio=logsio) as shell:
                 if not shell.exists(temppath):
+                    if limit_branch:
+                        # make sure branch exists in source repo
+                        with machine._shellexec(path, logsio=logsio) as tempshell:
+                            tempshell.X(["git", "checkout", "-f", limit_branch])
+
                     cmd = ["git", "clone"]
                     if limit_branch:
                         cmd += ["--branch", limit_branch]
