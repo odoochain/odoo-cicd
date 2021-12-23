@@ -131,7 +131,7 @@ class Task(models.Model):
         dt = arrow.get().shift(days=-10).strftime("%Y-%m-%d %H:%M:%S")
         self.search([
             ('create_date', '<', dt)
-            ].unlink())
+            ]).unlink()
 
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in ['failed']):
