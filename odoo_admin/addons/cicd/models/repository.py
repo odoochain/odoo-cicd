@@ -43,6 +43,7 @@ class Repository(models.Model):
     default_simulate_install_id_dump_id = fields.Many2one('cicd.dump', string="Default Simluate Install Dump")
     never_cleanup = fields.Boolean("Never Cleanup")
     cleanup_untouched = fields.Integer("Cleanup after days", default=20, required=True)
+    autofetch = fields.Boolean("Autofetch", default=True)
 
     make_dev_dumps = fields.Boolean("Make Dev Dumps")
 
@@ -98,15 +99,17 @@ class Repository(models.Model):
     @api.model
     def _clear_branch_name(self, branch):
         branch = branch.strip()
-        if any(x in branch for x in "():?*/\\!\"\'"):
-            raise InvalidBranchName(branch)
 
         if "->" in branch:
             branch = branch.split("->")[-1].strip()
 
         if "* " in branch:
             branch = branch.replace("* ", "")
-        return branch.strip()
+        branch = branch.strip()
+
+        if any(x in branch for x in "():?*/\\!\"\'"):
+            raise InvalidBranchName(branch)
+        return branch
 
     def fetch(self):
         self._cron_fetch()
@@ -114,7 +117,7 @@ class Repository(models.Model):
     @api.model
     def _cron_fetch(self):
         logsio = None
-        for repo in self.search([]):
+        for repo in self.search([('autofetch', '=', True)]):
             try:
                 repo._lock_git()
                 logsio = LogsIOWriter(repo.name, 'fetch')
@@ -183,7 +186,6 @@ class Repository(models.Model):
         machine = repo.machine_id
 
         with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
-            all_remote_branches = list(self._clean_remote_branches(shell.X(["git", "branch", "-r"]).output.strip().split("\n")))
             # if completely new then all branches:
             if not repo.branch_ids:
                 for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
@@ -228,10 +230,11 @@ class Repository(models.Model):
                 raise RetryableJobError(_("Git is in other use at the moment"), seconds=10, ignore_retry=True)
 
     def clone_repo(self, machine, path, logsio):
-        with machine._gitshell(self, cwd="~", logsio=logsio) as shell:
+        with machine._gitshell(self, cwd="", logsio=logsio) as shell:
             if not shell.exists(path):
                 shell.X([
-                    ["git", "clone", self.url, path],
+                    "git", "clone", self.url,
+                    path
                 ])
 
     def _collect_latest_tested_commits(self, source_branches, target_branch, logsio, critical_date):

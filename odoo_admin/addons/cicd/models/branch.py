@@ -294,7 +294,7 @@ class GitBranch(models.Model):
         if test_request():
             return
 
-        if self.task_ids.filtered(lambda x: not x.is_done):
+        if self.task_ids.filtered(lambda x: not x.is_done and x.state):
             raise ValidationError(_("Instance did not respond. Undone task exists. Please retry later!"))
 
         raise ValidationError(_("Instance did not respond. It was tried to start the application but this did not succeed. Please check task logs."))
