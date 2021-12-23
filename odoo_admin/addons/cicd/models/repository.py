@@ -152,6 +152,7 @@ class Repository(models.Model):
                     # checkout latest / pull latest
                     for branch in updated_branches:
                         logsio.info(f"Pulling {branch}...")
+                        shell.X(["git", "fetch", "origin", branch])
                         shell.X(["git", "checkout", "-f", branch])
                         shell.X(["git", "pull"])
                         shell.X(["git", "submodule", "update", "--init", "--recursive"])
