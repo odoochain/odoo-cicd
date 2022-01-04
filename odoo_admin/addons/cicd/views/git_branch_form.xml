@@ -94,6 +94,7 @@
 									<button name="turn_into_dev" string="Turn into DEV (mailserver, logins)" type="object" />
 									<button name="reset_db" string="Reset DB" type="object" confirm="ALL DATA LOST - continue?" style='background-color: #dc3545;' />
 									<button name="garbage_collect" string="Garbage Collect" type="object" />
+									<button name="update_all_modules" string="Update All Modules" type="object" />
 								</group>
 							</page>
 							<page name="backup" string="Backup/Restore">
