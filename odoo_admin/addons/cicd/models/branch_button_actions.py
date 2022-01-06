@@ -9,6 +9,9 @@ class Branch(models.Model):
     def update_all_modules(self):
         self._make_task("_update_all_modules")
 
+    def update_installed_modules(self):
+        self._make_task("_update_installed_modules")
+
     def build(self):
         self._make_task("_build")
 

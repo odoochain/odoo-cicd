@@ -95,6 +95,7 @@
 									<button name="reset_db" string="Reset DB" type="object" confirm="ALL DATA LOST - continue?" style='background-color: #dc3545;' />
 									<button name="garbage_collect" string="Garbage Collect" type="object" />
 									<button name="update_all_modules" string="Update All Modules" type="object" />
+									<button name="update_installed_modules" string="Update Installed Modules" type="object" />
 								</group>
 							</page>
 							<page name="backup" string="Backup/Restore">

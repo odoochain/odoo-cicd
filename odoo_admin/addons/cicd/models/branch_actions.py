@@ -46,6 +46,16 @@ class Branch(models.Model):
         logsio.info("Upping")
         shell.odoo("up", "-d")
 
+    def _update_installed_modules(self, shell, task, logsio, **kwargs):
+        logsio.info("Reloading")
+        self._reload(shell, task, logsio)
+        logsio.info("Building")
+        shell.odoo('build')
+        logsio.info("Updating")
+        shell.odoo('update', "--no-dangling-check", "--installed-modules")
+        logsio.info("Upping")
+        shell.odoo("up", "-d")
+
     def _reload_and_restart(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
         logsio.info("Building")
