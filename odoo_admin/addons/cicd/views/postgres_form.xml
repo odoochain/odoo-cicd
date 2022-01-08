@@ -9,12 +9,13 @@
 						<button name="update_databases" string="Update Databases" type="object" />
 					</header>
 					<sheet>
-						<group string="title" col="2">
+						<group string="Postgres Server" col="2">
 							<field name="name" />
 							<field name="db_host" />
 							<field name="db_port" />
 							<field name="db_user" />
 							<field name="db_pwd" password="True" />
+							<field name="ttype" />
 						</group>
 						<notebook>
 							<page name="databases" string="Databases">

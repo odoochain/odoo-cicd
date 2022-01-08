@@ -9,11 +9,15 @@ class PostgresServer(models.Model):
 
     name = fields.Char("Name")
 
-    db_host = fields.Char("DB Host", default="cicd_postgres")
-    db_user = fields.Char("DB User", default="cicd")
-    db_pwd = fields.Char("DB Password", default="cicd_is_cool")
-    db_port = fields.Integer("DB Port", default=5432)
+    db_host = fields.Char("DB Host", default="cicd_postgres", required=True)
+    db_user = fields.Char("DB User", default="cicd", required=True)
+    db_pwd = fields.Char("DB Password", default="cicd_is_cool", required=True)
+    db_port = fields.Integer("DB Port", default=5432, required=True)
     database_ids = fields.One2many('cicd.database', 'server_id', string="Databases")
+    ttype = fields.Selection([
+        ('production', "Production"),
+        ('dev', 'Dev'),
+    ], string="Type", required=True)
 
     @api.model
     def default_get(self, fields):

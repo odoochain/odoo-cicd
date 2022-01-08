@@ -78,6 +78,7 @@ class GitBranch(models.Model):
     block_updates_until = fields.Datetime("Block updates until", track_visibility='onchange')
 
     test_topics = fields.Text("Test Topics", track_visibility='onchange')
+    allowed_backup_machine_ids = fields.Many2many('cicd.machine', string="Allowed Backup Machines", compute="_compute_allowed_machines")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
@@ -416,4 +417,8 @@ class GitBranch(models.Model):
         for branch in self.search([('block_updates_until', '<', dt)]):
             branch.block_updates_until = False
             branch.update_all_modules()
+    
+    def _compute_allowed_machines(self):
+        for rec in self:
+            rec.allowed_backup_machine_ids = self.env['cicd.machine'].search([('postgres_server_id.ttype', '=', 'dev')])
 
