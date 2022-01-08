@@ -254,28 +254,29 @@ class Repository(models.Model):
                     path
                 ])
 
-    def _collect_latest_tested_commits(self, source_branches, target_branch, logsio, critical_date):
+    def _collect_latest_tested_commits(self, source_branches, target_branch_name, logsio, critical_date):
         """
         Iterate all branches and get the latest commit that fall into the countdown criteria.
         """
+        # TODO
         self.ensure_one()
 
         # we use a working repo
-        assert target_branch._name == 'cicd.git.branch'
-        assert target_branch
+        assert target_branch_name
         assert source_branches._name == 'cicd.git.branch'
         machine = self.machine_id
         repo_path = self._get_main_repo(tempfolder=True)
         commits = self.env['cicd.git.commit']
-        with machine._gitshell(repo, cwd=repo_path, logsio=logsio, env=env):
+        repo = self.with_context(active_test=False)
+        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
 
                 # clear the current candidate
-                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + target_branch.name], allow_error=True)
+                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + target_branch_name], allow_error=True)
                 if not res.return_code:
-                    shell.X(["/usr/bin/git", "branch", "-D", target_branch.name])
+                    shell.X(["/usr/bin/git", "branch", "-D", target_branch_name])
                 logsio.info("Making target branch {target_branch.name}")
-                shell.X(["/usr/bin/git", "checkout", "-b", target_branch.name])
+                shell.X(["/usr/bin/git", "checkout", "-b", target_branch_name])
 
                 for branch in source_branches:
                     for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
@@ -292,13 +293,22 @@ class Repository(models.Model):
                         # we want to rely on stand behaviour git.
                         shell.X(["/usr/bin/git", "checkout", "-f", branch.name])
                         shell.X(["/usr/bin/git", "reset", "--hard", commit.name])
-                        shell.X(["/usr/bin/git", "checkout", "-f", target_branch.name])
+                        shell.X(["/usr/bin/git", "checkout", "-f", target_branch_name])
                         shell.X(["/usr/bin/git", "merge", "-f", branch.name])
-                        shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch.name])
+                        shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch_name])
+
+                if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
+                    target_branch = repo.branch_ids.create({
+                        'name': target_branch_name,
+                    })
+                if not target_branch.active:
+                    target_branch.active = True
+                target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
 
 
             finally:
                 shell.rmifexists(repo_path)
+
         return commits
 
     def _merge(self, source, dest, set_tags, logsio=None):

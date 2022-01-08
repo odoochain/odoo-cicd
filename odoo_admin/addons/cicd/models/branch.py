@@ -134,7 +134,7 @@ class GitBranch(models.Model):
         self.state = state
 
     @api.depends(
-        "block_release",
+        # "block_release", # not needed here - done in _onchange_state_event
         "commit_ids",
         "commit_ids.approval_state",
         "commit_ids.test_state",
@@ -188,7 +188,7 @@ class GitBranch(models.Model):
 
             def _update():
                 self.env['cicd.release.item'].search([
-                    ('state', '=', 'new'),
+                    ('state', '=', ['new', 'failed']),
                     ('release_id.repo_id', '=', rec.repo_id.id)
                 ])._collect_tested_branches()
 

@@ -15,7 +15,7 @@ class Release(models.Model):
     machine_ids = fields.Many2many('cicd.machine', string="Machines")
     repo_id = fields.Many2one("cicd.git.repo", required=True, string="Repo", store=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Branch", required=True)
-    candidate_branch_id = fields.Many2one('cicd.git.branch', string="Candidate", required=True)
+    candidate_branch = fields.Char(string="Candidate", required=True, default="master_candidate")
     item_ids = fields.One2many('cicd.release.item', 'release_id', string="Release")
     auto_release = fields.Boolean("Auto Release")
     auto_release_cronjob_id = fields.Many2one('ir.cron', string="Scheduled Release")
@@ -52,11 +52,11 @@ class Release(models.Model):
             else:
                 rec.is_latest_release_done = items[0].date_done
 
-    @api.constrains("candidate_branch_id", "branch_id")
+    @api.constrains("candidate_branch", "branch_id")
     def _check_branches(self):
         for rec in self:
             for field in [
-                'candidate_branch_id',
+                'candidate_branch',
                 'branch_id',
             ]:
                 if not self[field]:
@@ -133,4 +133,4 @@ class Release(models.Model):
 
     def collect_tested_branches(self):
         for rec in self:
-            rec.item_ids.filtered(lambda x: x.state == 'new')._collect_tested_branches()
+            rec.item_ids.filtered(lambda x: x.state in ('new', 'failed'))._collect_tested_branches()

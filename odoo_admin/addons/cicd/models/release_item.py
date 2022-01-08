@@ -103,7 +103,7 @@ class ReleaseItem(models.Model):
             self.try_counter += 1
             release = self.release_id
             changed_lines = release.repo_id._merge(
-                release.candidate_branch_id,
+                release.candidate_branch,  # TODO
                 release.branch_id,
                 set_tags=[f'release-{self.name}'],
                 logsio=logsio,
@@ -139,10 +139,13 @@ class ReleaseItem(models.Model):
                 continue
             if rec.release_type != 'standard':
                 continue
+            release = rec.release_id
+            ignored_branch_names = (release.candidate_branch, release.branch_id.name)
             branches = self.env['cicd.git.branch'].search([
                 ('state', 'in', ['tested']),
+                ('block_release', '=', False),
                 ('id', 'not in', (rec.release_id.branch_id | rec.release_id.candidate_branch_id).ids),
-            ])
+            ]).filtered(lambda x: x.name not in ignored_branch_names)
             for b in branches:
                 if b not in rec.branch_ids:
                     rec.branch_ids += b
@@ -166,12 +169,14 @@ class ReleaseItem(models.Model):
         self.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release)
         commits = repo._collect_latest_tested_commits(
             source_branches=self.branch_ids,
-            target_branch=self.release_id.candidate_branch_id,
+            target_branch=self.release_id.candidate_branch,
             logsio=logsio,
             critical_date=self.final_curtain or arrow.get().datetime,
         )
         self.commit_ids = [[6, 0, commits.ids]]
-        (self.branch_ids | self.release_id.candidate_branch_id)._compute_state()
+        candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+        candidate_branch.ensure_one()
+        (repo.branch_id | self.branch_ids | candidate_branch)._compute_state()
 
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
