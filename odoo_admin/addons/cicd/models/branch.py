@@ -134,6 +134,7 @@ class GitBranch(models.Model):
         self.state = state
 
     @api.depends(
+        "block_release",
         "commit_ids",
         "commit_ids.approval_state",
         "commit_ids.test_state",
