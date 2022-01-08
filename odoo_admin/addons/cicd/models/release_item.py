@@ -100,6 +100,9 @@ class ReleaseItem(models.Model):
             raise ValidationError("Hotfix requires explicit branches.")
         if not self.commit_id:  # needs a collected commit with everything on it
             return
+        if self.commit_id.test_state == 'failed':
+            if self.state != 'failed':
+                self.state = f'failed'
         if self.commit_id.test_state != 'success':
             return
 
