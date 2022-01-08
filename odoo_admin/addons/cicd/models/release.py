@@ -24,6 +24,7 @@ class Release(models.Model):
     is_latest_release_done = fields.Boolean("Latest Release Done", compute="_compute_latest_release_done")
     state = fields.Selection(related='item_ids.state')
     planned_timestamp_after_preparation = fields.Integer("Release after preparation in minutes", default=60)
+    action_ids = fields.One2many('cicd.release.action', 'release_id', string="Release Actions")
 
     def toggle_active(self):
         for rec in self:

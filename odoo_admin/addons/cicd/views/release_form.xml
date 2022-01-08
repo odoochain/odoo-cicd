@@ -48,6 +48,13 @@
 									</tree>
 								</field>
 							</page>
+							<page string="Actions" name="actions">
+								<field name="action_ids">
+									<tree editable="bottom">
+										<field name="machine_id"/>
+									</tree>
+								</field>
+							</page>
 						</notebook>
 					</sheet>
 					<div class="oe_chatter">
