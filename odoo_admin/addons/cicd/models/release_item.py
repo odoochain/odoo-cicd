@@ -184,8 +184,8 @@ class ReleaseItem(models.Model):
             logsio=logsio,
             critical_date=self.final_curtain or arrow.get().datetime,
             make_info_commit_msg=
-                f"Release Item {self.id}"
-                f"Includes latest commits from: {', '.join(self.mapped('branch_ids.name'))}"
+                f"Release Item {self.id}\n"
+                f"Includes latest commits from:\n{', '.join(self.mapped('branch_ids.name'))}"
         )
         message_commit.approval_state = 'approved'
         self.commit_ids = [[6, 0, commits.ids]]
