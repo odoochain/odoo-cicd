@@ -144,7 +144,8 @@ class ReleaseItem(models.Model):
             branches = self.env['cicd.git.branch'].search([
                 ('state', 'in', ['tested']),
                 ('block_release', '=', False),
-                ('id', 'not in', (rec.release_id.branch_id | rec.release_id.candidate_branch_id).ids),
+                ('name', '!=', rec.release_id.candidate_branch.name),
+                ('id', 'not in', (rec.release_id.branch_id).ids),
             ]).filtered(lambda x: x.name not in ignored_branch_names)
             for b in branches:
                 if b not in rec.branch_ids:
