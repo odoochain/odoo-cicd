@@ -102,8 +102,12 @@ class ReleaseItem(models.Model):
         try:
             self.try_counter += 1
             release = self.release_id
+            candidate_branch = self.release_id.repo_id.with_context(active_test=False).branch_ids.filtered(lambda x: x.name == self.candidate_branch)
+            candidate_branch.ensure_one()
+            if not candidate_branch.active:
+                raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
             changed_lines = release.repo_id._merge(
-                release.candidate_branch,  # TODO
+                candidate_branch,
                 release.branch_id,
                 set_tags=[f'release-{self.name}'],
                 logsio=logsio,
@@ -144,7 +148,7 @@ class ReleaseItem(models.Model):
             branches = self.env['cicd.git.branch'].search([
                 ('state', 'in', ['tested']),
                 ('block_release', '=', False),
-                ('name', '!=', rec.release_id.candidate_branch.name),
+                ('name', '!=', rec.release_id.candidate_branch),
                 ('id', 'not in', (rec.release_id.branch_id).ids),
             ]).filtered(lambda x: x.name not in ignored_branch_names)
             for b in branches:
@@ -165,19 +169,19 @@ class ReleaseItem(models.Model):
 
         # fetch latest commits:
         logsio = self.release_id._get_logsio()
-        repo = self.release_id.repo_id
+        repo = self.release_id.repo_id.with_context(active_test=False)
         # remove blocked 
         self.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release)
         commits = repo._collect_latest_tested_commits(
             source_branches=self.branch_ids,
-            target_branch=self.release_id.candidate_branch,
+            target_branch_name=self.release_id.candidate_branch,
             logsio=logsio,
             critical_date=self.final_curtain or arrow.get().datetime,
         )
         self.commit_ids = [[6, 0, commits.ids]]
         candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
         candidate_branch.ensure_one()
-        (repo.branch_id | self.branch_ids | candidate_branch)._compute_state()
+        (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
 
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
