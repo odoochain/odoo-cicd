@@ -90,7 +90,7 @@
 								<group>
 									<button name="checkout_latest" string="Update Instance Source-Code" type="object" />
 									<button name="remove_web_assets" string="Remove Web Assets" type="object" />
-									<button name="cleardb" string="Clear DB" type="object" confirm="Deletes plenty of data. Continue?" />
+									<button name="cleardb" string="Shrink DB" type="object" confirm="Deletes plenty of data. Continue?" />
 									<button name="turn_into_dev" string="Turn into DEV (mailserver, logins)" type="object" />
 									<button name="reset_db" string="Reset DB" type="object" confirm="ALL DATA LOST - continue?" style='background-color: #dc3545;' />
 									<button name="garbage_collect" string="Garbage Collect" type="object" />

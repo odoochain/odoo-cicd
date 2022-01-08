@@ -222,7 +222,7 @@ class Branch(models.Model):
         logsio.info("Restarting...")
         shell.odoo('up', '-d')
 
-    def _clear_db(self, shell, task, logsio, **kwargs):
+    def _shrink_db(self, shell, task, logsio, **kwargs):
         shell.odoo('cleardb')
 
     def _anonymize(self, shell, task, logsio, **kwargs):
