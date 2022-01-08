@@ -196,6 +196,7 @@ class Repository(models.Model):
         repo_path = repo._get_main_repo(logsio=logsio)
         repo._lock_git()
         machine = repo.machine_id
+        repo = repo.with_context(active_test=False)
 
         with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
             # if completely new then all branches:
@@ -218,6 +219,9 @@ class Repository(models.Model):
                     })
                     branch._checkout_latest(shell, logsio=logsio, machine=machine)
                     branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+
+                if not branch.active:
+                    branch.active = True
 
                 shell.X(["git", "checkout", "-f", repo.default_branch])
                 del name
