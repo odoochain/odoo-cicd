@@ -80,12 +80,12 @@ class ShellExecutor(object):
                 raise Exception(res.stderr_output)
         return res
 
-    def X(self, cmd, allow_error=False, env=None):
+    def X(self, cmd, allow_error=False, env=None, cwd=None):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
         return self.machine._execute_shell(
-            cmd, cwd=self.cwd, env=effective_env, logsio=self.logsio,
+            cmd, cwd=cwd or self.cwd, env=effective_env, logsio=self.logsio,
             allow_error=allow_error,
         )
 
