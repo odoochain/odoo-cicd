@@ -99,20 +99,16 @@
 								</group>
 							</page>
 							<page name="backup" string="Backup/Restore">
-								<group string="Machine">
-									<field name="allowed_backup_machine_ids" invisible='1'/>
-									<field name="backup_machine_id" domain="[('id', 'in', allowed_backup_machine_ids)]"/>
-								</group>
-								<group string="Backup">
-									<field name="backup_filename" placeholder="Enter a filename - if empty then project name is used."/>
-									<button name="dump" string="Dump" type="object"/>
-								</group>
-								<group string="Restore">
-									<div>
-										Select a dump an click restore. <b style='color: red;'>Choose a machine before!</b>
-									</div>
+								<field name="allowed_backup_machine_ids" invisible='1'/>
+								<group string="Restore" col='6'>
+									<field name="backup_machine_id" string="Machine" domain="[('id', 'in', allowed_backup_machine_ids)]"/>
 									<field name="dump_id" domain="[('machine_id', '=', backup_machine_id)]"/>
 									<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>
+								</group>
+								<group string="Backup" col='6'>
+									<field name="backup_machine_id" domain="[('id', 'in', allowed_backup_machine_ids)]"/>
+									<field name="backup_filename" string="Machine" placeholder="Enter a filename - if empty then project name is used."/>
+									<button name="dump" string="Dump" type="object"/>
 								</group>
 							</page>
 							<page name="config_page" string="Configuration" groups="cicd.group_developer">
