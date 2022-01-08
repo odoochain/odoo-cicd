@@ -32,6 +32,7 @@ class ReleaseItem(models.Model):
     queuejob_ids = fields.Many2many('queue.job', string="Queuejobs")
     count_failed_queuejobs = fields.Integer("Failed Jobs", compute="_compute_failed_jobs")
     try_counter = fields.Integer("Try Counter", track_visibility="onchange")
+    commit_id = fields.Many2one('cicd.git.commit', string="Released commit", help="After merging all tested commits this is the commit that holds all merged commits.")
 
     release_type = fields.Selection([
         ('standard', 'Standard'),
@@ -97,16 +98,22 @@ class ReleaseItem(models.Model):
             raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
         if self.release_type == 'hotfix' and not self.branch_ids:
             raise ValidationError("Hotfix requires explicit branches.")
+        if not self.commit_id:  # needs a collected commit with everything on it
+            return
+        if self.commit_id.test_state != 'success':
+            return
+
         pg_advisory_lock(self.env.cr, f"release_{self.release_id.id}")
         logsio = self.release_id._get_logsio()
         try:
             self.try_counter += 1
             release = self.release_id
-            candidate_branch = self.release_id.repo_id.with_context(active_test=False).branch_ids.filtered(lambda x: x.name == self.candidate_branch)
+            repo = self.release_id.repo_id.with_context(active_test=False)
+            candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.candidate_branch)
             candidate_branch.ensure_one()
             if not candidate_branch.active:
                 raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
-            changed_lines = release.repo_id._merge(
+            changed_lines = repo._merge(
                 candidate_branch,
                 release.branch_id,
                 set_tags=[f'release-{self.name}'],
@@ -138,7 +145,6 @@ class ReleaseItem(models.Model):
 
     def _collect_tested_branches(self):
         for rec in self:
-            repo = rec.release_id.repo_id
             if rec.state not in ['new', 'failed']:
                 continue
             if rec.release_type != 'standard':
@@ -172,15 +178,21 @@ class ReleaseItem(models.Model):
         repo = self.release_id.repo_id.with_context(active_test=False)
         # remove blocked 
         self.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release)
-        commits = repo._collect_latest_tested_commits(
+        message_commit, commits = repo._collect_latest_tested_commits(
             source_branches=self.branch_ids,
             target_branch_name=self.release_id.candidate_branch,
             logsio=logsio,
             critical_date=self.final_curtain or arrow.get().datetime,
+            make_info_commit_msg=
+                f"Release Item {self.id}"
+                f"Includes latest commits from: {', '.join(self.mapped('branch_ids.name'))}"
         )
+        message_commit.approval_state = 'approved'
         self.commit_ids = [[6, 0, commits.ids]]
+        self.commit_id = message_commit
         candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
         candidate_branch.ensure_one()
+
         (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
 
     def _trigger_recreate_candidate_branch_in_git(self):

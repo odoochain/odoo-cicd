@@ -254,11 +254,12 @@ class Repository(models.Model):
                     path
                 ])
 
-    def _collect_latest_tested_commits(self, source_branches, target_branch_name, logsio, critical_date):
+    def _collect_latest_tested_commits(self, source_branches, target_branch_name, logsio, critical_date, make_info_commit_msg):
         """
         Iterate all branches and get the latest commit that fall into the countdown criteria.
+
+        "param make_info_commit_msg": if set, then an empty commit with just a message is made
         """
-        # TODO checkout to tempfolder push to origin not web!!!!!!!
         self.ensure_one()
 
         # we use a working repo
@@ -269,6 +270,7 @@ class Repository(models.Model):
         repo_path = self._get_main_repo(tempfolder=True)
         commits = self.env['cicd.git.commit']
         repo = self.with_context(active_test=False)
+        message_commit = None # commit sha of the created message commit
         with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
 
@@ -277,6 +279,7 @@ class Repository(models.Model):
                 if not res.return_code:
                     shell.X(["/usr/bin/git", "branch", "-D", target_branch_name])
                 logsio.info("Making target branch {target_branch.name}")
+                shell.X(["/usr/bin/git", "checkout", "--no-guess", repo.default_branch])
                 shell.X(["/usr/bin/git", "checkout", "--no-guess", "-b", target_branch_name])
 
                 for branch in source_branches:
@@ -301,6 +304,11 @@ class Repository(models.Model):
                 url = shell.X(["/usr/bin/git", "remote", "get-url", 'origin'], cwd=orig_repo_path).output.strip()
 
                 shell.X(["/usr/bin/git", "remote", "set-url", 'origin', url])
+                shell.X(["/usr/bin/git", "push", "--set-upstream", 'origin', target_branch_name])
+                message_commit_sha = None
+                if make_info_commit_msg:
+                    shell.X(["/usr/bin/git", "commit", "--allow-empty", "-m", make_info_commit_msg])
+                    message_commit_sha = shell.X(["/usr/bin/git", "log", "-n1", "--format=%H"]).output.strip()
                 shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch_name])
 
                 if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
@@ -311,12 +319,14 @@ class Repository(models.Model):
                 if not target_branch.active:
                     target_branch.active = True
                 target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
-
+                if message_commit_sha:
+                    message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
+                    message_commit.ensure_one()
 
             finally:
                 shell.rmifexists(repo_path)
 
-        return commits
+        return message_commit, commits
 
     def _merge(self, source, dest, set_tags, logsio=None):
         assert source._name == 'cicd.git.branch'
