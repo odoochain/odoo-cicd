@@ -7,6 +7,6 @@ cd odoo_admin
 if [[ -d /opt/wodoo ]]; then
 	/opt/wodoo/test.py -xs ~/.cicd/settings "$@"
 else
-	odoo -xs ~/.cicd/settings "@"
+	odoo -xs ~/.cicd/settings "$@"
 fi
 
