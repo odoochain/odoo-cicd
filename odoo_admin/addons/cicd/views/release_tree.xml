@@ -12,7 +12,6 @@
 				<field name="sequence_id"/>
 				<field name="countdown_minutes"/>
 				<field name="auto_release"/>
-				<field name="machine_ids" widget="many2many_tags"/>
 			</tree>
 		</field>
 	</record>

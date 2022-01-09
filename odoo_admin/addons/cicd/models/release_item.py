@@ -91,6 +91,9 @@ class ReleaseItem(models.Model):
             )._do_release()
             rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
 
+    def perform_release(self):
+        self._do_release()
+
     def _do_release(self):
         if not self.release_id.active:
             return
