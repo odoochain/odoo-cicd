@@ -114,7 +114,7 @@ class Repository(models.Model):
                     if limit_branch:
                         # make sure branch exists in source repo
                         with machine._shellexec(path, logsio=logsio) as tempshell:
-                            tempshell.X(["git", "checkout", "--no-guess", "-f", limit_branch])
+                            tempshell.checkout_branch(limit_branch)
 
                     cmd = ["git", "clone"]
                     if limit_branch:

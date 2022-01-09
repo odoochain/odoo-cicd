@@ -77,6 +77,21 @@ class ShellExecutor(object):
                 raise Exception(res.stderr_output)
         return res
 
+    def checkout_branch(self, branch, cwd=None):
+        res = self.X(["git", "show-ref", "--quiet", "refs/heads/" + branch], cwd=cwd, allow_error=True)
+        if res.return_code:
+            self.X(["git", "checkout", "-b", branch, "--track", "origin/" + branch], cwd=cwd, allow_error=True)
+        self.X(["git", "checkout", "-f", "--no-guess", branch], cwd=cwd, allow_error=True)
+        self._after_checkout(cwd=cwd)
+
+    def checkout_commit(self, commit, cwd=None):
+        self.X(["git", "checkout", "-f", commit], cwd=cwd, allow_error=True)
+        self._after_checkout(cwd=cwd)
+
+    def _after_checkout(self, cwd):
+        self.X(["git", "clean", "-xdff"], cwd=cwd)
+        self.X(["git", "submodule", "update", "--init", "--recursive"], cwd=cwd)
+
     def X(self, cmd, allow_error=False, env=None, cwd=None):
         effective_env = deepcopy(self.env)
         if env:
