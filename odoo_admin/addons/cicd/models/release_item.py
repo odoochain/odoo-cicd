@@ -108,34 +108,28 @@ class ReleaseItem(models.Model):
 
         pg_advisory_lock(self.env.cr, f"release_{self.release_id.id}")
         logsio = self.release_id._get_logsio()
-        try:
-            self.try_counter += 1
-            release = self.release_id
-            repo = self.release_id.repo_id.with_context(active_test=False)
-            candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.candidate_branch)
-            candidate_branch.ensure_one()
-            if not candidate_branch.active:
-                raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
-            changed_lines = repo._merge(
-                candidate_branch,
-                release.branch_id,
-                set_tags=[f'release-{self.name}'],
-                logsio=logsio,
-            )
-            self.changed_lines += changed_lines
 
+        self.try_counter += 1
+        release = self.release_id
+        repo = self.release_id.repo_id.with_context(active_test=False)
+        candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.candidate_branch)
+        candidate_branch.ensure_one()
+        if not candidate_branch.active:
+            raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
+        changed_lines = repo._merge(
+            candidate_branch,
+            release.branch_id,
+            set_tags=[f'release-{self.name}-' + fields.Dateimte.now().strftime("%Y-%m-%d %H:%M:%S")],
+            logsio=logsio,
+        )
+        self.changed_lines += changed_lines
+
+        try:
             if not self.changed_lines:
                 self._on_done()
                 return
 
-            for machine in self.release_id.machine_ids:
-                path = machine._get_volume("source") / release.project_name
-                release.repo_id._get_main_repo(destination_folder=path, machine=machine)
-                with machine._shellexec(cwd=path, logsio=logsio, project_name=release.project_name) as shell:
-                    shell.odoo("reload")
-                    shell.odoo("build")
-                    shell.odoo("update")
-
+            self.release_id._techincally_do_release()
             self._on_done()
 
         except Exception as ex:

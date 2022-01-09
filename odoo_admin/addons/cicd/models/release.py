@@ -12,7 +12,6 @@ class Release(models.Model):
     active = fields.Boolean("Active", default=True, store=True)
     name = fields.Char("Name", required=True)
     project_name = fields.Char("Project Name", required=True, help="techincal name - no special characters")
-    machine_ids = fields.Many2many('cicd.machine', string="Machines")
     repo_id = fields.Many2one("cicd.git.repo", required=True, string="Repo", store=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Branch", required=True)
     candidate_branch = fields.Char(string="Candidate", required=True, default="master_candidate")
@@ -135,3 +134,6 @@ class Release(models.Model):
     def collect_tested_branches(self):
         for rec in self:
             rec.item_ids.filtered(lambda x: x.state in ('new', 'failed'))._collect_tested_branches()
+
+    def _technically_do_release(self):
+        self.release_id.action_ids.run_action_set(self, self.release_id.action_ids)
