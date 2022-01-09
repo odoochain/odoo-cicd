@@ -244,7 +244,7 @@ class Repository(models.Model):
                 if not branch.active:
                     branch.active = True
 
-                shell.X(["git", "checkout", "--no-guess", "-f", repo.default_branch])
+                shell.checkout_branch(repo.default_branch)
                 del name
 
             if not repo.branch_ids and not updated_branches:
