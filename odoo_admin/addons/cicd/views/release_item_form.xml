@@ -7,7 +7,6 @@
 				<form string="">
 					<header>
 						<field name="state" widget="statusbar" attrs="{'readonly': True}" />
-						<button string="do_release" name="perform_releaes" type="method" />
 					</header>
 					<sheet>
 						<div class="oe_button_box" name="button_box">

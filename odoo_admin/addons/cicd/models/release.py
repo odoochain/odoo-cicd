@@ -114,7 +114,7 @@ class Release(models.Model):
             items = items[0]
         return items
 
-    def do_release(self):
+    def do_release_if_planned(self):
         for rec in self:
             item = rec.item_ids.filtered(lambda x: x.state in ('new', 'failed')).sorted(lambda x: x.id)
             if not item:
