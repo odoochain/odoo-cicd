@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
+import tempfile
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from contextlib import contextmanager
 from ..tools.logsio_writer import LogsIOWriter
@@ -12,13 +13,13 @@ class CicdReleaseAction(models.Model):
     shell_script_at_end = fields.Text("Shell Script At End (finally)")
 
     @api.model
-    def run_action_set(self, release, actions):
+    def run_action_set(self, release_item, actions):
         errors = []
         logsio = LogsIOWriter(self.release_id.branch_id.name, 'release')
         try:
             actions._stop_odoo(logsio)
 
-            actions._update_source(logsio)
+            actions._update_source(logsio, release_item)
 
             actions[0]._run_udpate(logsio)
 
@@ -47,18 +48,23 @@ class CicdReleaseAction(models.Model):
                     return
                 shell.odoo("kill")
 
-    def _update_sourcecode(self, logsio, collect_error=[]):
+    def _update_sourcecode(self, logsio, release_item, collect_error=[]):
         repo = self[0].release_id.repo_id
-        repo._get_main_repo()
+        zip_content = repo._get_zipped(logsio, release_item.commit_id.name)
+        temppath = tempfile.mktemp(suffix='.')
+        
         for self in self:
             with self._contact_machine(logsio) as shell:
-                shell.odoo("update")
+                filename = f"/tmp/release_{release_item.id}"
+                shell.put(zip_content, filename)
+                shell.X(["tar", "xfz", filename], cwd=temppath)
+                shell.X(["rsync", str(temppath) + "/", str(shell.cwd) + "/", "-arP", "--delete-after"])
+                shell.rmifexists(temppath)
 
     def _run_udpate(self, logsio, collect_error=[]):
         self.ensure_one()
         with self._contact_machine(logsio) as shell:
             shell.odoo("update")
-                release.repo_id._get_main_repo(destination_folder=path, machine=machine)
 
     def _start_odoo(self, logsio, collect_error=[]):
         for self in self:

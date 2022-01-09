@@ -78,17 +78,23 @@ class Repository(models.Model):
     def _get_zipped(self, logsio, commit):
         machine = self.machine_id
         repo_path = self._get_main_repo(logsio=logsio, tempfolder=True, machine=machine)
-        with machine._shellexec(repo_path, logsio=logsio) as shell:
-            try:
-                filename = tempfile.mktemp(suffix='.')
+        filename = Path(tempfile.mktemp(suffix='.'))
+        try:
+            with machine._shellexec(repo_path, logsio=logsio) as shell:
+                try:
+                    shell.X(["git", "checkout", "--no-guess", "-f", commit])
+                    shell.X(["git", "clean", "-xdff"])
+                    shell.X(["tar", "cfz", filename, repo_path])
+                    content = shell.get(filename)
+                    shell.X(["rm", filename])
+                    return content
+                finally:
+                    shell.rmifexists(repo_path)
                 
-                shell.X(["git", "checkout", "--no-guess", "-f", commit])
-                shell.X(["git", "clean", "-xdff"])
-                shell.X(["tar", "cfz", filename, repo_path])
-            finally:
-                shell.rmifexists(repo_path)
-            
-        shell.cwd = repo_path
+            shell.cwd = repo_path
+        finally:
+            if filename.exists():
+                filename.unlink()
 
     def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None, machine=None, limit_branch=None):
         self.ensure_one()

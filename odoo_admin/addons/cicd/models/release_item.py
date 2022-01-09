@@ -129,7 +129,7 @@ class ReleaseItem(models.Model):
                 self._on_done()
                 return
 
-            self.release_id._techincally_do_release()
+            self.release_id._techincally_do_release(self)
             self._on_done()
 
         except Exception as ex:
