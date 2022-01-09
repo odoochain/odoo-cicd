@@ -85,26 +85,20 @@ class Release(models.Model):
         })
 
     def _cron_prepare_release(self):
-        self.ensure_one()
-        new_items = self.item_ids.filtered(lambda x: x.state == 'new')
-        final_curtain_dt = arrow.get().shift(minutes=self.countdown_minutes).strftime("%Y-%m-%d %H:%M:%S")
-        if not new_items:
-            new_items = self.item_ids.create({
-                'release_id': self.id,
-                'release_type': 'standard',
-                'final_curtain': final_curtain_dt,
-                'planned_date': arrow.get().shift(minutes=self.planned_timestamp_after_preparation).strftime("%Y-%m-%d %H:%M:%S"),
-            })
-        
-        # check branches to put on the release
-        branches = self.env[new_items.branch_ids._name]
-        for branch in self.repo_id.branch_ids:
-            if branch.state == 'candidate':
-                branches |= branch
-        new_items.branch_ids = [[6, 0, branches.ids]]
-
-        # if release did not happen or so, then update final curtain:
-        new_items.final_curtain = final_curtain_dt
+        for self in self:
+            self.ensure_one()
+            new_items = self.item_ids.filtered(lambda x: x.state == 'new')
+            final_curtain_dt = arrow.get().shift(minutes=self.countdown_minutes).strftime("%Y-%m-%d %H:%M:%S")
+            if not new_items:
+                new_items = self.item_ids.create({
+                    'release_id': self.id,
+                    'release_type': 'standard',
+                    'final_curtain': final_curtain_dt,
+                    'planned_date': arrow.get().shift(minutes=self.planned_timestamp_after_preparation).strftime("%Y-%m-%d %H:%M:%S"),
+                })
+            
+            # if release did not happen or so, then update final curtain:
+            new_items.final_curtain = final_curtain_dt
 
     def _get_logsio(self):
         logsio = LogsIOWriter(self.repo_id.short, "Release")
