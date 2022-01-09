@@ -12,11 +12,25 @@ class CicdReleaseAction(models.Model):
     shell_script_before_udpate = fields.Text("Shell Script Before Update")
     shell_script_at_end = fields.Text("Shell Script At End (finally)")
 
+    def _exec_shellscripts(self, logsio, pos):
+        for self in self:
+            script = self.shell_script_before_udpate if pos == 'before' else self.shell_script_at_end
+            script = script.encode('utf-8')
+            filepath = tempfile.mktemp(suffix='.')
+            
+            with self._contact_machine(logsio) as shell:
+                shell.put(script, filepath)
+                try:
+                    shell.X(["/bin/bash", filepath])
+                finally:
+                    shell.rmifexists(filepath)
+
     @api.model
     def run_action_set(self, release_item, actions):
         errors = []
         logsio = LogsIOWriter(self.release_id.branch_id.name, 'release')
         try:
+            actions._exec_shellscripts(logsio, "before")
             actions._stop_odoo(logsio)
 
             actions._update_source(logsio, release_item)
@@ -27,7 +41,17 @@ class CicdReleaseAction(models.Model):
             errors.append(ex)
 
         finally:
-            actions._start_odoo(collect_errors=errors)
+            for action in actions:
+                try:
+                        action._start_odoo()
+                except Exception as ex:
+                    errors.append(ex)
+            
+            for action in actions:
+                try:
+                    action._exec_shellscripts("after")
+                except Exception as ex:
+                    errors.append(ex)
 
     @contextmanager
     def _contact_machine(self, logsio):
@@ -48,7 +72,7 @@ class CicdReleaseAction(models.Model):
                     return
                 shell.odoo("kill")
 
-    def _update_sourcecode(self, logsio, release_item, collect_error=[]):
+    def _update_sourcecode(self, logsio, release_item):
         repo = self[0].release_id.repo_id
         zip_content = repo._get_zipped(logsio, release_item.commit_id.name)
         temppath = tempfile.mktemp(suffix='.')
@@ -61,15 +85,12 @@ class CicdReleaseAction(models.Model):
                 shell.X(["rsync", str(temppath) + "/", str(shell.cwd) + "/", "-arP", "--delete-after"])
                 shell.rmifexists(temppath)
 
-    def _run_udpate(self, logsio, collect_error=[]):
+    def _run_udpate(self, logsio):
         self.ensure_one()
         with self._contact_machine(logsio) as shell:
             shell.odoo("update")
 
-    def _start_odoo(self, logsio, collect_error=[]):
+    def _start_odoo(self, logsio):
         for self in self:
             with self._contact_machine(logsio) as shell:
-                try:
-                    shell.odoo("up", "-d")
-                except Exception as ex:
-                    collect_error.append(ex)
+                shell.odoo("up", "-d")
