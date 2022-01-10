@@ -51,7 +51,7 @@
 							<field name="enduser_summary" nolabel='1'/>
 						</group>
 						<notebook>
-							<page string="Commits" name="commits" groups="cicd.group_developer">
+							<page string="Commits" name="commits">
 								<button name="update_git_commits" string="" icon="fa-recycle" type="object" groups="cicd.group_developer"/>
 								<field name="commit_ids_ui" nolabel="1" readonly="1">
 									<tree

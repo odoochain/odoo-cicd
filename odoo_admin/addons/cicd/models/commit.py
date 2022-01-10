@@ -30,6 +30,9 @@ class GitCommit(models.Model):
         ('name', "unique(name)", _("Only one unique entry allowed.")),
     ]
 
+    def set_to_check(self):
+        self.write({'approval_state': 'check'})
+
     def set_approved(self):
         self.write({'approval_state': 'approved'})
 
