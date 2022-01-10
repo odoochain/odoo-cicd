@@ -9,7 +9,7 @@ class CicdReleaseAction(models.Model):
 
     release_id = fields.Many2one('cicd.release', string="Release", required=True)
     machine_id = fields.Many2one('cicd.machine', string="Machine")
-    shell_script_before_udpate = fields.Text("Shell Script Before Update")
+    shell_script_before_update = fields.Text("Shell Script Before Update")
     shell_script_at_end = fields.Text("Shell Script At End (finally)")
 
     def _exec_shellscripts(self, logsio, pos):
