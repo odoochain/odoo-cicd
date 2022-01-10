@@ -89,7 +89,8 @@ class ReleaseItem(models.Model):
             job = rec.with_delay(
                 identity_key=f"release {rec.release_id.name}",
             )._do_release()
-            rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
+            if job:
+                rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
 
     def perform_release(self):
         self._do_release()
@@ -201,8 +202,9 @@ class ReleaseItem(models.Model):
             identity_key=f"recreate_candidate_branch_in_git: {self.release_id.name}",
             eta=arrow.get().shift(minutes=1).datetime.strftime("%Y-%m-%d %H:%M:%S"),
         )._recreate_candidate_branch_in_git()
-        qj = self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
-        self.queuejob_ids |= qj
+        if job:
+            qj = self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
+            self.queuejob_ids |= qj
 
     @api.fieldchange("branch_ids")
     def _on_change_branches(self, changeset):
