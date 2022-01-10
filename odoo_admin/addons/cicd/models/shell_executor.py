@@ -90,7 +90,7 @@ class ShellExecutor(object):
 
     def _after_checkout(self, cwd):
         self.X(["git", "clean", "-xdff"], cwd=cwd)
-        self.X(["git", "submodule", "update", "--init", "--recursive"], cwd=cwd)
+        self.X(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=cwd)
 
     def X(self, cmd, allow_error=False, env=None, cwd=None):
         effective_env = deepcopy(self.env)

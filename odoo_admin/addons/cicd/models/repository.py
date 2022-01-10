@@ -82,7 +82,7 @@ class Repository(models.Model):
         try:
             with machine._shellexec(repo_path, logsio=logsio) as shell:
                 try:
-                    shell.X(["git", "checkout", "--no-guess", "-f", commit])
+                    shell.checkout_commit(commit)
                     shell.X(["git", "clean", "-xdff"])
                     shell.X(["tar", "cfz", filename, repo_path])
                     content = shell.get(filename)
@@ -185,7 +185,7 @@ class Repository(models.Model):
                     for branch in updated_branches:
                         logsio.info(f"Pulling {branch}...")
                         shell.X(["git", "fetch", "origin", branch])
-                        shell.X(["git", "checkout", "--no-guess", "-f", branch])
+                        shell.checkout_branch(branch)
                         shell.X(["git", "pull"])
                         shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
@@ -227,8 +227,7 @@ class Repository(models.Model):
                     updated_branches.append(branch)
 
             for branch in updated_branches:
-                shell.X(["git", "checkout", "--no-guess", "-f", branch])
-                shell.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
+                shell.checkout_branch(branch)
                 name = branch
                 del branch
 
@@ -300,7 +299,7 @@ class Repository(models.Model):
                 if not res.return_code:
                     shell.X(["/usr/bin/git", "branch", "-D", target_branch_name])
                 logsio.info("Making target branch {target_branch.name}")
-                shell.X(["/usr/bin/git", "checkout", "--no-guess", repo.default_branch])
+                shell.checkout_branch(repo.default_branch)
                 shell.X(["/usr/bin/git", "checkout", "--no-guess", "-b", target_branch_name])
 
                 for branch in source_branches:
@@ -316,7 +315,7 @@ class Repository(models.Model):
 
                         # we use git functions to retrieve deltas, git sorting and so;
                         # we want to rely on stand behaviour git.
-                        shell.X(["/usr/bin/git", "checkout", "--no-guess", "-f", target_branch_name])
+                        shell.checkout_branch(target_branch_name)
                         shell.X(["/usr/bin/git", "merge", commit.name])
                         # pushes to mainrepo locally not to web because its cloned to temp directory
                         shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch_name])
@@ -359,13 +358,13 @@ class Repository(models.Model):
         repo_path = self._get_main_repo(tempfolder=True)
         with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
-                shell.X(["/usr/bin/git", "checkout", "--no-guess", "-f", dest.name])
+                shell.checkout_branch(dest.name)
                 commitid = shell.X(["/usr/bin/git", "log", "-n1", "--format=%H"]).output.strip()
                 branches = [self._clear_branch_name(x) for x in shell.X(["/usr/bin/git", "branch", "--contains", commitid]).output.strip().split("\n")]
                 if source.name in branches:
                     return False
-                shell.X(["/usr/bin/git", "checkout", "--no-guess", "-f", source.name])
-                shell.X(["/usr/bin/git", "checkout", "--no-guess", "-f", dest.name])
+                shell.checkout_branch(source.name)
+                shell.checkout_branch(dest.name)
                 count_lines = len(shell.X(["/usr/bin/git", "diff", "-p", source.name]).output.strip().split("\n"))
                 shell.X(["/usr/bin/git", "merge", source.name])
                 for tag in set_tags:
