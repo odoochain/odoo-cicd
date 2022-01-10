@@ -357,7 +357,7 @@ class Repository(models.Model):
 
         machine = self.machine_id
         repo_path = self._get_main_repo(tempfolder=True)
-        with machine._gitshell(self, cwd=repo_path, logsio=logsio, env=env) as shell:
+        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
                 shell.X(["/usr/bin/git", "checkout", "--no-guess", "-f", dest.name])
                 commitid = shell.X(["/usr/bin/git", "log", "-n1", "--format=%H"]).output.strip()

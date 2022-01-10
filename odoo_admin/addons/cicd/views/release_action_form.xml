@@ -10,7 +10,7 @@
 				<sheet>
 					<group string="" col="2">
 						<field name="machine_id" />
-						<field name="shell_script_before_udpate" />
+						<field name="shell_script_before_update" />
 						<field name="shell_script_at_end" />
 					</group>
 				</sheet>

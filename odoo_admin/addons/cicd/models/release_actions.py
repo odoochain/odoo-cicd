@@ -14,7 +14,7 @@ class CicdReleaseAction(models.Model):
 
     def _exec_shellscripts(self, logsio, pos):
         for self in self:
-            script = self.shell_script_before_udpate if pos == 'before' else self.shell_script_at_end
+            script = self.shell_script_before_update if pos == 'before' else self.shell_script_at_end
             script = script.encode('utf-8')
             filepath = tempfile.mktemp(suffix='.')
             
@@ -35,7 +35,7 @@ class CicdReleaseAction(models.Model):
 
             actions._update_source(logsio, release_item)
 
-            actions[0]._run_udpate(logsio)
+            actions[0]._run_update(logsio)
 
         except Exception as ex:
             errors.append(ex)
@@ -85,7 +85,7 @@ class CicdReleaseAction(models.Model):
                 shell.X(["rsync", str(temppath) + "/", str(shell.cwd) + "/", "-arP", "--delete-after"])
                 shell.rmifexists(temppath)
 
-    def _run_udpate(self, logsio):
+    def _run_update(self, logsio):
         self.ensure_one()
         with self._contact_machine(logsio) as shell:
             shell.odoo("update")
