@@ -18,6 +18,7 @@
                 'views/postgres_tree.xml',
                 'views/queuejob_form.xml',
                 'views/registry.xml',
+                'views/release_action_form.xml',
                 'views/release_form.xml',
                 'views/release_item_form.xml',
                 'views/release_search.xml',

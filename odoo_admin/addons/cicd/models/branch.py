@@ -23,7 +23,7 @@ class GitBranch(models.Model):
     machine_id = fields.Many2one(related='repo_id.machine_id')
     backup_machine_id = fields.Many2one('cicd.machine', string="Machine for backup/restore")
     backup_filename = fields.Char("Backup Filename")
-    last_access = fields.Datetime("Last Access")
+    last_access = fields.Datetime("Last Access", readonly=True)
     cycle_down_after_seconds = fields.Integer("Cycle Down After Seconds", default=3600)
     name = fields.Char("Git Branch", required=True)
     date_registered = fields.Datetime("Date registered")

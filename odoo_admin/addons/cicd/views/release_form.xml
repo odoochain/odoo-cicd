@@ -50,8 +50,10 @@
 							</page>
 							<page string="Actions" name="actions">
 								<field name="action_ids">
-									<tree editable="bottom">
+									<tree>
 										<field name="machine_id"/>
+										<field name="shell_script_before_update"/>
+										<field name="shell_script_at_end"/>
 									</tree>
 								</field>
 							</page>

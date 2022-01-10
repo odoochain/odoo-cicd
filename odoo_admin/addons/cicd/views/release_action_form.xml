@@ -1,0 +1,22 @@
+<odoo>
+	<data noupdate='0'>
+
+	<record id="view_cicd_release_action_form" model="ir.ui.view">
+		<field name="name">cicd.release.action form</field>
+		<field name="model">cicd.release.action</field>
+		<field name="arch" type="xml">
+			<form string="">
+				<header></header>
+				<sheet>
+					<group string="" col="2">
+						<field name="machine_id" />
+						<field name="shell_script_before_udpate" />
+						<field name="shell_script_at_end" />
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	</data>
+</odoo>
