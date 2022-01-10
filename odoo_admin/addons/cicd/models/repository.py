@@ -295,12 +295,12 @@ class Repository(models.Model):
             try:
 
                 # clear the current candidate
-                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + target_branch_name], allow_error=True)
-                if not res.return_code:
-                    shell.X(["/usr/bin/git", "branch", "-D", target_branch_name])
+                if shell.branch_exists(target_branch_name):
+                    shell.checkout_branch(self.default_branch)
+                    shell.X(["git", "branch", "-D", target_branch_name])
                 logsio.info("Making target branch {target_branch.name}")
                 shell.checkout_branch(repo.default_branch)
-                shell.X(["/usr/bin/git", "checkout", "--no-guess", "-b", target_branch_name])
+                shell.X(["git", "checkout", "--no-guess", "-b", target_branch_name])
 
                 for branch in source_branches:
                     for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
@@ -316,20 +316,18 @@ class Repository(models.Model):
                         # we use git functions to retrieve deltas, git sorting and so;
                         # we want to rely on stand behaviour git.
                         shell.checkout_branch(target_branch_name)
-                        shell.X(["/usr/bin/git", "merge", commit.name])
-                        # pushes to mainrepo locally not to web because its cloned to temp directory
-                        shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch_name])
+                        shell.X(["git", "merge", commit.name])
                         break
-                
-                url = shell.X(["/usr/bin/git", "remote", "get-url", 'origin'], cwd=orig_repo_path).output.strip()
 
-                shell.X(["/usr/bin/git", "remote", "set-url", 'origin', url])
-                shell.X(["/usr/bin/git", "push", "--set-upstream", 'origin', target_branch_name])
+                # pushes to mainrepo locally not to web because its cloned to temp directory
+                shell.X(["git", "remote", "set-url", 'origin', self.url])
+                shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
+
                 message_commit_sha = None
                 if make_info_commit_msg:
-                    shell.X(["/usr/bin/git", "commit", "--allow-empty", "-m", make_info_commit_msg])
-                    message_commit_sha = shell.X(["/usr/bin/git", "log", "-n1", "--format=%H"]).output.strip()
-                shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch_name])
+                    shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
+                    message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                shell.X(["git", "push", "-f", 'origin', target_branch_name])
 
                 if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
                     target_branch = repo.branch_ids.create({

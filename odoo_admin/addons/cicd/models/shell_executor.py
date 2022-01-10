@@ -78,8 +78,7 @@ class ShellExecutor(object):
         return res
 
     def checkout_branch(self, branch, cwd=None):
-        res = self.X(["git", "show-ref", "--quiet", "refs/heads/" + branch], cwd=cwd, allow_error=True)
-        if res.return_code:
+        if not self.branch_exists(branch):
             self.X(["git", "checkout", "-b", branch, "--track", "origin/" + branch], cwd=cwd, allow_error=True)
         self.X(["git", "checkout", "-f", "--no-guess", branch], cwd=cwd, allow_error=True)
         self._after_checkout(cwd=cwd)
@@ -87,6 +86,12 @@ class ShellExecutor(object):
     def checkout_commit(self, commit, cwd=None):
         self.X(["git", "checkout", "-f", commit], cwd=cwd, allow_error=True)
         self._after_checkout(cwd=cwd)
+
+    def branch_exists(self, branch, cwd=None):
+        res = self.X(["git", "show-ref", "--verify", "refs/heads/" + branch], cwd=cwd, allow_error=True)
+        if not res.return_code and branch in res.output.strip():
+            return True
+        return False
 
     def _after_checkout(self, cwd):
         self.X(["git", "clean", "-xdff"], cwd=cwd)
