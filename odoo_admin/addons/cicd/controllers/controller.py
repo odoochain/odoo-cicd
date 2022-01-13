@@ -42,7 +42,7 @@ class Controller(http.Controller):
 
                 dump.machine_id.sudo().message_post(body="Downloaded dump: " + dump.name)
 
-        content = base64.b64decode(content)
+        content = base64.b64encode(content)
         name = dump.name.split("/")[-1]
         
         return http.request.make_response(content, [
