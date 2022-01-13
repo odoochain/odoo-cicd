@@ -378,7 +378,7 @@ class Branch(models.Model):
 
     def _cron_autobackup(self):
         for rec in self:
-            rec._make_task("_dump")
+            rec._make_task("_dump", machine=rec.backup_machine_id)
 
     def _reset_db(self, shell, task, logsio, **kwargs):
         shell.odoo('reload')

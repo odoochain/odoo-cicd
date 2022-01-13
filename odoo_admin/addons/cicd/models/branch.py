@@ -17,6 +17,7 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
+
     project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name")
     database_project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
@@ -61,7 +62,7 @@ class GitBranch(models.Model):
     ], default="new", required=True, compute="_compute_build_state", string="Instance State", track_visibility='onchange')
     dump_id = fields.Many2one("cicd.dump", string="Dump")
     reload_config = fields.Text("Reload Config", track_visibility='onchange')
-    autobackup = fields.Boolean("Autobackup", track_visibility='onchange') # TODO implement
+    autobackup = fields.Boolean("Autobackup", track_visibility='onchange') 
     enduser_summary = fields.Text("Enduser Summary", track_visibility='onchange')
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
     release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
@@ -79,10 +80,18 @@ class GitBranch(models.Model):
 
     test_topics = fields.Text("Test Topics", track_visibility='onchange')
     allowed_backup_machine_ids = fields.Many2many('cicd.machine', string="Allowed Backup Machines", compute="_compute_allowed_machines")
+    latest_commit_id = fields.Many2one('cicd.git.commit', compute="_compute_latest_commit")
+
+    approval_state = fields.Selection(related="latest_commit_id.approval_state", track_visibility="onchange")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    @api.depends('commit_ids')
+    def _compute_latest_commit(self):
+        for rec in self:
+            rec.latest_commit_id = rec.commit_ids[0] if rec.commit_ids else False
 
     def _compute_any_testing(self):
         for rec in self:

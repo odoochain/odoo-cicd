@@ -23,6 +23,9 @@
 						<field name="block_release" invisible='1'/>
 						<field name="active" invisible='1'/>
 						<div class="oe_button_box" name="button_box">
+							<button type="object" class="oe_stat_button" icon="fa-list-ul" name="set_to_check" string="Mark to be checked" attrs="{'invisible': [('approval_state', '!=', False)]}" />
+							<button type="object" class="oe_stat_button" icon="fa-times" name="set_declined" string="Decline" />
+							<button type="object" class="oe_stat_button" icon="fa-check" name="set_approved" string="Approve" />
 							<field name="active" invisible='1'/>
 							<button type="object" class="oe_stat_button" icon="fa-times" name="toggle_active" string="Disable" attrs="{'invisible': [('active', '=', False)]}" confirm="Deletes database and source-code. Continue?"/>
 							<button type="object" class="oe_stat_button" icon="fa-check" name="toggle_active" string="Activate" attrs="{'invisible': [('active', '=', True)]}"/>
@@ -108,6 +111,7 @@
 								<group string="Backup" col='6'>
 									<field name="backup_machine_id" domain="[('id', 'in', allowed_backup_machine_ids)]"/>
 									<field name="backup_filename" string="Machine" placeholder="Enter a filename - if empty then project name is used."/>
+									<field name="autobackup"></field>
 									<button name="dump" string="Dump" type="object"/>
 								</group>
 							</page>
