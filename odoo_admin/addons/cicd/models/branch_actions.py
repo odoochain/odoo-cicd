@@ -250,7 +250,7 @@ class Branch(models.Model):
         # self._update_git_commits(shell, task=task, logsio=logsio) # why???
 
         test_run = self.test_run_ids.create({
-            'commit_id': self.commit_ids[0].id,
+            'commit_id': self.latest_commit_id.id,
             'branch_id': b.id,
         })
 
