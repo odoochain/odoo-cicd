@@ -31,13 +31,13 @@ class GitCommit(models.Model):
     ]
 
     def set_to_check(self):
-        self.write({'approval_state': 'check'})
+        self.approval_state = 'check'
 
     def set_approved(self):
-        self.write({'approval_state': 'approved'})
+        self.approval_state = 'approved'
 
     def set_declined(self):
-        self.write({'approval_state': 'declined'})
+        self.approval_state = 'declined'
 
     @api.recordchange('force_approved')
     def _force_approved_changed(self):

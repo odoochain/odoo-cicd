@@ -81,7 +81,9 @@ class Release(models.Model):
         self.auto_release_cronjob_id = self.env['ir.cron'].create({
             'name': self.name + " scheduled release",
             'model_id': models.id,
-            'code': f'model.browse({self.id})._cron_prepare_release()'
+            'code': f'model.browse({self.id})._cron_prepare_release()',
+            'numbercall': -1,
+            'interval_type': 'days',
         })
 
     def _cron_prepare_release(self):

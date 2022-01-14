@@ -14,7 +14,7 @@
 						<button name="pgcli" string="SQL" type="object" groups="cicd.group_developer"/>
 						<button name="open_odoo_shell" string="Odoo-Shell" type="object" groups="cicd.group_developer"/>
 						<button name="open_shell" string="Shell" type="object" groups="cicd.group_developer"/>
-						<button name="start_webmailer" string="Webmailer" type="object" groups="cicd.group_developer"/>
+						<button name="start_webmailer" string="Webmailer" type="object" groups="cicd.group_approver"/>
 						<button name="start_logs" string="Logs" type="object" groups="cicd.group_developer"/>
 						<button name="debug_webcontainer" string="Debug" type="object" groups="cicd.group_developer"/>
 						<field name="state" widget="statusbar" options="{'clickable': 0}" />
@@ -23,6 +23,7 @@
 						<field name="block_release" invisible='1'/>
 						<field name="active" invisible='1'/>
 						<div class="oe_button_box" name="button_box">
+							<field name="approval_state" invisible='1'/>
 							<button type="object" class="oe_stat_button" icon="fa-list-ul" name="set_to_check" string="Mark to be checked" attrs="{'invisible': [('approval_state', '!=', False)]}" />
 							<button type="object" class="oe_stat_button" icon="fa-times" name="set_declined" string="Decline" />
 							<button type="object" class="oe_stat_button" icon="fa-check" name="set_approved" string="Approve" />

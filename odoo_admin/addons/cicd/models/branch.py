@@ -431,3 +431,11 @@ class GitBranch(models.Model):
         for rec in self:
             rec.allowed_backup_machine_ids = self.env['cicd.machine'].search([('postgres_server_id.ttype', '=', 'dev')])
 
+    def set_to_check(self):
+        self.latest_commit_id.approval_state = 'check'
+
+    def set_approved(self):
+        self.latest_commit_id.approval_state = 'approved'
+
+    def set_declined(self):
+        self.latest_commit_id.approval_state = 'declined'
