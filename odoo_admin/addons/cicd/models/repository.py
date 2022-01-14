@@ -84,14 +84,13 @@ class Repository(models.Model):
                 try:
                     shell.checkout_commit(commit)
                     shell.X(["git", "clean", "-xdff"])
-                    shell.X(["tar", "cfz", filename, repo_path])
+                    shell.X(["tar", "cfz", filename, "-C", repo_path, '.'])
                     content = shell.get(filename)
                     shell.X(["rm", filename])
                     return content
                 finally:
                     shell.rmifexists(repo_path)
                 
-            shell.cwd = repo_path
         finally:
             if filename.exists():
                 filename.unlink()
@@ -368,8 +367,9 @@ class Repository(models.Model):
                 count_lines = len(shell.X(["/usr/bin/git", "diff", "-p", source.name]).output.strip().split("\n"))
                 shell.X(["/usr/bin/git", "merge", source.name])
                 for tag in set_tags:
-                    shell.X(["/usr/bin/git", "tag", '-f', tag])
-                shell.X(["/usr/bin/git", "push", '--follow-tags', '-f'])
+                    shell.X(["/usr/bin/git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
+                shell.X(["git", "remote", "set-url", 'origin', self.url])
+                shell.X(["/usr/bin/git", "push", '--tags'])
 
                 return count_lines
 

@@ -116,14 +116,14 @@ class ReleaseItem(models.Model):
         self.try_counter += 1
         release = self.release_id
         repo = self.release_id.repo_id.with_context(active_test=False)
-        candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.candidate_branch)
+        candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
         candidate_branch.ensure_one()
         if not candidate_branch.active:
             raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
         changed_lines = repo._merge(
             candidate_branch,
             release.branch_id,
-            set_tags=[f'release-{self.name}-' + fields.Dateimte.now().strftime("%Y-%m-%d %H:%M:%S")],
+            set_tags=[f'release-{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
             logsio=logsio,
         )
         self.changed_lines += changed_lines
@@ -133,7 +133,9 @@ class ReleaseItem(models.Model):
                 self._on_done()
                 return
 
-            self.release_id._technically_do_release(self)
+            errors = self.release_id._technically_do_release(self)
+            if errors:
+                raise Exception(errors)
             self._on_done()
 
         except Exception as ex:

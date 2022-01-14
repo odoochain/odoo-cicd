@@ -33,7 +33,7 @@ class CicdReleaseAction(models.Model):
             actions._exec_shellscripts(logsio, "before")
             actions._stop_odoo(logsio)
 
-            actions._update_source(logsio, release_item)
+            actions._update_sourcecode(logsio, release_item)
 
             actions[0]._run_update(logsio)
 
@@ -43,7 +43,7 @@ class CicdReleaseAction(models.Model):
         finally:
             for action in actions:
                 try:
-                        action._start_odoo()
+                    action._start_odoo()
                 except Exception as ex:
                     errors.append(ex)
             
@@ -52,17 +52,20 @@ class CicdReleaseAction(models.Model):
                     action._exec_shellscripts("after")
                 except Exception as ex:
                     errors.append(ex)
+        return errors
 
     @contextmanager
     def _contact_machine(self, logsio):
         self.ensure_one()
         project_name = self.release_id.project_name
-        path = self.machine_id._get_volume("source") / project_name
-        with self.machine_id._shellexec(
-            cwd=path,
-            logsio=logsio,
-            project_name=project_name
-        ) as shell:
+        path = self.machine_id._get_volume("source")
+
+        # make sure directory exists
+        with self.machine_id._shellexec(cwd=path, logsio=logsio, project_name=project_name) as shell:
+            if not shell.exists(path):
+                shell.X(["mkdir", "-p", path])
+
+        with self.machine_id._shellexec(cwd=path, logsio=logsio, project_name=project_name) as shell:
             yield shell
 
     def _stop_odoo(self, logsio):
@@ -81,6 +84,8 @@ class CicdReleaseAction(models.Model):
             with self._contact_machine(logsio) as shell:
                 filename = f"/tmp/release_{release_item.id}"
                 shell.put(zip_content, filename)
+                temppath = tempfile.mktemp(suffix='.')
+                shell.X(['mkdir', '-p', temppath])
                 shell.X(["tar", "xfz", filename], cwd=temppath)
                 shell.X(["rsync", str(temppath) + "/", str(shell.cwd) + "/", "-arP", "--delete-after"])
                 shell.rmifexists(temppath)

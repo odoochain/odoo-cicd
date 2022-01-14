@@ -63,6 +63,7 @@
 										decoration-success="force_approved or approval_state == 'approved' or test_state == 'success'"
 									>
 										<button name="open_window" string="" icon="fa-external-link" type="object" />
+										<field name="name"/>
 										<field name="test_state"/>
 										<field name="approval_state"/>
 										<field name="force_approved" widget="boolean_toggle"/>

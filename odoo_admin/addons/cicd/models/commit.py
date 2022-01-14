@@ -49,7 +49,7 @@ class GitCommit(models.Model):
     @api.depends('test_run_ids', 'test_run_ids.state')
     def _compute_test_state(self):
         for rec in self:
-            testruns = rec.test_run_ids.sorted(lambda x: x.id)
+            testruns = rec.test_run_ids.sorted(lambda x: x.id, reverse=True)
             if not testruns or testruns[0].state == 'open':
                 rec.test_state = False
                 continue
