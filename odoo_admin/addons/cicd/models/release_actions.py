@@ -43,7 +43,7 @@ class CicdReleaseAction(models.Model):
         finally:
             for action in actions:
                 try:
-                    action._start_odoo()
+                    action._start_odoo(logsio=logsio)
                 except Exception as ex:
                     errors.append(ex)
             
@@ -93,6 +93,8 @@ class CicdReleaseAction(models.Model):
     def _run_update(self, logsio):
         self.ensure_one()
         with self._contact_machine(logsio) as shell:
+            shell.odoo("reload")
+            shell.odoo("build")
             shell.odoo("update")
 
     def _start_odoo(self, logsio):
