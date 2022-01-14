@@ -87,7 +87,7 @@ class CicdReleaseAction(models.Model):
                 temppath = tempfile.mktemp(suffix='.')
                 shell.X(['mkdir', '-p', temppath])
                 shell.X(["tar", "xfz", filename], cwd=temppath)
-                shell.X(["rsync", str(temppath) + "/", str(shell.cwd) + "/", "-arP", "--delete-after"])
+                shell.X(["rsync", str(temppath) + "/", str(shell.cwd) + "/", "-ar", "--delete-after"])
                 shell.rmifexists(temppath)
 
     def _run_update(self, logsio):
