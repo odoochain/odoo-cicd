@@ -64,6 +64,7 @@ class ReleaseItem(models.Model):
         self.done_date = fields.Datetime.now()
         self.release_id.message_post(body=f"Deployment of version {self.name} succeeded!")
         self.state = 'done'
+        self.branch_ids._compute_state()
 
     @api.depends('queuejob_ids')
     def _compute_failed_jobs(self):
@@ -134,6 +135,7 @@ class ReleaseItem(models.Model):
                 return
 
             errors = self.release_id._technically_do_release(self)
+            import pudb;pudb.set_trace()
             if errors:
                 raise Exception(errors)
             self._on_done()

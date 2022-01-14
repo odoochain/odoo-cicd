@@ -27,6 +27,7 @@ class CicdReleaseAction(models.Model):
 
     @api.model
     def run_action_set(self, release_item, actions):
+        return [] # TODO undo
         errors = []
         logsio = LogsIOWriter(self.release_id.branch_id.name, 'release')
         try:
