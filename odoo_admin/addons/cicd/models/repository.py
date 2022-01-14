@@ -319,27 +319,29 @@ class Repository(models.Model):
                         shell.X(["git", "merge", commit.name])
                         break
 
-                # pushes to mainrepo locally not to web because its cloned to temp directory
-                shell.X(["git", "remote", "set-url", 'origin', self.url])
-                shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
+                if commits:
 
-                message_commit_sha = None
-                if make_info_commit_msg:
-                    shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
-                    message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
-                shell.X(["git", "push", "-f", 'origin', target_branch_name])
+                    # pushes to mainrepo locally not to web because its cloned to temp directory
+                    shell.X(["git", "remote", "set-url", 'origin', self.url])
+                    shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
 
-                if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
-                    target_branch = repo.branch_ids.create({
-                        'repo_id': repo.id,
-                        'name': target_branch_name,
-                    })
-                if not target_branch.active:
-                    target_branch.active = True
-                target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
-                if message_commit_sha:
-                    message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
-                    message_commit.ensure_one()
+                    message_commit_sha = None
+                    if make_info_commit_msg:
+                        shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
+                        message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                    shell.X(["git", "push", "-f", 'origin', target_branch_name])
+
+                    if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
+                        target_branch = repo.branch_ids.create({
+                            'repo_id': repo.id,
+                            'name': target_branch_name,
+                        })
+                    if not target_branch.active:
+                        target_branch.active = True
+                    target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+                    if message_commit_sha:
+                        message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
+                        message_commit.ensure_one()
 
             finally:
                 shell.rmifexists(repo_path)

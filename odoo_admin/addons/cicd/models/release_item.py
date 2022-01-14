@@ -188,13 +188,14 @@ class ReleaseItem(models.Model):
                 f"Release Item {self.id}\n"
                 f"Includes latest commits from:\n{', '.join(self.mapped('branch_ids.name'))}"
         )
-        message_commit.approval_state = 'approved'
-        self.commit_ids = [[6, 0, commits.ids]]
-        self.commit_id = message_commit
-        candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
-        candidate_branch.ensure_one()
+        if message_commit and commits:
+            message_commit.approval_state = 'approved'
+            self.commit_ids = [[6, 0, commits.ids]]
+            self.commit_id = message_commit
+            candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+            candidate_branch.ensure_one()
 
-        (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
+            (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
 
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
