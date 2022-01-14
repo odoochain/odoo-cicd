@@ -56,7 +56,6 @@
 						</group>
 						<notebook>
 							<page string="Commits" name="commits">
-								<button name="update_git_commits" string="" icon="fa-recycle" type="object" groups="cicd.group_developer"/>
 								<field name="commit_ids_ui" nolabel="1" readonly="1">
 									<tree
 										decoration-danger="approval_state == 'declined' or test_state == 'failed'"
