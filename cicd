@@ -4,9 +4,5 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd $SCRIPT_DIR
 
 cd odoo_admin
-if [[ -d /opt/wodoo ]]; then
-	/opt/wodoo/test.py -xs ~/.cicd/settings "$@"
-else
-	odoo -xs ~/.cicd/settings "$@"
-fi
+odoo -xs ~/.cicd/settings "$@"
 
