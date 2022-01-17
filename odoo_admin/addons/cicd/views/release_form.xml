@@ -8,6 +8,7 @@
 					<header>
 						<button string="Pull into candidate" name="collect_tested_branches" class="oe_highlight" type="object"/>
 						<button string="Make Hotfix" name="make_hotfix" type="object"/>
+						<button string="do_release" name="Perform Release Now" type="method" />
 						<field name="state" widget="statusbar" />
 					</header>
 					<sheet>
@@ -21,8 +22,7 @@
 							<field name="repo_id"/>
 							<field name="project_name"/>
 							<field name="branch_id" domain="[('repo_id', '=', repo_id)]"/>
-							<field name="candidate_branch_id" domain="[('repo_id', '=', repo_id)]"/>
-							<field name="machine_ids" widget="many2many_tags" required='1' />
+							<field name="candidate_branch" />
 							<field name="sequence_id"/>
 						</group>
 						<group string="Continuous Deployment">
@@ -45,6 +45,15 @@
 										<field name="count_failed_queuejobs"/>
 										<field name="done_date" readonly='1'/>
 										<field name="state" readonly='1'/>
+									</tree>
+								</field>
+							</page>
+							<page string="Actions" name="actions">
+								<field name="action_ids">
+									<tree>
+										<field name="machine_id"/>
+										<field name="shell_script_before_update"/>
+										<field name="shell_script_at_end"/>
 									</tree>
 								</field>
 							</page>

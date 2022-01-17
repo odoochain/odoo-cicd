@@ -17,77 +17,9 @@ import subprocess
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.tools import tempdir
 from ..tools.tools import get_host_ip
+from .shell_executor import ShellExecutor
 import logging
 logger = logging.getLogger(__name__)
-
-class ShellExecutor(object):
-    def __init__(self, machine, cwd, logsio, project_name=None, env={}):
-        self.machine = machine
-        self.cwd = cwd
-        self.logsio = logsio
-        self.env = env
-        self.project_name = project_name
-        if machine:
-            assert machine._name == 'cicd.machine'
-        if logsio:
-            assert isinstance(logsio, LogsIOWriter)
-        if project_name:
-            assert isinstance(project_name, str)
-        if env:
-            assert isinstance(env, dict)
-
-    def exists(self, path):
-        with self.shell() as spurplus:
-            return spurplus.exists(path)
-
-    def rmifexists(self, path):
-        with self.shell() as spurplus:
-            path = str(path)
-            if spurplus.exists(path):
-                self.logsio.info(f"Path {path} exists and is erased now.")
-                spurplus.run(["rm", "-Rf", path])
-            else:
-                self.logsio.info(f"Path {path} doesn't exist - nothing will be erased.")
-
-    def _get_home_dir(self):
-        res = self.machine._execute_shell(
-            ['realpath', '~'],
-        ).output.strip()
-        if res.endswith("/~"):
-            res = res[:-2]
-        return res
-
-    @contextmanager
-    def shell(self):
-        with self.machine._shell() as shell:
-            yield shell
-
-    def odoo(self, *cmd, allow_error=True):
-        env={
-            'NO_PROXY': "*",
-            'DOCKER_CLIENT_TIMEOUT': "600",
-            'COMPOSE_HTTP_TIMEOUT': "600",
-            'PSYCOPG_TIMEOUT': "120",
-        }
-        if not self.project_name:
-            raise Exception("Requires project_name for odoo execution")
-        cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
-        res = self.X(cmd, allow_error=allow_error, env=env)
-        if res.return_code and not allow_error:
-            if '.FileNotFoundError: [Errno 2] No such file or directory:' in res.stderr_output:
-                raise Exception("Seems that a reload of the instance is required.")
-            else:
-                raise Exception(res.stderr_output)
-        return res
-
-    def X(self, cmd, allow_error=False, env=None):
-        effective_env = deepcopy(self.env)
-        if env:
-            effective_env.update(env)
-        return self.machine._execute_shell(
-            cmd, cwd=self.cwd, env=effective_env, logsio=self.logsio,
-            allow_error=allow_error,
-        )
 
 class CicdMachine(models.Model):
     _inherit = 'mail.thread'
@@ -300,7 +232,7 @@ class CicdMachine(models.Model):
 # adding sudoer command for restricted user to odoo framework
 
 tee "/etc/sudoers.d/{rec.ssh_user_cicdlogin}_odoo" <<EOF
-Cmnd_Alias ODOO_COMMANDS_{user_upper} = /opt/odoo/odoo *
+Cmnd_Alias ODOO_COMMANDS_{user_upper} = /usr/local/bin/odoo *
 {rec.ssh_user_cicdlogin} ALL=({rec.ssh_user}) NOPASSWD:SETENV: ODOO_COMMANDS_{user_upper}
 EOF
 
@@ -322,14 +254,15 @@ echo 'export PATH' >> "{homedir}/.bash_profile"
 chown -R "{rec.ssh_user_cicdlogin}":"{rec.ssh_user_cicdlogin}" "{homedir}"
 ln -sf /usr/bin/sudo "{homedir}/programs/sudo"
 
+#------------------------------------------------------------------------------
+# setting username / password
 echo -e "{rec.ssh_user_cicdlogin_password}\n{rec.ssh_user_cicdlogin_password}" | passwd "{rec.ssh_user_cicdlogin}"
 
 #------------------------------------------------------------------------------
 # adding wrapper for calling odoo framework in that instance directory
 #!/bin/bash
 tee "{homedir}/programs/odoo" <<EOF
-#!/bin/bash
-sudo -u {rec.ssh_user} /opt/odoo/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" -p "\$PROJECT_NAME" "\$@"
+sudo -u {rec.ssh_user} /usr/local/bin/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" -p "\$PROJECT_NAME" "\$@"
 EOF
 chmod a+x "{homedir}/programs/odoo"
 

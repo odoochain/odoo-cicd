@@ -12,10 +12,9 @@ class Release(models.Model):
     active = fields.Boolean("Active", default=True, store=True)
     name = fields.Char("Name", required=True)
     project_name = fields.Char("Project Name", required=True, help="techincal name - no special characters")
-    machine_ids = fields.Many2many('cicd.machine', string="Machines")
     repo_id = fields.Many2one("cicd.git.repo", required=True, string="Repo", store=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Branch", required=True)
-    candidate_branch_id = fields.Many2one('cicd.git.branch', string="Candidate", required=True)
+    candidate_branch = fields.Char(string="Candidate", required=True, default="master_candidate")
     item_ids = fields.One2many('cicd.release.item', 'release_id', string="Release")
     auto_release = fields.Boolean("Auto Release")
     auto_release_cronjob_id = fields.Many2one('ir.cron', string="Scheduled Release")
@@ -24,6 +23,7 @@ class Release(models.Model):
     is_latest_release_done = fields.Boolean("Latest Release Done", compute="_compute_latest_release_done")
     state = fields.Selection(related='item_ids.state')
     planned_timestamp_after_preparation = fields.Integer("Release after preparation in minutes", default=60)
+    action_ids = fields.One2many('cicd.release.action', 'release_id', string="Release Actions")
 
     def toggle_active(self):
         for rec in self:
@@ -52,18 +52,18 @@ class Release(models.Model):
             else:
                 rec.is_latest_release_done = items[0].date_done
 
-    @api.constrains("candidate_branch_id", "branch_id")
+    @api.constrains("candidate_branch", "branch_id")
     def _check_branches(self):
         for rec in self:
             for field in [
-                'candidate_branch_id',
+                'candidate_branch',
                 'branch_id',
             ]:
                 if not self[field]:
                     continue
                 if self.search_count([
                     ('id', '!=', rec.id),
-                    (field, '=', rec[field].id),
+                    (field, '=', rec[field] if isinstance(rec[field], (bool, str)) else rec[field].id),
                 ]):
                     raise ValidationError("Branches must be unique per release!")
 
@@ -81,30 +81,26 @@ class Release(models.Model):
         self.auto_release_cronjob_id = self.env['ir.cron'].create({
             'name': self.name + " scheduled release",
             'model_id': models.id,
-            'code': f'model.browse({self.id})._cron_prepare_release()'
+            'code': f'model.browse({self.id})._cron_prepare_release()',
+            'numbercall': -1,
+            'interval_type': 'days',
         })
 
     def _cron_prepare_release(self):
-        self.ensure_one()
-        new_items = self.item_ids.filtered(lambda x: x.state == 'new')
-        final_curtain_dt = arrow.get().shift(minutes=self.countdown_minutes).strftime("%Y-%m-%d %H:%M:%S")
-        if not new_items:
-            new_items = self.item_ids.create({
-                'release_id': self.id,
-                'release_type': 'standard',
-                'final_curtain': final_curtain_dt,
-                'planned_date': arrow.get().shift(minutes=self.planned_timestamp_after_preparation).strftime("%Y-%m-%d %H:%M:%S"),
-            })
-        
-        # check branches to put on the release
-        branches = self.env[new_items.branch_ids._name]
-        for branch in self.repo_id.branch_ids:
-            if branch.state == 'candidate':
-                branches |= branch
-        new_items.branch_ids = [[6, 0, branches.ids]]
-
-        # if release did not happen or so, then update final curtain:
-        new_items.final_curtain = final_curtain_dt
+        for self in self:
+            self.ensure_one()
+            new_items = self.item_ids.filtered(lambda x: x.state == 'new')
+            final_curtain_dt = arrow.get().shift(minutes=self.countdown_minutes).strftime("%Y-%m-%d %H:%M:%S")
+            if not new_items:
+                new_items = self.item_ids.create({
+                    'release_id': self.id,
+                    'release_type': 'standard',
+                    'final_curtain': final_curtain_dt,
+                    'planned_date': arrow.get().shift(minutes=self.planned_timestamp_after_preparation).strftime("%Y-%m-%d %H:%M:%S"),
+                })
+            
+            # if release did not happen or so, then update final curtain:
+            new_items.final_curtain = final_curtain_dt
 
     def _get_logsio(self):
         logsio = LogsIOWriter(self.repo_id.short, "Release")
@@ -120,7 +116,7 @@ class Release(models.Model):
             items = items[0]
         return items
 
-    def do_release(self):
+    def do_release_if_planned(self):
         for rec in self:
             item = rec.item_ids.filtered(lambda x: x.state in ('new', 'failed')).sorted(lambda x: x.id)
             if not item:
@@ -133,4 +129,8 @@ class Release(models.Model):
 
     def collect_tested_branches(self):
         for rec in self:
-            rec.item_ids.filtered(lambda x: x.state == 'new')._collect_tested_branches()
+            rec.item_ids.filtered(lambda x: x.state in ('new', 'failed'))._collect_tested_branches()
+
+    def _technically_do_release(self, release_item):
+        errors = self.action_ids.run_action_set(release_item, self.action_ids)
+        return errors

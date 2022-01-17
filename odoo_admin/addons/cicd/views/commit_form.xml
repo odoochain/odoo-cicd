@@ -10,6 +10,7 @@
 				</header>
 				<sheet>
 					<div class="oe_button_box" name="button_box">
+						<button type="object" class="oe_stat_button" icon="fa-list-ul" name="set_to_check" string="Mark to be checked" attrs="{'invisible': [('approval_state', '!=', False)]}" />
 						<button type="object" class="oe_stat_button" icon="fa-times" name="set_declined" string="Decline" />
 						<button type="object" class="oe_stat_button" icon="fa-check" name="set_approved" string="Approve" />
 					</div>

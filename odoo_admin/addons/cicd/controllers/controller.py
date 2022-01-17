@@ -40,9 +40,9 @@ class Controller(http.Controller):
             with shell1.shell() as shell2:
                 content = shell2.read_bytes(dump.name)
 
-                dump.machine_id.message_post(body="Downloaded dump: " + dump.name)
+                dump.machine_id.sudo().message_post(body="Downloaded dump: " + dump.name)
 
-        content = base64.b64decode(content)
+        content = base64.b64encode(content)
         name = dump.name.split("/")[-1]
         
         return http.request.make_response(content, [

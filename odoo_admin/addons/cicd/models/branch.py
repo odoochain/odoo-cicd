@@ -17,13 +17,14 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
+
     project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name")
     database_project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
     machine_id = fields.Many2one(related='repo_id.machine_id')
     backup_machine_id = fields.Many2one('cicd.machine', string="Machine for backup/restore")
     backup_filename = fields.Char("Backup Filename")
-    last_access = fields.Datetime("Last Access")
+    last_access = fields.Datetime("Last Access", readonly=True)
     cycle_down_after_seconds = fields.Integer("Cycle Down After Seconds", default=3600)
     name = fields.Char("Git Branch", required=True)
     date_registered = fields.Datetime("Date registered")
@@ -61,7 +62,7 @@ class GitBranch(models.Model):
     ], default="new", required=True, compute="_compute_build_state", string="Instance State", track_visibility='onchange')
     dump_id = fields.Many2one("cicd.dump", string="Dump")
     reload_config = fields.Text("Reload Config", track_visibility='onchange')
-    autobackup = fields.Boolean("Autobackup", track_visibility='onchange') # TODO implement
+    autobackup = fields.Boolean("Autobackup", track_visibility='onchange') 
     enduser_summary = fields.Text("Enduser Summary", track_visibility='onchange')
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
     release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
@@ -78,10 +79,19 @@ class GitBranch(models.Model):
     block_updates_until = fields.Datetime("Block updates until", track_visibility='onchange')
 
     test_topics = fields.Text("Test Topics", track_visibility='onchange')
+    allowed_backup_machine_ids = fields.Many2many('cicd.machine', string="Allowed Backup Machines", compute="_compute_allowed_machines")
+    latest_commit_id = fields.Many2one('cicd.git.commit', compute="_compute_latest_commit")
+
+    approval_state = fields.Selection(related="latest_commit_id.approval_state", track_visibility="onchange")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    @api.depends('commit_ids')
+    def _compute_latest_commit(self):
+        for rec in self:
+            rec.latest_commit_id = rec.commit_ids[0] if rec.commit_ids else False
 
     def _compute_any_testing(self):
         for rec in self:
@@ -134,6 +144,7 @@ class GitBranch(models.Model):
         self.state = state
 
     @api.depends(
+        # "block_release", # not needed here - done in _onchange_state_event
         "commit_ids",
         "commit_ids.approval_state",
         "commit_ids.test_state",
@@ -187,7 +198,7 @@ class GitBranch(models.Model):
 
             def _update():
                 self.env['cicd.release.item'].search([
-                    ('state', '=', 'new'),
+                    ('state', '=', ['new', 'failed']),
                     ('release_id.repo_id', '=', rec.repo_id.id)
                 ])._collect_tested_branches()
 
@@ -358,7 +369,7 @@ class GitBranch(models.Model):
 
     def _cron_make_test_runs(self):
         for rec in self:
-            rec._make_task("_run_tests", silent=True, kwargs={'update_state': True})
+            rec._make_task("_run_tests", silent=True, update_state=True)
 
     def _trigger_rebuild_after_fetch(self, machine):
         """
@@ -415,4 +426,16 @@ class GitBranch(models.Model):
         for branch in self.search([('block_updates_until', '<', dt)]):
             branch.block_updates_until = False
             branch.update_all_modules()
+    
+    def _compute_allowed_machines(self):
+        for rec in self:
+            rec.allowed_backup_machine_ids = self.env['cicd.machine'].search([('postgres_server_id.ttype', '=', 'dev')])
 
+    def set_to_check(self):
+        self.latest_commit_id.approval_state = 'check'
+
+    def set_approved(self):
+        self.latest_commit_id.approval_state = 'approved'
+
+    def set_declined(self):
+        self.latest_commit_id.approval_state = 'declined'

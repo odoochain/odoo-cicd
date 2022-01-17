@@ -73,7 +73,7 @@ class Branch(models.Model):
         shell.odoo('build')
         logsio.info("Downing")
         shell.odoo('kill')
-        shell.odoo('rm', '-f')
+        shell.odoo('rm')
         logsio.info(f"Restoring {self.dump_id.name}")
         shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
     
@@ -222,7 +222,7 @@ class Branch(models.Model):
         logsio.info("Restarting...")
         shell.odoo('up', '-d')
 
-    def _clear_db(self, shell, task, logsio, **kwargs):
+    def _shrink_db(self, shell, task, logsio, **kwargs):
         shell.odoo('cleardb')
 
     def _anonymize(self, shell, task, logsio, **kwargs):
@@ -236,7 +236,7 @@ class Branch(models.Model):
         shell.odoo('build')
         logsio.info("Downing")
         shell.odoo('kill')
-        shell.odoo('rm', '-f')
+        shell.odoo('rm')
         shell.odoo('-f', 'db' 'reset')
 
     def _run_tests(self, shell, task, logsio, **kwargs):
@@ -250,7 +250,7 @@ class Branch(models.Model):
         # self._update_git_commits(shell, task=task, logsio=logsio) # why???
 
         test_run = self.test_run_ids.create({
-            'commit_id': self.commit_ids[0].id,
+            'commit_id': self.latest_commit_id.id,
             'branch_id': b.id,
         })
 
@@ -378,7 +378,7 @@ class Branch(models.Model):
 
     def _cron_autobackup(self):
         for rec in self:
-            rec._make_task("_dump")
+            rec._make_task("_dump", machine=rec.backup_machine_id)
 
     def _reset_db(self, shell, task, logsio, **kwargs):
         shell.odoo('reload')

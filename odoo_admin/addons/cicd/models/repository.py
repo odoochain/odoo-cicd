@@ -75,6 +75,26 @@ class Repository(models.Model):
             else:
                 rec.url = rec.name
 
+    def _get_zipped(self, logsio, commit):
+        machine = self.machine_id
+        repo_path = self._get_main_repo(logsio=logsio, tempfolder=True, machine=machine)
+        filename = Path(tempfile.mktemp(suffix='.'))
+        try:
+            with machine._shellexec(repo_path, logsio=logsio) as shell:
+                try:
+                    shell.checkout_commit(commit)
+                    shell.X(["git", "clean", "-xdff"])
+                    shell.X(["tar", "cfz", filename, "-C", repo_path, '.'])
+                    content = shell.get(filename)
+                    shell.X(["rm", filename])
+                    return content
+                finally:
+                    shell.rmifexists(repo_path)
+                
+        finally:
+            if filename.exists():
+                filename.unlink()
+
     def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None, machine=None, limit_branch=None):
         self.ensure_one()
         from . import MAIN_FOLDER_NAME
@@ -93,7 +113,7 @@ class Repository(models.Model):
                     if limit_branch:
                         # make sure branch exists in source repo
                         with machine._shellexec(path, logsio=logsio) as tempshell:
-                            tempshell.X(["git", "checkout", "-f", limit_branch])
+                            tempshell.checkout_branch(limit_branch)
 
                     cmd = ["git", "clone"]
                     if limit_branch:
@@ -164,7 +184,7 @@ class Repository(models.Model):
                     for branch in updated_branches:
                         logsio.info(f"Pulling {branch}...")
                         shell.X(["git", "fetch", "origin", branch])
-                        shell.X(["git", "checkout", "-f", branch])
+                        shell.checkout_branch(branch)
                         shell.X(["git", "pull"])
                         shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
@@ -196,6 +216,7 @@ class Repository(models.Model):
         repo_path = repo._get_main_repo(logsio=logsio)
         repo._lock_git()
         machine = repo.machine_id
+        repo = repo.with_context(active_test=False)
 
         with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
             # if completely new then all branches:
@@ -205,8 +226,7 @@ class Repository(models.Model):
                     updated_branches.append(branch)
 
             for branch in updated_branches:
-                shell.X(["git", "checkout", "-f", branch])
-                shell.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
+                shell.checkout_branch(branch)
                 name = branch
                 del branch
 
@@ -219,7 +239,10 @@ class Repository(models.Model):
                     branch._checkout_latest(shell, logsio=logsio, machine=machine)
                     branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
 
-                shell.X(["git", "checkout", "-f", repo.default_branch])
+                if not branch.active:
+                    branch.active = True
+
+                shell.checkout_branch(repo.default_branch)
                 del name
 
             if not repo.branch_ids and not updated_branches:
@@ -250,28 +273,33 @@ class Repository(models.Model):
                     path
                 ])
 
-    def _collect_latest_tested_commits(self, source_branches, target_branch, logsio, critical_date):
+    def _collect_latest_tested_commits(self, source_branches, target_branch_name, logsio, critical_date, make_info_commit_msg):
         """
         Iterate all branches and get the latest commit that fall into the countdown criteria.
+
+        "param make_info_commit_msg": if set, then an empty commit with just a message is made
         """
         self.ensure_one()
 
         # we use a working repo
-        assert target_branch._name == 'cicd.git.branch'
-        assert target_branch
+        assert target_branch_name
         assert source_branches._name == 'cicd.git.branch'
         machine = self.machine_id
+        orig_repo_path = self._get_main_repo()
         repo_path = self._get_main_repo(tempfolder=True)
         commits = self.env['cicd.git.commit']
-        with machine._gitshell(repo, cwd=repo_path, logsio=logsio, env=env):
+        repo = self.with_context(active_test=False)
+        message_commit = None # commit sha of the created message commit
+        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
 
                 # clear the current candidate
-                res = shell.X(["/usr/bin/git", "show-ref", "--verify", "--quiet", "refs/heads/" + target_branch.name], allow_error=True)
-                if not res.return_code:
-                    shell.X(["/usr/bin/git", "branch", "-D", target_branch.name])
+                if shell.branch_exists(target_branch_name):
+                    shell.checkout_branch(self.default_branch)
+                    shell.X(["git", "branch", "-D", target_branch_name])
                 logsio.info("Making target branch {target_branch.name}")
-                shell.X(["/usr/bin/git", "checkout", "-b", target_branch.name])
+                shell.checkout_branch(repo.default_branch)
+                shell.X(["git", "checkout", "--no-guess", "-b", target_branch_name])
 
                 for branch in source_branches:
                     for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
@@ -286,16 +314,38 @@ class Repository(models.Model):
 
                         # we use git functions to retrieve deltas, git sorting and so;
                         # we want to rely on stand behaviour git.
-                        shell.X(["/usr/bin/git", "checkout", "-f", branch.name])
-                        shell.X(["/usr/bin/git", "reset", "--hard", commit.name])
-                        shell.X(["/usr/bin/git", "checkout", "-f", target_branch.name])
-                        shell.X(["/usr/bin/git", "merge", "-f", branch.name])
-                        shell.X(["/usr/bin/git", "push", "-f", 'origin', target_branch.name])
+                        shell.checkout_branch(target_branch_name)
+                        shell.X(["git", "merge", commit.name])
+                        break
 
+                if commits:
+
+                    # pushes to mainrepo locally not to web because its cloned to temp directory
+                    shell.X(["git", "remote", "set-url", 'origin', self.url])
+                    shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
+
+                    message_commit_sha = None
+                    if make_info_commit_msg:
+                        shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
+                        message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                    shell.X(["git", "push", "-f", 'origin', target_branch_name])
+
+                    if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
+                        target_branch = repo.branch_ids.create({
+                            'repo_id': repo.id,
+                            'name': target_branch_name,
+                        })
+                    if not target_branch.active:
+                        target_branch.active = True
+                    target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+                    if message_commit_sha:
+                        message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
+                        message_commit.ensure_one()
 
             finally:
                 shell.rmifexists(repo_path)
-        return commits
+
+        return message_commit, commits
 
     def _merge(self, source, dest, set_tags, logsio=None):
         assert source._name == 'cicd.git.branch'
@@ -305,20 +355,21 @@ class Repository(models.Model):
 
         machine = self.machine_id
         repo_path = self._get_main_repo(tempfolder=True)
-        with machine._gitshell(self, cwd=repo_path, logsio=logsio, env=env) as shell:
+        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
-                shell.X(["/usr/bin/git", "checkout", "-f", dest.name])
+                shell.checkout_branch(dest.name)
                 commitid = shell.X(["/usr/bin/git", "log", "-n1", "--format=%H"]).output.strip()
                 branches = [self._clear_branch_name(x) for x in shell.X(["/usr/bin/git", "branch", "--contains", commitid]).output.strip().split("\n")]
                 if source.name in branches:
                     return False
-                shell.X(["/usr/bin/git", "checkout", "-f", source.name])
-                shell.X(["/usr/bin/git", "checkout", "-f", dest.name])
+                shell.checkout_branch(source.name)
+                shell.checkout_branch(dest.name)
                 count_lines = len(shell.X(["/usr/bin/git", "diff", "-p", source.name]).output.strip().split("\n"))
                 shell.X(["/usr/bin/git", "merge", source.name])
                 for tag in set_tags:
-                    shell.X(["/usr/bin/git", "tag", '-f', tag])
-                shell.X(["/usr/bin/git", "push", '--follow-tags', '-f'])
+                    shell.X(["/usr/bin/git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
+                shell.X(["git", "remote", "set-url", 'origin', self.url])
+                shell.X(["/usr/bin/git", "push", '--tags'])
 
                 return count_lines
 
