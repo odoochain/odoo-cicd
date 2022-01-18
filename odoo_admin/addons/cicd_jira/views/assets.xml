@@ -1,0 +1,12 @@
+<odoo>
+	<data>
+        <!--
+		<template id="assets_backend" name="cicd_jira assets" inherit_id="web.assets_backend">
+			<xpath expr="." position="inside">
+				<script type="text/javascript" src="/cicd_jira/static/src/js/cicd_jira.js"></script>
+                <link rel="stylesheet" href="/cicd_jira/static/src/css/cicd_jira.css"/>
+			</xpath>
+		</template>
+        -->
+	</data>
+</odoo>

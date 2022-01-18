@@ -1,15 +1,20 @@
 {
-	"server-wide-modules": ["web", "queue_job", "field_onchange"],
-	"install": [
-		"cicd",
-		"queue_job",
-		"field_onchange"
-	],
-	"version": 15.0,
-	"addons_paths": [
-		"odoo/odoo/addons",
-		"odoo/addons",
-		"addons",
-		"addons/queue"
-	]
+    "server-wide-modules": [
+        "web",
+        "queue_job",
+        "field_onchange"
+    ],
+    "install": [
+        "cicd",
+        "cicd_jira",
+        "field_onchange",
+        "queue_job"
+    ],
+    "version": 15.0,
+    "addons_paths": [
+        "odoo/odoo/addons",
+        "odoo/addons",
+        "addons",
+        "addons/queue"
+    ]
 }
