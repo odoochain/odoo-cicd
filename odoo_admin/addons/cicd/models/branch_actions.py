@@ -73,7 +73,7 @@ class Branch(models.Model):
         shell.odoo('build')
         logsio.info("Downing")
         shell.odoo('kill')
-        shell.odoo('rm', '-f')
+        shell.odoo('rm')
         logsio.info(f"Restoring {self.dump_id.name}")
         shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
     
@@ -236,7 +236,7 @@ class Branch(models.Model):
         shell.odoo('build')
         logsio.info("Downing")
         shell.odoo('kill')
-        shell.odoo('rm', '-f')
+        shell.odoo('rm')
         shell.odoo('-f', 'db' 'reset')
 
     def _run_tests(self, shell, task, logsio, **kwargs):
@@ -250,7 +250,7 @@ class Branch(models.Model):
         # self._update_git_commits(shell, task=task, logsio=logsio) # why???
 
         test_run = self.test_run_ids.create({
-            'commit_id': self.commit_ids[0].id,
+            'commit_id': self.latest_commit_id.id,
             'branch_id': b.id,
         })
 

@@ -369,7 +369,7 @@ class GitBranch(models.Model):
 
     def _cron_make_test_runs(self):
         for rec in self:
-            rec._make_task("_run_tests", silent=True, kwargs={'update_state': True})
+            rec._make_task("_run_tests", silent=True, update_state=True)
 
     def _trigger_rebuild_after_fetch(self, machine):
         """
@@ -431,3 +431,11 @@ class GitBranch(models.Model):
         for rec in self:
             rec.allowed_backup_machine_ids = self.env['cicd.machine'].search([('postgres_server_id.ttype', '=', 'dev')])
 
+    def set_to_check(self):
+        self.latest_commit_id.approval_state = 'check'
+
+    def set_approved(self):
+        self.latest_commit_id.approval_state = 'approved'
+
+    def set_declined(self):
+        self.latest_commit_id.approval_state = 'declined'

@@ -64,6 +64,7 @@ class ReleaseItem(models.Model):
         self.done_date = fields.Datetime.now()
         self.release_id.message_post(body=f"Deployment of version {self.name} succeeded!")
         self.state = 'done'
+        self.branch_ids._compute_state()
 
     @api.depends('queuejob_ids')
     def _compute_failed_jobs(self):
@@ -116,14 +117,14 @@ class ReleaseItem(models.Model):
         self.try_counter += 1
         release = self.release_id
         repo = self.release_id.repo_id.with_context(active_test=False)
-        candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.candidate_branch)
+        candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
         candidate_branch.ensure_one()
         if not candidate_branch.active:
             raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
         changed_lines = repo._merge(
             candidate_branch,
             release.branch_id,
-            set_tags=[f'release-{self.name}-' + fields.Dateimte.now().strftime("%Y-%m-%d %H:%M:%S")],
+            set_tags=[f'release-{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
             logsio=logsio,
         )
         self.changed_lines += changed_lines
@@ -133,7 +134,10 @@ class ReleaseItem(models.Model):
                 self._on_done()
                 return
 
-            self.release_id._technically_do_release(self)
+            errors = self.release_id._technically_do_release(self)
+            import pudb;pudb.set_trace()
+            if errors:
+                raise Exception(errors)
             self._on_done()
 
         except Exception as ex:
@@ -188,13 +192,14 @@ class ReleaseItem(models.Model):
                 f"Release Item {self.id}\n"
                 f"Includes latest commits from:\n{', '.join(self.mapped('branch_ids.name'))}"
         )
-        message_commit.approval_state = 'approved'
-        self.commit_ids = [[6, 0, commits.ids]]
-        self.commit_id = message_commit
-        candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
-        candidate_branch.ensure_one()
+        if message_commit and commits:
+            message_commit.approval_state = 'approved'
+            self.commit_ids = [[6, 0, commits.ids]]
+            self.commit_id = message_commit
+            candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+            candidate_branch.ensure_one()
 
-        (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
+            (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
 
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
