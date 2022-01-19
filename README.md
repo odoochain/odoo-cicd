@@ -27,3 +27,13 @@ docker-compose exec cicd_postgres pg_dumpall -U cicd |gzip > /tmp/dump/cicd.sql
 docker-compose ps (grab name/id of postgres container)
 gunzip /tmp/dump/cicd.sql | docker exec -i <container postgres name psql -U cicd -d postgres
 ```
+
+
+## Minimal Settings
+
+# Recommended configuration for candidate branch
+```bash
+# put sha of git commit into final image
+SHA_IN_DOCKER=1
+
+```
