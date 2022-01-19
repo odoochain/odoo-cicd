@@ -1,3 +1,4 @@
+import re
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class TicketSystem(models.Model):
@@ -9,4 +10,10 @@ class TicketSystem(models.Model):
     regex = fields.Char("Regex", default=".*", required=True, help="Parsing branch to match ticket in ticketsystem")
 
     def _compute_url(self, branch):
-        return False
+        name = branch.ticket_system_ref or branch.name or ''
+        if self.regex and name:
+            m = re.match(self.regex, name)
+            if m:
+                name = m.groups() and m.groups()[0] or ''
+        url = (self.url or '') + name
+        return url

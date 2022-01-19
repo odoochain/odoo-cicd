@@ -41,14 +41,3 @@ class TicketSystem(models.Model):
         assert isinstance(issue_name, str)
         jira = self._get_jira_connection()
         jira.add_comment(issue_name, comment)
-
-    def _compute_url(self, branch):
-        if self.ttype != 'jira':
-            return
-
-        name = branch.ticket_system_ref or branch.name or ''
-        if self.regex and name:
-            m = re.match(self.regex, name)
-            name = m.groups() and m.groups()[0] or ''
-        url = (self.url or '') + name
-        return url
