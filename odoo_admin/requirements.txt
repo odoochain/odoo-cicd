@@ -30,6 +30,7 @@ humanize
 idna==2.8
 inquirer>=2.6.3
 iscompatible
+jira
 libsass==0.18.0
 lxml ; sys_platform == 'win32'
 lxml==4.3.2 ; sys_platform != 'win32' and python_version == '3.7'

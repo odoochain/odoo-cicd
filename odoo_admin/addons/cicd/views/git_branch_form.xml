@@ -44,6 +44,7 @@
 							<field name="repo_id" readonly='1' />
 							<field name="build_state" readonly='1' />
 							<field name="ticket_system_url" widget="url"/>
+							<field name="ticket_system_ref" widget="url"/>
 							<field name="block_updates_until"/>
 							<field name="last_access"/>
 							<field name="database_size_human"/>

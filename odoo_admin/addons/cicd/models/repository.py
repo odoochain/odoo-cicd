@@ -37,8 +37,7 @@ class Repository(models.Model):
     branch_ids = fields.One2many('cicd.git.branch', 'repo_id', string="Branches")
     url = fields.Char(compute="_compute_url")
     default_branch = fields.Char(default="master", required=True)
-    ticket_system_base_url = fields.Char("Ticket System Base URL")
-    ticket_system_regex = fields.Char("Ticket System Regex")
+    ticketsystem_id = fields.Many2one('cicd.ticketsystem', string="Ticket System")
     release_ids = fields.One2many('cicd.release', 'repo_id', string="Releases")
     default_simulate_install_id_dump_id = fields.Many2one('cicd.dump', string="Default Simluate Install Dump")
     never_cleanup = fields.Boolean("Never Cleanup")
@@ -47,6 +46,7 @@ class Repository(models.Model):
     garbage_collect = fields.Boolean("Garbage Collect to reduce size", default=True)
 
     make_dev_dumps = fields.Boolean("Make Dev Dumps")
+    ticketsystem_id = fields.Many2one("cicd.ticketsystem", string="Ticket-System")
 
     _sql_constraints = [
         ('name_unique', "unique(named)", _("Only one unique entry allowed.")),

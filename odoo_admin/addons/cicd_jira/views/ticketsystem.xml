@@ -1,0 +1,16 @@
+<odoo>
+	<data noupdate='0'>
+		<record id="view_cicd_ticketsystem_form" model="ir.ui.view">
+			<field name="model">cicd.ticketsystem</field>
+			<field name="inherit_id" ref="cicd.view_cicd_ticketsystem_form"/>
+			<field name="arch" type="xml">
+				<xpath expr="//group" position="after">
+					<group attrs="{'invisible': [('ttype', '!=', 'jira')]}">
+						<field name="jira_username"/>
+						<field name="jira_apitoken"/>
+					</group>
+				</xpath>
+			</field>
+		</record>
+	</data>
+</odoo>

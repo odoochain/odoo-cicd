@@ -17,7 +17,6 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
-
     project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name")
     database_project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
@@ -39,6 +38,7 @@ class GitBranch(models.Model):
     database_size = fields.Float("Database Size", compute="_compute_databases")
     database_size_human = fields.Char("Database Size", compute="_compute_databases")
     ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
+    ticket_system_ref = fields.Char("Ticketsystem Ref")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
@@ -83,6 +83,7 @@ class GitBranch(models.Model):
     latest_commit_id = fields.Many2one('cicd.git.commit', compute="_compute_latest_commit")
 
     approval_state = fields.Selection(related="latest_commit_id.approval_state", track_visibility="onchange")
+
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
@@ -191,6 +192,7 @@ class GitBranch(models.Model):
 
             if state != rec.state:
                 rec.state = state
+                rec.with_delay()._report_new_state_to_ticketsystem()
 
     @api.fieldchange('state', 'block_release')
     def _onchange_state_event(self, changeset):
@@ -215,7 +217,7 @@ class GitBranch(models.Model):
                     continue
 
 
-    @api.depends("name")
+    @api.depends("name", "ticket_system_ref")
     def _compute_ticket_system_url(self):
         for rec in self:
             url = rec.repo_id.ticket_system_base_url
@@ -224,7 +226,7 @@ class GitBranch(models.Model):
             if regex:
                 m = re.match(regex, name)
                 name = m.groups() and m.groups()[0] or ''
-            rec.ticket_system_url = (url or '') + (rec.name or '')
+            rec.ticket_system_url = (url or '') + (rec.ticket_system_ref or rec.name or '')
 
     def _compute_test_runs(self):
         for rec in self:
@@ -439,3 +441,17 @@ class GitBranch(models.Model):
 
     def set_declined(self):
         self.latest_commit_id.approval_state = 'declined'
+
+    def ticketsystem_set_state(self, state):
+        assert state in ['done', 'in progress']
+        #override / implement!
+
+    def _report_new_state_to_ticketsystem(self):
+        self.ensure_one()
+        if not self.ticket_system_url:
+            return
+
+    def _report_comment_to_ticketsystem(self):
+        self.ensure_one()
+        if not self.ticket_system_url:
+            return

@@ -31,6 +31,7 @@ def pg_advisory_lock(cr, lock):
     cr.execute("SELECT pg_advisory_xact_lock(%s);", (_int_lock(lock),))
 
 
+from . import ticketsystem
 from . import mixin_size
 from . import branch
 from . import branch_button_actions

@@ -1,15 +1,8 @@
-How to use
+CICD - Jira
 ~~~~~~~~~~~~
 
-.. code-block:: sql
+Connects cicd application with jira.
 
-   update table x
-
-How to use::
-
-   self.env['...']
-
-.. image:: /cicd_jira/static/sample.png
 
 Authors
 ~~~~~~~~~~~~~~~

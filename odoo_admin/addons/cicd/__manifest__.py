@@ -29,6 +29,8 @@
                 'views/test_run_kanban.xml',
                 'views/test_run_search.xml',
                 'views/test_run_tree.xml',
+                'views/ticket_system_form.xml',
+                'views/ticket_system_tree.xml',
                 'views/user_form.xml',
                 'views/volume_form.xml',
                 'views/menu.xml',

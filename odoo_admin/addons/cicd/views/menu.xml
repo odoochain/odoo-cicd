@@ -78,5 +78,13 @@
 			<field name="context">{'active_test': False}</field>
 		</record>
 		<menuitem parent="root_menu" id="menu_compressor" action="compressor_action"/>
+
+		<record id='ticketsystems_action' model='ir.actions.act_window'>
+			<field name='name'>Ticket-Systems</field>
+			<field name='res_model'>cicd.ticketsystem</field>
+			<field name='view_mode'>tree,form</field>
+			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
+		</record>
+		<menuitem parent="config_menu" id="menu_ticketsystems" action="ticketsystems_action"/>
 	</data>
 </odoo>
