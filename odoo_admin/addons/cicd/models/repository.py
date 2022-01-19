@@ -99,6 +99,8 @@ class Repository(models.Model):
         self.ensure_one()
         from . import MAIN_FOLDER_NAME
         machine = machine or self.machine_id
+        if not machine.workspace:
+            raise ValidationError(_("Please configure a workspace!"))
         path = Path(machine.workspace) / (MAIN_FOLDER_NAME + "_" + self.short)
         self.clone_repo(machine, path, logsio)
 
