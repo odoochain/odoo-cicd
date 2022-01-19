@@ -438,7 +438,7 @@ class GitBranch(models.Model):
         if not self.ticket_system_url:
             return
 
-    def _report_comment_to_ticketsystem(self):
+    def _report_comment_to_ticketsystem(self, comment):
         self.ensure_one()
         if not self.ticket_system_url:
             return

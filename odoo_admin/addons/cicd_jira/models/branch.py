@@ -18,6 +18,25 @@ class Branch(models.Model):
         issue = self._get_jira_issue()
         self.repo_id._jira_set_state(issue, 'done')
 
-    def _report_comment_to_ticketsystem(self):
-        super()._report_comment_to_ticketsystem()
+    def _report_comment_to_ticketsystem(self, comment):
+        super()._report_comment_to_ticketsystem(comment)
+        for rec in self:
+            if rec.repo_id.ticketsystem_id.ttype == 'jira':
+                rec
 
+    def _jira_comment(self, comment):
+        for rec in self:
+            rec.ensure_one()
+            ts = rec.repo_id.ticketsystem_id.filtered(lambda x: x.ttype == 'jira')
+            if not ts:
+                return
+            ts._jira_comment(rec.ticket_system_ref or rec.name, comment)
+
+    def _event_new_test_state(self, new_state):
+        super()._event_new_test_state(new_state)
+        comment = None
+        if new_state == 'success':
+            comment = "Tests Succeeded"
+        elif new_state == 'failed':
+            comment = "Tests failed"
+        self._jira_comment(comment)

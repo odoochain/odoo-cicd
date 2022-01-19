@@ -30,6 +30,9 @@ class GitCommit(models.Model):
         ('name', "unique(name)", _("Only one unique entry allowed.")),
     ]
 
+    def _event_new_test_state(self, new_state):
+        pass # implement!
+
     def set_to_check(self):
         self.approval_state = 'check'
 
@@ -53,7 +56,10 @@ class GitCommit(models.Model):
             if not testruns or testruns[0].state == 'open':
                 rec.test_state = False
                 continue
-            rec.test_state = testruns[0].state
+            new_state = testruns[0].state
+            if new_state != rec.test_state:
+                rec.test_state = new_state
+                rec._event_new_test_state(new_state)
 
     def run_tests(self, filtered=None):
         for ttype in self.env['cicd.test.run']._get_types(filtered):
