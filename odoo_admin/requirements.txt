@@ -54,7 +54,7 @@ python-ldap==3.2.0; sys_platform != 'win32'
 python-stdnum==1.13
 pytz==2019.3
 pyusb==1.0.2
-pyyaml>=5.4.1
+pyyaml<6.0
 qrcode==6.1
 reportlab==3.5.59 # version < 3.5.54 are not compatible with Pillow 8.1.2 and 3.5.59 is bullseye
 requests
