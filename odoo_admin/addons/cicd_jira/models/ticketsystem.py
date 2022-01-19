@@ -1,6 +1,5 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 import re
-import pudb;pudb.set_trace()
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 class TicketSystem(models.Model):
@@ -8,6 +7,12 @@ class TicketSystem(models.Model):
 
     jira_username = fields.Char("JIRA Username")
     jira_apitoken = fields.Char("JIRA apitoken")
+    state_mapping_ids = fields.One2many('ticketsystem.jira.states', string="Mappings")
+
+    def _map_state(self, odoo_name):
+        mapping = self.state_mapping_ids.filtered(lambda x: x.name == odoo_name)
+        if mapping:
+            return mapping[0].jira_state
 
     def _get_jira_connection(self):
         self.ensure_one()
@@ -24,10 +29,12 @@ class TicketSystem(models.Model):
                 return x['id']
         raise ValidationError(f"Did not find {state}")
 
-    def _jira_set_state(self, issue, new_state_name):
+    def _jira_set_state(self, issue, state):
         jira = self._get_jira_connection()
-        state = self._jira_get_state(jira, issue, new_state_name)
-        jira.transition_issue(issue, state)
+        state = self._map_state(state)
+        if state:
+            state = self._jira_get_state(jira, issue, state)
+            jira.transition_issue(issue, state)
 
     def _jira_comment(self, issue_name, comment):
         assert isinstance(issue_name, str)

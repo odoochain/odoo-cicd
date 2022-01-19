@@ -11,6 +11,7 @@ from ..tools.logsio_writer import LogsIOWriter
 from contextlib import contextmanager
 import humanize
 import logging
+from .consts import STATES
 logger = logging.getLogger(__name__)
 
 class GitBranch(models.Model):
@@ -42,18 +43,7 @@ class GitBranch(models.Model):
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
-    state = fields.Selection([
-        ('new', 'New'),
-        ('dev', "Dev"),
-        ('approve', "Approve"),
-        ('testable', 'Testable'), 
-        ('tested', 'Tested'),
-        ('blocked', "Blocked"),
-        ('candidate', 'Candidate'),
-        ('release', 'Release'),
-        ('done', "Done"),
-        ('cancel', "Cancel"),
-    ], string="State", default="new", track_visibility='onchange', compute="_compute_state", store=True)
+    state = fields.Selection(STATES, string="State", default="new", track_visibility='onchange', compute="_compute_state", store=True)
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),

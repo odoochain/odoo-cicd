@@ -16,7 +16,6 @@ class Branch(models.Model):
     def _report_new_state_to_ticketsystem(self):
         super()._report_new_state_to_ticketsystem()
         issue = self._get_jira_issue()
-        if self.state in ['done', 
         self.repo_id._jira_set_state(issue, 'done')
 
     def _report_comment_to_ticketsystem(self):
