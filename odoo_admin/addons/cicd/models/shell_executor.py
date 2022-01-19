@@ -59,7 +59,7 @@ class ShellExecutor(object):
         with self.machine._shell() as shell:
             yield shell
 
-    def odoo(self, *cmd, allow_error=True):
+    def odoo(self, *cmd, allow_error=False):
         env={
             'NO_PROXY': "*",
             'DOCKER_CLIENT_TIMEOUT': "600",
