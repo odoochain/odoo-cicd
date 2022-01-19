@@ -220,13 +220,10 @@ class GitBranch(models.Model):
     @api.depends("name", "ticket_system_ref")
     def _compute_ticket_system_url(self):
         for rec in self:
-            url = rec.repo_id.ticket_system_base_url
-            regex = rec.repo_id.ticket_system_regex
-            name = rec.name or ''
-            if regex:
-                m = re.match(regex, name)
-                name = m.groups() and m.groups()[0] or ''
-            rec.ticket_system_url = (url or '') + (rec.ticket_system_ref or rec.name or '')
+            url = False
+            if rec.repo_id.ticketsystem_id:
+                url = rec.repo_id.ticketsystem_id._compute_url(rec)
+            rec.ticket_system_url = url
 
     def _compute_test_runs(self):
         for rec in self:

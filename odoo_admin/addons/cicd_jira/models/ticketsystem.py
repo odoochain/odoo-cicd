@@ -1,6 +1,7 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
+import re
+import pudb;pudb.set_trace()
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
-from jira import JIRA
 
 class TicketSystem(models.Model):
     _inherit = 'cicd.ticketsystem'
@@ -10,8 +11,9 @@ class TicketSystem(models.Model):
 
     def _get_jira_connection(self):
         self.ensure_one()
+        from jira import JIRA
         jira = JIRA(
-            server='ticket_system_base_url',
+            server=self.url,
             basic_auth=(self.jira_username, self.jira_apitoken),
         )
         return jira
@@ -31,3 +33,14 @@ class TicketSystem(models.Model):
         assert isinstance(issue_name, str)
         jira = self._get_jira_connection()
         jira.add_comment(issue_name, comment)
+
+    def _compute_url(self, branch):
+        if self.ttype != 'jira':
+            return
+
+        name = branch.ticket_system_ref or branch.name or ''
+        if self.regex and name:
+            m = re.match(self.regex, name)
+            name = m.groups() and m.groups()[0] or ''
+        url = (self.url or '') + name
+        return url

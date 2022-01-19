@@ -6,8 +6,8 @@
 			<field name="arch" type="xml">
 				<xpath expr="//group" position="after">
 					<group attrs="{'invisible': [('ttype', '!=', 'jira')]}">
-						<field name="jira_username"/>
-						<field name="jira_apitoken"/>
+						<field name="jira_username" attrs="{'required': [('ttype', '=', 'jira')]}"/>
+						<field name="jira_apitoken" attrs="{'required': [('ttype', '=', 'jira')]}"/>
 					</group>
 				</xpath>
 			</field>

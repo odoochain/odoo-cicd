@@ -3,7 +3,7 @@
     'auto_install': True,
     'data': [   'views/assets.xml',
                 'views/branch_form.xml',
-                'views/ticketsystem.xml'],
+                'views/ticketsystem_form.xml'],
     'demo': [],
     'depends': ['cicd'],
     'external_dependencies': {'python': ['jira']},
