@@ -10,6 +10,7 @@
 						<group string="" col="4">
 							<field name="name"/>
 							<field name="url"/>
+							<field name="regex"/>
 							<field name="ttype"/>
 						</group>
 					</sheet>
