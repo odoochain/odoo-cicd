@@ -49,6 +49,7 @@ class Dump(models.Model):
                 ]).output.strip().split("\n")
 
                 todo = self.env[self._name]
+                all_dumps = self.env[self._name]
                 for file in files:
                     if not file:
                         continue
@@ -63,10 +64,11 @@ class Dump(models.Model):
                     else:
                         todo |= dumps
 
-                todo.with_delay(
-                    identity_key=f"get_dump_info_{dumps.ids}",
-                    eta=arrow.get().shift(minutes=60).strftime("%Y-%m-%d %H:%M:%S"),
-                )._update_size()
+                for dump in all_dumps:
+                    todo.with_delay(
+                        identity_key=f"get_dump_info_{dump.ids}",
+                        eta=arrow.get().shift(minutes=60).strftime("%Y-%m-%d %H:%M:%S"),
+                    )._update_size()
 
     def _update_size(self):
         machines = self.mapped('machine_id')
