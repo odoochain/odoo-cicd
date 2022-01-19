@@ -365,7 +365,10 @@ class GitBranch(models.Model):
         After new source is fetched then the instance is rebuilt.
         """
         for rec in self:
-            rec._make_task("_update_odoo", silent=True)
+            if not rec.database_size:
+                rec._make_task("_prepare_a_new_instance", silent=True)
+            else:
+                rec._make_task("_update_odoo", silent=True)
 
     def contains_commit(self, commit):
         return commit in self.mapped('commit_ids')
