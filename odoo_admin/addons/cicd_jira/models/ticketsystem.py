@@ -7,7 +7,7 @@ class TicketSystem(models.Model):
 
     jira_username = fields.Char("JIRA Username")
     jira_apitoken = fields.Char("JIRA apitoken")
-    state_mapping_ids = fields.One2many('ticketsystem.jira.states', string="Mappings")
+    state_mapping_ids = fields.One2many('ticketsystem.jira.states', 'ticketsystem_id', string="Mappings")
 
     def _map_state(self, odoo_name):
         mapping = self.state_mapping_ids.filtered(lambda x: x.name == odoo_name)
