@@ -244,7 +244,7 @@ class Branch(models.Model):
         logsio.info("Downing")
         shell.odoo('kill')
         shell.odoo('rm')
-        shell.odoo('-f', 'db' 'reset')
+        shell.odoo('-f', 'db', 'reset')
 
     def _run_tests(self, shell, task, logsio, **kwargs):
         """
