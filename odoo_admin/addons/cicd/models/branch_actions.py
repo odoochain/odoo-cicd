@@ -1,4 +1,5 @@
 import re
+import psycopg2
 from odoo import fields
 from pathlib import Path
 import os
@@ -265,7 +266,11 @@ class Branch(models.Model):
         repo_path = task.branch_id.repo_id._get_main_repo(tempfolder=True, machine=shell.machine)
         shell.cwd = repo_path
         try:
-            self.env.cr.commit()
+            try:
+                self.env.cr.commit()
+            except psycopg2.errors.SerializationFailure:
+                raise RetryableJobError("Could not get lock on test-run rescheduling", seconds=60, ignore_retry=True)
+
             checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name + "UNDO"], allow_error=True)
             if 'fatal: reference is not a tree' in checkout_res.stderr_output:
                 raise RetryableJobError("Commit does not exist in working branch - rescheduling", seconds=60, ignore_retry=True)
