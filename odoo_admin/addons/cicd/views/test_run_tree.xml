@@ -5,10 +5,13 @@
 		<field name="model">cicd.test.run</field>
 		<field name="arch" type="xml">
 			<tree default_order="" string="" >
-				<field name="name" />
 				<field name="date"/>
+				<field name="name" />
 				<field name="state"/>
-				
+				<field name="duration"/>
+				<field name="branch_ids" widget="many2many_tags"/>
+				<field name="success_rate"/>
+				<field name="commit_id"/>
 			</tree>
 		</field>
 	</record>
