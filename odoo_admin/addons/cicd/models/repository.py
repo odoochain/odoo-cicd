@@ -135,6 +135,9 @@ class Repository(models.Model):
     def _clear_branch_name(self, branch):
         branch = branch.strip()
 
+        if " (" in branch:
+            branch = branch.split(" (")[0]
+
         if "->" in branch:
             branch = branch.split("->")[-1].strip()
 
@@ -152,6 +155,7 @@ class Repository(models.Model):
     @api.model
     def _cron_fetch(self):
         logsio = None
+        import pudb;pudb.set_trace()
         for repo in self.search([('autofetch', '=', True)]):
             try:
                 repo._lock_git()
@@ -168,7 +172,9 @@ class Repository(models.Model):
                             while "  " in fi:
                                 fi = fi.replace("  ", " ")
                             fi = fi.strip()
-                            if '[new branch]' in fi:
+                            if '[new tag]' in fi:
+                                continue
+                            elif '[new branch]' in fi:
                                 branch = fi.replace("[new branch]", "").split("->")[0].strip()
                             else:
                                 branch = fi.split("/")[-1]
