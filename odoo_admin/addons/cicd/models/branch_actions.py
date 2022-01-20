@@ -266,7 +266,9 @@ class Branch(models.Model):
         shell.cwd = repo_path
         try:
             self.env.cr.commit()
-            shell.X(["git", "checkout", "-f", test_run.commit_id.name])
+            checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name + "UNDO"], allow_error=True)
+            if 'fatal: reference is not a tree' in checkout_res.stderr_output:
+                raise RetryableJobError("Commit does not exist in working branch - rescheduling", seconds=60, ignore_retry=True)
             test_run.execute(shell, task, logsio)
             if update_state:
                 if test_run.state == 'failed':
