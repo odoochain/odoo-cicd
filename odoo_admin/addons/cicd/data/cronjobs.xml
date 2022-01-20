@@ -132,7 +132,6 @@ reasons = [
 	'RetryableJobError',
 	'Failed to put the local file',
 	'self.BEGIN_TAG.match(lines[start])',  # paramiko
-	'You are not currently on a branch.',
 	'.git/index.lock',
 ]
 for reason in reasons:
