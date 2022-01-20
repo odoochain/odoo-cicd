@@ -76,6 +76,7 @@
 							</page>
 							<page string="Tasks" name="tasks">
 								<button name="refresh_tasks" string="" type="object" icon="fa-recycle"/>
+								<button name="show_queuejobs" string="Show Queuejobs" type="object" />
 								<newline/>
 								<field name="task_ids_filtered" nolabel="1" readonly="1">
 									<tree decoration-danger="state == 'failed'" decoration-success="state == 'done'">

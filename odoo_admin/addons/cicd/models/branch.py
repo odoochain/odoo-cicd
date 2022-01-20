@@ -183,7 +183,7 @@ class GitBranch(models.Model):
             if state != rec.state:
                 rec.state = state
                 queuejob = rec.with_delay()._report_new_state_to_ticketsystem()
-                self.env['queue.job'].prefix(queuejob, self.name)
+                self.env['queue.job'].prefix(queuejob.uuid, self.name)
 
 
     @api.fieldchange('state', 'block_release')
@@ -448,3 +448,17 @@ class GitBranch(models.Model):
         self.ensure_one()
         if not self.ticket_system_url:
             return
+
+    def show_queuejobs(self):
+        jobs = self.env['queue.job'].search([
+            ('name', 'ilike', f"{self.name}:")
+        ])
+
+        return {
+            'view_type': 'form',
+            'res_model': jobs._name,
+            'domain': [('id', 'in', jobs.ids)],
+            'views': [(False, 'tree'), (False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }

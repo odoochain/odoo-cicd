@@ -22,5 +22,8 @@ class queuejob(models.Model):
         if not job_uuid:
             return
         queuejob = self.sudo().search([('uuid', '=', job_uuid)])
-        queuejob.name = f"{prefix}: {queuejob.name}"
+        self.env.cr.execute("update queue_job set name=%s where id =%s", (
+            f"{prefix}: {queuejob.name}",
+            queuejob.id,
+        ))
         return queuejob
