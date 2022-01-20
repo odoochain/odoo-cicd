@@ -25,6 +25,7 @@
 							<field name="name"/>
 							<field name="skip_paths" placeholder='/release/'/>
 							<field name="default_branch" placeholder="master"/>
+							<field name="initialize_new_branches"/>
 							<field name="machine_id" invisible="0"/>
 							<field name="default_simulate_install_id_dump_id" domain="[('machine_id', '=', machine_id)]"/>
 							<field name="ticketsystem_id"/>

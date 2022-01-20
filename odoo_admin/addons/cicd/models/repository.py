@@ -44,6 +44,7 @@ class Repository(models.Model):
     cleanup_untouched = fields.Integer("Cleanup after days", default=20, required=True)
     autofetch = fields.Boolean("Autofetch", default=True)
     garbage_collect = fields.Boolean("Garbage Collect to reduce size", default=True)
+    initialize_new_branches = fields.Boolean("Initialize new Branches")
 
     make_dev_dumps = fields.Boolean("Make Dev Dumps")
     ticketsystem_id = fields.Many2one("cicd.ticketsystem", string="Ticket-System")

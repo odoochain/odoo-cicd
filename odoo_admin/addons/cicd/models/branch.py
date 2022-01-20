@@ -366,7 +366,8 @@ class GitBranch(models.Model):
         """
         for rec in self:
             if not rec.database_size:
-                rec._make_task("_prepare_a_new_instance", silent=True)
+                if rec.repo_id.initialize_new_branches:
+                    rec._make_task("_prepare_a_new_instance", silent=True)
             else:
                 rec._make_task("_update_odoo", silent=True)
 
