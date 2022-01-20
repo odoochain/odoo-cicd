@@ -8,7 +8,6 @@
 					<header>
 						<button string="Pull into candidate" name="collect_tested_branches" class="oe_highlight" type="object"/>
 						<button string="Make Hotfix" name="make_hotfix" type="object"/>
-						<button string="do_release" name="Perform Release Now" type="method" />
 						<field name="state" widget="statusbar" />
 					</header>
 					<sheet>
