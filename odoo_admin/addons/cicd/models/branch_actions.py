@@ -257,6 +257,10 @@ class Branch(models.Model):
         update_state = kwargs.get('update_state', False)
         # self._update_git_commits(shell, task=task, logsio=logsio) # why???
 
+        existing = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
+        if existing:
+            return
+
         test_run = self.test_run_ids.create({
             'commit_id': self.latest_commit_id.id,
             'branch_id': b.id,
