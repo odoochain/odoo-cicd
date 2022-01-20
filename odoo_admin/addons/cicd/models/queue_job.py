@@ -16,3 +16,11 @@ class queuejob(models.Model):
             job.perform()
             job.set_done()
             job.store()
+
+    @api.model
+    def prefix(self, job_uuid, prefix):
+        if not job_uuid:
+            return
+        queuejob = self.sudo().search([('uuid', '=', job_uuid)])
+        queuejob.name = f"{prefix}: {queuejob.name}"
+        return queuejob

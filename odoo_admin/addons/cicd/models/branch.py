@@ -182,7 +182,9 @@ class GitBranch(models.Model):
 
             if state != rec.state:
                 rec.state = state
-                rec.with_delay()._report_new_state_to_ticketsystem()
+                queuejob = rec.with_delay()._report_new_state_to_ticketsystem()
+                self.env['queue.job'].prefix(queuejob, self.name)
+
 
     @api.fieldchange('state', 'block_release')
     def _onchange_state_event(self, changeset):
