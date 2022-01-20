@@ -124,7 +124,7 @@ class ReleaseItem(models.Model):
         changed_lines = repo._merge(
             candidate_branch,
             release.branch_id,
-            set_tags=[f'release-{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+            set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
             logsio=logsio,
         )
         self.changed_lines += changed_lines
@@ -135,7 +135,6 @@ class ReleaseItem(models.Model):
                 return
 
             errors = self.release_id._technically_do_release(self)
-            import pudb;pudb.set_trace()
             if errors:
                 raise Exception(errors)
             self._on_done()

@@ -31,6 +31,7 @@
 							<field name="ticketsystem_id"/>
 							<field name="autofetch"/>
 							<field name="garbage_collect"/>
+							<field name="release_tag_prefix"/>
 						</group>
 						<notebook>
 							<page name="cleanup" string="Cleanup">
