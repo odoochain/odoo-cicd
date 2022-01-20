@@ -45,6 +45,7 @@ class Repository(models.Model):
     autofetch = fields.Boolean("Autofetch", default=True)
     garbage_collect = fields.Boolean("Garbage Collect to reduce size", default=True)
     initialize_new_branches = fields.Boolean("Initialize new Branches")
+    release_tag_prefix = fields.Char("Release Tag Prefix", default="release-", required=True)
 
     make_dev_dumps = fields.Boolean("Make Dev Dumps")
     ticketsystem_id = fields.Many2one("cicd.ticketsystem", string="Ticket-System")
@@ -176,7 +177,9 @@ class Repository(models.Model):
                             except InvalidBranchName:
                                 logsio.error("Invalid Branch name: {branch}")
                                 continue
-                            updated_branches.add(branch)
+
+                            if not branch.startswith(repo.release_tag_prefix):
+                                updated_branches.add(branch)
 
                         del fetch_info
 
