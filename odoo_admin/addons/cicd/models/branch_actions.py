@@ -22,6 +22,7 @@ class Branch(models.Model):
             self.backup_machine_id = dump.machine_id
             self.dump_id = dump
             self._restore_dump(shell, task, logsio, **kwargs)
+            self._update_all_modules(shell, task, logsio, **kwargs)
 
     def _update_odoo(self, shell, task, logsio, **kwargs):
         if self.block_updates_until and self.block_updates_until > fields.Datetime.now():
