@@ -15,18 +15,19 @@ class Branch(models.Model):
 
     def _report_new_state_to_ticketsystem(self):
         super()._report_new_state_to_ticketsystem()
-        issue = self._get_jira_issue()
-        self.repo_id._jira_set_state(issue, 'done')
+        for rec in self:
+            if rec.repo_id.ticketsystem_id.ttype == 'jira':
+                ts = rec.repo_id.ticketsystem_id
+                issue = ts._get_jira_issue()
+                ts._jira_set_state(issue, 'done')
 
     def _report_comment_to_ticketsystem(self, comment):
         super()._report_comment_to_ticketsystem(comment)
         for rec in self:
-            if rec.repo_id.ticketsystem_id.ttype == 'jira':
-                rec
+            rec._jira_comment(comment)
 
     def _jira_comment(self, comment):
         for rec in self:
-            rec.ensure_one()
             ts = rec.repo_id.ticketsystem_id.filtered(lambda x: x.ttype == 'jira')
             if not ts:
                 return
