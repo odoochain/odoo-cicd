@@ -270,7 +270,7 @@ class Branch(models.Model):
             test_run.execute(shell, task, logsio)
             if update_state:
                 if test_run.state == 'failed':
-                    self.state = 'rework'
+                    self.state = 'dev'
                 else:
                     self.state = 'tested'
         finally:
