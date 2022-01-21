@@ -15,6 +15,10 @@ services:
   postgres:
     networks:
       - internal
+  cronjobs:
+    networks:
+      - internal
+
   odoo_base:
     privileged: True
     environment:
