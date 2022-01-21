@@ -39,7 +39,7 @@ class GitBranch(models.Model):
     database_size = fields.Float("Database Size", compute="_compute_databases")
     database_size_human = fields.Char("Database Size", compute="_compute_databases")
     ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
-    ticket_system_ref = fields.Char("Ticketsystem Ref")
+    ticket_system_ref = fields.Char("Ticketsystem Ref", help="If branch name differs from ticketsystem then add the name in the ticketsystem here.")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
