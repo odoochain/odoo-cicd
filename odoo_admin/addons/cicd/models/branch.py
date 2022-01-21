@@ -43,7 +43,7 @@ class GitBranch(models.Model):
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
-    state = fields.Selection(STATES, string="State", default="new", track_visibility='onchange', compute="_compute_state", store=True)
+    state = fields.Selection(STATES, string="State", default="new", track_visibility='onchange', compute="_compute_state", store=True, group_expand="_expand_states")
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
@@ -78,6 +78,10 @@ class GitBranch(models.Model):
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    def _expand_states(self, states, domain, order):
+        # return all possible states, in order
+        return [key for key, val in type(self).state.selection]
 
     @api.depends('commit_ids')
     def _compute_latest_commit(self):

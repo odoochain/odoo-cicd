@@ -8,6 +8,7 @@
 			<form string="">
 				<header>
 					<field name="state" widget="statusbar" attrs="{'readonly': True}" clickable='True'/>
+					<button name="rerun" string="Re-Run" type="object" />
 				</header>
 				<sheet>
 					<group string="" col="4">
