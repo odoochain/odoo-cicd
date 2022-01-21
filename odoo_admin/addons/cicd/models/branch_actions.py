@@ -257,35 +257,34 @@ class Branch(models.Model):
         update_state = kwargs.get('update_state', False)
         # self._update_git_commits(shell, task=task, logsio=logsio) # why???
 
-        existing = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
-        if existing:
-            return
+        test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
 
-        test_run = self.test_run_ids.create({
-            'commit_id': self.latest_commit_id.id,
-            'branch_id': b.id,
-        })
-
-        # use tempfolder for tests to not interfere with updates or so
-        repo_path = task.branch_id.repo_id._get_main_repo(tempfolder=True, machine=shell.machine)
-        shell.cwd = repo_path
-        try:
+        if not test_run:
+            test_run = self.test_run_ids.create({
+                'commit_id': self.latest_commit_id.id,
+                'branch_id': b.id,
+            })
+        for test_run in test_run:
+            # use tempfolder for tests to not interfere with updates or so
+            repo_path = task.branch_id.repo_id._get_main_repo(tempfolder=True, machine=shell.machine)
+            shell.cwd = repo_path
             try:
-                self.env.cr.commit()
-            except psycopg2.errors.SerializationFailure:
-                raise RetryableJobError("Could not get lock on test-run rescheduling", seconds=60, ignore_retry=True)
+                try:
+                    self.env.cr.commit()
+                except psycopg2.errors.SerializationFailure:
+                    raise RetryableJobError("Could not get lock on test-run rescheduling", seconds=60, ignore_retry=True)
 
-            checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name + "UNDO"], allow_error=True)
-            if 'fatal: reference is not a tree' in checkout_res.stderr_output:
-                raise RetryableJobError("Commit does not exist in working branch - rescheduling", seconds=60, ignore_retry=True)
-            test_run.execute(shell, task, logsio)
-            if update_state:
-                if test_run.state == 'failed':
-                    self.state = 'dev'
-                else:
-                    self.state = 'tested'
-        finally:
-            shell.rmifexists(repo_path)
+                checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name + "UNDO"], allow_error=True)
+                if 'fatal: reference is not a tree' in checkout_res.stderr_output:
+                    raise RetryableJobError("Commit does not exist in working branch - rescheduling", seconds=60, ignore_retry=True)
+                test_run.execute(shell, task, logsio)
+                if update_state:
+                    if test_run.state == 'failed':
+                        self.state = 'dev'
+                    else:
+                        self.state = 'tested'
+            finally:
+                shell.rmifexists(repo_path)
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
