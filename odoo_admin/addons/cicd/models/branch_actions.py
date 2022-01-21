@@ -239,6 +239,7 @@ class Branch(models.Model):
 
     def _create_empty_db(self, shell, task, logsio, **kwargs):
         logsio.info("Reloading")
+        self._reload(shell, task, logsio)
         shell.odoo('reload')
         logsio.info("Building")
         shell.odoo('build')
@@ -398,7 +399,7 @@ class Branch(models.Model):
             rec._make_task("_dump", machine=rec.backup_machine_id)
 
     def _reset_db(self, shell, task, logsio, **kwargs):
-        shell.odoo('reload')
+        self._reload(shell, task, logsio)
         shell.odoo('build')
         shell.odoo('-f', 'db', 'reset')
         shell.odoo('update')
