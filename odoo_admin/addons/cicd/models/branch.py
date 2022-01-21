@@ -146,6 +146,8 @@ class GitBranch(models.Model):
 
     @api.depends(
         # "block_release", # not needed here - done in _onchange_state_event
+        "task_ids",
+        "task_ids.state",
         "commit_ids",
         "commit_ids.approval_state",
         "commit_ids.test_state",
@@ -156,7 +158,7 @@ class GitBranch(models.Model):
     def _compute_state(self):
         for rec in self:
             logger.info(f"Computing branch state for {rec.id}")
-            building_tasks = rec.task_ids.filtered(lambda x: any y in x.name for x in ['update', 'reset', 'restore'])
+            building_tasks = rec.task_ids.filtered(lambda x: any (y in x.name for y in ['update', 'reset', 'restore']))
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
                     rec.state = 'new'

@@ -22,8 +22,14 @@ class TestBasicRepo(common.TransactionCase):
         super().setUp()
 
     def test_setuprepo(self):
+        machine = self.env['cicd.machine'].create({
+            'name': 'local',
+            'ttype': 'dev',
+        })
+        machine.generate_ssh_key()
         repo = self.env['cicd.git.repo'].create({
-            'name': 'odoofun-new'
+            'name': 'odoofun-new',
+            'machine_id': machine.id,
             'url': 'https://git.itewimmer.de/odoo/customs/odoofun',
             'username': GIT_USER,
             'password': GIT_PASSWORD
