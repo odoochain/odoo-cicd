@@ -60,8 +60,9 @@ class CicdTestRun(models.Model):
     def rerun(self):
         if self.branch_id.state not in ['testable', 'tested', 'dev']:
             raise ValidationError(_("State of branch does not all a repeated test run"))
+        self = self.sudo()
         self.state = 'open'
-        self.branch_id._run_tests()
+        self.branch_id._make_task("_run_tests", silent=True, update_state=True)
 
     def execute(self, shell, task, logsio):
         self.ensure_one()
