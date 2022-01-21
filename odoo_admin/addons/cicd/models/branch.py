@@ -73,11 +73,17 @@ class GitBranch(models.Model):
     latest_commit_id = fields.Many2one('cicd.git.commit', compute="_compute_latest_commit")
 
     approval_state = fields.Selection(related="latest_commit_id.approval_state", track_visibility="onchange")
-
+    link_to_instance = fields.Char(compute="_compute_link", string="Link To Instance")
 
     _sql_constraints = [
         ('name_repo_id_unique', "unique(name, repo_id)", _("Only one unique entry allowed.")),
     ]
+
+    def _compute_link(self):
+        for rec in self:
+            url = self.env['ir.config_parameter'].sudo().get_param(key="web.base.url", default=False)
+            url += '/start/' + rec.name
+            rec.link_to_instance = url
 
     def _expand_states(self, states, domain, order):
         # return all possible states, in order
