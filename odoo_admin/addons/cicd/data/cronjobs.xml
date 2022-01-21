@@ -126,7 +126,6 @@ model.search([('state', '=', 'done'), ('date_created', '&lt;', dt)]).unlink()</f
 			<field name="code">
 reasons = [
 	'could not serialize access due to concurrent update',
-	'paramiko',
 	'cannot stat',
 	'server closed the connection unexpectedly',
 	'RetryableJobError',
