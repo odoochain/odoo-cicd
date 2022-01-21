@@ -156,11 +156,15 @@ class GitBranch(models.Model):
     def _compute_state(self):
         for rec in self:
             logger.info(f"Computing branch state for {rec.id}")
-            if not rec.commit_ids and rec.build_state == 'new':
+            building_tasks = rec.task_ids.filtered(lambda x: any y in x.name for x in ['update', 'reset', 'restore'])
+            if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
                     rec.state = 'new'
                 continue
-            state = 'new'
+            if not building_tasks:
+                state = 'new'
+            else:
+                state = 'dev'
 
             commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
 
