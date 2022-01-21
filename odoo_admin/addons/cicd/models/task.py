@@ -63,7 +63,7 @@ class Task(models.Model):
                 eta=arrow.get().shift(seconds=10).strftime("%Y-%m-%d %H:%M:%S"),
             )._exec(now)
             if queuejob:
-                self.sudo().queue_job_id = self.env['queue.job'].prefix(queuejob.uuid, ":".join([self.branch_id.name, self.name]))
+                self.sudo().queue_job_id = self.env['queue.job'].prefix(queuejob, ":".join([self.branch_id.name, self.name]))
         else:
             self._exec(now)
 

@@ -18,9 +18,10 @@ class queuejob(models.Model):
             job.store()
 
     @api.model
-    def prefix(self, job_uuid, prefix):
-        if not job_uuid:
+    def prefix(self, job, prefix):
+        if not job:
             return
+        job_uuid = job.uuid
         queuejob = self.sudo().search([('uuid', '=', job_uuid)])
         self.env.cr.execute("update queue_job set name=%s where id =%s", (
             f"{prefix}: {queuejob.name}",
