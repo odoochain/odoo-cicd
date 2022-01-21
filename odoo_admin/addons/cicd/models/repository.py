@@ -155,7 +155,6 @@ class Repository(models.Model):
     @api.model
     def _cron_fetch(self):
         logsio = None
-        import pudb;pudb.set_trace()
         for repo in self.search([('autofetch', '=', True)]):
             try:
                 repo._lock_git()
