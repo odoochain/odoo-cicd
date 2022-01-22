@@ -515,16 +515,17 @@ class Picking(models.Model):
             })
             picking_move_lines[picking_id.id].add(move.id)
         for picking in self:
-            if not picking_moves_state_map[picking.id]:
+            picking_id = (picking.ids and picking.ids[0]) or picking.id
+            if not picking_moves_state_map[picking_id]:
                 picking.state = 'draft'
-            elif picking_moves_state_map[picking.id]['any_draft']:
+            elif picking_moves_state_map[picking_id]['any_draft']:
                 picking.state = 'draft'
-            elif picking_moves_state_map[picking.id]['all_cancel']:
+            elif picking_moves_state_map[picking_id]['all_cancel']:
                 picking.state = 'cancel'
-            elif picking_moves_state_map[picking.id]['all_cancel_done']:
+            elif picking_moves_state_map[picking_id]['all_cancel_done']:
                 picking.state = 'done'
             else:
-                relevant_move_state = self.env['stock.move'].browse(picking_move_lines[picking.id])._get_relevant_state_among_moves()
+                relevant_move_state = self.env['stock.move'].browse(picking_move_lines[picking_id])._get_relevant_state_among_moves()
                 if picking.immediate_transfer and relevant_move_state not in ('draft', 'cancel', 'done'):
                     picking.state = 'assigned'
                 elif relevant_move_state == 'partially_available':
@@ -783,7 +784,9 @@ class Picking(models.Model):
         @return: True
         """
         self.filtered(lambda picking: picking.state == 'draft').action_confirm()
-        moves = self.mapped('move_lines').filtered(lambda move: move.state not in ('draft', 'cancel', 'done'))
+        moves = self.mapped('move_lines').filtered(lambda move: move.state not in ('draft', 'cancel', 'done')).sorted(
+            key=lambda move: (-int(move.priority), not bool(move.date_deadline), move.date_deadline, move.id)
+        )
         if not moves:
             raise UserError(_('Nothing to check the availability for.'))
         # If a package level is done when confirmed its location can be different than where it will be reserved.
@@ -1139,6 +1142,7 @@ class Picking(models.Model):
         picking, the backorder, and move the stock.moves that are not `done` or `cancel` into it.
         """
         backorders = self.env['stock.picking']
+        bo_to_assign = self.env['stock.picking']
         for picking in self:
             moves_to_backorder = picking.move_lines.filtered(lambda x: x.state not in ('done', 'cancel'))
             if moves_to_backorder:
@@ -1152,9 +1156,13 @@ class Picking(models.Model):
                     body=_('The backorder <a href=# data-oe-model=stock.picking data-oe-id=%d>%s</a> has been created.') % (
                         backorder_picking.id, backorder_picking.name))
                 moves_to_backorder.write({'picking_id': backorder_picking.id})
-                moves_to_backorder.mapped('package_level_id').write({'picking_id':backorder_picking.id})
+                moves_to_backorder.move_line_ids.package_level_id.write({'picking_id':backorder_picking.id})
                 moves_to_backorder.mapped('move_line_ids').write({'picking_id': backorder_picking.id})
                 backorders |= backorder_picking
+                if backorder_picking.picking_type_id.reservation_method == 'at_confirm':
+                    bo_to_assign |= backorder_picking
+        if bo_to_assign:
+            bo_to_assign.action_assign()
         return backorders
 
     def _log_activity_get_documents(self, orig_obj_changes, stream_field, stream, sorted_method=False, groupby_method=False):
@@ -1375,18 +1383,28 @@ class Picking(models.Model):
                     ml.write(vals)
                     new_move_line.write({'product_uom_qty': done_to_keep})
                     move_lines_to_pack |= new_move_line
+            if not package.package_type_id:
+                package_type = move_lines_to_pack.move_id.product_packaging_id.package_type_id
+                if len(package_type) == 1:
+                    package.package_type_id = package_type
+            if len(move_lines_to_pack) == 1:
+                default_dest_location = move_lines_to_pack._get_default_dest_location()
+                move_lines_to_pack.location_dest_id = default_dest_location._get_putaway_strategy(
+                    product=move_lines_to_pack.product_id,
+                    quantity=move_lines_to_pack.product_uom_qty,
+                    package=package)
+            move_lines_to_pack.write({
+                'result_package_id': package.id,
+            })
             if create_package_level:
                 package_level = self.env['stock.package_level'].create({
                     'package_id': package.id,
                     'picking_id': pick.id,
                     'location_id': False,
-                    'location_dest_id': move_line_ids.mapped('location_dest_id').id,
+                    'location_dest_id': move_lines_to_pack.mapped('location_dest_id').id,
                     'move_line_ids': [(6, 0, move_lines_to_pack.ids)],
                     'company_id': pick.company_id.id,
                 })
-            move_lines_to_pack.write({
-                'result_package_id': package.id,
-            })
         return package
 
     def action_put_in_pack(self):

@@ -68,7 +68,7 @@ class AccountMoveReversal(models.TransientModel):
     def _check_journal_type(self):
         for record in self:
             if record.journal_id.type not in record.move_ids.journal_id.mapped('type'):
-                raise UserError(_('Journal should be of type of reversed entry.'))
+                raise UserError(_('Journal should be the same type as the reversed entry.'))
 
     @api.model
     def default_get(self, fields):
@@ -152,10 +152,13 @@ class AccountMoveReversal(models.TransientModel):
             action.update({
                 'view_mode': 'form',
                 'res_id': moves_to_redirect.id,
+                'context': {'default_move_type':  moves_to_redirect.move_type},
             })
         else:
             action.update({
                 'view_mode': 'tree,form',
                 'domain': [('id', 'in', moves_to_redirect.ids)],
             })
+            if len(set(moves_to_redirect.mapped('move_type'))) == 1:
+                action['context'] = {'default_move_type':  moves_to_redirect.mapped('move_type').pop()}
         return action

@@ -50,7 +50,7 @@ export function patch(obj, patchName, patchValue, options = {}) {
             if (prevDesc.value && typeof newDesc.value === "function") {
                 makeIntermediateFunction("value", prevDesc, newDesc, patchedFnName);
             }
-            if (prevDesc.get || prevDesc.set) {
+            if ((newDesc.get || newDesc.set) && (prevDesc.get || prevDesc.set)) {
                 // get and set are defined together. If they are both defined
                 // in the previous descriptor but only one in the new descriptor
                 // then the other will be undefined so we need to apply the
@@ -80,11 +80,19 @@ export function patch(obj, patchName, patchValue, options = {}) {
                     let prevSuper;
                     if (this) {
                         prevSuper = this._super;
-                        this._super = _superFn.bind(this);
+                        Object.defineProperty(this, "_super", {
+                            value: _superFn.bind(this),
+                            configurable: true,
+                            writable: true,
+                        });
                     }
                     const result = patchFn.call(this, ...args);
                     if (this) {
-                        this._super = prevSuper;
+                        Object.defineProperty(this, "_super", {
+                            value: prevSuper,
+                            configurable: true,
+                            writable: true,
+                        });
                     }
                     return result;
                 },

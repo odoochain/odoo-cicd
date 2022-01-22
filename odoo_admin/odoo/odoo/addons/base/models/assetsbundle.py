@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from contextlib import closing
 from datetime import datetime
 from subprocess import Popen, PIPE
 import base64
@@ -19,15 +20,16 @@ except ImportError:
     # `sassc` executable in the path.
     libsass = None
 
-from odoo import SUPERUSER_ID
+from odoo import release, SUPERUSER_ID
 from odoo.http import request
 from odoo.modules.module import get_resource_path
 from odoo.tools import func, misc, transpile_javascript, is_odoo_module, SourceMapGenerator, profiler
-from odoo.tools.misc import html_escape as escape
+from odoo.tools.misc import file_open, html_escape as escape
 from odoo.tools.pycompat import to_text
 
 _logger = logging.getLogger(__name__)
 
+EXTENSIONS = (".js", ".css", ".scss", ".sass", ".less")
 
 class CompileError(RuntimeError): pass
 def rjsmin(script):
@@ -341,8 +343,7 @@ class AssetsBundle(object):
         # to invite the user to refresh their browser
         if self.env and 'bus.bus' in self.env and self.name in self.TRACKED_BUNDLES:
             self.env['bus.bus']._sendone('broadcast', 'bundle_changed', {
-                'name': self.name,
-                'version': self.version,
+                'server_version': release.version # Needs to be dynamically imported
             })
             _logger.debug('Asset Changed: bundle: %s -- version: %s', self.name, self.version)
 
@@ -538,7 +539,7 @@ class AssetsBundle(object):
 
     def is_css_preprocessed(self):
         preprocessed = True
-        attachments = None
+        old_attachments = self.env['ir.attachment'].sudo()
         asset_types = [SassStylesheetAsset, ScssStylesheetAsset, LessStylesheetAsset]
         if self.user_direction == 'rtl':
             asset_types.append(StylesheetAsset)
@@ -549,6 +550,7 @@ class AssetsBundle(object):
             if assets:
                 assets_domain = self._get_assets_domain_for_already_processed_css(assets)
                 attachments = self.env['ir.attachment'].sudo().search(assets_domain)
+                old_attachments += attachments
                 for attachment in attachments:
                     asset = assets[attachment.url]
                     if asset.last_modified > attachment['__last_update']:
@@ -565,7 +567,7 @@ class AssetsBundle(object):
                 if outdated:
                     preprocessed = False
 
-        return preprocessed, attachments
+        return preprocessed, old_attachments
 
     def preprocess_css(self, debug=False, old_attachments=None):
         """
@@ -691,7 +693,7 @@ class AssetsBundle(object):
         if 'Cannot load compass' in error:
             error += "Maybe you should install the compass gem using this extra argument:\n\n" \
                      "    $ sudo gem install compass --pre\n"
-        error += "This error occured while compiling the bundle '%s' containing:" % self.name
+        error += "This error occurred while compiling the bundle '%s' containing:" % self.name
         for asset in self.stylesheets:
             if isinstance(asset, PreprocessedCSS):
                 error += '\n    - %s' % (asset.url if asset.url else '<inline sass>')
@@ -700,7 +702,7 @@ class AssetsBundle(object):
     def get_rtlcss_error(self, stderr, source=None):
         """Improve and remove sensitive information from sass/less compilator error messages"""
         error = misc.ustr(stderr).split('Load paths')[0].replace('  Use --trace for backtrace.', '')
-        error += "This error occured while compiling the bundle '%s' containing:" % self.name
+        error += "This error occurred while compiling the bundle '%s' containing:" % self.name
         return error
 
 class WebAsset(object):
@@ -772,7 +774,7 @@ class WebAsset(object):
         try:
             self.stat()
             if self._filename:
-                with open(self._filename, 'rb') as fp:
+                with closing(file_open(self._filename, 'rb', filter_ext=EXTENSIONS)) as fp:
                     return fp.read().decode('utf-8')
             else:
                 return base64.b64decode(self._ir_attach['datas']).decode('utf-8')

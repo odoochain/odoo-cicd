@@ -42,7 +42,7 @@ msgstr "下午"
 #: model_terms:ir.ui.view,arch_db:resource.view_resource_calendar_search
 #: model_terms:ir.ui.view,arch_db:resource.view_resource_resource_search
 msgid "Archived"
-msgstr "已封存"
+msgstr "已歸檔"
 
 #. module: resource
 #: model_terms:ir.ui.view,arch_db:resource.resource_calendar_form
@@ -195,7 +195,7 @@ msgstr ""
 #. module: resource
 #: model:ir.model.fields.selection,name:resource.selection__resource_calendar_attendance__dayofweek__4
 msgid "Friday"
-msgstr "週五"
+msgstr "五"
 
 #. module: resource
 #: code:addons/resource/models/resource.py:0
@@ -223,7 +223,7 @@ msgstr "公眾休假"
 #: model_terms:ir.ui.view,arch_db:resource.view_resource_calendar_leaves_search
 #: model_terms:ir.ui.view,arch_db:resource.view_resource_resource_search
 msgid "Group By"
-msgstr "分組按"
+msgstr "分組依據"
 
 #. module: resource
 #: model_terms:ir.ui.view,arch_db:resource.view_resource_calendar_attendance_form
@@ -320,7 +320,7 @@ msgstr "物料"
 #. module: resource
 #: model:ir.model.fields.selection,name:resource.selection__resource_calendar_attendance__dayofweek__0
 msgid "Monday"
-msgstr "週一"
+msgstr "一"
 
 #. module: resource
 #: code:addons/resource/models/resource.py:0
@@ -367,7 +367,7 @@ msgstr "原因"
 #. module: resource
 #: model:ir.model.fields,help:resource.field_resource_resource__user_id
 msgid "Related user name for the resource to manage its access."
-msgstr "用於管理其訪問與資源相關的使用者名稱."
+msgstr "用於管理其存取與資源相關的使用者名稱."
 
 #. module: resource
 #: model:ir.model.fields,field_description:resource.field_resource_calendar_attendance__resource_id
@@ -430,12 +430,12 @@ msgid ""
 "Resources allow you to create and manage resources that should be involved "
 "in a specific project phase. You can also set their efficiency level and "
 "workload based on their weekly working hours."
-msgstr "資源允許您創建和管理資源參與的特定的計劃階段. 您還能在其每週工作時間基礎上設定其效率和工作量."
+msgstr "資源允許您建立和管理資源參與的特定的計劃階段. 您還能在其每週工作時間基礎上設定其效率和工作量."
 
 #. module: resource
 #: model:ir.model.fields.selection,name:resource.selection__resource_calendar_attendance__dayofweek__5
 msgid "Saturday"
-msgstr "週六"
+msgstr "六"
 
 #. module: resource
 #: model_terms:ir.ui.view,arch_db:resource.view_resource_resource_search
@@ -506,7 +506,7 @@ msgstr "離開的開始日期"
 #. module: resource
 #: model:ir.model.fields.selection,name:resource.selection__resource_calendar_attendance__dayofweek__6
 msgid "Sunday"
-msgstr "週日"
+msgstr "日"
 
 #. module: resource
 #: model_terms:ir.ui.view,arch_db:resource.resource_calendar_form
@@ -565,7 +565,7 @@ msgstr ""
 #. module: resource
 #: model:ir.model.fields.selection,name:resource.selection__resource_calendar_attendance__dayofweek__3
 msgid "Thursday"
-msgstr "週四"
+msgstr "四"
 
 #. module: resource
 #: code:addons/resource/models/resource.py:0
@@ -612,7 +612,7 @@ msgstr "時區偏移"
 #. module: resource
 #: model:ir.model.fields.selection,name:resource.selection__resource_calendar_attendance__dayofweek__1
 msgid "Tuesday"
-msgstr "週二"
+msgstr "二"
 
 #. module: resource
 #: code:addons/resource/models/resource.py:0
@@ -646,7 +646,7 @@ msgstr "使用者"
 #. module: resource
 #: model:ir.model.fields.selection,name:resource.selection__resource_calendar_attendance__dayofweek__2
 msgid "Wednesday"
-msgstr "週三"
+msgstr "三"
 
 #. module: resource
 #: code:addons/resource/models/resource.py:0
@@ -753,4 +753,4 @@ msgstr "秒"
 #: code:addons/resource/models/resource.py:0
 #, python-format
 msgid "this week"
-msgstr ""
+msgstr "本星期"

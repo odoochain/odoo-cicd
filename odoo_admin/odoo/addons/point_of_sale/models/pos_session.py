@@ -191,6 +191,14 @@ class PosSession(models.Model):
                 raise UserError(_("Some Cash Registers are already posted. Please reset them to new in order to close the session.\n"
                                   "Cash Registers: %r", list(statement.name for statement in closed_statement_ids)))
 
+    def _check_invoices_are_posted(self):
+        unposted_invoices = self.order_ids.account_move.filtered(lambda x: x.state != 'posted')
+        if unposted_invoices:
+            raise UserError(_('You cannot close the POS when invoices are not posted.\n'
+                              'Invoices: %s') % str.join('\n',
+                                                         ['%s - %s' % (invoice.name, invoice.state) for invoice in
+                                                          unposted_invoices]))
+
     @api.model
     def create(self, values):
         config_id = values.get('config_id') or self.env.context.get('default_config_id')
@@ -259,9 +267,8 @@ class PosSession(models.Model):
             if not session.start_at:
                 values['start_at'] = fields.Datetime.now()
             if session.config_id.cash_control and not session.rescue:
-                last_sessions = self.env['pos.session'].search([('config_id', '=', self.config_id.id)]).ids
-                # last session includes the new one already.
-                self.cash_register_id.balance_start = self.env['pos.session'].browse(last_sessions[1]).cash_register_id.balance_end_real if len(last_sessions) > 1 else 0
+                last_session = self.search([('config_id', '=', session.config_id.id), ('id', '!=', session.id)], limit=1)
+                session.cash_register_id.balance_start = last_session.cash_register_id.balance_end_real if last_session else 0
                 values['state'] = 'opening_control'
             else:
                 values['state'] = 'opened'
@@ -322,6 +329,7 @@ class PosSession(models.Model):
             if self.state == 'closed':
                 raise UserError(_('This session is already closed.'))
             self._check_if_no_draft_orders()
+            self._check_invoices_are_posted()
             if self.update_stock_at_closing:
                 self._create_picking_at_end_of_session()
                 self.order_ids.filtered(lambda o: not o.is_total_cost_computed)._compute_total_cost_at_session_closing(self.picking_ids.move_lines)
@@ -937,11 +945,19 @@ class PosSession(models.Model):
         if not payment_method.journal_id:
             return self.env['account.move.line']
         outstanding_account = payment_method.outstanding_account_id or self.company_id.account_journal_payment_debit_account_id
+        accounting_partner = self.env["res.partner"]._find_accounting_partner(payment.partner_id)
+        destination_account = accounting_partner.property_account_receivable_id
+
+        if float_compare(amounts['amount'], 0, precision_rounding=self.currency_id.rounding) < 0:
+            # revert the accounts because account.payment doesn't accept negative amount.
+            outstanding_account, destination_account = destination_account, outstanding_account
+
         account_payment = self.env['account.payment'].create({
-            'amount': amounts['amount'],
+            'amount': abs(amounts['amount']),
             'partner_id': payment.partner_id.id,
             'journal_id': payment_method.journal_id.id,
             'force_outstanding_account_id': outstanding_account.id,
+            'destination_account_id': destination_account.id,
             'ref': _('%s POS payment of %s in %s') % (payment_method.name, payment.partner_id.display_name, self.name),
             'pos_payment_method_id': payment_method.id,
             'pos_session_id': self.id,

@@ -37,7 +37,7 @@ class HolidaysAllocation(models.Model):
 
     def _domain_holiday_status_id(self):
         if self.user_has_groups('hr_holidays.group_hr_holidays_user'):
-            return []
+            return [('requires_allocation', '=', 'yes')]
         return [('employee_requests', '=', 'yes')]
 
     name = fields.Char('Description', compute='_compute_description', inverse='_inverse_description', search='_search_description', compute_sudo=False)
@@ -479,7 +479,7 @@ class HolidaysAllocation(models.Model):
                  _("Allocation of %(allocation_name)s : %(duration).2f %(duration_type)s to %(person)s",
                    allocation_name=allocation.holiday_status_id.sudo().name,
                    duration=allocation.number_of_hours_display if allocation.type_request_unit == 'hour' else allocation.number_of_days,
-                   duration_type='hours' if allocation.type_request_unit == 'hour' else 'days',
+                   duration_type=_('hours') if allocation.type_request_unit == 'hour' else _('days'),
                    person=target
                 ))
             )
@@ -649,14 +649,14 @@ class HolidaysAllocation(models.Model):
                     raise UserError(_('Only a time off Manager can reset other people allocation.'))
                 continue
 
-            if not is_officer and self.env.user != holiday.employee_id.leave_manager_id:
+            if not is_officer and self.env.user != holiday.employee_id.leave_manager_id and not val_type == 'no':
                 raise UserError(_('Only a time off Officer/Responsible or Manager can approve or refuse time off requests.'))
 
             if is_officer or self.env.user == holiday.employee_id.leave_manager_id:
                 # use ir.rule based first access check: department, members, ... (see security.xml)
                 holiday.check_access_rule('write')
 
-            if holiday.employee_id == current_employee and not is_manager:
+            if holiday.employee_id == current_employee and not is_manager and not val_type == 'no':
                 raise UserError(_('Only a time off Manager can approve its own requests.'))
 
             if (state == 'validate1' and val_type == 'both') or (state == 'validate' and val_type == 'manager'):

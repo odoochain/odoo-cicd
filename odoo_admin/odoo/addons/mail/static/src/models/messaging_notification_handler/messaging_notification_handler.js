@@ -197,11 +197,11 @@ function factory(dependencies) {
          * @private
          * @param {Object} payload
          * @param {mail.thread} payload.channel
-         * @param {integer} payload.invited_by_user_id
+         * @param {integer} [payload.invited_by_user_id]
          */
         _handleNotificationChannelJoined({ channel: channelData, invited_by_user_id: invitedByUserId }) {
             const channel = this.messaging.models['mail.thread'].insert(this.messaging.models['mail.thread'].convertData(channelData));
-            if (invitedByUserId !== this.messaging.currentUser.id) {
+            if (this.messaging.currentUser && invitedByUserId !== this.messaging.currentUser.id) {
                 // Current user was invited by someone else.
                 this.env.services['notification'].notify({
                     message: _.str.sprintf(
@@ -422,7 +422,6 @@ function factory(dependencies) {
                 usePushToTalk: settings.use_push_to_talk,
                 pushToTalkKey: settings.push_to_talk_key,
                 voiceActiveDuration: settings.voice_active_duration,
-                volumeSettings: settings.volume_settings && insert(settings.volume_settings.map(volumeSetting => this.messaging.models['mail.volume_setting'].convertData(volumeSetting))),
             });
         }
 

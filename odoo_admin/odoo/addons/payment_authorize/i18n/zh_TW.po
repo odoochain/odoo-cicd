@@ -202,7 +202,7 @@ msgstr "付款方法"
 #. module: payment_authorize
 #: model:ir.model,name:payment_authorize.model_payment_token
 msgid "Payment Token"
-msgstr "付款指示物"
+msgstr "付款代碼(token)"
 
 #. module: payment_authorize
 #: model:ir.model,name:payment_authorize.model_payment_transaction
@@ -312,7 +312,7 @@ msgstr ""
 #: code:addons/payment_authorize/static/src/js/payment_form.js:0
 #, python-format
 msgid "We are not able to process your payment."
-msgstr ""
+msgstr "我們無法處理您的付款。"
 
 #. module: payment_authorize
 #: model_terms:ir.ui.view,arch_db:payment_authorize.inline_form

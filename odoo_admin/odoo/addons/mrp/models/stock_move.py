@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, _
+from odoo import api, Command, fields, models, _
 from odoo.osv import expression
 from odoo.tools import float_compare, float_round, float_is_zero, OrderedSet
 
@@ -237,6 +237,9 @@ class StockMove(models.Model):
                     defaults['state'] = 'done'
                     defaults['additional'] = True
                 defaults['product_uom_qty'] = 0.0
+            elif production_id.state == 'draft':
+                defaults['group_id'] = production_id.procurement_group_id.id
+                defaults['reference'] = production_id.name
         return defaults
 
     def write(self, vals):
@@ -309,10 +312,9 @@ class StockMove(models.Model):
 
     def _action_cancel(self):
         res = super(StockMove, self)._action_cancel()
-        for production in self.mapped('raw_material_production_id'):
-            if production.state != 'cancel':
-                continue
-            production._action_cancel()
+        mo_to_cancel = self.mapped('raw_material_production_id').filtered(lambda p: all(m.state == 'cancel' for m in p.move_raw_ids))
+        if mo_to_cancel:
+            mo_to_cancel._action_cancel()
         return res
 
     def _prepare_move_split_vals(self, qty):
@@ -351,6 +353,15 @@ class StockMove(models.Model):
         res = super()._consuming_picking_types()
         res.append('mrp_operation')
         return res
+
+    def _get_backorder_move_vals(self):
+        self.ensure_one()
+        return {
+            'state': 'confirmed',
+            'reservation_date': self.reservation_date,
+            'move_orig_ids': [Command.link(m.id) for m in self.mapped('move_orig_ids')],
+            'move_dest_ids': [Command.link(m.id) for m in self.mapped('move_dest_ids')]
+        }
 
     def _get_source_document(self):
         res = super()._get_source_document()

@@ -4176,20 +4176,46 @@ QUnit.module('Views', {
             viewOptions: {
                 initialDate: initialDate,
             },
-        });
+        }, { positionalClicks: true });
 
         assert.equal(calendar.$('.fc-dayGridMonth-view').length, 12, "should display in year mode");
 
-        await testUtils.dom.dragAndDrop(
-            calendar.$('.fc-day-top[data-date="2016-11-13"]'),
-            calendar.$('.fc-day-top[data-date="2016-11-19"]'),
-        );
+        calendar.el.querySelector('.fc-day-top[data-date="2016-11-13"]').scrollIntoView();
+        // scroll to event as the calendar could be too small
+        await testUtils.dom.triggerMouseEvent(calendar.$('.fc-day-top[data-date="2016-11-13"]'), "mousedown");
+        await testUtils.dom.triggerMouseEvent(calendar.$('.fc-day-top[data-date="2016-11-19"]'), "mousemove");
+        await testUtils.dom.triggerMouseEvent(calendar.$('.fc-day-top[data-date="2016-11-19"]'), "mouseup");
 
         assert.ok($('.modal-body').length, "should open the form view in dialog when select multiple days");
         assert.hasAttrValue($('.fc-highlight'), 'colspan', "7", "should highlight 7 days");
         await testUtils.dom.click($('.modal-footer button.btn:contains(Cancel)'));
 
         assert.containsNone(calendar, '.fc-highlight', "should not highlight days");
+
+        calendar.destroy();
+    });
+ 
+    QUnit.test("popover ignores readonly field modifier", async function (assert) {
+        assert.expect(1);
+
+        var calendar = await createCalendarView({
+            View: CalendarView,
+            model: "event",
+            data: this.data,
+            arch: `
+                <calendar date_start="start" date_stop="stop" all_day="allday" mode="month">
+                    <field name="name" attrs="{'readonly': [['unknown_field', '=', 42]]}" />
+                </calendar>
+            `,
+            archs: archs,
+            viewOptions: {
+                initialDate: initialDate,
+            },
+        });
+
+        await testUtils.dom.click(calendar.$(`[data-event-id="4"]`));
+        // test would fail here if we don't ignore readonly modifier
+        assert.containsOnce(calendar, ".o_cw_popover");
 
         calendar.destroy();
     });

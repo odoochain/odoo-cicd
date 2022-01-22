@@ -85,15 +85,10 @@ odoo.define('hr_holidays.dashboard.view_custo', function(require) {
         _onNewTimeOff: function () {
             let self = this;
 
-            let domain = [
-                ['name', '=', 'hr.leave.view.form.dashboard.new.time.off'],
-                ['model', '=', 'hr.leave']
-            ];
-
             self._rpc({
                 model: 'ir.ui.view',
-                method: 'search',
-                args: [domain],
+                method: 'get_view_id',
+                args: ['hr_holidays.hr_leave_view_form_dashboard_new_time_off'],
             }).then(function(ids) {
                 self.timeOffDialog = new dialogs.FormViewDialog(self, {
                     res_model: "hr.leave",
@@ -101,6 +96,7 @@ odoo.define('hr_holidays.dashboard.view_custo', function(require) {
                     context: {
                         'default_date_from': moment().format('YYYY-MM-DD'),
                         'default_date_to': moment().add(1, 'days').format('YYYY-MM-DD'),
+                        'lang': self.context.lang,
                     },
                     title: _t("New time off"),
                     disable_multiple_selection: true,
@@ -120,22 +116,17 @@ odoo.define('hr_holidays.dashboard.view_custo', function(require) {
         _onNewAllocation: function () {
             let self = this;
 
-            let domain = [
-                ['name', '=', 'hr.leave.view.form.dashboard'],
-                ['model', '=', 'hr.leave.allocation']
-            ];
-
             self._rpc({
                 model: 'ir.ui.view',
-                method: 'search',
-                args: [domain],
+                method: 'get_view_id',
+                args: ['hr_holidays.hr_leave_allocation_view_form_dashboard'],
             }).then(function(ids) {
                 self.allocationDialog = new dialogs.FormViewDialog(self, {
                     res_model: "hr.leave.allocation",
                     view_id: ids,
                     context: {
-                        'default_employee_ids': self.context.employee_id,
                         'default_state': 'confirm',
+                        'lang': self.context.lang,
                     },
                     title: _t("New Allocation"),
                     disable_multiple_selection: true,
@@ -236,7 +227,7 @@ odoo.define('hr_holidays.dashboard.view_custo', function(require) {
                             const elem = QWeb.render('hr_holidays.dashboard_calendar_header_mobile', {
                                 timeoff: data,
                             });
-                            self.$el.find('.o_calendar_filter_item[data-value=' + data[4] + '] .o_cw_filter_title').append(elem);
+                            self.$el.find('.o_calendar_filter_item[data-value=' + data[3] + '] .o_cw_filter_title').append(elem);
                         });
                     } else {
                         const elem = QWeb.render('hr_holidays.dashboard_calendar_header', {

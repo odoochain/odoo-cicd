@@ -405,6 +405,31 @@ class Website(Home):
             results_data.sort(key=lambda r: r.get('name', ''), reverse='name desc' in order)
         results_data = results_data[:limit]
         result = []
+
+        def get_mapping_value(field_type, value, field_meta):
+            if field_type == 'text':
+                if value and field_meta.get('truncate', True):
+                    value = shorten(value, max_nb_chars, placeholder='...')
+                if field_meta.get('match') and value and term:
+                    pattern = '|'.join(map(re.escape, term.split()))
+                    if pattern:
+                        parts = re.split(f'({pattern})', value, flags=re.IGNORECASE)
+                        if len(parts) > 1:
+                            value = request.env['ir.ui.view'].sudo()._render_template(
+                                "website.search_text_with_highlight",
+                                {'parts': parts}
+                            )
+                            field_type = 'html'
+
+            if field_type not in ('image', 'binary') and ('ir.qweb.field.%s' % field_type) in request.env:
+                opt = {}
+                if field_type == 'monetary':
+                    opt['display_currency'] = options['display_currency']
+                elif field_type == 'html':
+                    opt['template_options'] = {}
+                value = request.env[('ir.qweb.field.%s' % field_type)].value_to_html(value, opt)
+            return escape(value)
+
         for record in results_data:
             mapping = record['_mapping']
             mapped = {
@@ -416,28 +441,14 @@ class Website(Home):
                     mapped[mapped_name] = ''
                     continue
                 field_type = field_meta.get('type')
-                if field_type == 'text':
-                    if value:
-                        value = shorten(value, max_nb_chars, placeholder='...')
-                    if field_meta.get('match') and value and term:
-                        pattern = '|'.join(map(re.escape, term.split()))
-                        if pattern:
-                            parts = re.split(f'({pattern})', value, flags=re.IGNORECASE)
-                            if len(parts) > 1:
-                                value = request.env['ir.ui.view'].sudo()._render_template(
-                                    "website.search_text_with_highlight",
-                                    {'parts': parts}
-                                )
-                                field_type = 'html'
-
-                if field_type not in ('image', 'binary') and ('ir.qweb.field.%s' % field_type) in request.env:
-                    opt = {}
-                    if field_type == 'monetary':
-                        opt['display_currency'] = options['display_currency']
-                    elif field_type == 'html':
-                        opt['template_options'] = {}
-                    value = request.env[('ir.qweb.field.%s' % field_type)].value_to_html(value, opt)
-                mapped[mapped_name] = escape(value)
+                if field_type == 'dict':
+                    # Map a field with multiple values, stored in a dict with values type: item_type
+                    item_type = field_meta.get('item_type')
+                    mapped[mapped_name] = {}
+                    for key, item in value.items():
+                        mapped[mapped_name][key] = get_mapping_value(item_type, item, field_meta)
+                else:
+                    mapped[mapped_name] = get_mapping_value(field_type, value, field_meta)
             result.append(mapped)
 
         return {
@@ -692,32 +703,51 @@ class Website(Home):
     # Themes
     # ------------------------------------------------------
 
+    # TODO Remove this function in master because it only stays here for
+    # compatibility.
     def _get_customize_views(self, xml_ids):
-        View = request.env["ir.ui.view"].with_context(active_test=False)
-        if not xml_ids:
-            return View
-        domain = [("key", "in", xml_ids)] + request.website.website_domain()
-        return View.search(domain).filter_duplicate()
+        self._get_customize_data(self, xml_ids, True)
 
+    def _get_customize_data(self, keys, is_view_data):
+        model = 'ir.ui.view' if is_view_data else 'ir.asset'
+        Model = request.env[model].with_context(active_test=False)
+        if not keys:
+            return Model
+        domain = [("key", "in", keys)] + request.website.website_domain()
+        return Model.search(domain).filter_duplicate()
+
+    # TODO Remove this route in master because it only stays here for
+    # compatibility.
     @http.route(['/website/theme_customize_get'], type='json', auth='user', website=True)
     def theme_customize_get(self, xml_ids):
-        views = self._get_customize_views(xml_ids)
-        return views.filtered('active').mapped('key')
+        self.theme_customize_data_get(xml_ids, True)
 
+    @http.route(['/website/theme_customize_data_get'], type='json', auth='user', website=True)
+    def theme_customize_data_get(self, keys, is_view_data):
+        records = self._get_customize_data(keys, is_view_data)
+        return records.filtered('active').mapped('key')
+
+    # TODO Remove this route in Master because it only stays here for
+    # compatibility.
     @http.route(['/website/theme_customize'], type='json', auth='user', website=True)
     def theme_customize(self, enable=None, disable=None, reset_view_arch=False):
-        """
-        Enables and/or disables views according to list of keys.
+        self.theme_customize_data(True, enable, disable, reset_view_arch)
 
-        :param enable: list of views' keys to enable
-        :param disable: list of views' keys to disable
+    @http.route(['/website/theme_customize_data'], type='json', auth='user', website=True)
+    def theme_customize_data(self, is_view_data, enable=None, disable=None, reset_view_arch=False):
+        """
+        Enables and/or disables views/assets according to list of keys.
+
+        :param is_view_data: True = "ir.ui.view", False = "ir.asset"
+        :param enable: list of views/assets keys to enable
+        :param disable: list of views/assets keys to disable
         :param reset_view_arch: restore the default template after disabling
         """
-        disabled_views = self._get_customize_views(disable).filtered('active')
+        disabled_data = self._get_customize_data(disable, is_view_data).filtered('active')
         if reset_view_arch:
-            disabled_views.reset_arch(mode='hard')
-        disabled_views.write({'active': False})
-        self._get_customize_views(enable).filtered(lambda x: not x.active).write({'active': True})
+            disabled_data.reset_arch(mode='hard')
+        disabled_data.write({'active': False})
+        self._get_customize_data(enable, is_view_data).filtered(lambda x: not x.active).write({'active': True})
 
     @http.route(['/website/theme_customize_bundle_reload'], type='json', auth='user', website=True)
     def theme_customize_bundle_reload(self):

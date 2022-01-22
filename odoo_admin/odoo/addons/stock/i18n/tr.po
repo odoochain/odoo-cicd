@@ -16,10 +16,8 @@
 # Abdullah Onur Uğur <aonurugur@outlook.com>, 2021
 # Buket Şeker <buket_skr@hotmail.com>, 2021
 # abc Def <hdogan1974@gmail.com>, 2021
-# Ediz Duman <neps1192@gmail.com>, 2021
 # Martin Trigaux, 2021
 # Levent Karakaş <levent@mektup.at>, 2021
-# Murat Kaplan <muratk@projetgrup.com>, 2021
 # Güven YILMAZ <guvenyilmaz@outlook.com.tr>, 2021
 # Ramiz Deniz Öner <deniz@denizoner.com>, 2021
 # Umur Akın <umura@projetgrup.com>, 2021
@@ -28,14 +26,16 @@
 # Murat Durmuş <muratd@projetgrup.com>, 2021
 # Özlem Atalay <ozlema@eskayazilim.com.tr>, 2021
 # Ozlem Cikrikci <ozlemc@eskayazilim.com.tr>, 2021
+# Murat Kaplan <muratk@projetgrup.com>, 2021
+# Ediz Duman <neps1192@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-05 10:53+0000\n"
+"POT-Creation-Date: 2021-11-16 13:18+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: Ozlem Cikrikci <ozlemc@eskayazilim.com.tr>, 2021\n"
+"Last-Translator: Ediz Duman <neps1192@gmail.com>, 2021\n"
 "Language-Team: Turkish (https://www.transifex.com/odoo/teams/41243/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -427,6 +427,24 @@ msgid ""
 msgstr ""
 "<span attrs=\"{'invisible': ['|', ('state', '=', 'done'), "
 "('from_immediate_transfer', '=', True)]}\"> / </span>"
+
+#. module: stock
+#: model_terms:ir.ui.view,arch_db:stock.report_reception_body
+msgid ""
+"<span class=\"d-none d-sm-block o_print_label_text\">Print Label</span>\n"
+"                                        <span class=\"d-block d-sm-none fa fa-print\"/>"
+msgstr ""
+"<span class=\"d-none d-sm-block o_print_label_text\">Etiket Yazdır</span>\n"
+"                                        <span class=\"d-block d-sm-none fa fa-print\"/>"
+
+#. module: stock
+#: model_terms:ir.ui.view,arch_db:stock.report_reception_body
+msgid ""
+"<span class=\"d-none d-sm-block o_print_label_text\">Print Labels</span>\n"
+"                                        <span class=\"d-block d-sm-none fa fa-print\"/>"
+msgstr ""
+"<span class=\"d-none d-sm-block o_print_label_text\">Etiketleri Yazdır</span>\n"
+"                                        <span class=\"d-block d-sm-none fa fa-print\"/>"
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -1959,8 +1977,8 @@ msgstr "Düzenli Tekrarlanan Envanter"
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_res_config_settings__module_delivery_dhl
-msgid "DHL USA Connector"
-msgstr "DHL USA Connector"
+msgid "DHL Express Connector"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_report_stock_quantity__date
@@ -2119,10 +2137,10 @@ msgstr "Öntanımlı depo izleme rotası"
 #: model_terms:ir.actions.act_window,help:stock.action_orderpoint
 msgid ""
 "Define a minimum stock rule so that Odoo creates automatically requests for "
-"quotations or draft manufacturing orders to resupply your stock."
+"quotations or confirmed manufacturing orders to resupply your stock."
 msgstr ""
-"Odoo'nun stoklarına otomatik olarak taslak teklif talebi ve üretim emri "
-"oluşturması için minimum stok kuralı tanımlayın."
+"Odoo'nun otomatik olarak teklif talebi ve teyit edilen üretim emirlerini "
+"oluşturarak stoğunuzu tamamlaması için minimum stok kuralı tanımlayın."
 
 #. module: stock
 #: model_terms:ir.actions.act_window,help:stock.action_warehouse_form
@@ -5325,11 +5343,6 @@ msgid "Picking"
 msgstr "Toplama"
 
 #. module: stock
-#: model:ir.actions.report,name:stock.label_picking
-msgid "Picking Label"
-msgstr "Toplama Etiketi"
-
-#. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_internal_search
 msgid "Picking Lists"
 msgstr "Transfer Listeleri"
@@ -5429,14 +5442,12 @@ msgstr "Yazdır"
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_picking_type__print_label
-#: model_terms:ir.ui.view,arch_db:stock.report_reception_body
 msgid "Print Label"
 msgstr "Etiket Yazdır"
 
 #. module: stock
 #. openerp-web
 #: code:addons/stock/static/src/xml/report_stock_reception.xml:0
-#: model_terms:ir.ui.view,arch_db:stock.report_reception_body
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_form
 #, python-format
 msgid "Print Labels"
@@ -6049,12 +6060,10 @@ msgid "Quants cannot be created for consumables or services."
 msgstr "Miktarlar hizmet ya da tüketilebilirlik için oluşturulamaz."
 
 #. module: stock
-#: code:addons/stock/models/stock_picking.py:0
 #: model:ir.model.fields.selection,name:stock.selection__stock_picking__state__assigned
 #: model_terms:ir.ui.view,arch_db:stock.stock_picking_type_kanban
 #: model_terms:ir.ui.view,arch_db:stock.view_move_search
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_internal_search
-#, python-format
 msgid "Ready"
 msgstr "Hazır"
 
@@ -6141,6 +6150,11 @@ msgstr "Alınan Miktar"
 #: model:ir.model.fields,field_description:stock.field_res_config_settings__group_stock_reception_report
 msgid "Reception Report"
 msgstr "Alım Raporu"
+
+#. module: stock
+#: model:ir.actions.report,name:stock.label_picking
+msgid "Reception Report Label"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_procurement_group__name
@@ -6827,21 +6841,19 @@ msgstr ""
 #: code:addons/stock/models/stock_quant.py:0
 #, python-format
 msgid ""
-"Serial number (%s) is not located in %s, but is located in location(s): %s. "
+"Serial number (%s) is not located in %s, but is located in location(s): %s.\n"
+"\n"
 "Please correct this to prevent inconsistent data."
 msgstr ""
-"Seri numarası (%s)  %s'de yoktur, ama şu konum(lar)dadır: %s. Tutarsız "
-"veriyi önlemek için lütfen bunu düzeltiniz."
 
 #. module: stock
 #: code:addons/stock/models/stock_quant.py:0
 #, python-format
 msgid ""
-"Serial number (%s) is not located in %s, but is located in location(s): %s. "
+"Serial number (%s) is not located in %s, but is located in location(s): %s.\n"
+"\n"
 "Source location for this move will be changed to %s"
 msgstr ""
-"Seri numarası (%s) ;  %s,'de değildir ama şu konum(lar)dadır: %s. Bu hareket"
-" için kaynak konumu %s olarak değiştirilecektir."
 
 #. module: stock
 #: model:ir.actions.server,name:stock.action_view_set_quants_tree
@@ -6952,6 +6964,11 @@ msgstr "Kısa Adı"
 #: model:ir.model.fields,help:stock.field_stock_warehouse__code
 msgid "Short name used to identify your warehouse"
 msgstr "Kısa adı depo tanımlamak için kullanın"
+
+#. module: stock
+#: model:ir.model.fields,field_description:stock.field_stock_picking__show_allocation
+msgid "Show Allocation"
+msgstr "Tahsisi Göster"
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_picking__show_check_availability
@@ -7461,6 +7478,13 @@ msgstr ""
 "Stoktan Al, Kullanılamıyorsa Başka Bir Kuralı Tetikle: ürünler kaynak konumun kullanılabilir stokundan alınacaktır. Kullanılabilir stok yoksa, sistem ürünleri kaynak konuma getirmek için bir kural bulmaya çalışacaktır."
 
 #. module: stock
+#: model:ir.model.fields,help:stock.field_stock_picking__show_allocation
+msgid ""
+"Technical Field used to decide whether the button \"Allocation\" should be "
+"displayed."
+msgstr ""
+
+#. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.view_warehouse
 msgid "Technical Information"
 msgstr "Teknik Bilgi"
@@ -7579,11 +7603,8 @@ msgstr ""
 msgid ""
 "The Serial Number (%s) is already used in these location(s): %s.\n"
 "\n"
-"Is this expected? For example this can occur if a delivery operation is validated before its corresponding receipt operation is validated. In this case the issue will be solved automatically once all steps are completed. Otherwise, the serial numbershould be corrected to prevent inconsistent data."
+"Is this expected? For example this can occur if a delivery operation is validated before its corresponding receipt operation is validated. In this case the issue will be solved automatically once all steps are completed. Otherwise, the serial number should be corrected to prevent inconsistent data."
 msgstr ""
-"Seri Numarası (%s) şu konum(lar)da kullanımdadır: %s.\n"
-"\n"
-"Bu beklenir mi? Örneğin bir teslimat operasyonu karşılık gelen alım operasyonu doğrulanmadan önce doğrulanırsa meydana gelebilir. Aksi halde, seri numarası uyumsuz veriyi önlemek için düzeltilmelidir."
 
 #. module: stock
 #: code:addons/stock/models/stock_picking.py:0
@@ -8826,9 +8847,9 @@ msgstr ""
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_warehouse_orderpoint__product_min_qty
 msgid ""
-"When the virtual stock equals to or goes below the Min Quantity specified "
-"for this field, Odoo generates a procurement to bring the forecasted "
-"quantity to the Max Quantity."
+"When the virtual stock goes below the Min Quantity specified for this field,"
+" Odoo generates a procurement to bring the forecasted quantity to the Max "
+"Quantity."
 msgstr ""
 "Kullanılabilir (Öngörülen) stok miktarı Minimum Miktar'ın altına düştüğünde "
 "Minimum Miktar + İhtiyaç Miktarı kadar alım talepleri oluşur."

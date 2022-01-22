@@ -13,9 +13,9 @@
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server saas~14.5\n"
+"Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-14 10:28+0000\n"
+"POT-Creation-Date: 2021-11-16 13:19+0000\n"
 "PO-Revision-Date: 2021-09-14 12:20+0000\n"
 "Last-Translator: jabelchi, 2021\n"
 "Language-Team: Catalan (https://www.transifex.com/odoo/teams/41243/ca/)\n"
@@ -41,7 +41,7 @@ msgid ""
 "A single column was found in the file, this often means the file separator "
 "is incorrect"
 msgstr ""
-"Només s'ha trobat una columna en l'arxiu. Això només significa que el "
+"Només s'ha trobat una columna en l'arxiu. Això significa sovint que el "
 "separador d'arxius és incorrecte."
 
 #. module: base_import
@@ -134,7 +134,7 @@ msgstr "Columna %s conté valors incorrectes. Error en la línia %d: %s"
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__column_name
 msgid "Column Name"
-msgstr ""
+msgstr "Nom de la columna"
 
 #. module: base_import
 #. openerp-web
@@ -158,6 +158,8 @@ msgid ""
 "Could not retrieve URL: %(url)s [%(field_name)s: L%(line_number)d]: "
 "%(error)s"
 msgstr ""
+"No pot recuperar-se la URL: %(url)s [%(field_name)s: L%(line_number)d]: "
+"%(error)s"
 
 #. module: base_import
 #. openerp-web
@@ -492,7 +494,7 @@ msgstr ""
 #: code:addons/base_import/static/src/legacy/js/import_action.js:0
 #, python-format
 msgid "Import a File"
-msgstr "Importar un Arxiu"
+msgstr "Importar un arxiu"
 
 #. module: base_import
 #: code:addons/base_import/models/base_import.py:0
@@ -510,7 +512,6 @@ msgstr "La previsualització de la importació ha fallat a causa de:"
 #. module: base_import
 #. openerp-web
 #: code:addons/base_import/static/src/import_records/import_records.xml:0
-#: code:addons/base_import/static/src/legacy/xml/base_import.xml:0
 #, python-format
 msgid "Import records"
 msgstr ""
@@ -641,7 +642,7 @@ msgstr "Model"
 #. openerp-web
 #: code:addons/base_import/static/src/legacy/xml/base_import.xml:0
 #, python-format
-msgid "Multiple errors occured"
+msgid "Multiple errors occurred"
 msgstr ""
 
 #. module: base_import
@@ -717,7 +718,7 @@ msgstr "Previsualitza"
 #: code:addons/base_import/static/src/legacy/js/import_action.js:0
 #, python-format
 msgid "Relation Fields"
-msgstr "Camps relació"
+msgstr "Camps de relació"
 
 #. module: base_import
 #: model:ir.model.fields,field_description:base_import.field_base_import_mapping__res_model

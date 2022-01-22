@@ -6,6 +6,7 @@ from ast import literal_eval
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
 
+
 class Project(models.Model):
     _inherit = 'project.project'
 
@@ -36,12 +37,27 @@ class Project(models.Model):
     @api.depends('sale_order_id.invoice_status', 'tasks.sale_order_id.invoice_status')
     def _compute_has_any_so_to_invoice(self):
         """Has any Sale Order whose invoice_status is set as To Invoice"""
-        project_to_invoice = self.env['project.project'].search([
-            '|',
-                ('sale_order_id.invoice_status', '=', 'to invoice'),
-                ('tasks.sale_order_id.invoice_status', '=', 'to invoice'),
-            ('id', 'in', self.ids)
-        ])
+        if not self.ids:
+            self.has_any_so_to_invoice = False
+            return
+
+        self.env.cr.execute("""
+            SELECT id
+              FROM project_project pp
+             WHERE pp.active = true
+               AND (   EXISTS(SELECT 1
+                                FROM sale_order so
+                                JOIN project_task pt ON pt.sale_order_id = so.id
+                               WHERE pt.project_id = pp.id
+                                 AND pt.active = true
+                                 AND so.invoice_status = 'to invoice')
+                    OR EXISTS(SELECT 1
+                                FROM sale_order so
+                                JOIN sale_order_line sol ON sol.order_id = so.id
+                               WHERE sol.id = pp.sale_line_id
+                                 AND so.invoice_status = 'to invoice'))
+               AND id in %s""", (tuple(self.ids),))
+        project_to_invoice = self.env['project.project'].browse([x[0] for x in self.env.cr.fetchall()])
         project_to_invoice.has_any_so_to_invoice = True
         (self - project_to_invoice).has_any_so_to_invoice = False
 
@@ -72,17 +88,21 @@ class Project(models.Model):
     #  Project Updates
     # ----------------------------
 
+    def _get_sale_order_stat_button(self):
+        self.ensure_one()
+        return {
+            'icon': 'dollar',
+            'text': _('Sales Order'),
+            'action_type': 'object',
+            'action': 'action_view_so',
+            'show': bool(self.sale_order_id),
+            'sequence': 1,
+        }
+
     def _get_stat_buttons(self):
         buttons = super(Project, self)._get_stat_buttons()
         if self.user_has_groups('sales_team.group_sale_salesman_all_leads'):
-            buttons.append({
-                'icon': 'dollar',
-                'text': _('Sales Order'),
-                'action_type': 'object',
-                'action': 'action_view_so',
-                'show': bool(self.sale_order_id),
-                'sequence': 1,
-            })
+            buttons.append(self._get_sale_order_stat_button())
         return buttons
 
 class ProjectTask(models.Model):

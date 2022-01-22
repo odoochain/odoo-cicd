@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-05 11:22+0000\n"
+"POT-Creation-Date: 2021-11-16 13:42+0000\n"
 "PO-Revision-Date: 2021-09-14 12:18+0000\n"
 "Last-Translator: Patricia Gutiérrez Capetillo <pagc@odoo.com>, 2021\n"
 "Language-Team: Spanish (Mexico) (https://www.transifex.com/odoo/teams/41243/es_MX/)\n"
@@ -776,6 +776,28 @@ msgid ""
 msgstr ""
 "\n"
 "        Puente entre el Servicio de asistencia e industria de venta FSM \n"
+"    "
+
+#. module: base
+#: model:ir.module.module,description:base.module_l10n_be_reports_base_address_extended
+msgid ""
+"\n"
+"        Bridge module between belgian accounting and Base address extended\n"
+"    "
+msgstr ""
+"\n"
+"       Módulo puente entre la contabilidad belga y la dirección base extendida\n"
+"    "
+
+#. module: base
+#: model:ir.module.module,description:base.module_l10n_be_reports_sms
+msgid ""
+"\n"
+"        Bridge module between belgian accounting and SMS\n"
+"    "
+msgstr ""
+"\n"
+"        Módulo puente entre la contabilidad belga y SMS\n"
 "    "
 
 #. module: base
@@ -1650,6 +1672,15 @@ msgstr ""
 "    Agrega workcenters al control de calidad\n"
 
 #. module: base
+#: model:ir.module.module,description:base.module_l10n_gcc_invoice
+msgid ""
+"\n"
+"    Arabic/English for GCC\n"
+msgstr ""
+"\n"
+"    Árabe/ínglés para CCEAG\n"
+
+#. module: base
 #: model:ir.module.module,description:base.module_mrp_workorder_iot
 msgid ""
 "\n"
@@ -1688,6 +1719,15 @@ msgstr ""
 "\n"
 "   Vista Gantt para el tablero de tiempo personal\n"
 "    "
+
+#. module: base
+#: model:ir.module.module,description:base.module_l10n_sa_invoice
+msgid ""
+"\n"
+"    Invoices for the Kingdom of Saudi Arabia\n"
+msgstr ""
+"\n"
+"    Facturas para el reino de Arabia Saudita\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_lock
@@ -2276,6 +2316,21 @@ msgstr ""
 "\n"
 "Datos de contabilidad para las reglas de nóminas en Bélgica.\n"
 "==============================================\n"
+"    "
+
+#. module: base
+#: model:ir.module.module,description:base.module_l10n_sa_hr_payroll_account
+msgid ""
+"\n"
+"Accounting Data for KSA Payroll Rules.\n"
+"=======================================================\n"
+"\n"
+"    "
+msgstr ""
+"\n"
+"Información de contabilidad para las reglas de la nómina del Reino de Arabia Saudita.\n"
+"=======================================================\n"
+"\n"
 "    "
 
 #. module: base
@@ -4326,11 +4381,11 @@ msgstr ""
 #: model:ir.module.module,description:base.module_l10n_no_edi
 msgid ""
 "\n"
-"EHF 3 is the Norvegian implementation of EN 16931 norm.\n"
+"EHF 3 is the Norwegian implementation of EN 16931 norm.\n"
 "    "
 msgstr ""
 "\n"
-"EHF 3 es la implementación de Noruega de la norma EN 16931.\n"
+"EHF 3 es la implementación noruega de la norma EN 16931.\n"
 "    "
 
 #. module: base
@@ -4613,7 +4668,7 @@ msgid ""
 "Functional\n"
 "----------\n"
 "\n"
-"Be able to create journals in Odoo to create electronic customer invoices and report then to AFIP (via webserices).\n"
+"Be able to create journals in Odoo to create electronic customer invoices and report then to AFIP (via webservices).\n"
 "The options available are:\n"
 "\n"
 "    * Electronic Invoice - Web Service\n"
@@ -4686,10 +4741,10 @@ msgstr ""
 "Las opciones disponibles son:\n"
 "\n"
 "    * Factura electrónica - Servicio web\n"
-"    * Exportar voucher - Servicio web\n"
+"    * Voucher para exportar - Servicio web\n"
 "    * Bono fiscal electrónico - Servicio web\n"
 "\n"
-"En los diarios electrónicos, si valida una factura esta se validará tanto en Odoo como en AFIP. Esta validación\n"
+"En los diarios electrónicos, si valida una factura se validará tanto en Odoo como en AFIP. Esta validación\n"
 "se hace instantáneamente y recibimos un estado de AFIP que puede ser \"aprobado/aprobado con observaciones/rechazado\". Si AFIP\n"
 "rechazó la factura, no se publicará en el sistema y aparecerá una notificación con las razones del error (por qué la rechazaron)\n"
 "y una PISTA de cuál es el problema.\n"
@@ -5489,6 +5544,21 @@ msgid ""
 msgstr ""
 "\n"
 "Permite comparar productos de la lista de deseos\n"
+"    "
+
+#. module: base
+#: model:ir.module.module,description:base.module_l10n_sa_hr_payroll
+msgid ""
+"\n"
+"Kingdom of Saudi Arabia Payroll and End of Service rules.\n"
+"===========================================================\n"
+"\n"
+"    "
+msgstr ""
+"\n"
+"Reglas de nómina y finalización de servicios del Reino de Arabia Saudita.\n"
+"===========================================================\n"
+"\n"
 "    "
 
 #. module: base
@@ -9088,6 +9158,17 @@ msgstr ""
 "    "
 
 #. module: base
+#: model:ir.module.module,description:base.module_timesheet_grid_holidays
+msgid ""
+"\n"
+"This module prevents taking time offs into account when computing employee overtime.\n"
+"    "
+msgstr ""
+"\n"
+"Este módulo impide que se tomen en cuenta los tiempos personales al calcular las horas extras del empleado.\n"
+"    "
+
+#. module: base
 #: model:ir.module.module,description:base.module_purchase_mrp
 msgid ""
 "\n"
@@ -9856,8 +9937,8 @@ msgstr ""
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.res_lang_form
-msgid "%A - Full weekday name."
-msgstr "%A - Nombre completo del día de la semana."
+msgid "%A - Full day of the week."
+msgstr "%A - Día de la semana escrito completo."
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.res_lang_form
@@ -9891,8 +9972,8 @@ msgstr "%Y - Año con siglo.\""
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.res_lang_form
-msgid "%a - Abbreviated weekday name."
-msgstr "%a - Nombre abreviado del día de la semana."
+msgid "%a - Abbreviated day of the week."
+msgstr "%a - Día de la semana abreviado."
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.res_lang_form
@@ -10178,12 +10259,8 @@ msgstr "9. %w ==&gt; 5 ( Viernes es el 6º día)"
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.view_partner_form
-msgid ""
-"<b class=\"position-absolute\" attrs=\"{'invisible': [('is_company', '=', "
-"False)]}\">Address</b>"
-msgstr ""
-"<b class=\"position-absolute\" attrs=\"{'invisible': [('is_company', '=', "
-"False)]}\">Dirección</b>"
+msgid "<b attrs=\"{'invisible': [('is_company', '=', False)]}\">Address</b>"
+msgstr "<b attrs=\"{'invisible': [('is_company', '=', False)]}\">Dirección</b>"
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.view_server_action_form
@@ -10878,7 +10955,7 @@ msgstr "Un módulo para verificar el mecanismo de paquetes activos."
 
 #. module: base
 #: model:ir.module.module,description:base.module_test_inherit_depends
-msgid "A module to verify the inheritance using _inherit accross modules."
+msgid "A module to verify the inheritance using _inherit across modules."
 msgstr "Un módulo para verificar la herencia usando _inherits en los módulos."
 
 #. module: base
@@ -13229,6 +13306,16 @@ msgid "Belgium - Accounting Reports"
 msgstr "Bélgica - Reportes contables"
 
 #. module: base
+#: model:ir.module.module,shortdesc:base.module_l10n_be_reports_base_address_extended
+msgid "Belgium - Accounting Reports - Base address extended"
+msgstr "Bélgica - Reportes contables - Dirección de la base extendida"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_l10n_be_reports_sms
+msgid "Belgium - Accounting Reports - SMS"
+msgstr "Bélgica - Reportes contables - SMS"
+
+#. module: base
 #: model:ir.module.module,shortdesc:base.module_l10n_be_disallowed_expenses
 msgid "Belgium - Disallowed Expenses Data"
 msgstr "Bélgica - Gastos no permitidos"
@@ -13247,6 +13334,11 @@ msgstr "Bélgica - Importar extractos bancarios CODA"
 #: model:ir.module.module,shortdesc:base.module_l10n_be_hr_payroll
 msgid "Belgium - Payroll"
 msgstr "Bélgica - Nóminas"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_l10n_be_hr_payroll_december
+msgid "Belgium - Payroll - December Slip"
+msgstr "Bélgica - Nómina - Nómina de diciembre"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_l10n_be_hr_payroll_fleet
@@ -14034,8 +14126,8 @@ msgstr ""
 
 #. module: base
 #: model:ir.module.module,summary:base.module_account_check_printing
-msgid "Check printing commons"
-msgstr "Impresión de cheques base"
+msgid "Check printing basic features"
+msgstr "Funciones básicas de impresión de cheques"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_account_accountant_check_printing
@@ -18400,6 +18492,11 @@ msgstr ""
 "MOTOCICLETAS"
 
 #. module: base
+#: model:ir.module.module,shortdesc:base.module_l10n_gcc_invoice
+msgid "G.C.C. - Arabic/English Invoice"
+msgstr "CCEAG - Factura Árabe/Inglés"
+
+#. module: base
 #: model:ir.model.fields.selection,name:base.selection__ir_module_module__license__gpl-2
 msgid "GPL Version 2"
 msgstr "GPL Versión 2"
@@ -18928,6 +19025,11 @@ msgstr "Guinea"
 #: model:res.country,name:base.gw
 msgid "Guinea-Bissau"
 msgstr "Guinea-Bisáu"
+
+#. module: base
+#: model:res.country.group,name:base.gulf_cooperation_council
+msgid "Gulf Cooperation Council (GCC)"
+msgstr "Consejo de Cooperación para los Estados Árabes del Golfo (CCEAG)"
 
 #. module: base
 #: model:res.country,name:base.gy
@@ -20786,6 +20888,21 @@ msgid "K FINANCIAL AND INSURANCE ACTIVITIES"
 msgstr "K. ACTIVIDADES FINANCIERAS Y SEGUROS"
 
 #. module: base
+#: model:ir.module.module,shortdesc:base.module_l10n_sa_invoice
+msgid "K.S.A - Invoice"
+msgstr "Reino de Arabia Saudita - Factura"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_l10n_sa_hr_payroll
+msgid "K.S.A. - Payroll"
+msgstr "Reino de Arabia Saudita - Nómina"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_l10n_sa_hr_payroll_account
+msgid "K.S.A. - Payroll with Accounting"
+msgstr "Reino de Arabia Saudita - Nómina con contabilidad"
+
+#. module: base
 #: model:ir.module.module,shortdesc:base.module_digest
 msgid "KPI Digests"
 msgstr "Resúmenes de KPI"
@@ -21473,6 +21590,11 @@ msgstr "Campo del enlace"
 #: model:ir.module.module,shortdesc:base.module_website_links
 msgid "Link Tracker"
 msgstr "Rastreador de enlaces"
+
+#. module: base
+#: model:ir.module.module,summary:base.module_timesheet_grid_holidays
+msgid "Link between timesheet and time off"
+msgstr "Vínculo entre hoja de horas y tiempo personal"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_voip_crm
@@ -25216,118 +25338,118 @@ msgid ""
 "\n"
 "Schedule, organize, promote or sell events online; conferences, trainings, webinars, etc.\n"
 msgstr ""
-"Odoo Website Builder\n"
+"Creador de sitios web de Odoo\n"
 "--------------------\n"
 "\n"
-"Get an awesome and <a href=\"https://www.odoo.com/app/website\">free website</a>,\n"
-"easily customizable with the Odoo <a href=\"https://www.odoo.com/app/website\">website builder</a>.\n"
+"Construye un <a href=\"https://www.odoo.com/app/website\">sitio web gratis</a> e increíble\n"
+"que podrás personalizar fácilmente con el<a href=\"https://www.odoo.com/app/website\">creador de sitios web de Odoo</a>.\n"
 "\n"
-"Create enterprise grade website with our super easy builder. Use finely\n"
-"designed building blocks and edit everything inline.\n"
+"Cree un sitio web empresarial de nivel con nuestro sencillísimo creador de sitios web. Use bloques\n"
+"de creación diseñados cuidadosamente y edite todo edn línea.\n"
 "\n"
-"Benefit from out-of-the-box business features; e-Commerce, events, blogs, jobs\n"
-"announces, customer references, call-to-actions, etc.\n"
+"Obtenga los beneficios de nuestras funciones empresariales listas para usar: comercio electrónico, eventos, blogs, anuncios de\n"
+"reclutamien to, referencias de clientes, llamadas a la acción, etc.\n"
 "\n"
-"Edit Anything Inline\n"
+"Edite lo que sea en línea\n"
 "--------------------\n"
 "\n"
-"Create beautiful websites with no technical knowledge. Odoo's unique *'edit\n"
-"inline'* approach makes website creation surprisingly easy. No more complex\n"
-"backend; just click anywhere to change any content.\n"
+"Cree sitios web hermosos sin necesidad de conocimiento técnico. El enfoque único de Odoo \"editar\n"
+"en línea\" hacde que crear un sitio web sea sorprendentemente fácil. Olvídate de tener\n"
+"un backend complejo, solo tiene que dar clic en cualquier lugar para cambiar el contenido que quiera.\n"
 "\n"
-"\"Want to change the price of a product? or put it in bold? Want to change a\n"
-"blog title?\" Just click and change. What you see is what you get. Really.\n"
+"\"¿Quiere cambiar el precio de un producto? ¿O ponerlo en negritas? ¿Quiere cambiar\n"
+"el título de un blog?\" Solo de clic y cámbielo. Lo que ve es lo que recibe. En serio.\n"
 "\n"
-"Awesome. Astonishingly Beautiful.\n"
+"Increíble. Tan hermoso que te quitará el aliento.\n"
 "---------------------------------\n"
 "\n"
-"Odoo's building blocks allow to design modern websites that are not possible\n"
-"with traditional WYSIWYG page editors.\n"
+"Los bloques de creación de Odoo te permitirán diseñar sitios web modernos que no podrás crear\n"
+"en páginas de edición WYSIWYG tradicionales.\n"
 "\n"
-"Whether it's for products descriptions, blogs or static pages, you don't need\n"
-"to be a professional designer to create clean contents. Just drag and drop and\n"
-"customize predefined building blocks.\n"
+"Ya sea par la descripción de productos, blogs o páginas estadísticas, no necesita ser\n"
+"un diseñador profesional para crear contenidos limpios. Solo arrastre y suelte y\n"
+"personalice sus bloques de creación\n"
 "\n"
-"Enterprise-Ready, out-of-the-box\n"
+"Listo para la empresa y úselo de inmediato\n"
 "--------------------------------\n"
 "\n"
-"Activate ready-to-use enterprise features in just a click; e-commerce,\n"
-"call-to-actions, jobs announces, events, customer references, blogs, etc.\n"
+"Active funciones empresariales en un solo clic, comercio electrónico, \n"
+"llamadas a la acción, anuncios de reclutamiento, eventos, referencias de clientes, blogs, etc.\n"
 "\n"
-"Traditional eCommerce and CMS have poorly designed backends as it's not their\n"
-"core focus. With the Odoo integration, you benefit from the best management\n"
-"software to follow-up on your orders, your jobs applicants, your leads, etc.\n"
+"El backend de comercio electrónico y CSM tradicionales no está bien diseñado y no es\n"
+"su enfoque inicial. Con la integración de Odoo se beneficiará de un mejor gestionamiento,\n"
+"el seguimiento que el software le da a sus órdenes, lols aplicantes a sus vacantes, sus leads, etc.\n"
 "\n"
-"A Great Mobile Experience\n"
+"Una gran experiencia móvil\n"
 "-------------------------\n"
 "\n"
-"Get a mobile friendly website thanks to our responsive design based on\n"
-"bootstrap. All your pages adapt automatically to the screen size. (mobile\n"
-"phones, tablets, desktop) You don't have to worry about mobile contents, it\n"
-"works by default.\n"
+"Podrás obtener un sitio web amigable para móviles gracias a nuestro diseño sensible basado en\n"
+"bootstrap. Todas sus páginas se adaptan automáticamente al tamaño de la pantalla (móviles,\n"
+"celulares, tabletas, escritorio). No tienes que preocuparte por contenidos en los celulares,\n"
+"trabaja automáticamente.\n"
 "\n"
-"SEO tools at your finger tips\n"
+"Herramientas SEO al alcance de tus manos\n"
 "-----------------------------\n"
 "\n"
-"The *Promote* tool suggests keywords according to Google most searched terms.\n"
-"Search Engine Optimization tools are ready to use, with no configuration\n"
-"required.\n"
+"La herramienta de \"promocionar\" sugiera palabras clave de acuerdo con los términos más buscados en Google.\n"
+"Las herramientas de optimización para buscadores se pueden utilizar de inmediato, sin tener que\n"
+"configurarlos.\n"
 "\n"
-"Google Analytics tracks your shopping cart events by default. Sitemap and\n"
-"structured content are created automatically for Google indexation.\n"
+"Google Analytics rastrea su carrito de compras automáticamente. El mapa del sitio web y\n"
+"contenido estructurado se crean automáticamente por la indexación se Google.\n"
 "\n"
-"Multi-Languages Made Easy\n"
+"Varios idiomas de la manera más fácil\n"
 "-------------------------\n"
 "\n"
-"Get your website translated in multiple languages with no effort. Odoo proposes\n"
-"and propagates translations automatically across pages, following what you edit\n"
-"on the master page.\n"
+"Traduce tu sitio web a varios idiomas sin problemas. Odoo propone\n"
+"y propaga traducciones automáticamente a través de diversas páginas, después de lo que edites\n"
+"en la página principal.\n"
 "\n"
-"Designer-Friendly Templates\n"
+"Plantillas amigables para diseñadores\n"
 "---------------------------\n"
 "\n"
-"Templates are awesome and easy to design. You don't need to develop to create\n"
-"new pages, themes or building blocks. We use a clean HTML structure, a\n"
+"Las plantillas son asombrosas y fáciles de diseñar. No tiene que desarrollar para crear\n"
+"nuevas páginas, plantillas o bloques de creación. Usamos una estructura HTML limpia, con\n"
 "[bootstrap](http://getbootstrap.com/) CSS.\n"
 "\n"
-"Customize every page on the fly with the integrated template editor. Distribute\n"
-"your work easily as an Odoo module.\n"
+"Personaliza todas las páginas en el momento con un editor de plantillas integrado. Distribuya\n"
+"tu trabajo fácilmente como un módulo de Odoo.\n"
 "\n"
-"Fluid Grid Layouting\n"
+"Diseño de tabla fluido\n"
 "--------------------\n"
 "\n"
-"Design perfect pages by drag and dropping building blocks. Move and scale them\n"
-"to fit the layout you are looking for.\n"
+"Solo tiene que arrastrar y soltar bloques de construcción para diseñar páginas perfectas. Mueva o escálelas\n"
+"para quedar en el diseño que está buscando.\n"
 "\n"
-"Building blocks are based on a responsive, mobile friendly fluid grid system\n"
-"that appropriately scales up to 12 columns as the device or viewport size\n"
-"increases.\n"
+"Los bloques de creación se basan en un sistema de tabla fluido que es sensible y amigable con el celular.\n"
+"Con este sistema puede escalar hasta 12 columnas para que se vean en el dispositivo o el tamaño del punto de vista\n"
+"aumenta.\n"
 "\n"
-"Professional Themes\n"
+"Plantillas profesionales\n"
 "-------------------\n"
 "\n"
-"Design a custom theme or reuse pre-defined themes to customize the look and\n"
-"feel of your website.\n"
+"Diseñe una plantilla personalizada o vuelva a usar una plantilla predefinida para personalizar el el diseño y\n"
+"la onda de su sitio web.\n"
 "\n"
-"Test new color scheme easily; you can change your theme at any time in just a\n"
-"click.\n"
+"Pruebe el nuevo esquema de colores fácilmente. Puede cambiar el tema en cualquier momento  con solo un\n"
+"clic.\n"
 "\n"
-"Integrated With Odoo Apps\n"
+"Integrado con las otras apps de Google\n"
 "-------------------------\n"
 "\n"
-"### e-Commerce\n"
+"### Comercio electrónico\n"
 "\n"
-"Promote products, sell online, optimize visitors' shopping experience.\n"
+"Promocione productos, venda en línea, optimice la experiencia de sus clientes.\n"
 "\n"
 "\n"
 "### Blogs\n"
 "\n"
-"Write news, attract new visitors, build customer loyalty.\n"
+"Escriba noticias, atraiga a nuevos visitantes, construya lealtad del cliente.\n"
 "\n"
 "\n"
-"### Online Events\n"
+"### Eventos en línea\n"
 "\n"
-"Schedule, organize, promote or sell events online; conferences, trainings, webinars, etc.\n"
+"Agende, organice, promueba o venda eventos en línea, como conferenias, capacitaciones, webinarios, entre otros.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_sale
@@ -25765,7 +25887,7 @@ msgstr ""
 #. module: base
 #: code:addons/base/models/ir_actions_report.py:0
 #, python-format
-msgid "One of the documents, you try to merge is encrypted"
+msgid "One of the documents you are trying to merge is encrypted"
 msgstr "Uno de los documentos que intenta fusionar está encriptado"
 
 #. module: base
@@ -28914,6 +29036,11 @@ msgid "Salary Configurator (Belgium)"
 msgstr "Configurador de sueldo (Bélgica)"
 
 #. module: base
+#: model:ir.module.module,shortdesc:base.module_l10n_be_hr_payroll_canteen
+msgid "Salary Configurator (Belgium) - Canteen Cost"
+msgstr "Configurador del sueldo (Bélgica) - Costo del comedor"
+
+#. module: base
 #: model:ir.module.module,shortdesc:base.module_l10n_be_hr_contract_salary_group_insurance
 msgid "Salary Configurator (Belgium) - Group Insurance"
 msgstr "Configurador del salario (Bélgica) - Aseguración grupal"
@@ -28932,6 +29059,11 @@ msgstr "Configurador de sueldo - nómina"
 #: model:ir.module.module,summary:base.module_l10n_be_hr_contract_salary
 msgid "Salary Package Configurator"
 msgstr "Configurador del paquete salarial"
+
+#. module: base
+#: model:ir.module.module,summary:base.module_l10n_be_hr_payroll_canteen
+msgid "Salary Package Configurator - Canteen Cost"
+msgstr "Paquete de configurador del sueldo - Costo del comedor"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_l10n_be_hr_contract_salary_group_insurance
@@ -29872,7 +30004,7 @@ msgstr "Eslovenia - Contabilidad"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_snailmail
 msgid "Snail Mail"
-msgstr "Correo ordinario"
+msgstr "Correo postal"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_snailmail_account_followup
@@ -31982,6 +32114,11 @@ msgstr "Hoja de horas durante ausencias"
 #: model:ir.module.module,shortdesc:base.module_timesheet_grid
 msgid "Timesheets"
 msgstr "Hoja de horas"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_timesheet_grid_holidays
+msgid "Timesheets And Timeoff"
+msgstr "Hoja de horas y tiempo personal"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_timesheet_attendance

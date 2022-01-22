@@ -1039,6 +1039,7 @@ var BasicModel = AbstractModel.extend({
         var params = {
             model: modelName,
             ids: resIDs,
+            context: data.getContext(),
         };
         if (options.offset) {
             params.offset = options.offset;
@@ -1062,6 +1063,7 @@ var BasicModel = AbstractModel.extend({
                     model: modelName,
                     method: 'read',
                     args: [resIDs, [field]],
+                    context: data.getContext(),
                 }).then(function (records) {
                     if (data.data.length) {
                         var dataType = self.localData[data.data[0]].type;
@@ -3017,68 +3019,6 @@ var BasicModel = AbstractModel.extend({
                 m2o.fold = foldField ? m2o[foldField] : false;
             });
             return m2os;
-        });
-    },
-    /**
-     * Fetches the number of records associated to the domain the value of the
-     * given field represents.
-     *
-     * @param {Object} record - an element from the localData
-     * @param {Object} fieldName - the name of the field
-     * @param {Object} fieldInfo
-     * @returns {Promise<any>}
-     *          The promise is resolved with the fetched special data. If this
-     *          data is the same as the previously fetched one (for the given
-     *          parameters), no RPC is done and the promise is resolved with
-     *          the undefined value.
-     */
-    _fetchSpecialDomain: function (record, fieldName, fieldInfo) {
-        var self = this;
-        var context = record.getContext({fieldName: fieldName});
-
-        var domainModel = fieldInfo.options.model;
-        if (record.data.hasOwnProperty(domainModel)) {
-            domainModel = record._changes && record._changes[domainModel] || record.data[domainModel];
-        }
-        var domainValue = record._changes && record._changes[fieldName] || record.data[fieldName] || [];
-
-        // avoid rpc if not necessary
-        var hasChanged = this._saveSpecialDataCache(record, fieldName, {
-            context: context,
-            domainModel: domainModel,
-            domainValue: domainValue,
-        });
-        if (!hasChanged) {
-            return Promise.resolve();
-        } else if (!domainModel) {
-            return Promise.resolve({
-                model: domainModel,
-                nbRecords: 0,
-            });
-        }
-
-        return new Promise(function (resolve) {
-            var evalContext = self._getEvalContext(record);
-            self._rpc({
-                model: domainModel,
-                method: 'search_count',
-                args: [Domain.prototype.stringToArray(domainValue, evalContext)],
-                context: context
-            })
-            .then(function (nbRecords) {
-                resolve({
-                    model: domainModel,
-                    nbRecords: nbRecords,
-                });
-            })
-            .guardedCatch(function (reason) {
-                var e = reason.event;
-                e.preventDefault(); // prevent traceback (the search_count might be intended to break)
-                resolve({
-                    model: domainModel,
-                    nbRecords: 0,
-                });
-            });
         });
     },
     /**

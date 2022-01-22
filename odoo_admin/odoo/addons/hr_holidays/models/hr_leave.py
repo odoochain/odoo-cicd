@@ -203,8 +203,8 @@ class HolidaysRequest(models.Model):
     # To display in form view
     supported_attachment_ids = fields.Many2many(
         'ir.attachment', string="Attach File", compute='_compute_supported_attachment_ids',
-        inverse='_inverse_supported_attachment_ids')
-    supported_attachment_ids_count = fields.Integer(compute='_compute_supported_attachment_ids')
+        inverse='_inverse_supported_attachment_ids', compute_sudo=True)
+    supported_attachment_ids_count = fields.Integer(compute='_compute_supported_attachment_ids', compute_sudo=True)
     # UX fields
     leave_type_request_unit = fields.Selection(related='holiday_status_id.request_unit', readonly=True)
     leave_type_support_document = fields.Boolean(related="holiday_status_id.support_document")
@@ -338,6 +338,7 @@ class HolidaysRequest(models.Model):
             [
                 ('holiday_status_id', 'in', self.holiday_status_id.ids),
                 ('employee_id', 'in', self.employee_id.ids),
+                ('state', '=', 'validate'),
                 '|',
                 ('date_to', '>=', min(self.mapped('date_to'))),
                 '&',
@@ -355,9 +356,9 @@ class HolidaysRequest(models.Model):
                 date_to = leave.date_to.replace(tzinfo=UTC).astimezone(timezone(leave.tz)).date()
                 date_from = leave.date_from.replace(tzinfo=UTC).astimezone(timezone(leave.tz)).date()
                 for allocation in allocations_dict[(leave.holiday_status_id.id, leave.employee_id.id)]:
-                    date_to_check = allocation['date_to'] > date_to if allocation['date_to'] else False
-                    date_from_check = allocation['date_to'] is False and allocation['date_from'] <= date_from
-                    if (date_to_check or date_from_check):
+                    date_to_check = allocation['date_to'] >= date_to if allocation['date_to'] else True
+                    date_from_check = allocation['date_from'] <= date_from
+                    if (date_to_check and date_from_check):
                         found_allocation = allocation['id']
                         break
                 leave.holiday_allocation_id = self.env['hr.leave.allocation'].browse(found_allocation) if found_allocation else False
@@ -629,7 +630,7 @@ class HolidaysRequest(models.Model):
 
     def _inverse_supported_attachment_ids(self):
         for holiday in self:
-            holiday.attachment_ids = holiday.supported_attachment_ids
+            holiday.sudo().attachment_ids = holiday.supported_attachment_ids
 
     @api.constrains('date_from', 'date_to', 'employee_id')
     def _check_date(self):
@@ -650,7 +651,7 @@ class HolidaysRequest(models.Model):
     @api.constrains('state', 'number_of_days', 'holiday_status_id')
     def _check_holidays(self):
         for holiday in self:
-            if holiday.holiday_type != 'employee' or not holiday.employee_id or holiday.holiday_status_id.requires_allocation == 'no':
+            if holiday.holiday_type != 'employee' or not holiday.employee_id or not holiday.holiday_status_id or holiday.holiday_status_id.requires_allocation == 'no':
                 continue
             mapped_days = holiday.holiday_status_id.get_employees_days([holiday.employee_id.id], holiday.date_from)
             leave_days = mapped_days[holiday.employee_id.id][holiday.holiday_status_id.id]
@@ -1189,6 +1190,7 @@ class HolidaysRequest(models.Model):
                     tracking_disable=True,
                     mail_activity_automation_skip=True,
                     leave_fast_create=True,
+                    no_calendar_sync=True,
                     leave_skip_state_check=True,
                 ).create(values)
 

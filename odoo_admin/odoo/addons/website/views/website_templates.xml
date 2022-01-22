@@ -2042,6 +2042,7 @@
 
 <!-- Effect options -->
 <record id="website.ripple_effect_scss" model="ir.asset">
+    <field name="key">website.ripple_effect_scss</field>
     <field name="name">Ripple effect SCSS</field>
     <field name="bundle">web.assets_frontend</field>
     <field name="path">/website/static/src/scss/options/ripple_effect.scss</field>
@@ -2049,6 +2050,7 @@
 </record>
 
 <record id="website.ripple_effect_js" model="ir.asset">
+    <field name="key">website.ripple_effect_js</field>
     <field name="name">Ripple effect JS</field>
     <field name="bundle">web.assets_frontend</field>
     <field name="path">/website/static/src/js/content/ripple_effect.js</field>
@@ -2133,7 +2135,7 @@
     </script>
 </template>
 <template id="default_xml">
-    &lt;?xml version="1.0" encoding="utf-8"?&gt;
+    <t t-translation="off">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</t>
 </template>
 <template id="default_css">
     <style type="text/css">
@@ -2157,7 +2159,7 @@
     </style>
 </template>
 <template id="default_csv">
-    1,2,3
+    <t t-translation="off">1,2,3</t>
 </template>
 
 <!-- PAGE 404 -->
@@ -2285,7 +2287,7 @@
         <div class="container" t-if="view and editable">
             <div class="alert alert-danger" role="alert">
                 <h4>Template fallback</h4>
-                <p>An error occured while rendering the template <code t-esc="qweb_exception.name"/>.</p>
+                <p>An error occurred while rendering the template <code t-esc="qweb_exception.name"/>.</p>
                 <p>If this error is caused by a change of yours in the templates, you have the possibility to reset the template to its <strong>factory settings</strong>.</p>
                 <form action="#" method="post" id="reset_templates_form">
                     <ul>
@@ -2329,18 +2331,19 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
     </url>
 </template>
 
-<template id="sitemap_xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+<template id="sitemap_xml"><t t-translation="off">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</t>
 <urlset t-attf-xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <t t-out="content"/>
 </urlset>
 </template>
 
-<template id="sitemap_index_xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+<template id="sitemap_index_xml"><t t-translation="off">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 <sitemapindex t-attf-xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap t-translation="off" t-foreach="pages" t-as="page">
     <loc><t t-esc="url_root"/>sitemap-<t t-esc="page"/>.xml</loc>
   </sitemap>
 </sitemapindex>
+</t>
 </template>
 
 <template id="website_search_box" name="Website Searchbox">
@@ -2565,8 +2568,19 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
                 <t t-set="extra_link" t-value="result.get('extra_link_url') and result.get('extra_link')"/>
                 <div t-att-class="'h6 font-weight-bold %s' % ('' if description else 'mb-0')" t-out="result['name']"/>
                 <p t-if="description" class="mb-0" t-out="description"/>
-                <button t-if="extra_link" class="extra_link btn btn-link btn-sm" t-out="extra_link"
-                    t-attf-onclick="location.href='#{result.get('extra_link_url')}';return false;"/>
+                <t t-if="extra_link">
+                    <t t-if="not isinstance(extra_link, dict)">
+                        <button t-if="extra_link" class="extra_link btn btn-link btn-sm" t-out="extra_link"
+                            t-attf-onclick="location.href='#{result.get('extra_link_url')}';return false;"/>
+                    </t>
+                    <t t-else="">
+                        <button class="btn btn-link btn-sm pr-0" disabled="disabled" t-out="extra_link.get('extra_link_title')"/>
+                        <t t-foreach="extra_link" t-as="link">
+                            <button t-if="result['extra_link_url'].get(link)" class="extra_link btn btn-link btn-sm p-0" t-out="extra_link.get(link)"
+                                t-attf-onclick="location.href='#{result['extra_link_url'].get(link)}';return false;"/>
+                        </t>
+                    </t>
+                </t>
             </div>
             <div class="flex-shrink-0">
                 <t t-if="result.get('detail_strike')">

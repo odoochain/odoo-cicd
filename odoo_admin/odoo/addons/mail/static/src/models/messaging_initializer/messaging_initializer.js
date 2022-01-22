@@ -253,14 +253,13 @@ function factory(dependencies) {
                     usePushToTalk: use_push_to_talk,
                     pushToTalkKey: push_to_talk_key,
                     voiceActiveDuration: voice_active_duration,
-                    volumeSettings: insert(volume_settings.map(volumeSetting => this.messaging.models['mail.volume_setting'].convertData(volumeSetting))),
+                    volumeSettings: volume_settings,
                 }),
             });
             this.messaging.discuss.update({
                 categoryChannel: insertAndReplace({
                     autocompleteMethod: 'channel',
                     commandAddTitleText: this.env._t("Add or join a channel"),
-                    counterComputeMethod: 'needaction',
                     hasAddCommand: true,
                     hasViewCommand: true,
                     isServerOpen: is_discuss_sidebar_category_channel_open,
@@ -273,7 +272,6 @@ function factory(dependencies) {
                 categoryChat: insertAndReplace({
                     autocompleteMethod: 'chat',
                     commandAddTitleText: this.env._t("Start a conversation"),
-                    counterComputeMethod: 'unread',
                     hasAddCommand: true,
                     isServerOpen: is_discuss_sidebar_category_chat_open,
                     name: this.env._t("Direct Messages"),

@@ -74,6 +74,12 @@ class AccountEdiFormat(models.Model):
     # Export
     # -------------------------------------------------------------------------
 
+    def _get_invoice_edi_content(self, move):
+        #OVERRIDE
+        if self.code != 'fattura_pa':
+            return super()._get_invoice_edi_content(move)
+        return move._export_as_xml()
+
     def _check_move_configuration(self, move):
         # OVERRIDE
         res = super()._check_move_configuration(move)
@@ -104,6 +110,13 @@ class AccountEdiFormat(models.Model):
 
         return super()._support_batching(move=move, state=state, company=company)
 
+    def _get_batch_key(self, move, state):
+        # OVERRIDE
+        if self.code != 'fattura_pa':
+            return super()._get_batch_key(move, state)
+
+        return move.move_type, bool(move.l10n_it_edi_transaction)
+
     def _l10n_it_post_invoices_step_1(self, invoices):
         ''' Send the invoices to the proxy.
         '''
@@ -123,7 +136,7 @@ class AccountEdiFormat(models.Model):
             })
             invoice.l10n_it_edi_attachment_id = attachment
 
-            if len(invoice.commercial_partner_id.l10n_it_pa_index or '') == 6:
+            if invoice._is_commercial_partner_pa():
                 invoice.message_post(
                     body=(_("Invoices for PA are not managed by Odoo, you can download the document and send it on your own."))
                 )
@@ -203,10 +216,17 @@ class AccountEdiFormat(models.Model):
                 to_return[invoice] = {'error': _('You are not allowed to check the status of this invoice.'), 'blocking_level': 'error'}
                 continue
 
+            if not response.get('file'): # It means there is no status update, so we can skip it
+                document = invoice.edi_document_ids.filtered(lambda d: d.edi_format_id.code == 'fattura_pa')
+                to_return[invoice] = {'error': document.error, 'blocking_level': document.blocking_level}
+                continue
             xml = proxy_user._decrypt_data(response['file'], response['key'])
             response_tree = etree.fromstring(xml)
             if state == 'ricevutaConsegna':
-                to_return[invoice] = {'error': _('The invoice has been succesfully transmitted. The addressee has 15 days to accept or reject it.')}
+                if invoice._is_commercial_partner_pa():
+                    to_return[invoice] = {'error': _('The invoice has been succesfully transmitted. The addressee has 15 days to accept or reject it.')}
+                else:
+                    to_return[invoice] = {'attachment': invoice.l10n_it_edi_attachment_id, 'success': True}
             elif state == 'notificaScarto':
                 errors = [element.find('Descrizione').text for element in response_tree.xpath('//Errore')]
                 to_return[invoice] = {'error': self._format_error_message(_('The invoice has been refused by the Exchange System'), errors), 'blocking_level': 'error'}
@@ -225,21 +245,22 @@ class AccountEdiFormat(models.Model):
                 else:  # ECO2
                     to_return[invoice] = {'error': _('The invoice was refused by the addressee.'), 'blocking_level': 'error'}
             elif state == 'NotificaDecorrenzaTermini':
-                to_return[invoice] = {'error': _('Expiration of the maximum term for communication of acceptance/refusal'), 'blocking_level': 'error'}
+                to_return[invoice] = {'attachment': invoice.l10n_it_edi_attachment_id, 'success': True}
             proxy_acks.append(id_transaction)
 
-        try:
-            proxy_user._make_request(server_url + '/api/l10n_it_edi/1/ack',
-                                     params={'transaction_ids': proxy_acks})
-        except AccountEdiProxyError as e:
-            # Will be ignored and acked again next time.
-            _logger.error('Error while acking file to SdiCoop: %s', e)
+        if proxy_acks:
+            try:
+                proxy_user._make_request(server_url + '/api/l10n_it_edi/1/ack',
+                                        params={'transaction_ids': proxy_acks})
+            except AccountEdiProxyError as e:
+                # Will be ignored and acked again next time.
+                _logger.error('Error while acking file to SdiCoop: %s', e)
 
         return to_return
 
     def _post_fattura_pa(self, invoices):
         # OVERRIDE
-        if not invoices.l10n_it_edi_transaction:
+        if not invoices[0].l10n_it_edi_transaction:
             return self._l10n_it_post_invoices_step_1(invoices)
         else:
             return self._l10n_it_post_invoices_step_2(invoices)

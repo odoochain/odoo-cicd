@@ -291,12 +291,17 @@ class MassMailing(models.Model):
     @api.depends('mailing_model_id')
     def _compute_mailing_model_real(self):
         for mailing in self:
-            mailing.mailing_model_real = (mailing.mailing_model_name != 'mailing.list') and mailing.mailing_model_name or 'mailing.contact'
+            mailing.mailing_model_real = (mailing.mailing_model_id.model != 'mailing.list') and mailing.mailing_model_id.model or 'mailing.contact'
 
-    @api.depends('mailing_model_real')
+    @api.depends('mailing_model_id')
     def _compute_reply_to_mode(self):
+        """ For main models not really using chatter to gather answers (contacts
+        and mailing contacts), set reply-to as email-based. Otherwise answers
+        by default go on the original discussion thread (business document). Note
+        that mailing_model being mailing.list means contacting mailing.contact
+        (see mailing_model_name versus mailing_model_real). """
         for mailing in self:
-            if mailing.mailing_model_real in ['res.partner', 'mailing.contact']:
+            if mailing.mailing_model_id.model in ['res.partner', 'mailing.list']:
                 mailing.reply_to_mode = 'new'
             else:
                 mailing.reply_to_mode = 'update'
@@ -309,10 +314,10 @@ class MassMailing(models.Model):
             elif mailing.reply_to_mode == 'update':
                 mailing.reply_to = False
 
-    @api.depends('mailing_model_name', 'contact_list_ids')
+    @api.depends('mailing_model_id', 'contact_list_ids', 'mailing_type')
     def _compute_mailing_domain(self):
         for mailing in self:
-            if not mailing.mailing_model_name:
+            if not mailing.mailing_model_id:
                 mailing.mailing_domain = ''
             else:
                 mailing.mailing_domain = repr(mailing._get_default_mailing_domain())
@@ -390,6 +395,9 @@ class MassMailing(models.Model):
             if mailing.ab_testing_enabled and not mailing.campaign_id
         ]
         self.env['utm.campaign'].create(campaign_vals)
+
+        mailings._fix_attachment_ownership()
+
         return mailings
 
     def write(self, values):
@@ -404,6 +412,7 @@ class MassMailing(models.Model):
             raise ValidationError(_("A campaign should be set when A/B test is enabled"))
 
         result = super(MassMailing, self).write(values)
+        self._fix_attachment_ownership()
 
         if any(self.mapped('ab_testing_schedule_datetime')):
             schedule_date = min(m.ab_testing_schedule_datetime for m in self if m.ab_testing_schedule_datetime)
@@ -411,6 +420,11 @@ class MassMailing(models.Model):
             ab_testing_cron._trigger(at=schedule_date)
 
         return result
+
+    def _fix_attachment_ownership(self):
+        for record in self:
+            record.attachment_ids.write({'res_model': record._name, 'res_id': record.id})
+        return self
 
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
@@ -931,10 +945,15 @@ class MassMailing(models.Model):
         """Send an email to the responsible of each finished mailing with the statistics."""
         self.kpi_mail_required = False
 
+        mails_sudo = self.env['mail.mail'].sudo()
         for mailing in self:
-            user = mailing.user_id
-            mailing = mailing.with_context(lang=user.lang or self._context.get('lang'))
+            if mailing.user_id:
+                mailing = mailing.with_user(mailing.user_id).with_context(
+                    lang=mailing.user_id.lang or self._context.get('lang')
+                )
             mailing_type = mailing._get_pretty_mailing_type()
+            mail_user = mailing.user_id or self.env.user
+            mail_company = mail_user.company_id
 
             link_trackers = self.env['link.tracker'].search(
                 [('mass_mailing_id', '=', mailing.id)]
@@ -952,8 +971,8 @@ class MassMailing(models.Model):
                 'digest.digest_mail_main',
                 {
                     'body': tools.html_sanitize(link_trackers_body),
-                    'company': user.company_id,
-                    'user': user,
+                    'company': mail_company,
+                    'user': mail_user,
                     'display_mobile_banner': True,
                     ** mailing._prepare_statistics_email_values()
                 },
@@ -965,17 +984,20 @@ class MassMailing(models.Model):
             )
 
             mail_values = {
+                'auto_delete': True,
+                'author_id': mail_user.partner_id.id,
+                'email_from': mail_user.email_formatted,
+                'email_to': mail_user.email_formatted,
+                'body_html': full_mail,
+                'reply_to': mail_company.email_formatted or mail_user.email_formatted,
+                'state': 'outgoing',
                 'subject': _('24H Stats of %(mailing_type)s "%(mailing_name)s"',
                              mailing_type=mailing._get_pretty_mailing_type(),
                              mailing_name=mailing.subject
                             ),
-                'email_from': user.email_formatted,
-                'email_to': user.email_formatted,
-                'body_html': full_mail,
-                'auto_delete': True,
             }
-            mail = self.env['mail.mail'].sudo().create(mail_values)
-            mail.send(raise_exception=False)
+            mails_sudo += self.env['mail.mail'].sudo().create(mail_values)
+        return mails_sudo
 
     def _prepare_statistics_email_values(self):
         """Return some statistics that will be displayed in the mailing statistics email.
@@ -1005,6 +1027,7 @@ class MassMailing(models.Model):
                     'col_subtitle': _('REPLIED (%i)', self.replied),
                 },
                 'kpi_action': None,
+                'kpi_name': self.mailing_type,
             }
 
         random_tip = self.env['digest.tip'].search(
@@ -1037,6 +1060,7 @@ class MassMailing(models.Model):
                     'kpi_col1': {},
                     'kpi_col2': {},
                     'kpi_col3': {},
+                    'kpi_name': 'trace',
                 },
             ],
             'tips': [random_tip] if random_tip else False,

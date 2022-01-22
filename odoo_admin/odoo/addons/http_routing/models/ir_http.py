@@ -167,11 +167,7 @@ def url_lang(path_or_uri, lang_code=None):
             elif lang_url_code != default_lg.url_code or force_lang:
                 ps.insert(1, lang_url_code)
 
-            # remove trailing /
-            # ['', fr', ''] => /fr/ instead of /fr
-            if ps[-1] == '':
-                ps.pop(-1)
-            location = (u'/'.join(ps) or u'/') + sep + qs
+            location = u'/'.join(ps) + sep + qs
     return location
 
 
@@ -677,7 +673,8 @@ class IrHttp(models.AbstractModel):
         except werkzeug.exceptions.MethodNotAllowed:
             endpoint = router.match(path, method='GET', query_args=query_args)
         except werkzeug.routing.RequestRedirect as e:
-            new_url = e.new_url[7:]  # remove scheme
+            # get path from http://{path}?{current query string}
+            new_url = e.new_url.split('?')[0][7:]
             _, endpoint = self.url_rewrite(new_url, query_args)
             endpoint = endpoint and [endpoint]
         except werkzeug.exceptions.NotFound:

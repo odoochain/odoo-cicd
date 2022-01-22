@@ -7,7 +7,7 @@ import { download } from "@web/core/network/download";
 import { evaluateExpr } from "@web/core/py_js/py";
 import { registry } from "@web/core/registry";
 import { KeepLast } from "@web/core/utils/concurrency";
-import { useBus } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
 import { sprintf } from "@web/core/utils/strings";
 import { cleanDomFromBootstrap } from "@web/legacy/utils";
 import { View } from "@web/views/view";
@@ -399,11 +399,15 @@ function makeActionManager(env) {
                 return viewSwitcherEntry;
             });
         const context = action.context || {};
+        let groupBy = context.group_by || [];
+        if (typeof groupBy === "string") {
+            groupBy = [groupBy];
+        }
         const viewProps = Object.assign({}, props, {
             context,
             display: { mode: target === "new" ? "inDialog" : target },
             domain: action.domain || [],
-            groupBy: action.context.group_by || [],
+            groupBy,
             loadActionMenus: target !== "new" && target !== "inline",
             loadIrFilters: action.views.some((v) => v[1] === "search"),
             resModel: action.res_model,
@@ -536,6 +540,7 @@ function makeActionManager(env) {
             setup() {
                 this.Component = controller.Component;
                 this.componentRef = useRef("component");
+                this.titleService = useService("title");
                 useDebugCategory("action", { action });
                 useSubEnv({ config: controller.config });
                 if (action.target !== "new") {
@@ -552,6 +557,7 @@ function makeActionManager(env) {
                         __getLocalState__: this.__getLocalState__,
                     });
                 }
+                this.isMounted = false;
             }
             catchError(error) {
                 reject(error);
@@ -629,12 +635,15 @@ function makeActionManager(env) {
                     }
                     // END LEGACY CODE COMPATIBILITY
                     controllerStack = nextStack; // the controller is mounted, commit the new stack
-                    // wait Promise callbacks to be executed
                     pushState(controller);
+                    this.titleService.setParts({
+                        action: controller.title || this.env.config.displayName,
+                    });
                     browser.sessionStorage.setItem("current_action", action._originalAction);
                 }
                 resolve();
                 env.bus.trigger("ACTION_MANAGER:UI-UPDATED", _getActionMode(action));
+                this.isMounted = true;
             }
             willUnmount() {
                 if (action.target === "new" && dialogCloseResolve) {
@@ -651,6 +660,10 @@ function makeActionManager(env) {
             }
             onTitleUpdated(ev) {
                 controller.title = ev.detail;
+                if (this.isMounted) {
+                    // if not mounted yet, will be done in "mounted"
+                    this.titleService.setParts({ action: controller.title });
+                }
             }
         }
         ControllerComponent.template = ControllerComponentTemplate;
@@ -731,8 +744,9 @@ function makeActionManager(env) {
      *
      * @private
      * @param {ActURLAction} action
+     * @param {ActionOptions} options
      */
-    function _executeActURLAction(action) {
+    function _executeActURLAction(action, options) {
         if (action.target === "self") {
             env.services.router.redirect(action.url);
         } else {
@@ -746,6 +760,9 @@ function makeActionManager(env) {
                     sticky: true,
                     type: "warning",
                 });
+            }
+            if (options.onClose) {
+                options.onClose();
             }
         }
     }
@@ -971,10 +988,21 @@ function makeActionManager(env) {
             report_url: _getReportUrl(action, "html"),
             context: Object.assign({}, action.context),
         });
-        const clientActionOptions = Object.assign({}, options, {
-            props,
+
+        const controller = {
+            jsId: `controller_${++id}`,
+            // for historical reasons, the report Component is a client action,
+            // but there's no need to keep this when it will be converted to owl.
+            Component: actionRegistry.get("report.client_action"),
+            action,
+            ..._getActionInfo(action, props),
+        };
+
+        return _updateUI(controller, {
+            clearBreadcrumbs: options.clearBreadcrumbs,
+            stackPosition: options.stackPosition,
+            onClose: options.onClose,
         });
-        return doAction("report.client_action", clientActionOptions);
     }
 
     /**
@@ -1039,7 +1067,7 @@ function makeActionManager(env) {
     async function _executeServerAction(action, options) {
         const runProm = env.services.rpc("/web/action/run", {
             action_id: action.id,
-            context: action.context || {},
+            context: makeContext([env.services.user.context, action.context]),
         });
         let nextAction = await keepLast.add(runProm);
         nextAction = nextAction || { type: "ir.actions.act_window_close" };
@@ -1077,7 +1105,7 @@ function makeActionManager(env) {
         action = _preprocessAction(action, options.additionalContext);
         switch (action.type) {
             case "ir.actions.act_url":
-                return _executeActURLAction(action);
+                return _executeActURLAction(action, options);
             case "ir.actions.act_window":
                 if (action.target !== "new") {
                     await clearUncommittedChanges(env);
@@ -1325,7 +1353,7 @@ function makeActionManager(env) {
             const props = controller.props;
             newState.model = props.resModel;
             newState.view_type = props.type;
-            newState.id = props.resId || undefined;
+            newState.id = props.resId || (props.state && props.state.currentId) || undefined;
         }
         env.services.router.pushState(newState, { replace: true });
     }

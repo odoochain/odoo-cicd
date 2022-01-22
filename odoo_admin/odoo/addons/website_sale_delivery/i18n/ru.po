@@ -5,13 +5,15 @@
 # Translators:
 # Martin Trigaux, 2021
 # Collex100, 2021
-# Ivan Yelizariev // IEL <yelizariev@itpp.dev>, 2021
+# Ivan Yelizariev // IEL (ellui) <yelizariev@itpp.dev>, 2021
 # Sergey Vilizhanin, 2021
 # Vladimir Lukianov <lvm.mobile@gmail.com>, 2021
 # ILMIR <karamov@it-projects.info>, 2021
 # Oleg Kuryan <oleg@ventor.tech>, 2021
 # Константин Коровин <korovin74@gmail.com>, 2021
 # Irina Fedulova <istartlin@gmail.com>, 2021
+# Сергей Шебанин <sergey@shebanin.ru>, 2021
+# Evgeniia Kotova, 2022
 # 
 msgid ""
 msgstr ""
@@ -19,7 +21,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:29+0000\n"
-"Last-Translator: Irina Fedulova <istartlin@gmail.com>, 2021\n"
+"Last-Translator: Evgeniia Kotova, 2022\n"
 "Language-Team: Russian (https://www.transifex.com/odoo/teams/41243/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -41,7 +43,7 @@ msgid ""
 msgstr ""
 "Описание продукта, которое Вы хотели бы предоставлять вашим потребителям.Это"
 " описание будет отображаться в каждом заказе покупателя, заказе на доставку "
-"и счете покупателю/ кредитном обязательстве"
+"и акте покупателю/ кредитном обязательстве"
 
 #. module: website_sale_delivery
 #: model:ir.model.fields,field_description:website_sale_delivery.field_delivery_carrier__can_publish
@@ -160,7 +162,7 @@ msgstr "Выберите, чтобы вычислить скорость дос�
 #: model:ir.ui.menu,name:website_sale_delivery.menu_ecommerce_delivery
 #: model_terms:ir.ui.view,arch_db:website_sale_delivery.res_config_settings_view_form
 msgid "Shipping Methods"
-msgstr ""
+msgstr "Методы доставки"
 
 #. module: website_sale_delivery
 #: code:addons/website_sale_delivery/controllers/main.py:0

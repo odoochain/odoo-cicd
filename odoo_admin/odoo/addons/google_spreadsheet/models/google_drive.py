@@ -75,12 +75,12 @@ class GoogleDrive(models.Model):
         try:
             req = requests.post(
                 'https://spreadsheets.google.com/feeds/cells/%s/od6/private/full/batch?%s' % (spreadsheet_key, werkzeug.urls.url_encode({'v': 3, 'access_token': access_token})),
-                data=request,
+                data=request.encode('utf-8'),
                 headers={'content-type': 'application/atom+xml', 'If-Match': '*'},
                 timeout=TIMEOUT,
             )
         except IOError:
-            _logger.warning("An error occured while writing the formula on the Google Spreadsheet.")
+            _logger.warning("An error occurred while writing the formula on the Google Spreadsheet.")
 
         description = '''
         formula: %s

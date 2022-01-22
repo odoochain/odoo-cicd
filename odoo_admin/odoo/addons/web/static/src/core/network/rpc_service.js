@@ -29,11 +29,8 @@ export function makeErrorFromResponse(reponse) {
     // Odoo returns error like this, in a error field instead of properly
     // using http error codes...
     const { code, data: errorData, message, type: subType } = reponse;
-    const { context: data_context, name: data_name } = errorData || {};
-    const { exception_class } = data_context || {};
-    const exception_class_name = exception_class || data_name;
     const error = new RPCError();
-    error.exceptionName = exception_class_name;
+    error.exceptionName = errorData.name;
     error.subType = subType;
     error.data = errorData;
     error.message = message;
@@ -61,12 +58,16 @@ function jsonrpc(env, rpcId, url, params, settings = {}) {
         request.addEventListener("load", () => {
             if (request.status === 502) {
                 // If Odoo is behind another server (eg.: nginx)
-                bus.trigger("RPC:RESPONSE", data.id);
+                if (!settings.silent) {
+                    bus.trigger("RPC:RESPONSE", data.id);
+                }
                 reject(new ConnectionLostError());
                 return;
             }
             const { error: responseError, result: responseResult } = JSON.parse(request.response);
-            bus.trigger("RPC:RESPONSE", data.id);
+            if (!settings.silent) {
+                bus.trigger("RPC:RESPONSE", data.id);
+            }
             if (!responseError) {
                 return resolve(responseResult);
             }
@@ -75,7 +76,9 @@ function jsonrpc(env, rpcId, url, params, settings = {}) {
         });
         // handle failure
         request.addEventListener("error", () => {
-            bus.trigger("RPC:RESPONSE", data.id);
+            if (!settings.silent) {
+                bus.trigger("RPC:RESPONSE", data.id);
+            }
             reject(new ConnectionLostError());
         });
         // configure and send request

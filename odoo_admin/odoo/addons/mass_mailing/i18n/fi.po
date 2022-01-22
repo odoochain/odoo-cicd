@@ -22,18 +22,19 @@
 # Miku Laitinen <miku.laitinen@gmail.com>, 2021
 # Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2021
 # Jukka Paulin <jukka.paulin@gmail.com>, 2021
-# Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2021
 # Mikko Närjänen <mikko.narjanen@web-veistamo.fi>, 2021
 # Retropikzel, 2021
-# Miika Nissi <miika.nissi@tawasta.fi>, 2021
+# Antti Oksman <antti.oksman@web-veistamo.fi>, 2021
+# Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2021
+# Miika Nissi <miika.nissi@tawasta.fi>, 2022
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-05 10:53+0000\n"
+"POT-Creation-Date: 2021-11-16 13:18+0000\n"
 "PO-Revision-Date: 2021-09-14 12:23+0000\n"
-"Last-Translator: Miika Nissi <miika.nissi@tawasta.fi>, 2021\n"
+"Last-Translator: Miika Nissi <miika.nissi@tawasta.fi>, 2022\n"
 "Language-Team: Finnish (https://www.transifex.com/odoo/teams/41243/fi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -245,7 +246,7 @@ msgstr ""
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_rating_options
 msgid "<i class=\"fa fa-fw fa-circle\"/> Circles"
-msgstr ""
+msgstr "<i class=\"fa fa-fw fa-circle\"/> Ympyrät"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_rating_options
@@ -255,7 +256,7 @@ msgstr "<i class=\"fa fa-fw fa-heart\"/> Sydämet"
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_rating_options
 msgid "<i class=\"fa fa-fw fa-refresh mr-1\"/> Replace Icon"
-msgstr ""
+msgstr "<i class=\"fa fa-fw fa-refresh mr-1\"/> Vaihda kuvake"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_rating_options
@@ -270,7 +271,7 @@ msgstr "<i class=\"fa fa-fw fa-star\"/> Tähdet"
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_rating_options
 msgid "<i class=\"fa fa-fw fa-thumbs-up\"/> Thumbs"
-msgstr ""
+msgstr "<i class=\"fa fa-fw fa-thumbs-up\"/> Peukut"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_blockquote
@@ -398,7 +399,7 @@ msgstr ""
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.mailing_list_view_form
 msgid "<span class=\"o_stat_value\">%</span>"
-msgstr ""
+msgstr "<span class=\"o_stat_value\">%</span>"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_blockquote
@@ -406,6 +407,8 @@ msgid ""
 "<span class=\"s_blockquote_author\"><b>John DOE</b> • CEO of "
 "MyCompany</span>"
 msgstr ""
+"<span class=\"s_blockquote_author\"><b>Matti Meikäläinen</b> • "
+"Toimitusjohtaja MinunYrityksessä</span>"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_numbers
@@ -498,7 +501,7 @@ msgstr ""
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.utm_campaign_view_form
 msgid "<span>%</span>"
-msgstr ""
+msgstr "<span>%</span>"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.mailing_list_view_kanban
@@ -718,6 +721,9 @@ msgid ""
 "move columns, select the column and use the top icons to perform your "
 "action."
 msgstr ""
+"Mukauta nämä kolme saraketta suunnittelutarpeesi mukaan. Jos haluat "
+"monistaa, poistaa tai siirtää sarakkeita, valitse sarake ja suorita toiminto"
+" ylimpien kuvakkeiden avulla."
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.mailing_contact_to_list_view_form
@@ -737,7 +743,7 @@ msgstr ""
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_picture
 msgid "Add a caption to enhance the meaning of this image."
-msgstr ""
+msgstr "Lisää kuvateksti parantaaksesi tämän kuvan merkitystä."
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_features_grid
@@ -792,6 +798,9 @@ msgid ""
 "do. She mentors 100+ in-house developers and looks after the community of "
 "thousands of developers."
 msgstr ""
+"Alina on yksi ikonisimmista ihmisistä elämässä, joka voi sanoa rakastavansa "
+"sitä, mitä hän tekee. Hän ohjaa yli 100 omaa kehittäjää ja huolehtii "
+"tuhansien kehittäjien yhteisöstä."
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_mail_block_footer_social
@@ -874,8 +883,8 @@ msgstr "Mahtavat sivut"
 #: code:addons/mass_mailing/static/src/js/unsubscribe.js:0
 #: code:addons/mass_mailing/static/src/js/unsubscribe.js:0
 #, python-format
-msgid "An error occured. Please try again later or contact us."
-msgstr "Tapahtui virhe. Yritäthän uudelleen tai ota meihin yhteyttä."
+msgid "An error occurred. Please try again later or contact us."
+msgstr ""
 
 #. module: mass_mailing
 #. openerp-web
@@ -897,7 +906,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_masonry_block_reversed_template
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_masonry_block_texts_image_texts_template
 msgid "And a great subtitle"
-msgstr ""
+msgstr "Ja loistava alaotsikko"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_color_blocks_2
@@ -1296,6 +1305,10 @@ msgid ""
 "resize and duplicate the blocks to create your own layout. Add images or "
 "icons to customize the blocks."
 msgstr ""
+"Väripalikat ovat yksinketainen ja tehokas tapa <b>esitellä ja korostaa "
+"sisältöäsi</b>. Valitse taustalle kuva tai väri. Voit jopa muuttaa "
+"palikkojen kokoa ja monistaa ne luodaksesi oman asettelun. Lisää kuvia tai "
+"kuvakkeita palikkojen mukauttamiseksi."
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.snippet_options
@@ -1581,6 +1594,9 @@ msgid ""
 "Delete the above image or replace it with a picture that illustrates your "
 "message. Click on the picture to change its <em>rounded corner</em> style."
 msgstr ""
+"Poista yllä oleva kuva tai korvaa se kuvalla, joka havainnollistaa "
+"viestiäsi. Klikkaa kuvaa muuttaaksesi sen <em>pyöristetyn kulman</em> "
+"tyyliä."
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mailing_mailing__delivered
@@ -1984,7 +2000,7 @@ msgstr "Ryhmittele.."
 #: model:ir.model.fields,field_description:mass_mailing.field_mailing_contact__has_message
 #: model:ir.model.fields,field_description:mass_mailing.field_mailing_mailing__has_message
 msgid "Has Message"
-msgstr ""
+msgstr "Sisältää viestin"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.email_designer_snippets
@@ -2697,7 +2713,7 @@ msgstr "Oma tili"
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mailing_mailing__my_activity_date_deadline
 msgid "My Activity Deadline"
-msgstr ""
+msgstr "Toimintani määräaika"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_mail_block_header_text_social
@@ -2739,7 +2755,7 @@ msgstr "Uutiskirje 1"
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mailing_mailing__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
-msgstr ""
+msgstr "Seuraavan tapahtuman kalenterimerkintä"
 
 #. module: mass_mailing
 #: model:ir.model.fields,field_description:mass_mailing.field_mailing_mailing__activity_date_deadline
@@ -4502,9 +4518,9 @@ msgstr "kanssa"
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_rating_options
 msgid "⌙ Active"
-msgstr ""
+msgstr "⌙ Aktiivinen"
 
 #. module: mass_mailing
 #: model_terms:ir.ui.view,arch_db:mass_mailing.s_rating_options
 msgid "⌙ Inactive"
-msgstr ""
+msgstr "⌙ Inaktiivinen"

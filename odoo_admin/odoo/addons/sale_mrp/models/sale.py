@@ -121,7 +121,7 @@ class SaleOrderLine(models.Model):
                         order_line.qty_delivered = 0.0
 
     def _get_bom_component_qty(self, bom):
-        bom_quantity = self.product_uom._compute_quantity(1, bom.product_uom_id)
+        bom_quantity = self.product_id.uom_id._compute_quantity(1, bom.product_uom_id, rounding_method='HALF-UP')
         boms, lines = bom.explode(self.product_id, bom_quantity)
         components = {}
         for line, line_data in lines:
@@ -150,6 +150,6 @@ class SaleOrderLine(models.Model):
         # and after update, and return the difference. We don't take into account what was already
         # sent, or any other exceptional case.
         bom = self.env['mrp.bom']._bom_find(self.product_id, bom_type='phantom')[self.product_id]
-        if bom and previous_product_uom_qty:
-            return previous_product_uom_qty and previous_product_uom_qty.get(self.id, 0.0)
+        if bom:
+            return previous_product_uom_qty and previous_product_uom_qty.get(self.id, 0.0) or self.qty_delivered
         return super(SaleOrderLine, self)._get_qty_procurement(previous_product_uom_qty=previous_product_uom_qty)

@@ -177,6 +177,12 @@ msgstr ""
 "gehen Sie bitte auf die Fahrzeugseite. Wollen Sie fortfahren?"
 
 #. module: hr_fleet
+#: code:addons/hr_fleet/controllers/main.py:0
+msgid "There is no pdf attached to generate a claim report."
+msgstr ""
+"Es ist kein PDF-Dokument angehängt, um einen Schadensbericht zu erstellen."
+
+#. module: hr_fleet
 #: model:ir.model,name:hr_fleet.model_res_users
 msgid "Users"
 msgstr "Benutzer"
@@ -189,7 +195,7 @@ msgstr "Fahrzeug"
 #. module: hr_fleet
 #: model:ir.model,name:hr_fleet.model_fleet_vehicle_log_contract
 msgid "Vehicle Contract"
-msgstr ""
+msgstr "Fahrzeugvertrag"
 
 #. module: hr_fleet
 #: model:ir.model.fields,field_description:hr_fleet.field_hr_employee__car_ids

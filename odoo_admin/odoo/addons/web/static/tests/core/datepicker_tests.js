@@ -7,6 +7,11 @@ import { registerCleanup } from "../helpers/cleanup";
 import { makeTestEnv } from "../helpers/mock_env";
 import { makeFakeLocalizationService } from "../helpers/mock_services";
 import { click, getFixture, triggerEvent } from "../helpers/utils";
+import CustomFilterItem from 'web.CustomFilterItem';
+import ActionModel from 'web.ActionModel';
+import { applyFilter, toggleMenu } from '@web/../tests/search/helpers';
+import { editSelect } from 'web.test_utils_fields';
+import { createComponent } from 'web.test_utils';
 
 const { DateTime } = luxon;
 const { Component, mount, tags } = owl;
@@ -127,7 +132,7 @@ QUnit.module("Components", () => {
         assert.verifySteps(["datetime-changed"]);
     });
 
-    QUnit.test("pick a date with locale", async function (assert) {
+    QUnit.test("pick a date with locale (locale given in props)", async function (assert) {
         assert.expect(5);
 
         const picker = await mountPicker(DatePicker, {
@@ -135,6 +140,39 @@ QUnit.module("Components", () => {
                 date: DateTime.fromFormat("09/01/1997", "dd/MM/yyyy", { zone: "utc" }),
                 format: "dd MMM, yyyy",
                 locale: useFRLocale(),
+            },
+            onDateChange: (ev) => {
+                assert.step("datetime-changed");
+                assert.strictEqual(
+                    ev.detail.date.toFormat("dd/MM/yyyy"),
+                    "01/09/1997",
+                    "Event should transmit the correct date"
+                );
+            },
+        });
+        const input = picker.el.querySelector(".o_datepicker_input");
+
+        assert.strictEqual(input.value, "09 janv., 1997");
+
+        await click(input);
+        await click(document.querySelector(".datepicker .picker-switch")); // month picker
+        await click(document.querySelectorAll(".datepicker .month")[8]); // september
+        await click(document.querySelector(".datepicker .day")); // first day
+
+        assert.strictEqual(input.value, "01 sept., 1997");
+        assert.verifySteps(["datetime-changed"]);
+    });
+
+    QUnit.test("pick a date with locale (locale from date props)", async function (assert) {
+        assert.expect(5);
+
+        const picker = await mountPicker(DatePicker, {
+            props: {
+                date: DateTime.fromFormat("09/01/1997", "dd/MM/yyyy", {
+                    zone: "utc",
+                    locale: useFRLocale(),
+                }),
+                format: "dd MMM, yyyy",
             },
             onDateChange: (ev) => {
                 assert.step("datetime-changed");
@@ -404,5 +442,37 @@ QUnit.module("Components", () => {
         await click(input);
 
         assert.strictEqual(input.value, "12:30:01 1997/01/09");
+    });
+
+    QUnit.test('custom filter date', async function (assert) {
+        assert.expect(3);
+        class MockedSearchModel extends ActionModel {
+            dispatch(method, ...args) {
+                assert.strictEqual(method, 'createNewFilters');
+                const preFilters = args[0];
+                const preFilter = preFilters[0];
+                assert.strictEqual(preFilter.description,
+                    'A date is equal to "05/05/2005"',
+                    "description should be in localized format");
+                assert.deepEqual(preFilter.domain,
+                    '[["date_field","=","2005-05-05"]]',
+                    "domain should be in UTC format");
+            }
+        }
+        const searchModel = new MockedSearchModel();
+        const date_field = { name: 'date_field', string: "A date", type: 'date', searchable: true };
+        const cfi = await createComponent(CustomFilterItem, {
+            props: {
+                fields: { date_field },
+            },
+            env: { searchModel },
+        });
+        await toggleMenu(cfi, "Add Custom Filter");
+        await editSelect(cfi.el.querySelector('.o_generator_menu_field'), 'date_field');
+        const valueInput = cfi.el.querySelector('.o_generator_menu_value .o_input');
+        await click(valueInput);
+        await editSelect(valueInput, '05/05/2005');
+        await applyFilter(cfi);
+        cfi.destroy();
     });
 });

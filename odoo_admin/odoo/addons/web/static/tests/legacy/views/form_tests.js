@@ -23,12 +23,19 @@ var _t = core._t;
 var createView = testUtils.createView;
 
 const { registerCleanup } = require("@web/../tests/helpers/cleanup");
-const { legacyExtraNextTick, patchWithCleanup } = require("@web/../tests/helpers/utils");
+const { getFixture, legacyExtraNextTick, patchWithCleanup } = require("@web/../tests/helpers/utils");
 const { createWebClient, doAction } = require('@web/../tests/webclient/helpers');
+const { makeTestEnv } = require("@web/../tests/helpers/mock_env");
+const makeTestEnvironment = require("web.test_env");
+const { mapLegacyEnvToWowlEnv } = require("@web/legacy/utils");
+const { registry } = require("@web/core/registry");
+const { scrollerService } = require("@web/core/scroller_service");
 
 let serverData;
 QUnit.module('Views', {
-    beforeEach: function () {
+    beforeEach: async function () {
+        registry.category("services").add("scroller", scrollerService);
+        
         this.data = {
             partner: {
                 fields: {
@@ -1006,6 +1013,117 @@ QUnit.module('Views', {
         assert.doesNotHaveClass(form.$('.o_notebook .nav .nav-link:first()'), 'active');
         assert.hasClass(form.$('.o_notebook .nav .nav-link:nth(1)'), 'active');
 
+        form.destroy();
+    });
+
+    QUnit.test("notebook page is changing when an anchor is clicked from another page", async (assert) => {
+        assert.expect(6);
+
+        // This should be removed as soon as the view is moved to owl
+        const wowlEnv = await makeTestEnv();
+        const legacyEnv = makeTestEnvironment({ bus: core.bus });
+        mapLegacyEnvToWowlEnv(legacyEnv, wowlEnv);
+
+        const scrollableParent = document.createElement("div");
+        scrollableParent.style.overflow = "auto";
+        const target = getFixture();
+        target.append(scrollableParent);
+
+        var form = await createView({
+            View: FormView,
+            model: "partner",
+            data: {
+                partner: {
+                    fields: {},
+                    records: [
+                        {
+                            id: 1,
+                        },
+                    ],
+                },
+            },
+            arch: `<form string="Partners">
+                        <sheet>
+                            <notebook>
+                                <page string="Non scrollable page">
+                                    <div id="anchor1">No scrollbar!</div>
+                                    <a href="#anchor2" class="link2">TO ANCHOR 2</a> 
+                                </page>
+                                <page string="Other scrollable page">
+                                    <p style="font-size: large">
+                                        Aliquam convallis sollicitudin purus. Praesent aliquam, enim at fermentum mollis,
+                                        ligula massa adipiscing nisl, ac euismod nibh nisl eu lectus. Fusce vulputate sem
+                                        at sapien. Vivamus leo. Aliquam euismod libero eu enim. Nulla nec felis sed leo
+                                        placerat imperdiet. Aenean suscipit nulla in justo. Suspendisse cursus rutrum
+                                        augue.
+                                    </p>
+                                    <p style="font-size: large">
+                                        Aliquam convallis sollicitudin purus. Praesent aliquam, enim at fermentum mollis,
+                                        ligula massa adipiscing nisl, ac euismod nibh nisl eu lectus. Fusce vulputate sem
+                                        at sapien. Vivamus leo. Aliquam euismod libero eu enim. Nulla nec felis sed leo
+                                        placerat imperdiet. Aenean suscipit nulla in justo. Suspendisse cursus rutrum
+                                        augue.
+                                    </p>
+                                    <h2 id="anchor2">There is a scroll bar</h2>
+                                    <a href="#anchor1" class="link1">TO ANCHOR 1</a>
+                                    <p style="font-size: large">
+                                        Aliquam convallis sollicitudin purus. Praesent aliquam, enim at fermentum mollis,
+                                        ligula massa adipiscing nisl, ac euismod nibh nisl eu lectus. Fusce vulputate sem
+                                        at sapien. Vivamus leo. Aliquam euismod libero eu enim. Nulla nec felis sed leo
+                                        placerat imperdiet. Aenean suscipit nulla in justo. Suspendisse cursus rutrum
+                                        augue.
+                                    </p>   
+                                </page>
+                            </notebook>
+                        </sheet>
+                </form>`,
+            res_id: 1,
+        });
+        scrollableParent.append(form.el);
+
+        // We set the height of the parent to the height of the second pane
+        // We are then sure there will be no scrollable on this pane but a
+        // only for the first pane
+        scrollableParent.style.maxHeight =
+            scrollableParent.querySelector(".o_action").getBoundingClientRect().height + "px";
+
+        // The element must be contained in the scrollable parent (top and bottom)
+        const isVisible = (el) => {
+            return (
+                el.getBoundingClientRect().bottom <= scrollableParent.getBoundingClientRect().bottom &&
+                el.getBoundingClientRect().top >= scrollableParent.getBoundingClientRect().top
+            );
+        };
+
+        assert.ok(
+            scrollableParent
+                .querySelector(".tab-pane.active")
+                .contains(scrollableParent.querySelector("#anchor1")),
+            "the first pane is visible"
+        );
+        assert.ok(
+            !isVisible(scrollableParent.querySelector("#anchor2")),
+            "the second anchor is not visible"
+        );
+        scrollableParent.querySelector(".link2").click();
+        assert.ok(
+            scrollableParent
+                .querySelector(".tab-pane.active")
+                .contains(scrollableParent.querySelector("#anchor2")),
+            "the second pane is visible"
+        );
+        assert.ok(
+            isVisible(scrollableParent.querySelector("#anchor2")),
+            "the second anchor is visible"
+        );
+        scrollableParent.querySelector(".link1").click();
+        assert.ok(
+            scrollableParent
+                .querySelector(".tab-pane.active")
+                .contains(scrollableParent.querySelector("#anchor1")),
+            "the first pane is visible"
+        );
+        assert.ok(isVisible(scrollableParent.querySelector("#anchor1")), "the first anchor is visible");
         form.destroy();
     });
 
@@ -4248,6 +4366,43 @@ QUnit.module('Views', {
         await testUtils.form.clickSave(form);
 
         assert.verifySteps(['read', 'onchange', 'read', 'write', 'read', 'read']);
+
+        form.destroy();
+    });
+
+    QUnit.test('form with domain widget: opening a many2many form and save should not crash', async function (assert) {
+        assert.expect(0);
+
+        // We just test that there is no crash in this situation
+        this.data.partner.records[0].timmy = [12];
+        const form = await createView({
+            View: FormView,
+            model: 'partner',
+            data: this.data,
+            arch:
+                `<form string="Partners">
+                    <group>
+                        <field name="foo" widget="domain"/>
+                    </group>
+                    <field name="timmy">
+                        <tree>
+                            <field name="display_name"/>
+                        </tree>
+                        <form>
+                            <field name="name"/>
+                            <field name="color"/>
+                        </form>
+                    </field>
+                </form>`,
+            res_id: 1,
+        });
+
+        // switch to edit mode
+        await testUtils.form.clickEdit(form);
+
+        // open a form view and save many2many record
+        await testUtils.dom.click(form.$('.o_data_row .o_data_cell:first'));
+        await testUtils.dom.click($('.modal-dialog footer button:first-child'));
 
         form.destroy();
     });
@@ -10738,7 +10893,7 @@ QUnit.module('Views', {
     });
 
     QUnit.test('Quick Edition: Readonly one2many list', async function (assert) {
-        assert.expect(7);
+        assert.expect(4);
 
         this.data.partner.records[0].p.push(2);
 
@@ -10765,13 +10920,8 @@ QUnit.module('Views', {
 
         await testUtils.dom.click(form.$('.o_field_cell:first'));
 
-        assert.containsOnce(form, '.o_form_view.o_form_editable',
-            'should switch into edit mode');
-        assert.containsNone(form, '.o_field_x2many_list_row_add',
-            'create line should still not be displayed');
-        assert.containsNone(form, '.o_list_record_remove',
-            'remove buttons should still not be displayed');
-        assert.containsNone(form, 'input');
+        assert.containsOnce(form, '.o_form_view.o_form_readonly',
+            'should not switch into edit mode');
 
         form.destroy();
     });
@@ -11129,7 +11279,7 @@ QUnit.module('Views', {
 
         await testUtils.dom.click(form.$('.o_field_widget[name="timmy"] label:eq(1)'));
 
-        assert.containsOnce(form, '.o_form_view.o_form_editable');
+        assert.containsOnce(form, '.o_form_view.o_form_readonly');
         assert.containsNone(form, 'input[type="checkbox"]:not(:disabled)');
         assert.containsNone(form, 'input[type="checkbox"]:checked');
 
@@ -11211,9 +11361,9 @@ QUnit.module('Views', {
 
         await testUtils.dom.click(form.$('.o_field_widget[name="trululu"] label:eq(1)'));
 
-        assert.containsOnce(form, '.o_form_view.o_form_editable');
+        assert.containsOnce(form, '.o_form_view.o_form_readonly');
         assert.containsOnce(form, 'input[type="radio"]:eq(2):checked');
-        assert.containsNone(form, 'input[type="checkbox"]:not(:disabled)');
+        assert.containsNone(form, 'input[type="radio"]:not(:disabled)');
 
         form.destroy();
     });

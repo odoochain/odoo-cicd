@@ -6,6 +6,7 @@
 # Martin Trigaux, 2021
 # Chris Egal <sodaswed@web.de>, 2021
 # Ahmed Aly <ahmed.aly@datenpol.at>, 2021
+# Raymond Vetter, 2021
 # Friederike Fasterling-Nesselbosch, 2021
 # 
 msgid ""
@@ -30,7 +31,7 @@ msgstr "# Verträge"
 #. module: hr_contract
 #: model:ir.model.fields,field_description:hr_contract.field_resource_calendar__contracts_count
 msgid "# Contracts using it"
-msgstr ""
+msgstr "# der verwendenden Verträge"
 
 #. module: hr_contract
 #: code:addons/hr_contract/report/hr_contract_history.py:0
@@ -47,6 +48,11 @@ msgid ""
 "                                        Calendar Mismatch : The employee's calendar does not match this contract's calendar. This could lead to unexpected behaviors.\n"
 "                                    </span>"
 msgstr ""
+"<span attrs=\"{'invisible': ['|', ('calendar_mismatch', '=', False), ('state', '!=', 'open')]}\" class=\"fa fa-exclamation-triangle text-danger o_calendar_warning pl-3\">\n"
+"                                    </span>\n"
+"                                    <span class=\"o_calendar_warning_tooltip text-danger\">\n"
+"                                        Kalenderabweichung: Der Kalender des Mitarbeiters stimmt nicht mit dem Kalender dieses Vertrags überein. Dies kann zu unerwarteten Verhaltensweisen führen.\n"
+"                                    </span>"
 
 #. module: hr_contract
 #: model_terms:ir.ui.view,arch_db:hr_contract.hr_hr_employee_view_form2
@@ -510,7 +516,7 @@ msgstr "Abgelaufen"
 #: model:ir.model.fields,field_description:hr_contract.field_hr_employee__first_contract_date
 #: model:ir.model.fields,field_description:hr_contract.field_hr_employee_public__first_contract_date
 msgid "First Contract Date"
-msgstr "Erstes Vertragsdatum"
+msgstr "Eintrittsdatum"
 
 #. module: hr_contract
 #: model:ir.model.fields,field_description:hr_contract.field_hr_contract__message_follower_ids
@@ -689,7 +695,7 @@ msgstr "Neu"
 #. module: hr_contract
 #: model:ir.model.fields,field_description:hr_contract.field_hr_contract__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
-msgstr ""
+msgstr "Nächstes Aktivitätskalenderereignis"
 
 #. module: hr_contract
 #: model:ir.model.fields,field_description:hr_contract.field_hr_contract__activity_date_deadline

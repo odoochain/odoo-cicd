@@ -999,7 +999,7 @@ class MailThread(models.AbstractModel):
                     email_from, email_to, message_id, fallback_model, thread_id, custom_values, user_id)
                 return [route]
 
-        # ValueError if no routes found and if no bounce occured
+        # ValueError if no routes found and if no bounce occurred
         raise ValueError(
             'No possible route found for incoming message from %s to %s (Message-Id %s:). '
             'Create an appropriate mail.alias or force the destination model.' %
@@ -1532,8 +1532,11 @@ class MailThread(models.AbstractModel):
         """
         # find normalized emails and exclude aliases (to avoid subscribing alias emails to records)
         normalized_email = tools.email_normalize(email)
+        if not normalized_email:
+            return self.env['res.users']
+
         catchall_domain = self.env['ir.config_parameter'].sudo().get_param("mail.catchall.domain")
-        if normalized_email and catchall_domain:
+        if catchall_domain:
             left_part = normalized_email.split('@')[0] if normalized_email.split('@')[1] == catchall_domain.lower() else False
             if left_part:
                 if self.env['mail.alias'].sudo().search_count([('alias_name', '=', left_part)]):
@@ -1888,6 +1891,8 @@ class MailThread(models.AbstractModel):
             raise exceptions.UserError(_("Only logged notes can have their content updated on model '%s'", self._name))
         if message.tracking_value_ids:
             raise exceptions.UserError(_("Messages with tracking values cannot be modified"))
+        if not message.message_type == 'comment':
+            raise exceptions.UserError(_("Only messages type comment can have their content updated"))
 
     # ------------------------------------------------------
     # MESSAGE POST TOOLS

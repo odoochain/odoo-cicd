@@ -4,13 +4,14 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
+# Felix Schubert <felix.schubert@go-erp.com>, 2021
 # Friederike Fasterling-Nesselbosch, 2021
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server saas~14.4\n"
+"Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-07-12 07:50+0000\n"
+"POT-Creation-Date: 2021-11-16 13:19+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
 "Last-Translator: Friederike Fasterling-Nesselbosch, 2021\n"
 "Language-Team: German (https://www.transifex.com/odoo/teams/41243/de/)\n"
@@ -26,7 +27,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter_format_error__snailmail_cover
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_letter_format_error
 msgid "Add a Cover Page"
-msgstr ""
+msgstr "Fügen Sie eine Titelseite hinzu"
 
 #. module: snailmail
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_letter_missing_required_fields
@@ -34,31 +35,33 @@ msgid "Address"
 msgstr "Adresse"
 
 #. module: snailmail
-#: code:addons/snailmail/models/snailmail_letter.py:0
-#, python-format
-msgid "An error occured when sending the document by post.<br>Error: %s"
-msgstr ""
-"Beim Senden des Dokuments per Post ist ein Fehler aufgetreten.<br>Fehler: %s"
-
-#. module: snailmail
 #. openerp-web
 #: code:addons/snailmail/static/src/components/notification_group/notification_group.xml:0
 #, python-format
 msgid "An error occurred when sending a letter with Snailmail."
+msgstr "Ein Fehler ist beim Versand eines Briefs mit Snailmail aufgetaucht."
+
+#. module: snailmail
+#: code:addons/snailmail/models/snailmail_letter.py:0
+#, python-format
+msgid "An error occurred when sending the document by post.<br>Error: %s"
 msgstr ""
+"Beim Senden des Dokuments per Post ist ein Fehler aufgetreten.<br>Fehler: %s"
 
 #. module: snailmail
 #: code:addons/snailmail/models/snailmail_letter.py:0
 #, python-format
 msgid "An unknown error happened. Please contact the support."
 msgstr ""
+"Ein unbekannter Fehler ist aufgetreten. Bitte kontaktieren Sie das Support "
+"Team."
 
 #. module: snailmail
 #. openerp-web
 #: code:addons/snailmail/static/src/components/snailmail_error_dialog/snailmail_error_dialog.xml:0
 #, python-format
 msgid "An unknown error occurred. Please contact our"
-msgstr ""
+msgstr "Ein unbekannter Fehler ist aufgetreten. Bitte kontaktieren Sie unser"
 
 #. module: snailmail
 #: code:addons/snailmail/wizard/snailmail_letter_cancel.py:0
@@ -83,7 +86,7 @@ msgstr ""
 #: code:addons/snailmail/static/src/components/snailmail_notification_popover/snailmail_notification_popover.js:0
 #, python-format
 msgid "Awaiting Dispatch"
-msgstr ""
+msgstr "Warten auf den Versand"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__duplex
@@ -93,7 +96,7 @@ msgstr ""
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_res_company__snailmail_duplex
 msgid "Both sides"
-msgstr ""
+msgstr "Beide Seiten"
 
 #. module: snailmail
 #. openerp-web
@@ -106,7 +109,7 @@ msgstr "Guthaben kaufen"
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__credit_error
 msgid "CREDIT_ERROR"
-msgstr ""
+msgstr "CREDIT_ERROR"
 
 #. module: snailmail
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_confirm_view
@@ -199,7 +202,7 @@ msgstr "Land"
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__cover
 msgid "Cover Page"
-msgstr ""
+msgstr "Titelseite"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__create_uid
@@ -271,7 +274,7 @@ msgstr ""
 #: model:ir.actions.act_window,name:snailmail.snailmail_letter_missing_required_fields_action
 #, python-format
 msgid "Failed letter"
-msgstr ""
+msgstr "Fehlgeschlagener Brief"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_mail_notification__failure_type
@@ -281,7 +284,7 @@ msgstr "Fehlertyp"
 #. module: snailmail
 #: model:ir.actions.act_window,name:snailmail.snailmail_letter_format_error_action
 msgid "Format Error"
-msgstr ""
+msgstr "Formatfehler"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_snailmail_letter_format_error
@@ -359,7 +362,7 @@ msgstr ""
 #. module: snailmail
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_letter_list
 msgid "Letters"
-msgstr ""
+msgstr "Buchstaben"
 
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__missing_required_fields
@@ -401,12 +404,12 @@ msgstr "Modellname"
 #. module: snailmail
 #: model:ir.model.fields.selection,name:snailmail.selection__snailmail_letter__error_code__no_price_available
 msgid "NO_PRICE_AVAILABLE"
-msgstr ""
+msgstr "NO_PRICE_AVAILABLE"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_mail_notification__notification_type
 msgid "Notification Type"
-msgstr ""
+msgstr "Benachrichtigungstyp"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__notification_ids
@@ -417,7 +420,7 @@ msgstr "Benachrichtigungen"
 #: code:addons/snailmail/models/snailmail_letter.py:0
 #, python-format
 msgid "One or more required fields are empty."
-msgstr ""
+msgstr "Mindestens ein Pflichtfeld ist frei."
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__report_template
@@ -440,12 +443,12 @@ msgstr "Partner"
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_duplex
 msgid "Print Both sides"
-msgstr ""
+msgstr "Beide Seiten drucken"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_res_config_settings__snailmail_color
 msgid "Print In Color"
-msgstr ""
+msgstr "In Farbe drucken"
 
 #. module: snailmail
 #: model:ir.model,name:snailmail.model_ir_qweb_field_contact
@@ -457,7 +460,7 @@ msgstr "Qweb Kontakt feld"
 #: code:addons/snailmail/static/src/components/snailmail_error_dialog/snailmail_error_dialog.xml:0
 #, python-format
 msgid "Re-send letter"
-msgstr ""
+msgstr "Brief erneut versenden"
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__partner_id
@@ -490,7 +493,7 @@ msgstr "Gesendet"
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_snailmail_letter__user_id
 msgid "Sent by"
-msgstr ""
+msgstr "Gesendet von"
 
 #. module: snailmail
 #: code:addons/snailmail/wizard/snailmail_confirm.py:0
@@ -620,7 +623,7 @@ msgstr ""
 #: code:addons/snailmail/models/snailmail_letter.py:0
 #, python-format
 msgid "The address of the recipient is not complete"
-msgstr ""
+msgstr "Die Empfängeradresse ist nicht vollständig"
 
 #. module: snailmail
 #: code:addons/snailmail/models/snailmail_letter.py:0
@@ -629,12 +632,14 @@ msgid ""
 "The attachment of the letter could not be sent. Please check its content and"
 " contact the support if the problem persists."
 msgstr ""
+"Der Anhang konnte nicht gesendet werden. Bitte kontrollieren Sie den Inhalt "
+"und kontaktieren Sie das Support Team, sollte das Problem erneut auftreten."
 
 #. module: snailmail
 #: code:addons/snailmail/models/snailmail_letter.py:0
 #, python-format
 msgid "The country of the partner is not covered by Snailmail."
-msgstr ""
+msgstr "Das Land des Partners wird von Snailmail nicht abgedeckt."
 
 #. module: snailmail
 #. openerp-web
@@ -644,6 +649,8 @@ msgid ""
 "The country to which you want to send the letter is not supported by our "
 "service."
 msgstr ""
+"Das Land, in das Sie den Brief senden möchten, wird von unserem Dienst nicht"
+" unterstützt."
 
 #. module: snailmail
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_letter_missing_required_fields
@@ -657,6 +664,8 @@ msgstr ""
 #, python-format
 msgid "The document was correctly sent by post.<br>The tracking id is %s"
 msgstr ""
+"Das Dokument wurde erfolgreich per Post versandt.<br> Die Tracking-ID lautet"
+" %s"
 
 #. module: snailmail
 #. openerp-web
@@ -666,6 +675,8 @@ msgid ""
 "The letter could not be sent due to insufficient credits on your IAP "
 "account."
 msgstr ""
+"Das Schreiben konnte nicht versandt werden, da Ihr IAP-Konto nicht genügend "
+"Guthaben aufweist."
 
 #. module: snailmail
 #: model:ir.model.fields,field_description:snailmail.field_mail_mail__message_type
@@ -704,7 +715,7 @@ msgstr ""
 #. module: snailmail
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_confirm_view
 msgid "You are about to send this"
-msgstr ""
+msgstr "Sie sind im Begriff dies abzuschicken:"
 
 #. module: snailmail
 #: code:addons/snailmail/models/snailmail_letter.py:0
@@ -713,6 +724,9 @@ msgid ""
 "You don't have an IAP account registered for this service.<br>Please go to "
 "<a href=%s target=\"new\">iap.odoo.com</a> to claim your free credits."
 msgstr ""
+"Sie haben noch kein IAP-Konto für diesen Dienst registriert. <br> Bitte "
+"beantragen Sie Ihr kostenloses Guthaben auf <a href=%s "
+"target=\"new\">iap.odoo.com</a>. "
 
 #. module: snailmail
 #: code:addons/snailmail/models/snailmail_letter.py:0
@@ -721,13 +735,15 @@ msgid ""
 "You don't have enough credits to perform this operation.<br>Please go to "
 "your <a href=%s target=\"new\">iap account</a>."
 msgstr ""
+"Ihr Guthaben reicht nicht aus, um diesen Vorgang durchzuführen.<br>Bitte "
+"gehen zu Ihrem<a href=%s target=\"new\"> IAP-Account</a>."
 
 #. module: snailmail
 #. openerp-web
 #: code:addons/snailmail/static/src/components/snailmail_error_dialog/snailmail_error_dialog.xml:0
 #, python-format
 msgid "You need credits on your IAP account to send a letter."
-msgstr ""
+msgstr "Sie benötigen Guthaben in Ihrem IAP-Account um einen Brief zu senden."
 
 #. module: snailmail
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_letter_missing_required_fields
@@ -743,18 +759,18 @@ msgstr "PLZ"
 #. module: snailmail
 #: model_terms:ir.ui.view,arch_db:snailmail.snailmail_confirm_view
 msgid "by post. Are you sure you want to continue?"
-msgstr ""
+msgstr "per Post. Sind Sie sicher, dass Sie fortfahren möchten?"
 
 #. module: snailmail
 #. openerp-web
 #: code:addons/snailmail/static/src/components/snailmail_error_dialog/snailmail_error_dialog.xml:0
 #, python-format
 msgid "for further assistance."
-msgstr ""
+msgstr "für weitere Unterstützung."
 
 #. module: snailmail
 #. openerp-web
 #: code:addons/snailmail/static/src/components/snailmail_error_dialog/snailmail_error_dialog.xml:0
 #, python-format
 msgid "support"
-msgstr ""
+msgstr "support"

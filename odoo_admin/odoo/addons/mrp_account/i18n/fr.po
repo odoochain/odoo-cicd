@@ -3,13 +3,14 @@
 # 	* mrp_account
 # 
 # Translators:
+# Mathieu Germain <mgm@odoo.com>, 2021
 # Martin Trigaux, 2021
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server saas~14.5\n"
+"Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-14 10:28+0000\n"
+"POT-Creation-Date: 2021-11-16 13:19+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
 "Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: French (https://www.transifex.com/odoo/teams/41243/fr/)\n"
@@ -39,6 +40,8 @@ msgid ""
 "Analytic account in which cost and revenue entries will take        place "
 "for financial management of the manufacturing order."
 msgstr ""
+"Compte analytique dans lequel les couts et revenus seront enregistrés pour "
+"la gestion financière lié à l'ordre de fabrication. "
 
 #. module: mrp_account
 #: model:ir.model.fields,help:mrp_account.field_mrp_bom__analytic_account_id
@@ -46,6 +49,8 @@ msgid ""
 "Analytic account in which cost and revenue entries will take place for "
 "financial management of the manufacturing order."
 msgstr ""
+"Compte analytique dans lequel les couts et revenus seront enregistrés pour "
+"la gestion financière lié à l'ordre de fabrication. "
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_bom
@@ -61,7 +66,7 @@ msgstr "Nomenclatures"
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__bom_count
 msgid "BoM Count"
-msgstr ""
+msgstr "#BOM"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_line__category
@@ -126,7 +131,7 @@ msgstr "Ordres de production"
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__production_count
 msgid "Manufacturing Orders Count"
-msgstr ""
+msgstr "#Ordres de Production"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_workorder__mo_analytic_account_line_id
@@ -157,6 +162,11 @@ msgstr "Montrer la valorisation"
 #: model:ir.model,name:mrp_account.model_stock_move
 msgid "Stock Move"
 msgstr "Stock déplacer"
+
+#. module: mrp_account
+#: model:ir.model,name:mrp_account.model_stock_rule
+msgid "Stock Rule"
+msgstr "Règle de stock minimum"
 
 #. module: mrp_account
 #: model:ir.model.fields,help:mrp_account.field_mrp_workcenter_productivity__cost_already_recorded
@@ -195,7 +205,7 @@ msgstr "Ordre de travail"
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__workorder_count
 msgid "Work Order Count"
-msgstr ""
+msgstr "#Ordres de Travail"
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_workcenter_productivity
@@ -205,7 +215,7 @@ msgstr "Registre de productivité du poste de travail"
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__workcenter_ids
 msgid "Workcenters"
-msgstr ""
+msgstr "Postes de Travail"
 
 #. module: mrp_account
 #: code:addons/mrp_account/models/stock_move.py:0
@@ -218,4 +228,4 @@ msgstr ""
 #: code:addons/mrp_account/models/mrp_workorder.py:0
 #, python-format
 msgid "[WC] %s"
-msgstr ""
+msgstr "[PDT] %s"

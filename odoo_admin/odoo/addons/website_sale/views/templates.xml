@@ -405,7 +405,7 @@
     </template>
 
     <template id="categorie_link" name="Category Link">
-        <div t-attf-onclick="location.href='#{keep('/shop/category/' + slug(c), category=0)}';" class="custom-control custom-radio mb-1 d-inline-block">
+        <div t-att-data-link-href="keep('/shop/category/' + slug(c), category=0)" class="custom-control custom-radio mb-1 d-inline-block">
             <input type="radio" style="pointer-events:none;" class="custom-control-input" t-att-id="c.id" t-att-value="c.id" t-att-checked="'true' if c.id == category.id else None"/>
             <label class="custom-control-label font-weight-normal" t-att-for="c.id" t-field="c.name"/>
         </div>
@@ -428,7 +428,7 @@
                 <ul class="nav flex-column my-2">
                     <form>
                         <li class="nav-item">
-                            <div t-attf-onclick="location.href='#{keep('/shop', category=0)}';" class="custom-control custom-radio mb-1 d-inline-block">
+                            <div t-att-data-link-href="keep('/shop', category=0)" class="custom-control custom-radio mb-1 d-inline-block">
                                 <input type="radio" style="pointer-events:none;" class="custom-control-input o_not_editable" t-att-id="all_products" t-att-value="all_products" t-att-checked="'true' if not category else None"/>
                                 <label class="custom-control-label font-weight-normal" t-att-for="all_products">All Products</label>
                             </div>
@@ -919,7 +919,7 @@
                                             <div class="form-group col-12 s_website_form_field s_website_form_custom" data-type="binary" data-name="Field">
                                                 <div class="row s_col_no_resize s_col_no_bgcolor">
                                                     <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="sale3">
-                                                        <span class="s_website_form_label_content">A document to provide</span>
+                                                        <span class="s_website_form_label_content">Upload a document</span>
                                                     </label>
                                                     <div class="col-sm">
                                                         <input id="sale3" type="file" class="form-control-file s_website_form_input" name="a_document" />
@@ -1563,7 +1563,7 @@
                                     <h3 class="mb24">Pay with </h3>
                                     <t t-call="payment.checkout">
                                         <t t-set="footer_template_id" t-value="'website_sale.payment_footer'"/>
-                                        <t t-set="submit_button_label" t-value="'Pay Now'"/>
+                                        <t t-set="submit_button_label">Pay Now</t>
                                     </t>
                                 </div>
                                 <div t-else="" class="alert alert-warning">
@@ -1583,7 +1583,7 @@
                                 <form target="_self" action="/shop/payment/validate" method="post">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
                                     <t t-call="website_sale.payment_footer">
-                                        <t t-set="submit_button_label" t-value="'Confirm Order'"/>
+                                        <t t-set="submit_button_label">Confirm Order</t>
                                     </t>
                                 </form>
                             </div>

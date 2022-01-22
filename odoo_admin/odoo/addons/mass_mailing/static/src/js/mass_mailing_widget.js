@@ -72,26 +72,7 @@ var MassMailingFieldHtml = FieldHtml.extend({
             self._isDirty = self.wysiwyg.isDirty();
             self._doAction();
 
-            // fix outlook image rendering bug (this change will be kept in both
-            // fields)
-            _.each(['width', 'height'], function (attribute) {
-                $editable.find('img').attr(attribute, function () {
-                    return $(this)[attribute]();
-                }).css(attribute, function () {
-                    return $(this).get(0).style[attribute] || attribute === 'width' ? $(this)[attribute]() + 'px' : 'auto';
-                });
-            });
-
-            convertInline.attachmentThumbnailToLinkImg($editable);
-            convertInline.fontToImg($editable);
-            convertInline.classToStyle($editable);
-            convertInline.bootstrapToTable($editable);
-            convertInline.cardToTable($editable);
-            convertInline.listGroupToTable($editable);
-            convertInline.addTables($editable);
-            convertInline.formatTables($editable);
-            convertInline.normalizeColors($editable);
-            convertInline.normalizeRem($editable);
+            convertInline.toInline($editable, self.cssRules, self.wysiwyg.$iframe);
 
             self.trigger_up('field_changed', {
                 dataPointID: self.dataPointID,
@@ -133,7 +114,7 @@ var MassMailingFieldHtml = FieldHtml.extend({
         // named so they are handled properly by the snippets menu.
         this.$content.find('.o_layout').addBack().data('name', 'Mailing');
         // We don't want to drop snippets directly within the wysiwyg.
-        this.$content.removeClass('o_editable').addClass('o_not_editable')
+        this.$content.removeClass('o_editable');
     },
     /**
      * Returns true if the editable area is empty.
@@ -248,10 +229,9 @@ var MassMailingFieldHtml = FieldHtml.extend({
      * Switch themes or import first theme.
      *
      * @private
-     * @param {Boolean} firstChoice true if this is the first chosen theme (going from no theme to a theme)
      * @param {Object} themeParams
      */
-    _switchThemes: function (firstChoice, themeParams) {
+    _switchThemes: function (themeParams) {
         if (!themeParams || this.switchThemeLast === themeParams) {
             return;
         }
@@ -276,7 +256,7 @@ var MassMailingFieldHtml = FieldHtml.extend({
                 class: 'container o_mail_wrapper o_mail_regular oe_unremovable',
             });
             $newWrapperContent = $('<div/>', {
-                class: 'col o_mail_no_options o_mail_wrapper_td oe_structure o_editable'
+                class: 'col o_mail_no_options o_mail_wrapper_td bg-white oe_structure o_editable'
             });
             $new_wrapper.append($('<div class="row"/>').append($newWrapperContent));
         }
@@ -285,30 +265,20 @@ var MassMailingFieldHtml = FieldHtml.extend({
             'data-name': 'Mailing',
         }).append($new_wrapper);
 
-        var $contents;
-        if (firstChoice) {
-            $contents = themeParams.template;
-        } else if (old_layout) {
-            $contents = ($old_layout.hasClass('oe_structure') ? $old_layout : $old_layout.find('.oe_structure').first()).contents().clone();
-        } else {
-            $contents = this.$content.contents().clone();
-        }
-
+        const $contents = themeParams.template;
         $newWrapperContent.append($contents);
         this._switchImages(themeParams, $newWrapperContent);
         old_layout && old_layout.remove();
         this.$content.empty().append($newLayout);
 
-        if (firstChoice) {
-            $newWrapperContent.find('*').addBack()
-                .contents()
-                .filter(function () {
-                    return this.nodeType === 3 && this.textContent.match(/\S/);
-                }).parent().addClass('o_default_snippet_text');
+        $newWrapperContent.find('*').addBack()
+            .contents()
+            .filter(function () {
+                return this.nodeType === 3 && this.textContent.match(/\S/);
+            }).parent().addClass('o_default_snippet_text');
 
-            if (themeParams.name === 'basic') {
-                this.$content[0].focus();
-            }
+        if (themeParams.name === 'basic') {
+            this.$content[0].focus();
         }
         this.wysiwyg.trigger('reload_snippet_dropzones');
         this.trigger_up('iframe_updated', { $iframe: this.wysiwyg.$iframe });
@@ -333,6 +303,7 @@ var MassMailingFieldHtml = FieldHtml.extend({
     _getWysiwygOptions: function () {
         const options = this._super.apply(this, arguments);
         options.resizable = false;
+        options.defaultDataForLinkTools = { isNewWindow: true };
         if (!this._wysiwygSnippetsActive) {
             delete options.snippets;
         }
@@ -389,7 +360,8 @@ var MassMailingFieldHtml = FieldHtml.extend({
         var $themes = $snippetsSideBar.find("#email_designer_themes").children();
         var $snippets = $snippetsSideBar.find(".oe_snippet");
         var selectorToKeep = '.o_we_external_history_buttons, .email_designer_top_actions';
-        $snippetsSideBar.find(`.o_we_website_top_actions>*:not(${selectorToKeep})`).hide();
+        // Overide `d-flex` class which style is `!important`
+        $snippetsSideBar.find(`.o_we_website_top_actions > *:not(${selectorToKeep})`).attr('style', 'display: none!important');
         var $snippets_menu = $snippetsSideBar.find("#snippets_menu");
         var $selectTemplateBtn = $snippets_menu.find('.o_we_select_template');
 
@@ -401,8 +373,8 @@ var MassMailingFieldHtml = FieldHtml.extend({
         if (!odoo.debug) {
             $snippetsSideBar.find('.o_codeview_btn').hide();
         }
-        const $codeview = this.wysiwyg.$iframe.contents().find('textarea.o_codeview');
-        $snippetsSideBar.on('click', '.o_codeview_btn', () => this._toggleCodeView($codeview));
+        this._$codeview = this.wysiwyg.$iframe.contents().find('textarea.o_codeview');
+        $snippetsSideBar.on('click', '.o_codeview_btn', () => this._toggleCodeView(this._$codeview));
 
         if ($themes.length === 0) {
             return;
@@ -488,10 +460,11 @@ var MassMailingFieldHtml = FieldHtml.extend({
         $themeSelector.on("mouseenter", ".dropdown-item", function (e) {
             e.preventDefault();
             var themeParams = themesParams[$(e.currentTarget).index()];
-            self._switchThemes(false, themeParams);
+            self.wysiwyg.odooEditor.automaticStepSkipStack();
+            self._switchThemes(themeParams);
         });
         $themeSelector.on("mouseleave", ".dropdown-item", function (e) {
-            self._switchThemes(false, selectedTheme);
+            self._switchThemes(selectedTheme);
         });
         $themeSelector.on("click", '[data-toggle="dropdown"]', function (e) {
             var $menu = $themeSelector.find('.dropdown-menu');
@@ -525,7 +498,7 @@ var MassMailingFieldHtml = FieldHtml.extend({
             if (themeParams.name === "basic") {
                 await this._restartWysiwygIntance(false);
             }
-            this._switchThemes(true, themeParams);
+            this._switchThemes(themeParams);
             this.$content.closest('body').removeClass("o_force_mail_theme_choice");
 
             $themeSelectorNew.remove();

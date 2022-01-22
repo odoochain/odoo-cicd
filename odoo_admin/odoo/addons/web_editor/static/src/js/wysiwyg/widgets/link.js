@@ -3,7 +3,6 @@ odoo.define('wysiwyg.widgets.Link', function (require) {
 
 const core = require('web.core');
 const OdooEditorLib = require('@web_editor/../lib/odoo-editor/src/OdooEditor');
-const wysiwygUtils = require('@web_editor/js/wysiwyg/wysiwyg_utils');
 const Widget = require('web.Widget');
 const {isColorGradient} = require('web_editor.utils');
 
@@ -32,9 +31,12 @@ const Link = Widget.extend({
             title: _t("Link to"),
         }, this.options));
 
+        this._setLinkContent = true;
+
         this.data = data || {};
         this.isButton = this.data.isButton;
         this.$button = $button;
+        this.noFocusUrl = this.options.noFocusUrl;
 
         this.data.className = this.data.className || "";
         this.data.iniClassName = this.data.iniClassName || "";
@@ -90,6 +92,13 @@ const Link = Widget.extend({
             this.data.content = this.data.content ? this.data.content.replace(/[ \t\r\n]+/g, ' ') : '';
         }
 
+        if (!this.data.url) {
+            const urls = this.data.content.match(OdooEditorLib.URL_REGEX_WITH_INFOS);
+            if (urls) {
+                this.data.url = urls[0];
+            }
+        }
+
         if (this.linkEl) {
             this.data.isNewWindow = this.data.isNewWindow || this.linkEl.target === '_blank';
         }
@@ -135,13 +144,8 @@ const Link = Widget.extend({
 
         this._updateOptionsUI();
 
-        if (!this.options.noFocusUrl) {
-            // ensure the focus in the first input of the link modal
-            setTimeout(()=> {
-                const firstInput = this.$('input:visible:first');
-                firstInput.focus();
-                firstInput.select();
-            }, 0);
+        if (!this.noFocusUrl) {
+            this.focusUrl();
         }
 
         return this._super.apply(this, arguments);
@@ -184,6 +188,7 @@ const Link = Widget.extend({
             target: data.isNewWindow ? '_blank' : '',
         });
         if (data.classes) {
+            data.classes = data.classes.replace(/o_default_snippet_text/, '');
             attrs.class = `${data.classes}`;
         }
         if (data.rel) {
@@ -194,7 +199,7 @@ const Link = Widget.extend({
         if (!this.$link.attr('target')) {
             this.$link[0].removeAttribute('target');
         }
-        if (data.content !== this.data.originalText || data.url !== this.data.url) {
+        if (this._setLinkContent && (data.content !== this.data.originalText || data.url !== this.data.url)) {
             const content = (data.content && data.content.length) ? data.content : data.url;
             // If there is a this.data.originalText, it means that we selected
             // the text and we could not change the content through the text
@@ -242,6 +247,14 @@ const Link = Widget.extend({
             }
         }
         return link;
+    },
+    /**
+     * Focuses the url input.
+     */
+    focusUrl() {
+        const urlInput = this.el.querySelector('input[name="url"]');
+        urlInput.focus();
+        urlInput.select();
     },
 
     //--------------------------------------------------------------------------

@@ -100,7 +100,7 @@ class EmbeddedSlide(models.Model):
 
 
 class SlideTag(models.Model):
-    """ Tag to search slides accross channels. """
+    """ Tag to search slides across channels. """
     _name = 'slide.tag'
     _description = 'Slide Tag'
 
@@ -902,9 +902,9 @@ class Slide(models.Model):
         fetch_fields = ['id', 'name']
         mapping = {
             'name': {'name': 'name', 'type': 'text', 'match': True},
-            'website_url': {'name': 'url', 'type': 'text'},
+            'website_url': {'name': 'url', 'type': 'text', 'truncate': False},
             'extra_link': {'name': 'course', 'type': 'text'},
-            'extra_link_url': {'name': 'course_url', 'type': 'text'},
+            'extra_link_url': {'name': 'course_url', 'type': 'text', 'truncate': False},
         }
         if with_description:
             search_fields.append('description')
