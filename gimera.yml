@@ -18,3 +18,7 @@ repos:
   sha: 8168ca00daaa3944b9d76be0bf90c5bffb447660
   type: integrated
   url: https://github.com/OCA/queue.git
+- branch: 15.0
+  path: odoo_admin/addons_robot
+  type: submodule
+  url: https://github.com/marcwimmer/odoo-robot_utils
