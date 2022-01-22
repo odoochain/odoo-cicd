@@ -1,0 +1,4 @@
+[submodule "odoo_admin/addons_robot"]
+	path = odoo_admin/addons_robot
+	url = https://github.com/marcwimmer/odoo-robot_utils
+	branch = 15.0
