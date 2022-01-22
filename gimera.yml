@@ -10,7 +10,7 @@ repos:
   patches:
   - odoo_admin.patches
   path: odoo_admin/odoo
-  sha: 1ace6a4a51a86922c9632614c4043e85f6ef1d6e
+  sha: a19a0bdca369c9038a7a34363a1d9b7ee06f899d
   type: integrated
   url: https://github.com/odoo/odoo
 - branch: 15.0
