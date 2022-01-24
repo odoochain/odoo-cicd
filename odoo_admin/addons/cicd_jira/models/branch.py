@@ -18,7 +18,7 @@ class Branch(models.Model):
         for rec in self:
             if rec.repo_id.ticketsystem_id.ttype == 'jira':
                 ts = rec.repo_id.ticketsystem_id
-                issue = ts._get_jira_issue()
+                issue = self._get_jira_issue()
                 ts._jira_set_state(issue, 'done')
 
     def _report_comment_to_ticketsystem(self, comment):

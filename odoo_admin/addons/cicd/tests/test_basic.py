@@ -1,5 +1,8 @@
 import arrow
+<<<<<<< HEAD
 import shutil
+=======
+>>>>>>> 095c915c05ebada02c9717519bbde65a92a311e0
 import os
 import pprint
 import logging
@@ -13,6 +16,7 @@ from odoo.tests import common
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 from odoo.exceptions import UserError, RedirectWarning, ValidationError, AccessError
+<<<<<<< HEAD
 import subprocess
 from pathlib import Path
 
@@ -24,11 +28,17 @@ cache_repo = '/tmp/odoofun.git'
 INTERNAL_REPO_PATH = '/opt/out_dir/odoofun.git'
 REPO_PATH_ON_HOST = '/home/unittest_cicd/.odoo/'
 
+=======
+
+GIT_USER = 'odoofun'
+GIT_PASSWORD = 'funtastic'
+>>>>>>> 095c915c05ebada02c9717519bbde65a92a311e0
 
 class TestBasicRepo(common.TransactionCase):
 
     def setUp(self):
         super().setUp()
+<<<<<<< HEAD
         self._prepare_local_odoofun()
 
     def _prepare_local_odoofun(self):
@@ -49,11 +59,14 @@ class TestBasicRepo(common.TransactionCase):
             subprocess.check_call(["git", "commit", "-am", "took_src"], cwd=tmp1)
             subprocess.check_call(["git", "clone", "--bare", tmp1, str(self.path_odoofun_root)])
 
+=======
+>>>>>>> 095c915c05ebada02c9717519bbde65a92a311e0
 
     def test_setuprepo(self):
         machine = self.env['cicd.machine'].create({
             'name': 'local',
             'ttype': 'dev',
+<<<<<<< HEAD
             'host': '127.0.0.1',
             'is_docker_host': True,
             'ssh_key': self.PRIVATE_KEY,
@@ -70,12 +83,17 @@ class TestBasicRepo(common.TransactionCase):
         })
         machine.postgres_server_id = dbserver
 
+=======
+        })
+        machine.generate_ssh_key()
+>>>>>>> 095c915c05ebada02c9717519bbde65a92a311e0
         repo = self.env['cicd.git.repo'].create({
             'name': 'odoofun-new',
             'machine_id': machine.id,
             'url': 'https://git.itewimmer.de/odoo/customs/odoofun',
             'username': GIT_USER,
             'password': GIT_PASSWORD
+<<<<<<< HEAD
         })
 
     PUB_KEY = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDMiIcMW2u+J6qzF52209XLe5bIhhKcVzxltzhM9LDZWgM/mmkXClKZepD6cfxfVNmKM/OvgyDFi3e2s/fV0NZe/Y5lDl9VYZqHyjkWv3856bwbCoVQOkpyhPiNaxhFq9677E4aPwaSyB3g2IXcoAYdOn8GW6CiaErXbNh/YiiKUJKejCptJ7QNUfJWL9W/nqSTog/YQyWAUQQsIOvQnnbeTJNLiSW+gXZi7dDCT18MxsgYR4HA4va9vfgGY1IFuMe2XgFdltvxTx/MPoSZETsffffdteBc6XXlYcj9GbN5uSQUUzlvDKrKQSK8uFvRCkQe1eU1dj2G6eNsZi743e+HHg4eIon1s5mqMHqPOE0uwdGG9jmAD4L7RcWWI1s8RqdbuOulq7ZKCWxYQ4KoPUBVwakty9/BhPN9sbS6vEO5iE65YIIcjYCqOp15u1Ay0is8mXXmw+hyH3TvwLxrqlphJItdy+PB7ixiairpLkQxRW4Wv4QoQo+2ODrpgtVOBXk= root@odoodevelop1"
@@ -118,3 +136,6 @@ hVYTmQFwhHKY9gOYuFyJud9YfFAhMB22oAbTwMPF2792cNZ041thAf4SVyAl4oagBnEK6k
 gr/Fes2mvWhoBhAAAAEXJvb3RAb2Rvb2RldmVsb3AxAQ==
 -----END OPENSSH PRIVATE KEY-----
     """
+=======
+        })
+>>>>>>> 095c915c05ebada02c9717519bbde65a92a311e0
