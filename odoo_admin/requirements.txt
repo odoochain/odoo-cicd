@@ -25,7 +25,6 @@ gevent==20.9.0 ; python_version >= '3.8'
 gimera
 greenlet==0.4.15 ; python_version == '3.7'
 greenlet==0.4.17 ; python_version > '3.7'
-html2text==2020.1.16
 humanize
 idna==2.8
 inquirer>=2.6.3
