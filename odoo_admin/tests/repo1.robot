@@ -54,7 +54,7 @@ Make Repo
     [Arguments]                      ${machine}
     ${uuid}=                         Get Guid
     ${date}=                         Get Now As String
-    ${name}=                         ssh://git@git.itewimmer.de/odoo/customs/odoofun
+    ${name}=                         Get Environment Variable  ROBOTTEST_REPO_URL
 
     ${values}=                       Create Dictionary
                                      ...    name=${name}
