@@ -6,3 +6,4 @@ __pycache__
 .vscode/settings.json
 docker-compose.override.yml
 .debug
+robot_output
