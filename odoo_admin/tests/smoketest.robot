@@ -1,10 +1,8 @@
 *** Settings ***
 Documentation     Smoketest
-Resource          keywords/odoo_13_ee.robot
+Resource          keywords/odoo_15_cs.robot
 Test Setup        Setup Smoketest
 
-
-*** Keywords ***
 
 *** Test Cases ***
 Smoketest

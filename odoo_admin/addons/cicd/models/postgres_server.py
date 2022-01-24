@@ -70,3 +70,4 @@ class PostgresServer(models.Model):
             for db in self.database_ids:
                 if db.name not in all_dbs:
                     db.sudo().unlink()
+        return True
