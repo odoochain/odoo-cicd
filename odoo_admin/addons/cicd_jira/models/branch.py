@@ -6,7 +6,7 @@ class Branch(models.Model):
 
     def _get_jira_issue(self):
         self.ensure_one()
-        jira = self.repo_id._get_jira_connection()
+        jira = self.repo_id.ticketsystem_id._get_jira_connection()
         issue = jira.issue(self.ticket_system_ref or self.name)
         return issue
 
