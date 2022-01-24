@@ -8,13 +8,15 @@
         "cicd",
         "cicd_jira",
         "field_onchange",
-        "queue_job"
+        "queue_job",
+        "robot_utils",
     ],
     "version": 15.0,
     "addons_paths": [
         "odoo/odoo/addons",
         "odoo/addons",
         "addons",
-        "addons/queue"
+        "addons/queue",
+        "addons_robot",
     ]
 }
