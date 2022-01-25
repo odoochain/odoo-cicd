@@ -53,3 +53,4 @@ from . import user
 from . import queue_job
 from . import compressor
 from . import release_actions
+from . import wiz_new_branch
