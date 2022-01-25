@@ -31,6 +31,8 @@ class Compressor(models.Model):
                     'name': f"compressor {rec.id}",
                     'model_id': model.id,
                     'code': f'model.browse({rec.id})._start()'
+                    'numbercall': -1,
+                    'active': True,
                 })
 
     def _start(self):
