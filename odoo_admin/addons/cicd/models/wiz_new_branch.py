@@ -13,7 +13,7 @@ class NewBranch(models.TransientModel):
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)
-        if res['repo_id']:
+        if res.get('repo_id'):
             repo = self.env['cicd.git.repo'].browse(res['repo_id'])
             res['dump_id'] = repo.default_simulate_install_id_dump_id.id
         return res
@@ -41,8 +41,17 @@ class NewBranch(models.TransientModel):
             shell.X(["git", "checkout", "-b", self.new_name])
             shell.X(["git", "remote", "set-url", 'origin', self.repo_id.url])
             shell.X(["git", "push", "--set-upstream", "-f", 'origin', self.new_name])
-            self.source_branch_id.create({
+            branch = self.source_branch_id.create({
                 'name': self.new_name,
                 'dump_id': self.dump_id.id,
                 'backup_machine_id': self.repo_id.machine_id.id,
             })
+
+        return {
+            'view_type': 'form',
+            'res_model': branch._name,
+            'res_id': branch.id,
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }
