@@ -471,6 +471,7 @@ class GitBranch(models.Model):
         ])
 
         return {
+            'name': f"Jobs",
             'view_type': 'form',
             'res_model': jobs._name,
             'domain': [('id', 'in', jobs.ids)],

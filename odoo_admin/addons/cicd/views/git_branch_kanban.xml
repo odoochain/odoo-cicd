@@ -33,12 +33,12 @@
 							<field name="create_date"/>
 						</div>
 						<div>
+							<strong>DB Size:</strong>
+							<field name="database_size_human"/>
+						</div>
+						<div>
 							<strong>Last Access:</strong>
 							<field name="last_access"/>
-						</div>
-						<div t-if="current_task">
-							<strong>Current Activity:</strong>
-							<field name="current_task"/>
 						</div>
 						<div t-if="database_ids">
 							<strong>Databases:</strong>

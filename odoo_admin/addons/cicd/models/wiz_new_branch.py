@@ -10,6 +10,15 @@ class NewBranch(models.TransientModel):
     new_name = fields.Char("New Name", required=True)
     dump_id = fields.Many2one('cicd.dump', string="Dump")
 
+    @api.model
+    def default_get(self, fields):
+        import pudb;pudb.set_trace()
+        res = super().default_get(fields)
+        if res['repo_id']:
+            repo = self.env['cicd.git.repo'].browse(res['repo_id'])
+            res['dump_id'] = repo.default_simulate_install_id_dump_id.id
+        return res
+
     @api.onchange('repo_id')
     def _onchange_repo(self):
         self.dump_id = self.repo_id.default_simulate_install_id_dump_id
