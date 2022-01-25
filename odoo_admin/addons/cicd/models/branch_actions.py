@@ -351,7 +351,7 @@ class Branch(models.Model):
         shell.X(["git", "clean", "-xdff"])
 
         logsio.write_text("Updating submodules")
-        shell.X(["git", "submodule", "update", "--recursive"])
+        shell.X(["git", "submodule", "update", "--recursive", "--init"])
 
         logsio.write_text("Getting current commit")
         commit = shell.X(["git", "rev-parse", "HEAD"]).output.strip()
