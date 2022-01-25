@@ -150,12 +150,15 @@ class Repository(models.Model):
         return branch
 
     def fetch(self):
-        self._cron_fetch()
+        self.with_context(ignore_autofetch=True)._cron_fetch()
 
     @api.model
     def _cron_fetch(self):
         logsio = None
-        for repo in self.search([('autofetch', '=', True)]):
+        for repo in self.search([]):
+            if not self.env.context.get('ignore_autofetch'):
+                if not repo.autofetch:
+                    continue
             try:
                 repo._lock_git()
                 logsio = LogsIOWriter(repo.name, 'fetch')
