@@ -30,7 +30,7 @@ class Compressor(models.Model):
                 self.cronjob_id = self.env['ir.cron'].sudo().create({
                     'name': f"compressor {rec.id}",
                     'model_id': model.id,
-                    'code': f'model.browse({rec.id})._start()'
+                    'code': f'model.browse({rec.id})._start()',
                     'numbercall': -1,
                     'active': True,
                 })
