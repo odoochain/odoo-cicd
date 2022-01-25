@@ -133,9 +133,9 @@ class Branch(models.Model):
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
 
-    def _reload(self, shell, task, logsio, project_name=None, **kwargs):
+    def _reload(self, shell, task, logsio, project_name=None, settings=None, **kwargs):
         self._make_sure_source_exists(shell, logsio)
-        self._make_instance_docker_configs(shell, forced_project_name=project_name) 
+        self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
         self._collect_all_files_by_their_checksum(shell)
         shell.odoo('reload')
 
@@ -267,26 +267,22 @@ class Branch(models.Model):
                 'branch_id': b.id,
             })
         for test_run in test_run:
-            # use tempfolder for tests to not interfere with updates or so
-            repo_path = task.branch_id.repo_id._get_main_repo(tempfolder=True, machine=shell.machine)
-            shell.cwd = repo_path
             try:
-                try:
-                    self.env.cr.commit()
-                except psycopg2.errors.SerializationFailure:
-                    raise RetryableJobError("Could not get lock on test-run rescheduling", seconds=60, ignore_retry=True)
+                self.env.cr.commit()
+            except psycopg2.errors.SerializationFailure:
+                raise RetryableJobError("Could not get lock on test-run rescheduling", seconds=60, ignore_retry=True)
 
-                checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name], allow_error=True)
-                if 'fatal: reference is not a tree' in checkout_res.stderr_output:
-                    raise RetryableJobError("Commit does not exist in working branch - rescheduling", seconds=60, ignore_retry=True)
-                test_run.execute(shell, task, logsio)
-                if update_state:
-                    if test_run.state == 'failed':
-                        self.state = 'dev'
-                    else:
-                        self.state = 'tested'
-            finally:
-                shell.rmifexists(repo_path)
+            checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name], allow_error=True)
+            if 'fatal: reference is not a tree' in checkout_res.stderr_output:
+                raise RetryableJobError("Commit does not exist in working branch - rescheduling", seconds=60, ignore_retry=True)
+
+            test_run.execute(shell, task, logsio)
+
+            if update_state:
+                if test_run.state == 'failed':
+                    self.state = 'dev'
+                else:
+                    self.state = 'tested'
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
@@ -376,7 +372,7 @@ class Branch(models.Model):
         except Exception as ex:
             logsio.error(ex)
 
-    def _make_instance_docker_configs(self, shell, forced_project_name=None):
+    def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
         with shell.shell() as ssh_shell:
             home_dir = shell._get_home_dir()
             machine = shell.machine
@@ -389,6 +385,9 @@ class Branch(models.Model):
             if not machine.postgres_server_id:
                 raise ValidationError(_(f"Please configure a db server for {machine.name}"))
             content += "\n" + (self.reload_config or '')
+            if settings:
+                content += "\n" + settings
+
             ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(
                 branch=self,
                 project_name=project_name,
