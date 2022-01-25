@@ -13,7 +13,7 @@
 							<div t-attf-class="oe_kanban_global_click" style="min-height: 250px;">
 								<div>
 									<i class="fa fa-window-maximize" role="img" aria-label="Enterprise" title="Enterprise"/>
-									<strong><field name="name"/></strong>
+									<strong><field name="id"/>: <field name="branch_id_name"/></strong>
 								</div>
 								<hr class="mt4 mb4"/>
 								<div>

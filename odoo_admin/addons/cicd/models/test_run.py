@@ -11,6 +11,7 @@ class CicdTestRun(models.Model):
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), required=True)
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Initiating branch", required=True)
+    branch_id_name = fields.Char(related='branch_id.name', store=False)
     branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids", string="Branches")
     repo_short = fields.Char(related="branch_ids.repo_id.short")
     state = fields.Selection([
@@ -96,7 +97,6 @@ class CicdTestRun(models.Model):
         self._compute_success_rate()
 
 
-
     def _run_create_empty_db(self, shell, task, logsio):
         self._generic_run(
             shell, logsio, [None], 
@@ -140,7 +140,7 @@ class CicdTestRun(models.Model):
         for item in todo:
             started = arrow.get()
             run_record = self.line_ids.create({
-                'name': todo,
+                'name': item,
                 'ttype': ttype, 
                 'run_id': self.id
             })
@@ -176,3 +176,14 @@ class CicdTestRun(models.Model):
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], default='open', required=True)
+
+    def open_form(self):
+        return {
+            'name': self.name,
+            'view_type': 'form',
+            'res_model': self._name,
+            'res_id': self.id,
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }

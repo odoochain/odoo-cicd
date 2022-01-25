@@ -6,6 +6,7 @@
 		<field name="arch" type="xml">
 		<search string="">
 			<field name="name" filter_domain="['|', ('branch_id.name', 'ilike', self), ('commit_id.name', 'ilike', self)]"/>
+			<field name="branch_id"/>
 			
 			<filter name="open" string="Open" domain="[('state', '=', 'open')]"/>
 			<filter name="failed" string="Failed" domain="[('state', '=', 'failed')]"/>
