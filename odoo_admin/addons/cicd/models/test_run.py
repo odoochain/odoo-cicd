@@ -121,15 +121,28 @@ class CicdTestRun(models.Model):
     def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
         files = shell.odoo('list-robot-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
+
+        shell.odoo('reload')
+        shell.odoo('build')
+        def _x(item):
+            # TODO use btrfs snapshots if there
+            shell.odoo('db', 'reset', force=True)
+            shell.odoo('robot', item)
+
         self._generic_run(
             shell, logsio, files, 
-            'robottest',
-            lambda item: shell.odoo('robot', item)
+            'robottest', _x,
         )
 
     def _run_unit_tests(self, shell, tasks, logsio, **kwargs):
         files = shell.odoo('list-unit-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
+
+        logsio.info("Reloading")
+        shell.odoo('reload')
+        shell.odoo('build')
+        shell.odoo('db', 'reset', force=True)
+
         self._generic_run(
             shell, logsio, files, 
             'unittest',
