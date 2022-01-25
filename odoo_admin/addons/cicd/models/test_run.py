@@ -75,6 +75,9 @@ class CicdTestRun(models.Model):
             b._compute_state()
             return
 
+        self = self.with_context(testrun=f"_testrun_{self.id}")
+        shell.project_name = self.branch_id.project_name # is computed by context
+
         if b.simulate_install_id or b.simulate_empty_install:
             self._run_create_empty_db(shell, task, logsio)
             self.env.cr.commit()
@@ -91,6 +94,8 @@ class CicdTestRun(models.Model):
 
         self.duration = (arrow.get() - started).total_seconds()
         self._compute_success_rate()
+
+
 
     def _run_create_empty_db(self, shell, task, logsio):
         self._generic_run(
