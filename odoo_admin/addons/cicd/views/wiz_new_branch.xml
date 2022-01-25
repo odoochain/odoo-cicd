@@ -5,14 +5,18 @@
 			<field name="model">cicd.git.branch.new</field>
 			<field name="arch" type="xml">
 				<form string="">
-					<header></header>
 					<sheet>
-						<group string="" col="4">
+						<group string="" col="2">
 							<field name="repo_id" />
 							<field name="source_branch_id" domain="[('repo_id', '=', repo_id)]"/>
 							<field name='new_name'/>
+							<field name="dump_id"/>
 						</group>
 					</sheet>
+					<footer>
+						<button string="OK" name="ok" type="object" class="oe_stat_button"/>
+						<button special="cancel" string="Cancel" class="oe_link" />
+					</footer>
 				</form>
 			</field>
 		</record>
