@@ -13,7 +13,9 @@ class TicketSystem(models.Model):
         name = branch.ticket_system_ref or branch.name or ''
         if self.regex and name:
             m = re.match(self.regex, name)
-            if m:
-                name = m.groups() and m.groups()[0] or ''
-        url = (self.url or '') + name
+            if m and m.group():
+                name = m.group()
+            else:
+                return False
+        url = (self.url or '') + 'browse/' + name
         return url
