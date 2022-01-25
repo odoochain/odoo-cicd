@@ -8,6 +8,7 @@ class GitCommit(models.Model):
     _name = 'cicd.git.commit'
     _order = 'date desc'
 
+    short = fields.Char(compute="_compute_short")
     name = fields.Char("SHA", required=True)
     branch_ids = fields.Many2many('cicd.git.branch', string="Repo", required=True)
     date_registered = fields.Datetime("Date registered")
@@ -29,6 +30,10 @@ class GitCommit(models.Model):
     _sql_constraints = [
         ('name', "unique(name)", _("Only one unique entry allowed.")),
     ]
+
+    def _compute_short(self):
+        for rec in self:
+            rec.short = rec.name[:8]
 
     def _event_new_test_state(self, new_state):
         pass # implement!

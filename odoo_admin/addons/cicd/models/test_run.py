@@ -10,6 +10,7 @@ class CicdTestRun(models.Model):
     name = fields.Char(compute="_compute_name")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), required=True)
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
+    commit_id_short = fields.Char(related="commit_id.short", store=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Initiating branch", required=True)
     branch_id_name = fields.Char(related='branch_id.name', store=False)
     branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids", string="Branches")
@@ -39,6 +40,7 @@ class CicdTestRun(models.Model):
 
         self = self.with_context(testrun=f"_testrun_{self.id}")
         shell.project_name = self.branch_id.project_name # is computed by context
+        self.line_ids = [5]
 
         logsio.info("Reloading")
         settings = """
@@ -115,8 +117,6 @@ RUN_POSTGRES=1
         self = self.sudo()
         self.state = 'open'
         self.branch_id._make_task("_run_tests", silent=True, update_state=True)
-
-
 
     def _run_create_empty_db(self, shell, task, logsio):
         self._generic_run(
