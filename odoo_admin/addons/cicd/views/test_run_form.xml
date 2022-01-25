@@ -26,6 +26,16 @@
 								<field name="name"/>
 								<field name="state"/>
 							</tree>
+							<form string="">
+								<header></header>
+								<sheet>
+									<group string="" col="4">
+										<field name="ttype"/>
+										<field name="name"/>
+										<field name="exc_info"/>
+									</group>
+								</sheet>
+							</form>
 						</field>
 					</group>
 				</sheet>
