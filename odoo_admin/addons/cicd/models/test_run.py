@@ -23,6 +23,57 @@ class CicdTestRun(models.Model):
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     duration = fields.Integer("Duration [s]")
 
+    # ----------------------------------------------
+    # Entrypoint
+    # ----------------------------------------------
+    def execute(self, shell, task, logsio):
+        self.ensure_one()
+        b = self.branch_id
+        started = arrow.get()
+
+        if not b.any_testing:
+            self.success_rate = 100
+            self.state = 'success'
+            b._compute_state()
+            return
+
+        self = self.with_context(testrun=f"_testrun_{self.id}")
+        shell.project_name = self.branch_id.project_name # is computed by context
+
+        logsio.info("Reloading")
+        settings = """
+RUN_POSTGRES=1
+        """
+        self.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings)
+        try:
+            shell.odoo('build')
+            shell.odoo('kill', allow_error=True)
+            shell.odoo('rm', allow_error=True)
+            shell.odoo('up', '-d', 'postgres')
+            shell.odoo('-f', 'db', 'reset')
+            shell.odoo('update') # TODO undo
+            shell.odoo('snap', 'save', shell.project_name, force=True)
+
+            if b.run_unittests:
+                self._run_unit_tests(shell, task, logsio)
+                self.env.cr.commit()
+
+            if b.run_robottests:
+                self._run_robot_tests(shell, task, logsio)
+                self.env.cr.commit()
+
+            if b.simulate_install_id:
+                self._run_update_db(shell, task, logsio)
+                self.env.cr.commit()
+
+            self.duration = (arrow.get() - started).total_seconds()
+            self._compute_success_rate()
+        finally:
+            shell.odoo('kill')
+            shell.odoo('rm', force=True)
+            shell.odoo('down', force=True)
+
+
     @api.depends('line_ids', 'line_ids.state')
     def _compute_success_rate(self):
         for rec in self:
@@ -65,36 +116,6 @@ class CicdTestRun(models.Model):
         self.state = 'open'
         self.branch_id._make_task("_run_tests", silent=True, update_state=True)
 
-    def execute(self, shell, task, logsio):
-        self.ensure_one()
-        b = self.branch_id
-        started = arrow.get()
-
-        if not b.any_testing:
-            self.success_rate = 100
-            self.state = 'success'
-            b._compute_state()
-            return
-
-        self = self.with_context(testrun=f"_testrun_{self.id}")
-        shell.project_name = self.branch_id.project_name # is computed by context
-
-        if b.simulate_install_id or b.simulate_empty_install:
-            self._run_create_empty_db(shell, task, logsio)
-            self.env.cr.commit()
-
-        if b.run_unittests:
-            self._run_unit_tests(shell, task, logsio)
-
-        if b.run_robottests:
-            self._run_robot_tests(shell, task, logsio)
-
-        if b.simulate_install_id:
-            self._run_update_db(shell, task, logsio)
-            self.env.cr.commit()
-
-        self.duration = (arrow.get() - started).total_seconds()
-        self._compute_success_rate()
 
 
     def _run_create_empty_db(self, shell, task, logsio):
@@ -122,11 +143,9 @@ class CicdTestRun(models.Model):
         files = shell.odoo('list-robot-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
-        shell.odoo('reload')
         shell.odoo('build')
         def _x(item):
-            # TODO use btrfs snapshots if there
-            shell.odoo('db', 'reset', force=True)
+            shell.odoo("snap", "restore", shell.project_name)
             shell.odoo('robot', item)
 
         self._generic_run(
@@ -138,10 +157,7 @@ class CicdTestRun(models.Model):
         files = shell.odoo('list-unit-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
-        logsio.info("Reloading")
-        shell.odoo('reload')
-        shell.odoo('build')
-        shell.odoo('db', 'reset', force=True)
+        shell.odoo("snap", "restore", shell.project_name)
 
         self._generic_run(
             shell, logsio, files, 
@@ -169,7 +185,6 @@ class CicdTestRun(models.Model):
                 run_record.state = 'success'
             end = arrow.get()
             run_record.duration = (end - started).total_seconds()
-            self.env.cr.commit()
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
