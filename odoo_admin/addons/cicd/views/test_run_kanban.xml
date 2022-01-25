@@ -26,7 +26,7 @@
 								</div>
 								<div>
 									<strong>Commit:</strong>
-									<field name="commit_id"/>
+									<field name="commit_id_short"/>
 								</div>
 								<div>
 									<strong>Branches:</strong>
