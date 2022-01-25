@@ -18,7 +18,7 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
-    project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name")
+    project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name", depends_context=['testrun'])
     database_project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
     machine_id = fields.Many2one(related='repo_id.machine_id')
@@ -322,8 +322,11 @@ class GitBranch(models.Model):
 
     def _compute_project_name(self):
         for rec in self:
-            rec.project_name = os.environ['CICD_PROJECT_NAME'] + "_" + rec.repo_id.short + "_" + rec.name
-            dbname = rec.project_name.lower().replace("-", "_")
+            project_name = os.environ['CICD_PROJECT_NAME'] + "_" + rec.repo_id.short + "_" + rec.name
+            dbname = project_name.lower().replace("-", "_")
+            if self.env.context.get('testrun'):
+                project_name += self.env.context['testrun']
+            rec.project_name = project_name
             rec.database_project_name = dbname
 
     def _get_new_logsio_instance(self, source):
