@@ -10,6 +10,7 @@ class CicdTestRun(models.Model):
     name = fields.Char(compute="_compute_name")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), required=True)
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
+    commit_id_short = fields.Char(related="commit_id.short", store=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Initiating branch", required=True)
     branch_id_name = fields.Char(related='branch_id.name', store=False)
     branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids", string="Branches")
