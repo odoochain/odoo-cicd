@@ -150,15 +150,16 @@ class Repository(models.Model):
         return branch
 
     def fetch(self):
-        self.with_context(ignore_autofetch=True)._cron_fetch()
+        self._cron_fetch()
 
     @api.model
     def _cron_fetch(self):
         logsio = None
-        for repo in self.search([]):
-            if not self.env.context.get('ignore_autofetch'):
-                if not repo.autofetch:
-                    continue
+        repos = self
+        if not repos:
+            repos = self.search([('auto_search', '=', True)])
+
+        for repo in repos:
             try:
                 repo._lock_git()
                 logsio = LogsIOWriter(repo.name, 'fetch')
@@ -211,7 +212,7 @@ class Repository(models.Model):
                 msg = traceback.format_exc()
                 if logsio:
                     logsio.error(msg)
-                logger.error(msg)
+                logger.error('error', exc_info=True)
                 continue
 
     def _clean_remote_branches(self, branches):
