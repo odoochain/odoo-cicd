@@ -25,6 +25,10 @@
 									<field name="date"/>
 								</div>
 								<div>
+									<strong>Commit:</strong>
+									<field name="commit_id"/>
+								</div>
+								<div>
 									<strong>Branches:</strong>
 									<field name="branch_ids"/>
 								</div>
