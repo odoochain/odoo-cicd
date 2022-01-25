@@ -16,4 +16,5 @@ class NewBranch(models.TransientModel):
                     raise ValidationError(_("Invalid Name: " + rec.new_name))
 
     def ok(self):
+        pass
 
