@@ -12,6 +12,10 @@
 							<field name='new_name'/>
 							<field name="dump_id"/>
 						</group>
+						<group>
+							<div>After creation the branch will be displayed. It will take some time, till it is ready to use.</div>
+
+						</group>
 					</sheet>
 					<footer>
 						<button string="OK" name="ok" type="object" class="oe_stat_button"/>
