@@ -78,6 +78,7 @@ class CicdTestRun(models.Model):
 
         self = self.with_context(testrun=f"_testrun_{self.id}")
         shell.project_name = self.branch_id.project_name # is computed by context
+        self.line_ids = [5]
 
         if b.simulate_install_id or b.simulate_empty_install:
             self._run_create_empty_db(shell, task, logsio)
