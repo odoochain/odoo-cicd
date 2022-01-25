@@ -104,7 +104,7 @@ class CicdTestRun(models.Model):
         def _x(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
             self.branch_id._create_empty_db(shell, task, logsio),
-            task.dump_used = self.dump_id.name
+            task.dump_used = self.branch_id.dump_id.name
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
             shell.odoo('update')
 
