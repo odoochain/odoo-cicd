@@ -136,6 +136,7 @@ class Branch(models.Model):
     def _reload(self, shell, task, logsio, project_name=None, **kwargs):
         self._make_sure_source_exists(shell, logsio)
         self._make_instance_docker_configs(shell, forced_project_name=project_name) 
+        self._collect_all_files_by_their_checksum(shell)
         shell.odoo('reload')
 
     def _build(self, shell, task, logsio, **kwargs):
@@ -463,3 +464,57 @@ class Branch(models.Model):
             except Exception as ex:
                 shell.rmifexists(instance_folder)
                 self._checkout_latest(shell, logsio=logsio)
+
+    def _collect_all_files_by_their_checksum(self, shell):
+        """
+
+        STOP! 
+        odoo calls isdir on symlink which fails unfortunately
+        hardlink on dir does not work
+        so new idea needed
+
+
+        Odoo stores its files by sha. If a db is restored then usually it has to rebuild the assets.
+        And files are not available. 
+        To save space we make the following:
+
+        ~/.odoo/files/filestore/project_name1/00/000000000
+        ~/.odoo/files/filestore/project_name2/00/000000000
+
+                           | 
+                           |
+                           |
+                          \ /
+                           W
+        
+        ~/.odoo/files/filestore/_all/00/000000000
+        ~/.odoo/files/filestore/_all/00/000000000
+        ~/.odoo/files/filestore/project_name1 --> ~/.odoo/files/filestore/_all 
+        ~/.odoo/files/filestore/project_name2 --> ~/.odoo/files/filestore/_all 
+        """
+        return # see comment
+
+        python_script_executed = """
+from pathlib import Path
+import os
+import subprocess
+import shutil
+base = Path(os.path.expanduser("~/.odoo/files/filestore"))
+
+ALL_FOLDER = base / "_all"
+ALL_FOLDER.mkdir(exist_ok=True, parents=True)
+
+for path in base.glob("*"):
+    if path == ALL_FOLDER:
+        continue
+    if path.is_dir():
+        subprocess.check_call(["rsync", str(path) + "/", str(ALL_FOLDER) + "/", "-ar"])
+        shutil.rmtree(path)
+        path.symlink_to(ALL_FOLDER, target_is_directory=True)
+
+        """
+        shell.put(python_script_executed, '.cicd_reorder_files')
+        try:
+            shell.X(["python3", '.cicd_reorder_files'])
+        finally:
+            shell.rmifexists(".cicd_reorder_files")
