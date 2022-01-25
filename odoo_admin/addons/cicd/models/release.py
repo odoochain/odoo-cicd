@@ -13,6 +13,7 @@ class Release(models.Model):
     name = fields.Char("Name", required=True)
     project_name = fields.Char("Project Name", required=True, help="techincal name - no special characters")
     repo_id = fields.Many2one("cicd.git.repo", required=True, string="Repo", store=True)
+    repo_short = fields.Char(related="repo_id.short")
     branch_id = fields.Many2one('cicd.git.branch', string="Branch", required=True)
     candidate_branch = fields.Char(string="Candidate", required=True, default="master_candidate")
     item_ids = fields.One2many('cicd.release.item', 'release_id', string="Release")
@@ -63,6 +64,7 @@ class Release(models.Model):
                     continue
                 if self.search_count([
                     ('id', '!=', rec.id),
+                    ('repo_id', '=', rec.repo_id.id),
                     (field, '=', rec[field] if isinstance(rec[field], (bool, str)) else rec[field].id),
                 ]):
                     raise ValidationError("Branches must be unique per release!")

@@ -11,6 +11,7 @@ class CicdTestRun(models.Model):
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), required=True)
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Initiating branch", required=True)
+    branch_id_name = fields.Char(related='branch_id.name', store=False)
     branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids", string="Branches")
     repo_short = fields.Char(related="branch_ids.repo_id.short")
     state = fields.Selection([
@@ -75,6 +76,10 @@ class CicdTestRun(models.Model):
             b._compute_state()
             return
 
+        self = self.with_context(testrun=f"_testrun_{self.id}")
+        shell.project_name = self.branch_id.project_name # is computed by context
+        self.line_ids = [5]
+
         if b.simulate_install_id or b.simulate_empty_install:
             self._run_create_empty_db(shell, task, logsio)
             self.env.cr.commit()
@@ -92,6 +97,7 @@ class CicdTestRun(models.Model):
         self.duration = (arrow.get() - started).total_seconds()
         self._compute_success_rate()
 
+
     def _run_create_empty_db(self, shell, task, logsio):
         self._generic_run(
             shell, logsio, [None], 
@@ -104,7 +110,7 @@ class CicdTestRun(models.Model):
         def _x(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
             self.branch_id._create_empty_db(shell, task, logsio),
-            task.dump_used = self.dump_id.name
+            task.dump_used = self.branch_id.dump_id.name
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
             shell.odoo('update')
 
@@ -116,15 +122,28 @@ class CicdTestRun(models.Model):
     def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
         files = shell.odoo('list-robot-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
+
+        shell.odoo('reload')
+        shell.odoo('build')
+        def _x(item):
+            # TODO use btrfs snapshots if there
+            shell.odoo('db', 'reset', force=True)
+            shell.odoo('robot', item)
+
         self._generic_run(
             shell, logsio, files, 
-            'robottest',
-            lambda item: shell.odoo('robot', item)
+            'robottest', _x,
         )
 
     def _run_unit_tests(self, shell, tasks, logsio, **kwargs):
         files = shell.odoo('list-unit-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
+
+        logsio.info("Reloading")
+        shell.odoo('reload')
+        shell.odoo('build')
+        shell.odoo('db', 'reset', force=True)
+
         self._generic_run(
             shell, logsio, files, 
             'unittest',
@@ -135,7 +154,7 @@ class CicdTestRun(models.Model):
         for item in todo:
             started = arrow.get()
             run_record = self.line_ids.create({
-                'name': todo,
+                'name': item,
                 'ttype': ttype, 
                 'run_id': self.id
             })
@@ -171,3 +190,14 @@ class CicdTestRun(models.Model):
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], default='open', required=True)
+
+    def open_form(self):
+        return {
+            'name': self.name,
+            'view_type': 'form',
+            'res_model': self._name,
+            'res_id': self.id,
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }

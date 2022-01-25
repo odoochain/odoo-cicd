@@ -337,6 +337,7 @@ echo "--------------------------------------------------------------------------
     @contextmanager
     def _gitshell(self, repo, cwd, logsio, env=None, **kwargs):
         self.ensure_one()
+        assert repo._name == 'cicd.git.repo'
         with self._shell() as spurplus_shell:
             file = Path(tempfile.mktemp(suffix='.'))
             env = env or {}

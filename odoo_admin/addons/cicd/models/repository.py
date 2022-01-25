@@ -155,7 +155,11 @@ class Repository(models.Model):
     @api.model
     def _cron_fetch(self):
         logsio = None
-        for repo in self.search([('autofetch', '=', True)]):
+        repos = self
+        if not repos:
+            repos = self.search([('auto_search', '=', True)])
+
+        for repo in repos:
             try:
                 repo._lock_git()
                 logsio = LogsIOWriter(repo.name, 'fetch')
@@ -208,7 +212,7 @@ class Repository(models.Model):
                 msg = traceback.format_exc()
                 if logsio:
                     logsio.error(msg)
-                logger.error(msg)
+                logger.error('error', exc_info=True)
                 continue
 
     def _clean_remote_branches(self, branches):
@@ -409,3 +413,29 @@ class Repository(models.Model):
     #             continue
 
     #         repo_path = rec._get_main_repo()
+
+    def new_branch(self):
+        return {
+            'view_type': 'form',
+            'res_model': 'cicd.git.branch.new',
+            'context': {
+                'default_repo_id': self.id,
+            },
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'flags': {'form': {
+                'action_buttons': False,
+                'initial_mode': 'edit',
+                #'footer_to_buttons': False,
+                #'not_interactiable_on_create': False,
+                #'disable_autofocus': False,
+                #'headless': False,  9.0 and others?
+            }},
+            'options': {
+                # needs module web_extended_actions
+                'hide_breadcrumb': True,
+                'replace_breadcrumb': True,
+                'clear_breadcrumbs': True,
+            },
+            'target': 'new',
+        }

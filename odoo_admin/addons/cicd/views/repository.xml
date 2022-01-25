@@ -19,6 +19,7 @@
 				<form>
 					<header>
 						<button name="fetch" string="Fetch" type="object" />
+						<button name="new_branch" string="New Branch" type="object" />
 					</header>
 					<sheet>
 						<group>

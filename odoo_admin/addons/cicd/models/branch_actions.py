@@ -275,7 +275,7 @@ class Branch(models.Model):
                 except psycopg2.errors.SerializationFailure:
                     raise RetryableJobError("Could not get lock on test-run rescheduling", seconds=60, ignore_retry=True)
 
-                checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name + "UNDO"], allow_error=True)
+                checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name], allow_error=True)
                 if 'fatal: reference is not a tree' in checkout_res.stderr_output:
                     raise RetryableJobError("Commit does not exist in working branch - rescheduling", seconds=60, ignore_retry=True)
                 test_run.execute(shell, task, logsio)
@@ -351,7 +351,7 @@ class Branch(models.Model):
         shell.X(["git", "clean", "-xdff"])
 
         logsio.write_text("Updating submodules")
-        shell.X(["git", "submodule", "update", "--recursive"])
+        shell.X(["git", "submodule", "update", "--recursive", "--init"])
 
         logsio.write_text("Getting current commit")
         commit = shell.X(["git", "rev-parse", "HEAD"]).output.strip()
