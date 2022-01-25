@@ -63,6 +63,7 @@ class Release(models.Model):
                     continue
                 if self.search_count([
                     ('id', '!=', rec.id),
+                    ('repo_id', '=', rec.repo_id.id),
                     (field, '=', rec[field] if isinstance(rec[field], (bool, str)) else rec[field].id),
                 ]):
                     raise ValidationError("Branches must be unique per release!")

@@ -12,7 +12,6 @@ class NewBranch(models.TransientModel):
 
     @api.model
     def default_get(self, fields):
-        import pudb;pudb.set_trace()
         res = super().default_get(fields)
         if res['repo_id']:
             repo = self.env['cicd.git.repo'].browse(res['repo_id'])
