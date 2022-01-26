@@ -1,4 +1,5 @@
 import traceback
+import time
 import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -52,7 +53,9 @@ RUN_POSTGRES=1
             shell.odoo('kill', allow_error=True)
             shell.odoo('rm', allow_error=True)
             shell.odoo('up', '-d', 'postgres')
+            time.sleep(20) # TODO better wait for postgres
             shell.odoo('-f', 'db', 'reset')
+            time.sleep(20)
             shell.odoo('update') # TODO undo
             shell.odoo('snap', 'save', shell.project_name, force=True)
 
