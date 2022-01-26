@@ -157,7 +157,7 @@ class Repository(models.Model):
         logsio = None
         repos = self
         if not repos:
-            repos = self.search([('auto_search', '=', True)])
+            repos = self.search([('autofetch', '=', True)])
 
         for repo in repos:
             try:
