@@ -94,6 +94,7 @@ RUN_POSTGRES=1
             shell.odoo('kill')
             shell.odoo('rm', force=True)
             shell.odoo('down', force=True)
+            shell.rmifexists(shell.cwd)
 
 
     @api.depends('line_ids', 'line_ids.state')
