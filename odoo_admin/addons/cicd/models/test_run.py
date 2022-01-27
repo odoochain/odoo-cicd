@@ -102,7 +102,9 @@ RUN_POSTGRES=1
             shell.odoo('kill', allow_error=True)
             shell.odoo('rm', force=True, allow_error=True)
             shell.odoo('down', "-v", force=True, allow_error=True)
-            shell.rmifexists(shell.cwd)
+            project_dir = shell.cwd
+            shell.cwd = shell.cwd.parent
+            shell.rmifexists(project_dir)
 
 
     @api.depends('line_ids', 'line_ids.state')
@@ -249,3 +251,9 @@ class CicdTestRun(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
+
+    @api.model
+    def create(self, vals):
+        import pudb;pudb.set_trace()
+        res = super().create(vals)
+        return res
