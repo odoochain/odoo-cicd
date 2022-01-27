@@ -161,6 +161,8 @@ class Repository(models.Model):
 
         for repo in repos:
             try:
+                if not repo.login_type:
+                    raise ValidationError(f"Login-Type missing for {repo.name}")
                 repo._lock_git()
                 logsio = LogsIOWriter(repo.name, 'fetch')
                     
