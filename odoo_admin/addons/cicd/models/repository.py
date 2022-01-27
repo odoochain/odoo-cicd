@@ -215,6 +215,8 @@ class Repository(models.Model):
                 if logsio:
                     logsio.error(msg)
                 logger.error('error', exc_info=True)
+                if len(self) == 1:
+                    raise 
                 continue
 
     def _clean_remote_branches(self, branches):
