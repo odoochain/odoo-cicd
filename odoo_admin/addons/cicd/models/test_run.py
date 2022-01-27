@@ -151,9 +151,12 @@ RUN_POSTGRES=1
         def _x(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
             self.branch_id._create_empty_db(shell, task, logsio),
+            self._wait_for_postgres(shell)
             task.dump_used = self.branch_id.dump_id.name
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
+            self._wait_for_postgres(shell)
             shell.odoo('update')
+            self._wait_for_postgres(shell)
 
         self._generic_run(
             shell, logsio, [None], 
