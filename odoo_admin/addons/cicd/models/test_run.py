@@ -25,6 +25,21 @@ class CicdTestRun(models.Model):
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     duration = fields.Integer("Duration [s]")
 
+    def _wait_for_postgres(self, shell):
+        timeout = 60
+        deadline = arrow.get().shift(seconds=timeout)
+
+        while True:
+            try:
+                shell.odoo("psql", "--sql", "select * from information_schema.tables;")
+            except Exception:
+                if arrow.get() < deadline:
+                   time.sleep(0.5)
+                else:
+                    raise
+            else:
+                break
+
     # ----------------------------------------------
     # Entrypoint
     # ----------------------------------------------
@@ -41,6 +56,7 @@ class CicdTestRun(models.Model):
 
         self = self.with_context(testrun=f"_testrun_{self.id}")
         shell.project_name = self.branch_id.project_name # is computed by context
+        shell.cwd = shell.cwd.parent / shell.project_name
         self.line_ids = [5]
 
         logsio.info("Reloading")
@@ -53,11 +69,12 @@ RUN_POSTGRES=1
             shell.odoo('kill', allow_error=True)
             shell.odoo('rm', allow_error=True)
             shell.odoo('up', '-d', 'postgres')
-            time.sleep(20) # TODO better wait for postgres
+            self._wait_for_postgres(shell)
             shell.odoo('-f', 'db', 'reset')
-            time.sleep(20)
-            shell.odoo('update') # TODO undo
+            self._wait_for_postgres(shell)
+            shell.odoo('update')
             shell.odoo('snap', 'save', shell.project_name, force=True)
+            self._wait_for_postgres(shell)
 
             if b.run_unittests:
                 self._run_unit_tests(shell, task, logsio)
@@ -119,7 +136,7 @@ RUN_POSTGRES=1
             raise ValidationError(_("State of branch does not all a repeated test run"))
         self = self.sudo()
         self.state = 'open'
-        self.branch_id._make_task("_run_tests", silent=True, update_state=True)
+        self.branch_id._make_task("_run_tests", silent=True, update_state=True, testrun_id=self.id)
 
     def _run_create_empty_db(self, shell, task, logsio):
         self._generic_run(
