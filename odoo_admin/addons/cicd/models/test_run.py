@@ -68,32 +68,40 @@ RUN_POSTGRES=1
             shell.odoo('build')
             shell.odoo('kill', allow_error=True)
             shell.odoo('rm', allow_error=True)
+            logsio.info("Upping postgres...............")
             shell.odoo('up', '-d', 'postgres')
             self._wait_for_postgres(shell)
+            logsio.info("DB Reset...........................")
             shell.odoo('-f', 'db', 'reset')
             self._wait_for_postgres(shell)
+            logsio.info("Update")
             shell.odoo('update')
+            logsio.info("Storing snapshot")
             shell.odoo('snap', 'save', shell.project_name, force=True)
             self._wait_for_postgres(shell)
 
             if b.run_unittests:
+                logsio.info("Running unittests")
                 self._run_unit_tests(shell, task, logsio)
                 self.env.cr.commit()
 
             if b.run_robottests:
+                logsio.info("Running robot-tests")
                 self._run_robot_tests(shell, task, logsio)
                 self.env.cr.commit()
 
             if b.simulate_install_id:
+                logsio.info("Running Simulating Install")
                 self._run_update_db(shell, task, logsio)
                 self.env.cr.commit()
 
             self.duration = (arrow.get() - started).total_seconds()
+            logsio.info(f"Duration was {self.duration}")
             self._compute_success_rate()
         finally:
-            shell.odoo('kill')
-            shell.odoo('rm', force=True)
-            shell.odoo('down', force=True, allow_error=True)
+            shell.odoo('kill', allow_error=True)
+            shell.odoo('rm', force=True, allow_error=True)
+            shell.odoo('down', "-v", force=True, allow_error=True)
             shell.rmifexists(shell.cwd)
 
 
