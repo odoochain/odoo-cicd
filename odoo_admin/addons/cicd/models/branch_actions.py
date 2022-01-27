@@ -381,7 +381,9 @@ class Branch(models.Model):
             machine = shell.machine
             project_name = forced_project_name or self.project_name
             content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
-            content = content.format(**os.environ)
+            values = os.environ.copy()
+            values['PROJECT_NAME'] = project_name
+            content = content.format(**values)
             ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content)
 
             content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
