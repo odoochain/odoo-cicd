@@ -93,7 +93,7 @@ RUN_POSTGRES=1
         finally:
             shell.odoo('kill')
             shell.odoo('rm', force=True)
-            shell.odoo('down', force=True)
+            shell.odoo('down', force=True, allow_error=True)
             shell.rmifexists(shell.cwd)
 
 
