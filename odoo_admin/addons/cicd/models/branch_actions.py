@@ -259,7 +259,10 @@ class Branch(models.Model):
         update_state = kwargs.get('update_state', False)
         # self._update_git_commits(shell, task=task, logsio=logsio) # why???
 
-        test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
+        if kwargs.get('testrun_id'):
+            test_run = self.test_run_ids.browse(kwargs.get('testrun_id'))
+        else:
+            test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
 
         if not test_run:
             test_run = self.test_run_ids.create({
@@ -378,7 +381,8 @@ class Branch(models.Model):
             machine = shell.machine
             project_name = forced_project_name or self.project_name
             content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
-            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content.format(**os.environ))
+            content = content.format(**os.environ)
+            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content)
 
             content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
             assert machine

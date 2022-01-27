@@ -25,6 +25,21 @@ class CicdTestRun(models.Model):
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     duration = fields.Integer("Duration [s]")
 
+    def _wait_for_postgres(self, shell):
+        timeout = 60
+        deadline = arrow.get().shift(seconds=timeout)
+
+        while True:
+            try:
+                shell.odoo("psql", "--sql", "select * from information_schema.tables;")
+            except Exception:
+                if arrow.get() < deadline:
+                   time.sleep(0.5)
+                else:
+                    raise
+            else:
+                break
+
     # ----------------------------------------------
     # Entrypoint
     # ----------------------------------------------
@@ -41,6 +56,7 @@ class CicdTestRun(models.Model):
 
         self = self.with_context(testrun=f"_testrun_{self.id}")
         shell.project_name = self.branch_id.project_name # is computed by context
+        shell.cwd = shell.cwd.parent / shell.project_name
         self.line_ids = [5]
 
         logsio.info("Reloading")
@@ -52,31 +68,41 @@ RUN_POSTGRES=1
             shell.odoo('build')
             shell.odoo('kill', allow_error=True)
             shell.odoo('rm', allow_error=True)
+            logsio.info("Upping postgres...............")
             shell.odoo('up', '-d', 'postgres')
-            time.sleep(20) # TODO better wait for postgres
+            self._wait_for_postgres(shell)
+            logsio.info("DB Reset...........................")
             shell.odoo('-f', 'db', 'reset')
-            time.sleep(20)
-            shell.odoo('update') # TODO undo
+            self._wait_for_postgres(shell)
+            logsio.info("Update")
+            shell.odoo('update')
+            logsio.info("Storing snapshot")
             shell.odoo('snap', 'save', shell.project_name, force=True)
+            self._wait_for_postgres(shell)
 
             if b.run_unittests:
+                logsio.info("Running unittests")
                 self._run_unit_tests(shell, task, logsio)
                 self.env.cr.commit()
 
             if b.run_robottests:
+                logsio.info("Running robot-tests")
                 self._run_robot_tests(shell, task, logsio)
                 self.env.cr.commit()
 
             if b.simulate_install_id:
+                logsio.info("Running Simulating Install")
                 self._run_update_db(shell, task, logsio)
                 self.env.cr.commit()
 
             self.duration = (arrow.get() - started).total_seconds()
+            logsio.info(f"Duration was {self.duration}")
             self._compute_success_rate()
         finally:
-            shell.odoo('kill')
-            shell.odoo('rm', force=True)
-            shell.odoo('down', force=True)
+            shell.odoo('kill', allow_error=True)
+            shell.odoo('rm', force=True, allow_error=True)
+            shell.odoo('down', "-v", force=True, allow_error=True)
+            shell.rmifexists(shell.cwd)
 
 
     @api.depends('line_ids', 'line_ids.state')
@@ -119,7 +145,7 @@ RUN_POSTGRES=1
             raise ValidationError(_("State of branch does not all a repeated test run"))
         self = self.sudo()
         self.state = 'open'
-        self.branch_id._make_task("_run_tests", silent=True, update_state=True)
+        self.branch_id._make_task("_run_tests", silent=True, update_state=True, testrun_id=self.id)
 
     def _run_create_empty_db(self, shell, task, logsio):
         self._generic_run(
@@ -133,9 +159,12 @@ RUN_POSTGRES=1
         def _x(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
             self.branch_id._create_empty_db(shell, task, logsio),
+            self._wait_for_postgres(shell)
             task.dump_used = self.branch_id.dump_id.name
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
+            self._wait_for_postgres(shell)
             shell.odoo('update')
+            self._wait_for_postgres(shell)
 
         self._generic_run(
             shell, logsio, [None], 
@@ -149,6 +178,7 @@ RUN_POSTGRES=1
         shell.odoo('build')
         def _x(item):
             shell.odoo("snap", "restore", shell.project_name)
+            self._wait_for_postgres(shell)
             shell.odoo('robot', item)
 
         self._generic_run(
@@ -161,6 +191,7 @@ RUN_POSTGRES=1
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo("snap", "restore", shell.project_name)
+        self._wait_for_postgres(shell)
 
         self._generic_run(
             shell, logsio, files, 

@@ -15,6 +15,7 @@
 						<field name="date" />
 						<field name="commit_id"/>
 						<field name="repo_short"/>
+						<field name="branch_id"/>
 						<field name="branch_ids" widget="many2many_tags"/>
 						<field name="duration"/>
 						<field name="success_rate"/>

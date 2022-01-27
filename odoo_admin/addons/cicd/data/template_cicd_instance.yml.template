@@ -13,6 +13,7 @@ services:
         networks:
             - cicd_network
             - postgres
+            - default
 
     odoo_base:
         networks:
