@@ -167,6 +167,7 @@ RUN_POSTGRES=1
         shell.odoo('build')
         def _x(item):
             shell.odoo("snap", "restore", shell.project_name)
+            self._wait_for_postgres(shell)
             shell.odoo('robot', item)
 
         self._generic_run(
@@ -179,6 +180,7 @@ RUN_POSTGRES=1
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo("snap", "restore", shell.project_name)
+        self._wait_for_postgres(shell)
 
         self._generic_run(
             shell, logsio, files, 
