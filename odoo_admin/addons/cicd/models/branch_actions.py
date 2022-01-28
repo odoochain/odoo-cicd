@@ -139,7 +139,6 @@ class Branch(models.Model):
         self._collect_all_files_by_their_checksum(shell)
         if commit:
             shell.X(["git", "config", "advice.detachedHead", "false"])
-            shell.X(["git", "config", "-xdff", commit])
             shell.X(["git", "clean", "-xdff", commit])
             shell.X(["git", "checkout", "-f", commit])
         shell.odoo('reload')
