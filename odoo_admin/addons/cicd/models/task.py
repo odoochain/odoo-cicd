@@ -1,4 +1,5 @@
 import json
+import traceback
 from . import pg_advisory_lock
 import os
 import arrow
@@ -94,8 +95,16 @@ class Task(models.Model):
                     limit_branch=self.branch_id.name,
                     )
                 obj = self.env[self.model].sudo().browse(self.res_id)
+                # mini check if it is a git repository:
+                try:
+                    shell.X(["git", "status"])
+                except:
+                    msg = traceback.format_exc()
+                    raise Exception(f"Directory seems to be not a valid git directory: {dest_folder}\n{msg}")
+
                 sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
                 commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
+
                 # if not commit:
                 #     raise ValidationError(f"Commit {sha} not found in branch.")
                 # get current commit

@@ -41,10 +41,12 @@ class ShellExecutor(object):
         with self.shell() as spurplus:
             path = str(path)
             if spurplus.exists(path):
-                self.logsio.info(f"Path {path} exists and is erased now.")
+                if self.logsio:
+                    self.logsio.info(f"Path {path} exists and is erased now.")
                 spurplus.run(["rm", "-Rf", path])
             else:
-                self.logsio.info(f"Path {path} doesn't exist - nothing will be erased.")
+                if self.logsio:
+                    self.logsio.info(f"Path {path} doesn't exist - nothing will be erased.")
 
     def _get_home_dir(self):
         res = self.machine._execute_shell(

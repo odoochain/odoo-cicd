@@ -113,7 +113,9 @@ class Repository(models.Model):
             temppath = tempfile.mktemp()
         if temppath and temppath != path:
             with machine._shellexec(self.machine_id.workspace, logsio=logsio) as shell:
-                if not shell.exists(temppath):
+                if not self._is_healthy_repository(shell, temppath):
+                    shell.rmifexists(temppath)
+
                     if limit_branch:
                         # make sure branch exists in source repo
                         with machine._shellexec(path, logsio=logsio) as tempshell:
@@ -283,9 +285,20 @@ class Repository(models.Model):
             if not pg_try_advisory_lock(self.env.cr, lock):
                 raise RetryableJobError(_("Git is in other use at the moment"), seconds=10, ignore_retry=True)
 
+    def _is_healthy_repository(self, shell, path):
+        healthy = False
+        if shell.exists(path):
+            try:
+                shell.X(["git", "status"], cwd=path)
+                healthy = True
+            except:
+                pass
+        return healthy
+
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
-            if not shell.exists(path):
+            if not self._is_healthy_repository(shell, path):
+                shell.rmifexists(path)
                 self._lock_git()
                 shell.X([
                     "git", "clone", self.url,
