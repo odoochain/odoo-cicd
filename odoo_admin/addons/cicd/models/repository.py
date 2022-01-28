@@ -390,18 +390,18 @@ class Repository(models.Model):
         with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
                 shell.checkout_branch(dest.name)
-                commitid = shell.X(["/usr/bin/git", "log", "-n1", "--format=%H"]).output.strip()
-                branches = [self._clear_branch_name(x) for x in shell.X(["/usr/bin/git", "branch", "--contains", commitid]).output.strip().split("\n")]
+                commitid = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                branches = [self._clear_branch_name(x) for x in shell.X(["git", "branch", "--contains", commitid]).output.strip().split("\n")]
                 if source.name in branches:
                     return False
                 shell.checkout_branch(source.name)
                 shell.checkout_branch(dest.name)
-                count_lines = len(shell.X(["/usr/bin/git", "diff", "-p", source.name]).output.strip().split("\n"))
-                shell.X(["/usr/bin/git", "merge", source.name])
+                count_lines = len(shell.X(["git", "diff", "-p", source.name]).output.strip().split("\n"))
+                shell.X(["git", "merge", source.name])
                 for tag in set_tags:
-                    shell.X(["/usr/bin/git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
+                    shell.X(["git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
                 shell.X(["git", "remote", "set-url", 'origin', self.url])
-                shell.X(["/usr/bin/git", "push", '--tags'])
+                shell.X(["git", "push", '--tags'])
 
                 return count_lines
 

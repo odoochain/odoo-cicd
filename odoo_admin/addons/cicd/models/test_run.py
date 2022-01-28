@@ -138,6 +138,7 @@ RUN_POSTGRES=1
                 except Exception as ex:
                     msg = traceback.format_exc()
                     data['technical_errors'].append(ex)
+                    data['technical_errors'].append(msg)
                     logger.error(ex)
                     logger.error(msg)
                     if logsio:
@@ -158,7 +159,7 @@ RUN_POSTGRES=1
             [x.join() for x in threads]
 
             if data['technical_errors']:
-                raise Exception(data['technical_errors'])
+                raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
 
             self.duration = (arrow.get() - started).total_seconds()
             logsio.info(f"Duration was {self.duration}")

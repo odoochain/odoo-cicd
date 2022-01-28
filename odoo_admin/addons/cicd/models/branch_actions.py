@@ -138,6 +138,8 @@ class Branch(models.Model):
         self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
         self._collect_all_files_by_their_checksum(shell)
         if commit:
+            shell.X(["git", "config", "advice.detachedHead", "false"])
+            shell.X(["git", "config", "-xdff", commit])
             shell.X(["git", "clean", "-xdff", commit])
             shell.X(["git", "checkout", "-f", commit])
         shell.odoo('reload')
@@ -163,7 +165,7 @@ class Branch(models.Model):
 
             def _extract_commits():
                 return list(filter(bool, shell.check_output([
-                    "/usr/bin/git",
+                    "git",
                     "log",
                     "--pretty=format:%H",
                     "--since='last 4 months'",
@@ -188,7 +190,7 @@ class Branch(models.Model):
                 }
                 
                 line = shell.check_output([
-                    "/usr/bin/git",
+                    "git",
                     "log",
                     sha,
                     "-n1",
@@ -200,7 +202,7 @@ class Branch(models.Model):
                 date = arrow.get(int(line[0]))
 
                 info = shell.check_output([
-                    "/usr/bin/git",
+                    "git",
                     "log",
                     sha,
                     "--date=format:%Y-%m-%d %H:%M:%S",
