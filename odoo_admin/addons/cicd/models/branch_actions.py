@@ -134,7 +134,7 @@ class Branch(models.Model):
         shell.odoo('turn-into-dev')
 
     def _reload(self, shell, task, logsio, project_name=None, settings=None, **kwargs):
-        self._make_sure_source_exists(shell, logsio)
+        shell.cwd = self._make_sure_source_exists(shell, logsio)
         self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
         self._collect_all_files_by_their_checksum(shell)
         shell.odoo('reload')
@@ -463,12 +463,13 @@ class Branch(models.Model):
 
     def _make_sure_source_exists(self, shell, logsio):
         instance_folder = self._get_instance_folder(shell.machine)
-        if not shell.exists(instance_folder) or not shell.exists(instance_folder / '.git'):
+        if not self.env['cicd.git.repo']._is_healthy_repository(shell, instance_folder):
             try:
                 self._checkout_latest(shell, logsio=logsio)
             except Exception as ex:
                 shell.rmifexists(instance_folder)
                 self._checkout_latest(shell, logsio=logsio)
+        return instance_folder
 
     def _collect_all_files_by_their_checksum(self, shell):
         """

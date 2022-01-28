@@ -48,58 +48,45 @@ class CicdTestRun(models.Model):
                 break
 
 
-    @api.model
     @contextmanager
-    def prepare_run(self, data, appendix):
-        db_name = data['db_name']
-        testrun_id = data['testrun_id']
-        machine_id = data['machine_id']
-        task_id = data['task_id']
-        settings = data['settings']
+    def prepare_run(self, task, machine, logsio):
+        settings = """
+RUN_POSTGRES=1
+        """
+        root = machine._get_volume('source')
+        with machine._shellexec(cwd=root, logsio=logsio) as shell:
+            shell.project_name = self.branch_id.project_name # is computed by context
 
-        db_registry = registry(db_name)
-        with db_registry.cursor() as cr:
-            env = api.Environment(cr, SUPERUSER_ID, {})
-            testrun = env[self._name].browse(testrun_id)
-            machine = env['cicd.machine'].browse(machine_id)
-            task = env['cicd.task'].browse(task_id)
+            self.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings)
+            shell.cwd = root / shell.project_name
+            try:
+                shell.odoo('build')
+                shell.odoo('kill', allow_error=True)
+                shell.odoo('rm', allow_error=True)
+                logsio.info("Upping postgres...............")
+                shell.odoo('up', '-d', 'postgres')
+                self._wait_for_postgres(shell)
+                logsio.info("DB Reset...........................")
+                shell.odoo('-f', 'db', 'reset')
+                self._wait_for_postgres(shell)
+                logsio.info("Update")
+                shell.odoo('update')
+                logsio.info("Storing snapshot")
+                shell.odoo('snap', 'save', shell.project_name, force=True)
+                self._wait_for_postgres(shell)
 
-            logsio = testrun.branch_id._get_new_logsio_instance(appendix)
-            testrun = testrun.with_context(testrun=f"_testrun_{self.id}_{appendix}")
+                yield shell
 
-            with machine._shellexec(cwd='~', logsio=logsio) as shell:
-                shell.project_name = testrun.branch_id.project_name # is computed by context
-                shell.cwd = shell.cwd.parent / shell.project_name
-
-                testrun.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings)
+            finally:
                 try:
-                    shell.odoo('build')
                     shell.odoo('kill', allow_error=True)
-                    shell.odoo('rm', allow_error=True)
-                    logsio.info("Upping postgres...............")
-                    shell.odoo('up', '-d', 'postgres')
-                    testrun._wait_for_postgres(shell)
-                    logsio.info("DB Reset...........................")
-                    shell.odoo('-f', 'db', 'reset')
-                    testrun._wait_for_postgres(shell)
-                    logsio.info("Update")
-                    shell.odoo('update')
-                    logsio.info("Storing snapshot")
-                    shell.odoo('snap', 'save', shell.project_name, force=True)
-                    testrun._wait_for_postgres(shell)
-
-                    yield testrun, shell, task, logsio
-
+                    shell.odoo('rm', force=True, allow_error=True)
+                    shell.odoo('down', "-v", force=True, allow_error=True)
+                    project_dir = shell.cwd
+                    shell.cwd = shell.cwd.parent
+                    shell.rmifexists(project_dir)
                 finally:
-                    try:
-                        shell.odoo('kill', allow_error=True)
-                        shell.odoo('rm', force=True, allow_error=True)
-                        shell.odoo('down', "-v", force=True, allow_error=True)
-                        project_dir = shell.cwd
-                        shell.cwd = shell.cwd.parent
-                        shell.rmifexists(project_dir)
-                    finally:
-                        logsio.stop_keepalive()
+                    logsio.stop_keepalive()
 
     # ----------------------------------------------
     # Entrypoint
@@ -117,9 +104,6 @@ class CicdTestRun(models.Model):
 
 
         logsio.info("Reloading")
-        settings = """
-RUN_POSTGRES=1
-        """
         self.line_ids = [5]
         self.env.cr.commit()
 
@@ -128,34 +112,41 @@ RUN_POSTGRES=1
             'testrun_id': self.id,
             'machine_id': shell.machine.id,
             'task_id': task.id,
-            'db_name': self.env.cr.dbname,
-            'settings': settings,
+            'technical_errors': [],
         }
 
-        def run_unittests(self, data):
-            logsio.info("Running unittests")
-            with self.prepare_run(data, 'test-units') as self, shell, task, logsio:
-                self._run_unit_tests(shell, task, logsio)
-                self.env.cr.commit()
+        def execute(db_name, run, testrun_id, data, appendix):
+            logsio = None
+            try:
+                db_registry = registry(db_name)
+                with db_registry.cursor() as cr:
+                    env = api.Environment(cr, SUPERUSER_ID, {})
+                    machine = env['cicd.machine'].browse(data['machine_id'])
+                    testrun = env['cicd.test.run'].browse(testrun_id)
+                    logsio = testrun.branch_id._get_new_logsio_instance(appendix)
+                    testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
+                    logsio.info("Running " + appendix)
+                    with testrun.prepare_run(task, machine, logsio) as shell:
+                        logsio.info("Preparation done " + appendix)
+                        run(testrun, shell, task, logsio)
+                        env.cr.commit()
 
-        def run_robottests(self, data):
-            logsio.info("Running robot-tests")
-            with self.prepare_run(data, 'test-robot') as self, shell, task, logsio:
-                self._run_robot_tests(shell, task, logsio)
-                self.env.cr.commit()
+            except Exception as ex:
+                msg = traceback.format_exc()
+                data['technical_errors'].append(ex)
+                logger.error(ex)
+                logger.error(msg)
+                if logsio:
+                    logsio.error(ex)
+                    logsio.error(msg)
 
-        def simulate_install(self, data):
-            logsio.info("Running Simulating Install")
-            with self.prepare_run(data, 'test-migration') as self, shell, task, logsio:
-                self._run_update_db(shell, task, logsio)
-                self.env.cr.commit()
-
+        dbname = self.env.cr.dbname
         if b.run_unittests:
-            threads.append(threading.Thread(target=run_unittests, args=(self, data,)))
+            threads.append(threading.Thread(target=execute, args=(dbname, self._run_unit_tests, self.id, data, 'test-units')))
         if b.run_robottests:
-            threads.append(threading.Thread(target=run_robottests, args=(self, data,)))
+            threads.append(threading.Thread(target=execute, args=(dbname, self._run_robot_tests, self.id, data, 'test-robot')))
         if b.simulate_install_id:
-            threads.append(threading.Thread(target=simulate_install, args=(self, data,)))
+            threads.append(threading.Thread(target=execute, args=(dbname, self._run_update_db, self.id, data, 'test-migration')))
 
         for t in threads:
             t.daemon = True
