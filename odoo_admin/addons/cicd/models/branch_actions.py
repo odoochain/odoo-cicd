@@ -138,7 +138,7 @@ class Branch(models.Model):
         self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
         self._collect_all_files_by_their_checksum(shell)
         if commit:
-            shell.X(["git", "config", "advice.detachedHead", "false"])
+            shell.X(["git", "config", "advice.detachedHead", "false"]) # otherwise checking out a commit brings error message
             shell.X(["git", "clean", "-xdff", commit])
             shell.X(["git", "checkout", "-f", commit])
         shell.odoo('reload')
