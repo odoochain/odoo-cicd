@@ -214,7 +214,7 @@ RUN_POSTGRES=1
             lambda item: self.branch_id._create_empty_db(shell, task, logsio),
         )
 
-    def _run_update_db(self, shell, task, logsio):
+    def _run_update_db(self, shell, task, logsio, **kwargs):
 
         def _x(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
