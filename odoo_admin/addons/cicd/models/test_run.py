@@ -108,61 +108,61 @@ RUN_POSTGRES=1
             if not pg_try_advisory_lock(cr, f'testrun_{self.id}'):
                 return
 
-        logsio.info("Reloading")
-        self.line_ids = [5]
+            logsio.info("Reloading")
+            self.line_ids = [5]
 
-        threads = []
-        data = {
-            'testrun_id': self.id,
-            'machine_id': shell.machine.id,
-            'task_id': task.id,
-            'technical_errors': [],
-        }
+            threads = []
+            data = {
+                'testrun_id': self.id,
+                'machine_id': shell.machine.id,
+                'task_id': task.id,
+                'technical_errors': [],
+            }
 
-        def execute(db_name, run, testrun_id, data, appendix):
-            logsio = None
-            try:
-                db_registry = registry(db_name)
-                with db_registry.cursor() as cr:
-                    env = api.Environment(cr, SUPERUSER_ID, {})
-                    machine = env['cicd.machine'].browse(data['machine_id'])
-                    testrun = env['cicd.test.run'].browse(testrun_id)
-                    logsio = testrun.branch_id._get_new_logsio_instance(appendix)
-                    testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
-                    logsio.info("Running " + appendix)
-                    with testrun.prepare_run(task, machine, logsio) as shell:
-                        logsio.info("Preparation done " + appendix)
-                        run(testrun, shell, task, logsio)
-                        env.cr.commit()
+            def execute(db_name, run, testrun_id, data, appendix):
+                logsio = None
+                try:
+                    db_registry = registry(db_name)
+                    with db_registry.cursor() as cr:
+                        env = api.Environment(cr, SUPERUSER_ID, {})
+                        machine = env['cicd.machine'].browse(data['machine_id'])
+                        testrun = env['cicd.test.run'].browse(testrun_id)
+                        logsio = testrun.branch_id._get_new_logsio_instance(appendix)
+                        testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
+                        logsio.info("Running " + appendix)
+                        with testrun.prepare_run(task, machine, logsio) as shell:
+                            logsio.info("Preparation done " + appendix)
+                            run(testrun, shell, task, logsio)
+                            env.cr.commit()
 
-            except Exception as ex:
-                msg = traceback.format_exc()
-                data['technical_errors'].append(ex)
-                logger.error(ex)
-                logger.error(msg)
-                if logsio:
-                    logsio.error(ex)
-                    logsio.error(msg)
+                except Exception as ex:
+                    msg = traceback.format_exc()
+                    data['technical_errors'].append(ex)
+                    logger.error(ex)
+                    logger.error(msg)
+                    if logsio:
+                        logsio.error(ex)
+                        logsio.error(msg)
 
-        dbname = self.env.cr.dbname
-        if b.run_unittests:
-            threads.append(threading.Thread(target=execute, args=(dbname, self._run_unit_tests, self.id, data, 'test-units')))
-        if b.run_robottests:
-            threads.append(threading.Thread(target=execute, args=(dbname, self._run_robot_tests, self.id, data, 'test-robot')))
-        if b.simulate_install_id:
-            threads.append(threading.Thread(target=execute, args=(dbname, self._run_update_db, self.id, data, 'test-migration')))
+            dbname = self.env.cr.dbname
+            if b.run_unittests:
+                threads.append(threading.Thread(target=execute, args=(dbname, self._run_unit_tests, self.id, data, 'test-units')))
+            if b.run_robottests:
+                threads.append(threading.Thread(target=execute, args=(dbname, self._run_robot_tests, self.id, data, 'test-robot')))
+            if b.simulate_install_id:
+                threads.append(threading.Thread(target=execute, args=(dbname, self._run_update_db, self.id, data, 'test-migration')))
 
-        for t in threads:
-            t.daemon = True
-        [x.start() for x in threads]
-        [x.join() for x in threads]
+            for t in threads:
+                t.daemon = True
+            [x.start() for x in threads]
+            [x.join() for x in threads]
 
-        if data['technical_errors']:
-            raise Exception(data['technical_errors'])
+            if data['technical_errors']:
+                raise Exception(data['technical_errors'])
 
-        self.duration = (arrow.get() - started).total_seconds()
-        logsio.info(f"Duration was {self.duration}")
-        self._compute_success_rate()
+            self.duration = (arrow.get() - started).total_seconds()
+            logsio.info(f"Duration was {self.duration}")
+            self._compute_success_rate()
 
 
     @api.depends('line_ids', 'line_ids.state')
