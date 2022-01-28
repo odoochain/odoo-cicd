@@ -133,10 +133,13 @@ class Branch(models.Model):
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
 
-    def _reload(self, shell, task, logsio, project_name=None, settings=None, **kwargs):
+    def _reload(self, shell, task, logsio, project_name=None, settings=None, commit=None, **kwargs):
         shell.cwd = self._make_sure_source_exists(shell, logsio)
         self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
         self._collect_all_files_by_their_checksum(shell)
+        if commit:
+            shell.X(["git", "clean", "-xdff", commit])
+            shell.X(["git", "checkout", "-f", commit])
         shell.odoo('reload')
 
     def _build(self, shell, task, logsio, **kwargs):

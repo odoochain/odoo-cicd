@@ -58,7 +58,7 @@ RUN_POSTGRES=1
         with machine._shellexec(cwd=root, logsio=logsio) as shell:
             shell.project_name = self.branch_id.project_name # is computed by context
 
-            self.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings)
+            self.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
             shell.cwd = root / shell.project_name
             try:
                 shell.odoo('build')
@@ -103,7 +103,7 @@ RUN_POSTGRES=1
             b._compute_state()
             return
 
-        db_registry = registry(self.env.cr.db_name)
+        db_registry = registry(self.env.cr.dbname)
         with db_registry.cursor() as cr:
             if not pg_try_advisory_lock(cr, f'testrun_{self.id}'):
                 return
