@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class ShellExecutor(object):
     def __init__(self, machine, cwd, logsio, project_name=None, env={}):
         self.machine = machine
-        self.cwd = cwd
+        self.cwd = Path(cwd)
         self.logsio = logsio
         self.env = env
         self.project_name = project_name

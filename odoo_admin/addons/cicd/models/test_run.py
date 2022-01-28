@@ -1,8 +1,12 @@
+from contextlib import contextmanager
 import traceback
 import time
 import arrow
-from odoo import _, api, fields, models, SUPERUSER_ID
+from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+import logging
+import threading
+logger = logging.getLogger(__name__)
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run'
@@ -17,7 +21,7 @@ class CicdTestRun(models.Model):
     branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids", string="Branches")
     repo_short = fields.Char(related="branch_ids.repo_id.short")
     state = fields.Selection([
-        ('open', 'Open'),
+        ('open', 'Testing'),
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], string="Result", store=True, compute="_compute_success_rate", required=True, default='open')
@@ -27,18 +31,75 @@ class CicdTestRun(models.Model):
 
     def _wait_for_postgres(self, shell):
         timeout = 60
-        deadline = arrow.get().shift(seconds=timeout)
+        started = arrow.get()
+        deadline = started.shift(seconds=timeout)
 
         while True:
             try:
                 shell.odoo("psql", "--sql", "select * from information_schema.tables limit1;")
             except Exception:
+                diff = arrow.get() - started
+                logger.info(f"Waiting for postgres {diff.total_seconds()}...")
                 if arrow.get() < deadline:
                    time.sleep(0.5)
                 else:
                     raise
             else:
                 break
+
+
+    @api.model
+    @contextmanager
+    def prepare_run(self, data, appendix):
+        db_name = data['db_name']
+        testrun_id = data['testrun_id']
+        machine_id = data['machine_id']
+        task_id = data['task_id']
+        settings = data['settings']
+
+        db_registry = registry(db_name)
+        with db_registry.cursor() as cr:
+            env = api.Environment(cr, SUPERUSER_ID, {})
+            testrun = env[self._name].browse(testrun_id)
+            machine = env['cicd.machine'].browse(machine_id)
+            task = env['cicd.task'].browse(task_id)
+
+            logsio = testrun.branch_id._get_new_logsio_instance(appendix)
+            testrun = testrun.with_context(testrun=f"_testrun_{self.id}_{appendix}")
+
+            with machine._shellexec(cwd='~', logsio=logsio) as shell:
+                shell.project_name = testrun.branch_id.project_name # is computed by context
+                shell.cwd = shell.cwd.parent / shell.project_name
+
+                testrun.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings)
+                try:
+                    shell.odoo('build')
+                    shell.odoo('kill', allow_error=True)
+                    shell.odoo('rm', allow_error=True)
+                    logsio.info("Upping postgres...............")
+                    shell.odoo('up', '-d', 'postgres')
+                    testrun._wait_for_postgres(shell)
+                    logsio.info("DB Reset...........................")
+                    shell.odoo('-f', 'db', 'reset')
+                    testrun._wait_for_postgres(shell)
+                    logsio.info("Update")
+                    shell.odoo('update')
+                    logsio.info("Storing snapshot")
+                    shell.odoo('snap', 'save', shell.project_name, force=True)
+                    testrun._wait_for_postgres(shell)
+
+                    yield testrun, shell, task, logsio
+
+                finally:
+                    try:
+                        shell.odoo('kill', allow_error=True)
+                        shell.odoo('rm', force=True, allow_error=True)
+                        shell.odoo('down', "-v", force=True, allow_error=True)
+                        project_dir = shell.cwd
+                        shell.cwd = shell.cwd.parent
+                        shell.rmifexists(project_dir)
+                    finally:
+                        logsio.stop_keepalive()
 
     # ----------------------------------------------
     # Entrypoint
@@ -54,57 +115,56 @@ class CicdTestRun(models.Model):
             b._compute_state()
             return
 
-        self = self.with_context(testrun=f"_testrun_{self.id}")
-        shell.project_name = self.branch_id.project_name # is computed by context
-        shell.cwd = shell.cwd.parent / shell.project_name
-        self.line_ids = [5]
 
         logsio.info("Reloading")
         settings = """
 RUN_POSTGRES=1
         """
-        self.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings)
-        try:
-            shell.odoo('build')
-            shell.odoo('kill', allow_error=True)
-            shell.odoo('rm', allow_error=True)
-            logsio.info("Upping postgres...............")
-            shell.odoo('up', '-d', 'postgres')
-            self._wait_for_postgres(shell)
-            logsio.info("DB Reset...........................")
-            shell.odoo('-f', 'db', 'reset')
-            self._wait_for_postgres(shell)
-            logsio.info("Update")
-            shell.odoo('update')
-            logsio.info("Storing snapshot")
-            shell.odoo('snap', 'save', shell.project_name, force=True)
-            self._wait_for_postgres(shell)
+        self.line_ids = [5]
+        self.env.cr.commit()
 
-            if b.run_unittests:
-                logsio.info("Running unittests")
+        threads = []
+        data = {
+            'testrun_id': self.id,
+            'machine_id': shell.machine.id,
+            'task_id': task.id,
+            'db_name': self.env.cr.dbname,
+            'settings': settings,
+        }
+
+        def run_unittests(self, data):
+            logsio.info("Running unittests")
+            with self.prepare_run(data, 'test-units') as self, shell, task, logsio:
                 self._run_unit_tests(shell, task, logsio)
                 self.env.cr.commit()
 
-            if b.run_robottests:
-                logsio.info("Running robot-tests")
+        def run_robottests(self, data):
+            logsio.info("Running robot-tests")
+            with self.prepare_run(data, 'test-robot') as self, shell, task, logsio:
                 self._run_robot_tests(shell, task, logsio)
                 self.env.cr.commit()
 
-            if b.simulate_install_id:
-                logsio.info("Running Simulating Install")
+        def simulate_install(self, data):
+            logsio.info("Running Simulating Install")
+            with self.prepare_run(data, 'test-migration') as self, shell, task, logsio:
                 self._run_update_db(shell, task, logsio)
                 self.env.cr.commit()
 
-            self.duration = (arrow.get() - started).total_seconds()
-            logsio.info(f"Duration was {self.duration}")
-            self._compute_success_rate()
-        finally:
-            shell.odoo('kill', allow_error=True)
-            shell.odoo('rm', force=True, allow_error=True)
-            shell.odoo('down', "-v", force=True, allow_error=True)
-            project_dir = shell.cwd
-            shell.cwd = shell.cwd.parent
-            shell.rmifexists(project_dir)
+        if b.run_unittests:
+            threads.append(threading.Thread(target=run_unittests, args=(self, data,)))
+        if b.run_robottests:
+            threads.append(threading.Thread(target=run_robottests, args=(self, data,)))
+        if b.simulate_install_id:
+            threads.append(threading.Thread(target=simulate_install, args=(self, data,)))
+
+        for t in threads:
+            t.daemon = True
+        [x.start() for x in threads]
+        [x.join() for x in threads]
+
+        self.duration = (arrow.get() - started).total_seconds()
+        logsio.info(f"Duration was {self.duration}")
+        self._compute_success_rate()
 
 
     @api.depends('line_ids', 'line_ids.state')
@@ -208,6 +268,7 @@ RUN_POSTGRES=1
                 'ttype': ttype, 
                 'run_id': self.id
             })
+            self.env.cr.commit()
             try:
                 logsio.info(f"Running {item}")
                 execute_run(item)
@@ -218,6 +279,7 @@ RUN_POSTGRES=1
                 run_record.exc_info = msg
             else:
                 run_record.state = 'success'
+            self.env.cr.commit()
             end = arrow.get()
             run_record.duration = (end - started).total_seconds()
 
