@@ -31,7 +31,7 @@ class CicdTestRun(models.Model):
 
         while True:
             try:
-                shell.odoo("psql", "--sql", "select * from information_schema.tables;")
+                shell.odoo("psql", "--sql", "select * from information_schema.tables limit1;")
             except Exception:
                 if arrow.get() < deadline:
                    time.sleep(0.5)
@@ -160,8 +160,7 @@ RUN_POSTGRES=1
 
         def _x(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
-            self.branch_id._create_empty_db(shell, task, logsio),
-            self._wait_for_postgres(shell)
+
             task.dump_used = self.branch_id.dump_id.name
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
             self._wait_for_postgres(shell)
@@ -170,7 +169,7 @@ RUN_POSTGRES=1
 
         self._generic_run(
             shell, logsio, [None], 
-            'emptydb', _x
+            'migration', _x
         )
 
     def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
@@ -205,7 +204,7 @@ RUN_POSTGRES=1
         for item in todo:
             started = arrow.get()
             run_record = self.line_ids.create({
-                'name': item,
+                'name': item or '',
                 'ttype': ttype, 
                 'run_id': self.id
             })
@@ -251,9 +250,3 @@ class CicdTestRun(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
-
-    @api.model
-    def create(self, vals):
-        import pudb;pudb.set_trace()
-        res = super().create(vals)
-        return res
