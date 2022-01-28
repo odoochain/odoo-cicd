@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import traceback
 import time
 import arrow
+from . import pg_try_advisory_lock
 from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import logging
@@ -102,10 +103,13 @@ RUN_POSTGRES=1
             b._compute_state()
             return
 
+        db_registry = registry(self.env.cr.db_name)
+        with db_registry.cursor() as cr:
+            if not pg_try_advisory_lock(cr, f'testrun_{self.id}'):
+                return
 
         logsio.info("Reloading")
         self.line_ids = [5]
-        self.env.cr.commit()
 
         threads = []
         data = {
@@ -152,6 +156,9 @@ RUN_POSTGRES=1
             t.daemon = True
         [x.start() for x in threads]
         [x.join() for x in threads]
+
+        if data['technical_errors']:
+            raise Exception(data['technical_errors'])
 
         self.duration = (arrow.get() - started).total_seconds()
         logsio.info(f"Duration was {self.duration}")
