@@ -55,6 +55,12 @@ class Repository(models.Model):
         ('url_unique', "unique(url)", _("Only one unique entry allowed.")),
     ]
 
+    @api.constrains("username")
+    def _check_username(self):
+        for rec in self:
+            if rec.username and '@' in rec.username:
+                raise ValidationError(_("Please use the login username instead of email address"))
+
     def _compute_shortname(self):
         for rec in self:
             rec.short = rec.name.split("/")[-1]
