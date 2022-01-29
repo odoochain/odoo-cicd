@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from collections import deque
 import traceback
 import time
 import arrow
@@ -42,7 +43,7 @@ class CicdTestRun(models.Model):
                 diff = arrow.get() - started
                 logger.info(f"Waiting for postgres {diff.total_seconds()}...")
                 if arrow.get() < deadline:
-                   time.sleep(0.5)
+                    time.sleep(0.5)
                 else:
                     raise
             else:
@@ -50,7 +51,7 @@ class CicdTestRun(models.Model):
 
 
     @contextmanager
-    def prepare_run(self, task, machine, logsio):
+    def prepare_run(self, machine, logsio):
         settings = """
 RUN_POSTGRES=1
         """
@@ -58,7 +59,7 @@ RUN_POSTGRES=1
         with machine._shellexec(cwd=root, logsio=logsio) as shell:
             shell.project_name = self.branch_id.project_name # is computed by context
 
-            self.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
+            self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
             shell.cwd = root / shell.project_name
             try:
                 shell.odoo('build')
@@ -97,6 +98,7 @@ RUN_POSTGRES=1
         self.ensure_one()
         b = self.branch_id
         started = arrow.get()
+        import pudb;pudb.set_trace()
 
         with pg_advisory_lock(self.env.cr, f"testrun_{self.id}"):
 
@@ -106,56 +108,76 @@ RUN_POSTGRES=1
                 b._compute_state()
                 return
 
-            db_registry = registry(self.env.cr.dbname)
-            with db_registry.cursor() as cr:
-                logsio.info("Reloading")
-                self.line_ids = [5]
+            self.state = 'open'
+            self.line_ids = [[6, 0, []]]
+            self.env.cr.commit()
 
-                threads = []
-                data = {
-                    'testrun_id': self.id,
-                    'machine_id': shell.machine.id,
-                    'task_id': task.id,
-                    'technical_errors': [],
-                }
+            logsio.info("Reloading")
 
-                def execute(db_name, run, testrun_id, data, appendix):
-                    logsio = None
-                    env = None
+            threads = []
+            data = {
+                'testrun_id': self.id,
+                'machine_id': shell.machine.id,
+                'technical_errors': [],
+                'run_lines': deque(),
+            }
+
+            def execute(db_name, run, testrun_id, data, appendix):
+                logsio = None
+                env = None
+                try:
+                    db_registry = registry(db_name)
+                    with db_registry.cursor() as cr:
+                        env = api.Environment(cr, SUPERUSER_ID, {})
+                        machine = env['cicd.machine'].browse(data['machine_id'])
+                        testrun = env['cicd.test.run'].browse(testrun_id)
+                        logsio = testrun.branch_id._get_new_logsio_instance(f"{appendix} - testrun {self.id}")
+                        testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
+                        logsio.info("Running " + appendix)
+                        passed_prepare = False
+                        try:
+                            started = arrow.get()
+                            with testrun.prepare_run(machine, logsio) as shell:
+                                logsio.info("Preparation done " + appendix)
+                                passed_prepare = True
+                                run(testrun, shell, task, logsio)
+                        except Exception as ex:
+                            msg = traceback.format_exc()
+                            if not passed_prepare:
+                                duration = (arrow.get() - started).total_seconds()
+                                data['run_lines'].append({
+                                    'run_id': testrun_id,
+                                    'started': arrow.get().datetime,
+                                    'duration': duration,
+                                    'exc_info': msg,
+                                    'ttype': 'preparation',
+                                    'name': "Failed at preparation",
+                                    'state': 'failed',
+                                })
+
+                except Exception as ex:
+                    msg = traceback.format_exc()
+                    data['technical_errors'].append(ex)
+                    data['technical_errors'].append(msg)
+                    logger.error(ex)
+                    logger.error(msg)
+                    if logsio:
+                        logsio.error(ex)
+                        logsio.error(msg)
+
+            def line_collector(self):
+                while True:
                     try:
-                        db_registry = registry(db_name)
-                        with db_registry.cursor() as cr:
-                            env = api.Environment(cr, SUPERUSER_ID, {})
-                            try:
-                                machine = env['cicd.machine'].browse(data['machine_id'])
-                                testrun = env['cicd.test.run'].browse(testrun_id)
-                                logsio = testrun.branch_id._get_new_logsio_instance(f"{appendix} - testrun {self.id}")
-                                testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
-                                logsio.info("Running " + appendix)
-                                passed_prepare = False
-                                try:
-                                    started = arrow.get()
-                                    with testrun.prepare_run(task, machine, logsio) as shell:
-                                        logsio.info("Preparation done " + appendix)
-                                        passed_prepare = True
-                                        run(testrun, shell, task, logsio)
-                                except Exception as ex:
-                                    msg = traceback.format_exc()
-                                    if not passed_prepare:
-                                        duration = (arrow.get() - started).total_seconds()
-                                        testrun.line_ids.create({
-                                            'run_id': testrun.id,
-                                            'duration': duration,
-                                            'exc_info': msg,
-                                            'ttype': 'preparation',
-                                            'name': "Failed at preparation",
-                                            'state': 'failed',
-                                        })
-
-                                    env.cr.commit()
-                            finally:
-                                env.cr.commit()
-
+                        try:
+                            line = data['run_lines'].popleft()
+                            if line == "DONE":
+                                break
+                            logger.info(f"New result line: {line}")
+                            self.line_ids = [[0, 0, line]]
+                            self.env.cr.commit()
+                        except IndexError:
+                            pass
+                        time.sleep(0.5)
                     except Exception as ex:
                         msg = traceback.format_exc()
                         data['technical_errors'].append(ex)
@@ -166,28 +188,28 @@ RUN_POSTGRES=1
                             logsio.error(ex)
                             logsio.error(msg)
 
-                dbname = self.env.cr.dbname
-                if b.run_unittests:
-                    threads.append(threading.Thread(target=execute, args=(dbname, self._run_unit_tests, self.id, data, 'test-units')))
-                if b.run_robottests:
-                    threads.append(threading.Thread(target=execute, args=(dbname, self._run_robot_tests, self.id, data, 'test-robot')))
-                if b.simulate_install_id:
-                    threads.append(threading.Thread(target=execute, args=(dbname, self._run_update_db, self.id, data, 'test-migration')))
+            dbname = self.env.cr.dbname
+            threads.append(threading.Thread(target=line_collector, args=(self, )))
 
-                for t in threads:
-                    t.daemon = True
-                self.env.cr.commit()
-                [x.start() for x in threads]
-                [x.join() for x in threads]
+            if b.run_unittests:
+                threads.append(threading.Thread(target=execute, args=(dbname, self._run_unit_tests, self.id, data, 'test-units')))
+            if b.run_robottests:
+                threads.append(threading.Thread(target=execute, args=(dbname, self._run_robot_tests, self.id, data, 'test-robot')))
+            if b.simulate_install_id:
+                threads.append(threading.Thread(target=execute, args=(dbname, self._run_update_db, self.id, data, 'test-migration')))
 
-                if data['technical_errors']:
-                    raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+            for t in threads:
+                t.daemon = True
+            [x.start() for x in threads]
+            [x.join() for x in threads]
+            data['run_lines'].append("DONE")
 
-                self.env.clear()
-                self.env.cr.rollback()
-                self.duration = (arrow.get() - started).total_seconds()
-                logsio.info(f"Duration was {self.duration}")
-                self._compute_success_rate()
+            if data['technical_errors']:
+                raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+
+            self.duration = (arrow.get() - started).total_seconds()
+            logsio.info(f"Duration was {self.duration}")
+            self._compute_success_rate()
 
 
     # @api.depends('line_ids', 'line_ids.state') # do not ! transactions problem if automatically updated; is called at end of tests
@@ -231,7 +253,7 @@ RUN_POSTGRES=1
         self.branch_id._make_task("_run_tests", silent=True, update_state=True, testrun_id=self.id)
 
     def _run_create_empty_db(self, shell, task, logsio):
-        self._generic_run(
+        return self._generic_run(
             shell, logsio, [None], 
             'emptydb',
             lambda item: self.branch_id._create_empty_db(shell, task, logsio),
@@ -248,7 +270,7 @@ RUN_POSTGRES=1
             shell.odoo('update')
             self._wait_for_postgres(shell)
 
-        self._generic_run(
+        return self._generic_run(
             shell, logsio, [None], 
             'migration', _x
         )
@@ -263,7 +285,7 @@ RUN_POSTGRES=1
             self._wait_for_postgres(shell)
             shell.odoo('robot', item)
 
-        self._generic_run(
+        return self._generic_run(
             shell, logsio, files, 
             'robottest', _x,
         )
@@ -275,34 +297,36 @@ RUN_POSTGRES=1
         shell.odoo("snap", "restore", shell.project_name)
         self._wait_for_postgres(shell)
 
-        self._generic_run(
+        return self._generic_run(
             shell, logsio, files, 
             'unittest',
             lambda item: shell.odoo('unittest', item)
         )
 
     def _generic_run(self, shell, logsio, todo, ttype, execute_run):
+        result = []
         for item in todo:
             started = arrow.get()
-            run_record = self.line_ids.create({
+            data = {
                 'name': item or '',
                 'ttype': ttype, 
-                'run_id': self.id
-            })
-            self.env.cr.commit()
+                'run_id': self.id,
+                'started': arrow.get().datetime
+            }
             try:
                 logsio.info(f"Running {item}")
                 execute_run(item)
             except Exception as ex:
                 msg = traceback.format_exc()
                 logsio.error(f"Error happened: {msg}")
-                run_record.state = 'failed'
-                run_record.exc_info = msg
+                data['state'] = 'failed'
+                data['exc_info'] = msg
             else:
-                run_record.state = 'success'
+                data['state'] = 'success'
             end = arrow.get()
-            run_record.duration = (end - started).total_seconds()
-            self.env.cr.commit()
+            data['duration'] = (end - started).total_seconds()
+            result.append(data)
+        return result
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
@@ -323,6 +347,7 @@ class CicdTestRun(models.Model):
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], default='open', required=True)
+    started = fields.Datetime("Started")
 
     def open_form(self):
         return {

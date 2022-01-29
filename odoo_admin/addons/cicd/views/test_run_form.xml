@@ -28,7 +28,7 @@
 									<group string="" col="4">
 										<field name="ttype"/>
 										<field name="name"/>
-										<field name="create_date"/>
+										<field name="started"/>
 										<field name="exc_info"/>
 									</group>
 								</sheet>

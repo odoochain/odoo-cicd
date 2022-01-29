@@ -174,7 +174,7 @@ class Repository(models.Model):
             try:
                 if not repo.login_type:
                     raise ValidationError(f"Login-Type missing for {repo.name}")
-                with pg_advisory_lock(self.env.cr, self._get_lockname()):
+                with pg_advisory_lock(self.env.cr, repo._get_lockname()):
                     logsio = LogsIOWriter(repo.name, 'fetch')
                         
                     repo_path = repo._get_main_repo(logsio=logsio)
