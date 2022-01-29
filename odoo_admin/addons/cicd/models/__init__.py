@@ -4,7 +4,7 @@ import hashlib
 import struct
 from pathlib import Path
 import logging
-logger = logging.getLogger(__main__)
+logger = logging.getLogger("CICD")
 
 MAIN_FOLDER_NAME = "_main"
 
