@@ -61,7 +61,6 @@ RUN_POSTGRES=1
             self.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
             shell.cwd = root / shell.project_name
             try:
-                raise Exception('test fault 00000000001')
                 shell.odoo('build')
                 shell.odoo('kill', allow_error=True)
                 shell.odoo('rm', allow_error=True)
