@@ -26,8 +26,8 @@ class CicdTestRun(models.Model):
         ('open', 'Testing'),
         ('success', 'Success'),
         ('failed', 'Failed'),
-    ], string="Result", store=True, compute="_compute_success_rate", required=True, default='open')
-    success_rate = fields.Integer("Success Rate [%]", compute="_compute_success_rate")
+    ], string="Result", store=True, required=True, default='open')
+    success_rate = fields.Integer("Success Rate [%]")
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     duration = fields.Integer("Duration [s]")
 
@@ -223,7 +223,6 @@ RUN_POSTGRES=1
                 logsio.error(ex)
                 logsio.error(msg)
 
-    # @api.depends('line_ids', 'line_ids.state') # do not ! transactions problem if automatically updated; is called at end of tests
     def _compute_success_rate(self):
         for rec in self:
             lines = rec.mapped('line_ids')
