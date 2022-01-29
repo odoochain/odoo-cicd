@@ -262,8 +262,7 @@ RUN_POSTGRES=1
         if self.branch_id.state not in ['testable', 'tested', 'dev']:
             raise ValidationError(_("State of branch does not all a repeated test run"))
         self = self.sudo()
-        self.state = 'open'
-        self.branch_id._make_task("_run_tests", silent=True, update_state=True, testrun_id=self.id)
+        self.state = 'open' # regular cronjob makes task for that
 
     def _run_create_empty_db(self, shell, task, logsio):
         self._generic_run(
