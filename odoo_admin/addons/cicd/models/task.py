@@ -84,55 +84,54 @@ class Task(models.Model):
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
         logsio = self.branch_id._get_new_logsio_instance(self._get_short_name())
         logsio.start_keepalive()
-        pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}")
-        try:
+        with pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}_{self.branch_id.project_name}"):  # project name so that tests may run parallel to backups
+            try:
+                dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
+                with self.machine_id._shellexec(dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
+                    self.branch_id.repo_id._get_main_repo(
+                        destination_folder=dest_folder,
+                        machine=self.machine_id,
+                        limit_branch=self.branch_id.name,
+                        )
+                    obj = self.env[self.model].sudo().browse(self.res_id)
+                    # mini check if it is a git repository:
+                    try:
+                        shell.X(["git", "status"])
+                    except:
+                        msg = traceback.format_exc()
+                        raise Exception(f"Directory seems to be not a valid git directory: {dest_folder}\n{msg}")
 
-            dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
-            with self.machine_id._shellexec(dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
-                self.branch_id.repo_id._get_main_repo(
-                    destination_folder=dest_folder,
-                    machine=self.machine_id,
-                    limit_branch=self.branch_id.name,
-                    )
-                obj = self.env[self.model].sudo().browse(self.res_id)
-                # mini check if it is a git repository:
-                try:
-                    shell.X(["git", "status"])
-                except:
-                    msg = traceback.format_exc()
-                    raise Exception(f"Directory seems to be not a valid git directory: {dest_folder}\n{msg}")
+                    sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                    commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
 
-                sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
-                commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
+                    # if not commit:
+                    #     raise ValidationError(f"Commit {sha} not found in branch.")
+                    # get current commit
+                    args = {
+                        'task': self,
+                        'logsio': logsio,
+                        'shell': shell,
+                        }
+                    if self.kwargs and self.kwargs != 'null':
+                        args.update(json.loads(self.kwargs))
+                    exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
+                    self.sudo().commit_id = commit
 
-                # if not commit:
-                #     raise ValidationError(f"Commit {sha} not found in branch.")
-                # get current commit
-                args = {
-                    'task': self,
-                    'logsio': logsio,
-                    'shell': shell,
-                    }
-                if self.kwargs and self.kwargs != 'null':
-                    args.update(json.loads(self.kwargs))
-                exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
-                self.sudo().commit_id = commit
+            except Exception:
+                msg = traceback.format_exc()
+                log = '\n'.join(logsio.get_lines())
 
-        except Exception:
-            msg = traceback.format_exc()
-            log = '\n'.join(logsio.get_lines())
+                raise Exception(f"{msg}\n\n{log}")
 
-            raise Exception(f"{msg}\n\n{log}")
+            finally:
+                if logsio:
+                    logsio.stop_keepalive()
+            self.log = '\n'.join(logsio.get_lines())
 
-        finally:
+            duration = (arrow.get() - started).total_seconds()
+            self.duration = duration
             if logsio:
-                logsio.stop_keepalive()
-        self.log = '\n'.join(logsio.get_lines())
-
-        duration = (arrow.get() - started).total_seconds()
-        self.duration = duration
-        if logsio:
-            logsio.info(f"Finished after {duration} seconds!")
+                logsio.info(f"Finished after {duration} seconds!")
 
     @api.model
     def _cron_cleanup(self):
