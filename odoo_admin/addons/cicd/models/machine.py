@@ -134,7 +134,7 @@ class CicdMachine(models.Model):
         self._execute_shell(["ls"])
         raise ValidationError(_("Everyhing Works!"))
 
-    def _execute_shell(self, cmd, cwd=None, env=None, logsio=None, allow_error=False):
+    def _execute_shell(self, cmd, cwd=None, env=None, logsio=None, allow_error=False, logoutput=True):
 
         def convert(x):
             if isinstance(x, Path):
@@ -165,20 +165,24 @@ class CicdMachine(models.Model):
             def _write_line(self):
                 if not self.line:
                     return
-                if self.ttype == 'error':
-                    logsio.error(self.line)
-                else:
-                    logsio.info(self.line)
+                if logoutput:
+                    if self.ttype == 'error':
+                        logsio.error(self.line)
+                    else:
+                        logsio.info(self.line)
 
         with self._shell() as shell:
-            stdwriter, errwriter = MyWriter('info'), MyWriter('error')
+            if not logoutput:
+                stdwriter, errwriter = None, None
+            else:
+                stdwriter, errwriter = MyWriter('info'), MyWriter('error')
 
             res = shell.run(
                 cmd, cwd=cwd, update_env=env or {},
                 stdout=stdwriter, stderr=errwriter, allow_error=allow_error,
             )
-            stdwriter.finish()
-            errwriter.finish()
+            stdwriter and stdwriter.finish()
+            errwriter and errwriter.finish()
             return res
 
     def update_dumps(self):

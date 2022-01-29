@@ -133,10 +133,14 @@ class Branch(models.Model):
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
 
-    def _reload(self, shell, task, logsio, project_name=None, settings=None, **kwargs):
-        self._make_sure_source_exists(shell, logsio)
+    def _reload(self, shell, task, logsio, project_name=None, settings=None, commit=None, **kwargs):
+        shell.cwd = self._make_sure_source_exists(shell, logsio)
         self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
         self._collect_all_files_by_their_checksum(shell)
+        if commit:
+            shell.X(["git", "config", "advice.detachedHead", "false"]) # otherwise checking out a commit brings error message
+            shell.X(["git", "clean", "-xdff", commit])
+            shell.X(["git", "checkout", "-f", commit])
         shell.odoo('reload')
 
     def _build(self, shell, task, logsio, **kwargs):
@@ -160,7 +164,7 @@ class Branch(models.Model):
 
             def _extract_commits():
                 return list(filter(bool, shell.check_output([
-                    "/usr/bin/git",
+                    "git",
                     "log",
                     "--pretty=format:%H",
                     "--since='last 4 months'",
@@ -185,7 +189,7 @@ class Branch(models.Model):
                 }
                 
                 line = shell.check_output([
-                    "/usr/bin/git",
+                    "git",
                     "log",
                     sha,
                     "-n1",
@@ -197,7 +201,7 @@ class Branch(models.Model):
                 date = arrow.get(int(line[0]))
 
                 info = shell.check_output([
-                    "/usr/bin/git",
+                    "git",
                     "log",
                     sha,
                     "--date=format:%Y-%m-%d %H:%M:%S",
@@ -463,12 +467,13 @@ class Branch(models.Model):
 
     def _make_sure_source_exists(self, shell, logsio):
         instance_folder = self._get_instance_folder(shell.machine)
-        if not shell.exists(instance_folder) or not shell.exists(instance_folder / '.git'):
+        if not self.env['cicd.git.repo']._is_healthy_repository(shell, instance_folder):
             try:
                 self._checkout_latest(shell, logsio=logsio)
             except Exception as ex:
                 shell.rmifexists(instance_folder)
                 self._checkout_latest(shell, logsio=logsio)
+        return instance_folder
 
     def _collect_all_files_by_their_checksum(self, shell):
         """

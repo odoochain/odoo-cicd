@@ -1,7 +1,10 @@
 import os
+from contextlib import contextmanager
 import hashlib
 import struct
 from pathlib import Path
+import logging
+logger = logging.getLogger("CICD")
 
 MAIN_FOLDER_NAME = "_main"
 
@@ -27,9 +30,21 @@ def pg_try_advisory_lock(cr, lock):
     acquired = cr.fetchone()[0]
     return acquired
 
-def pg_advisory_lock(cr, lock):
+def pg_advisory_xact_lock(cr, lock):
     cr.execute("SELECT pg_advisory_xact_lock(%s);", (_int_lock(lock),))
 
+
+@contextmanager
+def pg_advisory_lock(cr, lock):
+    lock = _int_lock(lock)
+    cr.execute("SELECT pg_advisory_lock(%s);", (lock,))
+    try:
+        yield
+    finally:
+        try:
+            cr.execute("SELECT pg_advisory_unlock(%s);", (lock,))
+        except Exception:
+            logger.warn(f"Could not release lock because of connection. Perhaps already closed so ok.", exc_info=True)
 
 from . import ticketsystem
 from . import mixin_size

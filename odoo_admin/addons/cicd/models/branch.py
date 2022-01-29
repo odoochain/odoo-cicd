@@ -326,6 +326,8 @@ class GitBranch(models.Model):
             dbname = project_name.lower().replace("-", "_")
             if self.env.context.get('testrun'):
                 project_name += self.env.context['testrun']
+            # incompatibility to capital letters in btrfs; constraining to lowercase
+            project_name = project_name.lower()
             rec.project_name = project_name
             rec.database_project_name = dbname
 
@@ -378,8 +380,10 @@ class GitBranch(models.Model):
             rec.block_release = not rec.block_release
 
     def _cron_make_test_runs(self):
-        for rec in self:
-            rec._make_task("_run_tests", silent=True, update_state=True)
+        for testrun in self.env['cicd.test.run'].search([('state', '=', 'open')]):
+            # if a test already exists for the branch no second is created unless the other is done or failed
+            # this is because only one active task per method is allowed
+            testrun.branch_id._make_task("_run_tests", silent=True, update_state=True)
 
     def _trigger_rebuild_after_fetch(self, machine):
         """

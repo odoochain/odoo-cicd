@@ -1,8 +1,14 @@
+from contextlib import contextmanager
+from collections import deque
 import traceback
 import time
 import arrow
-from odoo import _, api, fields, models, SUPERUSER_ID
+from . import pg_advisory_lock
+from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+import logging
+import threading
+logger = logging.getLogger(__name__)
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run'
@@ -17,7 +23,7 @@ class CicdTestRun(models.Model):
     branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids", string="Branches")
     repo_short = fields.Char(related="branch_ids.repo_id.short")
     state = fields.Selection([
-        ('open', 'Open'),
+        ('open', 'Testing'),
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], string="Result", store=True, compute="_compute_success_rate", required=True, default='open')
@@ -27,99 +33,202 @@ class CicdTestRun(models.Model):
 
     def _wait_for_postgres(self, shell):
         timeout = 60
-        deadline = arrow.get().shift(seconds=timeout)
+        started = arrow.get()
+        deadline = started.shift(seconds=timeout)
 
         while True:
             try:
                 shell.odoo("psql", "--sql", "select * from information_schema.tables limit1;")
             except Exception:
+                diff = arrow.get() - started
+                logger.info(f"Waiting for postgres {diff.total_seconds()}...")
                 if arrow.get() < deadline:
-                   time.sleep(0.5)
+                    time.sleep(0.5)
                 else:
                     raise
             else:
                 break
 
+    @contextmanager
+    def prepare_run(self, machine, logsio):
+        settings = """
+RUN_POSTGRES=1
+        """
+        root = machine._get_volume('source')
+        with machine._shellexec(cwd=root, logsio=logsio) as shell:
+            shell.project_name = self.branch_id.project_name # is computed by context
+
+            self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
+            shell.cwd = root / shell.project_name
+            try:
+                shell.odoo('build')
+                shell.odoo('kill', allow_error=True)
+                shell.odoo('rm', allow_error=True)
+                logsio.info("Upping postgres...............")
+                shell.odoo('up', '-d', 'postgres')
+                self._wait_for_postgres(shell)
+                logsio.info("DB Reset...........................")
+                shell.odoo('-f', 'db', 'reset')
+                self._wait_for_postgres(shell)
+                logsio.info("Update")
+                shell.odoo('update')
+                logsio.info("Storing snapshot")
+                shell.odoo('snap', 'save', shell.project_name, force=True)
+                self._wait_for_postgres(shell)
+
+                yield shell
+
+            finally:
+                try:
+                    shell.odoo('kill', allow_error=True)
+                    shell.odoo('rm', force=True, allow_error=True)
+                    shell.odoo('down', "-v", force=True, allow_error=True)
+                    project_dir = shell.cwd
+                    shell.cwd = shell.cwd.parent
+                    shell.rmifexists(project_dir)
+                finally:
+                    if logsio:
+                        logsio.stop_keepalive()
+
     # ----------------------------------------------
     # Entrypoint
     # ----------------------------------------------
-    def execute(self, shell, task, logsio):
+    def execute(self, shell=None, task=None, logsio=None):
         self.ensure_one()
         b = self.branch_id
         started = arrow.get()
 
-        if not b.any_testing:
-            self.success_rate = 100
-            self.state = 'success'
-            b._compute_state()
-            return
+        with pg_advisory_lock(self.env.cr, f"testrun_{self.id}"):
+            if not b.any_testing:
+                self.success_rate = 100
+                self.state = 'success'
+                b._compute_state()
+                return
 
-        self = self.with_context(testrun=f"_testrun_{self.id}")
-        shell.project_name = self.branch_id.project_name # is computed by context
-        shell.cwd = shell.cwd.parent / shell.project_name
-        self.line_ids = [5]
+            self.state = 'open'
+            self.line_ids = [[6, 0, []]]
+            self.env.cr.commit()
 
-        logsio.info("Reloading")
-        settings = """
-RUN_POSTGRES=1
-        """
-        self.branch_id._reload(shell, task, logsio, project_name=shell.project_name, settings=settings)
-        try:
-            shell.odoo('build')
-            shell.odoo('kill', allow_error=True)
-            shell.odoo('rm', allow_error=True)
-            logsio.info("Upping postgres...............")
-            shell.odoo('up', '-d', 'postgres')
-            self._wait_for_postgres(shell)
-            logsio.info("DB Reset...........................")
-            shell.odoo('-f', 'db', 'reset')
-            self._wait_for_postgres(shell)
-            logsio.info("Update")
-            shell.odoo('update')
-            logsio.info("Storing snapshot")
-            shell.odoo('snap', 'save', shell.project_name, force=True)
-            self._wait_for_postgres(shell)
+            if shell:
+                machine = shell.machine
+            else:
+                machine = self.branch_id.repo_id.machine_id
+
+            threads = []
+            data = {
+                'testrun_id': self.id,
+                'machine_id': machine.id,
+                'technical_errors': [],
+                'run_lines': deque(),
+            }
+
+            dbname = self.env.cr.dbname
+            threads.append(threading.Thread(target=self.line_collector, args=(data['run_lines'], data['technical_errors'], logsio)))
 
             if b.run_unittests:
-                logsio.info("Running unittests")
-                self._run_unit_tests(shell, task, logsio)
-                self.env.cr.commit()
-
+                threads.append(threading.Thread(target=self._execute, args=(dbname, self._run_unit_tests, self.id, data, 'test-units')))
             if b.run_robottests:
-                logsio.info("Running robot-tests")
-                self._run_robot_tests(shell, task, logsio)
-                self.env.cr.commit()
-
+                threads.append(threading.Thread(target=self._execute, args=(dbname, self._run_robot_tests, self.id, data, 'test-robot')))
             if b.simulate_install_id:
-                logsio.info("Running Simulating Install")
-                self._run_update_db(shell, task, logsio)
-                self.env.cr.commit()
+                threads.append(threading.Thread(target=self._execute, args=(dbname, self._run_update_db, self.id, data, 'test-migration')))
+
+            for t in threads:
+                t.daemon = True
+            [x.start() for x in threads]
+            [x.join() for x in threads]
+            data['run_lines'].append("DONE")
+
+            if data['technical_errors']:
+                raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
 
             self.duration = (arrow.get() - started).total_seconds()
             logsio.info(f"Duration was {self.duration}")
             self._compute_success_rate()
-        finally:
-            shell.odoo('kill', allow_error=True)
-            shell.odoo('rm', force=True, allow_error=True)
-            shell.odoo('down', "-v", force=True, allow_error=True)
-            project_dir = shell.cwd
-            shell.cwd = shell.cwd.parent
-            shell.rmifexists(project_dir)
 
+    def line_collector(self, queue, errors, logsio):
+        while True:
+            try:
+                try:
+                    line = queue.popleft()
+                    if line == "DONE":
+                        break
+                    if line:
+                        logger.info(f"New result line: {line}")
+                        self.env['cicd.test.run.line'].create(line)
+                        self.env.cr.commit()
+                except IndexError:
+                    pass
+                time.sleep(0.5)
+            except Exception as ex:
+                msg = traceback.format_exc()
+                errors.append(ex)
+                errors.append(msg)
+                logger.error(ex)
+                logger.error(msg)
+                if logsio:
+                    logsio.error(ex)
+                    logsio.error(msg)
 
-    @api.depends('line_ids', 'line_ids.state')
+    def _execute(self, db_name, run, testrun_id, data, appendix):
+        logsio = None
+        env = None
+        try:
+            db_registry = registry(db_name)
+            with db_registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+                machine = env['cicd.machine'].browse(data['machine_id'])
+                testrun = env['cicd.test.run'].browse(testrun_id)
+                logsio = testrun.branch_id._get_new_logsio_instance(f"{appendix} - testrun {self.id}")
+                testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
+                logsio.info("Running " + appendix)
+                passed_prepare = False
+                try:
+                    started = arrow.get()
+                    with testrun.prepare_run(machine, logsio) as shell:
+                        logsio.info("Preparation done " + appendix)
+                        data['run_lines'].append({
+                            'state': 'success', 'ttype': 'log', 'name': f'preparation done: {appendix}',
+                            'duration': (arrow.get() - started).total_seconds()
+                            })
+                        passed_prepare = True
+                        run(testrun, shell, logsio, line_queue=data['run_lines'])
+                except Exception as ex:
+                    msg = traceback.format_exc()
+                    if not passed_prepare:
+                        duration = (arrow.get() - started).total_seconds()
+                        data['run_lines'].append({
+                            'run_id': testrun_id,
+                            'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                            'duration': duration,
+                            'exc_info': msg,
+                            'ttype': 'preparation',
+                            'name': "Failed at preparation",
+                            'state': 'failed',
+                        })
+
+        except Exception as ex:
+            msg = traceback.format_exc()
+            data['technical_errors'].append(ex)
+            data['technical_errors'].append(msg)
+            logger.error(ex)
+            logger.error(msg)
+            if logsio:
+                logsio.error(ex)
+                logsio.error(msg)
+
+    # @api.depends('line_ids', 'line_ids.state') # do not ! transactions problem if automatically updated; is called at end of tests
     def _compute_success_rate(self):
         for rec in self:
-            if 'failed' in rec.mapped('line_ids.state'):
-                rec.state = 'failed'
-            elif all(x == 'success' for x in rec.mapped('line_ids.state')) and rec.line_ids:
+            lines = rec.mapped('line_ids')
+            success_lines = len(lines.filtered(lambda x: x.state == 'success'))
+            if lines and all(x.state == 'success' for x in lines):
                 rec.state = 'success'
             else:
-                rec.state = 'open'
-            if not self.line_ids:
+                rec.state = 'failed'
+            if not self.line_ids or not success_lines:
                 rec.success_rate = 0
             else:
-                rec.success_rate = int(100 / float(len(self.line_ids)) * float(len(self.line_ids.filtered(lambda x: x.state == 'success'))))
+                rec.success_rate = int(100 / float(len(self.line_ids)) * float(success_lines))
 
     @api.constrains('branch_ids')
     def _check_branches(self):
@@ -156,7 +265,7 @@ RUN_POSTGRES=1
             lambda item: self.branch_id._create_empty_db(shell, task, logsio),
         )
 
-    def _run_update_db(self, shell, task, logsio):
+    def _run_update_db(self, shell, task, logsio, line_queue, **kwargs):
 
         def _x(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
@@ -169,10 +278,10 @@ RUN_POSTGRES=1
 
         self._generic_run(
             shell, logsio, [None], 
-            'migration', _x
+            'migration', _x, line_queue,
         )
 
-    def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
+    def _run_robot_tests(self, shell, tasks, logsio, line_queue, **kwargs):
         files = shell.odoo('list-robot-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
@@ -184,10 +293,10 @@ RUN_POSTGRES=1
 
         self._generic_run(
             shell, logsio, files, 
-            'robottest', _x,
+            'robottest', _x, line_queue,
         )
 
-    def _run_unit_tests(self, shell, tasks, logsio, **kwargs):
+    def _run_unit_tests(self, shell, tasks, logsio, line_queue, **kwargs):
         files = shell.odoo('list-unit-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
@@ -197,38 +306,51 @@ RUN_POSTGRES=1
         self._generic_run(
             shell, logsio, files, 
             'unittest',
-            lambda item: shell.odoo('unittest', item)
+            lambda item: shell.odoo('unittest', item),
+            line_queue
         )
 
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run):
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run, line_queue):
         for item in todo:
+            line_queue.append({
+                'name': f"Starting: {item}",
+                'ttype': ttype, 
+                'run_id': self.id,
+                'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                'state': 'success',
+            })
             started = arrow.get()
-            run_record = self.line_ids.create({
+            data = {
                 'name': item or '',
                 'ttype': ttype, 
-                'run_id': self.id
-            })
+                'run_id': self.id,
+                'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
+            }
             try:
                 logsio.info(f"Running {item}")
                 execute_run(item)
             except Exception as ex:
                 msg = traceback.format_exc()
                 logsio.error(f"Error happened: {msg}")
-                run_record.state = 'failed'
-                run_record.exc_info = msg
+                data['state'] = 'failed'
+                data['exc_info'] = msg
             else:
-                run_record.state = 'success'
+                data['state'] = 'success'
             end = arrow.get()
-            run_record.duration = (end - started).total_seconds()
+            data['duration'] = (end - started).total_seconds()
+            line_queue.append(data)
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
+    _order = 'started'
 
     ttype = fields.Selection([
+        ('preparation', "Preparation"),
         ('unittest', 'Unit-Test'),
         ('robottest', 'Robot-Test'),
         ('migration', 'Migration'),
         ('emptydb', 'Migration'),
+        ('log', "Log-Note"),
     ], string="Category")
     name = fields.Char("Name")
     run_id = fields.Many2one('cicd.test.run', string="Run")
@@ -239,6 +361,7 @@ class CicdTestRun(models.Model):
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], default='open', required=True)
+    started = fields.Datetime("Started")
 
     def open_form(self):
         return {
