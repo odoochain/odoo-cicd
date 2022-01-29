@@ -101,13 +101,13 @@ class ShellExecutor(object):
         self.X(["git", "clean", "-xdff"], cwd=cwd)
         self.X(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=cwd)
 
-    def X(self, cmd, allow_error=False, env=None, cwd=None):
+    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
         return self.machine._execute_shell(
             cmd, cwd=cwd or self.cwd, env=effective_env, logsio=self.logsio,
-            allow_error=allow_error,
+            allow_error=allow_error, logoutput=logoutput,
         )
 
     def get(self, source):

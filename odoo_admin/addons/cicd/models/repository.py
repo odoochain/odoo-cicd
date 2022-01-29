@@ -291,8 +291,11 @@ class Repository(models.Model):
         healthy = False
         if shell.exists(path):
             try:
-                shell.X(["git", "status"], cwd=path)
-                healthy = True
+                res = shell.X(["git", "status", "-s"], cwd=path, logoutput=False)
+                if res.output.strip():
+                    healthy = False
+                else:
+                    healthy = True
             except:
                 pass
         return healthy
