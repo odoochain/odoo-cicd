@@ -129,7 +129,7 @@ RUN_POSTGRES=1
                             try:
                                 machine = env['cicd.machine'].browse(data['machine_id'])
                                 testrun = env['cicd.test.run'].browse(testrun_id)
-                                logsio = testrun.branch_id._get_new_logsio_instance(appendix)
+                                logsio = testrun.branch_id._get_new_logsio_instance(f"{appendix} - testrun {self.id}")
                                 testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
                                 logsio.info("Running " + appendix)
                                 passed_prepare = False
