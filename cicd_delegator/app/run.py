@@ -117,12 +117,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             resp.raise_for_status()
 
         path = (self.path or '').split("?")[0]
-        if path in ['/index', '/index/'] or not delegator_path:
-            path = self.path
-            if path.split("/")[1] == 'index':
-                path = '/'
-            url = f'{cicd_index_url}{path}'
-        elif path.startswith("/mailer/") and delegator_path:
+        if path.startswith("/mailer/") and delegator_path:
             host = f"{delegator_path}_proxy"
             url = f'http://{host}{path}'
         elif path.startswith("/logs/") and delegator_path:
@@ -131,6 +126,9 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         else:
             host = f"{delegator_path}_proxy"
             url = f'http://{host}{path}'
+
+        if "?" in self.path:
+            url += "?" + self.path.split("?", 1)[1]
 
         logger.debug(f"rewrite path result: {url}")
         return url
