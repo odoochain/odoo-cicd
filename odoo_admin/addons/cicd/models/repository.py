@@ -302,9 +302,9 @@ class Repository(models.Model):
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
-            if not self._is_healthy_repository(shell, path):
-                shell.rmifexists(path)
-                with pg_advisory_lock(self.env.cr, self._get_lockname()):
+            with pg_advisory_lock(self.env.cr, self._get_lockname()):
+                if not self._is_healthy_repository(shell, path):
+                    shell.rmifexists(path)
                     shell.X([
                         "git", "clone", self.url,
                         path

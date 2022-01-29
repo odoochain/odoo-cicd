@@ -38,7 +38,7 @@ class CicdTestRun(models.Model):
 
         while True:
             try:
-                shell.odoo("psql", "--sql", "select * from information_schema.tables limit1;")
+                shell.odoo("psql", "--sql", "select * from information_schema.tables limit 1;")
             except Exception:
                 diff = arrow.get() - started
                 logger.info(f"Waiting for postgres {diff.total_seconds()}...")
@@ -136,10 +136,16 @@ RUN_POSTGRES=1
                 t.daemon = True
             [x.start() for x in threads]
             [x.join() for x in threads]
-            data['run_lines'].append("DONE")
 
             if data['technical_errors']:
+                for error in data['technical_errors']:
+                    data['run_lines'].append({
+                        'exc_info': error,
+                        'ttype': 'log',
+                        'state': 'failed',
+                    })
                 raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+            data['run_lines'].append("DONE")
 
             self.duration = (arrow.get() - started).total_seconds()
             logsio.info(f"Duration was {self.duration}")
@@ -155,6 +161,7 @@ RUN_POSTGRES=1
                     if line:
                         logger.info(f"New result line: {line}")
                         self.env['cicd.test.run.line'].create(line)
+                        self.state = 'open'
                         self.env.cr.commit()
                 except IndexError:
                     pass
@@ -191,7 +198,7 @@ RUN_POSTGRES=1
                             'duration': (arrow.get() - started).total_seconds()
                             })
                         passed_prepare = True
-                        run(testrun, shell, logsio, line_queue=data['run_lines'])
+                        run(shell, logsio, line_queue=data['run_lines'])
                 except Exception as ex:
                     msg = traceback.format_exc()
                     if not passed_prepare:
@@ -265,12 +272,11 @@ RUN_POSTGRES=1
             lambda item: self.branch_id._create_empty_db(shell, task, logsio),
         )
 
-    def _run_update_db(self, shell, task, logsio, line_queue, **kwargs):
+    def _run_update_db(self, shell, logsio, line_queue, **kwargs):
 
         def _x(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
 
-            task.dump_used = self.branch_id.dump_id.name
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
             self._wait_for_postgres(shell)
             shell.odoo('update')
@@ -281,7 +287,7 @@ RUN_POSTGRES=1
             'migration', _x, line_queue,
         )
 
-    def _run_robot_tests(self, shell, tasks, logsio, line_queue, **kwargs):
+    def _run_robot_tests(self, shell, logsio, line_queue, **kwargs):
         files = shell.odoo('list-robot-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
@@ -296,7 +302,7 @@ RUN_POSTGRES=1
             'robottest', _x, line_queue,
         )
 
-    def _run_unit_tests(self, shell, tasks, logsio, line_queue, **kwargs):
+    def _run_unit_tests(self, shell, logsio, line_queue, **kwargs):
         files = shell.odoo('list-unit-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
