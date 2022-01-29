@@ -2,7 +2,7 @@ from contextlib import contextmanager
 import traceback
 import time
 import arrow
-from . import pg_try_advisory_lock
+from . import pg_advisory_lock
 from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import logging
@@ -98,97 +98,96 @@ RUN_POSTGRES=1
         b = self.branch_id
         started = arrow.get()
 
-        if not b.any_testing:
-            self.success_rate = 100
-            self.state = 'success'
-            b._compute_state()
-            return
+        with pg_advisory_lock(self.env.cr, f"testrun_{self.id}"):
 
-        db_registry = registry(self.env.cr.dbname)
-        with db_registry.cursor() as cr:
-            if not pg_try_advisory_lock(cr, f'testrun_{self.id}'):
+            if not b.any_testing:
+                self.success_rate = 100
+                self.state = 'success'
+                b._compute_state()
                 return
 
-            logsio.info("Reloading")
-            self.line_ids = [5]
+            db_registry = registry(self.env.cr.dbname)
+            with db_registry.cursor() as cr:
+                logsio.info("Reloading")
+                self.line_ids = [5]
 
-            threads = []
-            data = {
-                'testrun_id': self.id,
-                'machine_id': shell.machine.id,
-                'task_id': task.id,
-                'technical_errors': [],
-            }
+                threads = []
+                data = {
+                    'testrun_id': self.id,
+                    'machine_id': shell.machine.id,
+                    'task_id': task.id,
+                    'technical_errors': [],
+                }
 
-            def execute(db_name, run, testrun_id, data, appendix):
-                logsio = None
-                env = None
-                try:
-                    db_registry = registry(db_name)
-                    with db_registry.cursor() as cr:
-                        env = api.Environment(cr, SUPERUSER_ID, {})
-                        try:
-                            machine = env['cicd.machine'].browse(data['machine_id'])
-                            testrun = env['cicd.test.run'].browse(testrun_id)
-                            logsio = testrun.branch_id._get_new_logsio_instance(appendix)
-                            testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
-                            logsio.info("Running " + appendix)
-                            passed_prepare = False
+                def execute(db_name, run, testrun_id, data, appendix):
+                    logsio = None
+                    env = None
+                    try:
+                        db_registry = registry(db_name)
+                        with db_registry.cursor() as cr:
+                            env = api.Environment(cr, SUPERUSER_ID, {})
                             try:
-                                started = arrow.get()
-                                with testrun.prepare_run(task, machine, logsio) as shell:
-                                    logsio.info("Preparation done " + appendix)
-                                    passed_prepare = True
-                                    run(testrun, shell, task, logsio)
-                            except Exception as ex:
-                                msg = traceback.format_exc()
-                                if not passed_prepare:
-                                    duration = (arrow.get() - started).total_seconds()
-                                    testrun.line_ids.create({
-                                        'run_id': testrun.id,
-                                        'duration': duration,
-                                        'exc_info': msg,
-                                        'ttype': 'preparation',
-                                        'name': "Failed at preparation",
-                                        'state': 'failed',
-                                    })
+                                machine = env['cicd.machine'].browse(data['machine_id'])
+                                testrun = env['cicd.test.run'].browse(testrun_id)
+                                logsio = testrun.branch_id._get_new_logsio_instance(appendix)
+                                testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
+                                logsio.info("Running " + appendix)
+                                passed_prepare = False
+                                try:
+                                    started = arrow.get()
+                                    with testrun.prepare_run(task, machine, logsio) as shell:
+                                        logsio.info("Preparation done " + appendix)
+                                        passed_prepare = True
+                                        run(testrun, shell, task, logsio)
+                                except Exception as ex:
+                                    msg = traceback.format_exc()
+                                    if not passed_prepare:
+                                        duration = (arrow.get() - started).total_seconds()
+                                        testrun.line_ids.create({
+                                            'run_id': testrun.id,
+                                            'duration': duration,
+                                            'exc_info': msg,
+                                            'ttype': 'preparation',
+                                            'name': "Failed at preparation",
+                                            'state': 'failed',
+                                        })
 
+                                    env.cr.commit()
+                            finally:
                                 env.cr.commit()
-                        finally:
-                            env.cr.commit()
 
-                except Exception as ex:
-                    msg = traceback.format_exc()
-                    data['technical_errors'].append(ex)
-                    data['technical_errors'].append(msg)
-                    logger.error(ex)
-                    logger.error(msg)
-                    if logsio:
-                        logsio.error(ex)
-                        logsio.error(msg)
+                    except Exception as ex:
+                        msg = traceback.format_exc()
+                        data['technical_errors'].append(ex)
+                        data['technical_errors'].append(msg)
+                        logger.error(ex)
+                        logger.error(msg)
+                        if logsio:
+                            logsio.error(ex)
+                            logsio.error(msg)
 
-            dbname = self.env.cr.dbname
-            if b.run_unittests:
-                threads.append(threading.Thread(target=execute, args=(dbname, self._run_unit_tests, self.id, data, 'test-units')))
-            if b.run_robottests:
-                threads.append(threading.Thread(target=execute, args=(dbname, self._run_robot_tests, self.id, data, 'test-robot')))
-            if b.simulate_install_id:
-                threads.append(threading.Thread(target=execute, args=(dbname, self._run_update_db, self.id, data, 'test-migration')))
+                dbname = self.env.cr.dbname
+                if b.run_unittests:
+                    threads.append(threading.Thread(target=execute, args=(dbname, self._run_unit_tests, self.id, data, 'test-units')))
+                if b.run_robottests:
+                    threads.append(threading.Thread(target=execute, args=(dbname, self._run_robot_tests, self.id, data, 'test-robot')))
+                if b.simulate_install_id:
+                    threads.append(threading.Thread(target=execute, args=(dbname, self._run_update_db, self.id, data, 'test-migration')))
 
-            for t in threads:
-                t.daemon = True
-            self.env.cr.commit()
-            [x.start() for x in threads]
-            [x.join() for x in threads]
+                for t in threads:
+                    t.daemon = True
+                self.env.cr.commit()
+                [x.start() for x in threads]
+                [x.join() for x in threads]
 
-            if data['technical_errors']:
-                raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+                if data['technical_errors']:
+                    raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
 
-            self.env.clear()
-            self.env.cr.rollback()
-            self.duration = (arrow.get() - started).total_seconds()
-            logsio.info(f"Duration was {self.duration}")
-            self._compute_success_rate()
+                self.env.clear()
+                self.env.cr.rollback()
+                self.duration = (arrow.get() - started).total_seconds()
+                logsio.info(f"Duration was {self.duration}")
+                self._compute_success_rate()
 
 
     @api.depends('line_ids', 'line_ids.state')

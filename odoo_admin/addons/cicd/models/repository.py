@@ -9,7 +9,6 @@ import tempfile
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
-from . import pg_try_advisory_lock
 from odoo.addons.queue_job.exception import (
     RetryableJobError,
     JobError,
