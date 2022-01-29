@@ -94,13 +94,13 @@ RUN_POSTGRES=1
     # ----------------------------------------------
     # Entrypoint
     # ----------------------------------------------
-    def execute(self, shell, task, logsio):
+    def execute(self, shell=None, task=None, logsio=None):
         self.ensure_one()
         b = self.branch_id
         started = arrow.get()
-        import pudb;pudb.set_trace()
 
         with pg_advisory_lock(self.env.cr, f"testrun_{self.id}"):
+            import pudb;pudb.set_trace()
 
             if not b.any_testing:
                 self.success_rate = 100
@@ -112,12 +112,15 @@ RUN_POSTGRES=1
             self.line_ids = [[6, 0, []]]
             self.env.cr.commit()
 
-            logsio.info("Reloading")
+            if shell:
+                machine = shell.machine
+            else:
+                machine = self.branch_id.repo_id.machine_id
 
             threads = []
             data = {
                 'testrun_id': self.id,
-                'machine_id': shell.machine.id,
+                'machine_id': machine.id,
                 'technical_errors': [],
                 'run_lines': deque(),
             }
@@ -128,6 +131,7 @@ RUN_POSTGRES=1
                 try:
                     db_registry = registry(db_name)
                     with db_registry.cursor() as cr:
+                        import pudb;pudb.set_trace()
                         env = api.Environment(cr, SUPERUSER_ID, {})
                         machine = env['cicd.machine'].browse(data['machine_id'])
                         testrun = env['cicd.test.run'].browse(testrun_id)
@@ -139,15 +143,19 @@ RUN_POSTGRES=1
                             started = arrow.get()
                             with testrun.prepare_run(machine, logsio) as shell:
                                 logsio.info("Preparation done " + appendix)
+                                data['run_lines'].append({
+                                    'state': 'success', 'ttype': 'preparation', 'name': f'preparation done: {appendix}',
+                                    'duration': (arrow.get() - started).total_seconds()
+                                    })
                                 passed_prepare = True
-                                run(testrun, shell, task, logsio)
+                                run(testrun, shell, logsio, line_queue=data['run_lines'])
                         except Exception as ex:
                             msg = traceback.format_exc()
                             if not passed_prepare:
                                 duration = (arrow.get() - started).total_seconds()
                                 data['run_lines'].append({
                                     'run_id': testrun_id,
-                                    'started': arrow.get().datetime,
+                                    'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
                                     'duration': duration,
                                     'exc_info': msg,
                                     'ttype': 'preparation',
@@ -206,6 +214,7 @@ RUN_POSTGRES=1
 
             if data['technical_errors']:
                 raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+            import pudb;pudb.set_trace()
 
             self.duration = (arrow.get() - started).total_seconds()
             logsio.info(f"Duration was {self.duration}")
@@ -253,13 +262,13 @@ RUN_POSTGRES=1
         self.branch_id._make_task("_run_tests", silent=True, update_state=True, testrun_id=self.id)
 
     def _run_create_empty_db(self, shell, task, logsio):
-        return self._generic_run(
+        self._generic_run(
             shell, logsio, [None], 
             'emptydb',
             lambda item: self.branch_id._create_empty_db(shell, task, logsio),
         )
 
-    def _run_update_db(self, shell, task, logsio, **kwargs):
+    def _run_update_db(self, shell, task, logsio, line_queue, **kwargs):
 
         def _x(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
@@ -270,12 +279,12 @@ RUN_POSTGRES=1
             shell.odoo('update')
             self._wait_for_postgres(shell)
 
-        return self._generic_run(
+        self._generic_run(
             shell, logsio, [None], 
-            'migration', _x
+            'migration', _x, line_queue,
         )
 
-    def _run_robot_tests(self, shell, tasks, logsio, **kwargs):
+    def _run_robot_tests(self, shell, tasks, logsio, line_queue, **kwargs):
         files = shell.odoo('list-robot-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
@@ -285,33 +294,40 @@ RUN_POSTGRES=1
             self._wait_for_postgres(shell)
             shell.odoo('robot', item)
 
-        return self._generic_run(
+        self._generic_run(
             shell, logsio, files, 
-            'robottest', _x,
+            'robottest', _x, line_queue,
         )
 
-    def _run_unit_tests(self, shell, tasks, logsio, **kwargs):
+    def _run_unit_tests(self, shell, tasks, logsio, line_queue, **kwargs):
         files = shell.odoo('list-unit-test-files').output.strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo("snap", "restore", shell.project_name)
         self._wait_for_postgres(shell)
 
-        return self._generic_run(
+        self._generic_run(
             shell, logsio, files, 
             'unittest',
-            lambda item: shell.odoo('unittest', item)
+            lambda item: shell.odoo('unittest', item),
+            line_queue
         )
 
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run):
-        result = []
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run, line_queue):
         for item in todo:
+            line_queue.append({
+                'name': f"Starting: {item}",
+                'ttype': ttype, 
+                'run_id': self.id,
+                'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                'state': 'success',
+            })
             started = arrow.get()
             data = {
                 'name': item or '',
                 'ttype': ttype, 
                 'run_id': self.id,
-                'started': arrow.get().datetime
+                'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
             }
             try:
                 logsio.info(f"Running {item}")
@@ -325,8 +341,7 @@ RUN_POSTGRES=1
                 data['state'] = 'success'
             end = arrow.get()
             data['duration'] = (end - started).total_seconds()
-            result.append(data)
-        return result
+            line_queue.append(data)
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
