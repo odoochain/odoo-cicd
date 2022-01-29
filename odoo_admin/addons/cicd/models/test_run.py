@@ -259,7 +259,7 @@ RUN_POSTGRES=1
 
     def rerun(self):
         if self.branch_id.state not in ['testable', 'tested', 'dev']:
-            raise ValidationError(_("State of branch does not all a repeated test run"))
+            raise ValidationError(_("State of branch does not allow a repeated test run"))
         self = self.sudo()
         self.state = 'open' # regular cronjob makes task for that
 
