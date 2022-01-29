@@ -304,11 +304,11 @@ class Repository(models.Model):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
             if not self._is_healthy_repository(shell, path):
                 shell.rmifexists(path)
-                self._lock_git()
-                shell.X([
-                    "git", "clone", self.url,
-                    path
-                ])
+                with pg_advisory_lock(self.env.cr, self._get_lockname()):
+                    shell.X([
+                        "git", "clone", self.url,
+                        path
+                    ])
 
     def _collect_latest_tested_commits(self, source_branches, target_branch_name, logsio, critical_date, make_info_commit_msg):
         """

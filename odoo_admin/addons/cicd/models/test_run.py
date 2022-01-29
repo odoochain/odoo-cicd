@@ -152,9 +152,10 @@ RUN_POSTGRES=1
                     line = queue.popleft()
                     if line == "DONE":
                         break
-                    logger.info(f"New result line: {line}")
-                    self.line_ids = [[0, 0, line]]
-                    self.env.cr.commit()
+                    if line:
+                        logger.info(f"New result line: {line}")
+                        self.env['cicd.test.run.line'].create(line)
+                        self.env.cr.commit()
                 except IndexError:
                     pass
                 time.sleep(0.5)
