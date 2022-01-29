@@ -195,10 +195,8 @@ RUN_POSTGRES=1
         for rec in self:
             if 'failed' in rec.mapped('line_ids.state'):
                 rec.state = 'failed'
-            elif all(x == 'success' for x in rec.mapped('line_ids.state')) and rec.line_ids:
-                rec.state = 'success'
             else:
-                rec.state = 'open'
+                rec.state = 'success'
             if not self.line_ids:
                 rec.success_rate = 0
             else:
