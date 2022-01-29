@@ -190,7 +190,7 @@ RUN_POSTGRES=1
                 self._compute_success_rate()
 
 
-    @api.depends('line_ids', 'line_ids.state')
+    # @api.depends('line_ids', 'line_ids.state') # do not ! transactions problem if automatically updated; is called at end of tests
     def _compute_success_rate(self):
         for rec in self:
             if 'failed' in rec.mapped('line_ids.state'):
