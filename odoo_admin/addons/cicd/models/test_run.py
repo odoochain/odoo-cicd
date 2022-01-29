@@ -185,7 +185,7 @@ RUN_POSTGRES=1
                 env = api.Environment(cr, SUPERUSER_ID, {})
                 machine = env['cicd.machine'].browse(data['machine_id'])
                 testrun = env['cicd.test.run'].browse(testrun_id)
-                logsio = testrun.branch_id._get_new_logsio_instance(f"{appendix} - testrun {self.id}")
+                logsio = testrun.branch_id._get_new_logsio_instance(f"{appendix} - testrun")
                 testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
                 logsio.info("Running " + appendix)
                 passed_prepare = False
