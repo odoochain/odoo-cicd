@@ -133,7 +133,8 @@ RUN_POSTGRES=1
             }
 
             dbname = self.env.cr.dbname
-            threads.append(threading.Thread(target=self.line_collector, args=(data['run_lines'], data['technical_errors'], logsio)))
+            thread_line_collector = threading.Thread(target=self.line_collector, args=(data['run_lines'], data['technical_errors'], logsio))
+            threads.append(thread_line_collector)
 
             if b.run_unittests:
                 threads.append(threading.Thread(target=self._execute, args=(dbname, self._run_unit_tests, self.id, data, 'test-units')))
@@ -142,9 +143,15 @@ RUN_POSTGRES=1
             if b.simulate_install_id:
                 threads.append(threading.Thread(target=self._execute, args=(dbname, self._run_update_db, self.id, data, 'test-migration')))
 
-            for t in threads:
-                t.daemon = True
+            for t in threads: t.daemon = True
             [x.start() for x in threads]
+
+            while True:
+                alive = [x for x in threads if x.is_alive()]
+                if len(alive) == 1 and thread_line_collector.is_alive():
+                    data['run_lines'].append("DONE")
+                    break
+                time.sleep(1)
             [x.join() for x in threads]
 
             if data['technical_errors']:
@@ -155,7 +162,6 @@ RUN_POSTGRES=1
                         'state': 'failed',
                     })
                 raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
-            data['run_lines'].append("DONE")
 
             self.duration = (arrow.get() - started).total_seconds()
             logsio.info(f"Duration was {self.duration}")
@@ -216,7 +222,6 @@ RUN_POSTGRES=1
                         duration = (arrow.get() - started).total_seconds()
                         data['run_lines'].append({
                             'run_id': testrun_id,
-                            'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
                             'duration': duration,
                             'exc_info': msg,
                             'ttype': 'preparation',
@@ -236,7 +241,7 @@ RUN_POSTGRES=1
 
     def _compute_success_rate(self):
         for rec in self:
-            lines = rec.mapped('line_ids')
+            lines = rec.mapped('line_ids').filtered(lambda x: x.ttype != 'log')
             success_lines = len(lines.filtered(lambda x: x.state == 'success'))
             if lines and all(x.state == 'success' for x in lines):
                 rec.state = 'success'
@@ -326,13 +331,12 @@ RUN_POSTGRES=1
         )
 
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, line_queue):
-        for i, item in enumerate(todo):
+        for i, item in enumerate(todo)[:1]: # TODO undo
             index = f"({i + 1} / {len(todo)}"
             line_queue.append({
                 'name': f"Starting: {index} {item}",
                 'ttype': ttype, 
                 'run_id': self.id,
-                'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
                 'state': 'success',
             })
             started = arrow.get()
@@ -340,7 +344,6 @@ RUN_POSTGRES=1
                 'name': item or '',
                 'ttype': ttype, 
                 'run_id': self.id,
-                'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
             }
             try:
                 logsio.info(f"Running {index} {item}")
@@ -377,7 +380,7 @@ class CicdTestRun(models.Model):
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], default='open', required=True)
-    started = fields.Datetime("Started")
+    started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
 
     def open_form(self):
         return {
