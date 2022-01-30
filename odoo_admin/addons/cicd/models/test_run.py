@@ -331,7 +331,7 @@ RUN_POSTGRES=1
         )
 
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, line_queue):
-        for i, item in enumerate(todo)[:1]: # TODO undo
+        for i, item in enumerate(todo):
             index = f"({i + 1} / {len(todo)}"
             line_queue.append({
                 'name': f"Starting: {index} {item}",
