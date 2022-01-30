@@ -255,18 +255,20 @@ class GitBranch(models.Model):
                 else:
                     rec.build_state = 'new'
 
-    def _make_task(self, execute, now=False, machine=None, silent=False, **kwargs):
+    def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, **kwargs):
         for rec in self:
-            if not now and rec.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started'] and x.name == execute):
+            identity_key = identity_key or execute
+            if not now and rec.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started'] and x.identity_key == identity_key):
                 if silent:
                     return
-                raise ValidationError(_("Task already exists. Not triggered again."))
+                raise ValidationError(f"Task already exists. Not triggered again. Idkey: {identity_key}")
             task = rec.env['cicd.task'].sudo().create({
                 'model': self._name,
                 'res_id': rec.id,
                 'name': execute,
                 'branch_id': rec.id,
                 'machine_id': (machine and machine.id) or rec.machine_id.id,
+                'identity_key': identity_key if identity_key else False,
                 'kwargs': json.dumps(kwargs),
             })
             task.perform(now=now)
@@ -383,7 +385,9 @@ class GitBranch(models.Model):
         for testrun in self.env['cicd.test.run'].search([('state', '=', 'open')]):
             # if a test already exists for the branch no second is created unless the other is done or failed
             # this is because only one active task per method is allowed
-            testrun.branch_id._make_task("_run_tests", silent=True, update_state=True)
+            testrun.branch_id._make_task(
+                "_run_tests", silent=True, update_state=True,
+                testrun_id=testrun.id, identity_key=f"testrun_{testrun.id}")
 
     def _trigger_rebuild_after_fetch(self, machine):
         """

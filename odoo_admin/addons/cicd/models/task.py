@@ -30,6 +30,7 @@ class Task(models.Model):
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
     queue_job_id = fields.Many2one('queue.job', string="Queuejob")
     kwargs = fields.Text("KWargs")
+    identity_key = fields.Char()
 
     @api.depends('queue_job_id', 'queue_job_id.state')
     def _compute_error(self):
@@ -64,11 +65,13 @@ class Task(models.Model):
                 eta=arrow.get().shift(seconds=10).strftime("%Y-%m-%d %H:%M:%S"),
             )._exec(now)
             if queuejob:
-                self.sudo().queue_job_id = self.env['queue.job'].prefix(queuejob, ":".join([self.branch_id.name, self.name]))
+                self.sudo().queue_job_id = self.env['queue.job'].prefix(queuejob, ":".join(filter(bool, [self.branch_id.name, self.name, self.identity_key])))
         else:
             self._exec(now)
 
     def _get_identity_key(self):
+        if self.identity_key:
+            return self.identity_key
         name = self._get_short_name()
         return f"{self.branch_id.project_name}_{name}"
 
