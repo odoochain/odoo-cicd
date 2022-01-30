@@ -50,10 +50,13 @@ class CicdTestRun(models.Model):
                 break
 
     @contextmanager
-    def prepare_run(self, machine, logsio):
+    def prepare_run(self, machine, logsio, queue):
         settings = """
 RUN_POSTGRES=1
         """
+        def report(msg):
+            queue.append({'state': 'success', 'name': msg, 'ttype': 'log'})
+            logsio.info(msg)
         root = machine._get_volume('source')
         with machine._shellexec(cwd=root, logsio=logsio) as shell:
             shell.project_name = self.branch_id.project_name # is computed by context
@@ -61,20 +64,25 @@ RUN_POSTGRES=1
             self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
             shell.cwd = root / shell.project_name
             try:
+                report('building')
                 shell.odoo('build')
+                report('killing any existing')
                 shell.odoo('kill', allow_error=True)
                 shell.odoo('rm', allow_error=True)
-                logsio.info("Upping postgres...............")
+                report('starting postgres')
                 shell.odoo('up', '-d', 'postgres')
                 self._wait_for_postgres(shell)
-                logsio.info("DB Reset...........................")
+                report('db reset started')
                 shell.odoo('-f', 'db', 'reset')
+                report('db reset done')
                 self._wait_for_postgres(shell)
-                logsio.info("Update")
+                report('update started')
                 shell.odoo('update')
-                logsio.info("Storing snapshot")
+                report('installation of modules done')
+                report("Storing snapshot")
                 shell.odoo('snap', 'save', shell.project_name, force=True)
                 self._wait_for_postgres(shell)
+                report("Storing snapshot done")
 
                 yield shell
 
@@ -191,7 +199,7 @@ RUN_POSTGRES=1
                 passed_prepare = False
                 try:
                     started = arrow.get()
-                    with testrun.prepare_run(machine, logsio) as shell:
+                    with testrun.prepare_run(machine, logsio, data['run_lines']) as shell:
                         logsio.info("Preparation done " + appendix)
                         data['run_lines'].append({
                             'state': 'success', 'ttype': 'log', 'name': f'preparation done: {appendix}',
