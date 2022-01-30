@@ -8,6 +8,8 @@
 					<button name="open_form" string="" icon="fa-external-link" type="object" />
 					<field name="ttype"/>
 					<field name="name"/>
+					<field name="started"/>
+					<field name="duration"/>
 					<field name="state"/>
 				</tree>
 			</field>
