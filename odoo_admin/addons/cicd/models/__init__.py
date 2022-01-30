@@ -39,6 +39,7 @@ def pg_advisory_lock(cr, lock):
     lock = _int_lock(lock)
     cr.execute("SELECT pg_advisory_lock(%s);", (lock,))
     try:
+        logger.info(f"Acquired advisory lock {lock}")
         yield
     finally:
         try:

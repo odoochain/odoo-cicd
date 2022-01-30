@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import sys
 from collections import deque
 import traceback
 import time
@@ -59,10 +60,11 @@ RUN_POSTGRES=1
             logsio.info(msg)
         root = machine._get_volume('source')
         with machine._shellexec(cwd=root, logsio=logsio) as shell:
-            report("Preparing run...")
             shell.project_name = self.branch_id.project_name # is computed by context
 
+            report("Checking out source code...")
             self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
+            report("Checked out source code")
             shell.cwd = root / shell.project_name
             try:
                 report('building')
@@ -118,6 +120,7 @@ RUN_POSTGRES=1
             self.state = 'open'
             self.line_ids = [[6, 0, []]]
             self.env.cr.commit()
+            self.line_ids = [[0, 0, {'ttype': 'log', 'name': 'Started'}]]
 
             if shell:
                 machine = shell.machine
@@ -330,24 +333,49 @@ RUN_POSTGRES=1
             line_queue
         )
 
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run, line_queue):
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run, line_queue, timeout=600):
+        """
+        Timeout in seconds.
+
+        """
         for i, item in enumerate(todo):
+
             index = f"({i + 1} / {len(todo)}"
+            started = arrow.get()
+            deadline = started.shift(seconds=timeout)
             line_queue.append({
                 'name': f"Starting: {index} {item}",
                 'ttype': ttype, 
                 'run_id': self.id,
                 'state': 'success',
             })
-            started = arrow.get()
             data = {
                 'name': item or '',
                 'ttype': ttype, 
                 'run_id': self.id,
+                'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
             }
             try:
                 logsio.info(f"Running {index} {item}")
-                execute_run(item)
+
+                def execute_wrapper(item, data):
+                    try:
+                        execute_run(item)
+                    except Exception as ex:
+                        msg = traceback.format_exc()
+                        logsio.error(f"Error happened: {msg}")
+                        data['state'] = 'failed'
+                        data['exc_info'] = msg
+
+                t = threading.Thread(target=execute_wrapper, args=(item, data))
+                t.daemon = True
+                t.start()
+
+                while t.is_alive():
+                    if arrow.get() > deadline:
+                        raise Exception(f'timeout of {timeout} reached')
+                    time.sleep(1)
+
             except Exception as ex:
                 msg = traceback.format_exc()
                 logsio.error(f"Error happened: {msg}")

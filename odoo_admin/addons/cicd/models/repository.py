@@ -174,51 +174,51 @@ class Repository(models.Model):
             try:
                 if not repo.login_type:
                     raise ValidationError(f"Login-Type missing for {repo.name}")
-                with pg_advisory_lock(self.env.cr, repo._get_lockname()):
-                    logsio = LogsIOWriter(repo.name, 'fetch')
-                        
-                    repo_path = repo._get_main_repo(logsio=logsio)
+                logsio = LogsIOWriter(repo.name, 'fetch')
+                    
+                repo_path = repo._get_main_repo(logsio=logsio)
 
-                    with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio) as shell:
-                        updated_branches = set()
+                with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio) as shell:
+                    updated_branches = set()
 
-                        for remote in repo._get_remotes(shell):
-                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run']).stderr_output.strip().split("\n")))
-                            for fi in fetch_info:
-                                while "  " in fi:
-                                    fi = fi.replace("  ", " ")
-                                fi = fi.strip()
-                                if '[new tag]' in fi:
-                                    continue
-                                elif '[new branch]' in fi:
-                                    branch = fi.replace("[new branch]", "").split("->")[0].strip()
-                                else:
-                                    branch = fi.split("/")[-1]
-                                try:
-                                    branch = repo._clear_branch_name(branch)
-                                except InvalidBranchName:
-                                    logsio.error("Invalid Branch name: {branch}")
-                                    continue
+                    for remote in repo._get_remotes(shell):
+                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run']).stderr_output.strip().split("\n")))
+                        for fi in fetch_info:
+                            while "  " in fi:
+                                fi = fi.replace("  ", " ")
+                            fi = fi.strip()
+                            if '[new tag]' in fi:
+                                continue
+                            elif '[new branch]' in fi:
+                                branch = fi.replace("[new branch]", "").split("->")[0].strip()
+                            else:
+                                branch = fi.split("/")[-1]
+                            try:
+                                branch = repo._clear_branch_name(branch)
+                            except InvalidBranchName:
+                                logsio.error("Invalid Branch name: {branch}")
+                                continue
 
-                                if not branch.startswith(repo.release_tag_prefix):
-                                    updated_branches.add(branch)
+                            if not branch.startswith(repo.release_tag_prefix):
+                                updated_branches.add(branch)
 
-                            del fetch_info
+                        del fetch_info
 
-                        if not updated_branches:
-                            continue
+                    if not updated_branches:
+                        continue
 
-                        # checkout latest / pull latest
-                        for branch in updated_branches:
-                            logsio.info(f"Pulling {branch}...")
-                            shell.X(["git", "fetch", "origin", branch])
+                    # checkout latest / pull latest
+                    for branch in updated_branches:
+                        logsio.info(f"Pulling {branch}...")
+                        shell.X(["git", "fetch", "origin", branch])
+                        with pg_advisory_lock(self.env.cr, repo._get_lockname()):
                             shell.checkout_branch(branch)
                             shell.X(["git", "pull"])
                             shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
-                        repo.with_delay()._cron_fetch_update_branches({
-                            'updated_branches': list(updated_branches),
-                        })
+                    repo.with_delay()._cron_fetch_update_branches({
+                        'updated_branches': list(updated_branches),
+                    })
 
             except Exception as ex:
                 msg = traceback.format_exc()
@@ -240,13 +240,13 @@ class Repository(models.Model):
 
     def _cron_fetch_update_branches(self, data):
         repo = self
-        with pg_advisory_lock(self.env.cr, self._get_lockname()):
-            updated_branches = data['updated_branches']
-            logsio = LogsIOWriter(repo.name, 'fetch')
-            repo_path = repo._get_main_repo(logsio=logsio)
-            machine = repo.machine_id
-            repo = repo.with_context(active_test=False)
+        updated_branches = data['updated_branches']
+        logsio = LogsIOWriter(repo.name, 'fetch')
+        repo_path = repo._get_main_repo(logsio=logsio)
+        machine = repo.machine_id
+        repo = repo.with_context(active_test=False)
 
+        with pg_advisory_lock(self.env.cr, self._get_lockname()):
             with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
                 # if completely new then all branches:
                 if not repo.branch_ids:
@@ -386,34 +386,33 @@ class Repository(models.Model):
             return message_commit, commits
 
     def _merge(self, source, dest, set_tags, logsio=None):
-        with pg_advisory_lock(self.env.cr, self._get_lockname()):
-            assert source._name == 'cicd.git.branch'
-            assert dest._name == 'cicd.git.branch'
-            source.ensure_one()
-            dest.ensure_one()
+        assert source._name == 'cicd.git.branch'
+        assert dest._name == 'cicd.git.branch'
+        source.ensure_one()
+        dest.ensure_one()
 
-            machine = self.machine_id
-            repo_path = self._get_main_repo(tempfolder=True)
-            with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
-                try:
-                    shell.checkout_branch(dest.name)
-                    commitid = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
-                    branches = [self._clear_branch_name(x) for x in shell.X(["git", "branch", "--contains", commitid]).output.strip().split("\n")]
-                    if source.name in branches:
-                        return False
-                    shell.checkout_branch(source.name)
-                    shell.checkout_branch(dest.name)
-                    count_lines = len(shell.X(["git", "diff", "-p", source.name]).output.strip().split("\n"))
-                    shell.X(["git", "merge", source.name])
-                    for tag in set_tags:
-                        shell.X(["git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
-                    shell.X(["git", "remote", "set-url", 'origin', self.url])
-                    shell.X(["git", "push", '--tags'])
+        machine = self.machine_id
+        repo_path = self._get_main_repo(tempfolder=True)
+        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
+            try:
+                shell.checkout_branch(dest.name)
+                commitid = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                branches = [self._clear_branch_name(x) for x in shell.X(["git", "branch", "--contains", commitid]).output.strip().split("\n")]
+                if source.name in branches:
+                    return False
+                shell.checkout_branch(source.name)
+                shell.checkout_branch(dest.name)
+                count_lines = len(shell.X(["git", "diff", "-p", source.name]).output.strip().split("\n"))
+                shell.X(["git", "merge", source.name])
+                for tag in set_tags:
+                    shell.X(["git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
+                shell.X(["git", "remote", "set-url", 'origin', self.url])
+                shell.X(["git", "push", '--tags'])
 
-                    return count_lines
+                return count_lines
 
-                finally:
-                    shell.rmifexists(repo_path)
+            finally:
+                shell.rmifexists(repo_path)
 
     @api.model
     def _cron_cleanup(self):
