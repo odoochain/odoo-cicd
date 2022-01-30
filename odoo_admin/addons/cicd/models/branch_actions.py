@@ -273,6 +273,7 @@ class Branch(models.Model):
                 'commit_id': self.latest_commit_id.id,
                 'branch_id': b.id,
             })
+        test_run.execute(shell, task, logsio)
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
