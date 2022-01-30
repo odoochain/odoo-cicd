@@ -59,6 +59,7 @@ RUN_POSTGRES=1
             logsio.info(msg)
         root = machine._get_volume('source')
         with machine._shellexec(cwd=root, logsio=logsio) as shell:
+            report("Preparing run...")
             shell.project_name = self.branch_id.project_name # is computed by context
 
             self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
@@ -88,6 +89,7 @@ RUN_POSTGRES=1
 
             finally:
                 try:
+                    report('Finalizing Testing')
                     shell.odoo('kill', allow_error=True)
                     shell.odoo('rm', force=True, allow_error=True)
                     shell.odoo('down', "-v", force=True, allow_error=True)
@@ -167,6 +169,7 @@ RUN_POSTGRES=1
                     if line == "DONE":
                         break
                     if line:
+                        line['run_id'] = self.id
                         logger.info(f"New result line: {line}")
                         self.env['cicd.test.run.line'].create(line)
                         self.state = 'open'
@@ -323,9 +326,10 @@ RUN_POSTGRES=1
         )
 
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, line_queue):
-        for item in todo:
+        for i, item in enumerate(todo):
+            index = f"({i + 1} / {len(todo)}"
             line_queue.append({
-                'name': f"Starting: {item}",
+                'name': f"Starting: {index} {item}",
                 'ttype': ttype, 
                 'run_id': self.id,
                 'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
@@ -339,7 +343,7 @@ RUN_POSTGRES=1
                 'started': arrow.get().datetime.strftime("%Y-%m-%d %H:%M:%S"),
             }
             try:
-                logsio.info(f"Running {item}")
+                logsio.info(f"Running {index} {item}")
                 execute_run(item)
             except Exception as ex:
                 msg = traceback.format_exc()
