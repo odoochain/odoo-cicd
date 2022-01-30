@@ -273,23 +273,6 @@ class Branch(models.Model):
                 'commit_id': self.latest_commit_id.id,
                 'branch_id': b.id,
             })
-        for test_run in test_run:
-            try:
-                self.env.cr.commit()
-            except psycopg2.errors.SerializationFailure:
-                raise RetryableJobError("Could not get lock on test-run rescheduling", seconds=60, ignore_retry=True)
-
-            checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name], allow_error=True)
-            if 'fatal: reference is not a tree' in checkout_res.stderr_output:
-                raise RetryableJobError("Commit does not exist in working branch - rescheduling", seconds=60, ignore_retry=True)
-
-            test_run.execute(shell, task, logsio)
-
-            if update_state:
-                if test_run.state == 'failed':
-                    self.state = 'dev'
-                else:
-                    self.state = 'tested'
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
