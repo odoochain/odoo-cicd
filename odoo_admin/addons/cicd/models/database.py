@@ -4,7 +4,6 @@ import psycopg2
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from pathlib import Path
-import humanize
 from contextlib import contextmanager
 
 class Database(models.Model):
