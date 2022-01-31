@@ -4,6 +4,7 @@ import hashlib
 import struct
 from pathlib import Path
 import logging
+from odoo.addons.queue_job.exception import RetryableJobError
 logger = logging.getLogger("CICD")
 
 MAIN_FOLDER_NAME = "_main"
@@ -35,9 +36,14 @@ def pg_advisory_xact_lock(cr, lock):
 
 
 @contextmanager
-def pg_advisory_lock(cr, lock):
+def pg_advisory_lock(cr, lock, do_try=True):
     lock = _int_lock(lock)
-    cr.execute("SELECT pg_advisory_lock(%s);", (lock,))
+    if do_try:
+        cr.execute("SELECT pg_try_advisory_lock(%s);", (lock,))
+        if not cr.fetchone()[0]:
+            raise RetryableJobError(f"Lock could not be acquired: {lock}", ignore_retry=True)
+    else:
+        cr.execute("SELECT pg_advisory_lock(%s);", (lock,))
     try:
         logger.info(f"Acquired advisory lock {lock}")
         yield
