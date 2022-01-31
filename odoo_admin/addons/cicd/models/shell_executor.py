@@ -1,3 +1,8 @@
+import arrow
+import threading
+from pssh.clients import ParallelSSHClient
+from pssh.exceptions import Timeout
+import shlex
 import os
 import tempfile
 from copy import deepcopy
@@ -18,7 +23,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ShellExecutor(object):
-    def __init__(self, machine, cwd, logsio, project_name=None, env={}):
+    def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env={}):
         self.machine = machine
         self.cwd = Path(cwd)
         self.logsio = logsio
@@ -33,6 +38,9 @@ class ShellExecutor(object):
         if env:
             assert isinstance(env, dict)
 
+        self.client = ParallelSSHClient(
+            [machine.effective_host], user=machine.ssh_user, pkey=str(ssh_keyfile),
+        )
     def exists(self, path):
         with self.shell() as spurplus:
             return spurplus.exists(path)
@@ -55,11 +63,6 @@ class ShellExecutor(object):
         if res.endswith("/~"):
             res = res[:-2]
         return res
-
-    @contextmanager
-    def shell(self):
-        with self.machine._shell() as shell:
-            yield shell
 
     def odoo(self, *cmd, allow_error=False, force=False):
         env={
@@ -105,10 +108,7 @@ class ShellExecutor(object):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
-        return self.machine._execute_shell(
-            cmd, cwd=cwd or self.cwd, env=effective_env, logsio=self.logsio,
-            allow_error=allow_error, logoutput=logoutput,
-        )
+        return self._internal_execute(cmd, cwd=cwd, env=env, logoutput=logoutput, allow_error=allow_error)
 
     def get(self, source):
         filename = Path(tempfile.mktemp(suffix='.'))
@@ -129,3 +129,88 @@ class ShellExecutor(object):
                 shell.put(filename, dest)
         finally:
             filename.unlink()
+    
+    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=600):
+
+        def convert(x):
+            if isinstance(x, Path):
+                x = str(x)
+            return x
+
+        cmd = list(map(convert, cmd))
+
+        class MyWriter(object):
+            def __init__(self, ttype, logsio):
+                self.text = [""]
+                self.ttype = ttype
+                self.line = ""
+                self.logsio = logsio
+
+            def finish(self):
+                self._write_line()
+
+            def write(self, text):
+                if not self.logsio:
+                    return
+                if '\n' in text and len(text) == 1:
+                    self._write_line()
+                    self.line = ""
+                else:
+                    self.line += text
+                    return
+
+            def _write_line(self):
+                if not self.line:
+                    return
+                if logoutput:
+                    if self.ttype == 'error':
+                        self.logsio.error(self.line)
+                    else:
+                        self.logsio.info(self.line)
+
+        if not logoutput:
+            stdwriter, errwriter = None, None
+        else:
+            stdwriter, errwriter = MyWriter('info', self.logsio), MyWriter('error', self.logsio)
+
+        if cwd:
+            cmd = ["cd", cwd, ";"] + cmd
+
+        for k, v in env.items():
+            cmd = [f"{k}=\"{v}\"", ";"] + cmd
+
+        deadline = arrow.get().shift(seconds=timeout)
+        output = self.client.run_command(cmd, use_pty=True, stop_on_errors=not allow_error)
+        import pudb;pudb.set_trace()
+
+        def reader(stream, writer):
+            if not writer:
+                return
+            while not self.client.finished(output):
+                for line in stream:
+                    writer.write(line)
+
+        threads = [
+            threading.Thread(target=reader, args=(output.stdout, stdwriter)),
+            threading.Thread(target=reader, args=(output.stderr, errwriter)),
+        ]
+        [t.start() for t in threads]
+
+        timeout = False
+        while True:
+            if self.client.finished(output):
+                break
+            if arrow.get() > deadline:
+                timeout = True
+                output.client.close_channel(output.channel)
+
+        self.client.join(output)
+        exit_code = output.exit_code if not timeout else -1
+        stdwriter and stdwriter.finish()
+        errwriter and errwriter.finish()
+        return {
+            'timeout': timeout,
+            'exit_code': exit_code,
+            'output': stdwriter and stdwriter.line,
+            'erroutput': errwriter and errwriter.line,
+        }

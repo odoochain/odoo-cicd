@@ -9,8 +9,6 @@ import grp
 import hashlib
 from pathlib import Path
 from ..tools.logsio_writer import LogsIOWriter
-import spur
-import spurplus
 from contextlib import contextmanager
 from odoo import _, api, fields, models, SUPERUSER_ID, tools
 import subprocess
@@ -93,30 +91,21 @@ class CicdMachine(models.Model):
         ]:
             if file.exists():
                 os.chmod(file, rights_keyfile)
-        ssh_keyfile.write_text(self.ssh_key)
-        ssh_pubkeyfile.write_text(self.ssh_pubkey)
+        if ssh_keyfile.read_text() != self.ssh_key:
+            ssh_keyfile.write_text(self.ssh_key)
+        if ssh_pubkeyfile.read_text() != self.ssh_pubkey:
+            ssh_pubkeyfile.write_text(self.ssh_pubkey)
         os.chmod(ssh_keyfile, rights_keyfile)
         os.chmod(ssh_pubkeyfile, rights_keyfile)
         return ssh_keyfile
 
     @contextmanager
-    def _shell(self):
+    def _shell(self, cwd=None, logsio=None, project_name=None, env={}):
         self.ensure_one()
         ssh_keyfile = self._place_ssh_credentials()
-        with spurplus.connect_with_retries(
-            hostname=self.effective_host,
-            username=self.ssh_user,
-            password="dontuseme",
-            private_key_file=str(ssh_keyfile),
-            missing_host_key=spur.ssh.MissingHostKey.accept,
-            ) as shell:
-            yield shell
 
-    @contextmanager
-    def _shellexec(self, cwd, logsio, project_name=None, env=None):
-        self.ensure_one()
-        executor = ShellExecutor(self, cwd, logsio, project_name, env or {})
-        yield executor
+        with ShellExecutor(self, ssh_keyfile, cwd=cwd, logsio=logsio, project_name=project_name, env=env) as shell:
+            yield shell
 
     def generate_ssh_key(self):
         self.ensure_one()
@@ -134,56 +123,6 @@ class CicdMachine(models.Model):
         self._execute_shell(["ls"])
         raise ValidationError(_("Everyhing Works!"))
 
-    def _execute_shell(self, cmd, cwd=None, env=None, logsio=None, allow_error=False, logoutput=True):
-
-        def convert(x):
-            if isinstance(x, Path):
-                x = str(x)
-            return x
-
-        cmd = list(map(convert, cmd))
-
-        class MyWriter(object):
-            def __init__(self, ttype):
-                self.text = [""]
-                self.ttype = ttype
-                self.line = ""
-
-            def finish(self):
-                self._write_line()
-
-            def write(self, text):
-                if not logsio:
-                    return
-                if '\n' in text and len(text) == 1:
-                    self._write_line()
-                    self.line = ""
-                else:
-                    self.line += text
-                    return
-
-            def _write_line(self):
-                if not self.line:
-                    return
-                if logoutput:
-                    if self.ttype == 'error':
-                        logsio.error(self.line)
-                    else:
-                        logsio.info(self.line)
-
-        with self._shell() as shell:
-            if not logoutput:
-                stdwriter, errwriter = None, None
-            else:
-                stdwriter, errwriter = MyWriter('info'), MyWriter('error')
-
-            res = shell.run(
-                cmd, cwd=cwd, update_env=env or {},
-                stdout=stdwriter, stderr=errwriter, allow_error=allow_error,
-            )
-            stdwriter and stdwriter.finish()
-            errwriter and errwriter.finish()
-            return res
 
     def update_dumps(self):
         for rec in self:
@@ -348,10 +287,10 @@ echo "--------------------------------------------------------------------------
             env.update({
                 "GIT_ASK_YESNO": "false",
                 "GIT_TERMINAL_PROMPT": "0",
+                "GIT_SSH_COMMAND": f'ssh -o Batchmode=yes -o StrictHostKeyChecking=no',
             })
 
             try:
-                env['GIT_SSH_COMMAND'] = f'ssh -o Batchmode=yes -o StrictHostKeyChecking=no'
                 if repo.login_type == 'key':
                     env['GIT_SSH_COMMAND'] += f'   -i {file}  '
                     spurplus_shell.write_text(file, repo.key)
