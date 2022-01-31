@@ -97,55 +97,55 @@ class ReleaseItem(models.Model):
         self._do_release()
 
     def _do_release(self):
-        if not self.release_id.active:
-            return
-        if self.state not in ['new', 'failed']:
-            raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
-        if self.release_type == 'hotfix' and not self.branch_ids:
-            raise ValidationError("Hotfix requires explicit branches.")
-        if not self.commit_id:  # needs a collected commit with everything on it
-            return
-        if self.commit_id.test_state == 'failed':
-            if self.state != 'failed':
-                self.state = f'failed'
-        if self.commit_id.test_state != 'success':
-            return
-
-        pg_advisory_lock(self.env.cr, f"release_{self.release_id.id}")
-        logsio = self.release_id._get_logsio()
-
-        self.try_counter += 1
-        release = self.release_id
-        repo = self.release_id.repo_id.with_context(active_test=False)
-        candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
-        candidate_branch.ensure_one()
-        if not candidate_branch.active:
-            raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
-        changed_lines = repo._merge(
-            candidate_branch,
-            release.branch_id,
-            set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-            logsio=logsio,
-        )
-        self.changed_lines += changed_lines
-
-        try:
-            if not self.changed_lines:
-                self._on_done()
+        with pg_advisory_lock(self.env.cr, f"release_{self.release_id.id}"):
+            if not self.release_id.active:
+                return
+            if self.state not in ['new', 'failed']:
+                raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
+            if self.release_type == 'hotfix' and not self.branch_ids:
+                raise ValidationError("Hotfix requires explicit branches.")
+            if not self.commit_id:  # needs a collected commit with everything on it
+                return
+            if self.commit_id.test_state == 'failed':
+                if self.state != 'failed':
+                    self.state = f'failed'
+            if self.commit_id.test_state != 'success':
                 return
 
-            errors = self.release_id._technically_do_release(self)
-            if errors:
-                raise Exception(errors)
-            self._on_done()
+            logsio = self.release_id._get_logsio()
 
-        except Exception as ex:
-            msg = traceback.format_exc()
-            self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
-            self.state = 'failed'
-            logger.error(msg)
+            self.try_counter += 1
+            release = self.release_id
+            repo = self.release_id.repo_id.with_context(active_test=False)
+            candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+            candidate_branch.ensure_one()
+            if not candidate_branch.active:
+                raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
+            changed_lines = repo._merge(
+                candidate_branch,
+                release.branch_id,
+                set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                logsio=logsio,
+            )
+            self.changed_lines += changed_lines
 
-        self.log_release = logsio.get_lines()
+            try:
+                if not self.changed_lines:
+                    self._on_done()
+                    return
+
+                errors = self.release_id._technically_do_release(self)
+                if errors:
+                    raise Exception(errors)
+                self._on_done()
+
+            except Exception as ex:
+                msg = traceback.format_exc()
+                self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
+                self.state = 'failed'
+                logger.error(msg)
+
+            self.log_release = logsio.get_lines()
 
     def _collect_tested_branches(self):
         for rec in self:

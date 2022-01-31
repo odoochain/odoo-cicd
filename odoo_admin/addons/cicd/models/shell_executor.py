@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class ShellExecutor(object):
     def __init__(self, machine, cwd, logsio, project_name=None, env={}):
         self.machine = machine
-        self.cwd = cwd
+        self.cwd = Path(cwd)
         self.logsio = logsio
         self.env = env
         self.project_name = project_name
@@ -41,10 +41,12 @@ class ShellExecutor(object):
         with self.shell() as spurplus:
             path = str(path)
             if spurplus.exists(path):
-                self.logsio.info(f"Path {path} exists and is erased now.")
+                if self.logsio:
+                    self.logsio.info(f"Path {path} exists and is erased now.")
                 spurplus.run(["rm", "-Rf", path])
             else:
-                self.logsio.info(f"Path {path} doesn't exist - nothing will be erased.")
+                if self.logsio:
+                    self.logsio.info(f"Path {path} doesn't exist - nothing will be erased.")
 
     def _get_home_dir(self):
         res = self.machine._execute_shell(
@@ -99,13 +101,13 @@ class ShellExecutor(object):
         self.X(["git", "clean", "-xdff"], cwd=cwd)
         self.X(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=cwd)
 
-    def X(self, cmd, allow_error=False, env=None, cwd=None):
+    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
         return self.machine._execute_shell(
             cmd, cwd=cwd or self.cwd, env=effective_env, logsio=self.logsio,
-            allow_error=allow_error,
+            allow_error=allow_error, logoutput=logoutput,
         )
 
     def get(self, source):

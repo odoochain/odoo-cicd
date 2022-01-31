@@ -34,7 +34,7 @@
 								</div>
 								<div>
 									<strong>Success-Rate:</strong>
-									<field name="success_rate"/>
+									<field name="success_rate"/><span>%</span>
 								</div>
 								<div>
 									<strong>Repository:</strong>
