@@ -3,8 +3,10 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.tools import get_host_ip
 from contextlib import contextmanager
+import humanize
 
 class PostgresServer(models.Model):
+    _inherit = ['cicd.mixin.size']
     _name = 'cicd.postgres'
 
     name = fields.Char("Name")
@@ -14,10 +16,16 @@ class PostgresServer(models.Model):
     db_pwd = fields.Char("DB Password", default="cicd_is_cool", required=True)
     db_port = fields.Integer("DB Port", default=5432, required=True)
     database_ids = fields.One2many('cicd.database', 'server_id', string="Databases")
+    size = fields.Float(compute="_compute_size")
     ttype = fields.Selection([
         ('production', "Production"),
         ('dev', 'Dev'),
     ], string="Type", required=True)
+
+    @api.depends("database_ids", "database_ids.size")
+    def _compute_size(self):
+        for rec in self:
+            self.size = sum(rec.mapped('database_ids.size'))
 
     @api.model
     def default_get(self, fields):
