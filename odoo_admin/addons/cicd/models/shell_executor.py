@@ -1,4 +1,5 @@
 import arrow
+import re
 import threading
 from pssh.clients import SSHClient
 from pssh.exceptions import Timeout, ConnectionError
@@ -170,6 +171,7 @@ class ShellExecutor(object):
                 self.ttype = ttype
                 self.line = ""
                 self.logsio = logsio
+                self.all_lines = []
 
             def finish(self):
                 self._write_line()
@@ -187,11 +189,13 @@ class ShellExecutor(object):
             def _write_line(self):
                 if not self.line:
                     return
+                line = self.line
+                self.all_lines.append(line)
                 if logoutput:
                     if self.ttype == 'error':
-                        self.logsio.error(self.line)
+                        self.logsio.error(line)
                     else:
-                        self.logsio.info(self.line)
+                        self.logsio.info(line)
 
         if not logoutput:
             stdwriter, errwriter = None, None
@@ -203,7 +207,8 @@ class ShellExecutor(object):
         if cwd:
             cd_command = ["cd", str(cwd)]
 
-        effective_env = {}
+        effective_env = {
+        }
         if self.env: effective_env.update(self.env)
         if env: effective_env.update(env)
 
@@ -211,10 +216,9 @@ class ShellExecutor(object):
 
         wait = gevent.lock.BoundedSemaphore(1)
 
-        def evntlet_add_msg(msgs, src, pf, wait):
+        def evntlet_add_msg(src, pf, wait):
             for msg in src:
                 with wait:
-                    msgs.append(msg)
                     if stdwriter:
                         stdwriter.write(msg)
                 gevent.sleep(.1)
@@ -231,12 +235,12 @@ class ShellExecutor(object):
             cmd = shlex.join(cd_command) + " && " + cmd
         if ignore_stdout:
             cmd += " 1> /dev/null"
+        else:
+            cmd += " | cat - "
         host_out = client.run_command(cmd, use_pty=True)
 
-
-        msgs = []
-        rstdout = gevent.spawn(evntlet_add_msg, msgs, host_out.stdout, "stdout: ", wait)
-        rstderr = gevent.spawn(evntlet_add_msg, msgs, host_out.stderr, "stderr: ", wait)
+        rstdout = gevent.spawn(evntlet_add_msg, host_out.stdout, "stdout: ", wait)
+        rstderr = gevent.spawn(evntlet_add_msg, host_out.stderr, "stderr: ", wait)
         timeout_happened = False
         try:
             client.wait_finished(host_out, timeout)
@@ -254,11 +258,10 @@ class ShellExecutor(object):
             for line in rest_stdout:
                 stdwriter.write(line + "\n")
 
-        msgs += rest_stdout
-        stdout = '\n'.join(msgs)
-        stderr = ""
         stdwriter and stdwriter.finish()
         errwriter and errwriter.finish()
+        stdout = '\n'.join(stdwriter.all_lines) if logoutput else ""
+        stderr = ""
 
         return {
             'timeout': timeout_happened,

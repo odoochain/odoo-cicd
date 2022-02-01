@@ -321,7 +321,8 @@ class Branch(models.Model):
         shell.X(["git", "pull"])
 
         # delete all other branches:
-        for branch in list(filter(lambda x: '* ' not in x, shell.X(["git", "branch"])['stdout'].strip().split("\n"))):
+        res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
+        for branch in list(filter(lambda x: '* ' not in x, res)):
             branch = self.repo_id._clear_branch_name(branch)
             if branch == self.name: continue
             shell.X(["git", "branch", "-D", branch])
