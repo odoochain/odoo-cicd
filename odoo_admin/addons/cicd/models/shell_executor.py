@@ -206,6 +206,7 @@ class ShellExecutor(object):
             cd_command = ["cd", str(cwd)]
 
         effective_env = {
+            'BUILDKIT_PROGRESS': 'plain',
         }
         if self.env: effective_env.update(self.env)
         if env: effective_env.update(env)
@@ -218,8 +219,8 @@ class ShellExecutor(object):
             for msg in src:
                 with wait:
                     if stdwriter:
-                        stdwriter.write(msg)
-                gevent.sleep(.1)
+                        stdwriter.write(msg + "\n")
+                # gevent.sleep(.001)
 
 
         # ohne use_pty das failed/haengt close_channel
@@ -237,6 +238,8 @@ class ShellExecutor(object):
             cmd += " 1> /dev/null"
         else:
             cmd += " | cat - "
+        # if 'build' in cmd:
+        #     import pudb;pudb.set_trace()
         host_out = client.run_command(cmd, use_pty=True)
 
         rstdout = gevent.spawn(evntlet_add_msg, host_out.stdout, "stdout: ", wait)
