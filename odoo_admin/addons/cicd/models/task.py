@@ -104,7 +104,7 @@ class Task(models.Model):
                         msg = traceback.format_exc()
                         raise Exception(f"Directory seems to be not a valid git directory: {dest_folder}\n{msg}")
 
-                    sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                    sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
                     commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
 
                     # if not commit:

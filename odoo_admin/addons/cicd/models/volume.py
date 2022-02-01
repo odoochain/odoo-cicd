@@ -45,7 +45,7 @@ class CicdVolumes(models.Model):
                 try:
                     stdout = rec.machine_id._execute_shell([
                         "df", rec.name
-                    ]).output.strip()
+                    ])['stdout'].strip()
                 except Exception as ex:
                     logger.error(ex)
                 else:

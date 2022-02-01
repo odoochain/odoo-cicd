@@ -270,7 +270,7 @@ RUN_POSTGRES=1
         )
 
     def _run_robot_tests(self, shell, logsio, **kwargs):
-        files = shell.odoo('list-robot-test-files').output.strip()
+        files = shell.odoo('list-robot-test-files')['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo('build')
@@ -285,7 +285,7 @@ RUN_POSTGRES=1
         )
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
-        files = shell.odoo('list-unit-test-files').output.strip()
+        files = shell.odoo('list-unit-test-files')['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo("snap", "restore", shell.project_name)

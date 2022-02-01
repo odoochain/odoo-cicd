@@ -94,7 +94,7 @@ class Branch(models.Model):
         self._docker_get_state(shell)
 
     def _docker_get_state(self, shell, **kwargs):
-        info = shell.odoo('ps').output
+        info = shell.odoo('ps')['stdout']
 
         passed = False
         updated_containers = set()
@@ -321,13 +321,13 @@ class Branch(models.Model):
         shell.X(["git", "pull"])
 
         # delete all other branches:
-        for branch in list(filter(lambda x: '* ' not in x, shell.X(["git", "branch"]).output.strip().split("\n"))):
+        for branch in list(filter(lambda x: '* ' not in x, shell.X(["git", "branch"])['stdout'].strip().split("\n"))):
             branch = self.repo_id._clear_branch_name(branch)
             if branch == self.name: continue
             shell.X(["git", "branch", "-D", branch])
             del branch
 
-        current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"]).output.strip().split("\n")))
+        current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"])['stdout'].strip().split("\n")))
         if not current_branch:
             raise Exception(f"Somehow no current branch found")
         branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
@@ -342,7 +342,7 @@ class Branch(models.Model):
         shell.X(["git", "submodule", "update", "--recursive", "--init"])
 
         logsio.write_text("Getting current commit")
-        commit = shell.X(["git", "rev-parse", "HEAD"]).output.strip()
+        commit = shell.X(["git", "rev-parse", "HEAD"])['stdout'].strip()
         logsio.write_text(commit)
 
         return str(commit)
@@ -404,7 +404,7 @@ class Branch(models.Model):
         # get list of files
         logsio.info("Identifying latest dump")
         with compressor.source_volume_id.machine_id._shellexec(logsio=logsio, cwd="") as source_shell:
-            output = list(reversed(source_shell.X(["ls", "-tra", compressor.source_volume_id.name]).output.strip().split("\n")))
+            output = list(reversed(source_shell.X(["ls", "-tra", compressor.source_volume_id.name])['stdout'].strip().split("\n")))
             for line in output:
                 if line == '.' or line == '..': continue
                 if re.findall(compressor.regex, line):
@@ -423,7 +423,7 @@ class Branch(models.Model):
             shell.machine,
             dest_file_path,
         ) as effective_dest_file_path:
-            compressor.last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path]).output.strip())
+            compressor.last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path])['stdout'].strip())
 
             instance_path = self.repo_id._get_main_repo(tempfolder=True, logsio=logsio, machine=shell.machine)
             assert shell.machine.ttype == 'dev'
@@ -443,7 +443,7 @@ class Branch(models.Model):
                     logsio.info(f"Dumping compressed dump")
                     output_path = compressor.volume_id.name + "/" + compressor.output_filename
                     shell2.odoo('backup', 'odoo-db', output_path, allow_error=False)
-                    compressor.last_input_size = int(shell2.X(['stat', '-c', '%s', output_path]).output.strip())
+                    compressor.last_input_size = int(shell2.X(['stat', '-c', '%s', output_path])['stdout'].strip())
                     compressor.date_last_success = fields.Datetime.now()
 
                 finally:

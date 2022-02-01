@@ -153,7 +153,7 @@ class CicdMachine(models.Model):
     def _get_sshuser_id(self):
         user_name = self.ssh_user
         res = self._execute_shell(self, ["/usr/bin/id", '-u', user_name])
-        user_id = res.output.strip()
+        user_id = res['stdout'].strip()
         return user_id
 
     def _get_volume(self, ttype):
@@ -246,7 +246,7 @@ echo "--------------------------------------------------------------------------
                     shell.write_text(command_file, commands.strip() + "\n")
                     cmd = ["sudo", "/bin/bash", command_file]
                     res = shell.run(cmd, allow_error=True)
-                    if res.return_code:
+                    if res['exit_code']:
                         raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res.stderr_output}")
 
     @tools.ormcache()

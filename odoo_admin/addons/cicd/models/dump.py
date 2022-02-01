@@ -46,7 +46,7 @@ class Dump(models.Model):
             for volume in machine.volume_ids.filtered(lambda x: x.ttype in ['dumps', 'dumps_in']):
                 files = machine._execute_shell([
                     "ls", volume.name + "/"
-                ]).output.strip().split("\n")
+                ])['stdout'].strip().split("\n")
 
                 todo = self.env[self._name]
                 all_dumps = self.env[self._name]
@@ -88,7 +88,7 @@ class Dump(models.Model):
                     else:
                         dump.size = int(machine._execute_shell([
                             'stat', '-c', '%s', dump.name
-                        ]).output.strip())
+                        ])['stdout'].strip())
                         dump.date_modified = machine._execute_shell([
                             'date', '-r', dump.name, '+%Y-%m-%d %H:%M:%S', '-u',
-                        ]).output.strip()
+                        ])['stdout'].strip()

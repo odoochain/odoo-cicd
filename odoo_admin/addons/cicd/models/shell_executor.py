@@ -65,7 +65,7 @@ class ShellExecutor(object):
     def _get_home_dir(self):
         res = self.machine._execute_shell(
             ['realpath', '~'],
-        ).output.strip()
+        )['stdout'].strip()
         if res.endswith("/~"):
             res = res[:-2]
         return res
@@ -83,11 +83,11 @@ class ShellExecutor(object):
         if force:
             cmd.insert(1, "-f")
         res = self.X(cmd, allow_error=allow_error, env=env)
-        if res.return_code and not allow_error:
-            if '.FileNotFoundError: [Errno 2] No such file or directory:' in res.stderr_output:
+        if res['exit_code'] and not allow_error or res['exit_code'] is None:
+            if '.FileNotFoundError: [Errno 2] No such file or directory:' in res['stderr']:
                 raise Exception("Seems that a reload of the instance is required.")
             else:
-                raise Exception(res.stderr_output)
+                raise Exception(res['stdout'])
         return res
 
     def checkout_branch(self, branch, cwd=None):
@@ -102,7 +102,7 @@ class ShellExecutor(object):
 
     def branch_exists(self, branch, cwd=None):
         res = self.X(["git", "show-ref", "--verify", "refs/heads/" + branch], cwd=cwd, allow_error=True)
-        if not res.return_code and branch in res.output.strip():
+        if res['exit_code'] is not None and not res['exit_code'] and branch in res['stdout'].strip():
             return True
         return False
 
@@ -110,16 +110,19 @@ class ShellExecutor(object):
         self.X(["git", "clean", "-xdff"], cwd=cwd)
         self.X(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=cwd)
 
-    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True):
+    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, ignore_stdout=False):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
-        res = self._internal_execute(cmd, cwd=cwd, env=env, logoutput=logoutput, allow_error=allow_error)
+        res = self._internal_execute(
+            cmd, cwd=cwd, env=env,
+            logoutput=logoutput, allow_error=allow_error, ignore_stdout=ignore_stdout)
         if not allow_error:
             if res['exit_code'] is None:
                 raise Exception("Timeout happend: {cmd}")
             if res['exit_code']:
                 raise Exception(f"Error happened: {res['exit_code']}: {res['stdout']}")
+        return res
 
     def get(self, source):
         client = self._get_ssh_client()
@@ -149,7 +152,7 @@ class ShellExecutor(object):
         )
         return client
     
-    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=600):
+    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=600, ignore_stdout=False):
 
         def convert(x):
             if isinstance(x, Path):
@@ -157,7 +160,6 @@ class ShellExecutor(object):
             return x
 
         cmd = list(map(convert, cmd))
-
         class MyWriter(object):
             def __init__(self, ttype, logsio):
                 self.text = [""]
@@ -195,7 +197,7 @@ class ShellExecutor(object):
         cwd = cwd or self.cwd
         cd_command = []
         if cwd:
-            cd_command = ["cd", cwd]
+            cd_command = ["cd", str(cwd)]
 
         effective_env = {}
         if self.env: effective_env.update(self.env)
@@ -223,6 +225,8 @@ class ShellExecutor(object):
 
         if cd_command:
             cmd = shlex.join(cd_command) + " && " + cmd
+        if ignore_stdout:
+            cmd += " 1> /dev/null"
         host_out = client.run_command(cmd, use_pty=True)
 
 
@@ -258,38 +262,3 @@ class ShellExecutor(object):
             'stdout': stdout,
             'stderr': stderr,
         }
-
-        # output = self.client.run_command(cmd, use_pty=True, stop_on_errors=not allow_error)
-        # import pudb;pudb.set_trace()
-
-        # def reader(stream, writer):
-        #     if not writer:
-        #         return
-        #     while not self.client.finished(output):
-        #         for line in stream:
-        #             writer.write(line)
-
-        # threads = [
-        #     threading.Thread(target=reader, args=(output.stdout, stdwriter)),
-        #     threading.Thread(target=reader, args=(output.stderr, errwriter)),
-        # ]
-        # [t.start() for t in threads]
-
-        # timeout = False
-        # while True:
-        #     if self.client.finished(output):
-        #         break
-        #     if arrow.get() > deadline:
-        #         timeout = True
-        #         output.client.close_channel(output.channel)
-
-        # self.client.join(output)
-        # exit_code = output.exit_code if not timeout else -1
-        # stdwriter and stdwriter.finish()
-        # errwriter and errwriter.finish()
-        # return {
-        #     'timeout': timeout,
-        #     'exit_code': exit_code,
-        #     'output': stdwriter and stdwriter.line,
-        #     'erroutput': errwriter and errwriter.line,
-        # }
