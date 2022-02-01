@@ -136,7 +136,6 @@ RUN_POSTGRES=1
                 'run_lines': deque(),
             }
 
-            import pudb;pudb.set_trace()
             if b.run_unittests:
                 self._execute(self._run_unit_tests, machine, 'test-units')
             if b.run_robottests:

@@ -122,7 +122,6 @@ class Repository(models.Model):
             temppath = tempfile.mktemp()
         if temppath and temppath != path:
             with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
-                import pudb;pudb.set_trace()
                 if not self._is_healthy_repository(shell, temppath):
                     shell.rmifexists(temppath)
 
@@ -183,7 +182,6 @@ class Repository(models.Model):
                     updated_branches = set()
 
                     for remote in repo._get_remotes(shell):
-                        import pudb;pudb.set_trace()
                         fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'], ignore_stdout=True)['stdout'].strip().split("\n")))
                         for fi in fetch_info:
                             while "  " in fi:

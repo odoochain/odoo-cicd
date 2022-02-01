@@ -371,7 +371,7 @@ class Branch(models.Model):
         values = os.environ.copy()
         values['PROJECT_NAME'] = project_name
         content = content.format(**values)
-        shell.write_text(content, home_dir + f"/.odoo/docker-compose.{project_name}.yml")
+        shell.put(content, home_dir + f"/.odoo/docker-compose.{project_name}.yml")
 
         content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
         assert machine

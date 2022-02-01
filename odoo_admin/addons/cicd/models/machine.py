@@ -152,7 +152,8 @@ class CicdMachine(models.Model):
 
     def _get_sshuser_id(self):
         user_name = self.ssh_user
-        res = self._execute_shell(self, ["/usr/bin/id", '-u', user_name])
+        with self._shell() as shell:
+            res = shell.X(["/usr/bin/id", '-u', user_name])
         user_id = res['stdout'].strip()
         return user_id
 

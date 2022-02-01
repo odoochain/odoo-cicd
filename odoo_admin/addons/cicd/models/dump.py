@@ -44,31 +44,32 @@ class Dump(models.Model):
     def _update_dumps(self, machine):
         with machine._shell() as shell:
             for volume in machine.volume_ids.filtered(lambda x: x.ttype in ['dumps', 'dumps_in']):
-                files = machine._execute_shell([
-                    "ls", volume.name + "/"
-                ])['stdout'].strip().split("\n")
+                with machine._shell() as shell:
+                    files = shell([
+                        "ls", volume.name + "/"
+                    ])['stdout'].strip().split("\n")
 
-                todo = self.env[self._name]
-                all_dumps = self.env[self._name]
-                for file in files:
-                    if not file:
-                        continue
-                    path = volume.name + "/" + file
-                    dumps = self.sudo().with_context(active_test=False).search([('name', '=', path), ('machine_id', '=', machine.id)])
-                    if not dumps:
-                        dumps = dumps.sudo().create({
-                            'name': path,
-                            'machine_id': machine.id,
-                        })
-                        dumps._update_size()
-                    else:
-                        todo |= dumps
+                    todo = self.env[self._name]
+                    all_dumps = self.env[self._name]
+                    for file in files:
+                        if not file:
+                            continue
+                        path = volume.name + "/" + file
+                        dumps = self.sudo().with_context(active_test=False).search([('name', '=', path), ('machine_id', '=', machine.id)])
+                        if not dumps:
+                            dumps = dumps.sudo().create({
+                                'name': path,
+                                'machine_id': machine.id,
+                            })
+                            dumps._update_size()
+                        else:
+                            todo |= dumps
 
-                for dump in all_dumps:
-                    todo.with_delay(
-                        identity_key=f"get_dump_info_{dump.ids}",
-                        eta=arrow.get().shift(minutes=60).strftime("%Y-%m-%d %H:%M:%S"),
-                    )._update_size()
+                    for dump in all_dumps:
+                        todo.with_delay(
+                            identity_key=f"get_dump_info_{dump.ids}",
+                            eta=arrow.get().shift(minutes=60).strftime("%Y-%m-%d %H:%M:%S"),
+                        )._update_size()
 
     def _update_size(self):
         machines = self.mapped('machine_id')
@@ -81,14 +82,11 @@ class Dump(models.Model):
                         dump.unlink()
                         continue
 
-                    try:
-                        machine._execute_shell(['/usr/bin/test', '-f', dump.name])
-                    except Exception as ex:
-                        logger.error(ex)
-                    else:
-                        dump.size = int(machine._execute_shell([
-                            'stat', '-c', '%s', dump.name
-                        ])['stdout'].strip())
-                        dump.date_modified = machine._execute_shell([
-                            'date', '-r', dump.name, '+%Y-%m-%d %H:%M:%S', '-u',
-                        ])['stdout'].strip()
+                    with machine._shell() as shell:
+                        if shell.exists(dump.name):
+                            dump.size = int(shell.X([
+                                'stat', '-c', '%s', dump.name
+                            ])['stdout'].strip())
+                            dump.date_modified = shell.X([
+                                'date', '-r', dump.name, '+%Y-%m-%d %H:%M:%S', '-u',
+                            ])['stdout'].strip()

@@ -63,9 +63,10 @@ class ShellExecutor(object):
                 self.logsio.info(f"Path {path} doesn't exist - nothing will be erased.")
 
     def _get_home_dir(self):
-        res = self.machine._execute_shell(
-            ['realpath', '~'],
-        )['stdout'].strip()
+        with self.machine._shell() as shell:
+            res = shell.X(
+                ['realpath', '~'],
+            )['stdout'].strip()
         if res.endswith("/~"):
             res = res[:-2]
         return res
@@ -119,6 +120,7 @@ class ShellExecutor(object):
             logoutput=logoutput, allow_error=allow_error, ignore_stdout=ignore_stdout)
         if not allow_error:
             if res['exit_code'] is None:
+                import pudb;pudb.set_trace()
                 raise Exception("Timeout happend: {cmd}")
             if res['exit_code']:
                 raise Exception(f"Error happened: {res['exit_code']}: {res['stdout']}")
@@ -138,6 +140,8 @@ class ShellExecutor(object):
     def put(self, content, dest):
         client = self._get_ssh_client()
         filename = Path(tempfile.mktemp(suffix='.'))
+        if isinstance(content, str):
+            content = content.encode('utf-8')
         filename.write_bytes(content)
         try:
             client.scp_send(str(filename), dest)
