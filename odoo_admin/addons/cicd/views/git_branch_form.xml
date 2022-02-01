@@ -110,6 +110,7 @@
 								<group string="Restore" col='6'>
 									<field name="backup_machine_id" string="Machine" domain="[('id', 'in', allowed_backup_machine_ids)]"/>
 									<field name="dump_id" domain="[('machine_id', '=', backup_machine_id)]"/>
+									<field name="remove_web_assets_after_restore"/>
 									<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>
 								</group>
 								<group string="Backup" col='6'>

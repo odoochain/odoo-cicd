@@ -83,7 +83,9 @@ class Branch(models.Model):
         shell.odoo('kill')
         shell.odoo('rm')
         logsio.info(f"Restoring {self.dump_id.name}")
-        shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
+        shell.odoo('-f', 'restore', 'odoo-db', '--no-remove-webassets', self.dump_id.name)
+        if self.remove_web_assets_after_restore:
+            shell.odoo('-f', 'remove-web-assets')
     
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')

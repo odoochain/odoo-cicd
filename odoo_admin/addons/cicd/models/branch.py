@@ -51,6 +51,7 @@ class GitBranch(models.Model):
         ('building', 'Building'),
     ], default="new", required=True, compute="_compute_build_state", string="Instance State", track_visibility='onchange')
     dump_id = fields.Many2one("cicd.dump", string="Dump")
+    remove_web_assets_after_restore = fields.Boolean("Remove Webassets", default=True)
     reload_config = fields.Text("Reload Config", track_visibility='onchange')
     autobackup = fields.Boolean("Autobackup", track_visibility='onchange') 
     enduser_summary = fields.Text("Enduser Summary", track_visibility='onchange')
