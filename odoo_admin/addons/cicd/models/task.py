@@ -90,7 +90,7 @@ class Task(models.Model):
         with pg_advisory_lock(self.env.cr, f"performat_task_{self.branch_id.id}_{self.branch_id.project_name}"):  # project name so that tests may run parallel to backups
             try:
                 dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
-                with self.machine_id._shellexec(dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
+                with self.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
                     self.branch_id.repo_id._get_main_repo(
                         destination_folder=dest_folder,
                         machine=self.machine_id,
@@ -104,7 +104,7 @@ class Task(models.Model):
                         msg = traceback.format_exc()
                         raise Exception(f"Directory seems to be not a valid git directory: {dest_folder}\n{msg}")
 
-                    sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                    sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
                     commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
 
                     # if not commit:

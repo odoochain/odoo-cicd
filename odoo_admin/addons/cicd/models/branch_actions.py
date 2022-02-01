@@ -96,7 +96,7 @@ class Branch(models.Model):
         self._docker_get_state(shell)
 
     def _docker_get_state(self, shell, **kwargs):
-        info = shell.odoo('ps').output
+        info = shell.odoo('ps')['stdout']
 
         passed = False
         updated_containers = set()
@@ -162,72 +162,70 @@ class Branch(models.Model):
         self.ensure_one()
         logsio.info(f"Updating commits for {self.project_name}")
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
-        with shell.shell() as shell:
+        def _extract_commits():
+            return list(filter(bool, shell.X([
+                "git",
+                "log",
+                "--pretty=format:%H",
+                "--since='last 4 months'",
+            ], cwd=instance_folder)['stdout'].strip().split("\n")))
 
-            def _extract_commits():
-                return list(filter(bool, shell.check_output([
-                    "git",
-                    "log",
-                    "--pretty=format:%H",
-                    "--since='last 4 months'",
-                ], cwd=instance_folder).strip().split("\n")))
+        if force_commits:
+            commits = force_commits
+        else:
+            commits = _extract_commits()
 
-            if force_commits:
-                commits = force_commits
-            else:
-                commits = _extract_commits()
+        all_commits = self.env['cicd.git.commit'].search([])
+        all_commits = dict((x.name, x.branch_ids) for x in all_commits)
 
-            all_commits = self.env['cicd.git.commit'].search([])
-            all_commits = dict((x.name, x.branch_ids) for x in all_commits)
+        for sha in commits:
+            if sha in all_commits:
+                if self not in all_commits[sha]:
+                    self.env['cicd.git.commit'].search([('name', '=', sha)]).branch_ids = [[4, self.id]]
+                continue
 
-            for sha in commits:
-                if sha in all_commits:
-                    if self not in all_commits[sha]:
-                        self.env['cicd.git.commit'].search([('name', '=', sha)]).branch_ids = [[4, self.id]]
-                    continue
+            env = update_env={
+                "TZ": "UTC0"
+            }
+            
+            line = shell.X([
+                "git",
+                "log",
+                sha,
+                "-n1",
+                "--pretty=format:%ct",
+            ], cwd=instance_folder, env=env)['stdout'].strip().split(',')
+            if not line or not any(line):
+                continue
 
-                env = update_env={
-                    "TZ": "UTC0"
-                }
-                
-                line = shell.check_output([
-                    "git",
-                    "log",
-                    sha,
-                    "-n1",
-                    "--pretty=format:%ct",
-                ], cwd=instance_folder, update_env=env).strip().split(',')
-                if not line or not any(line):
-                    continue
+            date = arrow.get(int(line[0]))
 
-                date = arrow.get(int(line[0]))
+            info = shell.X([
+                "git",
+                "log",
+                sha,
+                "--date=format:%Y-%m-%d %H:%M:%S",
+                "-n1",
+            ], cwd=instance_folder, env=env)['stdout'].strip().split("\n")
 
-                info = shell.check_output([
-                    "git",
-                    "log",
-                    sha,
-                    "--date=format:%Y-%m-%d %H:%M:%S",
-                    "-n1",
-                ], cwd=instance_folder, update_env=env).split("\n")
+            def _get_item(name):
+                for line in info:
+                    if line.strip().startswith(f"{name}:"):
+                        return line.split(":", 1)[-1].strip()
 
-                def _get_item(name):
-                    for line in info:
-                        if line.strip().startswith(f"{name}:"):
-                            return line.split(":", 1)[-1].strip()
+            def _get_body():
+                for i, line in enumerate(info):
+                    if not line:
+                        return info[i + 1:]
 
-                def _get_body():
-                    for i, line in enumerate(info):
-                        if not line:
-                            return info[i + 1:]
-
-                text = ('\n'.join(_get_body())).strip()
-                self.commit_ids = [[0, 0, {
-                    'name': sha,
-                    'author': _get_item("Author"),
-                    'date': date.strftime("%Y-%m-%d %H:%M:%S"),
-                    'text': text,
-                    'branch_ids': [[4, self.id]],
-                }]]
+            text = ('\n'.join(_get_body())).strip()
+            self.commit_ids = [[0, 0, {
+                'name': sha,
+                'author': _get_item("Author"),
+                'date': date.strftime("%Y-%m-%d %H:%M:%S"),
+                'text': text,
+                'branch_ids': [[4, self.id]],
+            }]]
     
     def _remove_web_assets(self, shell, task, logsio, **kwargs):
         logsio.info("Killing...")
@@ -323,13 +321,14 @@ class Branch(models.Model):
         shell.X(["git", "pull"])
 
         # delete all other branches:
-        for branch in list(filter(lambda x: '* ' not in x, shell.X(["git", "branch"]).output.strip().split("\n"))):
+        res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
+        for branch in list(filter(lambda x: '* ' not in x, res)):
             branch = self.repo_id._clear_branch_name(branch)
             if branch == self.name: continue
             shell.X(["git", "branch", "-D", branch])
             del branch
 
-        current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"]).output.strip().split("\n")))
+        current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"])['stdout'].strip().split("\n")))
         if not current_branch:
             raise Exception(f"Somehow no current branch found")
         branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
@@ -344,7 +343,7 @@ class Branch(models.Model):
         shell.X(["git", "submodule", "update", "--recursive", "--init"])
 
         logsio.write_text("Getting current commit")
-        commit = shell.X(["git", "rev-parse", "HEAD"]).output.strip()
+        commit = shell.X(["git", "rev-parse", "HEAD"])['stdout'].strip()
         logsio.write_text(commit)
 
         return str(commit)
@@ -366,29 +365,27 @@ class Branch(models.Model):
             logsio.error(ex)
 
     def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
-        with shell.shell() as ssh_shell:
-            home_dir = shell._get_home_dir()
-            machine = shell.machine
-            project_name = forced_project_name or self.project_name
-            content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
-            values = os.environ.copy()
-            values['PROJECT_NAME'] = project_name
-            content = content.format(**values)
-            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content)
+        home_dir = shell._get_home_dir()
+        machine = shell.machine
+        project_name = forced_project_name or self.project_name
+        content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
+        values = os.environ.copy()
+        values['PROJECT_NAME'] = project_name
+        content = content.format(**values)
+        shell.put(content, home_dir + f"/.odoo/docker-compose.{project_name}.yml")
 
-            content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
-            assert machine
-            if not machine.postgres_server_id:
-                raise ValidationError(_(f"Please configure a db server for {machine.name}"))
-            content += "\n" + (self.reload_config or '')
-            if settings:
-                content += "\n" + settings
+        content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
+        assert machine
+        if not machine.postgres_server_id:
+            raise ValidationError(_(f"Please configure a db server for {machine.name}"))
+        content += "\n" + (self.reload_config or '')
+        if settings:
+            content += "\n" + settings
 
-            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(
-                branch=self,
-                project_name=project_name,
-                machine=machine
-                ))
+        shell.put(
+            content.format(branch=self, project_name=project_name, machine=machine),
+            home_dir + f'/.odoo/settings.{project_name}'
+            )
 
     def _cron_autobackup(self):
         for rec in self:
@@ -406,7 +403,7 @@ class Branch(models.Model):
         # get list of files
         logsio.info("Identifying latest dump")
         with compressor.source_volume_id.machine_id._shellexec(logsio=logsio, cwd="") as source_shell:
-            output = list(reversed(source_shell.X(["ls", "-tra", compressor.source_volume_id.name]).output.strip().split("\n")))
+            output = list(reversed(source_shell.X(["ls", "-tra", compressor.source_volume_id.name])['stdout'].strip().split("\n")))
             for line in output:
                 if line == '.' or line == '..': continue
                 if re.findall(compressor.regex, line):
@@ -425,7 +422,7 @@ class Branch(models.Model):
             shell.machine,
             dest_file_path,
         ) as effective_dest_file_path:
-            compressor.last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path]).output.strip())
+            compressor.last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path])['stdout'].strip())
 
             instance_path = self.repo_id._get_main_repo(tempfolder=True, logsio=logsio, machine=shell.machine)
             assert shell.machine.ttype == 'dev'
@@ -445,7 +442,7 @@ class Branch(models.Model):
                     logsio.info(f"Dumping compressed dump")
                     output_path = compressor.volume_id.name + "/" + compressor.output_filename
                     shell2.odoo('backup', 'odoo-db', output_path, allow_error=False)
-                    compressor.last_input_size = int(shell2.X(['stat', '-c', '%s', output_path]).output.strip())
+                    compressor.last_input_size = int(shell2.X(['stat', '-c', '%s', output_path])['stdout'].strip())
                     compressor.date_last_success = fields.Datetime.now()
 
                 finally:

@@ -44,6 +44,7 @@
     'external_dependencies': {   'python': [   'pudb',
                                                'spur',
                                                'spurplus',
+                                               'parallel-ssh',
                                                'bson',
                                                'humanize',
                                                'paramiko']},

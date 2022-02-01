@@ -121,13 +121,13 @@ class Repository(models.Model):
         elif tempfolder:
             temppath = tempfile.mktemp()
         if temppath and temppath != path:
-            with machine._shellexec(self.machine_id.workspace, logsio=logsio) as shell:
+            with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
                 if not self._is_healthy_repository(shell, temppath):
                     shell.rmifexists(temppath)
 
                     if limit_branch:
                         # make sure branch exists in source repo
-                        with machine._shellexec(path, logsio=logsio) as tempshell:
+                        with machine._shell(cwd=path, logsio=logsio) as tempshell:
                             tempshell.checkout_branch(limit_branch)
 
                     cmd = ["git", "clone"]
@@ -138,7 +138,7 @@ class Repository(models.Model):
         return temppath
 
     def _get_remotes(self, shell):
-        remotes = shell.X(["git", "remote", "-v"]).output.strip().split("\n")
+        remotes = shell.X(["git", "remote", "-v"])['stdout'].strip().split("\n")
         remotes = [x.split("\t")[0] for x in remotes]
         return list(set(remotes))
 
@@ -182,7 +182,7 @@ class Repository(models.Model):
                     updated_branches = set()
 
                     for remote in repo._get_remotes(shell):
-                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run']).stderr_output.strip().split("\n")))
+                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'], ignore_stdout=True)['stdout'].strip().split("\n")))
                         for fi in fetch_info:
                             while "  " in fi:
                                 fi = fi.replace("  ", " ")
@@ -250,7 +250,7 @@ class Repository(models.Model):
             with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
                 # if completely new then all branches:
                 if not repo.branch_ids:
-                    for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
+                    for branch in shell.X(["git", "branch"])['stdout'].strip().split("\n"):
                         branch = self._clear_branch_name(branch)
                         updated_branches.append(branch)
 
@@ -292,7 +292,7 @@ class Repository(models.Model):
         if shell.exists(path):
             try:
                 res = shell.X(["git", "status", "-s"], cwd=path, logoutput=False)
-                if res.output.strip():
+                if res['stdout'].strip():
                     healthy = False
                 else:
                     healthy = True
@@ -365,7 +365,7 @@ class Repository(models.Model):
                         message_commit_sha = None
                         if make_info_commit_msg:
                             shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
-                            message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
+                            message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
                         shell.X(["git", "push", "-f", 'origin', target_branch_name])
 
                         if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
@@ -396,13 +396,13 @@ class Repository(models.Model):
         with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
                 shell.checkout_branch(dest.name)
-                commitid = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
-                branches = [self._clear_branch_name(x) for x in shell.X(["git", "branch", "--contains", commitid]).output.strip().split("\n")]
+                commitid = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                branches = [self._clear_branch_name(x) for x in shell.X(["git", "branch", "--contains", commitid])['stdout'].strip().split("\n")]
                 if source.name in branches:
                     return False
                 shell.checkout_branch(source.name)
                 shell.checkout_branch(dest.name)
-                count_lines = len(shell.X(["git", "diff", "-p", source.name]).output.strip().split("\n"))
+                count_lines = len(shell.X(["git", "diff", "-p", source.name])['stdout'].strip().split("\n"))
                 shell.X(["git", "merge", source.name])
                 for tag in set_tags:
                     shell.X(["git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
