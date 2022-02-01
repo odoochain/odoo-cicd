@@ -41,13 +41,13 @@ class ShellExecutor(object):
 
     def exists(self, path):
         try:
-            self._internal_execute(["stat", path])
+            res = self._internal_execute(["stat", path])
         except ConnectionError:
             raise
         except Exception as ex:
             return False
         else:
-            return True
+            return res['exit_code'] == 0
 
     def remove(self, path):
         if self.exists(path):
@@ -199,16 +199,12 @@ class ShellExecutor(object):
         if self.env: effective_env.update(self.env)
         if env: effective_env.update(env)
 
-        for k, v in effective_env.items():
-            cmd = [f"{k}=\"{v}\""] + cmd
-
         client = self._get_ssh_client()
 
         wait = gevent.lock.BoundedSemaphore(1)
 
         def evntlet_add_msg(msgs, src, pf, wait):
             for msg in src:
-                print(pf + msg)
                 with wait:
                     msgs.append(msg)
                     if stdwriter:
@@ -219,10 +215,13 @@ class ShellExecutor(object):
         # ohne use_pty das failed/haengt close_channel
         # leider kommt dann allels über stdout.
         # stderr bleibt leer.
-        import pudb;pudb.set_trace()
         cmd = shlex.join(cmd)
+        for k, v in effective_env.items():
+            cmd = f"{k}=\"{v}\"" + " " + cmd
+
         if cd_command:
             cmd = shlex.join(cd_command) + " && " + cmd
+        print(cmd)
         host_out = client.run_command(cmd, use_pty=True)
 
 

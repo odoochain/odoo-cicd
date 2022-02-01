@@ -104,6 +104,13 @@ class CicdMachine(models.Model):
         os.chmod(ssh_pubkeyfile, rights_keyfile)
         return ssh_keyfile
 
+    def test_shell(self, cmd, cwd=None, env={}):
+        with self._shell(cwd=cwd, env=env) as shell:
+            return shell.X(cmd, cwd=cwd, env=env)
+    def test_shell_exists(self, path):
+        with self._shell() as shell:
+            return shell.exists(path)
+
     @contextmanager
     def _shell(self, cwd=None, logsio=None, project_name=None, env={}):
         self.ensure_one()
@@ -128,7 +135,7 @@ class CicdMachine(models.Model):
             self.ssh_pubkey = pubkeyfile.read_text()
 
     def test_ssh(self):
-        self._execute_shell(["ls"])
+        self._shell().X(["ls"])
         raise ValidationError(_("Everyhing Works!"))
 
     def update_dumps(self):
