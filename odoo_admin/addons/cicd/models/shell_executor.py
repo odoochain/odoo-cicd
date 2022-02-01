@@ -115,9 +115,11 @@ class ShellExecutor(object):
         if env:
             effective_env.update(env)
         res = self._internal_execute(cmd, cwd=cwd, env=env, logoutput=logoutput, allow_error=allow_error)
-        if not allow_error and res['exit_code'] is not None:
+        if not allow_error:
+            if res['exit_code'] is None:
+                raise Exception("Timeout happend: {cmd}")
             if res['exit_code']:
-                raise Exception(f"Error happened: {res['exit_code']}: {cmd}")
+                raise Exception(f"Error happened: {res['exit_code']}: {res['stdout']}")
 
     def get(self, source):
         client = self._get_ssh_client()
@@ -221,7 +223,6 @@ class ShellExecutor(object):
 
         if cd_command:
             cmd = shlex.join(cd_command) + " && " + cmd
-        print(cmd)
         host_out = client.run_command(cmd, use_pty=True)
 
 
@@ -231,6 +232,7 @@ class ShellExecutor(object):
         timeout_happened = False
         try:
             client.wait_finished(host_out, timeout)
+            gevent.killall([rstdout, rstderr])
         except Timeout:
             logger.warn(f"Timeout occurred")
             timeout_happened = True
@@ -238,6 +240,13 @@ class ShellExecutor(object):
             host_out.client.close_channel(host_out.channel)
 
         exit_code = host_out.exit_code
+
+        rest_stdout = list(host_out.stdout)
+        if stdwriter:
+            for line in rest_stdout:
+                stdwriter.write(line + "\n")
+
+        msgs += rest_stdout
         stdout = '\n'.join(msgs)
         stderr = ""
         stdwriter and stdwriter.finish()
