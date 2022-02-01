@@ -237,9 +237,8 @@ class ShellExecutor(object):
         if ignore_stdout:
             cmd += " 1> /dev/null"
         else:
-            cmd += " | cat - "
-        # if 'build' in cmd:
-        #     import pudb;pudb.set_trace()
+            cmd = "set -o pipefail;" + cmd + " | cat - "
+
         host_out = client.run_command(cmd, use_pty=True)
 
         rstdout = gevent.spawn(evntlet_add_msg, host_out.stdout, "stdout: ", wait)
