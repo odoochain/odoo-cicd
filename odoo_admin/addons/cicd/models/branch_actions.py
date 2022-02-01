@@ -160,72 +160,70 @@ class Branch(models.Model):
         self.ensure_one()
         logsio.info(f"Updating commits for {self.project_name}")
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
-        with shell.shell() as shell:
+        def _extract_commits():
+            return list(filter(bool, shell.X([
+                "git",
+                "log",
+                "--pretty=format:%H",
+                "--since='last 4 months'",
+            ], cwd=instance_folder)['stdout'].strip().split("\n")))
 
-            def _extract_commits():
-                return list(filter(bool, shell.check_output([
-                    "git",
-                    "log",
-                    "--pretty=format:%H",
-                    "--since='last 4 months'",
-                ], cwd=instance_folder).strip().split("\n")))
+        if force_commits:
+            commits = force_commits
+        else:
+            commits = _extract_commits()
 
-            if force_commits:
-                commits = force_commits
-            else:
-                commits = _extract_commits()
+        all_commits = self.env['cicd.git.commit'].search([])
+        all_commits = dict((x.name, x.branch_ids) for x in all_commits)
 
-            all_commits = self.env['cicd.git.commit'].search([])
-            all_commits = dict((x.name, x.branch_ids) for x in all_commits)
+        for sha in commits:
+            if sha in all_commits:
+                if self not in all_commits[sha]:
+                    self.env['cicd.git.commit'].search([('name', '=', sha)]).branch_ids = [[4, self.id]]
+                continue
 
-            for sha in commits:
-                if sha in all_commits:
-                    if self not in all_commits[sha]:
-                        self.env['cicd.git.commit'].search([('name', '=', sha)]).branch_ids = [[4, self.id]]
-                    continue
+            env = update_env={
+                "TZ": "UTC0"
+            }
+            
+            line = shell.X([
+                "git",
+                "log",
+                sha,
+                "-n1",
+                "--pretty=format:%ct",
+            ], cwd=instance_folder, env=env)['stdout'].strip().split(',')
+            if not line or not any(line):
+                continue
 
-                env = update_env={
-                    "TZ": "UTC0"
-                }
-                
-                line = shell.check_output([
-                    "git",
-                    "log",
-                    sha,
-                    "-n1",
-                    "--pretty=format:%ct",
-                ], cwd=instance_folder, update_env=env).strip().split(',')
-                if not line or not any(line):
-                    continue
+            date = arrow.get(int(line[0]))
 
-                date = arrow.get(int(line[0]))
+            info = shell.X([
+                "git",
+                "log",
+                sha,
+                "--date=format:%Y-%m-%d %H:%M:%S",
+                "-n1",
+            ], cwd=instance_folder, env=env)['stdout'].strip().split("\n")
 
-                info = shell.check_output([
-                    "git",
-                    "log",
-                    sha,
-                    "--date=format:%Y-%m-%d %H:%M:%S",
-                    "-n1",
-                ], cwd=instance_folder, update_env=env).split("\n")
+            def _get_item(name):
+                for line in info:
+                    if line.strip().startswith(f"{name}:"):
+                        return line.split(":", 1)[-1].strip()
 
-                def _get_item(name):
-                    for line in info:
-                        if line.strip().startswith(f"{name}:"):
-                            return line.split(":", 1)[-1].strip()
+            def _get_body():
+                for i, line in enumerate(info):
+                    if not line:
+                        return info[i + 1:]
 
-                def _get_body():
-                    for i, line in enumerate(info):
-                        if not line:
-                            return info[i + 1:]
-
-                text = ('\n'.join(_get_body())).strip()
-                self.commit_ids = [[0, 0, {
-                    'name': sha,
-                    'author': _get_item("Author"),
-                    'date': date.strftime("%Y-%m-%d %H:%M:%S"),
-                    'text': text,
-                    'branch_ids': [[4, self.id]],
-                }]]
+            text = ('\n'.join(_get_body())).strip()
+            self.commit_ids = [[0, 0, {
+                'name': sha,
+                'author': _get_item("Author"),
+                'date': date.strftime("%Y-%m-%d %H:%M:%S"),
+                'text': text,
+                'branch_ids': [[4, self.id]],
+            }]]
     
     def _remove_web_assets(self, shell, task, logsio, **kwargs):
         logsio.info("Killing...")
