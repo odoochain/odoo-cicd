@@ -43,7 +43,7 @@ class CicdVolumes(models.Model):
         for rec in self:
             with rec.machine_id._shell() as shell:
                 try:
-                    stdout = shell._execute_shell([
+                    stdout = shell.X([
                         "df", rec.name
                     ])['stdout'].strip()
                 except Exception as ex:
