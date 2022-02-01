@@ -304,14 +304,8 @@ RUN_POSTGRES=1
             index = f"({i + 1} / {len(todo)}"
             started = arrow.get()
             deadline = started.shift(seconds=timeout)
-            self.line_ids = [[0, 0, {
-                'name': f"Starting: {index} {item}",
-                'ttype': ttype, 
-                'run_id': self.id,
-                'state': 'success',
-            }]]
             data = {
-                'name': item or '',
+                'name': f"{index} {item}",
                 'ttype': ttype, 
                 'run_id': self.id,
                 'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
@@ -319,24 +313,7 @@ RUN_POSTGRES=1
             try:
                 logsio.info(f"Running {index} {item}")
 
-                # make real timeout to paramiko
-                def execute_wrapper(item, data):
-                    try:
-                        execute_run(item)
-                    except Exception as ex:
-                        msg = traceback.format_exc()
-                        logsio.error(f"Error happened: {msg}")
-                        data['state'] = 'failed'
-                        data['exc_info'] = msg
-
-                t = threading.Thread(target=execute_wrapper, args=(item, data))
-                t.daemon = True
-                t.start()
-
-                while t.is_alive():
-                    if arrow.get() > deadline:
-                        raise Exception(f'timeout of {timeout} reached')
-                    time.sleep(1)
+                execute_run(item)
 
             except Exception as ex:
                 msg = traceback.format_exc()
