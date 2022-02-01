@@ -1,76 +1,61 @@
-from pssh.utils import enable_host_logger
-
 from pssh.clients import SSHClient
 from pssh.exceptions import Timeout
+import gevent
+import gevent.lock
+
 import shlex
+import time
+import logging
+from pathlib import PurePath
+
+#logging.basicConfig(level=logging.DEBUG)
 
 hosts = 'localhost'
 client = SSHClient(hosts)
 
-import pudb;pudb.set_trace()
-enable_host_logger()
+remote_echo_path = str(PurePath('/tmp', 'echowrite.py'))
+client.scp_send('echowrite.py', remote_echo_path)
 
 commands = [
-        #'cd /tmp; pwd'
-        # 'echo "a";sleep 2; pwd'
-        '/home/cicd/cicd_app/odoo_admin/addons/cicd/models/test_ssh_producer.py',
-        #'HALLO=test; echo "a"; echo "$HALLO"',
-        # 'while true; do echo a line; sleep .1; done'
-        #, 'echo I am done'
-        #, 'echo I am unhappy && exit 120'
-        #, 'echo I am unhappy and timing out && while true; do echo a line; sleep .1; done && exit 120'
-        #, shlex.join(['echo', 'cooler parameter', 'oof, hakeliger | mist']) + " >> crazy.text"
+        'python3 /tmp/echowrite.py 5',
+        'python3 /tmp/echowrite.py 30',
+        f'rm {remote_echo_path}'
         ]
+command_timeout=10
+
+wait = gevent.lock.BoundedSemaphore(1)
 
 
-for with_stdout in [True, False]:
-    for command in commands:
-        print(f"\nRunning {command} with stdout {with_stdout}")
-        if with_stdout:
-            output = client.run_command(
-                command,
-                use_pty=True, timeout=2, read_timeout=2)
+def evntlet_add_msg(msgs, src, pf):
+    global wait
+    print(pf)
+    for msg in src:
+        print(pf + msg)
+        with wait:
+            msgs.append(pf + msg)
+        # oder: send to log.io
+        gevent.sleep(.1)
 
-            # Read as many lines of output as hosts have sent before the timeout
-            import pudb;pudb.set_trace()
-            stdout = []
-            try:
-                for line in output.stdout:
-                    stdout.append(line)
-                for line in output.stdout:
-                    stdout.append(line)
-            except Timeout:
-                print("Timeout occured")
 
-            # Closing channel which has PTY has the effect of terminating
-            # any running processes started on that channel.
-            for host_out in output:
-                host_out.client.close_channel(host_out.channel)
-            # Join is not strictly needed here as channel has already been closed and
-            # command has finished, but is safe to use regardless.
-            client.join(output)
-            # Can now read output up to when the channel was closed without blocking.
-            rest_of_stdout = list(output[0].stdout)
-
-            print(f"Stdout vor timeout: {stdout}")
-            print(f"Stdout nach timeout: {rest_of_stdout}")
-            exit_codes = [o.exit_code for o in output]
-            print(f"Exit codes: {exit_codes}")
-
-        else:
-            output = client.run_command(
+for command in commands:
+    eventlet_msgs = []
+    print(f"Running {command} with timeout {command_timeout}")
+    host_out = client.run_command(
             command,
-            use_pty=True)
-            try:
-                client.join(output, timeout=1)
-            except:
-                for host_out in output:
-                    host_out.client.close_channel(host_out.channel)
-                print("Timeout occured, exit codes discarded!")
-            else:
-                exit_codes = [o.exit_code for o in output]
-                print(f"Exit codes: {exit_codes}")
+            use_pty=True)   # ohne das failed/haengt close_channel
+                            # leider kommt dann allels über stdout.
+                            # stderr bleibt leer.
+    
+    rstderr = gevent.spawn(evntlet_add_msg, eventlet_msgs, host_out.stderr, "stderr: ")
+    rstdout = gevent.spawn(evntlet_add_msg, eventlet_msgs, host_out.stdout, "stdout: ")
 
- 
-
-
+    try:
+        client.wait_finished(host_out, command_timeout)
+    except Timeout:
+        print("Timeout occured")
+        gevent.killall([rstdout, rstderr])
+        host_out.client.close_channel(host_out.channel)
+        print("Channel closed")
+    
+    print(f"Messages: {eventlet_msgs}")
+    print(f"Command {command} exited with {host_out.exit_code}")

@@ -91,9 +91,14 @@ class CicdMachine(models.Model):
         ]:
             if file.exists():
                 os.chmod(file, rights_keyfile)
-        if ssh_keyfile.read_text() != self.ssh_key:
+        def content_differs(file, content):
+            if not file.exists():
+                return True
+            return file.read_text() != content
+
+        if content_differs(ssh_keyfile, self.ssh_key):
             ssh_keyfile.write_text(self.ssh_key)
-        if ssh_pubkeyfile.read_text() != self.ssh_pubkey:
+        if content_differs(ssh_pubkeyfile, self.ssh_pubkey):
             ssh_pubkeyfile.write_text(self.ssh_pubkey)
         os.chmod(ssh_keyfile, rights_keyfile)
         os.chmod(ssh_pubkeyfile, rights_keyfile)
@@ -104,8 +109,11 @@ class CicdMachine(models.Model):
         self.ensure_one()
         ssh_keyfile = self._place_ssh_credentials()
 
-        with ShellExecutor(self, ssh_keyfile, cwd=cwd, logsio=logsio, project_name=project_name, env=env) as shell:
-            yield shell
+        shell = ShellExecutor(
+            ssh_keyfile=ssh_keyfile, machine=self, cwd=cwd,
+            logsio=logsio, project_name=project_name, env=env
+        )
+        yield shell
 
     def generate_ssh_key(self):
         self.ensure_one()
@@ -122,7 +130,6 @@ class CicdMachine(models.Model):
     def test_ssh(self):
         self._execute_shell(["ls"])
         raise ValidationError(_("Everyhing Works!"))
-
 
     def update_dumps(self):
         for rec in self:
