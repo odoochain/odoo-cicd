@@ -39,7 +39,7 @@ class CicdTestRun(models.Model):
 
         while True:
             try:
-                shell.odoo("psql", "--sql", "select * from information_schema.tables limit 1;")
+                shell.odoo("psql", "--non-interactive", "--sql", "select * from information_schema.tables limit 1;")
             except Exception:
                 diff = arrow.get() - started
                 logger.info(f"Waiting for postgres {diff.total_seconds()}...")
@@ -60,9 +60,7 @@ RUN_POSTGRES=1
             self.env.cr.commit()
             logsio.info(msg)
         root = machine._get_volume('source')
-        with machine._shellexec(cwd=root, logsio=logsio) as shell:
-            shell.project_name = self.branch_id.project_name # is computed by context
-
+        with machine._shell(cwd=root, logsio=logsio, project_name=self.branch_id.project_name) as shell:
             report("Checking out source code...")
             self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
             report("Checked out source code")
