@@ -23,6 +23,8 @@ import gevent.lock
 import logging
 logger = logging.getLogger(__name__)
 
+DEFAULT_TIMEOUT = 600
+
 class ShellExecutor(object):
     def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env={}):
         self.machine = machine
@@ -72,7 +74,7 @@ class ShellExecutor(object):
             res = res[:-2]
         return res
 
-    def odoo(self, *cmd, allow_error=False, force=False):
+    def odoo(self, *cmd, allow_error=False, force=False, timeout=None):
         env={
             'NO_PROXY': "*",
             'DOCKER_CLIENT_TIMEOUT': "600",
@@ -84,7 +86,7 @@ class ShellExecutor(object):
         cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
         if force:
             cmd.insert(1, "-f")
-        res = self.X(cmd, allow_error=allow_error, env=env)
+        res = self.X(cmd, allow_error=allow_error, env=env, timeout=timeout)
         if res['exit_code'] and not allow_error or res['exit_code'] is None:
             if '.FileNotFoundError: [Errno 2] No such file or directory:' in res['stderr']:
                 raise Exception("Seems that a reload of the instance is required.")
@@ -112,16 +114,15 @@ class ShellExecutor(object):
         self.X(["git", "clean", "-xdff"], cwd=cwd)
         self.X(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=cwd)
 
-    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, ignore_stdout=False):
+    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, ignore_stdout=False, timeout=600):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
         res = self._internal_execute(
             cmd, cwd=cwd, env=env,
-            logoutput=logoutput, allow_error=allow_error, ignore_stdout=ignore_stdout)
+            logoutput=logoutput, allow_error=allow_error, ignore_stdout=ignore_stdout, timeout=timeout)
         if not allow_error:
             if res['exit_code'] is None:
-                import pudb;pudb.set_trace()
                 raise Exception("Timeout happend: {cmd}")
             if res['exit_code']:
                 raise Exception(f"Error happened: {res['exit_code']}: {res['stdout']}")
@@ -158,6 +159,7 @@ class ShellExecutor(object):
         return client
     
     def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=600, ignore_stdout=False):
+        if timeout is None: timeout = DEFAULT_TIMEOUT
 
         def convert(x):
             if isinstance(x, Path):

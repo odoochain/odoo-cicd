@@ -39,7 +39,7 @@ class CicdTestRun(models.Model):
 
         while True:
             try:
-                shell.odoo("psql", "--non-interactive", "--sql", "select * from information_schema.tables limit 1;")
+                shell.odoo("psql", "--non-interactive", "--sql", "select * from information_schema.tables limit 1;", timeout=timeout)
             except Exception:
                 diff = arrow.get() - started
                 logger.info(f"Waiting for postgres {diff.total_seconds()}...")
@@ -294,7 +294,7 @@ RUN_POSTGRES=1
             lambda item: shell.odoo('unittest', item),
         )
 
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run, timeout=600):
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run):
         """
         Timeout in seconds.
 
@@ -303,7 +303,6 @@ RUN_POSTGRES=1
 
             index = f"({i + 1} / {len(todo)}"
             started = arrow.get()
-            deadline = started.shift(seconds=timeout)
             data = {
                 'name': f"{index} {item}",
                 'ttype': ttype, 
@@ -312,7 +311,6 @@ RUN_POSTGRES=1
             }
             try:
                 logsio.info(f"Running {index} {item}")
-
                 execute_run(item)
 
             except Exception as ex:
