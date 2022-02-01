@@ -1,7 +1,7 @@
 import arrow
 import threading
 from pssh.clients import SSHClient
-from pssh.exceptions import Timeout
+from pssh.exceptions import Timeout, ConnectionError
 import shlex
 import os
 import tempfile
@@ -11,8 +11,6 @@ import grp
 import hashlib
 from pathlib import Path
 from ..tools.logsio_writer import LogsIOWriter
-import spur
-import spurplus
 from contextlib import contextmanager
 from odoo import _, api, fields, models, SUPERUSER_ID, tools
 import subprocess
@@ -42,19 +40,27 @@ class ShellExecutor(object):
         self.ssh_keyfile = ssh_keyfile
 
     def exists(self, path):
-        with self.shell() as spurplus:
-            return spurplus.exists(path)
+        try:
+            self._internal_execute(["stat", path])
+        except ConnectionError:
+            raise
+        except Exception as ex:
+            return False
+        else:
+            return True
+
+    def remove(self, path):
+        if self.exists(path):
+            if self.logsio:
+                self.logsio.info(f"Path {path} exists and is erased now.")
+            self._internal_execute(["rm", "-Rf", path])
 
     def rmifexists(self, path):
-        with self.shell() as spurplus:
-            path = str(path)
-            if spurplus.exists(path):
-                if self.logsio:
-                    self.logsio.info(f"Path {path} exists and is erased now.")
-                spurplus.run(["rm", "-Rf", path])
-            else:
-                if self.logsio:
-                    self.logsio.info(f"Path {path} doesn't exist - nothing will be erased.")
+        if self.exists(path):
+            self.remove(path)
+        else:
+            if self.logsio:
+                self.logsio.info(f"Path {path} doesn't exist - nothing will be erased.")
 
     def _get_home_dir(self):
         res = self.machine._execute_shell(
@@ -108,7 +114,10 @@ class ShellExecutor(object):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
-        return self._internal_execute(cmd, cwd=cwd, env=env, logoutput=logoutput, allow_error=allow_error)
+        res = self._internal_execute(cmd, cwd=cwd, env=env, logoutput=logoutput, allow_error=allow_error)
+        if not allow_error and res['exit_code'] is not None:
+            if res['exit_code']:
+                raise Exception(f"Error happened: {res['exit_code']}: {cmd}")
 
     def get(self, source):
         client = self._get_ssh_client()
@@ -132,7 +141,9 @@ class ShellExecutor(object):
 
     def _get_ssh_client(self):
         client = SSHClient(
-            [self.machine.effective_host], user=self.machine.ssh_user, pkey=str(self.ssh_keyfile),
+            self.machine.effective_host,
+            user=self.machine.ssh_user,
+            pkey=str(self.ssh_keyfile),
         )
         return client
     
@@ -180,18 +191,22 @@ class ShellExecutor(object):
             stdwriter, errwriter = MyWriter('info', self.logsio), MyWriter('error', self.logsio)
 
         cwd = cwd or self.cwd
+        cd_command = []
         if cwd:
-            cmd = ["cd", cwd, ";"] + cmd
+            cd_command = ["cd", cwd]
 
-        for k, v in env.items():
-            cmd = [f"{k}=\"{v}\"", ";"] + cmd
+        effective_env = {}
+        if self.env: effective_env.update(self.env)
+        if env: effective_env.update(env)
+
+        for k, v in effective_env.items():
+            cmd = [f"{k}=\"{v}\""] + cmd
 
         client = self._get_ssh_client()
 
         wait = gevent.lock.BoundedSemaphore(1)
 
-        def evntlet_add_msg(msgs, src, pf):
-            global wait
+        def evntlet_add_msg(msgs, src, pf, wait):
             for msg in src:
                 print(pf + msg)
                 with wait:
@@ -204,16 +219,22 @@ class ShellExecutor(object):
         # ohne use_pty das failed/haengt close_channel
         # leider kommt dann allels über stdout.
         # stderr bleibt leer.
+        import pudb;pudb.set_trace()
+        cmd = shlex.join(cmd)
+        if cd_command:
+            cmd = shlex.join(cd_command) + " && " + cmd
         host_out = client.run_command(cmd, use_pty=True)
 
 
         msgs = []
-        rstdout = gevent.spawn(evntlet_add_msg, msgs, host_out.stdout, "stdout: ")
-        rstderr = gevent.spawn(evntlet_add_msg, msgs, host_out.stderr, "stderr: ")
+        rstdout = gevent.spawn(evntlet_add_msg, msgs, host_out.stdout, "stdout: ", wait)
+        rstderr = gevent.spawn(evntlet_add_msg, msgs, host_out.stderr, "stderr: ", wait)
+        timeout_happened = False
         try:
             client.wait_finished(host_out, timeout)
         except Timeout:
             logger.warn(f"Timeout occurred")
+            timeout_happened = True
             gevent.killall([rstdout, rstderr])
             host_out.client.close_channel(host_out.channel)
 
@@ -224,7 +245,7 @@ class ShellExecutor(object):
         errwriter and errwriter.finish()
 
         return {
-            'timeout': timeout,
+            'timeout': timeout_happened,
             'exit_code': exit_code,
             'stdout': stdout,
             'stderr': stderr,

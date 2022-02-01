@@ -288,29 +288,27 @@ echo "--------------------------------------------------------------------------
     def _gitshell(self, repo, cwd, logsio, env=None, **kwargs):
         self.ensure_one()
         assert repo._name == 'cicd.git.repo'
-        with self._shell() as spurplus_shell:
+        env = env or {}
+        env.update({
+            "GIT_ASK_YESNO": "false",
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_SSH_COMMAND": f'ssh -o Batchmode=yes -o StrictHostKeyChecking=no',
+        })
+        with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix='.'))
-            env = env or {}
-            env.update({
-                "GIT_ASK_YESNO": "false",
-                "GIT_TERMINAL_PROMPT": "0",
-                "GIT_SSH_COMMAND": f'ssh -o Batchmode=yes -o StrictHostKeyChecking=no',
-            })
-
             try:
                 if repo.login_type == 'key':
                     env['GIT_SSH_COMMAND'] += f'   -i {file}  '
-                    spurplus_shell.write_text(file, repo.key)
-                    spurplus_shell.run(["chmod", '400', str(file)])
+                    shell.write_text(file, repo.key)
+                    shell.X(["chmod", '400', str(file)])
                 else:
                     pass
 
-                with self._shellexec(cwd=cwd, logsio=logsio, env=env) as shell:
-                    yield shell
+                yield shell
 
             finally:
-                if spurplus_shell.exists(file):
-                    spurplus_shell.remove(file)
+                if shell.exists(file):
+                    shell.remove(file)
 
     @contextmanager
     def _put_temporary_file_on_machine(self, logsio, source_path, dest_machine, dest_path, delete_copied_file=True):
