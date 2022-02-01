@@ -9,8 +9,6 @@ import grp
 import hashlib
 from pathlib import Path
 from ..tools.logsio_writer import LogsIOWriter
-import spur
-import spurplus
 from contextlib import contextmanager
 from odoo import _, api, fields, models, SUPERUSER_ID, tools
 import subprocess
@@ -93,30 +91,36 @@ class CicdMachine(models.Model):
         ]:
             if file.exists():
                 os.chmod(file, rights_keyfile)
-        ssh_keyfile.write_text(self.ssh_key)
-        ssh_pubkeyfile.write_text(self.ssh_pubkey)
+        def content_differs(file, content):
+            if not file.exists():
+                return True
+            return file.read_text() != content
+
+        if content_differs(ssh_keyfile, self.ssh_key):
+            ssh_keyfile.write_text(self.ssh_key)
+        if content_differs(ssh_pubkeyfile, self.ssh_pubkey):
+            ssh_pubkeyfile.write_text(self.ssh_pubkey)
         os.chmod(ssh_keyfile, rights_keyfile)
         os.chmod(ssh_pubkeyfile, rights_keyfile)
         return ssh_keyfile
 
-    @contextmanager
-    def _shell(self):
-        self.ensure_one()
-        ssh_keyfile = self._place_ssh_credentials()
-        with spurplus.connect_with_retries(
-            hostname=self.effective_host,
-            username=self.ssh_user,
-            password="dontuseme",
-            private_key_file=str(ssh_keyfile),
-            missing_host_key=spur.ssh.MissingHostKey.accept,
-            ) as shell:
-            yield shell
+    def test_shell(self, cmd, cwd=None, env={}):
+        with self._shell(cwd=cwd, env=env) as shell:
+            return shell.X(cmd, cwd=cwd, env=env)
+    def test_shell_exists(self, path):
+        with self._shell() as shell:
+            return shell.exists(path)
 
     @contextmanager
-    def _shellexec(self, cwd, logsio, project_name=None, env=None):
+    def _shell(self, cwd=None, logsio=None, project_name=None, env={}):
         self.ensure_one()
-        executor = ShellExecutor(self, cwd, logsio, project_name, env or {})
-        yield executor
+        ssh_keyfile = self._place_ssh_credentials()
+
+        shell = ShellExecutor(
+            ssh_keyfile=ssh_keyfile, machine=self, cwd=cwd,
+            logsio=logsio, project_name=project_name, env=env
+        )
+        yield shell
 
     def generate_ssh_key(self):
         self.ensure_one()
@@ -131,59 +135,8 @@ class CicdMachine(models.Model):
             self.ssh_pubkey = pubkeyfile.read_text()
 
     def test_ssh(self):
-        self._execute_shell(["ls"])
+        self._shell().X(["ls"])
         raise ValidationError(_("Everyhing Works!"))
-
-    def _execute_shell(self, cmd, cwd=None, env=None, logsio=None, allow_error=False, logoutput=True):
-
-        def convert(x):
-            if isinstance(x, Path):
-                x = str(x)
-            return x
-
-        cmd = list(map(convert, cmd))
-
-        class MyWriter(object):
-            def __init__(self, ttype):
-                self.text = [""]
-                self.ttype = ttype
-                self.line = ""
-
-            def finish(self):
-                self._write_line()
-
-            def write(self, text):
-                if not logsio:
-                    return
-                if '\n' in text and len(text) == 1:
-                    self._write_line()
-                    self.line = ""
-                else:
-                    self.line += text
-                    return
-
-            def _write_line(self):
-                if not self.line:
-                    return
-                if logoutput:
-                    if self.ttype == 'error':
-                        logsio.error(self.line)
-                    else:
-                        logsio.info(self.line)
-
-        with self._shell() as shell:
-            if not logoutput:
-                stdwriter, errwriter = None, None
-            else:
-                stdwriter, errwriter = MyWriter('info'), MyWriter('error')
-
-            res = shell.run(
-                cmd, cwd=cwd, update_env=env or {},
-                stdout=stdwriter, stderr=errwriter, allow_error=allow_error,
-            )
-            stdwriter and stdwriter.finish()
-            errwriter and errwriter.finish()
-            return res
 
     def update_dumps(self):
         for rec in self:
@@ -199,8 +152,9 @@ class CicdMachine(models.Model):
 
     def _get_sshuser_id(self):
         user_name = self.ssh_user
-        res = self._execute_shell(self, ["/usr/bin/id", '-u', user_name])
-        user_id = res.output.strip()
+        with self._shell() as shell:
+            res = shell.X(["/usr/bin/id", '-u', user_name])
+        user_id = res['stdout'].strip()
         return user_id
 
     def _get_volume(self, ttype):
@@ -290,10 +244,10 @@ echo "--------------------------------------------------------------------------
                 """.format(**locals())
                 # in this path there ar, the keys that are used by web ssh container /opt/cicd_sshkey
                 if not shell.exists(test_file_if_required):
-                    shell.write_text(command_file, commands.strip() + "\n")
+                    shell.put(commands.strip() + "\n", command_file)
                     cmd = ["sudo", "/bin/bash", command_file]
                     res = shell.run(cmd, allow_error=True)
-                    if res.return_code:
+                    if res['exit_code']:
                         raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res.stderr_output}")
 
     @tools.ormcache()
@@ -342,29 +296,27 @@ echo "--------------------------------------------------------------------------
     def _gitshell(self, repo, cwd, logsio, env=None, **kwargs):
         self.ensure_one()
         assert repo._name == 'cicd.git.repo'
-        with self._shell() as spurplus_shell:
+        env = env or {}
+        env.update({
+            "GIT_ASK_YESNO": "false",
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_SSH_COMMAND": f'ssh -o Batchmode=yes -o StrictHostKeyChecking=no',
+        })
+        with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix='.'))
-            env = env or {}
-            env.update({
-                "GIT_ASK_YESNO": "false",
-                "GIT_TERMINAL_PROMPT": "0",
-            })
-
             try:
-                env['GIT_SSH_COMMAND'] = f'ssh -o Batchmode=yes -o StrictHostKeyChecking=no'
                 if repo.login_type == 'key':
                     env['GIT_SSH_COMMAND'] += f'   -i {file}  '
-                    spurplus_shell.write_text(file, repo.key)
-                    spurplus_shell.run(["chmod", '400', str(file)])
+                    shell.put(repo.key, file)
+                    shell.X(["chmod", '400', str(file)])
                 else:
                     pass
 
-                with self._shellexec(cwd=cwd, logsio=logsio, env=env) as shell:
-                    yield shell
+                yield shell
 
             finally:
-                if spurplus_shell.exists(file):
-                    spurplus_shell.remove(file)
+                if shell.exists(file):
+                    shell.remove(file)
 
     @contextmanager
     def _put_temporary_file_on_machine(self, logsio, source_path, dest_machine, dest_path, delete_copied_file=True):
