@@ -66,7 +66,7 @@ class ShellExecutor(object):
     def _get_home_dir(self):
         with self.machine._shell() as shell:
             res = shell.X(
-                ['realpath', '~'],
+                ['echo', '$HOME'],
             )['stdout'].strip()
         if res.endswith("/~"):
             res = res[:-2]
@@ -177,8 +177,6 @@ class ShellExecutor(object):
                 self._write_line()
 
             def write(self, text):
-                if not self.logsio:
-                    return
                 if '\n' in text and len(text) == 1:
                     self._write_line()
                     self.line = ""
@@ -191,7 +189,7 @@ class ShellExecutor(object):
                     return
                 line = self.line
                 self.all_lines.append(line)
-                if logoutput:
+                if logoutput and self.logsio:
                     if self.ttype == 'error':
                         self.logsio.error(line)
                     else:
@@ -227,7 +225,9 @@ class ShellExecutor(object):
         # ohne use_pty das failed/haengt close_channel
         # leider kommt dann allels über stdout.
         # stderr bleibt leer.
-        cmd = shlex.join(cmd)
+        if isinstance(cmd, (tuple, list)):
+            cmd = f"'{cmd[0]}' " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
+
         for k, v in effective_env.items():
             cmd = f"{k}=\"{v}\"" + " " + cmd
 
