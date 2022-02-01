@@ -45,7 +45,7 @@ class Dump(models.Model):
         with machine._shell() as shell:
             for volume in machine.volume_ids.filtered(lambda x: x.ttype in ['dumps', 'dumps_in']):
                 with machine._shell() as shell:
-                    files = shell([
+                    files = shell.X([
                         "ls", volume.name + "/"
                     ])['stdout'].strip().split("\n")
 
