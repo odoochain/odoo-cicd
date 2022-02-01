@@ -364,29 +364,27 @@ class Branch(models.Model):
             logsio.error(ex)
 
     def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
-        with shell.shell() as ssh_shell:
-            home_dir = shell._get_home_dir()
-            machine = shell.machine
-            project_name = forced_project_name or self.project_name
-            content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
-            values = os.environ.copy()
-            values['PROJECT_NAME'] = project_name
-            content = content.format(**values)
-            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content)
+        home_dir = shell._get_home_dir()
+        machine = shell.machine
+        project_name = forced_project_name or self.project_name
+        content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
+        values = os.environ.copy()
+        values['PROJECT_NAME'] = project_name
+        content = content.format(**values)
+        shell.write_text(content, home_dir + f"/.odoo/docker-compose.{project_name}.yml")
 
-            content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
-            assert machine
-            if not machine.postgres_server_id:
-                raise ValidationError(_(f"Please configure a db server for {machine.name}"))
-            content += "\n" + (self.reload_config or '')
-            if settings:
-                content += "\n" + settings
+        content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
+        assert machine
+        if not machine.postgres_server_id:
+            raise ValidationError(_(f"Please configure a db server for {machine.name}"))
+        content += "\n" + (self.reload_config or '')
+        if settings:
+            content += "\n" + settings
 
-            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(
-                branch=self,
-                project_name=project_name,
-                machine=machine
-                ))
+        shell.put(
+            content.format(branch=self, project_name=project_name, machine=machine),
+            home_dir + f'/.odoo/settings.{project_name}'
+            )
 
     def _cron_autobackup(self):
         for rec in self:

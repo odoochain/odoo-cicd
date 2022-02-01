@@ -243,7 +243,7 @@ echo "--------------------------------------------------------------------------
                 """.format(**locals())
                 # in this path there ar, the keys that are used by web ssh container /opt/cicd_sshkey
                 if not shell.exists(test_file_if_required):
-                    shell.write_text(command_file, commands.strip() + "\n")
+                    shell.put(commands.strip() + "\n", command_file)
                     cmd = ["sudo", "/bin/bash", command_file]
                     res = shell.run(cmd, allow_error=True)
                     if res['exit_code']:
@@ -306,7 +306,7 @@ echo "--------------------------------------------------------------------------
             try:
                 if repo.login_type == 'key':
                     env['GIT_SSH_COMMAND'] += f'   -i {file}  '
-                    shell.write_text(file, repo.key)
+                    shell.put(repo.key, file)
                     shell.X(["chmod", '400', str(file)])
                 else:
                     pass
