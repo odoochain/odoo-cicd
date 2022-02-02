@@ -39,7 +39,7 @@ class CicdTestRun(models.Model):
 
         while True:
             try:
-                shell.odoo("psql", "--sql", "select * from information_schema.tables limit 1;")
+                shell.odoo("psql", "--non-interactive", "--sql", "select * from information_schema.tables limit 1;", timeout=timeout)
             except Exception:
                 diff = arrow.get() - started
                 logger.info(f"Waiting for postgres {diff.total_seconds()}...")
@@ -60,9 +60,7 @@ RUN_POSTGRES=1
             self.env.cr.commit()
             logsio.info(msg)
         root = machine._get_volume('source')
-        with machine._shellexec(cwd=root, logsio=logsio) as shell:
-            shell.project_name = self.branch_id.project_name # is computed by context
-
+        with machine._shell(cwd=root, logsio=logsio, project_name=self.branch_id.project_name) as shell:
             report("Checking out source code...")
             self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
             report("Checked out source code")
@@ -296,7 +294,7 @@ RUN_POSTGRES=1
             lambda item: shell.odoo('unittest', item),
         )
 
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run, timeout=600):
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run):
         """
         Timeout in seconds.
 
@@ -305,40 +303,15 @@ RUN_POSTGRES=1
 
             index = f"({i + 1} / {len(todo)}"
             started = arrow.get()
-            deadline = started.shift(seconds=timeout)
-            self.line_ids = [[0, 0, {
-                'name': f"Starting: {index} {item}",
-                'ttype': ttype, 
-                'run_id': self.id,
-                'state': 'success',
-            }]]
             data = {
-                'name': item or '',
+                'name': f"{index} {item}",
                 'ttype': ttype, 
                 'run_id': self.id,
                 'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
             }
             try:
                 logsio.info(f"Running {index} {item}")
-
-                # make real timeout to paramiko
-                def execute_wrapper(item, data):
-                    try:
-                        execute_run(item)
-                    except Exception as ex:
-                        msg = traceback.format_exc()
-                        logsio.error(f"Error happened: {msg}")
-                        data['state'] = 'failed'
-                        data['exc_info'] = msg
-
-                t = threading.Thread(target=execute_wrapper, args=(item, data))
-                t.daemon = True
-                t.start()
-
-                while t.is_alive():
-                    if arrow.get() > deadline:
-                        raise Exception(f'timeout of {timeout} reached')
-                    time.sleep(1)
+                execute_run(item)
 
             except Exception as ex:
                 msg = traceback.format_exc()
