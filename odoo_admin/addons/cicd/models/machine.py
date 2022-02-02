@@ -246,7 +246,7 @@ echo "--------------------------------------------------------------------------
                 if not shell.exists(test_file_if_required):
                     shell.put(commands.strip() + "\n", command_file)
                     cmd = ["sudo", "/bin/bash", command_file]
-                    res = shell.run(cmd, allow_error=True)
+                    res = shell.X(cmd, allow_error=True)
                     if res['exit_code']:
                         raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res.stderr_output}")
 
