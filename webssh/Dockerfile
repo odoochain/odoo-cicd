@@ -1,4 +1,5 @@
 FROM ubuntu:20.04
+RUN sed -i 's/archive.ubuntu.com/de.archive.ubuntu.com/g' /etc/apt/sources.list
 CMD [ "bash", "/root/launch.sh" ]
 RUN apt update && DEBIAN_FRONTEND="noninteractive" apt install -y --no-install-recommends \
     nginx \

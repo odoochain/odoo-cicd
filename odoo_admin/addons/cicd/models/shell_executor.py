@@ -121,7 +121,6 @@ class ShellExecutor(object):
             logoutput=logoutput, allow_error=allow_error, ignore_stdout=ignore_stdout)
         if not allow_error:
             if res['exit_code'] is None:
-                import pudb;pudb.set_trace()
                 raise Exception("Timeout happend: {cmd}")
             if res['exit_code']:
                 raise Exception(f"Error happened: {res['exit_code']}: {res['stdout']}")
