@@ -151,8 +151,11 @@
 							<page name="qa" string="Quality">
 								<group string="Quality Assurance Settings" col='4' groups="cicd.group_developer">
 									<field name="run_unittests" widget="boolean_toggle"/>
+									<field name="retry_unit_tests" />
+									<field name="unittest_all"/>
+									<field name="timeout_tests"/>
+									<field name="timeout_migration"/>
 									<field name="run_robottests" widget="boolean_toggle"/>
-									<field name="simulate_empty_install"/>
 									<field name="simulate_install_id"/>
 								</group>
 							</page>

@@ -60,8 +60,11 @@ class GitBranch(models.Model):
     any_testing = fields.Boolean(compute="_compute_any_testing")
     run_unittests = fields.Boolean("Run Unittests", default=True, testrun_field=True)
     run_robottests = fields.Boolean("Run Robot-Tests", default=True, testrun_field=True)
-    simulate_empty_install = fields.Boolean("Simulate Empty Install", default=True, testrun_field=True)
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
+    unittest_all = fields.Boolean("All Unittests")
+    try_count = fields.Integer("Retry Count", default=3)
+    timeout_tests = fields.Integer("Timeout Tests [s]", default=600)
+    timeout_migration = fields.Integer("Timeout Migration [s]", default=1800)
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     block_release = fields.Boolean("Block Release", track_visibility='onchange')

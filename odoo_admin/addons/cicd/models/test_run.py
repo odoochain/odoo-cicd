@@ -266,6 +266,7 @@ RUN_POSTGRES=1
         self._generic_run(
             shell, logsio, [None], 
             'migration', _x,
+            timeout=self.timeout_migration,
         )
 
     def _run_robot_tests(self, shell, logsio, **kwargs):
@@ -281,10 +282,14 @@ RUN_POSTGRES=1
         self._generic_run(
             shell, logsio, files, 
             'robottest', _x
+            timeout=self.timeout_tests,
         )
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
-        files = shell.odoo('list-unit-test-files')['stdout'].strip()
+        cmd = ['list-unit-test-files']
+        if self.unittest_all:
+            cmd += ['-all']
+        files = shell.odoo(cmd)['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo("snap", "restore", shell.project_name)
@@ -293,64 +298,73 @@ RUN_POSTGRES=1
         self._generic_run(
             shell, logsio, files, 
             'unittest',
-            lambda item: shell.odoo('unittest', item),
+            lambda item: shell.odoo(
+                'unittest',
+                item,
+                f'--retry={self.retry_unit_tests}',
+                ),
+            try_count=self.retry_unit_tests,
+            timeout=self.timeout_tests,
         )
 
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run, timeout=600):
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1, timeout=600):
         """
         Timeout in seconds.
 
         """
         for i, item in enumerate(todo):
+            trycounter = 0
 
-            index = f"({i + 1} / {len(todo)}"
-            started = arrow.get()
-            deadline = started.shift(seconds=timeout)
-            self.line_ids = [[0, 0, {
-                'name': f"Starting: {index} {item}",
-                'ttype': ttype, 
-                'run_id': self.id,
-                'state': 'success',
-            }]]
-            data = {
-                'name': item or '',
-                'ttype': ttype, 
-                'run_id': self.id,
-                'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
-            }
-            try:
-                logsio.info(f"Running {index} {item}")
+            while True:
+                trycounter += 1
+                index = f"({i + 1} / {len(todo)}"
+                started = arrow.get()
+                deadline = started.shift(seconds=timeout)
+                self.line_ids = [[0, 0, {
+                    'name': f"Starting: {index} {item}",
+                    'ttype': ttype, 
+                    'run_id': self.id,
+                    'state': 'success',
+                }]]
+                data = {
+                    'name': item or '',
+                    'ttype': ttype, 
+                    'run_id': self.id,
+                    'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                try:
+                    logsio.info(f"Running {index} {item}")
 
-                # make real timeout to paramiko
-                def execute_wrapper(item, data):
-                    try:
-                        execute_run(item)
-                    except Exception as ex:
-                        msg = traceback.format_exc()
-                        logsio.error(f"Error happened: {msg}")
-                        data['state'] = 'failed'
-                        data['exc_info'] = msg
+                    # make real timeout to paramiko
+                    def execute_wrapper(item, data):
+                        try:
+                            execute_run(item)
+                        except Exception as ex:
+                            msg = traceback.format_exc()
+                            logsio.error(f"Error happened: {msg}")
+                            data['state'] = 'failed'
+                            data['exc_info'] = msg
 
-                t = threading.Thread(target=execute_wrapper, args=(item, data))
-                t.daemon = True
-                t.start()
+                    t = threading.Thread(target=execute_wrapper, args=(item, data))
+                    t.daemon = True
+                    t.start()
 
-                while t.is_alive():
-                    if arrow.get() > deadline:
-                        raise Exception(f'timeout of {timeout} reached')
-                    time.sleep(1)
+                    while t.is_alive():
+                        if arrow.get() > deadline:
+                            raise Exception(f'timeout of {timeout} reached')
+                        time.sleep(1)
 
-            except Exception as ex:
-                msg = traceback.format_exc()
-                logsio.error(f"Error happened: {msg}")
-                data['state'] = 'failed'
-                data['exc_info'] = msg
-            else:
-                data['state'] = 'success'
-            end = arrow.get()
-            data['duration'] = (end - started).total_seconds()
-            self.line_ids = [[0, 0, data]]
-            self.env.cr.commit()
+                except Exception as ex:
+                    msg = traceback.format_exc()
+                    logsio.error(f"Error happened: {msg}")
+                    data['state'] = 'failed'
+                    data['exc_info'] = msg
+                else:
+                    data['state'] = 'success'
+                end = arrow.get()
+                data['duration'] = (end - started).total_seconds()
+                self.line_ids = [[0, 0, data]]
+                self.env.cr.commit()
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
@@ -374,6 +388,7 @@ class CicdTestRun(models.Model):
         ('failed', 'Failed'),
     ], default='open', required=True)
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
+    try_count = fields.Integer("Try Count")
 
     def open_form(self):
         return {
