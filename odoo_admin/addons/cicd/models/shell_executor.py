@@ -158,7 +158,7 @@ class ShellExecutor(object):
         )
         return client
     
-    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=600, ignore_stdout=False):
+    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999, ignore_stdout=False):
         if timeout is None: timeout = DEFAULT_TIMEOUT
 
         def convert(x):
