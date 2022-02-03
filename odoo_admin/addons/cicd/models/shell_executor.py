@@ -23,7 +23,7 @@ import gevent.lock
 import logging
 logger = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = 600
+DEFAULT_TIMEOUT = 99999
 
 class ShellExecutor(object):
     def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env={}):
@@ -114,7 +114,7 @@ class ShellExecutor(object):
         self.X(["git", "clean", "-xdff"], cwd=cwd)
         self.X(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=cwd)
 
-    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, ignore_stdout=False, timeout=600):
+    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, ignore_stdout=False, timeout=None):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
