@@ -113,7 +113,7 @@ env['cicd.dump']._cron_update()
 			<field name="state">code</field>
 			<field name="code">
 dt = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
-model.search([('state', '=', 'done'), ('date_created', '&lt;', dt)]).unlink()</field>
+model.search([('date_created', '&lt;', dt)]).unlink()</field>
 			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>

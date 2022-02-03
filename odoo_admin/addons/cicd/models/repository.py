@@ -467,7 +467,7 @@ class Repository(models.Model):
         url = self.url
         if not url.endswith("/"):
             url += '/'
-        return ulr
+        return url
 
     def _get_url(self, ttype, object, object2=None):
         self.ensure_one()
