@@ -15,6 +15,7 @@ services:
   postgres:
     networks:
       - internal
+
   cronjobs:
     networks:
       - internal

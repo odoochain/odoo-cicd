@@ -16,6 +16,7 @@
 							<field name="db_user" />
 							<field name="db_pwd" password="True" />
 							<field name="ttype" />
+							<field name="size_human"/>
 						</group>
 						<notebook>
 							<page name="databases" string="Databases">

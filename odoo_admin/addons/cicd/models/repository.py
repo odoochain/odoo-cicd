@@ -9,7 +9,6 @@ import tempfile
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
-from . import pg_try_advisory_lock
 from odoo.addons.queue_job.exception import (
     RetryableJobError,
     JobError,
@@ -54,6 +53,16 @@ class Repository(models.Model):
         ('name_unique', "unique(named)", _("Only one unique entry allowed.")),
         ('url_unique', "unique(url)", _("Only one unique entry allowed.")),
     ]
+
+    def _get_lockname(self):
+        self.ensure_one()
+        return f"repo_{self.id}"
+
+    @api.constrains("username")
+    def _check_username(self):
+        for rec in self:
+            if rec.username and '@' in rec.username:
+                raise ValidationError(_("Please use the login username instead of email address"))
 
     def _compute_shortname(self):
         for rec in self:
@@ -112,11 +121,13 @@ class Repository(models.Model):
         elif tempfolder:
             temppath = tempfile.mktemp()
         if temppath and temppath != path:
-            with machine._shellexec(self.machine_id.workspace, logsio=logsio) as shell:
-                if not shell.exists(temppath):
+            with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
+                if not self._is_healthy_repository(shell, temppath):
+                    shell.rmifexists(temppath)
+
                     if limit_branch:
                         # make sure branch exists in source repo
-                        with machine._shellexec(path, logsio=logsio) as tempshell:
+                        with machine._shell(cwd=path, logsio=logsio) as tempshell:
                             tempshell.checkout_branch(limit_branch)
 
                     cmd = ["git", "clone"]
@@ -127,7 +138,7 @@ class Repository(models.Model):
         return temppath
 
     def _get_remotes(self, shell):
-        remotes = shell.X(["git", "remote", "-v"]).output.strip().split("\n")
+        remotes = shell.X(["git", "remote", "-v"])['stdout'].strip().split("\n")
         remotes = [x.split("\t")[0] for x in remotes]
         return list(set(remotes))
 
@@ -155,9 +166,14 @@ class Repository(models.Model):
     @api.model
     def _cron_fetch(self):
         logsio = None
-        for repo in self.search([('autofetch', '=', True)]):
+        repos = self
+        if not repos:
+            repos = self.search([('autofetch', '=', True)])
+
+        for repo in repos:
             try:
-                repo._lock_git()
+                if not repo.login_type:
+                    raise ValidationError(f"Login-Type missing for {repo.name}")
                 logsio = LogsIOWriter(repo.name, 'fetch')
                     
                 repo_path = repo._get_main_repo(logsio=logsio)
@@ -166,7 +182,7 @@ class Repository(models.Model):
                     updated_branches = set()
 
                     for remote in repo._get_remotes(shell):
-                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run']).stderr_output.strip().split("\n")))
+                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'], ignore_stdout=True)['stdout'].strip().split("\n")))
                         for fi in fetch_info:
                             while "  " in fi:
                                 fi = fi.replace("  ", " ")
@@ -195,20 +211,22 @@ class Repository(models.Model):
                     for branch in updated_branches:
                         logsio.info(f"Pulling {branch}...")
                         shell.X(["git", "fetch", "origin", branch])
-                        shell.checkout_branch(branch)
-                        shell.X(["git", "pull"])
-                        shell.X(["git", "submodule", "update", "--init", "--recursive"])
+                        with pg_advisory_lock(self.env.cr, repo._get_lockname()):
+                            shell.checkout_branch(branch)
+                            shell.X(["git", "pull"])
+                            shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
                     repo.with_delay()._cron_fetch_update_branches({
                         'updated_branches': list(updated_branches),
                     })
 
-
             except Exception as ex:
                 msg = traceback.format_exc()
                 if logsio:
                     logsio.error(msg)
-                logger.error(msg)
+                logger.error('error', exc_info=True)
+                if len(self) == 1:
+                    raise 
                 continue
 
     def _clean_remote_branches(self, branches):
@@ -225,64 +243,72 @@ class Repository(models.Model):
         updated_branches = data['updated_branches']
         logsio = LogsIOWriter(repo.name, 'fetch')
         repo_path = repo._get_main_repo(logsio=logsio)
-        repo._lock_git()
         machine = repo.machine_id
         repo = repo.with_context(active_test=False)
 
-        with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
-            # if completely new then all branches:
-            if not repo.branch_ids:
-                for branch in shell.X(["git", "branch"]).output.strip().split("\n"):
-                    branch = self._clear_branch_name(branch)
-                    updated_branches.append(branch)
+        with pg_advisory_lock(self.env.cr, self._get_lockname()):
+            with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
+                # if completely new then all branches:
+                if not repo.branch_ids:
+                    for branch in shell.X(["git", "branch"])['stdout'].strip().split("\n"):
+                        branch = self._clear_branch_name(branch)
+                        updated_branches.append(branch)
 
-            for branch in updated_branches:
-                shell.checkout_branch(branch)
-                name = branch
-                del branch
+                for branch in updated_branches:
+                    shell.checkout_branch(branch)
+                    name = branch
+                    del branch
 
-                if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
-                    branch = repo.branch_ids.create({
-                        'name': name,
-                        'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-                        'repo_id': repo.id,
-                    })
-                    branch._checkout_latest(shell, logsio=logsio, machine=machine)
-                    branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
+                        branch = repo.branch_ids.create({
+                            'name': name,
+                            'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                            'repo_id': repo.id,
+                        })
+                        branch._checkout_latest(shell, logsio=logsio, machine=machine)
+                        branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
 
-                if not branch.active:
-                    branch.active = True
+                    if not branch.active:
+                        branch.active = True
 
-                shell.checkout_branch(repo.default_branch)
-                del name
+                    shell.checkout_branch(repo.default_branch)
+                    del name
 
-            if not repo.branch_ids and not updated_branches:
-                if repo.default_branch:
-                    updated_branches.append(repo.default_branch)
+                if not repo.branch_ids and not updated_branches:
+                    if repo.default_branch:
+                        updated_branches.append(repo.default_branch)
 
-            if updated_branches:
-                repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
-                branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
-                for branch in branches:
-                    branch._checkout_latest(shell, logsio=logsio, machine=machine)
-                    branch._update_git_commits(shell, logsio)
-                    branch._compute_state()
-                    branch._trigger_rebuild_after_fetch(machine=machine)
+                if updated_branches:
+                    repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
+                    branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
+                    for branch in branches:
+                        branch._checkout_latest(shell, logsio=logsio, machine=machine)
+                        branch._update_git_commits(shell, logsio)
+                        branch._compute_state()
+                        branch._trigger_rebuild_after_fetch(machine=machine)
 
-    def _lock_git(self): 
-        for rec in self:
-            lock = rec.name
-            if not pg_try_advisory_lock(self.env.cr, lock):
-                raise RetryableJobError(_("Git is in other use at the moment"), seconds=10, ignore_retry=True)
+    def _is_healthy_repository(self, shell, path):
+        healthy = False
+        if shell.exists(path):
+            try:
+                res = shell.X(["git", "status", "-s"], cwd=path, logoutput=False)
+                if res['stdout'].strip():
+                    healthy = False
+                else:
+                    healthy = True
+            except:
+                pass
+        return healthy
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
-            if not shell.exists(path):
-                self._lock_git()
-                shell.X([
-                    "git", "clone", self.url,
-                    path
-                ])
+            with pg_advisory_lock(self.env.cr, self._get_lockname()):
+                if not self._is_healthy_repository(shell, path):
+                    shell.rmifexists(path)
+                    shell.X([
+                        "git", "clone", self.url,
+                        path
+                    ])
 
     def _collect_latest_tested_commits(self, source_branches, target_branch_name, logsio, critical_date, make_info_commit_msg):
         """
@@ -290,73 +316,74 @@ class Repository(models.Model):
 
         "param make_info_commit_msg": if set, then an empty commit with just a message is made
         """
-        self.ensure_one()
+        with pg_advisory_lock(self.env.cr, self._get_lockname()):
+            self.ensure_one()
 
-        # we use a working repo
-        assert target_branch_name
-        assert source_branches._name == 'cicd.git.branch'
-        machine = self.machine_id
-        orig_repo_path = self._get_main_repo()
-        repo_path = self._get_main_repo(tempfolder=True)
-        commits = self.env['cicd.git.commit']
-        repo = self.with_context(active_test=False)
-        message_commit = None # commit sha of the created message commit
-        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
-            try:
+            # we use a working repo
+            assert target_branch_name
+            assert source_branches._name == 'cicd.git.branch'
+            machine = self.machine_id
+            orig_repo_path = self._get_main_repo()
+            repo_path = self._get_main_repo(tempfolder=True)
+            commits = self.env['cicd.git.commit']
+            repo = self.with_context(active_test=False)
+            message_commit = None # commit sha of the created message commit
+            with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
+                try:
 
-                # clear the current candidate
-                if shell.branch_exists(target_branch_name):
-                    shell.checkout_branch(self.default_branch)
-                    shell.X(["git", "branch", "-D", target_branch_name])
-                logsio.info("Making target branch {target_branch.name}")
-                shell.checkout_branch(repo.default_branch)
-                shell.X(["git", "checkout", "--no-guess", "-b", target_branch_name])
+                    # clear the current candidate
+                    if shell.branch_exists(target_branch_name):
+                        shell.checkout_branch(self.default_branch)
+                        shell.X(["git", "branch", "-D", target_branch_name])
+                    logsio.info("Making target branch {target_branch.name}")
+                    shell.checkout_branch(repo.default_branch)
+                    shell.X(["git", "checkout", "--no-guess", "-b", target_branch_name])
 
-                for branch in source_branches:
-                    for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
-                        if critical_date:
-                            if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
+                    for branch in source_branches:
+                        for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
+                            if critical_date:
+                                if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
+                                    continue
+
+                            if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
                                 continue
 
-                        if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
-                            continue
+                            commits |= commit
 
-                        commits |= commit
+                            # we use git functions to retrieve deltas, git sorting and so;
+                            # we want to rely on stand behaviour git.
+                            shell.checkout_branch(target_branch_name)
+                            shell.X(["git", "merge", commit.name])
+                            break
 
-                        # we use git functions to retrieve deltas, git sorting and so;
-                        # we want to rely on stand behaviour git.
-                        shell.checkout_branch(target_branch_name)
-                        shell.X(["git", "merge", commit.name])
-                        break
+                    if commits:
 
-                if commits:
+                        # pushes to mainrepo locally not to web because its cloned to temp directory
+                        shell.X(["git", "remote", "set-url", 'origin', self.url])
+                        shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
 
-                    # pushes to mainrepo locally not to web because its cloned to temp directory
-                    shell.X(["git", "remote", "set-url", 'origin', self.url])
-                    shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
+                        message_commit_sha = None
+                        if make_info_commit_msg:
+                            shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
+                            message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                        shell.X(["git", "push", "-f", 'origin', target_branch_name])
 
-                    message_commit_sha = None
-                    if make_info_commit_msg:
-                        shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
-                        message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"]).output.strip()
-                    shell.X(["git", "push", "-f", 'origin', target_branch_name])
+                        if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
+                            target_branch = repo.branch_ids.create({
+                                'repo_id': repo.id,
+                                'name': target_branch_name,
+                            })
+                        if not target_branch.active:
+                            target_branch.active = True
+                        target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+                        if message_commit_sha:
+                            message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
+                            message_commit.ensure_one()
 
-                    if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
-                        target_branch = repo.branch_ids.create({
-                            'repo_id': repo.id,
-                            'name': target_branch_name,
-                        })
-                    if not target_branch.active:
-                        target_branch.active = True
-                    target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
-                    if message_commit_sha:
-                        message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
-                        message_commit.ensure_one()
+                finally:
+                    shell.rmifexists(repo_path)
 
-            finally:
-                shell.rmifexists(repo_path)
-
-        return message_commit, commits
+            return message_commit, commits
 
     def _merge(self, source, dest, set_tags, logsio=None):
         assert source._name == 'cicd.git.branch'
@@ -369,18 +396,18 @@ class Repository(models.Model):
         with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
                 shell.checkout_branch(dest.name)
-                commitid = shell.X(["/usr/bin/git", "log", "-n1", "--format=%H"]).output.strip()
-                branches = [self._clear_branch_name(x) for x in shell.X(["/usr/bin/git", "branch", "--contains", commitid]).output.strip().split("\n")]
+                commitid = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                branches = [self._clear_branch_name(x) for x in shell.X(["git", "branch", "--contains", commitid])['stdout'].strip().split("\n")]
                 if source.name in branches:
                     return False
                 shell.checkout_branch(source.name)
                 shell.checkout_branch(dest.name)
-                count_lines = len(shell.X(["/usr/bin/git", "diff", "-p", source.name]).output.strip().split("\n"))
-                shell.X(["/usr/bin/git", "merge", source.name])
+                count_lines = len(shell.X(["git", "diff", "-p", source.name])['stdout'].strip().split("\n"))
+                shell.X(["git", "merge", source.name])
                 for tag in set_tags:
-                    shell.X(["/usr/bin/git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
+                    shell.X(["git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
                 shell.X(["git", "remote", "set-url", 'origin', self.url])
-                shell.X(["/usr/bin/git", "push", '--tags'])
+                shell.X(["git", "push", '--tags'])
 
                 return count_lines
 
@@ -392,20 +419,40 @@ class Repository(models.Model):
         for repo in self.search([
             ('never_cleanup', '=', False),
         ]):
-            dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime("%Y-%m-%d %H:%M:%S")
-            # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
-            db_registry = registry(self.env.cr.dbname)
-            branches = repo.branch_ids.filtered(lambda x: (x.last_access or x.date_registered).strftime("%Y-%m-%d %H:%M:%S") < dt)
-            with api.Environment.manage(), db_registry.cursor() as cr:
-                for branch in branches:
-                    env = api.Environment(cr, SUPERUSER_ID, {})
-                    branch = branch.with_env(env)
-                    branch.active = False
-                    env.cr.commit()
+            with pg_advisory_lock(self.env.cr, repo._get_lockname()):
+                dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime("%Y-%m-%d %H:%M:%S")
+                # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+                db_registry = registry(self.env.cr.dbname)
+                branches = repo.branch_ids.filtered(lambda x: (x.last_access or x.date_registered).strftime("%Y-%m-%d %H:%M:%S") < dt)
+                with api.Environment.manage(), db_registry.cursor() as cr:
+                    for branch in branches:
+                        env = api.Environment(cr, SUPERUSER_ID, {})
+                        branch = branch.with_env(env)
+                        branch.active = False
+                        env.cr.commit()
 
-    # def _cron_make_dev_dumps(self):
-    #     for rec in self.search([('make_dev_dumps', '=', True)]):
-    #         if not rec.default_branch: # or a release branch more?
-    #             continue
-
-    #         repo_path = rec._get_main_repo()
+    def new_branch(self):
+        return {
+            'view_type': 'form',
+            'res_model': 'cicd.git.branch.new',
+            'context': {
+                'default_repo_id': self.id,
+            },
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'flags': {'form': {
+                'action_buttons': False,
+                'initial_mode': 'edit',
+                #'footer_to_buttons': False,
+                #'not_interactiable_on_create': False,
+                #'disable_autofocus': False,
+                #'headless': False,  9.0 and others?
+            }},
+            'options': {
+                # needs module web_extended_actions
+                'hide_breadcrumb': True,
+                'replace_breadcrumb': True,
+                'clear_breadcrumbs': True,
+            },
+            'target': 'new',
+        }

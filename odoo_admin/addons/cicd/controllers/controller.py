@@ -57,7 +57,8 @@ class Controller(http.Controller):
         branch = request.env['cicd.git.branch'].sudo().search([])
         branch = branch.filtered(lambda x: x.project_name.lower() == instance.lower())
         if branch:
-            url = f"/web#model=cicd.git.branch&id={branch and branch.id or 0}&view_type=form"
+            menu_id = request.env.ref("cicd.root_menu").id
+            url = f"/web#menu_id={menu_id}&model=cicd.git.branch&id={branch and branch.id or 0}&view_type=form"
         else:
             url = f'/web'
         redirect = request.redirect(url)

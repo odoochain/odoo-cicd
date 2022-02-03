@@ -36,6 +36,7 @@ lxml==4.3.2 ; sys_platform != 'win32' and python_version == '3.7'
 lxml==4.6.1 ; sys_platform != 'win32' and python_version > '3.7'
 num2words==0.5.6
 ofxparse==0.19
+parallel_ssh
 paramiko
 passlib==1.7.2
 pathlib>=1.0.1

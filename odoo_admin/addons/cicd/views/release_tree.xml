@@ -5,6 +5,7 @@
 		<field name="model">cicd.release</field>
 		<field name="arch" type="xml">
 			<tree default_order="" string="" >
+				<field name="repo_short"/>
 				<field name="name" />
 				<field name="active" widget="boolean_toggle"/>
 				<field name="branch_id"/>

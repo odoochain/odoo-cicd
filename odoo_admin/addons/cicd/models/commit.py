@@ -8,6 +8,7 @@ class GitCommit(models.Model):
     _name = 'cicd.git.commit'
     _order = 'date desc'
 
+    short = fields.Char(compute="_compute_short")
     name = fields.Char("SHA", required=True)
     branch_ids = fields.Many2many('cicd.git.branch', string="Repo", required=True)
     date_registered = fields.Datetime("Date registered")
@@ -29,6 +30,10 @@ class GitCommit(models.Model):
     _sql_constraints = [
         ('name', "unique(name)", _("Only one unique entry allowed.")),
     ]
+
+    def _compute_short(self):
+        for rec in self:
+            rec.short = rec.name[:8]
 
     def _event_new_test_state(self, new_state):
         pass # implement!
@@ -96,11 +101,8 @@ class GitCommit(models.Model):
 
         repo_path = repo._get_main_repo(logsio=logsio, machine=repo.machine_id)
         with repo.machine_id._shellexec(repo_path, logsio=logsio) as shell:
-            try:
-                test = shell.X(['git', 'merge-base', commit.name, self.name], allow_error=False)  # order seems to be irrelevant
-            except spur.results.RunProcessError as ex:
-                if 'fatal: Not a valid commit name' in ex.stderr_output:
+            test = shell.X(['git', 'merge-base', commit.name, self.name], allow_error=True)  # order seems to be irrelevant
+            if test['exit_code']:
+                if 'fatal: Not a valid commit name' in test['stdout']:
                     return False
-                else:
-                    raise
-            return not test.return_code
+            return not test['exit_code']

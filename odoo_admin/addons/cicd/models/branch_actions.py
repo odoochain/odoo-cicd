@@ -83,7 +83,9 @@ class Branch(models.Model):
         shell.odoo('kill')
         shell.odoo('rm')
         logsio.info(f"Restoring {self.dump_id.name}")
-        shell.odoo('-f', 'restore', 'odoo-db', self.dump_id.name)
+        shell.odoo('-f', 'restore', 'odoo-db', '--no-remove-webassets', self.dump_id.name)
+        if self.remove_web_assets_after_restore:
+            shell.odoo('-f', 'remove-web-assets')
     
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
@@ -94,7 +96,7 @@ class Branch(models.Model):
         self._docker_get_state(shell)
 
     def _docker_get_state(self, shell, **kwargs):
-        info = shell.odoo('ps').output
+        info = shell.odoo('ps')['stdout']
 
         passed = False
         updated_containers = set()
@@ -133,9 +135,14 @@ class Branch(models.Model):
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
 
-    def _reload(self, shell, task, logsio, project_name=None, **kwargs):
-        self._make_sure_source_exists(shell, logsio)
-        self._make_instance_docker_configs(shell, forced_project_name=project_name) 
+    def _reload(self, shell, task, logsio, project_name=None, settings=None, commit=None, **kwargs):
+        shell.cwd = self._make_sure_source_exists(shell, logsio)
+        self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
+        self._collect_all_files_by_their_checksum(shell)
+        if commit:
+            shell.X(["git", "config", "advice.detachedHead", "false"]) # otherwise checking out a commit brings error message
+            shell.X(["git", "clean", "-xdff", commit])
+            shell.X(["git", "checkout", "-f", commit])
         shell.odoo('reload')
 
     def _build(self, shell, task, logsio, **kwargs):
@@ -155,72 +162,70 @@ class Branch(models.Model):
         self.ensure_one()
         logsio.info(f"Updating commits for {self.project_name}")
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
-        with shell.shell() as shell:
+        def _extract_commits():
+            return list(filter(bool, shell.X([
+                "git",
+                "log",
+                "--pretty=format:%H",
+                "--since='last 4 months'",
+            ], cwd=instance_folder)['stdout'].strip().split("\n")))
 
-            def _extract_commits():
-                return list(filter(bool, shell.check_output([
-                    "/usr/bin/git",
-                    "log",
-                    "--pretty=format:%H",
-                    "--since='last 4 months'",
-                ], cwd=instance_folder).strip().split("\n")))
+        if force_commits:
+            commits = force_commits
+        else:
+            commits = _extract_commits()
 
-            if force_commits:
-                commits = force_commits
-            else:
-                commits = _extract_commits()
+        all_commits = self.env['cicd.git.commit'].search([])
+        all_commits = dict((x.name, x.branch_ids) for x in all_commits)
 
-            all_commits = self.env['cicd.git.commit'].search([])
-            all_commits = dict((x.name, x.branch_ids) for x in all_commits)
+        for sha in commits:
+            if sha in all_commits:
+                if self not in all_commits[sha]:
+                    self.env['cicd.git.commit'].search([('name', '=', sha)]).branch_ids = [[4, self.id]]
+                continue
 
-            for sha in commits:
-                if sha in all_commits:
-                    if self not in all_commits[sha]:
-                        self.env['cicd.git.commit'].search([('name', '=', sha)]).branch_ids = [[4, self.id]]
-                    continue
+            env = update_env={
+                "TZ": "UTC0"
+            }
+            
+            line = shell.X([
+                "git",
+                "log",
+                sha,
+                "-n1",
+                "--pretty=format:%ct",
+            ], cwd=instance_folder, env=env)['stdout'].strip().split(',')
+            if not line or not any(line):
+                continue
 
-                env = update_env={
-                    "TZ": "UTC0"
-                }
-                
-                line = shell.check_output([
-                    "/usr/bin/git",
-                    "log",
-                    sha,
-                    "-n1",
-                    "--pretty=format:%ct",
-                ], cwd=instance_folder, update_env=env).strip().split(',')
-                if not line or not any(line):
-                    continue
+            date = arrow.get(int(line[0]))
 
-                date = arrow.get(int(line[0]))
+            info = shell.X([
+                "git",
+                "log",
+                sha,
+                "--date=format:%Y-%m-%d %H:%M:%S",
+                "-n1",
+            ], cwd=instance_folder, env=env)['stdout'].strip().split("\n")
 
-                info = shell.check_output([
-                    "/usr/bin/git",
-                    "log",
-                    sha,
-                    "--date=format:%Y-%m-%d %H:%M:%S",
-                    "-n1",
-                ], cwd=instance_folder, update_env=env).split("\n")
+            def _get_item(name):
+                for line in info:
+                    if line.strip().startswith(f"{name}:"):
+                        return line.split(":", 1)[-1].strip()
 
-                def _get_item(name):
-                    for line in info:
-                        if line.strip().startswith(f"{name}:"):
-                            return line.split(":", 1)[-1].strip()
+            def _get_body():
+                for i, line in enumerate(info):
+                    if not line:
+                        return info[i + 1:]
 
-                def _get_body():
-                    for i, line in enumerate(info):
-                        if not line:
-                            return info[i + 1:]
-
-                text = ('\n'.join(_get_body())).strip()
-                self.commit_ids = [[0, 0, {
-                    'name': sha,
-                    'author': _get_item("Author"),
-                    'date': date.strftime("%Y-%m-%d %H:%M:%S"),
-                    'text': text,
-                    'branch_ids': [[4, self.id]],
-                }]]
+            text = ('\n'.join(_get_body())).strip()
+            self.commit_ids = [[0, 0, {
+                'name': sha,
+                'author': _get_item("Author"),
+                'date': date.strftime("%Y-%m-%d %H:%M:%S"),
+                'text': text,
+                'branch_ids': [[4, self.id]],
+            }]]
     
     def _remove_web_assets(self, shell, task, logsio, **kwargs):
         logsio.info("Killing...")
@@ -258,34 +263,17 @@ class Branch(models.Model):
         update_state = kwargs.get('update_state', False)
         # self._update_git_commits(shell, task=task, logsio=logsio) # why???
 
-        test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
+        if kwargs.get('testrun_id'):
+            test_run = self.test_run_ids.browse(kwargs.get('testrun_id'))
+        else:
+            test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
 
         if not test_run:
             test_run = self.test_run_ids.create({
                 'commit_id': self.latest_commit_id.id,
                 'branch_id': b.id,
             })
-        for test_run in test_run:
-            # use tempfolder for tests to not interfere with updates or so
-            repo_path = task.branch_id.repo_id._get_main_repo(tempfolder=True, machine=shell.machine)
-            shell.cwd = repo_path
-            try:
-                try:
-                    self.env.cr.commit()
-                except psycopg2.errors.SerializationFailure:
-                    raise RetryableJobError("Could not get lock on test-run rescheduling", seconds=60, ignore_retry=True)
-
-                checkout_res = shell.X(["git", "checkout", "-f", test_run.commit_id.name + "UNDO"], allow_error=True)
-                if 'fatal: reference is not a tree' in checkout_res.stderr_output:
-                    raise RetryableJobError("Commit does not exist in working branch - rescheduling", seconds=60, ignore_retry=True)
-                test_run.execute(shell, task, logsio)
-                if update_state:
-                    if test_run.state == 'failed':
-                        self.state = 'dev'
-                    else:
-                        self.state = 'tested'
-            finally:
-                shell.rmifexists(repo_path)
+        test_run.execute(shell, task, logsio)
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
@@ -333,13 +321,14 @@ class Branch(models.Model):
         shell.X(["git", "pull"])
 
         # delete all other branches:
-        for branch in list(filter(lambda x: '* ' not in x, shell.X(["git", "branch"]).output.strip().split("\n"))):
+        res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
+        for branch in list(filter(lambda x: '* ' not in x, res)):
             branch = self.repo_id._clear_branch_name(branch)
             if branch == self.name: continue
             shell.X(["git", "branch", "-D", branch])
             del branch
 
-        current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"]).output.strip().split("\n")))
+        current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"])['stdout'].strip().split("\n")))
         if not current_branch:
             raise Exception(f"Somehow no current branch found")
         branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
@@ -351,10 +340,10 @@ class Branch(models.Model):
         shell.X(["git", "clean", "-xdff"])
 
         logsio.write_text("Updating submodules")
-        shell.X(["git", "submodule", "update", "--recursive"])
+        shell.X(["git", "submodule", "update", "--recursive", "--init"])
 
         logsio.write_text("Getting current commit")
-        commit = shell.X(["git", "rev-parse", "HEAD"]).output.strip()
+        commit = shell.X(["git", "rev-parse", "HEAD"])['stdout'].strip()
         logsio.write_text(commit)
 
         return str(commit)
@@ -375,24 +364,28 @@ class Branch(models.Model):
         except Exception as ex:
             logsio.error(ex)
 
-    def _make_instance_docker_configs(self, shell, forced_project_name=None):
-        with shell.shell() as ssh_shell:
-            home_dir = shell._get_home_dir()
-            machine = shell.machine
-            project_name = forced_project_name or self.project_name
-            content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
-            ssh_shell.write_text(home_dir + f"/.odoo/docker-compose.{project_name}.yml", content.format(**os.environ))
+    def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
+        home_dir = shell._get_home_dir()
+        machine = shell.machine
+        project_name = forced_project_name or self.project_name
+        content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
+        values = os.environ.copy()
+        values['PROJECT_NAME'] = project_name
+        content = content.format(**values)
+        shell.put(content, home_dir + f"/.odoo/docker-compose.{project_name}.yml")
 
-            content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
-            assert machine
-            if not machine.postgres_server_id:
-                raise ValidationError(_(f"Please configure a db server for {machine.name}"))
-            content += "\n" + (self.reload_config or '')
-            ssh_shell.write_text(home_dir + f'/.odoo/settings.{project_name}', content.format(
-                branch=self,
-                project_name=project_name,
-                machine=machine
-                ))
+        content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
+        assert machine
+        if not machine.postgres_server_id:
+            raise ValidationError(_(f"Please configure a db server for {machine.name}"))
+        content += "\n" + (self.reload_config or '')
+        if settings:
+            content += "\n" + settings
+
+        shell.put(
+            content.format(branch=self, project_name=project_name, machine=machine),
+            home_dir + f'/.odoo/settings.{project_name}'
+            )
 
     def _cron_autobackup(self):
         for rec in self:
@@ -410,7 +403,7 @@ class Branch(models.Model):
         # get list of files
         logsio.info("Identifying latest dump")
         with compressor.source_volume_id.machine_id._shellexec(logsio=logsio, cwd="") as source_shell:
-            output = list(reversed(source_shell.X(["ls", "-tra", compressor.source_volume_id.name]).output.strip().split("\n")))
+            output = list(reversed(source_shell.X(["ls", "-tra", compressor.source_volume_id.name])['stdout'].strip().split("\n")))
             for line in output:
                 if line == '.' or line == '..': continue
                 if re.findall(compressor.regex, line):
@@ -429,7 +422,7 @@ class Branch(models.Model):
             shell.machine,
             dest_file_path,
         ) as effective_dest_file_path:
-            compressor.last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path]).output.strip())
+            compressor.last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path])['stdout'].strip())
 
             instance_path = self.repo_id._get_main_repo(tempfolder=True, logsio=logsio, machine=shell.machine)
             assert shell.machine.ttype == 'dev'
@@ -449,7 +442,7 @@ class Branch(models.Model):
                     logsio.info(f"Dumping compressed dump")
                     output_path = compressor.volume_id.name + "/" + compressor.output_filename
                     shell2.odoo('backup', 'odoo-db', output_path, allow_error=False)
-                    compressor.last_input_size = int(shell2.X(['stat', '-c', '%s', output_path]).output.strip())
+                    compressor.last_input_size = int(shell2.X(['stat', '-c', '%s', output_path])['stdout'].strip())
                     compressor.date_last_success = fields.Datetime.now()
 
                 finally:
@@ -457,9 +450,64 @@ class Branch(models.Model):
 
     def _make_sure_source_exists(self, shell, logsio):
         instance_folder = self._get_instance_folder(shell.machine)
-        if not shell.exists(instance_folder) or not shell.exists(instance_folder / '.git'):
+        if not self.env['cicd.git.repo']._is_healthy_repository(shell, instance_folder):
             try:
                 self._checkout_latest(shell, logsio=logsio)
             except Exception as ex:
                 shell.rmifexists(instance_folder)
                 self._checkout_latest(shell, logsio=logsio)
+        return instance_folder
+
+    def _collect_all_files_by_their_checksum(self, shell):
+        """
+
+        STOP! 
+        odoo calls isdir on symlink which fails unfortunately
+        hardlink on dir does not work
+        so new idea needed
+
+
+        Odoo stores its files by sha. If a db is restored then usually it has to rebuild the assets.
+        And files are not available. 
+        To save space we make the following:
+
+        ~/.odoo/files/filestore/project_name1/00/000000000
+        ~/.odoo/files/filestore/project_name2/00/000000000
+
+                           | 
+                           |
+                           |
+                          \ /
+                           W
+        
+        ~/.odoo/files/filestore/_all/00/000000000
+        ~/.odoo/files/filestore/_all/00/000000000
+        ~/.odoo/files/filestore/project_name1 --> ~/.odoo/files/filestore/_all 
+        ~/.odoo/files/filestore/project_name2 --> ~/.odoo/files/filestore/_all 
+        """
+        return # see comment
+
+        python_script_executed = """
+from pathlib import Path
+import os
+import subprocess
+import shutil
+base = Path(os.path.expanduser("~/.odoo/files/filestore"))
+
+ALL_FOLDER = base / "_all"
+ALL_FOLDER.mkdir(exist_ok=True, parents=True)
+
+for path in base.glob("*"):
+    if path == ALL_FOLDER:
+        continue
+    if path.is_dir():
+        subprocess.check_call(["rsync", str(path) + "/", str(ALL_FOLDER) + "/", "-ar"])
+        shutil.rmtree(path)
+        path.symlink_to(ALL_FOLDER, target_is_directory=True)
+
+        """
+        shell.put(python_script_executed, '.cicd_reorder_files')
+        try:
+            shell.X(["python3", '.cicd_reorder_files'])
+        finally:
+            shell.rmifexists(".cicd_reorder_files")

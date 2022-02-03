@@ -117,10 +117,10 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             resp.raise_for_status()
 
         path = (self.path or '').split("?")[0]
-        if path in ['/index', '/index/'] or not delegator_path:
+        if not delegator_path:
+            #if self.path.endswith("/web"):
+            #    import pudb;pudb.set_trace()
             path = self.path
-            if path.split("/")[1] == 'index':
-                path = '/'
             url = f'{cicd_index_url}{path}'
         elif path.startswith("/mailer/") and delegator_path:
             host = f"{delegator_path}_proxy"
@@ -133,7 +133,8 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             url = f'http://{host}{path}'
 
         logger.debug(f"rewrite path result: {url}")
-        return url
+        query_params = dict(parse.parse_qsl(parse.urlsplit(self.path).query))
+        return url, query_params
 
     def _redirect_to_index(self, branch=None):
         # do logout to odoo to be clean; but redirect to index
@@ -157,10 +158,9 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self, body=True):
         sent = False
 
-        query_params = dict(parse.parse_qsl(parse.urlsplit(self.path).query))
         try:
             req_header, cookies = self.parse_headers()
-            url = self._rewrite_path(req_header, cookies)
+            url, query_params = self._rewrite_path(req_header, cookies)
             resp = requests.get(
                 url, headers=req_header, verify=False,
                 allow_redirects=False, params=query_params,
@@ -186,7 +186,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self, body=True):
         req_header, cookies = self.parse_headers()
-        url = self._rewrite_path(req_header, cookies)
+        url, query_params = self._rewrite_path(req_header, cookies)
         sent = False
         try:
             content_len = int(self.headers.get('content-length', 0))
@@ -194,7 +194,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
             resp = requests.post(
                 url, data=post_body,  headers=req_header,
-                verify=False, allow_redirects=False,
+                verify=False, allow_redirects=False, params=query_params,
                 cookies=cookies,
             )
             sent = True

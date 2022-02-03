@@ -13,7 +13,7 @@
 							<div t-attf-class="oe_kanban_global_click" style="min-height: 250px;">
 								<div>
 									<i class="fa fa-window-maximize" role="img" aria-label="Enterprise" title="Enterprise"/>
-									<strong><field name="name"/></strong>
+									<strong><field name="id"/>: <field name="branch_id_name"/></strong>
 								</div>
 								<hr class="mt4 mb4"/>
 								<div>
@@ -25,12 +25,16 @@
 									<field name="date"/>
 								</div>
 								<div>
+									<strong>Commit:</strong>
+									<field name="commit_id_short"/>
+								</div>
+								<div>
 									<strong>Branches:</strong>
 									<field name="branch_ids"/>
 								</div>
 								<div>
 									<strong>Success-Rate:</strong>
-									<field name="success_rate"/>
+									<field name="success_rate"/><span>%</span>
 								</div>
 								<div>
 									<strong>Repository:</strong>

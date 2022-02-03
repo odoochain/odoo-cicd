@@ -18,7 +18,7 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
-    project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name")
+    project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name", depends_context=['testrun'])
     database_project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
     machine_id = fields.Many2one(related='repo_id.machine_id')
@@ -51,6 +51,7 @@ class GitBranch(models.Model):
         ('building', 'Building'),
     ], default="new", required=True, compute="_compute_build_state", string="Instance State", track_visibility='onchange')
     dump_id = fields.Many2one("cicd.dump", string="Dump")
+    remove_web_assets_after_restore = fields.Boolean("Remove Webassets", default=True)
     reload_config = fields.Text("Reload Config", track_visibility='onchange')
     autobackup = fields.Boolean("Autobackup", track_visibility='onchange') 
     enduser_summary = fields.Text("Enduser Summary", track_visibility='onchange')
@@ -60,8 +61,11 @@ class GitBranch(models.Model):
     any_testing = fields.Boolean(compute="_compute_any_testing")
     run_unittests = fields.Boolean("Run Unittests", default=True, testrun_field=True)
     run_robottests = fields.Boolean("Run Robot-Tests", default=True, testrun_field=True)
-    simulate_empty_install = fields.Boolean("Simulate Empty Install", default=True, testrun_field=True)
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
+    unittest_all = fields.Boolean("All Unittests")
+    retry_unit_tests = fields.Integer("Retry Unittests", default=3)
+    timeout_tests = fields.Integer("Timeout Tests [s]", default=600)
+    timeout_migration = fields.Integer("Timeout Migration [s]", default=1800)
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     block_release = fields.Boolean("Block Release", track_visibility='onchange')
@@ -146,6 +150,8 @@ class GitBranch(models.Model):
 
     @api.depends(
         # "block_release", # not needed here - done in _onchange_state_event
+        "task_ids",
+        "task_ids.state",
         "commit_ids",
         "commit_ids.approval_state",
         "commit_ids.test_state",
@@ -156,11 +162,15 @@ class GitBranch(models.Model):
     def _compute_state(self):
         for rec in self:
             logger.info(f"Computing branch state for {rec.id}")
-            if not rec.commit_ids and rec.build_state == 'new':
+            building_tasks = rec.task_ids.filtered(lambda x: any (y in x.name for y in ['update', 'reset', 'restore']))
+            if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
                     rec.state = 'new'
                 continue
-            state = 'new'
+            if not building_tasks:
+                state = 'new'
+            else:
+                state = 'dev'
 
             commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
 
@@ -193,7 +203,7 @@ class GitBranch(models.Model):
             if state != rec.state:
                 rec.state = state
                 queuejob = rec.with_delay()._report_new_state_to_ticketsystem()
-                self.env['queue.job'].prefix(queuejob, self.name)
+                self.env['queue.job'].prefix(queuejob, rec.name)
 
 
     @api.fieldchange('state', 'block_release')
@@ -249,18 +259,20 @@ class GitBranch(models.Model):
                 else:
                     rec.build_state = 'new'
 
-    def _make_task(self, execute, now=False, machine=None, silent=False, **kwargs):
+    def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, **kwargs):
         for rec in self:
-            if not now and rec.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started'] and x.name == execute):
+            identity_key = identity_key or execute
+            if not now and rec.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started'] and x.identity_key == identity_key):
                 if silent:
                     return
-                raise ValidationError(_("Task already exists. Not triggered again."))
+                raise ValidationError(f"Task already exists. Not triggered again. Idkey: {identity_key}")
             task = rec.env['cicd.task'].sudo().create({
                 'model': self._name,
                 'res_id': rec.id,
                 'name': execute,
                 'branch_id': rec.id,
                 'machine_id': (machine and machine.id) or rec.machine_id.id,
+                'identity_key': identity_key if identity_key else False,
                 'kwargs': json.dumps(kwargs),
             })
             task.perform(now=now)
@@ -316,8 +328,13 @@ class GitBranch(models.Model):
 
     def _compute_project_name(self):
         for rec in self:
-            rec.project_name = os.environ['CICD_PROJECT_NAME'] + "_" + rec.repo_id.short + "_" + rec.name
-            dbname = rec.project_name.lower().replace("-", "_")
+            project_name = os.environ['CICD_PROJECT_NAME'] + "_" + rec.repo_id.short + "_" + rec.name
+            dbname = project_name.lower().replace("-", "_")
+            if self.env.context.get('testrun'):
+                project_name += self.env.context['testrun']
+            # incompatibility to capital letters in btrfs; constraining to lowercase
+            project_name = project_name.lower()
+            rec.project_name = project_name
             rec.database_project_name = dbname
 
     def _get_new_logsio_instance(self, source):
@@ -369,8 +386,12 @@ class GitBranch(models.Model):
             rec.block_release = not rec.block_release
 
     def _cron_make_test_runs(self):
-        for rec in self:
-            rec._make_task("_run_tests", silent=True, update_state=True)
+        for testrun in self.env['cicd.test.run'].search([('state', '=', 'open')]):
+            # if a test already exists for the branch no second is created unless the other is done or failed
+            # this is because only one active task per method is allowed
+            testrun.branch_id._make_task(
+                "_run_tests", silent=True, update_state=True,
+                testrun_id=testrun.id, identity_key=f"testrun_{testrun.id}")
 
     def _trigger_rebuild_after_fetch(self, machine):
         """
@@ -465,6 +486,7 @@ class GitBranch(models.Model):
         ])
 
         return {
+            'name': f"Jobs",
             'view_type': 'form',
             'res_model': jobs._name,
             'domain': [('id', 'in', jobs.ids)],
