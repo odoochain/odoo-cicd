@@ -11,6 +11,8 @@
 					<field name="started"/>
 					<field name="duration"/>
 					<field name="state"/>
+					<field name="force_success"/>
+					<field name="try_count"/>
 				</tree>
 			</field>
 		</record>

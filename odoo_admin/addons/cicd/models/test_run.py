@@ -207,7 +207,7 @@ RUN_POSTGRES=1
     def _compute_success_rate(self):
         for rec in self:
             lines = rec.mapped('line_ids').filtered(lambda x: x.ttype != 'log')
-            success_lines = len(lines.filtered(lambda x: x.state == 'success'))
+            success_lines = len(lines.filtered(lambda x: x.state == 'success' or x.force_success))
             if lines and all(x.state == 'success' for x in lines):
                 rec.state = 'success'
             else:
@@ -258,7 +258,7 @@ RUN_POSTGRES=1
 
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
             self._wait_for_postgres(shell)
-            shell.odoo('update')
+            shell.odoo('update', self.timeout_migration)
             self._wait_for_postgres(shell)
 
         self._generic_run(
@@ -274,15 +274,18 @@ RUN_POSTGRES=1
         def _x(item):
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
-            shell.odoo('robot', item)
+            shell.odoo('robot', item, timeout=self.timeout_tests)
 
         self._generic_run(
             shell, logsio, files, 
-            'robottest', _x
+            'robottest', _x,
         )
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
-        files = shell.odoo('list-unit-test-files')['stdout'].strip()
+        cmd = ['list-unit-test-files']
+        if self.unittest_all:
+            cmd += ['-all']
+        files = shell.odoo(cmd)['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo("snap", "restore", shell.project_name)
@@ -291,39 +294,52 @@ RUN_POSTGRES=1
         self._generic_run(
             shell, logsio, files, 
             'unittest',
-            lambda item: shell.odoo('unittest', item),
+            lambda item: shell.odoo(
+                'unittest',
+                item,
+                f'--retry={self.retry_unit_tests}',
+                ),
+            try_count=self.retry_unit_tests,
         )
 
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run):
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1):
         """
         Timeout in seconds.
 
         """
         for i, item in enumerate(todo):
+            trycounter = 0
+            while True:
+                trycounter += 1
+                logsio.info(f"Try #{trycounter}")
 
-            index = f"({i + 1} / {len(todo)}"
-            started = arrow.get()
-            data = {
-                'name': f"{index} {item}",
-                'ttype': ttype, 
-                'run_id': self.id,
-                'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
-            }
-            try:
-                logsio.info(f"Running {index} {item}")
-                execute_run(item)
+                index = f"({i + 1} / {len(todo)}"
+                started = arrow.get()
+                data = {
+                    'name': f"{index} {item}",
+                    'ttype': ttype, 
+                    'run_id': self.id,
+                    'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                    'try_count': trycounter,
+                }
+                try:
+                    logsio.info(f"Running {index} {item}")
+                    execute_run(item)
 
-            except Exception as ex:
-                msg = traceback.format_exc()
-                logsio.error(f"Error happened: {msg}")
-                data['state'] = 'failed'
-                data['exc_info'] = msg
-            else:
-                data['state'] = 'success'
-            end = arrow.get()
-            data['duration'] = (end - started).total_seconds()
-            self.line_ids = [[0, 0, data]]
-            self.env.cr.commit()
+                except Exception as ex:
+                    if trycounter < try_count:
+                        logsio.info("Retrying unittest")
+                        continue
+                    msg = traceback.format_exc()
+                    logsio.error(f"Error happened: {msg}")
+                    data['state'] = 'failed'
+                    data['exc_info'] = msg
+                else:
+                    data['state'] = 'success'
+                end = arrow.get()
+                data['duration'] = (end - started).total_seconds()
+                self.line_ids = [[0, 0, data]]
+                self.env.cr.commit()
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
@@ -346,7 +362,9 @@ class CicdTestRun(models.Model):
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], default='open', required=True)
+    force_success = fields.Boolean("Force Success")
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
+    try_count = fields.Integer("Try Count")
 
     def open_form(self):
         return {
