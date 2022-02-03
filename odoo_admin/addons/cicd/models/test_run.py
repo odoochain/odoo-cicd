@@ -283,9 +283,9 @@ RUN_POSTGRES=1
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
         cmd = ['list-unit-test-files']
-        if self.unittest_all:
-            cmd += ['-all']
-        files = shell.odoo(cmd)['stdout'].strip()
+        if self.branch_id.unittest_all:
+            cmd += ['--all']
+        files = shell.odoo(*cmd)['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo("snap", "restore", shell.project_name)
