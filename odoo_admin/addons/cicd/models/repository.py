@@ -45,6 +45,7 @@ class Repository(models.Model):
     garbage_collect = fields.Boolean("Garbage Collect to reduce size", default=True)
     initialize_new_branches = fields.Boolean("Initialize new Branches")
     release_tag_prefix = fields.Char("Release Tag Prefix", default="release-", required=True)
+    remove_web_assets_after_restore = fields.Boolean("Remove Webassets", default=True)
 
     make_dev_dumps = fields.Boolean("Make Dev Dumps")
     ticketsystem_id = fields.Many2one("cicd.ticketsystem", string="Ticket-System")

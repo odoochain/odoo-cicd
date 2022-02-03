@@ -108,6 +108,8 @@ class GitBranch(models.Model):
         res = super().create(vals)
         if not res.simulate_install_id:
             res.simulate_install_id = res.repo_id.default_simulate_install_id_dump_id
+        if 'remove_web_assets_after_restore' not in vals:
+            res.remove_web_assets_after_restore = res.repo_id.remove_web_assets_after_restore 
         return res
 
     def _compute_releases(self):

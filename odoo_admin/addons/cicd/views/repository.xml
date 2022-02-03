@@ -33,6 +33,7 @@
 							<field name="autofetch"/>
 							<field name="garbage_collect"/>
 							<field name="release_tag_prefix"/>
+							<field name="remove_web_assets_after_restore"/>
 						</group>
 						<notebook>
 							<page name="cleanup" string="Cleanup">
