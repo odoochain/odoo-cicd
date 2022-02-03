@@ -468,6 +468,8 @@ class Repository(models.Model):
         url = self.url
         if not url.endswith("/"):
             url += '/'
+        if url.startswith("ssh://git@"):
+            url = url.replace("ssh://git@", "https://")
         return url
 
     def _get_url(self, ttype, object, object2=None):
