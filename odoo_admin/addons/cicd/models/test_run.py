@@ -297,9 +297,8 @@ RUN_POSTGRES=1
             lambda item: shell.odoo(
                 'unittest',
                 item,
-                f'--retry={self.retry_unit_tests}',
                 ),
-            try_count=self.retry_unit_tests,
+            try_count=self.branch_id.retry_unit_tests,
         )
 
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1):
