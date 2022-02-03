@@ -258,13 +258,12 @@ RUN_POSTGRES=1
 
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
             self._wait_for_postgres(shell)
-            shell.odoo('update')
+            shell.odoo('update', self.timeout_migration)
             self._wait_for_postgres(shell)
 
         self._generic_run(
             shell, logsio, [None], 
             'migration', _x,
-            timeout=self.timeout_migration,
         )
 
     def _run_robot_tests(self, shell, logsio, **kwargs):
@@ -275,12 +274,11 @@ RUN_POSTGRES=1
         def _x(item):
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
-            shell.odoo('robot', item)
+            shell.odoo('robot', item, timeout=self.timeout_tests)
 
         self._generic_run(
             shell, logsio, files, 
-            'robottest', _x
-            timeout=self.timeout_tests,
+            'robottest', _x,
         )
 
     def _run_unit_tests(self, shell, logsio, **kwargs):

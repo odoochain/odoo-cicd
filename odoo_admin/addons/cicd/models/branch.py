@@ -63,7 +63,7 @@ class GitBranch(models.Model):
     run_robottests = fields.Boolean("Run Robot-Tests", default=True, testrun_field=True)
     simulate_install_id = fields.Many2one("cicd.dump", string="Simulate Install", testrun_field=True)
     unittest_all = fields.Boolean("All Unittests")
-    try_count = fields.Integer("Retry Count", default=3)
+    retry_unit_tests = fields.Integer("Retry Unittests", default=3)
     timeout_tests = fields.Integer("Timeout Tests [s]", default=600)
     timeout_migration = fields.Integer("Timeout Migration [s]", default=1800)
 
