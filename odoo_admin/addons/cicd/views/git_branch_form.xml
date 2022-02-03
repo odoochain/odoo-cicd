@@ -72,7 +72,7 @@
 										<field name="date" />
 										<field name="author"/>
 										<field name="text"/>
-										<button name="view_changes" string="" icon="fa-external-link" type="object" />
+										<button name="view_changes" string="" icon="fa-search" type="object" />
 									</tree>
 								</field>
 							</page>
