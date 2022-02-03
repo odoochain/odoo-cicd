@@ -47,8 +47,9 @@ class Repository(models.Model):
     release_tag_prefix = fields.Char("Release Tag Prefix", default="release-", required=True)
     remove_web_assets_after_restore = fields.Boolean("Remove Webassets", default=True)
     ttype = fields.Selection([
-        ('gitlab', 'Gitlab'),
-        ('github', 'Github'),
+        ('gitlab', 'GitLab'),
+        ('bitbucket', 'BitBucket'),
+        ('github', 'GitHub'),
     ], string="Type")
 
     make_dev_dumps = fields.Boolean("Make Dev Dumps")
@@ -476,6 +477,11 @@ class Repository(models.Model):
                 return self._get_base_url() + "-/commit/" + object.name
             elif ttype == 'compare':
                 return self._get_base_url() + "-/compare?from=" + object + "&to=" + object2
+            else:
+                raise NotImplementedError()
+        elif self.ttype == 'bitbucket':
+            if ttype == 'commit':
+                return self._get_base_url() + "/commits/" + object.name
             else:
                 raise NotImplementedError()
         else:
