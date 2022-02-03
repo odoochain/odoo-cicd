@@ -7,6 +7,7 @@
 		<field name="arch" type="xml">
 			<form>
 				<header>
+					<button string="view_changes" name="view_changes" type="object"/>
 				</header>
 				<sheet>
 					<div class="oe_button_box" name="button_box">

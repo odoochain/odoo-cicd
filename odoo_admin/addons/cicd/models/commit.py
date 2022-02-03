@@ -106,3 +106,10 @@ class GitCommit(models.Model):
                 if 'fatal: Not a valid commit name' in test['stdout']:
                     return False
             return not test['exit_code']
+
+    def view_changes(self):
+        return {
+            'type': 'ir.actions.act_url',
+            'url': self.repo_id._get_url('commit', self),
+            'target': 'new',
+        }

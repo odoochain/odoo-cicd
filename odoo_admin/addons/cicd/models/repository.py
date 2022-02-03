@@ -46,6 +46,10 @@ class Repository(models.Model):
     initialize_new_branches = fields.Boolean("Initialize new Branches")
     release_tag_prefix = fields.Char("Release Tag Prefix", default="release-", required=True)
     remove_web_assets_after_restore = fields.Boolean("Remove Webassets", default=True)
+    ttype = fields.Selection([
+        ('gitlab', 'Gitlab'),
+        ('github', 'Github'),
+    ], string="Type")
 
     make_dev_dumps = fields.Boolean("Make Dev Dumps")
     ticketsystem_id = fields.Many2one("cicd.ticketsystem", string="Ticket-System")
@@ -457,3 +461,22 @@ class Repository(models.Model):
             },
             'target': 'new',
         }
+
+    def _get_base_url(self):
+        self.ensure_one()
+        url = self.url
+        if not url.endswith("/"):
+            url += '/'
+        return ulr
+
+    def _get_url(self, ttype, object, object2=None):
+        self.ensure_one()
+        if self.ttype == 'gitlab':
+            if ttype == 'commit':
+                return self._get_base_url() + "-/commit/" + object.name
+            elif ttype == 'compare':
+                return self._get_base_url() + "-/compare?from=" + object + "&to=" + object2
+            else:
+                raise NotImplementedError()
+        else:
+            raise NotImplementedError()
