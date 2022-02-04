@@ -19,6 +19,7 @@ model_cicd_registry,base.group_system,cicd_registry_base_group_system,cicd.regis
 
 model_cicd_test_run,base.group_user,cicd_test_run_base_group_user,cicd.test.run - base_group_user,1,0,0,0
 model_cicd_test_run_line,base.group_user,cicd_test_run_line_base_group_user,cicd.test.run.line - base_group_user,1,0,0,0
+model_cicd_test_run_line,cicd.group_developer,cicd_test_run_line_developer,cicd.test.run.line - developer,1,1,1,1
 model_docker_container,base.group_user,docker_container_base_group_user,docker.container - base_group_user,1,0,0,0
 
 model_cicd_database,base.group_user,cicd_database_base_group_user,cicd.database - base_group_user,1,0,0,0
