@@ -162,31 +162,31 @@ RUN_POSTGRES=1
         logsio = None
         try:
             testrun = self
-            logsio = testrun.branch_id._get_new_logsio_instance(f"{appendix} - testrun")
-            testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
-            logsio.info("Running " + appendix)
-            passed_prepare = False
-            try:
-                started = arrow.get()
-                with testrun.prepare_run(machine, logsio) as shell:
-                    logsio.info("Preparation done " + appendix)
-                    self.line_ids = [[0, 0, {
-                        'state': 'success', 'ttype': 'log', 'name': f'preparation done: {appendix}',
-                        'duration': (arrow.get() - started).total_seconds()
+            with testrun.branch_id._get_new_logsio_instance(f"{appendix} - testrun") as logsio:
+                testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
+                logsio.info("Running " + appendix)
+                passed_prepare = False
+                try:
+                    started = arrow.get()
+                    with testrun.prepare_run(machine, logsio) as shell:
+                        logsio.info("Preparation done " + appendix)
+                        self.line_ids = [[0, 0, {
+                            'state': 'success', 'ttype': 'log', 'name': f'preparation done: {appendix}',
+                            'duration': (arrow.get() - started).total_seconds()
+                            }]]
+                        passed_prepare = True
+                        run(shell, logsio)
+                except Exception as ex:
+                    msg = traceback.format_exc()
+                    if not passed_prepare:
+                        duration = (arrow.get() - started).total_seconds()
+                        self.line_ids = [[0, 0, {
+                            'duration': duration,
+                            'exc_info': msg,
+                            'ttype': 'preparation',
+                            'name': "Failed at preparation",
+                            'state': 'failed',
                         }]]
-                    passed_prepare = True
-                    run(shell, logsio)
-            except Exception as ex:
-                msg = traceback.format_exc()
-                if not passed_prepare:
-                    duration = (arrow.get() - started).total_seconds()
-                    self.line_ids = [[0, 0, {
-                        'duration': duration,
-                        'exc_info': msg,
-                        'ttype': 'preparation',
-                        'name': "Failed at preparation",
-                        'state': 'failed',
-                    }]]
 
         except Exception as ex:
             msg = traceback.format_exc()
