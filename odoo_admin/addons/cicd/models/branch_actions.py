@@ -326,7 +326,8 @@ class Branch(models.Model):
 
         try:
             shell.X(["git", "pull"])
-        except:
+        except Exception as ex:
+            logsio.error(f"Error at pulling, cloning path {instance_folder} again:\n{ex}")
             shell.rmifexists(instance_folder)
             instance_folder = self._clone_instance_folder(machine, logsio)
 
