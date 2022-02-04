@@ -274,7 +274,7 @@ RUN_POSTGRES=1
         def _x(item):
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
-            shell.odoo('robot', item, timeout=self.timeout_tests)
+            shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
 
         self._generic_run(
             shell, logsio, files, 
