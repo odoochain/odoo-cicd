@@ -109,6 +109,6 @@ class GitCommit(models.Model):
     def view_changes(self):
         return {
             'type': 'ir.actions.act_url',
-            'url': self.mapped('branch_ids.repo_id')[0]._get_url('commit', self),
+            'url': self.mapped('branch_ids.repo_id')[0].sudo()._get_url('commit', self),
             'target': 'new',
         }
