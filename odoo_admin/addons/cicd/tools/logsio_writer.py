@@ -34,13 +34,12 @@ class LogsIOWriter(object):
         self._send(f"+input|{self.stream}|{self.source}")
 
     @contextmanager
-    def GET(path, stream, source, host='cicdlogs', port=6689):
+    def GET(stream, source, host='cicdlogs', port=6689):
         res = LogsIOWriter(stream=stream, source=source, host=host, port=port)
         try:
             yield res
         finally:
             res.stop_keepalive()
-            res.finish
 
     def get_lines(self):
         return list(filter(lambda x: KEEP_ALIVE_MESSAGE not in x, self.lines))
