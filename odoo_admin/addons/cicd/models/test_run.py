@@ -283,9 +283,9 @@ RUN_POSTGRES=1
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
         cmd = ['list-unit-test-files']
-        if self.unittest_all:
-            cmd += ['-all']
-        files = shell.odoo(cmd)['stdout'].strip()
+        if self.branch_id.unittest_all:
+            cmd += ['--all']
+        files = shell.odoo(*cmd)['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo("snap", "restore", shell.project_name)
@@ -297,9 +297,8 @@ RUN_POSTGRES=1
             lambda item: shell.odoo(
                 'unittest',
                 item,
-                f'--retry={self.retry_unit_tests}',
                 ),
-            try_count=self.retry_unit_tests,
+            try_count=self.branch_id.retry_unit_tests,
         )
 
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1):
@@ -309,7 +308,7 @@ RUN_POSTGRES=1
         """
         for i, item in enumerate(todo):
             trycounter = 0
-            while True:
+            while trycounter <= try_count:
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
@@ -327,9 +326,6 @@ RUN_POSTGRES=1
                     execute_run(item)
 
                 except Exception as ex:
-                    if trycounter < try_count:
-                        logsio.info("Retrying unittest")
-                        continue
                     msg = traceback.format_exc()
                     logsio.error(f"Error happened: {msg}")
                     data['state'] = 'failed'
@@ -338,8 +334,10 @@ RUN_POSTGRES=1
                     data['state'] = 'success'
                 end = arrow.get()
                 data['duration'] = (end - started).total_seconds()
-                self.line_ids = [[0, 0, data]]
-                self.env.cr.commit()
+                if data['state'] == 'success':
+                    break
+            self.line_ids = [[0, 0, data]]
+            self.env.cr.commit()
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
