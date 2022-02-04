@@ -364,6 +364,11 @@ class CicdTestRun(models.Model):
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
     try_count = fields.Integer("Try Count")
 
+    @api.recordchange('force_success')
+    def _onchange_force(self):
+        for rec in self:
+            rec.run_id._compute_success_rate()
+
     def open_form(self):
         return {
             'name': self.name,
