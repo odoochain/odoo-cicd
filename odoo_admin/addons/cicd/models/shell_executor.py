@@ -132,7 +132,7 @@ class ShellExecutor(object):
         client = self._get_ssh_client()
         filename = Path(tempfile.mktemp(suffix='.'))
         
-        client.scp_recv(source, filename)
+        client.scp_recv(str(source), str(filename))
         try:
             return filename.read_bytes()
         finally:
@@ -146,7 +146,7 @@ class ShellExecutor(object):
             content = content.encode('utf-8')
         filename.write_bytes(content)
         try:
-            client.scp_send(str(filename), dest)
+            client.scp_send(str(filename), str(dest))
         finally:
             filename.unlink()
 
