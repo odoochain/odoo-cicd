@@ -115,7 +115,6 @@ class CicdMachine(models.Model):
     def _shell(self, cwd=None, logsio=None, project_name=None, env={}):
         self.ensure_one()
         ssh_keyfile = self._place_ssh_credentials()
-        import pudb;pudb.set_trace()
 
         shell = ShellExecutor(
             ssh_keyfile=ssh_keyfile, machine=self, cwd=cwd,
