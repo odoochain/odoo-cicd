@@ -364,6 +364,9 @@ class CicdTestRun(models.Model):
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
     try_count = fields.Integer("Try Count")
 
+    def toggle_force_success(self):
+        self.sudo().force_success = not self.sudo().force_success
+
     @api.recordchange('force_success')
     def _onchange_force(self):
         for rec in self:
