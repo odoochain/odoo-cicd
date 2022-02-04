@@ -32,26 +32,26 @@ class NewBranch(models.TransientModel):
 
     def ok(self):
         machine = self.repo_id.machine_id
-        logsio = LogsIOWriter("cicd", "new_branch")
-        repo_path = self.repo_id._get_main_repo(tempfolder=True)
-        with machine._gitshell(self.repo_id, cwd=repo_path, logsio=logsio) as shell:
-            shell.checkout_branch(self.source_branch_id.name)
-            if shell.branch_exists(self.new_name):
-                raise ValidationError(f"Branch {self.new_name} already exists.")
-            shell.X(["git", "checkout", "-b", self.new_name])
-            shell.X(["git", "remote", "set-url", 'origin', self.repo_id.url])
-            shell.X(["git", "push", "--set-upstream", "-f", 'origin', self.new_name])
-            branch = self.source_branch_id.create({
-                'name': self.new_name,
-                'dump_id': self.dump_id.id,
-                'backup_machine_id': self.repo_id.machine_id.id,
-            })
+        with LogsIOWriter.GET("cicd", "new_branch") as logsio:
+            repo_path = self.repo_id._get_main_repo(tempfolder=True)
+            with machine._gitshell(self.repo_id, cwd=repo_path, logsio=logsio) as shell:
+                shell.checkout_branch(self.source_branch_id.name)
+                if shell.branch_exists(self.new_name):
+                    raise ValidationError(f"Branch {self.new_name} already exists.")
+                shell.X(["git", "checkout", "-b", self.new_name])
+                shell.X(["git", "remote", "set-url", 'origin', self.repo_id.url])
+                shell.X(["git", "push", "--set-upstream", "-f", 'origin', self.new_name])
+                branch = self.source_branch_id.create({
+                    'name': self.new_name,
+                    'dump_id': self.dump_id.id,
+                    'backup_machine_id': self.repo_id.machine_id.id,
+                })
 
-        return {
-            'view_type': 'form',
-            'res_model': branch._name,
-            'res_id': branch.id,
-            'views': [(False, 'form')],
-            'type': 'ir.actions.act_window',
-            'target': 'current',
-        }
+            return {
+                'view_type': 'form',
+                'res_model': branch._name,
+                'res_id': branch.id,
+                'views': [(False, 'form')],
+                'type': 'ir.actions.act_window',
+                'target': 'current',
+            }

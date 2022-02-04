@@ -27,33 +27,32 @@ class CicdReleaseAction(models.Model):
 
     @api.model
     def run_action_set(self, release_item, actions):
-        return [] # TODO undo
         errors = []
-        logsio = LogsIOWriter(self.release_id.branch_id.name, 'release')
-        try:
-            actions._exec_shellscripts(logsio, "before")
-            actions._stop_odoo(logsio)
+        with LogsIOWriter.GET(self.release_id.branch_id.name, 'release') as logsio:
+            try:
+                actions._exec_shellscripts(logsio, "before")
+                actions._stop_odoo(logsio)
 
-            actions._update_sourcecode(logsio, release_item)
+                actions._update_sourcecode(logsio, release_item)
 
-            actions[0]._run_update(logsio)
+                actions[0]._run_update(logsio)
 
-        except Exception as ex:
-            errors.append(ex)
+            except Exception as ex:
+                errors.append(ex)
 
-        finally:
-            for action in actions:
-                try:
-                    action._start_odoo(logsio=logsio)
-                except Exception as ex:
-                    errors.append(ex)
-            
-            for action in actions:
-                try:
-                    action._exec_shellscripts("after")
-                except Exception as ex:
-                    errors.append(ex)
-        return errors
+            finally:
+                for action in actions:
+                    try:
+                        action._start_odoo(logsio=logsio)
+                    except Exception as ex:
+                        errors.append(ex)
+                
+                for action in actions:
+                    try:
+                        action._exec_shellscripts("after")
+                    except Exception as ex:
+                        errors.append(ex)
+            return errors
 
     @contextmanager
     def _contact_machine(self, logsio):

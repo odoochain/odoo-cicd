@@ -97,15 +97,14 @@ class GitCommit(models.Model):
         self.ensure_one()
         repo = self.mapped('branch_ids.repo_id')
 
-        logsio = LogsIOWriter("contains_commit", "Check")
-
-        repo_path = repo._get_main_repo(logsio=logsio, machine=repo.machine_id)
-        with repo.machine_id._shellexec(repo_path, logsio=logsio) as shell:
-            test = shell.X(['git', 'merge-base', commit.name, self.name], allow_error=True)  # order seems to be irrelevant
-            if test['exit_code']:
-                if 'fatal: Not a valid commit name' in test['stdout']:
-                    return False
-            return not test['exit_code']
+        with LogsIOWriter.GET("contains_commit", "Check") as logsio:
+            repo_path = repo._get_main_repo(logsio=logsio, machine=repo.machine_id)
+            with repo.machine_id._shellexec(repo_path, logsio=logsio) as shell:
+                test = shell.X(['git', 'merge-base', commit.name, self.name], allow_error=True)  # order seems to be irrelevant
+                if test['exit_code']:
+                    if 'fatal: Not a valid commit name' in test['stdout']:
+                        return False
+                return not test['exit_code']
 
     def view_changes(self):
         return {

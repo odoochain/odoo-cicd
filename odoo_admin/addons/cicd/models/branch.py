@@ -1,4 +1,5 @@
 import json
+from contextlib import contextmanager
 import re
 import arrow
 import os
@@ -339,11 +340,12 @@ class GitBranch(models.Model):
             rec.project_name = project_name
             rec.database_project_name = dbname
 
+    @contextmanager
     def _get_new_logsio_instance(self, source):
         self.ensure_one()
-        rolling_file = LogsIOWriter(f"{self.project_name}", source)
-        rolling_file.write_text(f"Started: {arrow.get()}")
-        return rolling_file
+        with LogsIOWriter.GET(f"{self.project_name}", source) as logs:
+            logs.write_text(f"Started: {arrow.get()}")
+            yield logs
 
     @api.constrains("backup_filename")
     def _check_backup_filename(self):
@@ -356,28 +358,28 @@ class GitBranch(models.Model):
     def _on_active_change(self):
         for rec in self:
             if not rec.active:
-                logsio = LogsIOWriter(self.project_name, 'set_inactive')
-                for machine in self.env['cicd.machine'].search([]):
-                    path = machine._get_volume('source')
-                    # delete instance folder
-                    with machine._shellexec(cwd=path, logsio=logsio) as shell:
-                        with shell.shell() as spurplus:
-                            project_path = path / rec.project_name
-                            if spurplus.exists(project_path):
-                                spurplus.remove(project_path, recursive=True)
+                with self._get_new_logsio_instance('set_inactive') as logsio:
+                    for machine in self.env['cicd.machine'].search([]):
+                        path = machine._get_volume('source')
+                        # delete instance folder
+                        with machine._shellexec(cwd=path, logsio=logsio) as shell:
+                            with shell.shell() as spurplus:
+                                project_path = path / rec.project_name
+                                if spurplus.exists(project_path):
+                                    spurplus.remove(project_path, recursive=True)
 
-                        try:
-                            shell.odoo("kill")
-                        except Exception as ex:
-                            logsio.error(str(ex))
+                            try:
+                                shell.odoo("kill")
+                            except Exception as ex:
+                                logsio.error(str(ex))
 
-                        try:
-                            shell.odoo("rm")
-                        except Exception as ex:
-                            logsio.error(str(ex))
+                            try:
+                                shell.odoo("rm")
+                            except Exception as ex:
+                                logsio.error(str(ex))
 
-                    # delete db
-                    db = machine.postgres_server_id.database_ids.filtered(lambda x: x.name == rec.project_name).delete_db()
+                        # delete db
+                        db = machine.postgres_server_id.database_ids.filtered(lambda x: x.name == rec.project_name).delete_db()
 
     def toggle_active(self):
         for rec in self:

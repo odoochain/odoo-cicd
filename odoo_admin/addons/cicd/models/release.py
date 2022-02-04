@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import traceback
 import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -104,9 +105,10 @@ class Release(models.Model):
             # if release did not happen or so, then update final curtain:
             new_items.final_curtain = final_curtain_dt
 
+    @contextmanager
     def _get_logsio(self):
-        logsio = LogsIOWriter(self.repo_id.short, "Release")
-        return logsio
+        with LogsIOWriter.GET(self.repo_id.short, "Release") as logsio:
+            yield logsio
 
     def _ensure_item(self):
         items = self.item_ids.sorted(lambda x: x.id, reverse=True).filtered(lambda x: x. release_type == 'standard')

@@ -168,9 +168,9 @@ class CicdMachine(models.Model):
         Removes all unused source directories, databases
         and does a docker system prune.
         """
-        logsio = LogsIOWriter(self.name, 'spring_clean')
-        with self._shellexec(cwd="~", logsio=logsio) as shell:
-            shell.X(["/usr/bin/docker", "system", "prune", "-f"])
+        with LogsIOWriter.GET(self.name, 'spring_clean') as logsio:
+            with self._shellexec(cwd="~", logsio=logsio) as shell:
+                shell.X(["/usr/bin/docker", "system", "prune", "-f"])
 
     def make_login_possible_for_webssh_container(self):
         pubkey = Path("/opt/cicd_sshkey/id_rsa.pub").read_text().strip()

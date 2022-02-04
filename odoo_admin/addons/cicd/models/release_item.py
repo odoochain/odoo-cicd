@@ -112,40 +112,40 @@ class ReleaseItem(models.Model):
             if self.commit_id.test_state != 'success':
                 return
 
-            logsio = self.release_id._get_logsio()
+            with self.release_id._get_logsio() as logsio:
 
-            self.try_counter += 1
-            release = self.release_id
-            repo = self.release_id.repo_id.with_context(active_test=False)
-            candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
-            candidate_branch.ensure_one()
-            if not candidate_branch.active:
-                raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
-            changed_lines = repo._merge(
-                candidate_branch,
-                release.branch_id,
-                set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-                logsio=logsio,
-            )
-            self.changed_lines += changed_lines
+                self.try_counter += 1
+                release = self.release_id
+                repo = self.release_id.repo_id.with_context(active_test=False)
+                candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+                candidate_branch.ensure_one()
+                if not candidate_branch.active:
+                    raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
+                changed_lines = repo._merge(
+                    candidate_branch,
+                    release.branch_id,
+                    set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                    logsio=logsio,
+                )
+                self.changed_lines += changed_lines
 
-            try:
-                if not self.changed_lines:
+                try:
+                    if not self.changed_lines:
+                        self._on_done()
+                        return
+
+                    errors = self.release_id._technically_do_release(self)
+                    if errors:
+                        raise Exception(errors)
                     self._on_done()
-                    return
 
-                errors = self.release_id._technically_do_release(self)
-                if errors:
-                    raise Exception(errors)
-                self._on_done()
+                except Exception as ex:
+                    msg = traceback.format_exc()
+                    self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
+                    self.state = 'failed'
+                    logger.error(msg)
 
-            except Exception as ex:
-                msg = traceback.format_exc()
-                self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
-                self.state = 'failed'
-                logger.error(msg)
-
-            self.log_release = logsio.get_lines()
+                self.log_release = logsio.get_lines()
 
     def _collect_tested_branches(self):
         for rec in self:

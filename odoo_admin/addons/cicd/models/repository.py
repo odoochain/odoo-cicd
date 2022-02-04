@@ -180,51 +180,50 @@ class Repository(models.Model):
             try:
                 if not repo.login_type:
                     raise ValidationError(f"Login-Type missing for {repo.name}")
-                logsio = LogsIOWriter(repo.name, 'fetch')
-                    
-                repo_path = repo._get_main_repo(logsio=logsio)
+                with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
+                    repo_path = repo._get_main_repo(logsio=logsio)
 
-                with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio) as shell:
-                    updated_branches = set()
+                    with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio) as shell:
+                        updated_branches = set()
 
-                    for remote in repo._get_remotes(shell):
-                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'], ignore_stdout=True)['stdout'].strip().split("\n")))
-                        for fi in fetch_info:
-                            while "  " in fi:
-                                fi = fi.replace("  ", " ")
-                            fi = fi.strip()
-                            if '[new tag]' in fi:
-                                continue
-                            elif '[new branch]' in fi:
-                                branch = fi.replace("[new branch]", "").split("->")[0].strip()
-                            else:
-                                branch = fi.split("/")[-1]
-                            try:
-                                branch = repo._clear_branch_name(branch)
-                            except InvalidBranchName:
-                                logsio.error("Invalid Branch name: {branch}")
-                                continue
+                        for remote in repo._get_remotes(shell):
+                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'], ignore_stdout=True)['stdout'].strip().split("\n")))
+                            for fi in fetch_info:
+                                while "  " in fi:
+                                    fi = fi.replace("  ", " ")
+                                fi = fi.strip()
+                                if '[new tag]' in fi:
+                                    continue
+                                elif '[new branch]' in fi:
+                                    branch = fi.replace("[new branch]", "").split("->")[0].strip()
+                                else:
+                                    branch = fi.split("/")[-1]
+                                try:
+                                    branch = repo._clear_branch_name(branch)
+                                except InvalidBranchName:
+                                    logsio.error("Invalid Branch name: {branch}")
+                                    continue
 
-                            if not branch.startswith(repo.release_tag_prefix):
-                                updated_branches.add(branch)
+                                if not branch.startswith(repo.release_tag_prefix):
+                                    updated_branches.add(branch)
 
-                        del fetch_info
+                            del fetch_info
 
-                    if not updated_branches:
-                        continue
+                        if not updated_branches:
+                            continue
 
-                    # checkout latest / pull latest
-                    for branch in updated_branches:
-                        logsio.info(f"Pulling {branch}...")
-                        shell.X(["git", "fetch", "origin", branch])
-                        with pg_advisory_lock(self.env.cr, repo._get_lockname()):
-                            shell.checkout_branch(branch)
-                            shell.X(["git", "pull"])
-                            shell.X(["git", "submodule", "update", "--init", "--recursive"])
+                        # checkout latest / pull latest
+                        for branch in updated_branches:
+                            logsio.info(f"Pulling {branch}...")
+                            shell.X(["git", "fetch", "origin", branch])
+                            with pg_advisory_lock(self.env.cr, repo._get_lockname()):
+                                shell.checkout_branch(branch)
+                                shell.X(["git", "pull"])
+                                shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
-                    repo.with_delay()._cron_fetch_update_branches({
-                        'updated_branches': list(updated_branches),
-                    })
+                        repo.with_delay()._cron_fetch_update_branches({
+                            'updated_branches': list(updated_branches),
+                        })
 
             except Exception as ex:
                 msg = traceback.format_exc()
@@ -247,51 +246,51 @@ class Repository(models.Model):
     def _cron_fetch_update_branches(self, data):
         repo = self
         updated_branches = data['updated_branches']
-        logsio = LogsIOWriter(repo.name, 'fetch')
-        repo_path = repo._get_main_repo(logsio=logsio)
-        machine = repo.machine_id
-        repo = repo.with_context(active_test=False)
+        with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
+            repo_path = repo._get_main_repo(logsio=logsio)
+            machine = repo.machine_id
+            repo = repo.with_context(active_test=False)
 
-        with pg_advisory_lock(self.env.cr, self._get_lockname()):
-            with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
-                # if completely new then all branches:
-                if not repo.branch_ids:
-                    for branch in shell.X(["git", "branch"])['stdout'].strip().split("\n"):
-                        branch = self._clear_branch_name(branch)
-                        updated_branches.append(branch)
+            with pg_advisory_lock(self.env.cr, self._get_lockname()):
+                with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
+                    # if completely new then all branches:
+                    if not repo.branch_ids:
+                        for branch in shell.X(["git", "branch"])['stdout'].strip().split("\n"):
+                            branch = self._clear_branch_name(branch)
+                            updated_branches.append(branch)
 
-                for branch in updated_branches:
-                    shell.checkout_branch(branch)
-                    name = branch
-                    del branch
+                    for branch in updated_branches:
+                        shell.checkout_branch(branch)
+                        name = branch
+                        del branch
 
-                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
-                        branch = repo.branch_ids.create({
-                            'name': name,
-                            'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-                            'repo_id': repo.id,
-                        })
-                        branch._checkout_latest(shell, logsio=logsio, machine=machine)
-                        branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+                        if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
+                            branch = repo.branch_ids.create({
+                                'name': name,
+                                'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                                'repo_id': repo.id,
+                            })
+                            branch._checkout_latest(shell, logsio=logsio, machine=machine)
+                            branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
 
-                    if not branch.active:
-                        branch.active = True
+                        if not branch.active:
+                            branch.active = True
 
-                    shell.checkout_branch(repo.default_branch)
-                    del name
+                        shell.checkout_branch(repo.default_branch)
+                        del name
 
-                if not repo.branch_ids and not updated_branches:
-                    if repo.default_branch:
-                        updated_branches.append(repo.default_branch)
+                    if not repo.branch_ids and not updated_branches:
+                        if repo.default_branch:
+                            updated_branches.append(repo.default_branch)
 
-                if updated_branches:
-                    repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
-                    branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
-                    for branch in branches:
-                        branch._checkout_latest(shell, logsio=logsio, machine=machine)
-                        branch._update_git_commits(shell, logsio)
-                        branch._compute_state()
-                        branch._trigger_rebuild_after_fetch(machine=machine)
+                    if updated_branches:
+                        repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
+                        branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
+                        for branch in branches:
+                            branch._checkout_latest(shell, logsio=logsio, machine=machine)
+                            branch._update_git_commits(shell, logsio)
+                            branch._compute_state()
+                            branch._trigger_rebuild_after_fetch(machine=machine)
 
     def _is_healthy_repository(self, shell, path):
         healthy = False
