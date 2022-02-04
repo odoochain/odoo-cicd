@@ -50,7 +50,6 @@ class Dump(models.Model):
                     ])['stdout'].strip().split("\n")
 
                     todo = self.env[self._name]
-                    all_dumps = self.env[self._name]
                     for file in files:
                         if not file:
                             continue
@@ -65,28 +64,29 @@ class Dump(models.Model):
                         else:
                             todo |= dumps
 
-                    for dump in all_dumps:
+                    if todo:
                         todo.with_delay(
                             identity_key=f"get_dump_info_{dump.ids}",
                             eta=arrow.get().shift(minutes=60).strftime("%Y-%m-%d %H:%M:%S"),
                         )._update_size()
 
     def _update_size(self):
-        machines = self.mapped('machine_id')
-        for machine in machines:
-            dumps = self.filtered(lambda x: x.machine_id == machine)
-            with machine._shell() as shell:
-                for dump in dumps:
-                    dump = dump.sudo()
-                    if not shell.exists(dump.name):
-                        dump.unlink()
-                        continue
+        for rec in self:
+            machines = rec.mapped('machine_id')
+            for machine in machines:
+                dumps = rec.filtered(lambda x: x.machine_id == machine)
+                with machine._shell() as shell:
+                    for dump in dumps:
+                        dump = dump.sudo()
+                        if not shell.exists(dump.name):
+                            dump.unlink()
+                            continue
 
-                    with machine._shell() as shell:
-                        if shell.exists(dump.name):
-                            dump.size = int(shell.X([
-                                'stat', '-c', '%s', dump.name
-                            ])['stdout'].strip())
-                            dump.date_modified = shell.X([
-                                'date', '-r', dump.name, '+%Y-%m-%d %H:%M:%S', '-u',
-                            ])['stdout'].strip()
+                        with machine._shell() as shell:
+                            if shell.exists(dump.name):
+                                dump.size = int(shell.X([
+                                    'stat', '-c', '%s', dump.name
+                                ])['stdout'].strip())
+                                dump.date_modified = shell.X([
+                                    'date', '-r', dump.name, '+%Y-%m-%d %H:%M:%S', '-u',
+                                ])['stdout'].strip()
