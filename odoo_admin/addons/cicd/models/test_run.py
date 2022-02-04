@@ -208,14 +208,14 @@ RUN_POSTGRES=1
         for rec in self:
             lines = rec.mapped('line_ids').filtered(lambda x: x.ttype != 'log')
             success_lines = len(lines.filtered(lambda x: x.state == 'success' or x.force_success))
-            if lines and all(x.state == 'success' for x in lines):
+            if lines and all(x.state == 'success' or x.force_success for x in lines):
                 rec.state = 'success'
             else:
                 rec.state = 'failed'
-            if not self.line_ids or not success_lines:
+            if not lines or not success_lines:
                 rec.success_rate = 0
             else:
-                rec.success_rate = int(100 / float(len(self.line_ids)) * float(success_lines))
+                rec.success_rate = int(100 / float(len(lines)) * float(success_lines))
 
     @api.constrains('branch_ids')
     def _check_branches(self):
