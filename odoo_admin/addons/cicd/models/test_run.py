@@ -308,7 +308,7 @@ RUN_POSTGRES=1
         """
         for i, item in enumerate(todo):
             trycounter = 0
-            while trycounter <= try_count:
+            while trycounter < try_count:
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
