@@ -178,27 +178,27 @@ class ReleaseItem(models.Model):
             raise ValidationError("Branches can only be changed in state 'new', 'failed' or 'ignore'")
 
         # fetch latest commits:
-        logsio = self.release_id._get_logsio()
-        repo = self.release_id.repo_id.with_context(active_test=False)
-        # remove blocked 
-        self.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release)
-        message_commit, commits = repo._collect_latest_tested_commits(
-            source_branches=self.branch_ids,
-            target_branch_name=self.release_id.candidate_branch,
-            logsio=logsio,
-            critical_date=self.final_curtain or arrow.get().datetime,
-            make_info_commit_msg=
-                f"Release Item {self.id}\n"
-                f"Includes latest commits from:\n{', '.join(self.mapped('branch_ids.name'))}"
-        )
-        if message_commit and commits:
-            message_commit.approval_state = 'approved'
-            self.commit_ids = [[6, 0, commits.ids]]
-            self.commit_id = message_commit
-            candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
-            candidate_branch.ensure_one()
+        with self.release_id._get_logsio() as logsio:
+            repo = self.release_id.repo_id.with_context(active_test=False)
+            # remove blocked 
+            self.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release)
+            message_commit, commits = repo._collect_latest_tested_commits(
+                source_branches=self.branch_ids,
+                target_branch_name=self.release_id.candidate_branch,
+                logsio=logsio,
+                critical_date=self.final_curtain or arrow.get().datetime,
+                make_info_commit_msg=
+                    f"Release Item {self.id}\n"
+                    f"Includes latest commits from:\n{', '.join(self.mapped('branch_ids.name'))}"
+            )
+            if message_commit and commits:
+                message_commit.approval_state = 'approved'
+                self.commit_ids = [[6, 0, commits.ids]]
+                self.commit_id = message_commit
+                candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+                candidate_branch.ensure_one()
 
-            (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
+                (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
 
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
