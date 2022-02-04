@@ -1,4 +1,5 @@
 import re
+import uuid
 import psycopg2
 from odoo import fields
 from pathlib import Path
@@ -318,7 +319,14 @@ class Branch(models.Model):
             shell.rmifexists(instance_folder)
             raise RetryableJobError("Cleared directory - branch not found - please retry", ignore_retry=True)
 
-        shell.X(["git", "pull"])
+        try:
+            shell.X(["git", "pull"])
+        except Exception as ex:
+            if 'Automatic merge failed; fix conflicts and then commit the result.' in str(ex):
+                shell.X(["git", "reset", "--hard", "origin/" + self.name])
+                shell.X(["git", "pull"])
+            else:
+                raise
 
         # delete all other branches:
         res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
