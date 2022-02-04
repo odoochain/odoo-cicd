@@ -299,17 +299,22 @@ class Branch(models.Model):
         logsio.write_text(f"Compressing git")
         shell.X(["git", "gc", "--aggressive", "--prune=now"])
 
-    def _checkout_latest(self, shell, logsio, machine=None, **kwargs):
-        machine = machine or shell.machine
-        logsio.write_text(f"Updating instance folder {self.name}")
+    def _clone_instance_folder(self, machine, logsio):
         instance_folder = self._get_instance_folder(machine)
-        logsio.write_text(f"Cloning {self.name} to {instance_folder}")
         self.repo_id._get_main_repo(
             logsio=logsio,
             destination_folder=instance_folder,
             limit_branch=self.name,
             machine=machine,
         )
+        return instance_folder
+
+    def _checkout_latest(self, shell, logsio, machine=None, **kwargs):
+        machine = machine or shell.machine
+        logsio.write_text(f"Updating instance folder {self.name}")
+        instance_folder = self._clone_instance_folder(machine, logsio)
+        logsio.write_text(f"Cloning {self.name} to {instance_folder}")
+
         shell.cwd = instance_folder
         logsio.write_text(f"Checking out {self.name}")
         try:
@@ -321,12 +326,9 @@ class Branch(models.Model):
 
         try:
             shell.X(["git", "pull"])
-        except Exception as ex:
-            if 'Automatic merge failed; fix conflicts and then commit the result.' in str(ex):
-                shell.X(["git", "reset", "--hard", "origin/" + self.name])
-                shell.X(["git", "pull"])
-            else:
-                raise
+        except:
+            shell.rmifexists(instance_folder)
+            instance_folder = self._clone_instance_folder(machine, logsio)
 
         # delete all other branches:
         res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
