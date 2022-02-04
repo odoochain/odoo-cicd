@@ -308,7 +308,7 @@ RUN_POSTGRES=1
         """
         for i, item in enumerate(todo):
             trycounter = 0
-            while True:
+            while trycounter <= try_count:
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
@@ -326,9 +326,6 @@ RUN_POSTGRES=1
                     execute_run(item)
 
                 except Exception as ex:
-                    if trycounter < try_count:
-                        logsio.info("Retrying unittest")
-                        continue
                     msg = traceback.format_exc()
                     logsio.error(f"Error happened: {msg}")
                     data['state'] = 'failed'
@@ -337,8 +334,10 @@ RUN_POSTGRES=1
                     data['state'] = 'success'
                 end = arrow.get()
                 data['duration'] = (end - started).total_seconds()
-                self.line_ids = [[0, 0, data]]
-                self.env.cr.commit()
+                if data['state'] == 'success':
+                    break
+            self.line_ids = [[0, 0, data]]
+            self.env.cr.commit()
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
