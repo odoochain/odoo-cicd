@@ -25,7 +25,7 @@
 				<th>Forced Success</th>
 				<th>Duration [s]</th>
 			</tr>
-			<t t-foreach="rec.line_ids.filtered(lambda x: x.state == 'failed')" t-as="line">
+			<t t-foreach="obj.line_ids.filtered(lambda x: x.state == 'failed')" t-as="line">
 				<tr>
 					<td><t t-esc="line.try_count"/></td>
 					<td><t t-esc="line.ttype"/></td>
