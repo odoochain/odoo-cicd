@@ -23,6 +23,7 @@
 							<field name="branch_id" domain="[('repo_id', '=', repo_id)]"/>
 							<field name="candidate_branch" />
 							<field name="sequence_id"/>
+							<field name="send_pre_release_information"/>
 						</group>
 						<group string="Continuous Deployment">
 							<field name="countdown_minutes"/>

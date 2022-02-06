@@ -4,6 +4,7 @@
     'data': [   'security/groups.xml',
                 'data/cronjobs.xml',
                 'data/data.xml',
+                'data/mail_templates.xml',
                 'data/queuejob_functions.xml',
                 'views/commit_form.xml',
                 'views/compressor_tree.xml',

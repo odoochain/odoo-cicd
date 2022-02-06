@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models, SUPERUSER_ID, tools
+import re
 import spur
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
@@ -14,6 +15,7 @@ class GitCommit(models.Model):
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     author = fields.Char("Author")
+    author_user_ids = fields.Many2many('res.users', compute="_compute_author_users", store=False)
     text = fields.Text("Text")
     test_run_ids = fields.One2many('cicd.test.run', 'commit_id', string="Test Runs")
     test_state = fields.Selection([
@@ -114,3 +116,14 @@ class GitCommit(models.Model):
             'url': self.mapped('branch_ids.repo_id')[0].sudo()._get_url('commit', self),
             'target': 'new',
         }
+
+    @api.depends("author")
+    def _compute_author_users(self):
+        for rec in self:
+            if not rec.author:
+                rec.author_user_ids = [[6, 0, []]]
+
+            match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', self.author)
+            if match:
+                email = match.group(0)
+            rec.author_user_ids = self.env['res.users'].search([('login', '=', email)])

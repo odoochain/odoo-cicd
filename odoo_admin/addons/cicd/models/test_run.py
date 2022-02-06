@@ -12,6 +12,7 @@ import threading
 logger = logging.getLogger(__name__)
 
 class CicdTestRun(models.Model):
+    _inherit = ['mail.thread']
     _name = 'cicd.test.run'
     _order = 'date desc'
 
@@ -154,6 +155,7 @@ RUN_POSTGRES=1
             if logsio:
                 logsio.info(f"Duration was {self.duration}")
             self._compute_success_rate()
+            self._inform_developer()
 
     def _make_line(self, line):
         self.line_ids.create(line)
@@ -338,6 +340,21 @@ RUN_POSTGRES=1
                     break
             self.line_ids = [[0, 0, data]]
             self.env.cr.commit()
+    
+    def _inform_developer(self):
+        for rec in self:
+            partners = (
+                rec.commit_id.author_user_ids.mapped('partner_id') | rec.mapped('message_follower_ids.partner_id')
+            )
+
+            rec.message_post_with_view(
+                "cicd.mail_testrun_result",
+                subtype_id=self.env.ref('mail.mt_note').id,
+                partner_ids=partners.ids,
+                values={
+                    "obj": rec,
+                },
+            )
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
@@ -354,7 +371,7 @@ class CicdTestRun(models.Model):
     name = fields.Char("Name")
     run_id = fields.Many2one('cicd.test.run', string="Run")
     exc_info = fields.Text("Exception Info")
-    duration =  fields.Integer("Duration")
+    duration = fields.Integer("Duration")
     state = fields.Selection([
         ('open', 'Open'),
         ('success', 'Success'),

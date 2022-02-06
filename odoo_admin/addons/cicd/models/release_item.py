@@ -60,9 +60,10 @@ class ReleaseItem(models.Model):
     def _on_done(self):
         if not self.changed_lines:
             msg = "Nothing new to deploy"
-        self.release_id.message_post(body=self.computed_summary)
         self.done_date = fields.Datetime.now()
-        self.release_id.message_post(body=f"Deployment of version {self.name} succeeded!")
+        self.release_id.message_post_with_template(
+            self.env.ref('cicd.mail_release_done').id,
+            )
         self.state = 'done'
         self.branch_ids._compute_state()
 

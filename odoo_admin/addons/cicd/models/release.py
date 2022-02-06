@@ -26,6 +26,7 @@ class Release(models.Model):
     state = fields.Selection(related='item_ids.state')
     planned_timestamp_after_preparation = fields.Integer("Release after preparation in minutes", default=60)
     action_ids = fields.One2many('cicd.release.action', 'release_id', string="Release Actions")
+    send_pre_release_information = fields.Boolean("Send Pre-Release Information")
 
     def toggle_active(self):
         for rec in self:
@@ -138,3 +139,7 @@ class Release(models.Model):
     def _technically_do_release(self, release_item):
         errors = self.action_ids.run_action_set(release_item, self.action_ids)
         return errors
+
+    def _send_pre_release_information(self):
+        for rec in self:
+            import pudb;pudb.set_trace()

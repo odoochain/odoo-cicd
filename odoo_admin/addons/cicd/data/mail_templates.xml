@@ -1,0 +1,54 @@
+<odoo>
+	<data noupdate='0'>
+
+	<template id="cicd.mail_testrun_result">
+		<h1>TESTRUN RESULT</h1>
+		<table>
+			<tr>
+				<th>Test</th>
+				<td><t t-esc="obj.name"/></td>
+			</tr>
+			<tr>
+				<th>Success-Rate</th>
+				<td><t t-esc="obj.success_rate"/>%</td>
+			</tr>
+			<tr>
+				<th>Duration</th>
+				<td><t t-esc="obj.duration"/> seconds</td>
+			</tr>
+		</table>
+		<h2>Failed Tests</h2>
+		<table>
+			<tr>
+				<th>Tries</th>
+				<th>Type</th>
+				<th>Forced Success</th>
+				<th>Duration [s]</th>
+			</tr>
+			<t t-foreach="rec.line_ids.filtered(lambda x: x.state == 'failed')" t-as="line">
+				<tr>
+					<td><t t-esc="line.try_count"/></td>
+					<td><t t-esc="line.ttype"/></td>
+					<td><t t-esc="line.force_success"/></td>
+					<td><t t-esc="line.duration"/></td>
+				</tr>
+				<tr>
+					<td colspan='4'><pre>
+						<t t-esc="line.exc_info"/>
+					</pre></td>
+				</tr>
+			</t>
+		</table>
+		
+	</template>
+	<template id="cicd.mail_pre_release_info">
+		Pre-Release Information
+	</template>
+	<template id="cicd.mail_release_done">
+		Pre-Release Information
+        self.release_id.message_post(body=self.computed_summary)
+	</template>
+	
+
+	</data>
+</odoo>
