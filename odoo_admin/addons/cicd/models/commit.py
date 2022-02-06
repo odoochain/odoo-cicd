@@ -82,7 +82,7 @@ class GitCommit(models.Model):
             if ":REVIEW:" in rec.text:
                 rec.approval_state = 'check'
             if ":TESTS:" in rec.text:
-                rec.branch_id._run_tests()
+                rec.branch_id.run_tests()
 
     def open_window(self):
         return {
