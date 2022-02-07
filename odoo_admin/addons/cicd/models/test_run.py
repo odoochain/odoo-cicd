@@ -56,10 +56,12 @@ class CicdTestRun(models.Model):
         settings = """
 RUN_POSTGRES=1
         """
+
         def report(msg):
             self.line_ids = [[0, 0, {'state': 'success', 'name': msg, 'ttype': 'log'}]]
             self.env.cr.commit()
             logsio.info(msg)
+
         root = machine._get_volume('source')
         with machine._shell(cwd=root, logsio=logsio, project_name=self.branch_id.project_name) as shell:
             report("Checking out source code...")

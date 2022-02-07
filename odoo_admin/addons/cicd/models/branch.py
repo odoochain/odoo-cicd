@@ -344,7 +344,7 @@ class GitBranch(models.Model):
     def _get_new_logsio_instance(self, source):
         self.ensure_one()
         with LogsIOWriter.GET(f"{self.project_name}", source) as logs:
-            logs.write_text(f"Started: {arrow.get()}")
+            logs.write_text(f"New Logsio-Instance Started: {arrow.get()}")
             yield logs
 
     @api.constrains("backup_filename")
