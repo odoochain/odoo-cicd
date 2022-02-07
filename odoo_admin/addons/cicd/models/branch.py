@@ -362,11 +362,9 @@ class GitBranch(models.Model):
                     for machine in self.env['cicd.machine'].search([]):
                         path = machine._get_volume('source')
                         # delete instance folder
-                        with machine._shellexec(cwd=path, logsio=logsio) as shell:
-                            with shell.shell() as spurplus:
-                                project_path = path / rec.project_name
-                                if spurplus.exists(project_path):
-                                    spurplus.remove(project_path, recursive=True)
+                        with machine._shell(cwd=path, logsio=logsio) as shell:
+                            project_path = path / rec.project_name
+                            shell.rmifexists(project_path)
 
                             try:
                                 shell.odoo("kill")
