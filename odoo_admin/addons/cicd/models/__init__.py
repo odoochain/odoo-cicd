@@ -1,4 +1,5 @@
 import os
+import traceback
 from contextlib import contextmanager
 import hashlib
 import struct
