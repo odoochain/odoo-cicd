@@ -18,6 +18,7 @@
                 'views/new_branch_form.xml',
                 'views/postgres_form.xml',
                 'views/postgres_tree.xml',
+                'views/queue_job_tree.xml',
                 'views/queuejob_form.xml',
                 'views/registry.xml',
                 'views/release_action_form.xml',

@@ -29,7 +29,6 @@ class ReleaseItem(models.Model):
     computed_summary = fields.Text("Computed Summary", compute="_compute_summary", track_visibility="onchange")
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.", track_visibility="onchange")
     branch_ids = fields.Many2many('cicd.git.branch', string="Branches", track_visibility="onchange")
-    queuejob_ids = fields.Many2many('queue.job', string="Queuejobs")
     count_failed_queuejobs = fields.Integer("Failed Jobs", compute="_compute_failed_jobs")
     try_counter = fields.Integer("Try Counter", track_visibility="onchange")
     commit_id = fields.Many2one('cicd.git.commit', string="Released commit", help="After merging all tested commits this is the commit that holds all merged commits.")
@@ -67,11 +66,13 @@ class ReleaseItem(models.Model):
         self.state = 'done'
         self.branch_ids._compute_state()
 
-    @api.depends('queuejob_ids')
     def _compute_failed_jobs(self):
         for rec in self:
-            rec.count_failed_queuejobs = len(rec.queuejob_ids.filtered(lambda x: x.state == 'failed'))
-    
+            jobs = self.env['queue.job'].search([
+                ('identity_key', 'ilike', f'release-item {rec.id}')
+            ])
+            rec.count_failed_queuejobs = len(jobs.filtered(lambda x: x.state == 'failed'))
+
     @api.model
     def create(self, vals):
         release = self.env['cicd.release'].browse(vals['release_id'])
@@ -88,11 +89,9 @@ class ReleaseItem(models.Model):
 
     def _trigger_do_release(self):
         for rec in self:
-            job = rec.with_delay(
-                identity_key=f"release {rec.release_id.name}",
+            rec.with_delay(
+                identity_key=f"release-item {rec.id}",
             )._do_release()
-            if job:
-                rec.queuejob_ids |= self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
 
     def perform_release(self):
         self._do_release()
@@ -203,13 +202,10 @@ class ReleaseItem(models.Model):
 
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
-        job = self.with_delay(
+        self.with_delay(
             identity_key=f"recreate_candidate_branch_in_git: {self.release_id.name}",
             eta=arrow.get().shift(minutes=1).datetime.strftime("%Y-%m-%d %H:%M:%S"),
         )._recreate_candidate_branch_in_git()
-        if job:
-            qj = self.env['queue.job'].sudo().search([('uuid', '=', job.uuid)])
-            self.queuejob_ids |= qj
 
     @api.fieldchange("branch_ids")
     def _on_change_branches(self, changeset):

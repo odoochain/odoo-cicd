@@ -404,7 +404,7 @@ class Branch(models.Model):
         shell.odoo('build')
         shell.odoo('-f', 'db', 'reset')
         shell.odoo('update')
-        shell.odoo('turn-into-dev')
+        # shell.odoo('turn-into-dev')
         self._after_build(shell=shell, logsio=logsio, **kwargs)
 
     def _compress(self, shell, task, logsio, compress_job_id):

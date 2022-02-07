@@ -33,18 +33,6 @@
 										<field name="enduser_summary"/>
 									</tree>
 								</field>
-
-							</page>
-							<page string="Queuejobs">
-								<field name="queuejob_ids">
-									<tree>
-										<field name="channel" />
-										<field name="priority" />
-										<field name="date_started" />
-										<field name="state" />
-										<field name="exc_info" />
-									</tree>
-								</field>
 							</page>
 						</notebook>
 					</sheet>

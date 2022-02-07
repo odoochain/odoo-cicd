@@ -1,3 +1,4 @@
+import re
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from odoo.addons.queue_job.job import Job
@@ -17,14 +18,11 @@ class queuejob(models.Model):
             job.set_done()
             job.store()
 
-    @api.model
-    def prefix(self, job, prefix):
-        if not job:
-            return
-        job_uuid = job.uuid
-        queuejob = self.sudo().search([('uuid', '=', job_uuid)])
-        self.env.cr.execute("update queue_job set name=%s where id =%s", (
-            f"{prefix}: {queuejob.name}",
-            queuejob.id,
-        ))
-        return queuejob
+    branch = fields.Char(compute="_compute_branch", store=False)
+
+    def _compute_branch(self):
+        for rec in self:
+            b = False
+            if b.identity_key:
+                re.findall(r'branch:([^:]*):', b.identity_key)
+            rec.branch = b
