@@ -299,6 +299,7 @@ RUN_POSTGRES=1
             lambda item: shell.odoo(
                 'unittest',
                 item,
+                timeout=self.branch_id.timeout_tests,
                 ),
             try_count=self.branch_id.retry_unit_tests,
         )
@@ -308,6 +309,7 @@ RUN_POSTGRES=1
         Timeout in seconds.
 
         """
+        import pudb;pudb.set_trace()
         for i, item in enumerate(todo):
             trycounter = 0
             while trycounter < try_count:
