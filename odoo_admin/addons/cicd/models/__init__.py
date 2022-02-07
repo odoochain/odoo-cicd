@@ -39,13 +39,20 @@ def pg_advisory_xact_lock(cr, lock):
 def pg_advisory_lock(cr, lock, do_try=True):
     lock = _int_lock(lock)
     if do_try:
-        cr.execute("SELECT pg_try_advisory_xact_lock(%s);", (lock,))
+        cr.execute("SELECT pg_try_advisory_lock(%s);", (lock,))
         if not cr.fetchone()[0]:
-            raise RetryableJobError(f"Lock could not be acquired: {lock}", ignore_retry=True)
+            trace = '\n'.join(traceback.format_stack())
+            raise RetryableJobError(f"Lock could not be acquired: {lock} at: \n{trace}", ignore_retry=True)
     else:
-        cr.execute("SELECT pg_advisory_xact_lock(%s);", (lock,))
-    logger.info(f"Acquired advisory lock {lock}")
-    yield
+        cr.execute("SELECT pg_advisory_lock(%s);", (lock,))
+    try:
+        logger.info(f"Acquired advisory lock {lock}")
+        yield
+    finally:
+        try:
+            cr.execute("SELECT pg_advisory_unlock(%s);", (lock,))
+        except Exception:
+            logger.warn(f"Could not release lock because of connection. Perhaps already closed so ok.", exc_info=True)
 
 
 from . import ticketsystem

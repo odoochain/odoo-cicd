@@ -54,7 +54,7 @@ class GitBranch(models.Model):
     dump_id = fields.Many2one("cicd.dump", string="Dump")
     remove_web_assets_after_restore = fields.Boolean("Remove Webassets", default=True)
     reload_config = fields.Text("Reload Config", track_visibility='onchange')
-    autobackup = fields.Boolean("Autobackup", track_visibility='onchange') 
+    autobackup = fields.Boolean("Autobackup", track_visibility='onchange')
     enduser_summary = fields.Text("Enduser Summary", track_visibility='onchange')
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
     release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
@@ -252,7 +252,7 @@ class GitBranch(models.Model):
     @api.depends('task_ids', 'task_ids.state')
     def _compute_build_state(self):
         for rec in self:
-            if 'new' in rec.mapped('task_ids.state'): 
+            if 'new' in rec.mapped('task_ids.state'):
                 rec.build_state = 'building'
             else:
                 if rec.task_ids and rec.task_ids[0].state == 'fail':
@@ -326,7 +326,7 @@ class GitBranch(models.Model):
 
         raise ValidationError(_("Instance did not respond. It was tried to start the application but this did not succeed. Please check task logs."))
 
-    def _get_odoo_proxy_container_name(self): 
+    def _get_odoo_proxy_container_name(self):
         return f"{self.project_name}_proxy"
 
     def _compute_project_name(self):
@@ -344,7 +344,8 @@ class GitBranch(models.Model):
     def _get_new_logsio_instance(self, source):
         self.ensure_one()
         with LogsIOWriter.GET(f"{self.project_name}", source) as logs:
-            logs.write_text(f"New Logsio-Instance Started: {arrow.get()}")
+            trace = '\n'.join(traceback.format_stack())
+            logs.write_text(f"New Logsio-Instance Started: {arrow.get()}: \n" + trace)
             yield logs
 
     @api.constrains("backup_filename")
@@ -423,13 +424,13 @@ class GitBranch(models.Model):
                 return True
 
             rec.task_ids_filtered = [[6, 0, tasks.filtered(filter).ids]]
-            
+
     @api.depends('commit_ids')
     def _compute_commit_ids(self):
         for rec in self:
             #rec.commit_ids_ui = rec.commit_ids[:200]
             rec.commit_ids_ui = rec.commit_ids.sorted(lambda x: x.date, reverse=True)
-            
+
     def _compute_databases(self):
         for rec in self:
             rec.database_ids = self.env['cicd.database'].sudo().search([('name', '=', rec.database_project_name)])

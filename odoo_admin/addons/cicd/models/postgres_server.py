@@ -48,7 +48,7 @@ class PostgresServer(models.Model):
                 cr = conn.cursor()
                 yield cr
                 conn.commit()
-            except:
+            except Exception:
                 conn.rollback()
         finally:
             conn.close()

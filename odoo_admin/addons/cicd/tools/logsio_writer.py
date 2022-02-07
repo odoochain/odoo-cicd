@@ -47,14 +47,16 @@ class LogsIOWriter(object):
 
     def start_keepalive(self):
         def keep_alive(self):
+            i = 0
             while self.keep_alive_thread:
+                i += 1
                 time.sleep(1 if os.getenv("DEVMODE") == "1" else 20)
-                self.info(KEEP_ALIVE_MESSAGE)
+                self.info(KEEP_ALIVE_MESSAGE + " " + str(i))
 
         self.keep_alive_thread = threading.Thread(target=keep_alive, args=(self,))
         self.keep_alive_thread.background = True
         self.keep_alive_thread.start()
-    
+
     def stop_keepalive(self):
         self.keep_alive_thread = False
 

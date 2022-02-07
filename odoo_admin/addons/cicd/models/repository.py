@@ -22,7 +22,7 @@ class NewBranch(Exception): pass
 class Repository(models.Model):
     _name = 'cicd.git.repo'
 
-    short = fields.Char(compute="_compute_shortname", string="Name")
+    short = fields.Char(compute="_compute_shortname", string="Name", compute_sudo=True)
     machine_id = fields.Many2one('cicd.machine', string="Development Machine", required=True, domain=[('ttype', '=', 'dev')])
     name = fields.Char("URL", required=True)
     login_type = fields.Selection([
@@ -34,7 +34,7 @@ class Repository(models.Model):
     password = fields.Char("Password")
     skip_paths = fields.Char("Skip Paths", help="Comma separated list")
     branch_ids = fields.One2many('cicd.git.branch', 'repo_id', string="Branches")
-    url = fields.Char(compute="_compute_url")
+    url = fields.Char(compute="_compute_url", compute_sudo=True)
     default_branch = fields.Char(default="master", required=True)
     ticketsystem_id = fields.Many2one('cicd.ticketsystem', string="Ticket System")
     release_ids = fields.One2many('cicd.release', 'repo_id', string="Releases")
