@@ -24,5 +24,9 @@ class queuejob(models.Model):
         for rec in self:
             b = False
             if rec.identity_key:
-                re.findall(r'branch:([^:]*):', rec.identity_key)
+                b = re.findall(r'branch:([^:]*):', rec.identity_key)
+                if b:
+                    b = b[0]
+                else:
+                    b = False
             rec.branch = b
