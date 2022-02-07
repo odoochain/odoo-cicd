@@ -20,13 +20,7 @@ services:
     networks:
       - internal
 
-  mail:
-    networks:
-      - internal
 
-  roundcube:
-    networks:
-      - internal
 
   odoo_base:
     privileged: True
