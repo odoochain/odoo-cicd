@@ -23,6 +23,6 @@ class queuejob(models.Model):
     def _compute_branch(self):
         for rec in self:
             b = False
-            if b.identity_key:
-                re.findall(r'branch:([^:]*):', b.identity_key)
+            if rec.identity_key:
+                re.findall(r'branch:([^:]*):', rec.identity_key)
             rec.branch = b
