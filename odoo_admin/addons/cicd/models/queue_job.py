@@ -18,11 +18,11 @@ class queuejob(models.Model):
             job.set_done()
             job.store()
 
-    # branch = fields.Char(compute="_compute_branch", store=False)
+    branch = fields.Char(compute="_compute_branch", store=False)
 
-    # def _compute_branch(self):
-    #     for rec in self:
-    #         b = False
-    #         if rec.identity_key:
-    #             re.findall(r'branch:([^:]*):', rec.identity_key)
-    #         rec.branch = b
+    def _compute_branch(self):
+        for rec in self:
+            b = False
+            if rec.identity_key:
+                re.findall(r'branch:([^:]*):', rec.identity_key)
+            rec.branch = b
