@@ -135,7 +135,8 @@ class CicdMachine(models.Model):
             self.ssh_pubkey = pubkeyfile.read_text()
 
     def test_ssh(self):
-        self._shell().X(["ls"])
+        with self._shell() as shell:
+            shell().X(["ls"])
         raise ValidationError(_("Everyhing Works!"))
 
     def update_dumps(self):
