@@ -41,7 +41,8 @@ def pg_advisory_lock(cr, lock):
     lock = _int_lock(lock)
     cr.execute("SELECT pg_try_advisory_xact_lock(%s);", (lock,))
     if not cr.fetchone()[0]:
-        raise RetryableJobError(f"Lock could not be acquired: {lock}", ignore_retry=True)
+        trace = '\n'.join(traceback.format_stack())
+        raise RetryableJobError(f"Lock could not be acquired: {lock}\n{trace}", ignore_retry=True)
     logger.info(f"Acquired advisory lock {lock}")
     yield
 
