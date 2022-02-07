@@ -309,6 +309,7 @@ RUN_POSTGRES=1
             lambda item: shell.odoo(
                 'unittest',
                 item,
+                timeout=self.branch_id.timeout_tests,
                 ),
             try_count=self.branch_id.retry_unit_tests,
         )
