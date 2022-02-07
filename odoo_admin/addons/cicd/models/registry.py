@@ -1,6 +1,5 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
-import pudb;pudb.set_trace()
 
 class Registry(models.Model):
     _name = 'cicd.registry'
