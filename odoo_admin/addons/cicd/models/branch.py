@@ -264,7 +264,7 @@ class GitBranch(models.Model):
 
     def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, **kwargs):
         for rec in self:
-            identity_key = identity_key or execute
+            identity_key = identity_key or f"{rec.name}-execute"
             if not now and rec.task_ids.filtered(lambda x: x.state in ['pending', 'enqueued', 'started'] and x.identity_key == identity_key):
                 if silent:
                     return
