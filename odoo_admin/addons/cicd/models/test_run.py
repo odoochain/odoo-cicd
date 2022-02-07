@@ -1,10 +1,11 @@
 from contextlib import contextmanager
+import psycopg2
+from odoo.addons.queue_job.exception import RetryableJobError
 import sys
 from collections import deque
 import traceback
 import time
 import arrow
-from . import pg_advisory_lock
 from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import logging
@@ -116,52 +117,55 @@ RUN_POSTGRES=1
         b = self.branch_id
         started = arrow.get()
 
-        with pg_advisory_lock(self.env.cr, f"testrun_{self.branch_id.id}"):
-            if not b.any_testing:
-                self.success_rate = 100
-                self.state = 'success'
-                b._compute_state()
-                return
+        try:
+            self.env.cr.execute("select id from cicd_test_run where branch_id=%s for update nowait", (self.branch_id.id,))
+        except psycopg2.errors.LockNotAvailable:
+            raise RetryableJobError(f"Could not work exclusivley on test-run for branch {self.branch_id.name} - retrying in few seconds", ignore_retry=True, seconds=5)
+        if not b.any_testing:
+            self.success_rate = 100
+            self.state = 'success'
+            b._compute_state()
+            return
 
-            self.state = 'open'
+        self.state = 'open'
 
-            with self._update_lines() as self2:
-                self2.line_ids = [[6, 0, []]]
-                self2.line_ids = [[0, 0, {'ttype': 'log', 'name': 'Started'}]]
+        with self._update_lines() as self2:
+            self2.line_ids = [[6, 0, []]]
+            self2.line_ids = [[0, 0, {'ttype': 'log', 'name': 'Started'}]]
 
-            if shell:
-                machine = shell.machine
-            else:
-                machine = self.branch_id.repo_id.machine_id
+        if shell:
+            machine = shell.machine
+        else:
+            machine = self.branch_id.repo_id.machine_id
 
-            data = {
-                'testrun_id': self.id,
-                'machine_id': machine.id,
-                'technical_errors': [],
-                'run_lines': deque(),
-            }
+        data = {
+            'testrun_id': self.id,
+            'machine_id': machine.id,
+            'technical_errors': [],
+            'run_lines': deque(),
+        }
 
-            if b.run_unittests:
-                self._execute(self._run_unit_tests, machine, 'test-units')
-            if b.run_robottests:
-                self._execute(self._run_robot_tests, machine, 'test-robot')
-            if b.simulate_install_id:
-                self._execute(self._run_update_db, machine, 'test-migration')
+        if b.run_unittests:
+            self._execute(self._run_unit_tests, machine, 'test-units')
+        if b.run_robottests:
+            self._execute(self._run_robot_tests, machine, 'test-robot')
+        if b.simulate_install_id:
+            self._execute(self._run_update_db, machine, 'test-migration')
 
-            if data['technical_errors']:
-                for error in data['technical_errors']:
-                    data['run_lines'].append({
-                        'exc_info': error,
-                        'ttype': 'log',
-                        'state': 'failed',
-                    })
-                raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+        if data['technical_errors']:
+            for error in data['technical_errors']:
+                data['run_lines'].append({
+                    'exc_info': error,
+                    'ttype': 'log',
+                    'state': 'failed',
+                })
+            raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
 
-            self.duration = (arrow.get() - started).total_seconds()
-            if logsio:
-                logsio.info(f"Duration was {self.duration}")
-            self._compute_success_rate()
-            self._inform_developer()
+        self.duration = (arrow.get() - started).total_seconds()
+        if logsio:
+            logsio.info(f"Duration was {self.duration}")
+        self._compute_success_rate()
+        self._inform_developer()
 
     def _make_line(self, line):
         self.line_ids.create(line)

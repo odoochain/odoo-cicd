@@ -5,6 +5,7 @@ import hashlib
 import struct
 from pathlib import Path
 import logging
+from odoo import registry
 from odoo.addons.queue_job.exception import RetryableJobError
 logger = logging.getLogger("CICD")
 
@@ -39,12 +40,15 @@ def pg_advisory_xact_lock(cr, lock):
 @contextmanager
 def pg_advisory_lock(cr, lock):
     lock = _int_lock(lock)
-    cr.execute("SELECT pg_try_advisory_xact_lock(%s);", (lock,))
-    if not cr.fetchone()[0]:
-        trace = '\n'.join(traceback.format_stack())
-        raise RetryableJobError(f"Lock could not be acquired: {lock}\n{trace}", ignore_retry=True)
-    logger.info(f"Acquired advisory lock {lock}")
-    yield
+    db_registry = registry(cr.dbname)
+    with db_registry.cursor() as cr2:
+        cr2.execute("SELECT pg_advisory_xact_lock(%s);", (lock,))
+        # if not cr2.fetchone()[0]:
+        #     trace = '\n'.join(traceback.format_stack())
+        #     raise RetryableJobError(f"Lock could not be acquired: {lock}\n{trace}", ignore_retry=True, seconds=5)
+        logger.info(f"Acquired advisory lock {lock}")
+        yield
+        cr2.commit()
 
 
 from . import ticketsystem

@@ -11,6 +11,25 @@ class Controller(http.Controller):
         branch.last_access = arrow.utcnow().datetime.strftime("%Y-%m-%d %H:%M:%S")
         return "OK"
 
+    @http.route('/start/<name>/mailer')
+    def _start_mailer(self, name, **kwargs):
+        """
+        """
+        return """
+
+        <html>
+        <head>
+        </head>
+        <script type='text/javascript'>
+        alert("HI");
+        window.open('/mailer/');
+        window.location.href = '/start/{name}';
+        </script>
+        <body>
+        Opening Mailer in popup and odoo login
+        </body>
+        """.format(name=name)
+
     @http.route(["/start/<name>", "/start/<name>/<action>"])
     def start_instance(self, name, **args):
         action = args.get('action')

@@ -102,7 +102,7 @@ class Release(models.Model):
                     'final_curtain': final_curtain_dt,
                     'planned_date': arrow.get().shift(minutes=self.planned_timestamp_after_preparation).strftime("%Y-%m-%d %H:%M:%S"),
                 })
-            
+
             # if release did not happen or so, then update final curtain:
             new_items.final_curtain = final_curtain_dt
 
@@ -142,4 +142,5 @@ class Release(models.Model):
 
     def _send_pre_release_information(self):
         for rec in self:
-            import pudb;pudb.set_trace()
+            pass
+            # import pudb;pudb.set_trace()

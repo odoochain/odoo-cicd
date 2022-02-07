@@ -1,8 +1,9 @@
 import traceback
-from . import pg_advisory_lock
+import psycopg2
 import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from odoo.addons.queue_job.exception import RetryableJobError
 from ..tools.logsio_writer import LogsIOWriter
 import logging
 logger = logging.getLogger(__name__)
@@ -97,55 +98,58 @@ class ReleaseItem(models.Model):
         self._do_release()
 
     def _do_release(self):
-        with pg_advisory_lock(self.env.cr, f"release_{self.release_id.id}"):
-            if not self.release_id.active:
-                return
-            if self.state not in ['new', 'failed']:
-                raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
-            if self.release_type == 'hotfix' and not self.branch_ids:
-                raise ValidationError("Hotfix requires explicit branches.")
-            if not self.commit_id:  # needs a collected commit with everything on it
-                return
-            if self.commit_id.test_state == 'failed':
-                if self.state != 'failed':
-                    self.state = f'failed'
-            if self.commit_id.test_state != 'success':
-                return
+        try:
+            self.env.cr.execute("select id from cicd_release where id=%s for update nowait", (self.release_id.id,))
+        except psycopg2.errors.LockNotAvailable:
+            raise RetryableJobError(f"Could not work exclusivley on release {self.release_id.id} - retrying in few seconds", ignore_retry=True, seconds=15)
+        if not self.release_id.active:
+            return
+        if self.state not in ['new', 'failed']:
+            raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
+        if self.release_type == 'hotfix' and not self.branch_ids:
+            raise ValidationError("Hotfix requires explicit branches.")
+        if not self.commit_id:  # needs a collected commit with everything on it
+            return
+        if self.commit_id.test_state == 'failed':
+            if self.state != 'failed':
+                self.state = f'failed'
+        if self.commit_id.test_state != 'success':
+            return
 
-            with self.release_id._get_logsio() as logsio:
+        with self.release_id._get_logsio() as logsio:
 
-                self.try_counter += 1
-                release = self.release_id
-                repo = self.release_id.repo_id.with_context(active_test=False)
-                candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
-                candidate_branch.ensure_one()
-                if not candidate_branch.active:
-                    raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
-                changed_lines = repo._merge(
-                    candidate_branch,
-                    release.branch_id,
-                    set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-                    logsio=logsio,
-                )
-                self.changed_lines += changed_lines
+            self.try_counter += 1
+            release = self.release_id
+            repo = self.release_id.repo_id.with_context(active_test=False)
+            candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+            candidate_branch.ensure_one()
+            if not candidate_branch.active:
+                raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
+            changed_lines = repo._merge(
+                candidate_branch,
+                release.branch_id,
+                set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                logsio=logsio,
+            )
+            self.changed_lines += changed_lines
 
-                try:
-                    if not self.changed_lines:
-                        self._on_done()
-                        return
-
-                    errors = self.release_id._technically_do_release(self)
-                    if errors:
-                        raise Exception(errors)
+            try:
+                if not self.changed_lines:
                     self._on_done()
+                    return
 
-                except Exception as ex:
-                    msg = traceback.format_exc()
-                    self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
-                    self.state = 'failed'
-                    logger.error(msg)
+                errors = self.release_id._technically_do_release(self)
+                if errors:
+                    raise Exception(errors)
+                self._on_done()
 
-                self.log_release = logsio.get_lines()
+            except Exception as ex:
+                msg = traceback.format_exc()
+                self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
+                self.state = 'failed'
+                logger.error(msg)
+
+            self.log_release = logsio.get_lines()
 
     def _collect_tested_branches(self):
         for rec in self:
@@ -180,7 +184,7 @@ class ReleaseItem(models.Model):
         # fetch latest commits:
         with self.release_id._get_logsio() as logsio:
             repo = self.release_id.repo_id.with_context(active_test=False)
-            # remove blocked 
+            # remove blocked
             self.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release)
             message_commit, commits = repo._collect_latest_tested_commits(
                 source_branches=self.branch_ids,
@@ -218,7 +222,7 @@ class ReleaseItem(models.Model):
             if rec.state not in ['failed', 'new']:
                 raise ValidationError("Cannot set state to ignore")
             rec.state = 'ignore'
-    
+
     def reschedule(self):
         for rec in self:
             if rec.state not in ['ignore']:
