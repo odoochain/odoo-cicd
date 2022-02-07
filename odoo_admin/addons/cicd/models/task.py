@@ -7,7 +7,10 @@ import traceback
 from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo import registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from odoo.addons.queue_job.models.queue_job import STATES
 from contextlib import contextmanager
+import logging
+logger = logging.getLogger('cicd_task')
 
 class Task(models.Model):
     _name = 'cicd.task'
@@ -22,30 +25,36 @@ class Task(models.Model):
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), readonly=True)
     is_done = fields.Boolean(compute="_compute_is_done", store=True)
 
-    state = fields.Selection(related='queue_job_id.state', string="State")
+    state = fields.Selection(selection=STATES, compute="_compute_state", string="State", store=False)
     log = fields.Text("Log", readonly=True)
-    error = fields.Text("Exception", compute="_compute_error")
+    error = fields.Text("Exception", compute="_compute_state")
     dump_used = fields.Char("Dump used", readonly=True)
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
-    queue_job_id = fields.Many2one('queue.job', string="Queuejob")
+    queuejob_uuid = fields.Char("Queuejob UUID")
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
 
-    @api.depends('queue_job_id', 'queue_job_id.state')
-    def _compute_error(self):
+    def _compute_state(self):
         for rec in self:
-            faileds = rec.queue_job_id.filtered(lambda x: x.state in ['failed']).sorted(lambda x: x.id, reverse=True)
-            if faileds:
-                rec.error = faileds.exc_info
-            else:
+            if not rec.queuejob_uuid:
+                rec.state = False
                 rec.error = False
+                continue
+
+            self.env.cr.execute("select state, exc_info from queue_job where uuid=%s", (rec.queuejob_uuid,))
+            qj = self.env.cr.fetchone()
+            if not qj:
+                rec.state = False
+                rec.error = False
+            else:
+                rec.state = qj[0]
+                rec.error = qj[1]
 
     @api.depends('state')
     def _compute_is_done(self):
         for rec in self:
             rec.is_done = rec.state in ['done', 'failed']
-
 
     def _compute_display_name(self):
         for rec in self:
@@ -60,10 +69,11 @@ class Task(models.Model):
         self.ensure_one()
 
         if not now:
-            self.with_delay(
+            job = self.with_delay(
                 identity_key=self._get_identity_key(),
                 eta=arrow.get().shift(seconds=10).strftime("%Y-%m-%d %H:%M:%S"),
             )._exec(now)
+            self.queuejob_uuid = job.uuid
         else:
             self._exec(now)
 
@@ -84,6 +94,8 @@ class Task(models.Model):
         short_name = self._get_short_name()
         started = arrow.get()
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+        logger.info(f"XXECUTING TASK {self}")
+        logger.info('\n'.join(traceback.format_stack()))
         with self.branch_id._get_new_logsio_instance(short_name) as logsio:
             with pg_advisory_lock(self.env.cr, f"perform_task_{self.branch_id.id}_{self.branch_id.project_name}"):  # project name so that tests may run parallel to backups
                 try:

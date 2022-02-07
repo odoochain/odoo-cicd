@@ -90,7 +90,7 @@ class LogsIOWriter(object):
     def info(self, msg):
         msg = self._format('INFO', msg)
         self._write_text(msg)
-        logger.info(msg)
+        # logger.info(msg)
 
     def error(self, msg):
         msg = self._format('ERROR', msg)
@@ -105,4 +105,4 @@ class LogsIOWriter(object):
     def debug(self, msg):
         msg = self._format('DEBUG', msg)
         self._write_text(msg)
-        logger.debug(msg)
+        # logger.debug(msg)
