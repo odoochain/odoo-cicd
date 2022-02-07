@@ -164,6 +164,7 @@ class ShellExecutor(object):
         logging.getLogger('pssh.host_logger').setLevel(logging.ERROR)
         logging.getLogger('pssh.clients.base.single').setLevel(logging.ERROR)
         logging.getLogger('pssh.clients.native.single').setLevel(logging.ERROR)
+
         def convert(x):
             if isinstance(x, Path):
                 x = str(x)
