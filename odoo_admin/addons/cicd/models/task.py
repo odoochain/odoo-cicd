@@ -79,10 +79,11 @@ class Task(models.Model):
             self._exec(now)
 
     def _get_identity_key(self):
+        appendix = f"branch:{self.name}:"
         if self.identity_key:
-            return self.identity_key
+            return self.identity_key + " " + appendix
         name = self._get_short_name()
-        return f"{self.branch_id.project_name}_{name} branch:{self.name}:"
+        return f"{self.branch_id.project_name}_{name} " + appendix
 
     def _get_short_name(self):
         name = self.name or ''
