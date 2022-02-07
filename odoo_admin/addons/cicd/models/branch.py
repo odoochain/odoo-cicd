@@ -111,7 +111,7 @@ class GitBranch(models.Model):
         if not res.simulate_install_id:
             res.simulate_install_id = res.repo_id.default_simulate_install_id_dump_id
         if 'remove_web_assets_after_restore' not in vals:
-            res.remove_web_assets_after_restore = res.repo_id.remove_web_assets_after_restore 
+            res.remove_web_assets_after_restore = res.repo_id.remove_web_assets_after_restore
         return res
 
     def _compute_releases(self):
@@ -458,7 +458,7 @@ class GitBranch(models.Model):
         for branch in self.search([('block_updates_until', '<', dt)]):
             branch.block_updates_until = False
             branch.update_all_modules()
-    
+
     def _compute_allowed_machines(self):
         for rec in self:
             rec.allowed_backup_machine_ids = self.env['cicd.machine'].search([('postgres_server_id.ttype', '=', 'dev')])

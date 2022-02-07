@@ -28,7 +28,7 @@ class Branch(models.Model):
 
     def _update_odoo(self, shell, task, logsio, **kwargs):
         if self.block_updates_until and self.block_updates_until > fields.Datetime.now():
-            raise RetryableJobError("Branch is blocked - have to wait", seconds=60, ignore_retry=True)
+            raise RetryableJobError("Branch is blocked - have to wait", seconds=10, ignore_retry=True)
         tasks = self.task_ids.filtered(lambda x: x.state == 'done' and x.name in ['_update_all_modules', '_update_odoo']).sorted(lambda x: x.id, reverse=True)
         commit = None
         if tasks:
@@ -87,7 +87,7 @@ class Branch(models.Model):
         shell.odoo('-f', 'restore', 'odoo-db', '--no-remove-webassets', self.dump_id.name)
         if self.remove_web_assets_after_restore:
             shell.odoo('-f', 'remove-web-assets')
-    
+
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
         self._docker_get_state(shell)
@@ -119,7 +119,7 @@ class Branch(models.Model):
                 state = 'up'
             else:
                 state = False
-            
+
             container = self.container_ids.filtered(lambda x: x.name == container_name)
             if not container:
                 self.container_ids = [[0, 0, {
@@ -188,7 +188,7 @@ class Branch(models.Model):
             env = update_env={
                 "TZ": "UTC0"
             }
-            
+
             line = shell.X([
                 "git",
                 "log",
@@ -227,7 +227,7 @@ class Branch(models.Model):
                 'text': text,
                 'branch_ids': [[4, self.id]],
             }]]
-    
+
     def _remove_web_assets(self, shell, task, logsio, **kwargs):
         logsio.info("Killing...")
         shell.odoo('kill')
@@ -286,9 +286,6 @@ class Branch(models.Model):
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
         # todo make button
         self._after_build(shell=shell, logsio=logsio, **kwargs)
-
-    def _reset(self, task, shell, **kwargs):
-        shell.odoo('db', 'reset', '--do-not-install-base')
 
     @api.model
     def _cron_garbage_collect(self):
@@ -407,6 +404,8 @@ class Branch(models.Model):
         shell.odoo('build')
         shell.odoo('-f', 'db', 'reset')
         shell.odoo('update')
+        shell.odoo('turn-into-dev')
+        self._after_build(shell=shell, logsio=logsio, **kwargs)
 
     def _compress(self, shell, task, logsio, compress_job_id):
         compressor = self.env['cicd.compressor'].sudo().browse(compress_job_id).sudo()
@@ -472,29 +471,29 @@ class Branch(models.Model):
     def _collect_all_files_by_their_checksum(self, shell):
         """
 
-        STOP! 
+        STOP!
         odoo calls isdir on symlink which fails unfortunately
         hardlink on dir does not work
         so new idea needed
 
 
         Odoo stores its files by sha. If a db is restored then usually it has to rebuild the assets.
-        And files are not available. 
+        And files are not available.
         To save space we make the following:
 
         ~/.odoo/files/filestore/project_name1/00/000000000
         ~/.odoo/files/filestore/project_name2/00/000000000
 
-                           | 
+                           |
                            |
                            |
                           \ /
                            W
-        
+
         ~/.odoo/files/filestore/_all/00/000000000
         ~/.odoo/files/filestore/_all/00/000000000
-        ~/.odoo/files/filestore/project_name1 --> ~/.odoo/files/filestore/_all 
-        ~/.odoo/files/filestore/project_name2 --> ~/.odoo/files/filestore/_all 
+        ~/.odoo/files/filestore/project_name1 --> ~/.odoo/files/filestore/_all
+        ~/.odoo/files/filestore/project_name2 --> ~/.odoo/files/filestore/_all
         """
         return # see comment
 

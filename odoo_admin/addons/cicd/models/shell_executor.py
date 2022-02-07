@@ -131,7 +131,7 @@ class ShellExecutor(object):
     def get(self, source):
         client = self._get_ssh_client()
         filename = Path(tempfile.mktemp(suffix='.'))
-        
+
         client.scp_recv(str(source), str(filename))
         try:
             return filename.read_bytes()
@@ -157,7 +157,7 @@ class ShellExecutor(object):
             pkey=str(self.ssh_keyfile),
         )
         return client
-    
+
     def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999, ignore_stdout=False):
         if timeout is None: timeout = DEFAULT_TIMEOUT
 
@@ -223,7 +223,6 @@ class ShellExecutor(object):
                     if stdwriter:
                         stdwriter.write(msg + "\n")
                 # gevent.sleep(.001)
-
 
         # ohne use_pty das failed/haengt close_channel
         # leider kommt dann allels über stdout.

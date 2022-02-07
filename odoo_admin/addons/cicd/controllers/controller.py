@@ -20,7 +20,7 @@ class Controller(http.Controller):
         # first try to get login page, if this not success then try to start containers
         branch.make_instance_ready_to_login()
 
-        url = "/web/login" 
+        url = "/web/login"
         if request.env.user.debug_mode_in_instances:
             url += "?debug=1"
 
@@ -43,12 +43,12 @@ class Controller(http.Controller):
                 dump.machine_id.sudo().message_post(body="Downloaded dump: " + dump.name)
 
         name = dump.name.split("/")[-1]
-        
+
         return http.request.make_response(content, [
             ('Content-Type', 'application/octet-stream; charset=binary'),
             ('Content-Disposition', content_disposition(name))
         ])
-        
+
     @http.route('/redirect_from_instance')
     def _redirect_from_instance(self, instance, **kwargs):
         """
