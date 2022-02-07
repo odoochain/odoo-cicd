@@ -161,6 +161,9 @@ class ShellExecutor(object):
     def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999, ignore_stdout=False):
         if timeout is None: timeout = DEFAULT_TIMEOUT
 
+        logging.getLogger('pssh.host_logger').setLevel(logging.ERROR)
+        logging.getLogger('pssh.clients.base.single').setLevel(logging.ERROR)
+        logging.getLogger('pssh.clients.native.single').setLevel(logging.ERROR)
         def convert(x):
             if isinstance(x, Path):
                 x = str(x)
