@@ -11,7 +11,7 @@ class Controller(http.Controller):
         branch.last_access = arrow.utcnow().datetime.strftime("%Y-%m-%d %H:%M:%S")
         return "OK"
 
-    @http.route('/start/<name>/mailer')
+    @http.route('/start/<name>/mailer/startup')
     def _start_mailer(self, name, **kwargs):
         """
         """
@@ -21,8 +21,7 @@ class Controller(http.Controller):
         <head>
         </head>
         <script type='text/javascript'>
-        alert("HI");
-        window.open('/mailer/');
+        window.open('/start/{name}/mailer/');
         window.location.href = '/start/{name}';
         </script>
         <body>

@@ -83,8 +83,8 @@ class Branch(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': '/start/' + self.project_name + "/mailer/",
-            'target': 'new'
+            'url': '/start/' + self.project_name + "/mailer/startup",
+            'target': 'self'
         }
 
     def start_logs(self):
