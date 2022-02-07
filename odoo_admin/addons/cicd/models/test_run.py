@@ -58,8 +58,8 @@ RUN_POSTGRES=1
         """
 
         def report(msg):
-            self.line_ids = [[0, 0, {'state': 'success', 'name': msg, 'ttype': 'log'}]]
-            self.env.cr.commit()
+            with self._update_lines() as self2:
+                self2.line_ids = [[0, 0, {'state': 'success', 'name': msg, 'ttype': 'log'}]]
             logsio.info(msg)
 
         root = machine._get_volume('source')
@@ -105,6 +105,9 @@ RUN_POSTGRES=1
                     if logsio:
                         logsio.stop_keepalive()
 
+
+
+
     # ----------------------------------------------
     # Entrypoint
     # ----------------------------------------------
@@ -121,9 +124,10 @@ RUN_POSTGRES=1
                 return
 
             self.state = 'open'
-            self.line_ids = [[6, 0, []]]
-            self.env.cr.commit()
-            self.line_ids = [[0, 0, {'ttype': 'log', 'name': 'Started'}]]
+
+            with self._update_lines() as self2:
+                self2.line_ids = [[6, 0, []]]
+                self2.line_ids = [[0, 0, {'ttype': 'log', 'name': 'Started'}]]
 
             if shell:
                 machine = shell.machine
@@ -320,7 +324,7 @@ RUN_POSTGRES=1
                 started = arrow.get()
                 data = {
                     'name': f"{index} {item}",
-                    'ttype': ttype, 
+                    'ttype': ttype,
                     'run_id': self.id,
                     'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
                     'try_count': trycounter,
@@ -329,7 +333,7 @@ RUN_POSTGRES=1
                     logsio.info(f"Running {index} {item}")
                     execute_run(item)
 
-                except Exception as ex:
+                except Exception:
                     msg = traceback.format_exc()
                     logsio.error(f"Error happened: {msg}")
                     data['state'] = 'failed'
@@ -340,9 +344,10 @@ RUN_POSTGRES=1
                 data['duration'] = (end - started).total_seconds()
                 if data['state'] == 'success':
                     break
-            self.line_ids = [[0, 0, data]]
-            self.env.cr.commit()
-    
+
+            with self._update_lines() as self2:
+                self2.line_ids = [[0, 0, data]]
+
     def _inform_developer(self):
         for rec in self:
             partners = (
@@ -407,3 +412,10 @@ class CicdTestRun(models.Model):
         res = super().create(vals)
         res.run_id.state = 'open'
         return res
+
+    @contextmanager
+    def _update_lines(self):
+        db_registry = registry(self.env.cr.dbname)
+        with db_registry.cursor() as cr:
+            env = api.Environment(cr, SUPERUSER_ID)
+            yield self.with_env(env)

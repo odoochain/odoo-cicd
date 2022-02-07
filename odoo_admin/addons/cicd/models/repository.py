@@ -429,12 +429,10 @@ class Repository(models.Model):
                 # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
                 db_registry = registry(self.env.cr.dbname)
                 branches = repo.branch_ids.filtered(lambda x: (x.last_access or x.date_registered).strftime("%Y-%m-%d %H:%M:%S") < dt)
-                with api.Environment.manage(), db_registry.cursor() as cr:
-                    for branch in branches:
-                        env = api.Environment(cr, SUPERUSER_ID, {})
-                        branch = branch.with_env(env)
+                with db_registry.cursor() as cr:
+                    env = api.Environment(cr, SUPERUSER_ID)
+                    for branch in branches.with_env(env):
                         branch.active = False
-                        env.cr.commit()
 
     def new_branch(self):
         return {
