@@ -27,11 +27,11 @@ class CicdTestRun(models.Model):
     branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids", string="Branches")
     repo_short = fields.Char(related="branch_ids.repo_id.short")
     state = fields.Selection([
-        ('open', 'Testing'),
+        ('open', 'Ready To Test'),
         ('running', 'Running'),
         ('success', 'Success'),
         ('failed', 'Failed'),
-    ], string="Result", store=True, required=True, default='open')
+    ], string="Result", required=True, default='open')
     success_rate = fields.Integer("Success Rate [%]")
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     duration = fields.Integer("Duration [s]")
@@ -130,7 +130,7 @@ RUN_POSTGRES=1
             with db_registry.cursor() as cr:
                 try:
                     env = api.Environment(cr, SUPERUSER_ID, {})
-                    self = self.with_env(env)
+                    self = env[self._name].browse(self.id)
 
                     self.ensure_one()
                     b = self.branch_id
@@ -437,5 +437,5 @@ class CicdTestRun(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
-        res.run_id.state = 'open'
+        res.run_id.state = 'running'
         return res
