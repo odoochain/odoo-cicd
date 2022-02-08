@@ -101,7 +101,7 @@ class Branch(models.Model):
         try:
             info = shell.odoo('ps')['stdout']
         except Exception:
-            logger.warn(exc_info=True)
+            logger.warn("Error at docker_get_state", exc_info=True)
             info = ""
 
         passed = False
