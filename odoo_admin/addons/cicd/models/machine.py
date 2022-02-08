@@ -136,7 +136,7 @@ class CicdMachine(models.Model):
 
     def test_ssh(self):
         with self._shell() as shell:
-            shell().X(["ls"])
+            shell.X(["ls"])
         raise ValidationError(_("Everyhing Works!"))
 
     def update_dumps(self):
