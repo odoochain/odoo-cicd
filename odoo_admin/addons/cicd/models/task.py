@@ -24,7 +24,7 @@ class Task(models.Model):
     branch_id = fields.Many2one('cicd.git.branch', string="Branch")
     name = fields.Char("Name")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), readonly=True)
-    is_done = fields.Boolean(compute="_compute_is_done", store=True)
+    is_done = fields.Boolean(compute="_compute_is_done", store=False)
 
     state = fields.Selection(selection=STATES, compute="_compute_state", string="State", store=False)
     log = fields.Text("Log", readonly=True)
@@ -55,7 +55,7 @@ class Task(models.Model):
     @api.depends('state')
     def _compute_is_done(self):
         for rec in self:
-            rec.is_done = rec.state in ['done', 'failed']
+            rec.is_done = rec.state in ['done', 'failed'] if rec.state else True
 
     def _compute_display_name(self):
         for rec in self:
