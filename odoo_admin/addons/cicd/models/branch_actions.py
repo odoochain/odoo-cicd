@@ -91,7 +91,7 @@ class Branch(models.Model):
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
-        self._docker_get_state(shell)
+        self._docker_get_state(shell=shell)
 
     def _docker_stop(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
