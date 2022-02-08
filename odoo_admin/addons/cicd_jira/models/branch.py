@@ -1,5 +1,6 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+import jira as JIRA
 
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
@@ -9,7 +10,7 @@ class Branch(models.Model):
         jira = self.repo_id.ticketsystem_id._get_jira_connection()
         try:
             issue = jira.issue(self.ticket_system_ref or self.name)
-        except jira.exceptions.JIRAError as jira_ex:
+        except JIRA.exceptions.JIRAError as jira_ex:
             if 'Issue does not exist or you do not have permission to see it' in str(jira_ex):
                 return None
             raise
