@@ -33,6 +33,8 @@ class Task(models.Model):
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
     queuejob_uuid = fields.Char("Queuejob UUID")
+    queue_job_id = fields.Manyeon2('queue.job', compute="_compute_queuejob")
+
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
 
@@ -160,3 +162,10 @@ class Task(models.Model):
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in ['failed']):
             rec.queue_job_id.requeue()
+
+    def _compute_queuejob(self):
+        for rec in self:
+            if rec.uuid:
+                rec.queue_job_id = self.env['queue.job'].search([('uuid', '=', rec.uuid)], limit=1)
+            else:
+                rec.queue_job_id = False
