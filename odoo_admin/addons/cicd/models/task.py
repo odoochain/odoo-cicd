@@ -98,6 +98,7 @@ class Task(models.Model):
         self = self.sudo()
         short_name = self._get_short_name()
         started = arrow.get()
+        # TODO make testruns not block reloading
         with pg_advisory_lock(self.env.cr, self.branch_id.id):
             with self.branch_id._get_new_logsio_instance(short_name) as logsio:
                 try:
