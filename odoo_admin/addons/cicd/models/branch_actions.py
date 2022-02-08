@@ -261,9 +261,6 @@ class Branch(models.Model):
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
         b = task.branch_id
 
-        update_state = kwargs.get('update_state', False)
-        # self._update_git_commits(shell, task=task, logsio=logsio) # why???
-
         if kwargs.get('testrun_id'):
             test_run = self.test_run_ids.browse(kwargs.get('testrun_id'))
         else:
