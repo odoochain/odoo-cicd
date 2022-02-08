@@ -7,7 +7,12 @@ class Branch(models.Model):
     def _get_jira_issue(self):
         self.ensure_one()
         jira = self.repo_id.ticketsystem_id._get_jira_connection()
-        issue = jira.issue(self.ticket_system_ref or self.name)
+        try:
+            issue = jira.issue(self.ticket_system_ref or self.name)
+        except jira.exceptions.JIRAError as jira_ex:
+            if 'Issue does not exist or you do not have permission to see it' in str(jira_ex):
+                return None
+            raise
         return issue
 
     def ticketsystem_set_state(self, state):
@@ -19,7 +24,8 @@ class Branch(models.Model):
             if rec.repo_id.ticketsystem_id.ttype == 'jira':
                 ts = rec.repo_id.ticketsystem_id
                 issue = self._get_jira_issue()
-                ts._jira_set_state(issue, 'done')
+                if issue:
+                    ts._jira_set_state(issue, 'done')
 
     def _report_comment_to_ticketsystem(self, comment):
         super()._report_comment_to_ticketsystem(comment)
