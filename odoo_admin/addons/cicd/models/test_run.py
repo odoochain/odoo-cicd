@@ -59,8 +59,8 @@ RUN_POSTGRES=1
         """
 
         def report(msg):
-            with self._update_lines() as self2:
-                self2.line_ids = [[0, 0, {'state': 'success', 'name': msg, 'ttype': 'log'}]]
+            self.line_ids = [[0, 0, {'state': 'success', 'name': msg, 'ttype': 'log'}]]
+            self.env.cr.commit()
             logsio.info(msg)
 
         root = machine._get_volume('source')
@@ -113,59 +113,70 @@ RUN_POSTGRES=1
     # Entrypoint
     # ----------------------------------------------
     def execute(self, shell=None, task=None, logsio=None):
-        self.ensure_one()
-        b = self.branch_id
-        started = arrow.get()
+        db_registry = registry(self.env.cr.dbname)
+        with db_registry.cursor() as cr:
+            env = api.Environment(cr, SUPERUSER_ID, {})
+            self = self.with_env(env)
 
-        try:
-            self.env.cr.execute("select id from cicd_test_run where branch_id=%s for update nowait", (self.branch_id.id,))
-        except psycopg2.errors.LockNotAvailable:
-            raise RetryableJobError(f"Could not work exclusivley on test-run for branch {self.branch_id.name} - retrying in few seconds", ignore_retry=True, seconds=5)
-        if not b.any_testing:
-            self.success_rate = 100
-            self.state = 'success'
-            b._compute_state()
-            return
+            if self.state not in ('open'):
+                return
+            self.ensure_one()
+            b = self.branch_id
+            started = arrow.get()
 
-        self.state = 'open'
+            try:
+                self.env.cr.execute("select id from cicd_test_run where branch_id=%s for update nowait", (self.branch_id.id,))
+            except psycopg2.errors.LockNotAvailable:
+                raise RetryableJobError(f"Could not work exclusivley on test-run for branch {self.branch_id.name} - retrying in few seconds", ignore_retry=True, seconds=5)
+            if not b.any_testing:
+                self.success_rate = 100
+                self.state = 'success'
+                b._compute_state()
+                return
 
-        with self.line_ids._update_lines() as self2:
-            self2.unlink()
-            self2.create({'run_id': self.id, 'ttype': 'log', 'name': 'Started'})
+            self.state = 'open'
 
-        if shell:
-            machine = shell.machine
-        else:
-            machine = self.branch_id.repo_id.machine_id
+            self.line_ids = [[6, 0, []]]
+            self.line_ids = [[0, 0, {'run_id': self.id, 'ttype': 'log', 'name': 'Started'}]]
+            self.env.cr.commit()
 
-        data = {
-            'testrun_id': self.id,
-            'machine_id': machine.id,
-            'technical_errors': [],
-            'run_lines': deque(),
-        }
+            if shell:
+                machine = shell.machine
+            else:
+                machine = self.branch_id.repo_id.machine_id
 
-        if b.run_unittests:
-            self._execute(self._run_unit_tests, machine, 'test-units')
-        if b.run_robottests:
-            self._execute(self._run_robot_tests, machine, 'test-robot')
-        if b.simulate_install_id:
-            self._execute(self._run_update_db, machine, 'test-migration')
+            data = {
+                'testrun_id': self.id,
+                'machine_id': machine.id,
+                'technical_errors': [],
+                'run_lines': deque(),
+            }
 
-        if data['technical_errors']:
-            for error in data['technical_errors']:
-                data['run_lines'].append({
-                    'exc_info': error,
-                    'ttype': 'log',
-                    'state': 'failed',
-                })
-            raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+            if b.run_unittests:
+                self._execute(self._run_unit_tests, machine, 'test-units')
+                self.env.cr.commit()
+            if b.run_robottests:
+                self._execute(self._run_robot_tests, machine, 'test-robot')
+                self.env.cr.commit()
+            if b.simulate_install_id:
+                self._execute(self._run_update_db, machine, 'test-migration')
+                self.env.cr.commit()
 
-        self.duration = (arrow.get() - started).total_seconds()
-        if logsio:
-            logsio.info(f"Duration was {self.duration}")
-        self._compute_success_rate()
-        self._inform_developer()
+            if data['technical_errors']:
+                for error in data['technical_errors']:
+                    data['run_lines'].append({
+                        'exc_info': error,
+                        'ttype': 'log',
+                        'state': 'failed',
+                    })
+                raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+
+            self.duration = (arrow.get() - started).total_seconds()
+            if logsio:
+                logsio.info(f"Duration was {self.duration}")
+            self._compute_success_rate()
+            self._inform_developer()
+            self.env.cr.commit()
 
     def _make_line(self, line):
         self.line_ids.create(line)
@@ -186,6 +197,7 @@ RUN_POSTGRES=1
                             'state': 'success', 'ttype': 'log', 'name': f'preparation done: {appendix}',
                             'duration': (arrow.get() - started).total_seconds()
                             }]]
+                        self.env.cr.commit()
                         passed_prepare = True
                         run(shell, logsio)
                 except Exception as ex:
@@ -199,6 +211,7 @@ RUN_POSTGRES=1
                             'name': "Failed at preparation",
                             'state': 'failed',
                         }]]
+                        self.env.cr.commit()
 
         except Exception as ex:
             msg = traceback.format_exc()
@@ -215,6 +228,7 @@ RUN_POSTGRES=1
             'ttype': 'failed',
             'name': msg
         }]]
+        self.env.cr.commit()
 
     def _compute_success_rate(self):
         for rec in self:
@@ -350,8 +364,7 @@ RUN_POSTGRES=1
                 if data['state'] == 'success':
                     break
 
-            with self.line_ids._update_lines() as Lines:
-                Lines.create(data)
+            self.line_ids = [[0, 0, data]]
 
     def _inform_developer(self):
         for rec in self:
@@ -417,10 +430,3 @@ class CicdTestRun(models.Model):
         res = super().create(vals)
         res.run_id.state = 'open'
         return res
-
-    @contextmanager
-    def _update_lines(self):
-        db_registry = registry(self.env.cr.dbname)
-        with db_registry.cursor() as cr:
-            env = api.Environment(cr, SUPERUSER_ID, {})
-            yield self.with_env(env)
