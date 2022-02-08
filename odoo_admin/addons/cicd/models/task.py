@@ -165,7 +165,7 @@ class Task(models.Model):
 
     def _compute_queuejob(self):
         for rec in self:
-            if rec.uuid:
+            if rec.queuejob_uuid:
                 rec.queue_job_id = self.env['queue.job'].search([('uuid', '=', rec.queuejob_uuid)], limit=1)
             else:
                 rec.queue_job_id = False
