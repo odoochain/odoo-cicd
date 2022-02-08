@@ -365,6 +365,7 @@ RUN_POSTGRES=1
                     break
 
             self.line_ids = [[0, 0, data]]
+            self.env.cr.commit()
 
     def _inform_developer(self):
         for rec in self:
