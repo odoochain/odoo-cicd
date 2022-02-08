@@ -89,6 +89,7 @@ RUN_POSTGRES=1
             shell.cwd = root / shell.project_name
             try:
                 try:
+                    if self.do_abort: raise Exception("User aborted")
                     report('building')
                     shell.odoo('build')
                     report('killing any existing')
@@ -96,13 +97,16 @@ RUN_POSTGRES=1
                     shell.odoo('rm', allow_error=True)
                     report('starting postgres')
                     shell.odoo('up', '-d', 'postgres')
+                    if self.do_abort: raise Exception("User aborted")
                     self._wait_for_postgres(shell)
                     report('db reset started')
                     shell.odoo('-f', 'db', 'reset')
+                    if self.do_abort: raise Exception("User aborted")
                     report('db reset done')
                     self._wait_for_postgres(shell)
                     report('update started')
                     shell.odoo('update')
+                    if self.do_abort: raise Exception("User aborted")
                     report('installation of modules done')
                     report("Storing snapshot")
                     shell.odoo('snap', 'save', shell.project_name, force=True)
@@ -110,6 +114,7 @@ RUN_POSTGRES=1
                     report("Storing snapshot done")
                     logsio.info("Preparation done")
                     report('preparation done', ttype='log', state='success', duration=arrow.get() - started).total_seconds()
+                    if self.do_abort: raise Exception("User aborted")
                     self.env.cr.commit()
                 except Exception as ex:
                     duration = arrow.get() - started
