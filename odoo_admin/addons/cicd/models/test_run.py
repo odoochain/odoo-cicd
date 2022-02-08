@@ -350,8 +350,8 @@ RUN_POSTGRES=1
                 if data['state'] == 'success':
                     break
 
-            with self._update_lines() as self2:
-                self2.line_ids = [[0, 0, data]]
+            with self.line_ids._update_lines() as Lines:
+                Lines.create(data)
 
     def _inform_developer(self):
         for rec in self:
