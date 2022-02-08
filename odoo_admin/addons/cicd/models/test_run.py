@@ -19,7 +19,7 @@ class AbortException(Exception): pass
 class CicdTestRun(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.test.run'
-    _order = 'date desc'
+    _order = 'id desc'
 
     name = fields.Char(compute="_compute_name")
     do_abort = fields.Boolean("Abort when possible")
@@ -68,7 +68,9 @@ RUN_POSTGRES=1
         """
 
         def report(msg, state='success', exception=None, duration=False, ttype='log'):
-            if isinstance(duration, datetime.timedelta):
+            if duration is None:
+                duration = 0
+            elif isinstance(duration, datetime.timedelta):
                 duration = duration.total_seconds()
             ttype = ttype or 'log'
             if exception:
