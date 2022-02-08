@@ -100,7 +100,7 @@ class Branch(models.Model):
     def _docker_get_state(self, shell, **kwargs):
         try:
             info = shell.odoo('ps')['stdout']
-        except Exception as ex:
+        except Exception:
             logger.warn(exc_info=True)
             info = ""
 

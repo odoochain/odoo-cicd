@@ -25,7 +25,7 @@ class Branch(models.Model):
         self._make_task("_shrink_db")
 
     def docker_start(self):
-        self._make_task("_docker_start", True)
+        self._make_task("_docker_start", True, no_repo=True)
 
     def docker_stop(self):
         self._make_task("_docker_stop", True)
@@ -74,7 +74,7 @@ class Branch(models.Model):
         }
 
     def update_git_commits(self):
-        self._make_task("_update_git_commits")
+        self._make_task("_update_git_commits", no_repo=True)
 
     def transform_input_dump(self):
         self._make_task("_transform_input_dump")
