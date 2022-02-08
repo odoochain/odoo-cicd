@@ -130,8 +130,8 @@ RUN_POSTGRES=1
         self.state = 'open'
 
         with self.line_ids._update_lines() as self2:
-            self2.line_ids = [[6, 0, []]]
-            self2.line_ids = [[0, 0, {'ttype': 'log', 'name': 'Started'}]]
+            self2.unlink()
+            self2.create({'run_id': self.id, 'ttype': 'log', 'name': 'Started'})
 
         if shell:
             machine = shell.machine
@@ -422,5 +422,5 @@ class CicdTestRun(models.Model):
     def _update_lines(self):
         db_registry = registry(self.env.cr.dbname)
         with db_registry.cursor() as cr:
-            env = api.Environment(cr, SUPERUSER_ID)
+            env = api.Environment(cr, SUPERUSER_ID, {})
             yield self.with_env(env)
