@@ -62,7 +62,7 @@ from ..tests import loader, runner
 
 _logger = logging.getLogger(__name__)
 
-SLEEP_INTERVAL = 60     # 1 min
+SLEEP_INTERVAL = 5     # 1 min
 
 def memory_info(process):
     """

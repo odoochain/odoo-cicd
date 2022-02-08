@@ -358,20 +358,19 @@ class Branch(models.Model):
         return str(commit)
 
     def inactivity_cycle_down(self):
-        self.ensure_one()
-
         with self._get_new_logsio_instance("inactivity_cycle_down") as logsio:
-            dest_folder = self.machine_id._get_volume('source') / self.project_name
-            try:
-                with self.machine_id._shellexec(dest_folder, logsio, project_name=self.project_name) as shell:
-                    if (arrow.get() - arrow.get(self.last_access or '1980-04-04')).total_seconds() > self.cycle_down_after_seconds:
-                        self._docker_get_state(shell=shell)
-                        if self.docker_state == 'up':
-                            logsio.info(f"Cycling down instance due to inactivity")
-                            shell.odoo('kill')
+            for rec in self:
+                dest_folder = rec.machine_id._get_volume('source') / rec.project_name
+                try:
+                    with rec.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=rec.project_name) as shell:
+                        if (arrow.get() - arrow.get(self.last_access or '1980-04-04')).total_seconds() > self.cycle_down_after_seconds:
+                            rec._docker_get_state(shell=shell, now=True)
+                            if rec.docker_state == 'up':
+                                logsio.info(f"Cycling down instance due to inactivity")
+                                shell.odoo('kill')
 
-            except Exception as ex:
-                logsio.error(ex)
+                except Exception as ex:
+                    logsio.error(ex)
 
     def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
         home_dir = shell._get_home_dir()
