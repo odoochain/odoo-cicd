@@ -32,7 +32,7 @@ class Branch(models.Model):
 
     def docker_get_state(self, now=True):
         for rec in self:
-            rec._make_task("_docker_get_state", now=now)
+            rec._make_task("_docker_get_state", now=now, no_repo=True)
 
     def create_empty_db(self):
         self._make_task("_create_empty_db")
