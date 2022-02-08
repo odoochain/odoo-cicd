@@ -60,37 +60,59 @@ class CicdTestRun(models.Model):
 RUN_POSTGRES=1
         """
 
-        def report(msg):
-            self.line_ids = [[0, 0, {'state': 'success', 'name': msg, 'ttype': 'log'}]]
+        def report(msg, state='success', exception=None, duration=False, ttype='log'):
+            ttype = ttype or 'log'
+            if exception:
+                state = 'failed'
+                msg = (msg or '') + '\n' + str(ex)
+            else:
+                state = state or 'success'
+
+            self.line_ids = [[0, 0, {'state': state, 'name': msg, 'ttype': 'preparation', 'duration': duration}]]
             self.env.cr.commit()
-            logsio.info(msg)
+
+            if state == 'success':
+                logsio.info(msg)
+            else:
+                logsio.error(msg)
 
         root = machine._get_volume('source')
+        started = arrow.get()
         with machine._shell(cwd=root, logsio=logsio, project_name=self.branch_id.project_name) as shell:
             report("Checking out source code...")
             self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
             report("Checked out source code")
             shell.cwd = root / shell.project_name
             try:
-                report('building')
-                shell.odoo('build')
-                report('killing any existing')
-                shell.odoo('kill', allow_error=True)
-                shell.odoo('rm', allow_error=True)
-                report('starting postgres')
-                shell.odoo('up', '-d', 'postgres')
-                self._wait_for_postgres(shell)
-                report('db reset started')
-                shell.odoo('-f', 'db', 'reset')
-                report('db reset done')
-                self._wait_for_postgres(shell)
-                report('update started')
-                shell.odoo('update')
-                report('installation of modules done')
-                report("Storing snapshot")
-                shell.odoo('snap', 'save', shell.project_name, force=True)
-                self._wait_for_postgres(shell)
-                report("Storing snapshot done")
+                try:
+                    report('building')
+                    shell.odoo('build')
+                    report('killing any existing')
+                    shell.odoo('kill', allow_error=True)
+                    shell.odoo('rm', allow_error=True)
+                    report('starting postgres')
+                    shell.odoo('up', '-d', 'postgres')
+                    self._wait_for_postgres(shell)
+                    report('db reset started')
+                    shell.odoo('-f', 'db', 'reset')
+                    report('db reset done')
+                    self._wait_for_postgres(shell)
+                    report('update started')
+                    shell.odoo('update')
+                    report('installation of modules done')
+                    report("Storing snapshot")
+                    shell.odoo('snap', 'save', shell.project_name, force=True)
+                    self._wait_for_postgres(shell)
+                    report("Storing snapshot done")
+                    logsio.info("Preparation done")
+                    report('preparation done', ttype='log', state='success', duration=arrow.get() - started).total_seconds()
+                    self.env.cr.commit()
+                except Exception as ex:
+                    duration = arrow.get() - started
+                    report("Error occurred", exception=ex, duration=duration)
+
+                    raise
+
                 yield shell
 
             finally:
@@ -157,12 +179,6 @@ RUN_POSTGRES=1
                     }
 
                     with self.prepare_run(machine, logsio) as shell:
-                        logsio.info("Preparation done")
-                        self.line_ids = [[0, 0, {
-                            'state': 'success', 'ttype': 'log', 'name': 'preparation done',
-                            'duration': (arrow.get() - started).total_seconds()
-                            }]]
-                        self.env.cr.commit()
                         if b.run_unittests:
                             self._execute(shell, logsio, self._run_unit_tests, machine, 'test-units')
                             self.env.cr.commit()
@@ -383,7 +399,7 @@ RUN_POSTGRES=1
                 },
             )
 
-class CicdTestRun(models.Model):
+class CicdTestRunLine(models.Model):
     _name = 'cicd.test.run.line'
     _order = 'started desc'
 
