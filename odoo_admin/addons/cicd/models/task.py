@@ -24,7 +24,7 @@ class Task(models.Model):
     branch_id = fields.Many2one('cicd.git.branch', string="Branch")
     name = fields.Char("Name")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), readonly=True)
-    is_done = fields.Boolean(compute="_compute_is_done", store=True)
+    is_done = fields.Boolean(compute="_compute_is_done", store=False)
 
     state = fields.Selection(selection=STATES, compute="_compute_state", string="State", store=False)
     log = fields.Text("Log", readonly=True)
@@ -33,6 +33,8 @@ class Task(models.Model):
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
     queuejob_uuid = fields.Char("Queuejob UUID")
+    queue_job_id = fields.Many2one('queue.job', compute="_compute_queuejob")
+
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
 
@@ -55,7 +57,7 @@ class Task(models.Model):
     @api.depends('state')
     def _compute_is_done(self):
         for rec in self:
-            rec.is_done = rec.state in ['done', 'failed']
+            rec.is_done = rec.state in ['done', 'failed'] if rec.state else True
 
     def _compute_display_name(self):
         for rec in self:
@@ -160,3 +162,10 @@ class Task(models.Model):
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in ['failed']):
             rec.queue_job_id.requeue()
+
+    def _compute_queuejob(self):
+        for rec in self:
+            if rec.queuejob_uuid:
+                rec.queue_job_id = self.env['queue.job'].search([('uuid', '=', rec.queuejob_uuid)], limit=1)
+            else:
+                rec.queue_job_id = False
