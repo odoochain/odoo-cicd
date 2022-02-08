@@ -95,6 +95,7 @@ class Task(models.Model):
         self = self.sudo()
         short_name = self._get_short_name()
         started = arrow.get()
+        # TODO unittest soll nicht reload auf branch blockieren
         try:
             self.env.cr.execute("select id, name from cicd_task where branch_id=%s for update nowait", (self.branch_id.id,))
         except psycopg2.errors.LockNotAvailable:

@@ -374,6 +374,7 @@ RUN_POSTGRES=1
             self.env.cr.commit()
 
     def _inform_developer(self):
+        return # TODO
         for rec in self:
             partners = (
                 rec.commit_id.author_user_ids.mapped('partner_id') | rec.mapped('message_follower_ids.partner_id')
@@ -390,7 +391,7 @@ RUN_POSTGRES=1
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
-    _order = 'started'
+    _order = 'started desc'
 
     ttype = fields.Selection([
         ('preparation', "Preparation"),
