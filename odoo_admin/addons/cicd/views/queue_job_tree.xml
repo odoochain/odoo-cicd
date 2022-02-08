@@ -9,13 +9,13 @@
 					<field name="branch"/>
 					<field name="identity_key"/>
 				</field>
-				<field name="uuid" position="attrs">
+				<field name="uuid" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</field>
-				<field name="channel" position="attrs">
+				<field name="channel" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</field>
-				<field name="model_name" position="attrs">
+				<field name="model_name" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</field>
 			</field>
