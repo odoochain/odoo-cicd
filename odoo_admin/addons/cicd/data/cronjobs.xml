@@ -130,7 +130,7 @@ reasons = [
 	'server closed the connection unexpectedly',
 	'RetryableJobError',
 	'Failed to put the local file',
-	'self.BEGIN_TAG.match(lines[start])',  # paramiko
+	'psycopg2.errors.LockNotAvailable',
 	'.git/index.lock',
 ]
 for reason in reasons:
