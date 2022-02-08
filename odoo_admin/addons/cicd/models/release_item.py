@@ -58,8 +58,8 @@ class ReleaseItem(models.Model):
         }
 
     def _on_done(self):
-        if not self.changed_lines:
-            msg = "Nothing new to deploy"
+        # if not self.changed_lines:
+        #     msg = "Nothing new to deploy"
         self.done_date = fields.Datetime.now()
         self.release_id.message_post_with_template(
             self.env.ref('cicd.mail_release_done').id,
