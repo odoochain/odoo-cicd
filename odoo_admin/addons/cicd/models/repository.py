@@ -1,5 +1,5 @@
 import traceback
-import psycopg2
+from . import pg_advisory_lock
 from odoo import registry
 import arrow
 from git import Repo
@@ -216,10 +216,10 @@ class Repository(models.Model):
                         for branch in updated_branches:
                             logsio.info(f"Pulling {branch}...")
                             shell.X(["git", "fetch", "origin", branch])
-                            repo.lock_select_wait()
-                            shell.checkout_branch(branch)
-                            shell.X(["git", "pull"])
-                            shell.X(["git", "submodule", "update", "--init", "--recursive"])
+                            with pg_advisory_lock(self.env.cr, repo._get_lockname()):
+                                shell.checkout_branch(branch)
+                                shell.X(["git", "pull"])
+                                shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
                         repo.with_delay()._cron_fetch_update_branches({
                             'updated_branches': list(updated_branches),
@@ -233,12 +233,6 @@ class Repository(models.Model):
                 if len(self) == 1:
                     raise
                 continue
-
-    def lock_select_wait(self):
-        try:
-            self.env.cr.execute("select id from cicd_git_repo where id=%s for update nowait", (self.id,))
-        except psycopg2.errors.LockNotAvailable:
-            raise RetryableJobError(f"Could not work exclusivley on repository {self.name} - retrying in few seconds", ignore_retry=True, seconds=5)
 
     def _clean_remote_branches(self, branches):
         """
@@ -257,46 +251,46 @@ class Repository(models.Model):
             machine = repo.machine_id
             repo = repo.with_context(active_test=False)
 
-            self.lock_select_wait()
-            with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
-                # if completely new then all branches:
-                if not repo.branch_ids:
-                    for branch in shell.X(["git", "branch"])['stdout'].strip().split("\n"):
-                        branch = self._clear_branch_name(branch)
-                        updated_branches.append(branch)
+            with pg_advisory_lock(self.env.cr, self._get_lockname()):
+                with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
+                    # if completely new then all branches:
+                    if not repo.branch_ids:
+                        for branch in shell.X(["git", "branch"])['stdout'].strip().split("\n"):
+                            branch = self._clear_branch_name(branch)
+                            updated_branches.append(branch)
 
-                for branch in updated_branches:
-                    shell.checkout_branch(branch)
-                    name = branch
-                    del branch
+                    for branch in updated_branches:
+                        shell.checkout_branch(branch)
+                        name = branch
+                        del branch
 
-                    if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
-                        branch = repo.branch_ids.create({
-                            'name': name,
-                            'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-                            'repo_id': repo.id,
-                        })
-                        branch._checkout_latest(shell, logsio=logsio, machine=machine)
-                        branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+                        if not (branch := repo.branch_ids.filtered(lambda x: x.name == name)):
+                            branch = repo.branch_ids.create({
+                                'name': name,
+                                'date_registered': arrow.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                                'repo_id': repo.id,
+                            })
+                            branch._checkout_latest(shell, logsio=logsio, machine=machine)
+                            branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
 
-                    if not branch.active:
-                        branch.active = True
+                        if not branch.active:
+                            branch.active = True
 
-                    shell.checkout_branch(repo.default_branch)
-                    del name
+                        shell.checkout_branch(repo.default_branch)
+                        del name
 
-                if not repo.branch_ids and not updated_branches:
-                    if repo.default_branch:
-                        updated_branches.append(repo.default_branch)
+                    if not repo.branch_ids and not updated_branches:
+                        if repo.default_branch:
+                            updated_branches.append(repo.default_branch)
 
-                if updated_branches:
-                    repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
-                    branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
-                    for branch in branches:
-                        branch._checkout_latest(shell, logsio=logsio, machine=machine)
-                        branch._update_git_commits(shell, logsio)
-                        branch._compute_state()
-                        branch._trigger_rebuild_after_fetch(machine=machine)
+                    if updated_branches:
+                        repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
+                        branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
+                        for branch in branches:
+                            branch._checkout_latest(shell, logsio=logsio, machine=machine)
+                            branch._update_git_commits(shell, logsio)
+                            branch._compute_state()
+                            branch._trigger_rebuild_after_fetch(machine=machine)
 
     def _is_healthy_repository(self, shell, path):
         healthy = False
@@ -313,13 +307,13 @@ class Repository(models.Model):
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
-            self.lock_select_wait()
-            if not self._is_healthy_repository(shell, path):
-                shell.rmifexists(path)
-                shell.X([
-                    "git", "clone", self.url,
-                    path
-                ])
+            with pg_advisory_lock(self.env.cr, self._get_lockname()):
+                if not self._is_healthy_repository(shell, path):
+                    shell.rmifexists(path)
+                    shell.X([
+                        "git", "clone", self.url,
+                        path
+                    ])
 
     def _collect_latest_tested_commits(self, source_branches, target_branch_name, logsio, critical_date, make_info_commit_msg):
         """
@@ -327,74 +321,74 @@ class Repository(models.Model):
 
         "param make_info_commit_msg": if set, then an empty commit with just a message is made
         """
-        self.ensure_one()
-        self.lock_select_wait()
+        with pg_advisory_lock(self.env.cr, self._get_lockname()):
+            self.ensure_one()
 
-        # we use a working repo
-        assert target_branch_name
-        assert source_branches._name == 'cicd.git.branch'
-        machine = self.machine_id
-        orig_repo_path = self._get_main_repo()
-        repo_path = self._get_main_repo(tempfolder=True)
-        commits = self.env['cicd.git.commit']
-        repo = self.with_context(active_test=False)
-        message_commit = None # commit sha of the created message commit
-        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
-            try:
+            # we use a working repo
+            assert target_branch_name
+            assert source_branches._name == 'cicd.git.branch'
+            machine = self.machine_id
+            orig_repo_path = self._get_main_repo()
+            repo_path = self._get_main_repo(tempfolder=True)
+            commits = self.env['cicd.git.commit']
+            repo = self.with_context(active_test=False)
+            message_commit = None # commit sha of the created message commit
+            with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
+                try:
 
-                # clear the current candidate
-                if shell.branch_exists(target_branch_name):
-                    shell.checkout_branch(self.default_branch)
-                    shell.X(["git", "branch", "-D", target_branch_name])
-                logsio.info("Making target branch {target_branch.name}")
-                shell.checkout_branch(repo.default_branch)
-                shell.X(["git", "checkout", "--no-guess", "-b", target_branch_name])
+                    # clear the current candidate
+                    if shell.branch_exists(target_branch_name):
+                        shell.checkout_branch(self.default_branch)
+                        shell.X(["git", "branch", "-D", target_branch_name])
+                    logsio.info("Making target branch {target_branch.name}")
+                    shell.checkout_branch(repo.default_branch)
+                    shell.X(["git", "checkout", "--no-guess", "-b", target_branch_name])
 
-                for branch in source_branches:
-                    for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
-                        if critical_date:
-                            if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
+                    for branch in source_branches:
+                        for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
+                            if critical_date:
+                                if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
+                                    continue
+
+                            if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
                                 continue
 
-                        if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
-                            continue
+                            commits |= commit
 
-                        commits |= commit
+                            # we use git functions to retrieve deltas, git sorting and so;
+                            # we want to rely on stand behaviour git.
+                            shell.checkout_branch(target_branch_name)
+                            shell.X(["git", "merge", commit.name])
+                            break
 
-                        # we use git functions to retrieve deltas, git sorting and so;
-                        # we want to rely on stand behaviour git.
-                        shell.checkout_branch(target_branch_name)
-                        shell.X(["git", "merge", commit.name])
-                        break
+                    if commits:
 
-                if commits:
+                        # pushes to mainrepo locally not to web because its cloned to temp directory
+                        shell.X(["git", "remote", "set-url", 'origin', self.url])
+                        shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
 
-                    # pushes to mainrepo locally not to web because its cloned to temp directory
-                    shell.X(["git", "remote", "set-url", 'origin', self.url])
-                    shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
+                        message_commit_sha = None
+                        if make_info_commit_msg:
+                            shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
+                            message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                        shell.X(["git", "push", "-f", 'origin', target_branch_name])
 
-                    message_commit_sha = None
-                    if make_info_commit_msg:
-                        shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
-                        message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                    shell.X(["git", "push", "-f", 'origin', target_branch_name])
+                        if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
+                            target_branch = repo.branch_ids.create({
+                                'repo_id': repo.id,
+                                'name': target_branch_name,
+                            })
+                        if not target_branch.active:
+                            target_branch.active = True
+                        target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+                        if message_commit_sha:
+                            message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
+                            message_commit.ensure_one()
 
-                    if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
-                        target_branch = repo.branch_ids.create({
-                            'repo_id': repo.id,
-                            'name': target_branch_name,
-                        })
-                    if not target_branch.active:
-                        target_branch.active = True
-                    target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
-                    if message_commit_sha:
-                        message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
-                        message_commit.ensure_one()
+                finally:
+                    shell.rmifexists(repo_path)
 
-            finally:
-                shell.rmifexists(repo_path)
-
-        return message_commit, commits
+            return message_commit, commits
 
     def _merge(self, source, dest, set_tags, logsio=None):
         assert source._name == 'cicd.git.branch'
@@ -430,15 +424,15 @@ class Repository(models.Model):
         for repo in self.search([
             ('never_cleanup', '=', False),
         ]):
-            repo.lock_select_wait()
-            dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime("%Y-%m-%d %H:%M:%S")
-            # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
-            db_registry = registry(self.env.cr.dbname)
-            branches = repo.branch_ids.filtered(lambda x: (x.last_access or x.date_registered).strftime("%Y-%m-%d %H:%M:%S") < dt)
-            with db_registry.cursor() as cr:
-                env = api.Environment(cr, SUPERUSER_ID)
-                for branch in branches.with_env(env):
-                    branch.active = False
+            with pg_advisory_lock(self.env.cr, repo._get_lockname()):
+                dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime("%Y-%m-%d %H:%M:%S")
+                # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+                db_registry = registry(self.env.cr.dbname)
+                branches = repo.branch_ids.filtered(lambda x: (x.last_access or x.date_registered).strftime("%Y-%m-%d %H:%M:%S") < dt)
+                with db_registry.cursor() as cr:
+                    env = api.Environment(cr, SUPERUSER_ID)
+                    for branch in branches.with_env(env):
+                        branch.active = False
 
     def new_branch(self):
         return {
