@@ -65,6 +65,7 @@ class CicdTestRun(models.Model):
         settings = """
 RUN_POSTGRES=1
         """
+        import pudb;pudb.set_trace()
 
         def report(msg, state='success', exception=None, duration=False, ttype='log'):
             ttype = ttype or 'log'
@@ -153,10 +154,10 @@ RUN_POSTGRES=1
     # Entrypoint
     # ----------------------------------------------
     def execute(self, shell=None, task=None, logsio=None):
+        import pudb;pudb.set_trace()
         with pg_advisory_lock(self.env.cr, f"testrun.{self.id}"):
             if self.state not in ('open'):
                 return
-            original_self = self
             db_registry = registry(self.env.cr.dbname)
             with db_registry.cursor() as cr:
                 env = api.Environment(cr, SUPERUSER_ID, {})
