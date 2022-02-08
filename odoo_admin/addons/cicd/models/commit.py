@@ -21,13 +21,13 @@ class GitCommit(models.Model):
     test_state = fields.Selection([
         ('success', 'Success'),
         ('failed', 'Failed'),
-    ], compute="_compute_test_state", track_visibility="onchange", string="Test State")
+    ], compute="_compute_test_state", tracking=True, string="Test State")
     approval_state = fields.Selection([
         ('check', "Check"),
         ('approved', 'Approved'),
         ('declined', 'Declined'),
-    ], track_visibility="onchange", string="Approval")
-    force_approved = fields.Boolean("Force Approved", track_visibility="onchange")
+    ], tracking=True, string="Approval")
+    force_approved = fields.Boolean("Force Approved", tracking=True)
 
     _sql_constraints = [
         ('name', "unique(name)", _("Only one unique entry allowed.")),

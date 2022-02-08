@@ -33,7 +33,7 @@ class GitBranch(models.Model):
     date = fields.Datetime("Date")
     repo_id = fields.Many2one('cicd.git.repo', string="Repository", required=True)
     repo_short = fields.Char(related="repo_id.short")
-    active = fields.Boolean("Active", default=True, track_visibility='onchange')
+    active = fields.Boolean("Active", default=True, tracking=True)
     commit_ids = fields.Many2many('cicd.git.commit', string="Commits")
     commit_ids_ui = fields.Many2many('cicd.git.commit', string="Commits", compute="_compute_commit_ids")
     current_task = fields.Char(compute="_compute_current_task")
@@ -45,18 +45,18 @@ class GitBranch(models.Model):
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
-    state = fields.Selection(STATES, string="State", default="new", track_visibility='onchange', compute="_compute_state", store=True, group_expand="_expand_states")
+    state = fields.Selection(STATES, string="State", default="new", tracking=True, compute="_compute_state", store=True, group_expand="_expand_states")
     build_state = fields.Selection([
         ('new', 'New'),
         ('fail', 'Failed'),
         ('done', 'Done'),
         ('building', 'Building'),
-    ], default="new", required=True, compute="_compute_build_state", string="Instance State", track_visibility='onchange')
+    ], default="new", required=True, compute="_compute_build_state", string="Instance State", tracking=True)
     dump_id = fields.Many2one("cicd.dump", string="Dump")
     remove_web_assets_after_restore = fields.Boolean("Remove Webassets", default=True)
-    reload_config = fields.Text("Reload Config", track_visibility='onchange')
-    autobackup = fields.Boolean("Autobackup", track_visibility='onchange')
-    enduser_summary = fields.Text("Enduser Summary", track_visibility='onchange')
+    reload_config = fields.Text("Reload Config", tracking=True)
+    autobackup = fields.Boolean("Autobackup", tracking=True)
+    enduser_summary = fields.Text("Enduser Summary", tracking=True)
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
     release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
 
@@ -70,15 +70,15 @@ class GitBranch(models.Model):
     timeout_migration = fields.Integer("Timeout Migration [s]", default=1800)
 
     test_run_ids = fields.One2many('cicd.test.run', string="Test Runs", compute="_compute_test_runs")
-    block_release = fields.Boolean("Block Release", track_visibility='onchange')
+    block_release = fields.Boolean("Block Release", tracking=True)
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
-    block_updates_until = fields.Datetime("Block updates until", track_visibility='onchange')
+    block_updates_until = fields.Datetime("Block updates until", tracking=True)
 
-    test_topics = fields.Text("Test Topics", track_visibility='onchange')
+    test_topics = fields.Text("Test Topics", tracking=True)
     allowed_backup_machine_ids = fields.Many2many('cicd.machine', string="Allowed Backup Machines", compute="_compute_allowed_machines")
     latest_commit_id = fields.Many2one('cicd.git.commit', compute="_compute_latest_commit")
 
-    approval_state = fields.Selection(related="latest_commit_id.approval_state", track_visibility="onchange")
+    approval_state = fields.Selection(related="latest_commit_id.approval_state", tracking=True)
     link_to_instance = fields.Char(compute="_compute_link", string="Link To Instance")
 
     _sql_constraints = [
@@ -391,12 +391,17 @@ class GitBranch(models.Model):
             rec.block_release = not rec.block_release
 
     def _cron_make_test_runs(self):
+        for branch in self.search([('state', '=', 'testable')]):
+            if not branch.test_run_ids.filtered(lambda x: x.state == 'open'):
+                branch._make_task(
+                    "_run_tests", silent=True, update_state=True, testrun_id=None)
+
         for testrun in self.env['cicd.test.run'].search([('state', '=', 'open')]):
             # if a test already exists for the branch no second is created unless the other is done or failed
             # this is because only one active task per method is allowed
             testrun.branch_id._make_task(
                 "_run_tests", silent=True, update_state=True,
-                testrun_id=testrun.id, identity_key=f"testrun_{testrun.id}")
+                testrun_id=testrun.id)
 
     def _trigger_rebuild_after_fetch(self, machine):
         """

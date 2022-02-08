@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
+
     def _prepare_a_new_instance(self, shell, task, logsio, **kwargs):
         if self.repo_id.default_simulate_install_id_dump_id:
             dump = self.repo_id.default_simulate_install_id_dump_id
@@ -90,7 +91,7 @@ class Branch(models.Model):
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
-        self._docker_get_state(shell)
+        self._docker_get_state(shell=shell)
 
     def _docker_stop(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
@@ -261,20 +262,20 @@ class Branch(models.Model):
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
         b = task.branch_id
 
-        update_state = kwargs.get('update_state', False)
-        # self._update_git_commits(shell, task=task, logsio=logsio) # why???
-
         if kwargs.get('testrun_id'):
             test_run = self.test_run_ids.browse(kwargs.get('testrun_id'))
         else:
             test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
 
         if not test_run:
-            test_run = self.test_run_ids.create({
-                'commit_id': self.latest_commit_id.id,
-                'branch_id': b.id,
-            })
-        test_run.execute(shell, task, logsio)
+            running = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'running')
+            if not running:
+                test_run = self.test_run_ids.create({
+                    'commit_id': self.latest_commit_id.id,
+                    'branch_id': b.id,
+                })
+        if test_run:
+            test_run.execute(shell, task, logsio)
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
@@ -357,20 +358,19 @@ class Branch(models.Model):
         return str(commit)
 
     def inactivity_cycle_down(self):
-        self.ensure_one()
-
         with self._get_new_logsio_instance("inactivity_cycle_down") as logsio:
-            dest_folder = self.machine_id._get_volume('source') / self.project_name
-            try:
-                with self.machine_id._shellexec(dest_folder, logsio, project_name=self.project_name) as shell:
-                    if (arrow.get() - arrow.get(self.last_access or '1980-04-04')).total_seconds() > self.cycle_down_after_seconds:
-                        self._docker_get_state(shell=shell)
-                        if self.docker_state == 'up':
-                            logsio.info(f"Cycling down instance due to inactivity")
-                            shell.odoo('kill')
+            for rec in self:
+                dest_folder = rec.machine_id._get_volume('source') / rec.project_name
+                try:
+                    with rec.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=rec.project_name) as shell:
+                        if (arrow.get() - arrow.get(self.last_access or '1980-04-04')).total_seconds() > self.cycle_down_after_seconds:
+                            rec._docker_get_state(shell=shell, now=True)
+                            if rec.docker_state == 'up':
+                                logsio.info(f"Cycling down instance due to inactivity")
+                                shell.odoo('kill')
 
-            except Exception as ex:
-                logsio.error(ex)
+                except Exception as ex:
+                    logsio.error(ex)
 
     def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
         home_dir = shell._get_home_dir()

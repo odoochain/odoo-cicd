@@ -7,7 +7,7 @@
 			<field name="model_id" ref="model_cicd_git_repo" />
 			<field name="state">code</field>
 			<field name="code">model._cron_fetch()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="update_docker_states" model="ir.cron">
@@ -16,8 +16,8 @@
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
-			<field name="code">model.with_context(active_test=False).search([]).docker_get_state(now=False, advisory_lock=False)</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="code">model.with_context(active_test=False).search([]).docker_get_state(now=False)</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="inactivity_cycle_down" model="ir.cron">
@@ -27,7 +27,7 @@
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
 			<field name="code">model.with_context(active_test=False).search([]).inactivity_cycle_down()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="update_databases" model="ir.cron">
@@ -39,7 +39,7 @@
 			<field name="code">
 model.search([]).update_databases()
 			</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="update_volumes_dumps" model="ir.cron">
@@ -52,7 +52,7 @@ model.search([]).update_databases()
 env['cicd.machine.volume']._cron_update()
 env['cicd.dump']._cron_update()
 			</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="autobackup" model="ir.cron">
@@ -62,7 +62,7 @@ env['cicd.dump']._cron_update()
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
 			<field name="code">model.search([('autobackup', '=', True)])._cron_autobackup()</field>
-			<field name="nextcall" eval="'2000-01-01 02:00:00'" />
+			<field name="nextcall" eval="'2022-01-01 02:00:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="testruns" model="ir.cron">
@@ -72,7 +72,7 @@ env['cicd.dump']._cron_update()
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
 			<field name="code">model._cron_make_test_runs()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="update_candidates" model="ir.cron">
@@ -82,7 +82,7 @@ env['cicd.dump']._cron_update()
 			<field name="model_id" ref="model_cicd_release" />
 			<field name="state">code</field>
 			<field name="code">model.search([]).collect_tested_branches()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="clean_old_tasks" model="ir.cron">
@@ -92,7 +92,7 @@ env['cicd.dump']._cron_update()
 			<field name="model_id" ref="model_cicd_task" />
 			<field name="state">code</field>
 			<field name="code">model.search([])._cron_cleanup()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="clean_branches" model="ir.cron">
@@ -102,7 +102,7 @@ env['cicd.dump']._cron_update()
 			<field name="model_id" ref="model_cicd_git_repo" />
 			<field name="state">code</field>
 			<field name="code">model.search([])._cron_cleanup()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="clear_old_queuejobs" model="ir.cron">
@@ -114,7 +114,7 @@ env['cicd.dump']._cron_update()
 			<field name="code">
 dt = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
 model.search([('date_created', '&lt;', dt)]).unlink()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="reschedule_failed_jobs" model="ir.cron">
@@ -136,7 +136,7 @@ reasons = [
 ]
 for reason in reasons:
 	model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]).write({'state': 'pending'})</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="after_blocking_done_update" model="ir.cron">
@@ -146,7 +146,7 @@ for reason in reasons:
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
 			<field name="code">model._cron_check_blocking_done()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="garbage_collect_job" model="ir.cron">
@@ -156,7 +156,7 @@ for reason in reasons:
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
 			<field name="code">model._cron_garbage_collect()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="prepare_release" model="ir.cron">
@@ -166,7 +166,7 @@ for reason in reasons:
 			<field name="model_id" ref="model_cicd_release" />
 			<field name="state">code</field>
 			<field name="code">model.search([])._cron_prepare_release()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 
@@ -177,7 +177,7 @@ for reason in reasons:
 			<field name="model_id" ref="model_cicd_release" />
 			<field name="state">code</field>
 			<field name="code">model.search([]).do_release_if_planned()</field>
-			<field name="nextcall" eval="'2000-01-01 20:15:00'" />
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 	</data>

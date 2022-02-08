@@ -15,7 +15,7 @@ from odoo.exceptions import UserError
 _logger = logging.getLogger(__name__)
 
 BASE_VERSION = odoo.modules.load_information_from_description_file('base')['version']
-MAX_FAIL_TIME = timedelta(hours=5)  # chosen with a fair roll of the dice
+MAX_FAIL_TIME = timedelta(minutes=10)  # chosen with a fair roll of the dice
 
 
 class BadVersion(Exception):
@@ -31,6 +31,7 @@ _intervalTypes = {
     'weeks': lambda interval: relativedelta(days=7*interval),
     'months': lambda interval: relativedelta(months=interval),
     'minutes': lambda interval: relativedelta(minutes=interval),
+    'seconds': lambda interval: relativedelta(seconds=interval),
 }
 
 
@@ -58,6 +59,7 @@ class ir_cron(models.Model):
                                       ('hours', 'Hours'),
                                       ('days', 'Days'),
                                       ('weeks', 'Weeks'),
+                                      ('seconds', 'Seconds'),
                                       ('months', 'Months')], string='Interval Unit', default='months')
     numbercall = fields.Integer(string='Number of Calls', default=1, help='How many times the method is called,\na negative number indicates no limit.')
     doall = fields.Boolean(string='Repeat Missed', help="Specify if missed occurrences should be executed when the server restarts.")

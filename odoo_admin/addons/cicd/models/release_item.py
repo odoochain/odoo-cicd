@@ -16,22 +16,22 @@ class ReleaseItem(models.Model):
 
     name = fields.Char("Version")
     release_id = fields.Many2one('cicd.release', string="Release")
-    planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now(), track_visibility="onchange")
-    done_date = fields.Datetime("Done", track_visibility="onchange")
-    changed_lines = fields.Integer("Changed Lines", track_visibility="onchange")
-    final_curtain = fields.Datetime("Final Curtains", track_visibility="onchange")
+    planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now(), tracking=True)
+    done_date = fields.Datetime("Done", tracking=True)
+    changed_lines = fields.Integer("Changed Lines", tracking=True)
+    final_curtain = fields.Datetime("Final Curtains", tracking=True)
     log_release = fields.Text("Log")
     state = fields.Selection([
         ("new", "New"),
         ('done', 'Done'),
         ('failed', 'Failed'),
         ('ignore', 'Ignore'),
-    ], string="State", default='new', required=True, track_visibility="onchange")
-    computed_summary = fields.Text("Computed Summary", compute="_compute_summary", track_visibility="onchange")
-    commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.", track_visibility="onchange")
-    branch_ids = fields.Many2many('cicd.git.branch', string="Branches", track_visibility="onchange")
+    ], string="State", default='new', required=True, tracking=True)
+    computed_summary = fields.Text("Computed Summary", compute="_compute_summary", tracking=True)
+    commit_ids = fields.Many2many('cicd.git.commit', string="Commits", help="Commits that are released.", tracking=True)
+    branch_ids = fields.Many2many('cicd.git.branch', string="Branches", tracking=True)
     count_failed_queuejobs = fields.Integer("Failed Jobs", compute="_compute_failed_jobs")
-    try_counter = fields.Integer("Try Counter", track_visibility="onchange")
+    try_counter = fields.Integer("Try Counter", tracking=True)
     commit_id = fields.Many2one('cicd.git.commit', string="Released commit", help="After merging all tested commits this is the commit that holds all merged commits.")
 
     release_type = fields.Selection([
@@ -58,8 +58,8 @@ class ReleaseItem(models.Model):
         }
 
     def _on_done(self):
-        if not self.changed_lines:
-            msg = "Nothing new to deploy"
+        # if not self.changed_lines:
+        #     msg = "Nothing new to deploy"
         self.done_date = fields.Datetime.now()
         self.release_id.message_post_with_template(
             self.env.ref('cicd.mail_release_done').id,

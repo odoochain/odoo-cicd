@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from . import pg_advisory_lock
 import psycopg2
 from odoo.addons.queue_job.exception import RetryableJobError
 import sys
@@ -12,12 +13,15 @@ import logging
 import threading
 logger = logging.getLogger(__name__)
 
+class AbortException(Exception): pass
+
 class CicdTestRun(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.test.run'
     _order = 'date desc'
 
     name = fields.Char(compute="_compute_name")
+    do_abort = fields.Boolean("Abort when possible")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), required=True)
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
     commit_id_short = fields.Char(related="commit_id.short", store=True)
@@ -26,13 +30,16 @@ class CicdTestRun(models.Model):
     branch_ids = fields.Many2many('cicd.git.branch', related="commit_id.branch_ids", string="Branches")
     repo_short = fields.Char(related="branch_ids.repo_id.short")
     state = fields.Selection([
-        ('open', 'Testing'),
+        ('open', 'Ready To Test'),
         ('success', 'Success'),
         ('failed', 'Failed'),
-    ], string="Result", store=True, required=True, default='open')
+    ], string="Result", required=True, default='open')
     success_rate = fields.Integer("Success Rate [%]")
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     duration = fields.Integer("Duration [s]")
+
+    def abort(self):
+        self.do_abort = True
 
     def _wait_for_postgres(self, shell):
         timeout = 60
@@ -44,7 +51,8 @@ class CicdTestRun(models.Model):
                 shell.odoo("psql", "--non-interactive", "--sql", "select * from information_schema.tables limit 1;", timeout=timeout)
             except Exception:
                 diff = arrow.get() - started
-                logger.info(f"Waiting for postgres {diff.total_seconds()}...")
+                msg = f"Waiting for postgres {diff.total_seconds()}..."
+                logger.info(msg)
                 if arrow.get() < deadline:
                     time.sleep(0.5)
                 else:
@@ -57,38 +65,65 @@ class CicdTestRun(models.Model):
         settings = """
 RUN_POSTGRES=1
         """
+        import pudb;pudb.set_trace()
 
-        def report(msg):
-            with self._update_lines() as self2:
-                self2.line_ids = [[0, 0, {'state': 'success', 'name': msg, 'ttype': 'log'}]]
-            logsio.info(msg)
+        def report(msg, state='success', exception=None, duration=False, ttype='log'):
+            ttype = ttype or 'log'
+            if exception:
+                state = 'failed'
+                msg = (msg or '') + '\n' + str(ex)
+            else:
+                state = state or 'success'
+
+            self.line_ids = [[0, 0, {'state': state, 'name': msg, 'ttype': 'preparation', 'duration': duration}]]
+            self.env.cr.commit()
+
+            if state == 'success':
+                logsio.info(msg)
+            else:
+                logsio.error(msg)
 
         root = machine._get_volume('source')
+        started = arrow.get()
         with machine._shell(cwd=root, logsio=logsio, project_name=self.branch_id.project_name) as shell:
             report("Checking out source code...")
             self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
             report("Checked out source code")
             shell.cwd = root / shell.project_name
             try:
-                report('building')
-                shell.odoo('build')
-                report('killing any existing')
-                shell.odoo('kill', allow_error=True)
-                shell.odoo('rm', allow_error=True)
-                report('starting postgres')
-                shell.odoo('up', '-d', 'postgres')
-                self._wait_for_postgres(shell)
-                report('db reset started')
-                shell.odoo('-f', 'db', 'reset')
-                report('db reset done')
-                self._wait_for_postgres(shell)
-                report('update started')
-                shell.odoo('update')
-                report('installation of modules done')
-                report("Storing snapshot")
-                shell.odoo('snap', 'save', shell.project_name, force=True)
-                self._wait_for_postgres(shell)
-                report("Storing snapshot done")
+                try:
+                    if self.do_abort: raise AbortException("User aborted")
+                    report('building')
+                    shell.odoo('build')
+                    report('killing any existing')
+                    shell.odoo('kill', allow_error=True)
+                    shell.odoo('rm', allow_error=True)
+                    report('starting postgres')
+                    shell.odoo('up', '-d', 'postgres')
+                    if self.do_abort: raise AbortException("User aborted")
+                    self._wait_for_postgres(shell)
+                    report('db reset started')
+                    shell.odoo('-f', 'db', 'reset')
+                    if self.do_abort: raise AbortException("User aborted")
+                    report('db reset done')
+                    self._wait_for_postgres(shell)
+                    report('update started')
+                    shell.odoo('update')
+                    if self.do_abort: raise AbortException("User aborted")
+                    report('installation of modules done')
+                    report("Storing snapshot")
+                    shell.odoo('snap', 'save', shell.project_name, force=True)
+                    self._wait_for_postgres(shell)
+                    report("Storing snapshot done")
+                    logsio.info("Preparation done")
+                    report('preparation done', ttype='log', state='success', duration=arrow.get() - started).total_seconds()
+                    if self.do_abort: raise AbortException("User aborted")
+                    self.env.cr.commit()
+                except Exception as ex:
+                    duration = arrow.get() - started
+                    report("Error occurred", exception=ex, duration=duration)
+
+                    raise
 
                 yield shell
 
@@ -101,7 +136,13 @@ RUN_POSTGRES=1
                     shell.odoo('down', "-v", force=True, allow_error=True)
                     project_dir = shell.cwd
                     shell.cwd = shell.cwd.parent
-                    shell.rmifexists(project_dir)
+                    try:
+                        shell.rmifexists(project_dir)
+                    except Exception:
+                        msg = f"Failed to remove directory {project_dir}"
+                        if logsio:
+                            logsio.error(msg)
+                        logger.error(msg)
                 finally:
                     if logsio:
                         logsio.stop_keepalive()
@@ -113,92 +154,91 @@ RUN_POSTGRES=1
     # Entrypoint
     # ----------------------------------------------
     def execute(self, shell=None, task=None, logsio=None):
-        self.ensure_one()
-        b = self.branch_id
-        started = arrow.get()
+        import pudb;pudb.set_trace()
+        with pg_advisory_lock(self.env.cr, f"testrun.{self.id}"):
+            if self.state not in ('open'):
+                return
+            db_registry = registry(self.env.cr.dbname)
+            with db_registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+                self = env[self._name].browse(self.id)
 
-        try:
-            self.env.cr.execute("select id from cicd_test_run where branch_id=%s for update nowait", (self.branch_id.id,))
-        except psycopg2.errors.LockNotAvailable:
-            raise RetryableJobError(f"Could not work exclusivley on test-run for branch {self.branch_id.name} - retrying in few seconds", ignore_retry=True, seconds=5)
-        if not b.any_testing:
-            self.success_rate = 100
-            self.state = 'success'
-            b._compute_state()
-            return
+                self.ensure_one()
+                b = self.branch_id
+                started = arrow.get()
 
-        self.state = 'open'
+                if not b.any_testing:
+                    self.success_rate = 100
+                    self.state = 'success'
+                    b._compute_state()
+                    return
 
-        with self.line_ids._update_lines() as self2:
-            self2.line_ids = [[6, 0, []]]
-            self2.line_ids = [[0, 0, {'ttype': 'log', 'name': 'Started'}]]
+                self.line_ids = [[6, 0, []]]
+                self.line_ids = [[0, 0, {'run_id': self.id, 'ttype': 'log', 'name': 'Started'}]]
+                self.do_abort = False
+                self.state = 'failed'
+                self.env.cr.commit()
 
-        if shell:
-            machine = shell.machine
-        else:
-            machine = self.branch_id.repo_id.machine_id
+                if shell:
+                    machine = shell.machine
+                else:
+                    machine = self.branch_id.repo_id.machine_id
 
-        data = {
-            'testrun_id': self.id,
-            'machine_id': machine.id,
-            'technical_errors': [],
-            'run_lines': deque(),
-        }
+                data = {
+                    'testrun_id': self.id,
+                    'machine_id': machine.id,
+                    'technical_errors': [],
+                    'run_lines': deque(),
+                }
 
-        if b.run_unittests:
-            self._execute(self._run_unit_tests, machine, 'test-units')
-        if b.run_robottests:
-            self._execute(self._run_robot_tests, machine, 'test-robot')
-        if b.simulate_install_id:
-            self._execute(self._run_update_db, machine, 'test-migration')
+                with self.prepare_run(machine, logsio) as shell:
+                    if b.run_unittests:
+                        self._execute(shell, logsio, self._run_unit_tests, machine, 'test-units')
+                        self.env.cr.commit()
+                    if b.run_robottests:
+                        self._execute(shell, logsio, self._run_robot_tests, machine, 'test-robot')
+                        self.env.cr.commit()
+                    if b.simulate_install_id:
+                        self._execute(shell, logsio, self._run_update_db, machine, 'test-migration')
+                        self.env.cr.commit()
 
-        if data['technical_errors']:
-            for error in data['technical_errors']:
-                data['run_lines'].append({
-                    'exc_info': error,
-                    'ttype': 'log',
-                    'state': 'failed',
-                })
-            raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+                if data['technical_errors']:
+                    for error in data['technical_errors']:
+                        data['run_lines'].append({
+                            'exc_info': error,
+                            'ttype': 'log',
+                            'state': 'failed',
+                        })
+                    raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
 
-        self.duration = (arrow.get() - started).total_seconds()
-        if logsio:
-            logsio.info(f"Duration was {self.duration}")
-        self._compute_success_rate()
-        self._inform_developer()
+                self.duration = (arrow.get() - started).total_seconds()
+                if logsio:
+                    logsio.info(f"Duration was {self.duration}")
+                self._compute_success_rate()
+                self._inform_developer()
+                self.env.cr.commit()
 
-    def _make_line(self, line):
-        self.line_ids.create(line)
-
-    def _execute(self, run, machine, appendix):
-        logsio = None
+    def _execute(self, shell, logsio, run, machine, appendix):
         try:
             testrun = self
-            with testrun.branch_id._get_new_logsio_instance(f"{appendix} - testrun") as logsio:
-                testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
-                logsio.info("Running " + appendix)
-                passed_prepare = False
-                try:
-                    started = arrow.get()
-                    with testrun.prepare_run(machine, logsio) as shell:
-                        logsio.info("Preparation done " + appendix)
-                        self.line_ids = [[0, 0, {
-                            'state': 'success', 'ttype': 'log', 'name': f'preparation done: {appendix}',
-                            'duration': (arrow.get() - started).total_seconds()
-                            }]]
-                        passed_prepare = True
-                        run(shell, logsio)
-                except Exception as ex:
-                    msg = traceback.format_exc()
-                    if not passed_prepare:
-                        duration = (arrow.get() - started).total_seconds()
-                        self.line_ids = [[0, 0, {
-                            'duration': duration,
-                            'exc_info': msg,
-                            'ttype': 'preparation',
-                            'name': "Failed at preparation",
-                            'state': 'failed',
-                        }]]
+            testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
+            logsio.info("Running " + appendix)
+            passed_prepare = False
+            try:
+                started = arrow.get()
+                run(shell, logsio)
+            except Exception:
+                msg = traceback.format_exc()
+                if not passed_prepare:
+                    duration = (arrow.get() - started).total_seconds()
+                    self.line_ids = [[0, 0, {
+                        'duration': duration,
+                        'exc_info': msg,
+                        'ttype': 'preparation',
+                        'name': "Failed at preparation",
+                        'state': 'failed',
+                    }]]
+                    self.env.cr.commit()
 
         except Exception as ex:
             msg = traceback.format_exc()
@@ -212,9 +252,10 @@ RUN_POSTGRES=1
 
     def _log_error(self, msg):
         self.line_ids = [[0, 0, {
-            'ttype': 'error',
+            'ttype': 'failed',
             'name': msg
         }]]
+        self.env.cr.commit()
 
     def _compute_success_rate(self):
         for rec in self:
@@ -322,6 +363,8 @@ RUN_POSTGRES=1
         for i, item in enumerate(todo):
             trycounter = 0
             while trycounter < try_count:
+                if self.do_abort:
+                    raise AbortException("Aborted by user")
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
@@ -350,10 +393,11 @@ RUN_POSTGRES=1
                 if data['state'] == 'success':
                     break
 
-            with self.line_ids._update_lines() as Lines:
-                Lines.create(data)
+            self.line_ids = [[0, 0, data]]
+            self.env.cr.commit()
 
     def _inform_developer(self):
+        return # TODO
         for rec in self:
             partners = (
                 rec.commit_id.author_user_ids.mapped('partner_id') | rec.mapped('message_follower_ids.partner_id')
@@ -368,9 +412,9 @@ RUN_POSTGRES=1
                 },
             )
 
-class CicdTestRun(models.Model):
+class CicdTestRunLine(models.Model):
     _name = 'cicd.test.run.line'
-    _order = 'started'
+    _order = 'started desc'
 
     ttype = fields.Selection([
         ('preparation', "Preparation"),
@@ -415,12 +459,5 @@ class CicdTestRun(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
-        res.run_id.state = 'open'
+        res.run_id.state = 'failed'  # later success wil be calculated
         return res
-
-    @contextmanager
-    def _update_lines(self):
-        db_registry = registry(self.env.cr.dbname)
-        with db_registry.cursor() as cr:
-            env = api.Environment(cr, SUPERUSER_ID)
-            yield self.with_env(env)

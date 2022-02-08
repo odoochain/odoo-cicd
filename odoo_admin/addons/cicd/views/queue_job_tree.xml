@@ -7,6 +7,16 @@
 			<field name="arch" type="xml">
 				<field name="name" position="before">
 					<field name="branch"/>
+					<field name="identity_key"/>
+				</field>
+				<field name="uuid" position="attributes">
+					<attribute name="invisible">1</attribute>
+				</field>
+				<field name="channel" position="attributes">
+					<attribute name="invisible">1</attribute>
+				</field>
+				<field name="model_name" position="attributes">
+					<attribute name="invisible">1</attribute>
 				</field>
 			</field>
 		</record>

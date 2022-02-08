@@ -7,8 +7,10 @@
 		<field name="arch" type="xml">
 			<form string="">
 				<header>
+					<field name="do_abort" invisible="1"/>
 					<field name="state" widget="statusbar" attrs="{'readonly': True}" clickable='True'/>
 					<button name="rerun" string="Re-Run" type="object" states='failed,success'/>
+					<button name="abort" string="Abort" type="object" attrs="{'invisible': [('do_abort', '=', True)]}"/>
 				</header>
 				<sheet>
 					<group string="" col="4">

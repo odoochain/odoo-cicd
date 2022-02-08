@@ -2,6 +2,13 @@
 	<data noupdate='0'>
 		<menuitem name="CICD" parent="" id="root_menu" sequence="-1000"/>
 		<menuitem name="Configuration" parent="root_menu" id="config_menu" sequence="9999"/>
+		
+		<record model="ir.ui.menu" id="queue_job.menu_queue_job">
+			<field name="parent_id" ref="root_menu"/>
+		</record>
+		<record model="ir.ui.menu" id="base.menu_ir_cron_act">
+			<field name="parent_id" ref="config_menu"/>
+		</record>
 		<!-- icon="cicd,static/img/logo.png"/> -->
 		<record id='branches_action' model='ir.actions.act_window'>
 			<field name='name'>Branches</field>
