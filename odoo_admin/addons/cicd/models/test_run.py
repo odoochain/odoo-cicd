@@ -113,6 +113,10 @@ RUN_POSTGRES=1
     # Entrypoint
     # ----------------------------------------------
     def execute(self, shell=None, task=None, logsio=None):
+        try:
+            self.env.cr.execute("select id from cicd_test_run where branch_id=%s for update nowait", (self.branch_id.id,))
+        except psycopg2.errors.LockNotAvailable:
+            raise RetryableJobError(f"Could not work exclusivley on test-run for branch {self.branch_id.name} - retrying in few seconds", ignore_retry=True, seconds=5)
         db_registry = registry(self.env.cr.dbname)
         with db_registry.cursor() as cr:
             env = api.Environment(cr, SUPERUSER_ID, {})
@@ -124,10 +128,6 @@ RUN_POSTGRES=1
             b = self.branch_id
             started = arrow.get()
 
-            try:
-                self.env.cr.execute("select id from cicd_test_run where branch_id=%s for update nowait", (self.branch_id.id,))
-            except psycopg2.errors.LockNotAvailable:
-                raise RetryableJobError(f"Could not work exclusivley on test-run for branch {self.branch_id.name} - retrying in few seconds", ignore_retry=True, seconds=5)
             if not b.any_testing:
                 self.success_rate = 100
                 self.state = 'success'
