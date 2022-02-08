@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
+
     def _prepare_a_new_instance(self, shell, task, logsio, **kwargs):
         if self.repo_id.default_simulate_install_id_dump_id:
             dump = self.repo_id.default_simulate_install_id_dump_id
