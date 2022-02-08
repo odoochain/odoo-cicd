@@ -396,7 +396,7 @@ class GitBranch(models.Model):
             # this is because only one active task per method is allowed
             testrun.branch_id._make_task(
                 "_run_tests", silent=True, update_state=True,
-                testrun_id=testrun.id, identity_key=f"testrun_{testrun.id}")
+                testrun_id=testrun.id)
 
     def _trigger_rebuild_after_fetch(self, machine):
         """
