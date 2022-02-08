@@ -131,6 +131,7 @@ reasons = [
 	'RetryableJobError',
 	'Failed to put the local file',
 	'psycopg2.errors.LockNotAvailable',
+	'Timeout',
 	'.git/index.lock',
 ]
 for reason in reasons:
