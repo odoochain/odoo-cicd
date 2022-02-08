@@ -19,6 +19,7 @@ class CicdTestRun(models.Model):
     _order = 'date desc'
 
     name = fields.Char(compute="_compute_name")
+    do_abort = fields.Boolean("Abort when possible")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), required=True)
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
     commit_id_short = fields.Char(related="commit_id.short", store=True)
@@ -34,6 +35,9 @@ class CicdTestRun(models.Model):
     success_rate = fields.Integer("Success Rate [%]")
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     duration = fields.Integer("Duration [s]")
+
+    def abort(self):
+        self.do_abort = True
 
     def _wait_for_postgres(self, shell):
         timeout = 60
@@ -164,6 +168,7 @@ RUN_POSTGRES=1
 
                     self.line_ids = [[6, 0, []]]
                     self.line_ids = [[0, 0, {'run_id': self.id, 'ttype': 'log', 'name': 'Started'}]]
+                    self.do_abort = False
                     self.env.cr.commit()
 
                     if shell:
@@ -352,6 +357,8 @@ RUN_POSTGRES=1
         for i, item in enumerate(todo):
             trycounter = 0
             while trycounter < try_count:
+                if self.do_abort:
+                    raise Exception("Aborted by user")
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
