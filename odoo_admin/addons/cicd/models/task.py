@@ -2,6 +2,7 @@ import json
 import psycopg2
 from odoo.addons.queue_job.exception import RetryableJobError
 import traceback
+from . import pg_advisory_lock
 import os
 import arrow
 import traceback
@@ -97,60 +98,55 @@ class Task(models.Model):
         self = self.sudo()
         short_name = self._get_short_name()
         started = arrow.get()
-        # TODO unittest soll nicht reload auf branch blockieren
-        try:
-            self.env.cr.execute("select id, name from cicd_task where branch_id=%s for update nowait", (self.branch_id.id,))
-        except psycopg2.errors.LockNotAvailable:
-            raise RetryableJobError(f"Could not work exclusivley on branch {self.branch_id.name} - retrying in few seconds", ignore_retry=True, seconds=5)
+        with pg_advisory_lock(self.env.cr, self.branch_id.id):
+            with self.branch_id._get_new_logsio_instance(short_name) as logsio:
+                try:
+                    dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
+                    with self.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
+                        self.branch_id.repo_id._get_main_repo(
+                            destination_folder=dest_folder,
+                            machine=self.machine_id,
+                            limit_branch=self.branch_id.name,
+                            )
+                        obj = self.env[self.model].sudo().browse(self.res_id)
+                        # mini check if it is a git repository:
+                        try:
+                            shell.X(["git", "status"])
+                        except Exception:
+                            msg = traceback.format_exc()
+                            raise Exception(f"Directory seems to be not a valid git directory: {dest_folder}\n{msg}")
 
-        with self.branch_id._get_new_logsio_instance(short_name) as logsio:
-            try:
-                dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
-                with self.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
-                    self.branch_id.repo_id._get_main_repo(
-                        destination_folder=dest_folder,
-                        machine=self.machine_id,
-                        limit_branch=self.branch_id.name,
-                        )
-                    obj = self.env[self.model].sudo().browse(self.res_id)
-                    # mini check if it is a git repository:
-                    try:
-                        shell.X(["git", "status"])
-                    except Exception:
-                        msg = traceback.format_exc()
-                        raise Exception(f"Directory seems to be not a valid git directory: {dest_folder}\n{msg}")
+                        sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                        commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
 
-                    sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                    commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
+                        # if not commit:
+                        #     raise ValidationError(f"Commit {sha} not found in branch.")
+                        # get current commit
+                        args = {
+                            'task': self,
+                            'logsio': logsio,
+                            'shell': shell,
+                            }
+                        if self.kwargs and self.kwargs != 'null':
+                            args.update(json.loads(self.kwargs))
+                        exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
+                        self.sudo().commit_id = commit
 
-                    # if not commit:
-                    #     raise ValidationError(f"Commit {sha} not found in branch.")
-                    # get current commit
-                    args = {
-                        'task': self,
-                        'logsio': logsio,
-                        'shell': shell,
-                        }
-                    if self.kwargs and self.kwargs != 'null':
-                        args.update(json.loads(self.kwargs))
-                    exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
-                    self.sudo().commit_id = commit
+                except RetryableJobError:
+                    raise
 
-            except RetryableJobError:
-                raise
+                except Exception:
+                    msg = traceback.format_exc()
+                    log = '\n'.join(logsio.get_lines())
 
-            except Exception:
-                msg = traceback.format_exc()
-                log = '\n'.join(logsio.get_lines())
+                    raise Exception(f"{msg}\n\n{log}")
 
-                raise Exception(f"{msg}\n\n{log}")
+                self.log = '\n'.join(logsio.get_lines())
 
-            self.log = '\n'.join(logsio.get_lines())
-
-            duration = (arrow.get() - started).total_seconds()
-            self.duration = duration
-            if logsio:
-                logsio.info(f"Finished after {duration} seconds!")
+                duration = (arrow.get() - started).total_seconds()
+                self.duration = duration
+                if logsio:
+                    logsio.info(f"Finished after {duration} seconds!")
 
     @api.model
     def _cron_cleanup(self):
