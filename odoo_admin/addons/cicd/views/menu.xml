@@ -5,6 +5,7 @@
 		
 		<record model="ir.ui.menu" id="queue_job.menu_queue_job">
 			<field name="parent_id" ref="root_menu"/>
+			<field name="sequence">1000</field>
 		</record>
 		<record model="ir.ui.menu" id="base.menu_ir_cron_act">
 			<field name="parent_id" ref="config_menu"/>
