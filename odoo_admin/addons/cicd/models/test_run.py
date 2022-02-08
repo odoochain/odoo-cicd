@@ -212,7 +212,7 @@ RUN_POSTGRES=1
 
     def _log_error(self, msg):
         self.line_ids = [[0, 0, {
-            'ttype': 'error',
+            'ttype': 'failed',
             'name': msg
         }]]
 
