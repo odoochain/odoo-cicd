@@ -390,7 +390,7 @@ RUN_POSTGRES=1
 
 class CicdTestRun(models.Model):
     _name = 'cicd.test.run.line'
-    _order = 'started'
+    _order = 'started desc'
 
     ttype = fields.Selection([
         ('preparation', "Preparation"),
