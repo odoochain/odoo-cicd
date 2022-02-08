@@ -33,7 +33,7 @@ class Task(models.Model):
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
     queuejob_uuid = fields.Char("Queuejob UUID")
-    queue_job_id = fields.Manyeon2('queue.job', compute="_compute_queuejob")
+    queue_job_id = fields.Many2one('queue.job', compute="_compute_queuejob")
 
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
