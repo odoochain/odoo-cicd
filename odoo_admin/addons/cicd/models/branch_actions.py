@@ -283,7 +283,7 @@ class Branch(models.Model):
             test_run = test_run.filtered(lambda x: x.state == 'open')
 
         if test_run:
-            test_run.execute(shell, task, logsio)
+            test_run[0].execute(shell, task, logsio)
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
