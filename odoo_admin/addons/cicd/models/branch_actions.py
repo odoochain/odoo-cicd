@@ -272,13 +272,15 @@ class Branch(models.Model):
             test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
 
         if not test_run:
-            running = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'running')
-            if not running:
+            test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id)
+            if not test_run:
                 test_run = self.test_run_ids.create({
                     'commit_id': self.latest_commit_id.id,
                     'branch_id': b.id,
                 })
                 self.env.cr.commit() # so that it is available in sub cr in testrun execute
+        else:
+            test_run = test_run.filtered(lambda x: x.state == 'open')
 
         if test_run:
             test_run.execute(shell, task, logsio)
