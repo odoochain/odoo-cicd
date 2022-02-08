@@ -98,7 +98,11 @@ class Branch(models.Model):
         self._docker_get_state(shell)
 
     def _docker_get_state(self, shell, **kwargs):
-        info = shell.odoo('ps')['stdout']
+        try:
+            info = shell.odoo('ps')['stdout']
+        except Exception as ex:
+            logger.warn(exc_info=True)
+            info = ""
 
         passed = False
         updated_containers = set()
@@ -274,6 +278,8 @@ class Branch(models.Model):
                     'commit_id': self.latest_commit_id.id,
                     'branch_id': b.id,
                 })
+                self.env.cr.commit() # so that it is available in sub cr in testrun execute
+
         if test_run:
             test_run.execute(shell, task, logsio)
 
