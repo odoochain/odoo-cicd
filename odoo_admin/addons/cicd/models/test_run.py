@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from . import pg_advisory_lock
 import psycopg2
 from odoo.addons.queue_job.exception import RetryableJobError
 import sys
@@ -44,7 +45,8 @@ class CicdTestRun(models.Model):
                 shell.odoo("psql", "--non-interactive", "--sql", "select * from information_schema.tables limit 1;", timeout=timeout)
             except Exception:
                 diff = arrow.get() - started
-                logger.info(f"Waiting for postgres {diff.total_seconds()}...")
+                msg = f"Waiting for postgres {diff.total_seconds()}..."
+                logger.info(msg)
                 if arrow.get() < deadline:
                     time.sleep(0.5)
                 else:
@@ -101,7 +103,13 @@ RUN_POSTGRES=1
                     shell.odoo('down', "-v", force=True, allow_error=True)
                     project_dir = shell.cwd
                     shell.cwd = shell.cwd.parent
-                    shell.rmifexists(project_dir)
+                    try:
+                        shell.rmifexists(project_dir)
+                    except Exception:
+                        msg = f"Failed to remove directory {project_dir}"
+                        if logsio:
+                            logsio.error(msg)
+                        logger.error(msg)
                 finally:
                     if logsio:
                         logsio.stop_keepalive()
@@ -113,73 +121,67 @@ RUN_POSTGRES=1
     # Entrypoint
     # ----------------------------------------------
     def execute(self, shell=None, task=None, logsio=None):
-        try:
-            self.env.cr.execute("select id from cicd_test_run where branch_id=%s for update nowait", (self.branch_id.id,))
-        except psycopg2.errors.LockNotAvailable:
-            raise RetryableJobError(f"Could not work exclusivley on test-run for branch {self.branch_id.name} - retrying in few seconds", ignore_retry=True, seconds=5)
-        db_registry = registry(self.env.cr.dbname)
-        with db_registry.cursor() as cr:
-            env = api.Environment(cr, SUPERUSER_ID, {})
-            self = self.with_env(env)
-
+        with pg_advisory_lock(self.env.cr, f"testrun.{self.id}"):
             if self.state not in ('open'):
                 return
-            self.ensure_one()
-            b = self.branch_id
-            started = arrow.get()
+            db_registry = registry(self.env.cr.dbname)
+            with db_registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+                self = self.with_env(env)
 
-            if not b.any_testing:
-                self.success_rate = 100
-                self.state = 'success'
-                b._compute_state()
-                return
+                self.ensure_one()
+                b = self.branch_id
+                started = arrow.get()
 
-            self.state = 'open'
+                if not b.any_testing:
+                    self.success_rate = 100
+                    self.state = 'success'
+                    b._compute_state()
+                    return
 
-            self.line_ids = [[6, 0, []]]
-            self.line_ids = [[0, 0, {'run_id': self.id, 'ttype': 'log', 'name': 'Started'}]]
-            self.env.cr.commit()
+                self.state = 'open'
 
-            if shell:
-                machine = shell.machine
-            else:
-                machine = self.branch_id.repo_id.machine_id
-
-            data = {
-                'testrun_id': self.id,
-                'machine_id': machine.id,
-                'technical_errors': [],
-                'run_lines': deque(),
-            }
-
-            if b.run_unittests:
-                self._execute(self._run_unit_tests, machine, 'test-units')
-                self.env.cr.commit()
-            if b.run_robottests:
-                self._execute(self._run_robot_tests, machine, 'test-robot')
-                self.env.cr.commit()
-            if b.simulate_install_id:
-                self._execute(self._run_update_db, machine, 'test-migration')
+                self.line_ids = [[6, 0, []]]
+                self.line_ids = [[0, 0, {'run_id': self.id, 'ttype': 'log', 'name': 'Started'}]]
                 self.env.cr.commit()
 
-            if data['technical_errors']:
-                for error in data['technical_errors']:
-                    data['run_lines'].append({
-                        'exc_info': error,
-                        'ttype': 'log',
-                        'state': 'failed',
-                    })
-                raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+                if shell:
+                    machine = shell.machine
+                else:
+                    machine = self.branch_id.repo_id.machine_id
 
-            self.duration = (arrow.get() - started).total_seconds()
-            if logsio:
-                logsio.info(f"Duration was {self.duration}")
-            self._compute_success_rate()
-            self._inform_developer()
-            self.env.cr.commit()
+                data = {
+                    'testrun_id': self.id,
+                    'machine_id': machine.id,
+                    'technical_errors': [],
+                    'run_lines': deque(),
+                }
 
-    def _make_line(self, line):
-        self.line_ids.create(line)
+                if b.run_unittests:
+                    self._execute(self._run_unit_tests, machine, 'test-units')
+                    self.env.cr.commit()
+                if b.run_robottests:
+                    self._execute(self._run_robot_tests, machine, 'test-robot')
+                    self.env.cr.commit()
+                if b.simulate_install_id:
+                    self._execute(self._run_update_db, machine, 'test-migration')
+                    self.env.cr.commit()
+
+                if data['technical_errors']:
+                    for error in data['technical_errors']:
+                        data['run_lines'].append({
+                            'exc_info': error,
+                            'ttype': 'log',
+                            'state': 'failed',
+                        })
+                    raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+
+                self.duration = (arrow.get() - started).total_seconds()
+                if logsio:
+                    logsio.info(f"Duration was {self.duration}")
+                self._compute_success_rate()
+                self._inform_developer()
+                self.env.cr.commit()
 
     def _execute(self, run, machine, appendix):
         logsio = None
@@ -200,7 +202,7 @@ RUN_POSTGRES=1
                         self.env.cr.commit()
                         passed_prepare = True
                         run(shell, logsio)
-                except Exception as ex:
+                except Exception:
                     msg = traceback.format_exc()
                     if not passed_prepare:
                         duration = (arrow.get() - started).total_seconds()
