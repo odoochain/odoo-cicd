@@ -181,7 +181,7 @@ class GitBranch(models.Model):
             if commit.approval_state == 'check':
                 state = 'approve'
 
-            elif commit.approval_state == 'approved' and commit.test_state in [False, 'open'] and rec.any_testing and not commit.force_approved:
+            elif commit.approval_state == 'approved' and commit.test_state in [False, 'open', 'running'] and rec.any_testing and not commit.force_approved:
                 state = 'testable'
 
             elif commit.test_state == 'failed' or commit.approval_state == 'declined':

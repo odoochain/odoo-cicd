@@ -28,6 +28,7 @@ class CicdTestRun(models.Model):
     repo_short = fields.Char(related="branch_ids.repo_id.short")
     state = fields.Selection([
         ('open', 'Testing'),
+        ('running', 'Running'),
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], string="Result", store=True, required=True, default='open')
@@ -141,7 +142,7 @@ RUN_POSTGRES=1
                         b._compute_state()
                         return
 
-                    self.state = 'open'
+                    self.state = 'running'
 
                     self.line_ids = [[6, 0, []]]
                     self.line_ids = [[0, 0, {'run_id': self.id, 'ttype': 'log', 'name': 'Started'}]]

@@ -267,11 +267,14 @@ class Branch(models.Model):
             test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
 
         if not test_run:
-            test_run = self.test_run_ids.create({
-                'commit_id': self.latest_commit_id.id,
-                'branch_id': b.id,
-            })
-        test_run.execute(shell, task, logsio)
+            running = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'running')
+            if not running:
+                test_run = self.test_run_ids.create({
+                    'commit_id': self.latest_commit_id.id,
+                    'branch_id': b.id,
+                })
+        if test_run:
+            test_run.execute(shell, task, logsio)
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
