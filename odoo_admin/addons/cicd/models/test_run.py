@@ -129,7 +129,7 @@ RUN_POSTGRES=1
 
         self.state = 'open'
 
-        with self._update_lines() as self2:
+        with self.line_ids._update_lines() as self2:
             self2.line_ids = [[6, 0, []]]
             self2.line_ids = [[0, 0, {'ttype': 'log', 'name': 'Started'}]]
 
