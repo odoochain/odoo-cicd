@@ -9,7 +9,8 @@ class Branch(models.Model):
         self.ensure_one()
         jira = self.repo_id.ticketsystem_id._get_jira_connection()
         try:
-            issue = jira.issue(self.ticket_system_ref or self.name)
+            issue_name = self.repo_id.ticketsystem_id._extract_ts_part(self)
+            issue = jira.issue(issue_name)
         except JIRA.exceptions.JIRAError as jira_ex:
             if 'Issue does not exist or you do not have permission to see it' in str(jira_ex):
                 return None
