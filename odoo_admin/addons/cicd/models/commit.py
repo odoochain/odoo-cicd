@@ -16,6 +16,7 @@ class GitCommit(models.Model):
     date = fields.Datetime("Date")
     author = fields.Char("Author")
     author_user_ids = fields.Many2many('res.users', compute="_compute_author_users", store=False)
+    author_user_id = fields.Many2one('res.users', compute="_compute_author_users")
     text = fields.Text("Text")
     test_run_ids = fields.One2many('cicd.test.run', 'commit_id', string="Test Runs")
     test_state = fields.Selection([
@@ -85,6 +86,8 @@ class GitCommit(models.Model):
                 rec.approval_state = 'check'
             if ":TEST:" in rec.text:
                 rec.branch_id.run_tests()
+            if ":APPROVE:" in rec.text:
+                rec.branch_id.with_user(self.author_user_id.id).approve()
 
     def open_window(self):
         return {
@@ -132,3 +135,8 @@ class GitCommit(models.Model):
                 rec.author_user_ids = self.env['res.users'].search([('login', '=', email)])
             else:
                 rec.author_user_ids = [[6, 0, []]]
+
+            if rec.author_user_ids:
+                rec.author_user_id = rec.author_user_ids[0]
+            else:
+                rec.author_user_id = self.env.user
