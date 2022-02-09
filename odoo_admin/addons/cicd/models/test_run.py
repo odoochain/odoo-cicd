@@ -82,7 +82,7 @@ RUN_POSTGRES=1
             self.line_ids = [[0, 0, {'state': state, 'name': msg, 'ttype': 'preparation', 'duration': duration}]]
             self.env.cr.commit()
 
-            if state == 'success':
+            if state == 'success' and logsio:
                 logsio.info(msg)
             else:
                 logsio.error(msg)
