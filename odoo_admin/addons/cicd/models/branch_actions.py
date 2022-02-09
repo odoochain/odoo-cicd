@@ -315,7 +315,6 @@ class Branch(models.Model):
         )
         return instance_folder
 
-
     def _checkout_latest(self, shell, logsio, machine=None, **kwargs):
         machine = machine or shell.machine
         logsio.write_text(f"Updating instance folder {self.name}")
