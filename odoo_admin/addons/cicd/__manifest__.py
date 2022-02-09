@@ -20,6 +20,7 @@
                 'views/postgres_tree.xml',
                 'views/queue_job_tree.xml',
                 'views/queuejob_form.xml',
+                'views/queuejob_search.xml',
                 'views/registry.xml',
                 'views/release_action_form.xml',
                 'views/release_form.xml',
