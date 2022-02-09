@@ -154,9 +154,8 @@ RUN_POSTGRES=1
     # Entrypoint
     # ----------------------------------------------
     def execute(self, shell=None, task=None, logsio=None):
-        import pudb;pudb.set_trace()
         with pg_advisory_lock(self.env.cr, f"testrun.{self.id}"):
-            if self.state not in ('open'):
+            if self.state not in ('open') and not self.env.context("FORCE_TEST_RUN"):
                 return
             db_registry = registry(self.env.cr.dbname)
             with db_registry.cursor() as cr:
