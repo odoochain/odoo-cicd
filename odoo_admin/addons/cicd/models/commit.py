@@ -122,8 +122,13 @@ class GitCommit(models.Model):
         for rec in self:
             if not rec.author:
                 rec.author_user_ids = [[6, 0, []]]
+                continue
 
             match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', self.author)
+            email = None
             if match:
                 email = match.group(0)
-            rec.author_user_ids = self.env['res.users'].search([('login', '=', email)])
+            if email:
+                rec.author_user_ids = self.env['res.users'].search([('login', '=', email)])
+            else:
+                rec.author_user_ids = [[6, 0, []]]

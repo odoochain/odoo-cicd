@@ -104,11 +104,20 @@ class Task(models.Model):
                 try:
                     dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
                     with self.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
-                        self.branch_id.repo_id._get_main_repo(
-                            destination_folder=dest_folder,
-                            machine=self.machine_id,
-                            limit_branch=self.branch_id.name,
-                            )
+                        # functions called often block the repository access
+                        args = {
+                            'task': self,
+                            'logsio': logsio,
+                            'shell': shell,
+                            }
+                        if self.kwargs and self.kwargs != 'null':
+                            args.update(json.loads(self.kwargs))
+                        if not args.get('no_repo', False):
+                            self.branch_id.repo_id._get_main_repo(
+                                destination_folder=dest_folder,
+                                machine=self.machine_id,
+                                limit_branch=self.branch_id.name,
+                                )
                         obj = self.env[self.model].sudo().browse(self.res_id)
                         # mini check if it is a git repository:
                         try:
@@ -123,13 +132,6 @@ class Task(models.Model):
                         # if not commit:
                         #     raise ValidationError(f"Commit {sha} not found in branch.")
                         # get current commit
-                        args = {
-                            'task': self,
-                            'logsio': logsio,
-                            'shell': shell,
-                            }
-                        if self.kwargs and self.kwargs != 'null':
-                            args.update(json.loads(self.kwargs))
                         exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
                         self.sudo().commit_id = commit
 

@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import datetime
 from . import pg_advisory_lock
 import psycopg2
 from odoo.addons.queue_job.exception import RetryableJobError
@@ -18,7 +19,7 @@ class AbortException(Exception): pass
 class CicdTestRun(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.test.run'
-    _order = 'date desc'
+    _order = 'id desc'
 
     name = fields.Char(compute="_compute_name")
     do_abort = fields.Boolean("Abort when possible")
@@ -65,9 +66,12 @@ class CicdTestRun(models.Model):
         settings = """
 RUN_POSTGRES=1
         """
-        import pudb;pudb.set_trace()
 
         def report(msg, state='success', exception=None, duration=False, ttype='log'):
+            if duration is None:
+                duration = 0
+            elif isinstance(duration, datetime.timedelta):
+                duration = duration.total_seconds()
             ttype = ttype or 'log'
             if exception:
                 state = 'failed'
@@ -87,7 +91,19 @@ RUN_POSTGRES=1
         started = arrow.get()
         with machine._shell(cwd=root, logsio=logsio, project_name=self.branch_id.project_name) as shell:
             report("Checking out source code...")
-            self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
+
+            def reload():
+                self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
+            try:
+                reload()
+            except Exception as ex:
+                try:
+                    shell.rmifexists(shell.cwd)
+                    reload()
+                except Exception as ex:
+                    report("Error occurred", exception=ex, duration=arrow.get() - started)
+                    raise
+
             report("Checked out source code")
             shell.cwd = root / shell.project_name
             try:
@@ -396,7 +412,6 @@ RUN_POSTGRES=1
             self.env.cr.commit()
 
     def _inform_developer(self):
-        return # TODO
         for rec in self:
             partners = (
                 rec.commit_id.author_user_ids.mapped('partner_id') | rec.mapped('message_follower_ids.partner_id')

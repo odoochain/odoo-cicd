@@ -12,6 +12,7 @@
 			<filter name="failed" string="Failed" domain="[('state', '=', 'failed')]"/>
 			<filter name="success" string="Success" domain="[('state', '=', 'success')]"/>
 			<filter name="group_by_state" string="State" domain="[]" context="{'group_by':'state'}"/>
+			<filter name="group_by_branch" string="Branch" domain="[]" context="{'group_by':'branch_id'}"/>
 
 		</search>
 		</field>
