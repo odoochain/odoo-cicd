@@ -133,7 +133,7 @@ RUN_POSTGRES=1
                     self._wait_for_postgres(shell)
                     report("Storing snapshot done")
                     logsio.info("Preparation done")
-                    report('preparation done', ttype='log', state='success', duration=arrow.get() - started).total_seconds()
+                    report('preparation done', ttype='log', state='success', duration=(arrow.get() - started).total_seconds())
                     if self.do_abort: raise AbortException("User aborted")
                     self.env.cr.commit()
                 except Exception as ex:
