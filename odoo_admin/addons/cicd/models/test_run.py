@@ -170,71 +170,75 @@ RUN_POSTGRES=1
     # ----------------------------------------------
     # Entrypoint
     # ----------------------------------------------
+    # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
     def execute(self, shell=None, task=None, logsio=None):
         if self.env.context.get("DEBUG_TESTRUN"):
             import pudb;pudb.set_trace()
-        with pg_advisory_lock(self.env.cr, f"testrun.{self.id}"):
-            if self.state not in ('open') and not self.env.context.get("FORCE_TEST_RUN"):
-                return
-            db_registry = registry(self.env.cr.dbname)
-            with db_registry.cursor() as cr:
-                env = api.Environment(cr, SUPERUSER_ID, {})
-                self = env[self._name].browse(self.id)
-
-                self.ensure_one()
-                b = self.branch_id
-                started = arrow.get()
-
-                if not b.any_testing:
-                    self.success_rate = 100
-                    self.state = 'success'
-                    b._compute_state()
+        with self.branch_id._get_new_logsio_instance('test-run-execute') as logsio2:
+            if not logsio:
+                logsio = logsio2
+            with pg_advisory_lock(self.env.cr, f"testrun.{self.id}"):
+                if self.state not in ('open') and not self.env.context.get("FORCE_TEST_RUN"):
                     return
+                db_registry = registry(self.env.cr.dbname)
+                with db_registry.cursor() as cr:
+                    env = api.Environment(cr, SUPERUSER_ID, {})
+                    self = env[self._name].browse(self.id)
 
-                self.line_ids = [[6, 0, []]]
-                self.line_ids = [[0, 0, {'run_id': self.id, 'ttype': 'log', 'name': 'Started'}]]
-                self.do_abort = False
-                self.state = 'failed'
-                self.env.cr.commit()
+                    self.ensure_one()
+                    b = self.branch_id
+                    started = arrow.get()
 
-                if shell:
-                    machine = shell.machine
-                else:
-                    machine = self.branch_id.repo_id.machine_id
+                    if not b.any_testing:
+                        self.success_rate = 100
+                        self.state = 'success'
+                        b._compute_state()
+                        return
 
-                data = {
-                    'testrun_id': self.id,
-                    'machine_id': machine.id,
-                    'technical_errors': [],
-                    'run_lines': deque(),
-                }
+                    self.line_ids = [[6, 0, []]]
+                    self.line_ids = [[0, 0, {'run_id': self.id, 'ttype': 'log', 'name': 'Started'}]]
+                    self.do_abort = False
+                    self.state = 'failed'
+                    self.env.cr.commit()
 
-                with self.prepare_run(machine, logsio) as shell:
-                    if b.run_unittests:
-                        self._execute(shell, logsio, self._run_unit_tests, machine, 'test-units')
-                        self.env.cr.commit()
-                    if b.run_robottests:
-                        self._execute(shell, logsio, self._run_robot_tests, machine, 'test-robot')
-                        self.env.cr.commit()
-                    if b.simulate_install_id:
-                        self._execute(shell, logsio, self._run_update_db, machine, 'test-migration')
-                        self.env.cr.commit()
+                    if shell:
+                        machine = shell.machine
+                    else:
+                        machine = self.branch_id.repo_id.machine_id
 
-                if data['technical_errors']:
-                    for error in data['technical_errors']:
-                        data['run_lines'].append({
-                            'exc_info': error,
-                            'ttype': 'log',
-                            'state': 'failed',
-                        })
-                    raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+                    data = {
+                        'testrun_id': self.id,
+                        'machine_id': machine.id,
+                        'technical_errors': [],
+                        'run_lines': deque(),
+                    }
 
-                self.duration = (arrow.get() - started).total_seconds()
-                if logsio:
-                    logsio.info(f"Duration was {self.duration}")
-                self._compute_success_rate()
-                self._inform_developer()
-                self.env.cr.commit()
+                    with self.prepare_run(machine, logsio) as shell:
+                        if b.run_unittests:
+                            self._execute(shell, logsio, self._run_unit_tests, machine, 'test-units')
+                            self.env.cr.commit()
+                        if b.run_robottests:
+                            self._execute(shell, logsio, self._run_robot_tests, machine, 'test-robot')
+                            self.env.cr.commit()
+                        if b.simulate_install_id:
+                            self._execute(shell, logsio, self._run_update_db, machine, 'test-migration')
+                            self.env.cr.commit()
+
+                    if data['technical_errors']:
+                        for error in data['technical_errors']:
+                            data['run_lines'].append({
+                                'exc_info': error,
+                                'ttype': 'log',
+                                'state': 'failed',
+                            })
+                        raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+
+                    self.duration = (arrow.get() - started).total_seconds()
+                    if logsio:
+                        logsio.info(f"Duration was {self.duration}")
+                    self._compute_success_rate()
+                    self._inform_developer()
+                    self.env.cr.commit()
 
     def _execute(self, shell, logsio, run, machine, appendix):
         try:
