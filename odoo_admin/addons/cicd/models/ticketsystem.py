@@ -21,5 +21,5 @@ class TicketSystem(models.Model):
 
     def _compute_url(self, branch):
         name = self._extract_ts_part(branch)
-        url = (self.url or '') + 'browse/' + name
+        url = (self.url or '') + 'browse/' + (name or "???????")
         return url
