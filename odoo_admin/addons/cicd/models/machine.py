@@ -140,6 +140,7 @@ class CicdMachine(models.Model):
         raise ValidationError(_("Everyhing Works!"))
 
     def update_dumps(self):
+        import pudb;pudb.set_trace()
         for rec in self:
             rec.env['cicd.dump']._update_dumps(rec)
 
