@@ -66,7 +66,7 @@ class Dump(models.Model):
                     if todo:
                         todo.with_delay(
                             identity_key=f"get_dump_info",
-                            eta=arrow.get().shift(minutes=60).strftime("%Y-%m-%d %H:%M:%S"),
+                            eta=arrow.get().shift(minutes=1).strftime("%Y-%m-%d %H:%M:%S"),
                         )._update_size()
 
     def _update_size(self):
