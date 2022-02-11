@@ -23,7 +23,7 @@ import gevent.lock
 import logging
 logger = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = 99999
+DEFAULT_TIMEOUT = 6 * 3600
 
 class ShellExecutor(object):
     def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env={}):
@@ -183,23 +183,23 @@ class ShellExecutor(object):
                 self._write_line()
 
             def write(self, text):
-                if '\n' in text and len(text) == 1:
+                self.line += text
+                if '\n' in text:
                     self._write_line()
                     self.line = ""
-                else:
-                    self.line += text
-                    return
 
             def _write_line(self):
                 if not self.line:
                     return
-                line = self.line
-                self.all_lines.append(line)
+                lines = (self.line or '').split("\n")
+                self.all_lines += lines
                 if logoutput and self.logsio:
-                    if self.ttype == 'error':
-                        self.logsio.error(line)
-                    else:
-                        self.logsio.info(line)
+                    for line in lines:
+                        if not line: continue
+                        if self.ttype == 'error':
+                            self.logsio.error(line)
+                        else:
+                            self.logsio.info(line)
 
         if not logoutput:
             stdwriter, errwriter = None, None
