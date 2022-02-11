@@ -187,7 +187,7 @@ class Repository(models.Model):
                         updated_branches = set()
 
                         for remote in repo._get_remotes(shell):
-                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'], ignore_stdout=True)['stdout'].strip().split("\n")))
+                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'])['stdout'].strip().split("\n")))
                             for fi in fetch_info:
                                 while "  " in fi:
                                     fi = fi.replace("  ", " ")

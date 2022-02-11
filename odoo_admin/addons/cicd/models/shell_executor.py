@@ -104,13 +104,13 @@ class ShellExecutor(object):
         self.X(["git", "clean", "-xdff"], cwd=cwd)
         self.X(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=cwd)
 
-    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, ignore_stdout=False, timeout=None):
+    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, timeout=None):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
         res = self._internal_execute(
             cmd, cwd=cwd, env=env,
-            logoutput=logoutput, allow_error=allow_error, ignore_stdout=ignore_stdout, timeout=timeout)
+            logoutput=logoutput, allow_error=allow_error, timeout=timeout)
         if not allow_error:
             if res['exit_code'] is None:
                 raise Exception("Timeout happend: {cmd}")
@@ -160,7 +160,7 @@ class ShellExecutor(object):
             return base, user_host
         return base + " " + user_host
 
-    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999, ignore_stdout=False):
+    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999):
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
 
@@ -207,10 +207,7 @@ class ShellExecutor(object):
 
         if cd_command:
             cmd = shlex.join(cd_command) + " && " + cmd
-        if ignore_stdout:
-            cmd += " 1> /dev/null"
-        else:
-            cmd = "set -o pipefail;" + cmd + " | cat - "
+        cmd = "set -o pipefail ; " + cmd + " | cat - "
 
         sshcmd = self._get_ssh_client()
 
