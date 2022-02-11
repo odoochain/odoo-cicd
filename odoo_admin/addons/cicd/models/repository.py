@@ -212,15 +212,6 @@ class Repository(models.Model):
                         if not updated_branches:
                             continue
 
-                        # checkout latest / pull latest
-                        for branch in updated_branches:
-                            logsio.info(f"Pulling {branch}...")
-                            shell.X(["git", "fetch", "origin", branch])
-                            with pg_advisory_lock(self.env.cr, repo._get_lockname()):
-                                shell.checkout_branch(branch)
-                                shell.X(["git", "pull"])
-                                shell.X(["git", "submodule", "update", "--init", "--recursive"])
-
                         repo.with_delay()._cron_fetch_update_branches({
                             'updated_branches': list(updated_branches),
                         })
@@ -245,7 +236,16 @@ class Repository(models.Model):
 
     def _cron_fetch_update_branches(self, data):
         repo = self
+        # checkout latest / pull latest
         updated_branches = data['updated_branches']
+        for branch in updated_branches:
+            logsio.info(f"Pulling {branch}...")
+            shell.X(["git", "fetch", "origin", branch])
+            with pg_advisory_lock(self.env.cr, repo._get_lockname()):
+                shell.checkout_branch(branch)
+                shell.X(["git", "pull"])
+                shell.X(["git", "submodule", "update", "--init", "--recursive"])
+
         with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
             repo_path = repo._get_main_repo(logsio=logsio)
             machine = repo.machine_id
