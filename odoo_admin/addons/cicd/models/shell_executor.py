@@ -154,7 +154,7 @@ class ShellExecutor(object):
     def _get_ssh_client(self, cmd='ssh', split_host=False):
         host = self.machine.effective_host
         user = self.machine.ssh_user
-        base = f"{cmd} -oStrictHostKeyChecking=no -i {self.ssh_keyfile}"
+        base = f"{cmd} -T -oStrictHostKeyChecking=no -i {self.ssh_keyfile}"
         user_host = f"{user}@{host}"
         if split_host:
             return base, user_host
