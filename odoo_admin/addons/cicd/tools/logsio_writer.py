@@ -50,7 +50,7 @@ class LogsIOWriter(object):
             i = 0
             while self.keep_alive_thread:
                 i += 1
-                time.sleep(1 if os.getenv("DEVMODE") == "1" else 20)
+                time.sleep(5 if os.getenv("DEVMODE") == "1" else 20)
                 self.info(KEEP_ALIVE_MESSAGE + " " + str(i))
 
         self.keep_alive_thread = threading.Thread(target=keep_alive, args=(self,))
