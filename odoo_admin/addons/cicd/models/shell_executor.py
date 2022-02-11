@@ -209,8 +209,8 @@ class ShellExecutor(object):
             cmd = shlex.join(cd_command) + " && " + cmd
         if ignore_stdout:
             cmd += " 1> /dev/null"
-        # else:
-        #     cmd = "set -o pipefail;" + cmd + " | cat - "
+        else:
+            cmd = "set -o pipefail;" + cmd + " | cat - "
 
         sshcmd = self._get_ssh_client()
 
