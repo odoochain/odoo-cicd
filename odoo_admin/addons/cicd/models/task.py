@@ -99,6 +99,8 @@ class Task(models.Model):
         short_name = self._get_short_name()
         started = arrow.get()
         state = None
+        self.state = 'started'
+        self.env.cr.commit()
         # TODO make testruns not block reloading
         db_registry = registry(self.env.cr.dbname)
         with pg_advisory_lock(self.env.cr, self.branch_id.id):
