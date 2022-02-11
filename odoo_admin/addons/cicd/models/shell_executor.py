@@ -1,29 +1,19 @@
 import arrow
-import re
 import threading
-from pssh.clients import SSHClient
-from pssh.exceptions import Timeout, ConnectionError
+from sarge import Capture, run
+import time
 import shlex
-import os
 import tempfile
 from copy import deepcopy
-import pwd
-import grp
-import hashlib
 from pathlib import Path
 from ..tools.logsio_writer import LogsIOWriter
-from contextlib import contextmanager
-from odoo import _, api, fields, models, SUPERUSER_ID, tools
-import subprocess
-from odoo.exceptions import UserError, RedirectWarning, ValidationError
-from ..tools.tools import tempdir
-from ..tools.tools import get_host_ip
-import gevent
-import gevent.lock
 import logging
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 6 * 3600
+DEFAULT_ENV = {
+    'BUILDKIT_PROGRESS': 'plain',
+}
 
 class ShellExecutor(object):
     def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env={}):
@@ -151,19 +141,13 @@ class ShellExecutor(object):
             filename.unlink()
 
     def _get_ssh_client(self):
-        client = SSHClient(
-            self.machine.effective_host,
-            user=self.machine.ssh_user,
-            pkey=str(self.ssh_keyfile),
-        )
-        return client
+        host = self.machine.effective_host
+        user=self.machine.ssh_user
+        return f"ssh -i {self.ssh_keyfile} {user}@{host}"
 
     def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999, ignore_stdout=False):
-        if timeout is None: timeout = DEFAULT_TIMEOUT
-
-        logging.getLogger('pssh.host_logger').setLevel(logging.ERROR)
-        logging.getLogger('pssh.clients.base.single').setLevel(logging.ERROR)
-        logging.getLogger('pssh.clients.native.single').setLevel(logging.ERROR)
+        if timeout is None:
+            timeout = DEFAULT_TIMEOUT
 
         def convert(x):
             if isinstance(x, Path):
@@ -172,107 +156,82 @@ class ShellExecutor(object):
 
         cmd = list(map(convert, cmd))
         class MyWriter(object):
-            def __init__(self, ttype, logsio):
+            def __init__(self, ttype, logsio, logoutput):
                 self.text = [""]
                 self.ttype = ttype
                 self.line = ""
                 self.logsio = logsio
                 self.all_lines = []
+                self.logoutput = logoutput
 
-            def finish(self):
-                self._write_line()
-
-            def write(self, text):
-                self.line += text
-                if '\n' in text:
-                    self._write_line()
-                    self.line = ""
-
-            def _write_line(self):
-                if not self.line:
-                    return
-                lines = (self.line or '').split("\n")
-                self.all_lines += lines
+            def write(self, line):
+                self.all_lines += [line]
                 if logoutput and self.logsio:
-                    for line in lines:
-                        if not line: continue
-                        if self.ttype == 'error':
-                            self.logsio.error(line)
-                        else:
-                            self.logsio.info(line)
+                    if self.ttype == 'error':
+                        self.logsio.error(line)
+                    else:
+                        self.logsio.info(line)
 
-        if not logoutput:
-            stdwriter, errwriter = None, None
-        else:
-            stdwriter, errwriter = MyWriter('info', self.logsio), MyWriter('error', self.logsio)
+        stdwriter, errwriter = MyWriter('info', self.logsio, logoutput), MyWriter('error', self.logsio, logoutput)
 
         cwd = cwd or self.cwd
         cd_command = []
         if cwd:
             cd_command = ["cd", str(cwd)]
 
-        effective_env = {
-            'BUILDKIT_PROGRESS': 'plain',
-        }
+        effective_env = deepcopy(DEFAULT_ENV)
         if self.env: effective_env.update(self.env)
         if env: effective_env.update(env)
 
-        client = self._get_ssh_client()
-
-        wait = gevent.lock.BoundedSemaphore(1)
-
-        def evntlet_add_msg(src, pf, wait):
-            for msg in src:
-                with wait:
-                    if stdwriter:
-                        stdwriter.write(msg + "\n")
-                # gevent.sleep(.001)
-
-        # ohne use_pty das failed/haengt close_channel
-        # leider kommt dann allels über stdout.
-        # stderr bleibt leer.
         if isinstance(cmd, (tuple, list)):
             cmd = f"'{cmd[0]}' " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
 
-        for k, v in effective_env.items():
-            cmd = f"{k}=\"{v}\"" + " " + cmd
+        #for k, v in effective_env.items():
+        #    cmd = f"{k}=\"{v}\"" + " " + cmd
 
         if cd_command:
             cmd = shlex.join(cd_command) + " && " + cmd
         if ignore_stdout:
             cmd += " 1> /dev/null"
-        else:
-            cmd = "set -o pipefail;" + cmd + " | cat - "
+        # else:
+        #     cmd = "set -o pipefail;" + cmd + " | cat - "
 
-        host_out = client.run_command(cmd, use_pty=True)
+        stdout = Capture(buffer_size=-1) # line buffering
+        stderr = Capture(buffer_size=-1) # line buffering
+        data = {'stop': False}
 
-        rstdout = gevent.spawn(evntlet_add_msg, host_out.stdout, "stdout: ", wait)
-        rstderr = gevent.spawn(evntlet_add_msg, host_out.stderr, "stderr: ", wait)
+        def collect(capture, writer):
+            while not data['stop']:
+                for line in capture:
+                    writer.write(line)
+
+        tstd = threading.Thread(target=collect, args=(stdout, stdwriter,))
+        terr = threading.Thread(target=collect, args=(stderr, errwriter,))
+        tstd.daemon = True
+        terr.daemon = True
+        [x.start() for x in [tstd, terr]]
+
+        p = run(cmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env)
+        deadline = arrow.get().shift(seconds=timeout)
         timeout_happened = False
         try:
-            client.wait_finished(host_out, timeout)
-            gevent.killall([rstdout, rstderr])
-        except Timeout:
-            logger.warn(f"Timeout occurred")
-            timeout_happened = True
-            gevent.killall([rstdout, rstderr])
-            host_out.client.close_channel(host_out.channel)
+            while p.commands[0].returncode is None:
 
-        exit_code = host_out.exit_code
+                p.commands[0].poll()
 
-        rest_stdout = list(host_out.stdout)
-        if stdwriter:
-            for line in rest_stdout:
-                stdwriter.write(line + "\n")
-
-        stdwriter and stdwriter.finish()
-        errwriter and errwriter.finish()
-        stdout = '\n'.join(stdwriter.all_lines) if logoutput else ""
-        stderr = ""
+                if arrow.get() > deadline:
+                    p.commands[0].kill()
+                    timeout_happened = True
+                time.sleep(0.05)
+        finally:
+            data['stop'] = True
+        stdout = '\n'.join(stdwriter.all_lines)
+        stderr = '\n'.join(stdwriter.all_lines)
+        import pudb;pudb.set_trace()
 
         return {
             'timeout': timeout_happened,
-            'exit_code': exit_code,
+            'exit_code': p.commands[0].returncode,
             'stdout': stdout,
             'stderr': stderr,
         }
