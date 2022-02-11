@@ -234,7 +234,7 @@ class ShellExecutor(object):
         timeout_happened = False
         try:
             if not p.commands:
-                raise Exception("Invalid command: {cmd}")
+                raise Exception(f"Invalid command: {cmd}")
             while p.commands[0].returncode is None:
 
                 p.commands[0].poll()
