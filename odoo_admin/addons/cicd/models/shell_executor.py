@@ -119,10 +119,17 @@ class ShellExecutor(object):
         return res
 
     def get(self, source):
+        # not tested yet
+        import pudb;pudb.set_trace()
         client = self._get_ssh_client()
         filename = Path(tempfile.mktemp(suffix='.'))
 
+        cmd = self._get_ssh_client('scp')
         client.scp_recv(str(source), str(filename))
+        cmd, host = self._get_ssh_client('scp', split_host=True)
+        p = run(cmd + f"'{host}:{source}' '{filename}'")
+        if p.commands[0].returncode:
+            raise Exception("Copy failed")
         try:
             return filename.read_bytes()
         finally:
@@ -136,14 +143,22 @@ class ShellExecutor(object):
             content = content.encode('utf-8')
         filename.write_bytes(content)
         try:
-            client.scp_send(str(filename), str(dest))
+            cmd, host = self._get_ssh_client('scp', split_host=True)
+            capt = Capture()
+            p = run(cmd + f" '{filename}' '{host}:{dest}'", stdout=capt, stderr=capt)
+            if p.commands[0].returncode:
+                raise Exception("Transfer failed")
         finally:
             filename.unlink()
 
-    def _get_ssh_client(self):
+    def _get_ssh_client(self, cmd='ssh', split_host=False):
         host = self.machine.effective_host
         user = self.machine.ssh_user
-        return f"ssh -oStrictHostKeyChecking=no -i {self.ssh_keyfile} {user}@{host}"
+        base = f"{cmd} -oStrictHostKeyChecking=no -i {self.ssh_keyfile}"
+        user_host = f"{user}@{host}"
+        if split_host:
+            return base, user_host
+        return base + " " + user_host
 
     def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999, ignore_stdout=False):
         if timeout is None:
@@ -218,6 +233,8 @@ class ShellExecutor(object):
         deadline = arrow.get().shift(seconds=timeout)
         timeout_happened = False
         try:
+            if not p.commands:
+                import pudb;pudb.set_trace()
             while p.commands[0].returncode is None:
 
                 p.commands[0].poll()
