@@ -241,13 +241,6 @@ class Repository(models.Model):
 
         with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
 
-            for branch in updated_branches:
-                logsio.info(f"Pulling {branch}...")
-                shell.X(["git", "fetch", "origin", branch])
-                with pg_advisory_lock(self.env.cr, repo._get_lockname()):
-                    shell.checkout_branch(branch)
-                    shell.X(["git", "pull"])
-                    shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
 
 
@@ -257,6 +250,14 @@ class Repository(models.Model):
 
             with pg_advisory_lock(self.env.cr, self._get_lockname()):
                 with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
+                    for branch in updated_branches:
+                        logsio.info(f"Pulling {branch}...")
+                        shell.X(["git", "fetch", "origin", branch])
+                        with pg_advisory_lock(self.env.cr, repo._get_lockname()):
+                            shell.checkout_branch(branch)
+                            shell.X(["git", "pull"])
+                            shell.X(["git", "submodule", "update", "--init", "--recursive"])
+
                     # if completely new then all branches:
                     if not repo.branch_ids:
                         for branch in shell.X(["git", "branch"])['stdout'].strip().split("\n"):
