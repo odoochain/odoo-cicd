@@ -123,17 +123,17 @@ class Task(models.Model):
                         try:
                             shell.X(["git", "status"])
                         except Exception:
-                            msg = traceback.format_exc()
-                            raise Exception(f"Directory seems to be not a valid git directory: {dest_folder}\n{msg}")
-
-                        sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                        commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
+                            commit = None
+                        else:
+                            sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                            commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
 
                         # if not commit:
                         #     raise ValidationError(f"Commit {sha} not found in branch.")
                         # get current commit
                         exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
-                        self.sudo().commit_id = commit
+                        if commit:
+                            self.sudo().commit_id = commit
 
                 except RetryableJobError:
                     raise
