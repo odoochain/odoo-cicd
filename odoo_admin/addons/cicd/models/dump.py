@@ -71,6 +71,8 @@ class Dump(models.Model):
 
     def _update_size(self):
         for rec in self:
+            if not rec.exists():
+                continue
             machines = rec.mapped('machine_id')
             for machine in machines:
                 dumps = rec.filtered(lambda x: x.machine_id == machine)

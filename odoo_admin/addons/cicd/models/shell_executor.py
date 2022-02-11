@@ -234,7 +234,7 @@ class ShellExecutor(object):
         timeout_happened = False
         try:
             if not p.commands:
-                import pudb;pudb.set_trace()
+                raise Exception("Invalid command: {cmd}")
             while p.commands[0].returncode is None:
 
                 p.commands[0].poll()
