@@ -142,8 +142,8 @@ class ShellExecutor(object):
 
     def _get_ssh_client(self):
         host = self.machine.effective_host
-        user=self.machine.ssh_user
-        return f"ssh -i {self.ssh_keyfile} {user}@{host}"
+        user = self.machine.ssh_user
+        return f"ssh -oStrictHostKeyChecking=no -i {self.ssh_keyfile} {user}@{host}"
 
     def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999, ignore_stdout=False):
         if timeout is None:
@@ -165,6 +165,7 @@ class ShellExecutor(object):
                 self.logoutput = logoutput
 
             def write(self, line):
+                line = line.decode("utf-8")
                 self.all_lines += [line]
                 if logoutput and self.logsio:
                     if self.ttype == 'error':
@@ -184,10 +185,10 @@ class ShellExecutor(object):
         if env: effective_env.update(env)
 
         if isinstance(cmd, (tuple, list)):
-            cmd = f"'{cmd[0]}' " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
+            cmd = f"{cmd[0]} " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
 
-        #for k, v in effective_env.items():
-        #    cmd = f"{k}=\"{v}\"" + " " + cmd
+        for k, v in effective_env.items():
+            cmd = f"{k}=\"{v}\"" + " " + cmd
 
         if cd_command:
             cmd = shlex.join(cd_command) + " && " + cmd
@@ -195,6 +196,8 @@ class ShellExecutor(object):
             cmd += " 1> /dev/null"
         # else:
         #     cmd = "set -o pipefail;" + cmd + " | cat - "
+
+        sshcmd = self._get_ssh_client()
 
         stdout = Capture(buffer_size=-1) # line buffering
         stderr = Capture(buffer_size=-1) # line buffering
@@ -211,7 +214,7 @@ class ShellExecutor(object):
         terr.daemon = True
         [x.start() for x in [tstd, terr]]
 
-        p = run(cmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env)
+        p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=cmd)
         deadline = arrow.get().shift(seconds=timeout)
         timeout_happened = False
         try:
@@ -225,9 +228,10 @@ class ShellExecutor(object):
                 time.sleep(0.05)
         finally:
             data['stop'] = True
+        tstd.join()
+        terr.join()
         stdout = '\n'.join(stdwriter.all_lines)
         stderr = '\n'.join(stdwriter.all_lines)
-        import pudb;pudb.set_trace()
 
         return {
             'timeout': timeout_happened,

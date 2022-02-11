@@ -9,7 +9,7 @@ while True:
     time.sleep(0.5)
     i += 1
 
-    if i > 350:
+    if i > 2:
         break
 
     sys.stdout.flush()

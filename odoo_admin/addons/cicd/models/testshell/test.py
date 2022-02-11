@@ -16,10 +16,11 @@ from sarge import Capture, run
 from io import TextIOWrapper
 
 cmd = f"ssh localhost {current_dir}/slow.py"
+cmd = f"ssh localhost"
 
 stdout = Capture(buffer_size=-1)
 stderr = Capture(buffer_size=-1)
-p = run(cmd, async_=True, stdout=stdout, stderr=stderr)
+p = run(cmd, async_=True, stdout=stdout, stderr=stderr, input=str(current_dir) + "/slow.py")
 
 deadline = arrow.get().shift(seconds=3)
 
