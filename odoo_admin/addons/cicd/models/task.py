@@ -154,10 +154,10 @@ class Task(models.Model):
 
                     log = '\n'.join(logsio.get_lines())
 
+                    duration = (arrow.get() - started).total_seconds()
                     if logsio:
                         logsio.info(f"Finished after {duration} seconds!")
 
-                duration = (arrow.get() - started).total_seconds()
                 task.duration = duration
                 task = self.with_env(env2)
                 task.log = log
