@@ -145,7 +145,7 @@ class Repository(models.Model):
 
     def _get_remotes(self, shell):
         remotes = shell.X(["git", "remote", "-v"])['stdout'].strip().split("\n")
-        remotes = [x.split("\t")[0] for x in remotes]
+        remotes = list(filter(bool, [x.split("\t")[0] for x in remotes]))
         return list(set(remotes))
 
     @api.model
