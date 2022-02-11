@@ -27,7 +27,7 @@ class Task(models.Model):
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), readonly=True)
     is_done = fields.Boolean(compute="_compute_is_done", store=False)
 
-    state = fields.Selection(selection=STATES, compute="_compute_state", string="State", store=False)
+    state = fields.Selection(selection=STATES, string="State")
     log = fields.Text("Log", readonly=True)
     error = fields.Text("Exception", compute="_compute_state")
     dump_used = fields.Char("Dump used", readonly=True)
@@ -98,58 +98,71 @@ class Task(models.Model):
         self = self.sudo()
         short_name = self._get_short_name()
         started = arrow.get()
+        state = None
         # TODO make testruns not block reloading
+        db_registry = registry(self.env.cr.dbname)
         with pg_advisory_lock(self.env.cr, self.branch_id.id):
-            with self.branch_id._get_new_logsio_instance(short_name) as logsio:
-                try:
-                    dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
-                    with self.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
-                        # functions called often block the repository access
-                        args = {
-                            'task': self,
-                            'logsio': logsio,
-                            'shell': shell,
-                            }
-                        if self.kwargs and self.kwargs != 'null':
-                            args.update(json.loads(self.kwargs))
-                        if not args.get('no_repo', False):
-                            self.branch_id.repo_id._get_main_repo(
-                                destination_folder=dest_folder,
-                                machine=self.machine_id,
-                                limit_branch=self.branch_id.name,
-                                )
-                        obj = self.env[self.model].sudo().browse(self.res_id)
-                        # mini check if it is a git repository:
-                        try:
-                            shell.X(["git", "status"])
-                        except Exception:
-                            commit = None
-                        else:
-                            sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                            commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
+            with db_registry.cursor() as cr:
+                env2 = api.Environment(cr, SUPERUSER_ID, {})
+                task = self
+                self = self.with_env(env2)
+                with self.branch_id._get_new_logsio_instance(short_name) as logsio:
+                    try:
+                        dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
+                        with self.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
+                            # functions called often block the repository access
+                            args = {
+                                'task': self,
+                                'logsio': logsio,
+                                'shell': shell,
+                                }
+                            if self.kwargs and self.kwargs != 'null':
+                                args.update(json.loads(self.kwargs))
+                            if not args.get('no_repo', False):
+                                self.branch_id.repo_id._get_main_repo(
+                                    destination_folder=dest_folder,
+                                    machine=self.machine_id,
+                                    limit_branch=self.branch_id.name,
+                                    )
+                            obj = self.env[self.model].sudo().browse(self.res_id)
+                            # mini check if it is a git repository:
+                            try:
+                                shell.X(["git", "status"])
+                            except Exception:
+                                commit = None
+                            else:
+                                sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                                commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
 
-                        # if not commit:
-                        #     raise ValidationError(f"Commit {sha} not found in branch.")
-                        # get current commit
-                        exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
-                        if commit:
-                            self.sudo().commit_id = commit
+                            # if not commit:
+                            #     raise ValidationError(f"Commit {sha} not found in branch.")
+                            # get current commit
+                            exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
+                            if commit:
+                                self.sudo().commit_id = commit
 
-                except RetryableJobError:
-                    raise
+                    except RetryableJobError:
+                        raise
 
-                except Exception:
-                    msg = traceback.format_exc()
+                    except Exception:
+                        self.env.cr.rollback()
+                        msg = traceback.format_exc()
+                        log = '\n'.join(logsio.get_lines())
+                        state = 'failed'
+                    finally:
+                        self.env.cr.commit()
+
                     log = '\n'.join(logsio.get_lines())
 
-                    raise Exception(f"{msg}\n\n{log}")
-
-                self.log = '\n'.join(logsio.get_lines())
+                    if logsio:
+                        logsio.info(f"Finished after {duration} seconds!")
 
                 duration = (arrow.get() - started).total_seconds()
-                self.duration = duration
-                if logsio:
-                    logsio.info(f"Finished after {duration} seconds!")
+                task.duration = duration
+                task = self.with_env(env2)
+                task.log = log
+                task.state = state
+                task.duration = duration
 
     @api.model
     def _cron_cleanup(self):
