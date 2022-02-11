@@ -1,6 +1,5 @@
 from odoo import _, api, fields, models, SUPERUSER_ID, tools
 import re
-import spur
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
 
