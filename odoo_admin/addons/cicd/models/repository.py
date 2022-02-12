@@ -212,9 +212,13 @@ class Repository(models.Model):
                         if not updated_branches:
                             continue
 
-                        repo.with_delay()._cron_fetch_update_branches({
-                            'updated_branches': list(updated_branches),
-                        })
+                        for branch in set(updated_branches):
+                            repo.with_delay(
+                                identity_key=f'fetch_updated_branch_{self.short}_{branch}',
+                            )._cron_fetch_update_branches({
+                                'updated_branches': [branch],
+                            })
+                            del branch
 
             except Exception as ex:
                 msg = traceback.format_exc()

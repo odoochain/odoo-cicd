@@ -177,7 +177,11 @@ class ShellExecutor(object):
                 self.logoutput = logoutput
 
             def write(self, line):
+                if not line:
+                    return
                 line = line.decode("utf-8")
+                if line.endswith("\n"):
+                    line = line[:-1]
                 self.all_lines += [line]
                 if logoutput and self.logsio:
                     if self.ttype == 'error':
