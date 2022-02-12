@@ -172,8 +172,7 @@ RUN_POSTGRES=1
     # ----------------------------------------------
     # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
     def execute(self, shell=None, task=None, logsio=None):
-        if self.env.context.get("DEBUG_TESTRUN"):
-            import pudb;pudb.set_trace()
+        breakpoint()
         with self.branch_id._get_new_logsio_instance('test-run-execute') as logsio2:
             if not logsio:
                 logsio = logsio2
