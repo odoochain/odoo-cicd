@@ -379,6 +379,7 @@ echo "--------------------------------------------------------------------------
         """
         Test if line break is ok at end
         """
+        import pudb;pudb.set_trace()
         with self._shell() as shell:
             shell.rm("/tmp/repo1")
             shell.X(["mkdir", "/tmp/repo1"])

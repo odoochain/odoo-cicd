@@ -257,6 +257,7 @@ class ShellExecutor(object):
             f"set -e\n"
             f"{cmd} | cat -\n"
             f"echo\n"
+            f"echo 1>&2\n"
             f"echo '{stop_marker}'\n"
         )
         logger.debug(bashcmd)
