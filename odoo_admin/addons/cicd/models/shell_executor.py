@@ -33,14 +33,8 @@ class ShellExecutor(object):
         self.ssh_keyfile = ssh_keyfile
 
     def exists(self, path):
-        try:
-            res = self._internal_execute(["stat", path])
-        except ConnectionError:
-            raise
-        except Exception as ex:
-            return False
-        else:
-            return res['exit_code'] == 0
+        res = self._internal_execute(["stat", path])
+        return res['exit_code'] == 0
 
     def remove(self, path):
         if self.exists(path):
