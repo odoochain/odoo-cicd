@@ -49,7 +49,8 @@ class ShellExecutor(object):
                 self.logsio.info(f"Path {path} exists and is erased now.")
             self._internal_execute(["rm", "-Rf", path])
         else:
-            self.logsio.info(f"Path {path} did not exist - not erased")
+            if self.logsio:
+                self.logsio.info(f"Path {path} did not exist - not erased")
 
     def _get_home_dir(self):
         with self.machine._shell() as shell:
