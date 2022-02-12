@@ -246,64 +246,60 @@ class ShellExecutor(object):
         [x.start() for x in [tstd, terr]]
 
         remote_temp_path = Path(tempfile.mktemp(suffix='.'))
-        self.put((
+        bashcmd = (
             f"#!/bin/bash\n"
             f"echo '{start_marker}'\n"
             f"echo ''\n"
             f"set -e\n"
             f"{cmd}\n"
             f"echo '{stop_marker}'\n"
-        ), remote_temp_path)
+        )
+
+        p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
+        deadline_started = arrow.get().shift(seconds=10)
+        while True:
+            if arrow.get() > deadline_started:
+                raise ShellExecutor.TimeoutConnection()
+            if data['started']:
+                break
+
+        deadline = arrow.get().shift(seconds=timeout)
+        timeout_happened = False
         try:
+            if not p.commands:
+                raise Exception(f"Command failed: {cmd}")
+            while p.commands[0].returncode is None:
 
-            p = run(sshcmd + f"/bin/bash {remote_temp_path}", async_=True, stdout=stdout, stderr=stderr, env=effective_env)
-            deadline_started = arrow.get().shift(seconds=10)
-            while True:
-                if arrow.get() > deadline_started:
-                    raise ShellExecutor.TimeoutConnection()
-                if data['started']:
+                p.commands[0].poll()
+
+                if arrow.get() > deadline:
+                    p.commands[0].kill()
+                    timeout_happened = True
+                    p.commands[0].kill()
                     break
+                time.sleep(0.05)
 
-            deadline = arrow.get().shift(seconds=timeout)
-            timeout_happened = False
-            try:
-                if not p.commands:
-                    raise Exception(f"Command failed: {cmd}")
-                while p.commands[0].returncode is None:
-
-                    p.commands[0].poll()
-
-                    if arrow.get() > deadline:
-                        p.commands[0].kill()
-                        timeout_happened = True
-                        p.commands[0].kill()
+                if data['stop_marker']:
+                    if (arrow.get() - data['stop_marker_arrived']).total_seconds() > 30 and not p.returncodes:
                         break
-                    time.sleep(0.05)
-
-                    if data['stop_marker']:
-                        if (arrow.get() - data['stop_marker_arrived']).total_seconds() > 30 and not p.returncodes:
-                            break
-            finally:
-                data['stop'] = True
-            tstd.join()
-            terr.join()
-            stdout = '\n'.join(stdwriter.all_lines)
-            stderr = '\n'.join(stdwriter.all_lines)
-
-            if p.returncodes:
-                return_code = p.returncodes[0]
-            elif data['stop_marker']:
-                # script finished but ssh didnt get it
-                return_code = 0
-            else:
-                raise ShellExecutor.TimeoutFinished()
-
-            return {
-                'timeout': timeout_happened,
-                'exit_code': p.commands[0].returncode,
-                'stdout': stdout,
-                'stderr': stderr,
-            }
         finally:
-            # p = run(sshcmd + f"rm {remote_temp_path}", async_=False)
-            pass
+            data['stop'] = True
+        tstd.join()
+        terr.join()
+        stdout = '\n'.join(stdwriter.all_lines)
+        stderr = '\n'.join(stdwriter.all_lines)
+
+        if p.returncodes:
+            return_code = p.returncodes[0]
+        elif data['stop_marker']:
+            # script finished but ssh didnt get it
+            return_code = 0
+        else:
+            raise ShellExecutor.TimeoutFinished()
+
+        return {
+            'timeout': timeout_happened,
+            'exit_code': p.commands[0].returncode,
+            'stdout': stdout,
+            'stderr': stderr,
+        }
