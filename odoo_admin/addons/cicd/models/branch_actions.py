@@ -193,7 +193,6 @@ class Branch(models.Model):
             env = update_env={
                 "TZ": "UTC0"
             }
-
             line = shell.X([
                 "git",
                 "log",

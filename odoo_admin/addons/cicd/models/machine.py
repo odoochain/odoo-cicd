@@ -375,3 +375,16 @@ echo "--------------------------------------------------------------------------
                 if value:
                     raise Exception('should exist')
 
+    def test_ssh_connection2(self, tests=20):
+        """
+        Test if line break is ok at end
+        """
+        with self._shell() as shell:
+            shell.rm("/tmp/repo1")
+            shell.X(["mkdir", "/tmp/repo1"])
+            shell.X(["touch", "/tmp/repo1/a"])
+            shell.X(["git", "init", "."], cwd="/tmp/repo1")
+            shell.X(["git", "add", "."], cwd="/tmp/repo1")
+            shell.X(["git", "commit", "-am", 'msg'], cwd="/tmp/repo1")
+            test = shell.X(["git", "log", "-n1", '--pretty=%ct'], cwd="/tmp/repo1")
+            print(test['stdout'])

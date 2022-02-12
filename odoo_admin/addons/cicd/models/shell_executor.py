@@ -117,7 +117,6 @@ class ShellExecutor(object):
 
     def get(self, source):
         # not tested yet
-        import pudb;pudb.set_trace()
         client = self._get_ssh_client()
         filename = Path(tempfile.mktemp(suffix='.'))
 
@@ -252,13 +251,17 @@ class ShellExecutor(object):
         if env: effective_env.update(env)
         for k, v in effective_env.items():
             bashcmd += f'export {k}="{v}"\n'
+        
         bashcmd += (
             f"echo '{start_marker}'\n"
             f"set -e\n"
             f"{cmd} | cat -\n"
+            f"echo\n"
             f"echo '{stop_marker}'\n"
         )
         logger.debug(bashcmd)
+
+
 
         p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
         deadline_started = arrow.get().shift(seconds=10)
@@ -273,9 +276,16 @@ class ShellExecutor(object):
         try:
             if not p.commands:
                 raise Exception(f"Command failed: {cmd}")
-            while p.commands[0].returncode is None:
+            while True:
 
                 p.commands[0].poll()
+
+                if p.commands[0].returncode is not None and not p.commands[0].returncode and data['stop_marker']:
+                    # Perfect End
+                    break
+
+                if p.commands[0].returncode is not None and p.commands[0].returncode:
+                    break
 
                 if arrow.get() > deadline:
                     p.commands[0].kill()
@@ -294,6 +304,7 @@ class ShellExecutor(object):
         stdout = '\n'.join(stdwriter.all_lines)
         stderr = '\n'.join(errwriter.all_lines)
 
+
         if p.returncodes:
             return_code = p.returncodes[0]
         elif data['stop_marker']:
@@ -301,6 +312,9 @@ class ShellExecutor(object):
             return_code = 0
         else:
             raise ShellExecutor.TimeoutFinished()
+        # remove last line from bashcmd if good:
+        if return_code == 0 and stdout.endswith("\n"):
+            stdout = stdout[:-1]
 
         return {
             'timeout': timeout_happened,
