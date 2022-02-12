@@ -1,4 +1,5 @@
 import arrow
+import uuid
 import threading
 from sarge import Capture, run
 import time
@@ -15,7 +16,10 @@ DEFAULT_ENV = {
     'BUILDKIT_PROGRESS': 'plain',
 }
 
+
 class ShellExecutor(object):
+    class TimeoutConnection(Exception): pass
+    class TimeoutFinished(Exception): pass
     def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env={}):
         self.machine = machine
         self.cwd = Path(cwd) if cwd else None
@@ -204,46 +208,99 @@ class ShellExecutor(object):
         cmd = "set -o pipefail ; " + cmd + " | cat - "
 
         sshcmd = self._get_ssh_client()
+        stop_marker = str(uuid.uuid4()) + str(uuid.uuid4())
+        start_marker = str(uuid.uuid4()) + str(uuid.uuid4())
 
         stdout = Capture(buffer_size=-1) # line buffering
         stderr = Capture(buffer_size=-1) # line buffering
-        data = {'stop': False}
+        data = {
+            'stop': False,
+            'started': False,
+            'stop_marker': False,
+        }
 
-        def collect(capture, writer):
+        def on_started():
+            data['started'] = True
+
+        def on_stop_marker():
+            data['stop_marker'] = True
+            data['stop_marker_arrived'] = arrow.get()
+
+        def collect(capture, writer, marker=None, on_marker=None, stop_marker=None, on_stop_marker=None):
             while not data['stop']:
                 for line in capture:
                     writer.write(line)
+                    line_decoded = line.decode('utf-8')
+                    if marker and marker in line_decoded and on_started:
+                        on_started()
+                    if stop_marker and stop_marker in line_decoded and on_stop_marker:
+                        on_stop_marker()
 
-        tstd = threading.Thread(target=collect, args=(stdout, stdwriter,))
-        terr = threading.Thread(target=collect, args=(stderr, errwriter,))
+        tstd = threading.Thread(target=collect, args=(stdout, stdwriter, start_marker, on_started, stop_marker, on_stop_marker))
+        terr = threading.Thread(target=collect, args=(stderr, errwriter))
         tstd.daemon = True
         terr.daemon = True
         [x.start() for x in [tstd, terr]]
 
-        p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=cmd)
-        deadline = arrow.get().shift(seconds=timeout)
-        timeout_happened = False
+        remote_temp_path = Path(tempfile.mktemp(suffix='.'))
+        cmd = 'asdjasdssakjas'
+        self.put((
+            f"#!/bin/bash\n"
+            f"echo 'starting...'\n"
+            f"echo '{start_marker}'\n"
+            f"echo ''\n"
+            f"set -e\n"
+            f"{cmd}\n"
+            f"echo '{stop_marker}'\n"
+        ), remote_temp_path)
         try:
-            if not p.commands:
-                raise Exception(f"Invalid command: {cmd}")
-            while p.commands[0].returncode is None:
 
-                p.commands[0].poll()
+            p = run(sshcmd + f"/bin/bash {remote_temp_path}", async_=True, stdout=stdout, stderr=stderr, env=effective_env)
+            deadline_started = arrow.get().shift(seconds=10)
+            while True:
+                if arrow.get() > deadline_started:
+                    raise ShellExecutor.TimeoutConnection()
+                if data['started']:
+                    break
 
-                if arrow.get() > deadline:
-                    p.commands[0].kill()
-                    timeout_happened = True
-                time.sleep(0.05)
+            deadline = arrow.get().shift(seconds=timeout)
+            timeout_happened = False
+            try:
+                if not p.commands:
+                    raise Exception(f"Command failed: {cmd}")
+                while p.commands[0].returncode is None:
+
+                    p.commands[0].poll()
+
+                    if arrow.get() > deadline:
+                        p.commands[0].kill()
+                        timeout_happened = True
+                    time.sleep(0.05)
+
+                    if data['stop_marker']:
+                        if (arrow.get() - data['stop_marker_arrived']).total_seconds() > 30 and not p.returncodes:
+                            break
+            finally:
+                data['stop'] = True
+            tstd.join()
+            terr.join()
+            stdout = '\n'.join(stdwriter.all_lines)
+            stderr = '\n'.join(stdwriter.all_lines)
+
+            if p.returncodes:
+                return_code = p.returncodes[0]
+            elif data['stop_marker']:
+                # script finished but ssh didnt get it
+                return_code = 0
+            else:
+                raise ShellExecutor.TimeoutFinished()
+
+            return {
+                'timeout': timeout_happened,
+                'exit_code': p.commands[0].returncode,
+                'stdout': stdout,
+                'stderr': stderr,
+            }
         finally:
-            data['stop'] = True
-        tstd.join()
-        terr.join()
-        stdout = '\n'.join(stdwriter.all_lines)
-        stderr = '\n'.join(stdwriter.all_lines)
-
-        return {
-            'timeout': timeout_happened,
-            'exit_code': p.commands[0].returncode,
-            'stdout': stdout,
-            'stderr': stderr,
-        }
+            # p = run(sshcmd + f"rm {remote_temp_path}", async_=False)
+            pass

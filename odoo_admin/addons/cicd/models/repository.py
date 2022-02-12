@@ -308,6 +308,9 @@ class Repository(models.Model):
                     healthy = True
             except:
                 pass
+        else:
+            # TODO UNDO
+            raise Exception(f'here {path}')
         return healthy
 
     def clone_repo(self, machine, path, logsio):
