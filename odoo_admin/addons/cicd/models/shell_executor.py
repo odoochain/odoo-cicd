@@ -186,24 +186,10 @@ class ShellExecutor(object):
 
         stdwriter, errwriter = MyWriter('info', self.logsio, logoutput), MyWriter('error', self.logsio, logoutput)
 
-        cwd = cwd or self.cwd
-        cd_command = []
-        if cwd:
-            cd_command = ["cd", str(cwd)]
-
-        effective_env = deepcopy(DEFAULT_ENV)
-        if self.env: effective_env.update(self.env)
-        if env: effective_env.update(env)
 
         if isinstance(cmd, (tuple, list)):
             cmd = f"{cmd[0]} " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
 
-        for k, v in effective_env.items():
-            cmd = f"{k}=\"{v}\"" + " " + cmd
-
-        if cd_command:
-            cmd = shlex.join(cd_command) + " && " + cmd
-        cmd = "set -o pipefail ; " + cmd + " | cat - "
 
         sshcmd = self._get_ssh_client()
         stop_marker = str(uuid.uuid4()) + str(uuid.uuid4())
@@ -246,14 +232,28 @@ class ShellExecutor(object):
         [x.start() for x in [tstd, terr]]
 
         remote_temp_path = Path(tempfile.mktemp(suffix='.'))
+        cmd = cmd.replace('\n', ' ')
         bashcmd = (
             f"#!/bin/bash\n"
+            f"set -o pipefail\n"
+        )
+
+        cwd = cwd or self.cwd
+        if cwd:
+            bashcmd += f"cd '{cwd}' || exit 15\n"
+
+        effective_env = deepcopy(DEFAULT_ENV)
+        if self.env: effective_env.update(self.env)
+        if env: effective_env.update(env)
+        for k, v in effective_env.items():
+            bashcmd += f'export {k}="{v}"\n'
+        bashcmd += (
             f"echo '{start_marker}'\n"
-            f"echo ''\n"
             f"set -e\n"
-            f"{cmd}\n"
+            f"{cmd} | cat -\n"
             f"echo '{stop_marker}'\n"
         )
+        logger.debug(bashcmd)
 
         p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
         deadline_started = arrow.get().shift(seconds=10)
@@ -287,7 +287,7 @@ class ShellExecutor(object):
         tstd.join()
         terr.join()
         stdout = '\n'.join(stdwriter.all_lines)
-        stderr = '\n'.join(stdwriter.all_lines)
+        stderr = '\n'.join(errwriter.all_lines)
 
         if p.returncodes:
             return_code = p.returncodes[0]

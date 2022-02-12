@@ -187,7 +187,7 @@ class Repository(models.Model):
                         updated_branches = set()
 
                         for remote in repo._get_remotes(shell):
-                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'])['stdout'].strip().split("\n")))
+                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'])['stderr'].strip().split("\n")))
                             for fi in fetch_info:
                                 while "  " in fi:
                                     fi = fi.replace("  ", " ")
@@ -240,10 +240,6 @@ class Repository(models.Model):
         updated_branches = data['updated_branches']
 
         with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
-
-
-
-
             repo_path = repo._get_main_repo(logsio=logsio)
             machine = repo.machine_id
             repo = repo.with_context(active_test=False)
