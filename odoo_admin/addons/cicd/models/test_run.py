@@ -99,7 +99,7 @@ RUN_POSTGRES=1
                 reload()
             except Exception as ex:
                 try:
-                    shell.rmifexists(shell.cwd)
+                    shell.rm(shell.cwd)
                     reload()
                 except Exception as ex:
                     report("Error occurred", exception=ex, duration=arrow.get() - started)
@@ -154,7 +154,7 @@ RUN_POSTGRES=1
                     project_dir = shell.cwd
                     shell.cwd = shell.cwd.parent
                     try:
-                        shell.rmifexists(project_dir)
+                        shell.rm(project_dir)
                     except Exception:
                         msg = f"Failed to remove directory {project_dir}"
                         if logsio:

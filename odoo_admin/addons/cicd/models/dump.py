@@ -25,7 +25,7 @@ class Dump(models.Model):
     def unlink(self):
         for rec in self:
             with self.machine_id._shell() as shell:
-                shell.rmifexists(rec.name)
+                shell.rm(rec.name)
 
         return super().unlink()
 

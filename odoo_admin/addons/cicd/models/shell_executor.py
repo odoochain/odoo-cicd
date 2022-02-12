@@ -40,18 +40,16 @@ class ShellExecutor(object):
         res = self._internal_execute(["stat", path])
         return res['exit_code'] == 0
 
+    def rm(self, path):
+        return self.remove(path)
+
     def remove(self, path):
         if self.exists(path):
             if self.logsio:
                 self.logsio.info(f"Path {path} exists and is erased now.")
             self._internal_execute(["rm", "-Rf", path])
-
-    def rmifexists(self, path):
-        if self.exists(path):
-            self.remove(path)
         else:
-            if self.logsio:
-                self.logsio.info(f"Path {path} doesn't exist - nothing will be erased.")
+            self.logsio.info(f"Path {path} did not exist - not erased")
 
     def _get_home_dir(self):
         with self.machine._shell() as shell:
@@ -229,12 +227,17 @@ class ShellExecutor(object):
         def collect(capture, writer, marker=None, on_marker=None, stop_marker=None, on_stop_marker=None):
             while not data['stop']:
                 for line in capture:
-                    writer.write(line)
                     line_decoded = line.decode('utf-8')
+                    is_marker = False
                     if marker and marker in line_decoded and on_started:
                         on_started()
+                        is_marker = True
                     if stop_marker and stop_marker in line_decoded and on_stop_marker:
                         on_stop_marker()
+                        is_marker = True
+                    
+                    if not is_marker:
+                        writer.write(line)
 
         tstd = threading.Thread(target=collect, args=(stdout, stdwriter, start_marker, on_started, stop_marker, on_stop_marker))
         terr = threading.Thread(target=collect, args=(stderr, errwriter))
@@ -242,11 +245,11 @@ class ShellExecutor(object):
         terr.daemon = True
         [x.start() for x in [tstd, terr]]
 
+        if 'stat' in cmd:
+            import pudb;pudb.set_trace()
         remote_temp_path = Path(tempfile.mktemp(suffix='.'))
-        cmd = 'asdjasdssakjas'
         self.put((
             f"#!/bin/bash\n"
-            f"echo 'starting...'\n"
             f"echo '{start_marker}'\n"
             f"echo ''\n"
             f"set -e\n"
@@ -275,6 +278,8 @@ class ShellExecutor(object):
                     if arrow.get() > deadline:
                         p.commands[0].kill()
                         timeout_happened = True
+                        p.commands[0].kill()
+                        break
                     time.sleep(0.05)
 
                     if data['stop_marker']:

@@ -106,7 +106,7 @@ class Repository(models.Model):
                     shell.X(["rm", filename])
                     return content
                 finally:
-                    shell.rmifexists(repo_path)
+                    shell.rm(repo_path)
 
         finally:
             if filename.exists():
@@ -129,7 +129,7 @@ class Repository(models.Model):
         if temppath and temppath != path:
             with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
                 if not self._is_healthy_repository(shell, temppath):
-                    shell.rmifexists(temppath)
+                    shell.rm(temppath)
 
                     if limit_branch:
                         # make sure branch exists in source repo
@@ -308,16 +308,13 @@ class Repository(models.Model):
                     healthy = True
             except:
                 pass
-        else:
-            # TODO UNDO
-            raise Exception(f'here {path}')
         return healthy
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
             with pg_advisory_lock(self.env.cr, self._get_lockname()):
                 if not self._is_healthy_repository(shell, path):
-                    shell.rmifexists(path)
+                    shell.rm(path)
                     shell.X([
                         "git", "clone", self.url,
                         path
@@ -394,7 +391,7 @@ class Repository(models.Model):
                             message_commit.ensure_one()
 
                 finally:
-                    shell.rmifexists(repo_path)
+                    shell.rm(repo_path)
 
             return message_commit, commits
 
@@ -425,7 +422,7 @@ class Repository(models.Model):
                 return count_lines
 
             finally:
-                shell.rmifexists(repo_path)
+                shell.rm(repo_path)
 
     @api.model
     def _cron_cleanup(self):

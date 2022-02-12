@@ -316,8 +316,7 @@ echo "--------------------------------------------------------------------------
                 yield shell
 
             finally:
-                if shell.exists(file):
-                    shell.remove(file)
+                shell.remove(file)
 
     @contextmanager
     def _put_temporary_file_on_machine(self, logsio, source_path, dest_machine, dest_path, delete_copied_file=True):
@@ -356,7 +355,7 @@ echo "--------------------------------------------------------------------------
                 finally:
                     if delete_copied_file:
                         with dest_machine._shellexec(cwd="", logsio=logsio) as shell:
-                            shell.rmifexists(dest_path)
+                            shell.rm(dest_path)
 
             finally:
                 os.unlink(filename)

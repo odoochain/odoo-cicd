@@ -23,7 +23,7 @@ class CicdReleaseAction(models.Model):
                 try:
                     shell.X(["/bin/bash", filepath])
                 finally:
-                    shell.rmifexists(filepath)
+                    shell.rm(filepath)
 
     @api.model
     def run_action_set(self, release_item, actions):
@@ -88,7 +88,7 @@ class CicdReleaseAction(models.Model):
                 shell.X(['mkdir', '-p', temppath])
                 shell.X(["tar", "xfz", filename], cwd=temppath)
                 shell.X(["rsync", str(temppath) + "/", str(shell.cwd) + "/", "-ar", "--delete-after"])
-                shell.rmifexists(temppath)
+                shell.rm(temppath)
 
     def _run_update(self, logsio):
         self.ensure_one()

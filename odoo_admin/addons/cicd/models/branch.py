@@ -367,7 +367,7 @@ class GitBranch(models.Model):
                         # delete instance folder
                         with machine._shell(cwd=path, logsio=logsio) as shell:
                             project_path = path / rec.project_name
-                            shell.rmifexists(project_path)
+                            shell.rm(project_path)
 
                             try:
                                 shell.odoo("kill")
