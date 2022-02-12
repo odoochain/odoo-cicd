@@ -245,8 +245,6 @@ class ShellExecutor(object):
         terr.daemon = True
         [x.start() for x in [tstd, terr]]
 
-        if 'stat' in cmd:
-            import pudb;pudb.set_trace()
         remote_temp_path = Path(tempfile.mktemp(suffix='.'))
         self.put((
             f"#!/bin/bash\n"

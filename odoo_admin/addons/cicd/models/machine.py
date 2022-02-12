@@ -170,7 +170,7 @@ class CicdMachine(models.Model):
         and does a docker system prune.
         """
         with LogsIOWriter.GET(self.name, 'spring_clean') as logsio:
-            with self._shellexec(cwd="~", logsio=logsio) as shell:
+            with self._shell(cwd="~", logsio=logsio) as shell:
                 shell.X(["/usr/bin/docker", "system", "prune", "-f"])
 
     def make_login_possible_for_webssh_container(self):
@@ -282,7 +282,7 @@ echo "--------------------------------------------------------------------------
         else:
             vol = self.volume_ids.browse(vals['upload_volume_id'])
 
-        with self._shellexec(cwd='~', logsio=None) as shell1:
+        with self._shell(cwd='~', logsio=None) as shell1:
             with shell1.shell() as shell2:
                 path = Path(vol.name) / filename
                 content = base64.b64decode(content)
@@ -354,8 +354,24 @@ echo "--------------------------------------------------------------------------
 
                 finally:
                     if delete_copied_file:
-                        with dest_machine._shellexec(cwd="", logsio=logsio) as shell:
+                        with dest_machine._shell(cwd="", logsio=logsio) as shell:
                             shell.rm(dest_path)
 
             finally:
                 os.unlink(filename)
+
+    def test_ssh_connection(self, tests=20):
+        with self._shell() as shell:
+            shell.put("hansi", "/tmp/hansi")
+            for i in range(tests):
+                value = shell.exists("/tmp/hansi")
+                print(i, value)
+                if not value:
+                    raise Exception('should exist')
+            shell.rm("/tmp/hansi")
+            for i in range(tests):
+                value = shell.exists("/tmp/hansi")
+                print(i, value)
+                if value:
+                    raise Exception('should exist')
+
