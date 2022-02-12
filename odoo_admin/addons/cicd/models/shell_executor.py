@@ -311,6 +311,8 @@ class ShellExecutor(object):
         elif data['stop_marker']:
             # script finished but ssh didnt get it
             return_code = 0
+            if stderr.endswith("\n"):
+                stderr = stderr[:-1]
         else:
             raise ShellExecutor.TimeoutFinished()
         # remove last line from bashcmd if good:
