@@ -152,7 +152,7 @@ class ShellExecutor(object):
         user_host = f"{user}@{host}"
         if split_host:
             return base, user_host
-        return base + " " + user_host
+        return base + " " + user_host + " "
 
     def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999):
         if timeout is None:
