@@ -95,6 +95,8 @@ class Task(models.Model):
         return name
 
     def _exec(self, now=False):
+        if now:
+            self.env.cr.commit() # otherwise record does not exist
         self = self.sudo()
         short_name = self._get_short_name()
         started = arrow.get()
