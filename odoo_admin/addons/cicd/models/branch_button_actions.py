@@ -66,6 +66,7 @@ class Branch(models.Model):
         self._make_task("_run_tests", update_state=True)
 
     def start(self):
+        breakpoint()
         self.make_instance_ready_to_login()
         return {
             'type': 'ir.actions.act_url',
