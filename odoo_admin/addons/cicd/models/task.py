@@ -109,7 +109,7 @@ class Task(models.Model):
         started = arrow.get()
         # TODO make testruns not block reloading
         with pg_advisory_lock(self.env.cr, self.branch_id.id):
-            with self._new_cursor(not now):
+            with self._new_cursor(not now) as env2:
                 self = env2[self._name].browse(self.id)
                 self.state = 'started'
                 self.env.cr.commit()
