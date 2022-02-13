@@ -99,7 +99,7 @@ class Branch(models.Model):
 
     def _docker_get_state(self, shell, **kwargs):
         try:
-            info = shell.odoo('ps')['stdout']
+            info = shell.odoo('ps')['stdout'].strip()
         except Exception:
             logger.warn("Error at docker_get_state", exc_info=True)
             info = ""
@@ -115,6 +115,8 @@ class Branch(models.Model):
                 line = line.replace("  ", " ")
 
             if line.startswith("Version:"):
+                continue
+            if not line:
                 continue
             container_name = line.split(" ")[0]
             state = line.split(" ", 1)[-1].lower()

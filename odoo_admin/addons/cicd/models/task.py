@@ -94,16 +94,22 @@ class Task(models.Model):
             name = name[1:]
         return name
 
+    @contextmanager
+    def _with_new_cursor(self, new_cursor):
+        if new_cursor:
+            with self.env.registry.cursor() as cr:
+                env2 = api.Environment(cr, SUPERUSER_ID, {})
+                yield env2
+        else:
+            yield self.env
+
     def _exec(self, now=False):
-        if now:
-            self.env.cr.commit() # otherwise record does not exist
         self = self.sudo()
         short_name = self._get_short_name()
         started = arrow.get()
         # TODO make testruns not block reloading
         with pg_advisory_lock(self.env.cr, self.branch_id.id):
-            with self.env.registry.cursor() as cr:
-                env2 = api.Environment(cr, SUPERUSER_ID, {})
+            with self._new_cursor(not now):
                 self = env2[self._name].browse(self.id)
                 self.state = 'started'
                 self.env.cr.commit()
