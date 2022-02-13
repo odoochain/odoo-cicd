@@ -95,7 +95,7 @@ class Task(models.Model):
         return name
 
     @contextmanager
-    def _with_new_cursor(self, new_cursor):
+    def _new_cursor(self, new_cursor):
         if new_cursor:
             with self.env.registry.cursor() as cr:
                 env2 = api.Environment(cr, SUPERUSER_ID, {})
