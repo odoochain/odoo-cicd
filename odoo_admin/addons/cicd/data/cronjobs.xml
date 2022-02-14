@@ -1,5 +1,5 @@
 <odoo>
-	<data noupdate='0'>
+	<data noupdate='1'>
 		<record id="fetch_new_branches" model="ir.cron">
 			<field name="name">fetch_new_branches</field>
 			<field name="interval_number">1</field>

@@ -232,7 +232,6 @@ class ShellExecutor(object):
         terr.daemon = True
         [x.start() for x in [tstd, terr]]
 
-        remote_temp_path = Path(tempfile.mktemp(suffix='.'))
         cmd = cmd.replace('\n', ' ')
         bashcmd = (
             f"#!/bin/bash\n"
@@ -293,8 +292,13 @@ class ShellExecutor(object):
                 time.sleep(0.05)
 
                 if data['stop_marker']:
-                    if (arrow.get() - data['stop_marker_arrived']).total_seconds() > 30 and not p.returncodes:
+                    if (arrow.get() - data['stop_marker_arrived']).total_seconds() > 10 and not p.returncodes:
                         break
+                if p.commands[0].returncode and not data['stop_marker_arrived']:
+                    data.setdefault("waiting_for_stop", arrow.get())
+                    if (arrow.get() - data['waiting_for_stop']).total_seconds() > 10 and not data['stop_marker_arrived']:
+                        break
+
         finally:
             data['stop'] = True
         tstd.join()
