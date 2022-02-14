@@ -194,6 +194,8 @@ class Task(models.Model):
     def _set_failed_if_no_queuejob(self):
         for task in self:
             if not task.queue_job_id:
+                if not task.state or task.state in ['started']:
+                    task.state = 'failed'
                 continue
             if task.queue_job_id.state in ['failed', 'done']:
                 if not task.state or task.state == 'started':
