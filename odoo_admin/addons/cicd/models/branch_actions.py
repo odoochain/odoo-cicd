@@ -97,9 +97,13 @@ class Branch(models.Model):
         shell.odoo('kill')
         self._docker_get_state(shell)
 
+    def _docker_remove(self, shell, task, logsio, **kwargs):
+        shell.odoo('rm')
+        self._docker_get_state(shell)
+
     def _docker_get_state(self, shell, **kwargs):
         try:
-            info = shell.odoo('ps')['stdout']
+            info = shell.odoo('ps')['stdout'].strip()
         except Exception:
             logger.warn("Error at docker_get_state", exc_info=True)
             info = ""
@@ -115,6 +119,8 @@ class Branch(models.Model):
                 line = line.replace("  ", " ")
 
             if line.startswith("Version:"):
+                continue
+            if not line:
                 continue
             container_name = line.split(" ")[0]
             state = line.split(" ", 1)[-1].lower()
@@ -193,7 +199,7 @@ class Branch(models.Model):
             env = update_env={
                 "TZ": "UTC0"
             }
-
+            breakpoint()
             line = shell.X([
                 "git",
                 "log",
@@ -327,14 +333,14 @@ class Branch(models.Model):
             shell.X(["git", "checkout", "-f", self.name])
         except Exception as ex:
             logsio.error(ex)
-            shell.rmifexists(instance_folder)
+            shell.rm(instance_folder)
             raise RetryableJobError("Cleared directory - branch not found - please retry", ignore_retry=True)
 
         try:
             shell.X(["git", "pull"])
         except Exception as ex:
             logsio.error(f"Error at pulling, cloning path {instance_folder} again:\n{ex}")
-            shell.rmifexists(instance_folder)
+            shell.rm(instance_folder)
             instance_folder = self._clone_instance_folder(machine, logsio)
 
         # delete all other branches:
@@ -350,7 +356,7 @@ class Branch(models.Model):
             raise Exception(f"Somehow no current branch found")
         branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
         if branch_in_dir != self.name:
-            shell.rmifexists(instance_folder)
+            shell.rm(instance_folder)
             raise Exception(f"Branch could not be checked out! Was {branch_in_dir} - but should be {self.name}")
 
         logsio.write_text(f"Clean git")
@@ -464,7 +470,7 @@ class Branch(models.Model):
                     compressor.date_last_success = fields.Datetime.now()
 
                 finally:
-                    shell.rmifexists(instance_path)
+                    shell.rm(instance_path)
 
     def _make_sure_source_exists(self, shell, logsio):
         instance_folder = self._get_instance_folder(shell.machine)
@@ -472,7 +478,7 @@ class Branch(models.Model):
             try:
                 self._checkout_latest(shell, logsio=logsio)
             except Exception as ex:
-                shell.rmifexists(instance_folder)
+                shell.rm(instance_folder)
                 self._checkout_latest(shell, logsio=logsio)
         return instance_folder
 
@@ -528,4 +534,4 @@ for path in base.glob("*"):
         try:
             shell.X(["python3", '.cicd_reorder_files'])
         finally:
-            shell.rmifexists(".cicd_reorder_files")
+            shell.rm(".cicd_reorder_files")

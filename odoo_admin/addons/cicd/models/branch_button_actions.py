@@ -25,10 +25,13 @@ class Branch(models.Model):
         self._make_task("_shrink_db")
 
     def docker_start(self):
-        self._make_task("_docker_start", True, no_repo=True)
+        self._make_task("_docker_start", no_repo=True)
+
+    def docker_remove(self):
+        self._make_task("_docker_remove", no_repo=True)
 
     def docker_stop(self):
-        self._make_task("_docker_stop", True)
+        self._make_task("_docker_stop")
 
     def docker_get_state(self, now=True):
         for rec in self:
@@ -66,6 +69,7 @@ class Branch(models.Model):
         self._make_task("_run_tests", update_state=True)
 
     def start(self):
+        breakpoint()
         self.make_instance_ready_to_login()
         return {
             'type': 'ir.actions.act_url',

@@ -94,17 +94,26 @@ class Task(models.Model):
             name = name[1:]
         return name
 
+    @contextmanager
+    def _new_cursor(self, new_cursor):
+        if new_cursor:
+            with self.env.registry.cursor() as cr:
+                env2 = api.Environment(cr, SUPERUSER_ID, {})
+                yield env2
+        else:
+            yield self.env
+
     def _exec(self, now=False):
         self = self.sudo()
         short_name = self._get_short_name()
         started = arrow.get()
-        state = None
         # TODO make testruns not block reloading
-        db_registry = registry(self.env.cr.dbname)
         with pg_advisory_lock(self.env.cr, self.branch_id.id):
-            with db_registry.cursor() as cr:
-                env2 = api.Environment(cr, SUPERUSER_ID, {})
-                task = self
+            with self._new_cursor(not now) as env2:
+                self = env2[self._name].browse(self.id)
+                self.state = 'started'
+                self.env.cr.commit()
+
                 self = self.with_env(env2)
                 with self.branch_id._get_new_logsio_instance(short_name) as logsio:
                     try:
@@ -148,7 +157,9 @@ class Task(models.Model):
                         self.env.cr.rollback()
                         msg = traceback.format_exc()
                         log = '\n'.join(logsio.get_lines())
-                        state = 'failed'
+                        self.state = 'failed'
+                    else:
+                        self.state = 'done'
                     finally:
                         self.env.cr.commit()
 
@@ -158,15 +169,13 @@ class Task(models.Model):
                     if logsio:
                         logsio.info(f"Finished after {duration} seconds!")
 
-                task.duration = duration
-                task = self.with_env(env2)
-                task.log = log
-                task.state = state
-                task.duration = duration
+                    self.duration = duration
+                    self.log = log
+                    self.duration = duration
 
     @api.model
     def _cron_cleanup(self):
-        dt = arrow.get().shift(days=-10).strftime("%Y-%m-%d %H:%M:%S")
+        dt = arrow.get().shift(days=-20).strftime("%Y-%m-%d %H:%M:%S")
         self.search([
             ('create_date', '<', dt)
             ]).unlink()

@@ -106,7 +106,7 @@ class Repository(models.Model):
                     shell.X(["rm", filename])
                     return content
                 finally:
-                    shell.rmifexists(repo_path)
+                    shell.rm(repo_path)
 
         finally:
             if filename.exists():
@@ -129,7 +129,7 @@ class Repository(models.Model):
         if temppath and temppath != path:
             with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
                 if not self._is_healthy_repository(shell, temppath):
-                    shell.rmifexists(temppath)
+                    shell.rm(temppath)
 
                     if limit_branch:
                         # make sure branch exists in source repo
@@ -187,7 +187,7 @@ class Repository(models.Model):
                         updated_branches = set()
 
                         for remote in repo._get_remotes(shell):
-                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'], ignore_stdout=True)['stdout'].strip().split("\n")))
+                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'])['stderr'].strip().split("\n")))
                             for fi in fetch_info:
                                 while "  " in fi:
                                     fi = fi.replace("  ", " ")
@@ -212,9 +212,13 @@ class Repository(models.Model):
                         if not updated_branches:
                             continue
 
-                        repo.with_delay()._cron_fetch_update_branches({
-                            'updated_branches': list(updated_branches),
-                        })
+                        for branch in set(updated_branches):
+                            repo.with_delay(
+                                identity_key=f'fetch_updated_branch_{self.short or self.name}_{branch}',
+                            )._cron_fetch_update_branches({
+                                'updated_branches': [branch],
+                            })
+                            del branch
 
             except Exception as ex:
                 msg = traceback.format_exc()
@@ -240,23 +244,18 @@ class Repository(models.Model):
         updated_branches = data['updated_branches']
 
         with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
-
-
-
-
             repo_path = repo._get_main_repo(logsio=logsio)
             machine = repo.machine_id
             repo = repo.with_context(active_test=False)
 
-            with pg_advisory_lock(self.env.cr, self._get_lockname()):
+            with pg_advisory_lock(self.env.cr, repo._get_lockname()):
                 with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
                     for branch in updated_branches:
                         logsio.info(f"Pulling {branch}...")
                         shell.X(["git", "fetch", "origin", branch])
-                        with pg_advisory_lock(self.env.cr, repo._get_lockname()):
-                            shell.checkout_branch(branch)
-                            shell.X(["git", "pull"])
-                            shell.X(["git", "submodule", "update", "--init", "--recursive"])
+                        shell.checkout_branch(branch)
+                        shell.X(["git", "pull"])
+                        shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
                     # if completely new then all branches:
                     if not repo.branch_ids:
@@ -314,7 +313,7 @@ class Repository(models.Model):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
             with pg_advisory_lock(self.env.cr, self._get_lockname()):
                 if not self._is_healthy_repository(shell, path):
-                    shell.rmifexists(path)
+                    shell.rm(path)
                     shell.X([
                         "git", "clone", self.url,
                         path
@@ -391,7 +390,7 @@ class Repository(models.Model):
                             message_commit.ensure_one()
 
                 finally:
-                    shell.rmifexists(repo_path)
+                    shell.rm(repo_path)
 
             return message_commit, commits
 
@@ -422,7 +421,7 @@ class Repository(models.Model):
                 return count_lines
 
             finally:
-                shell.rmifexists(repo_path)
+                shell.rm(repo_path)
 
     @api.model
     def _cron_cleanup(self):

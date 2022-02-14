@@ -297,16 +297,6 @@ class GitBranch(models.Model):
     def _get_instance_folder(self, machine):
         return machine._get_volume('source') / self.project_name
 
-    @contextmanager
-    def _shellexec(self, task, logsio, cwd=None, machine=None):
-        instance_folder = self._get_instance_folder(task and task.machine_id or machine)
-        with self.machine_id._shellexec(
-            cwd=cwd or instance_folder,
-            logsio=logsio,
-            project_name=self.project_name,
-        ) as shell:
-            yield shell
-
     def make_instance_ready_to_login(self):
         machine = self.machine_id
         timeout = machine.test_timeout_web_login
@@ -367,7 +357,7 @@ class GitBranch(models.Model):
                         # delete instance folder
                         with machine._shell(cwd=path, logsio=logsio) as shell:
                             project_path = path / rec.project_name
-                            shell.rmifexists(project_path)
+                            shell.rm(project_path)
 
                             try:
                                 shell.odoo("kill")

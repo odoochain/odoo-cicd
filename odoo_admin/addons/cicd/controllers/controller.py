@@ -54,11 +54,9 @@ class Controller(http.Controller):
         if not request.env.user.has_group("cicd.group_download_dumps"):
             return "Forbidden"
 
-        with dump.machine_id._shellexec(cwd='~', logsio=None) as shell1:
-            with shell1.shell() as shell2:
-                content = shell2.read_bytes(dump.name)
-
-                dump.machine_id.sudo().message_post(body="Downloaded dump: " + dump.name)
+        with dump.machine_id._shell(cwd='~', logsio=None) as shell:
+            content = shell.get(dump.name)
+            dump.machine_id.sudo().message_post(body="Downloaded dump: " + dump.name)
 
         name = dump.name.split("/")[-1]
 

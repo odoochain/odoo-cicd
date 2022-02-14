@@ -99,7 +99,7 @@ RUN_POSTGRES=1
                 reload()
             except Exception as ex:
                 try:
-                    shell.rmifexists(shell.cwd)
+                    shell.rm(shell.cwd)
                     reload()
                 except Exception as ex:
                     report("Error occurred", exception=ex, duration=arrow.get() - started)
@@ -154,7 +154,7 @@ RUN_POSTGRES=1
                     project_dir = shell.cwd
                     shell.cwd = shell.cwd.parent
                     try:
-                        shell.rmifexists(project_dir)
+                        shell.rm(project_dir)
                     except Exception:
                         msg = f"Failed to remove directory {project_dir}"
                         if logsio:
@@ -172,8 +172,7 @@ RUN_POSTGRES=1
     # ----------------------------------------------
     # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
     def execute(self, shell=None, task=None, logsio=None):
-        if self.env.context.get("DEBUG_TESTRUN"):
-            import pudb;pudb.set_trace()
+        breakpoint()
         with self.branch_id._get_new_logsio_instance('test-run-execute') as logsio2:
             if not logsio:
                 logsio = logsio2
