@@ -254,11 +254,12 @@ class ShellExecutor(object):
             f"{cmd} | cat -\n"
             f"echo\n"
             f"echo 1>&2\n"
-            f"echo '{stop_marker}'\n"
+            f"echo '{stop_marker}' \n"
         )
         logger.debug(bashcmd)
 
-
+        if 'backup' in cmd:
+            breakpoint()
 
         p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
         deadline_started = arrow.get().shift(seconds=10)
@@ -291,12 +292,12 @@ class ShellExecutor(object):
                     break
                 time.sleep(0.05)
 
-                if data['stop_marker']:
+                if data.get('stop_marker'):
                     if (arrow.get() - data['stop_marker_arrived']).total_seconds() > 10 and not p.returncodes:
                         break
-                if p.commands[0].returncode and not data['stop_marker_arrived']:
+                if p.commands[0].returncode is not None and not data.get('stop_marker_arrived'):
                     data.setdefault("waiting_for_stop", arrow.get())
-                    if (arrow.get() - data['waiting_for_stop']).total_seconds() > 10 and not data['stop_marker_arrived']:
+                    if (arrow.get() - data['waiting_for_stop']).total_seconds() > 5:
                         break
 
         finally:
