@@ -117,13 +117,11 @@ class ShellExecutor(object):
 
     def get(self, source):
         # not tested yet
-        client = self._get_ssh_client()
         filename = Path(tempfile.mktemp(suffix='.'))
 
-        cmd = self._get_ssh_client('scp')
-        client.scp_recv(str(source), str(filename))
         cmd, host = self._get_ssh_client('scp', split_host=True)
-        p = run(cmd + f"'{host}:{source}' '{filename}'")
+        capt = Capture()
+        p = run(cmd + f" '{host}:{source}' '{filename}'", stdout=capt, stderr=capt)
         if p.commands[0].returncode:
             raise Exception("Copy failed")
         try:
@@ -133,7 +131,6 @@ class ShellExecutor(object):
                 filename.unlink()
 
     def put(self, content, dest):
-        client = self._get_ssh_client()
         filename = Path(tempfile.mktemp(suffix='.'))
         if isinstance(content, str):
             content = content.encode('utf-8')

@@ -97,6 +97,10 @@ class Branch(models.Model):
         shell.odoo('kill')
         self._docker_get_state(shell)
 
+    def _docker_remove(self, shell, task, logsio, **kwargs):
+        shell.odoo('rm')
+        self._docker_get_state(shell)
+
     def _docker_get_state(self, shell, **kwargs):
         try:
             info = shell.odoo('ps')['stdout'].strip()
