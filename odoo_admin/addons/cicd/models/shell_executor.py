@@ -258,9 +258,6 @@ class ShellExecutor(object):
         )
         logger.debug(bashcmd)
 
-        if 'backup' in cmd:
-            breakpoint()
-
         p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
         deadline_started = arrow.get().shift(seconds=10)
         while True:
