@@ -181,3 +181,11 @@ class Task(models.Model):
                 rec.queue_job_id = self.env['queue.job'].search([('uuid', '=', rec.queuejob_uuid)], limit=1)
             else:
                 rec.queue_job_id = False
+
+    def _set_failed_if_no_queuejob(self):
+        for task in self:
+            if not task.queue_job_id:
+                continue
+            if task.queue_job_id.state in ['failed', 'done']:
+                if not task.state or task.state == 'started':
+                    task.state = 'failed'
