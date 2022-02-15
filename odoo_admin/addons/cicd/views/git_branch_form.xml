@@ -42,7 +42,6 @@
 						</div>
 						<group col="4">
 							<field name="repo_id" readonly='1' />
-							<field name="build_state" readonly='1' />
 							<field name="link_to_instance" widget="url"/>
 							<field name="ticket_system_url" widget="url"/>
 							<field name="ticket_system_ref" />

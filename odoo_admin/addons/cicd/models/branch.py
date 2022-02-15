@@ -46,12 +46,6 @@ class GitBranch(models.Model):
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
     docker_state = fields.Char("Docker State", readonly=True, compute="_compute_docker_state")
     state = fields.Selection(STATES, string="State", default="new", tracking=True, compute="_compute_state", store=True, group_expand="_expand_states")
-    build_state = fields.Selection([
-        ('new', 'New'),
-        ('fail', 'Failed'),
-        ('done', 'Done'),
-        ('building', 'Building'),
-    ], default="new", required=True, compute="_compute_build_state", string="Instance State", tracking=True)
     dump_id = fields.Many2one("cicd.dump", string="Dump")
     remove_web_assets_after_restore = fields.Boolean("Remove Webassets", default=True)
     reload_config = fields.Text("Reload Config", tracking=True)
@@ -250,21 +244,6 @@ class GitBranch(models.Model):
     def _compute_human(self):
         for rec in self:
             rec.db_size_humanize = humanize.naturalsize(rec.db_size)
-
-    # TODO make it pre computed not here
-    @api.depends('task_ids', 'task_ids.state')
-    def _compute_build_state(self):
-        for rec in self:
-            rec.build_state = 'done'
-            # if 'new' in rec.mapped('task_ids.state'):
-            #     rec.build_state = 'building'
-            # else:
-            #     if rec.task_ids and rec.task_ids[0].state == 'fail':
-            #         rec.build_state = 'failed'
-            #     elif rec.task_ids and rec.task_ids[0].state == 'done':
-            #         rec.build_state = 'done'
-            #     else:
-            #         rec.build_state = 'new'
 
     def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, **kwargs):
         for rec in self:

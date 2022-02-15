@@ -25,10 +25,6 @@
 							<field name="state"/>
 						</div>
 						<div>
-							<strong>Build State:</strong>
-							<field name="build_state"/>
-						</div>
-						<div>
 							<strong>Date Added:</strong>
 							<field name="create_date"/>
 						</div>
