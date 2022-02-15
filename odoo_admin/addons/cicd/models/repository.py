@@ -242,6 +242,7 @@ class Repository(models.Model):
         repo = self
         # checkout latest / pull latest
         updated_branches = data['updated_branches']
+        breakpoint()
 
         with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
             repo_path = repo._get_main_repo(logsio=logsio)

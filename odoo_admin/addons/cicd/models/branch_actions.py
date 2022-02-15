@@ -20,12 +20,14 @@ class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
     def _prepare_a_new_instance(self, shell, task, logsio, **kwargs):
-        if self.repo_id.default_simulate_install_id_dump_id:
-            dump = self.repo_id.default_simulate_install_id_dump_id
+        dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
+        if not dump:
+            self._reset_db(shell, task, logsio, **kwargs)
+        else:
             self.backup_machine_id = dump.machine_id
             self.dump_id = dump
-            self._restore_dump(shell, task, logsio, **kwargs)
-            self._update_all_modules(shell, task, logsio, **kwargs)
+        self._restore_dump(shell, task, logsio, **kwargs)
+        self._update_all_modules(shell, task, logsio, **kwargs)
 
     def _update_odoo(self, shell, task, logsio, **kwargs):
         if self.block_updates_until and self.block_updates_until > fields.Datetime.now():
@@ -37,7 +39,9 @@ class Branch(models.Model):
         if commit:
             try:
                 logsio.info("Updating")
-                shell.odoo("update", "--since-git-sha", commit, "--no-dangling-check")
+                result = shell.odoo("update", "--since-git-sha", commit, "--no-dangling-check")
+                if result['returncode']:
+                    raise Exception("Error at update")
             except Exception as ex:
                 logger.error(ex)
                 logsio.error(ex)
