@@ -44,50 +44,47 @@ class Dump(models.Model):
         with machine._shell() as shell:
             for volume in machine.volume_ids.filtered(lambda x: x.ttype in ['dumps', 'dumps_in']):
                 with machine._shell() as shell:
+                    splitter = "_____SPLIT_______"
                     files = shell.X([
-                        "ls", volume.name + "/"
+                        "find", volume.name,
+                        "-maxdepth", "1",
+                        "-printf", f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
                     ])['stdout'].strip().split("\n")
+                    volname = volume.name
+                    if not volname.endswith("/"):
+                        volname += "/"
 
-                    todo = self.env[self._name]
-                    for file in files:
-                        if not file:
+                    Files = {}
+                    for line in files:
+                        filename, date, size = line.split(splitter)
+                        if filename.endswith("/"):
                             continue
-                        path = volume.name + "/" + file
-                        dumps = self.sudo().with_context(active_test=False).search([('name', '=', path), ('machine_id', '=', machine.id)])
+                        date = arrow.get(date[:15])
+                        path = volname + filename
+                        Files[path] = {
+                            'date': date.strftime("%Y-%m-%d %H:%M:%S"),
+                            'size': int(size),
+                        }
+                        del path, date, filename, size, line
+
+                    for filepath, file in Files.items():
+
+                        dumps = self.sudo().with_context(active_test=False).search([
+                            ('name', '=', filepath),
+                            ('machine_id', '=', machine.id)
+                            ])
                         if not dumps:
                             dumps = dumps.sudo().create({
-                                'name': path,
+                                'name': filepath,
                                 'machine_id': machine.id,
                             })
-                            dumps._update_size()
-                        else:
-                            todo |= dumps
 
-                    if todo:
-                        todo.with_delay(
-                            identity_key=f"get_dump_info",
-                            eta=arrow.get().shift(minutes=15).strftime("%Y-%m-%d %H:%M:%S"),
-                        )._update_size()
+                        dumps.ensure_one()
+                        dumps.date_modified = file['date']
+                        dumps.size = file['size']
 
-    def _update_size(self):
-        for rec in self:
-            if not rec.exists():
-                continue
-            machines = rec.mapped('machine_id')
-            for machine in machines:
-                dumps = rec.filtered(lambda x: x.machine_id == machine)
-                with machine._shell() as shell:
-                    for dump in dumps:
-                        dump = dump.sudo()
-                        if not shell.exists(dump.name):
-                            dump.unlink()
-                            continue
-
-                        with machine._shell() as shell:
-                            if shell.exists(dump.name):
-                                dump.size = int(shell.X([
-                                    'stat', '-c', '%s', dump.name
-                                ])['stdout'].strip())
-                                dump.date_modified = shell.X([
-                                    'date', '-r', dump.name, '+%Y-%m-%d %H:%M:%S', '-u',
-                                ])['stdout'].strip()
+                    breakpoint()
+                    for dump in dumps.search([('name', 'like', volname)]):
+                        if dump.name.startswith(volname):
+                            if dump.name not in Files:
+                                dump.unlink()
