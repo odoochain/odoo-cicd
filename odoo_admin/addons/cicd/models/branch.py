@@ -251,18 +251,20 @@ class GitBranch(models.Model):
         for rec in self:
             rec.db_size_humanize = humanize.naturalsize(rec.db_size)
 
+    # TODO make it pre computed not here
     @api.depends('task_ids', 'task_ids.state')
     def _compute_build_state(self):
         for rec in self:
-            if 'new' in rec.mapped('task_ids.state'):
-                rec.build_state = 'building'
-            else:
-                if rec.task_ids and rec.task_ids[0].state == 'fail':
-                    rec.build_state = 'failed'
-                elif rec.task_ids and rec.task_ids[0].state == 'done':
-                    rec.build_state = 'done'
-                else:
-                    rec.build_state = 'new'
+            rec.build_state = 'done'
+            # if 'new' in rec.mapped('task_ids.state'):
+            #     rec.build_state = 'building'
+            # else:
+            #     if rec.task_ids and rec.task_ids[0].state == 'fail':
+            #         rec.build_state = 'failed'
+            #     elif rec.task_ids and rec.task_ids[0].state == 'done':
+            #         rec.build_state = 'done'
+            #     else:
+            #         rec.build_state = 'new'
 
     def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, **kwargs):
         for rec in self:
