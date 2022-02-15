@@ -70,6 +70,7 @@ class Task(models.Model):
             rec.display_name = name
 
     def perform(self, now=False):
+        breakpoint()
         self.ensure_one()
 
         if not now:
@@ -150,9 +151,12 @@ class Task(models.Model):
                             # if not commit:
                             #     raise ValidationError(f"Commit {sha} not found in branch.")
                             # get current commit
-                            exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
-                            if commit:
-                                self.sudo().commit_id = commit
+                            try:
+                                exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
+                            except Exception as ex:
+                                if commit:
+                                    self.sudo().commit_id = commit
+                                raise
 
                     except RetryableJobError:
                         raise
@@ -160,14 +164,13 @@ class Task(models.Model):
                     except Exception:
                         self.env.cr.rollback()
                         msg = traceback.format_exc()
-                        log = '\n'.join(logsio.get_lines())
+                        log = msg + '\n' + '\n'.join(logsio.get_lines())
                         self.state = 'failed'
                     else:
                         self.state = 'done'
+                        log = '\n'.join(logsio.get_lines())
                     finally:
                         self.env.cr.commit()
-
-                    log = '\n'.join(logsio.get_lines())
 
                     duration = (arrow.get() - started).total_seconds()
                     if logsio:
@@ -175,7 +178,6 @@ class Task(models.Model):
 
                     self.duration = duration
                     self.log = log
-                    self.duration = duration
 
     @api.model
     def _cron_cleanup(self):
