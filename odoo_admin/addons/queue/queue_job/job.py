@@ -501,6 +501,7 @@ class Job(object):
 
         The job is executed with the user which has initiated it.
         """
+        breakpoint()
         self.retry += 1
         try:
             self.result = self.func(*tuple(self.args), **self.kwargs)
