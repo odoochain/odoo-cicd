@@ -106,6 +106,7 @@ class Task(models.Model):
 
     def _exec(self, now=False):
         self = self.sudo()
+        args = {}
         short_name = self._get_short_name()
         started = arrow.get()
         # TODO make testruns not block reloading
@@ -178,6 +179,9 @@ class Task(models.Model):
 
                     self.duration = duration
                     self.log = log
+                    if args.get("delete_task"):
+                        if self.state == 'done':
+                            self.unlink()
 
     @api.model
     def _cron_cleanup(self):
