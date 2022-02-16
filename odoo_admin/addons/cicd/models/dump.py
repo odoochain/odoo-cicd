@@ -23,9 +23,10 @@ class Dump(models.Model):
         }
         
     def unlink(self):
-        for rec in self:
-            with self.machine_id._shell() as shell:
-                shell.rm(rec.name)
+        if not self.env.context.get('dump_no_file_delete', False):
+            for rec in self:
+                with self.machine_id._shell() as shell:
+                    shell.rm(rec.name)
 
         return super().unlink()
 
@@ -84,8 +85,7 @@ class Dump(models.Model):
                         dumps.date_modified = file['date']
                         dumps.size = file['size']
 
-                    breakpoint()
                     for dump in dumps.search([('name', 'like', volname)]):
                         if dump.name.startswith(volname):
                             if dump.name not in Files:
-                                dump.unlink()
+                                dump.with_context(dump_no_file_delete=True).unlink()
