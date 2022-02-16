@@ -41,18 +41,19 @@ class Dump(models.Model):
                 rec.name = rec.name[:-1]
 
     def _update_dumps(self, machine):
+        breakpoint()
         with machine._shell() as shell:
             for volume in machine.volume_ids.filtered(lambda x: x.ttype in ['dumps', 'dumps_in']):
                 with machine._shell() as shell:
                     splitter = "_____SPLIT_______"
+                    volname = volume.name or ''
+                    if not volname.endswith("/"):
+                        volname += "/"
                     files = shell.X([
-                        "find", volume.name,
+                        "find", volname,
                         "-maxdepth", "1",
                         "-printf", f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
                     ])['stdout'].strip().split("\n")
-                    volname = volume.name
-                    if not volname.endswith("/"):
-                        volname += "/"
 
                     Files = {}
                     for line in files:
