@@ -12,6 +12,15 @@ class Dump(models.Model):
     name = fields.Char("Name", required=True, readonly=True)
     machine_id = fields.Many2one("cicd.machine", string="Machine", required=True, readonly=True)
     date_modified = fields.Datetime("Date Modified", readonly=True)
+    volume_id = fields.Many2one('cid.machine.volume', string="Volume", compute="_compute_volume")
+
+    def _compute_volume(self):
+        for rec in self:
+            name = '/'.join(rec.name.split("/")[:-1])
+            volumes = rec.machine_id.volume_ids.filtered(lambda x: x.name.startswith(name))
+            rec.volume_id = False
+            if volumes:
+                rec.volume_id = volumes[0]
 
     def download(self):
         self.ensure_one()
@@ -25,8 +34,10 @@ class Dump(models.Model):
     def unlink(self):
         if not self.env.context.get('dump_no_file_delete', False):
             for rec in self:
-                with self.machine_id._shell() as shell:
-                    shell.rm(rec.name)
+                volume = self.volume_id
+                if volume and volume.ttype == 'dumps':
+                    with self.machine_id._shell() as shell:
+                        shell.rm(rec.name)
 
         return super().unlink()
 
