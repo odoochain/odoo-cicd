@@ -282,10 +282,14 @@ class GitBranch(models.Model):
         machine = self.machine_id
         timeout = machine.test_timeout_web_login
 
+        if not self.container_ids:
+            raise UserError("Please make sure that containers exist to start the branch.")
+
         def test_request():
             response = requests.get("http://" + self._get_odoo_proxy_container_name() + "/web/login", timeout=timeout)
             return response.status_code == 200
 
+        breakpoint()
         try:
             test_request()
         except Exception:
