@@ -112,7 +112,12 @@ class ShellExecutor(object):
             if res['exit_code'] is None:
                 raise Exception("Timeout happend: {cmd}")
             if res['exit_code']:
-                raise Exception(f"Error happened: {res['exit_code']}: {res['stdout']}")
+                raise Exception(
+                    f"Error happened: {res['exit_code']}:\n"
+                    f"{res['stderr']}\n"
+                    f"{res['stdout']}"
+                    )
+
         return res
 
     def get(self, source):
