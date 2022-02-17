@@ -254,7 +254,15 @@ class Repository(models.Model):
                     for branch in updated_branches:
                         logsio.info(f"Pulling {branch}...")
                         shell.X(["git", "fetch", "origin", branch])
-                        shell.checkout_branch(branch)
+                        breakpoint()
+                        try:
+                            shell.checkout_branch(branch)
+                        except Exception as ex:
+                            logsio.error(ex)
+                            logsio.info("Recreating workspace folder")
+                            shell.rm(shell.cwd)
+                            self.clone_repo(machine, shell.cwd, logsio)
+                            shell.checkout_branch(branch)
                         shell.X(["git", "pull"])
                         shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
