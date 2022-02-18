@@ -336,26 +336,36 @@ class GitBranch(models.Model):
     def _on_active_change(self):
         for rec in self:
             if not rec.active:
-                with self._get_new_logsio_instance('set_inactive') as logsio:
-                    for machine in self.env['cicd.machine'].search([]):
-                        path = machine._get_volume('source')
-                        # delete instance folder
-                        with machine._shell(cwd=path, logsio=logsio) as shell:
-                            project_path = path / rec.project_name
-                            shell.rm(project_path)
+                rec._make_task("_destroy_instance")
 
-                            try:
-                                shell.odoo("kill")
-                            except Exception as ex:
-                                logsio.error(str(ex))
+    def _destroy_instance(self):
+        with self._get_new_logsio_instance('set_inactive') as logsio:
+            for machine in self.env['cicd.machine'].search([]):
+                try:
+                    path = machine._get_volume('source')
+                except Exception:
+                    continue
 
-                            try:
-                                shell.odoo("rm")
-                            except Exception as ex:
-                                logsio.error(str(ex))
+                # delete instance folder
+                with machine._shell(cwd=path, logsio=logsio) as shell:
+                    project_path = path / self.project_name
 
-                        # delete db
-                        db = machine.postgres_server_id.database_ids.filtered(lambda x: x.name == rec.project_name).delete_db()
+                    try:
+                        shell.odoo("kill")
+                    except Exception as ex:
+                        logsio.error(str(ex))
+
+                    try:
+                        shell.odoo("rm")
+                    except Exception as ex:
+                        logsio.error(str(ex))
+
+                    shell.rm(project_path)
+
+                # delete db
+                if machine.postgres_server_id.ttype == 'dev':
+                    machine.postgres_server_id.database_ids.filtered(
+                        lambda x: x.name == shell.project_name).delete_db()
 
     def toggle_active(self):
         for rec in self:
