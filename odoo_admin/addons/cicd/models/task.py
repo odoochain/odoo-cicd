@@ -141,13 +141,15 @@ class Task(models.Model):
                                     )
                             obj = self.env[self.model].sudo().browse(self.res_id)
                             # mini check if it is a git repository:
-                            try:
-                                shell.X(["git", "status"])
-                            except Exception:
-                                commit = None
-                            else:
-                                sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                                commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
+                            commit = None
+                            if not args.get('no_repo', False):
+                                try:
+                                    shell.X(["git", "status"])
+                                except Exception:
+                                    pass
+                                else:
+                                    sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                                    commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
 
                             # if not commit:
                             #     raise ValidationError(f"Commit {sha} not found in branch.")
