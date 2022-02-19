@@ -154,10 +154,10 @@ class Task(models.Model):
                             # get current commit
                             try:
                                 exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
-                            except Exception as ex:
+                            finally:
                                 if commit:
                                     self.sudo().commit_id = commit
-                                raise
+                                    self.env.cr.commit()
 
                     except RetryableJobError:
                         raise
