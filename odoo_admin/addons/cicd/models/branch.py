@@ -484,6 +484,9 @@ class GitBranch(models.Model):
             'name': f"Jobs",
             'view_type': 'form',
             'res_model': jobs._name,
+            'context': {
+                'search_default_group_by_state': 1,
+            },
             'domain': [('id', 'in', jobs.ids)],
             'views': [(False, 'tree'), (False, 'form')],
             'type': 'ir.actions.act_window',
