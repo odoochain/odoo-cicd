@@ -477,7 +477,7 @@ class GitBranch(models.Model):
 
     def show_queuejobs(self):
         jobs = self.env['queue.job'].search([
-            ('name', 'ilike', f"{self.name}:")
+            ('identity_key', 'ilike', f":{self.repo_id.short}-{self.name}:")
         ])
 
         return {
