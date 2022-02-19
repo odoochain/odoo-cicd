@@ -10,7 +10,17 @@
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
-		<!-- <record id="update_docker_states" model="ir.cron">
+		<record id="update_docker_states_per_machine" model="ir.cron">
+			<field name="name">update_docker_states</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_machine" />
+			<field name="state">code</field>
+			<field name="code">model.search([])._update_docker_containers()</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record> 
+		<record id="update_docker_states" model="ir.cron">
 			<field name="name">update_docker_states</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">minutes</field>
@@ -19,7 +29,7 @@
 			<field name="code">model.with_context(active_test=False).search([]).docker_get_state(now=False)</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
-		</record> -->
+		</record>
 		<record id="inactivity_cycle_down" model="ir.cron">
 			<field name="name">cycle down inactive sites</field>
 			<field name="interval_number">10</field>

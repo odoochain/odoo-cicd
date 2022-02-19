@@ -106,47 +106,24 @@ class Branch(models.Model):
         self._docker_get_state(shell)
 
     def _docker_get_state(self, shell, **kwargs):
-        try:
-            info = shell.odoo('ps')['stdout'].strip()
-        except Exception:
-            logger.warn("Error at docker_get_state", exc_info=True)
-            info = ""
+        containers = shell.machine._get_containers()
+        for key in containers:
+            if key.startswith(self.project_name):
+                state = 'up' if containers[key] == 'running' else 'down'
 
-        passed = False
-        updated_containers = set()
-        for line in info.split("\n"):
-            if line.startswith("------"):
-                passed = True
-                continue
-            if not passed: continue
-            while "  " in line:
-                line = line.replace("  ", " ")
+                container = self.container_ids.filtered(lambda x: x.name == container_name)
+                if not container:
+                    self.container_ids = [[0, 0, {
+                        'name': container_name,
+                        'state': state,
+                    }]]
+                else:
+                    container.state = state
+                updated_containers.add(container_name)
 
-            if line.startswith("Version:"):
-                continue
-            if not line:
-                continue
-            container_name = line.split(" ")[0]
-            state = line.split(" ", 1)[-1].lower()
-            if 'exit' in state:
-                state = 'down'
-            elif 'up' in state:
-                state = 'up'
-            else:
-                state = False
-
-            container = self.container_ids.filtered(lambda x: x.name == container_name)
-            if not container:
-                self.container_ids = [[0, 0, {
-                    'name': container_name,
-                    'state': state,
-                }]]
-            else:
-                container.state = state
-            updated_containers.add(container_name)
-        for container in self.container_ids:
-            if container.name not in updated_containers:
-                container.unlink()
+            for container in self.container_ids:
+                if container.name not in updated_containers:
+                    container.unlink()
 
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')

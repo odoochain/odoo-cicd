@@ -1,4 +1,5 @@
 import base64
+import json
 import subprocess
 import tempfile
 import arrow
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 class CicdMachine(models.Model):
     _inherit = 'mail.thread'
     _name = 'cicd.machine'
+    _tempfile_containers = "/tmp/machine.containers.cicd"
 
     name = fields.Char("Name")
     is_docker_host = fields.Boolean("Is Docker Host", default=True)
@@ -49,6 +51,7 @@ class CicdMachine(models.Model):
     upload_overwrite = fields.Boolean("Overwrite existing")
     upload_volume_id = fields.Many2one('cicd.machine.volume', "Upload Volume", domain=[('ttype', '=', 'dumps')])
     test_timeout_web_login = fields.Integer("Timeout Test Weblogin", default=10, required=True)
+    container_states = fields.Text("Json")
 
     @api.depends('ssh_user')
     def _compute_ssh_user_cicd_login(self):
@@ -389,3 +392,24 @@ echo "--------------------------------------------------------------------------
             shell.X(["git", "commit", "-am", 'msg'], cwd="/tmp/repo1")
             test = shell.X(["git", "log", "-n1", '--pretty=%ct'], cwd="/tmp/repo1")
             print(test['stdout'])
+
+    def _update_docker_containers(self):
+        breakpoint()
+        with self._shell() as shell:
+            containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
+            containers_dict = {}
+            for line in containers.split("\n")[1:]:
+                container, state = line.split("\t")
+                containers_dict[container] = state
+            shell.put(json.dumps(containers_dict), self._tempfile_containers)
+
+    def _get_containers(self):
+        path = Path(self._tempfile_containers)
+        try:
+            content = shell.get(self._tempfile_containers)
+        except:
+            content = "{}"
+        else:
+            content = content.decode('utf-8')
+        containers = json.loads(content)
+        return containers
