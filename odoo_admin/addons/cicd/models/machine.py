@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 class CicdMachine(models.Model):
     _inherit = 'mail.thread'
     _name = 'cicd.machine'
-    _tempfile_containers = "/tmp/machine.containers.cicd"
 
     name = fields.Char("Name")
     is_docker_host = fields.Boolean("Is Docker Host", default=True)
@@ -52,6 +51,7 @@ class CicdMachine(models.Model):
     upload_volume_id = fields.Many2one('cicd.machine.volume', "Upload Volume", domain=[('ttype', '=', 'dumps')])
     test_timeout_web_login = fields.Integer("Timeout Test Weblogin", default=10, required=True)
     container_states = fields.Text("Json")
+    tempfile_containers = fields.Char(compute="compute_tempfile_containers")
 
     @api.depends('ssh_user')
     def _compute_ssh_user_cicd_login(self):
@@ -401,15 +401,16 @@ echo "--------------------------------------------------------------------------
             for line in containers.split("\n")[1:]:
                 container, state = line.split("\t")
                 containers_dict[container] = state
-            shell.put(json.dumps(containers_dict), self._tempfile_containers)
+            path = Path(self.tempfile_containers).write_text(json.dumps(containers_dict), self._tempfile_containers)
 
     def _get_containers(self):
-        path = Path(self._tempfile_containers)
-        try:
-            content = shell.get(self._tempfile_containers)
-        except:
-            content = "{}"
+        path = Path(self.tempfile_containers)
+        if path.exists():
+            content = json.loads(path.read_text())
         else:
-            content = content.decode('utf-8')
-        containers = json.loads(content)
+            content = {}
         return containers
+
+    def compute_tempfile_containers(self):
+        for rec in self:
+            self.tempfile_containers = f"{self.env.cr.dbname}.machine.{rec.id}.containers"
