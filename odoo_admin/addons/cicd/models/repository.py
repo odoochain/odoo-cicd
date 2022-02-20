@@ -328,80 +328,67 @@ class Repository(models.Model):
                         path
                     ])
 
-    def _collect_latest_tested_commits(self, source_branches, target_branch_name, logsio, critical_date, make_info_commit_msg):
+    def _recreate_branch_from_commits(self, commits, target_branch_name, logsio, make_info_commit_msg):
         """
         Iterate all branches and get the latest commit that fall into the countdown criteria.
 
         "param make_info_commit_msg": if set, then an empty commit with just a message is made
         """
-        with pg_advisory_lock(self.env.cr, self._get_lockname()):
-            self.ensure_one()
+        if not commits:
+            return
+        self.ensure_one()
 
-            # we use a working repo
-            assert target_branch_name
-            assert source_branches._name == 'cicd.git.branch'
-            machine = self.machine_id
-            orig_repo_path = self._get_main_repo()
-            repo_path = self._get_main_repo(tempfolder=True)
-            commits = self.env['cicd.git.commit']
-            repo = self.with_context(active_test=False)
-            message_commit = None # commit sha of the created message commit
-            with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
-                try:
+        # we use a working repo
+        assert target_branch_name
+        assert commits._name == 'cicd.git.commit'
+        machine = self.machine_id
+        repo_path = self._get_main_repo(tempfolder=True)
+        repo = self.with_context(active_test=False)
+        message_commit = None # commit sha of the created message commit
+        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
+            try:
 
-                    # clear the current candidate
-                    if shell.branch_exists(target_branch_name):
-                        shell.checkout_branch(self.default_branch)
-                        shell.X(["git", "branch", "-D", target_branch_name])
-                    logsio.info("Making target branch {target_branch.name}")
-                    shell.checkout_branch(repo.default_branch)
-                    shell.X(["git", "checkout", "--no-guess", "-b", target_branch_name])
+                # clear the current candidate
+                if shell.branch_exists(target_branch_name):
+                    shell.checkout_branch(self.default_branch)
+                    shell.X(["git", "branch", "-D", target_branch_name])
+                logsio.info("Making target branch {target_branch.name}")
+                shell.checkout_branch(repo.default_branch)
+                shell.X(["git", "checkout", "--no-guess", "-b", target_branch_name])
 
-                    for branch in source_branches:
-                        for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
-                            if critical_date:
-                                if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
-                                    continue
+                for commit in commits:
+                    # we use git functions to retrieve deltas, git sorting and so;
+                    # we want to rely on stand behaviour git.
+                    shell.checkout_branch(target_branch_name)
+                    shell.X(["git", "merge", commit.name])
 
-                            if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
-                                continue
 
-                            commits |= commit
+                # pushes to mainrepo locally not to web because its cloned to temp directory
+                shell.X(["git", "remote", "set-url", 'origin', self.url])
+                shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
 
-                            # we use git functions to retrieve deltas, git sorting and so;
-                            # we want to rely on stand behaviour git.
-                            shell.checkout_branch(target_branch_name)
-                            shell.X(["git", "merge", commit.name])
-                            break
+                message_commit_sha = None
+                if make_info_commit_msg:
+                    shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
+                    message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                shell.X(["git", "push", "-f", 'origin', target_branch_name])
 
-                    if commits:
+                if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
+                    target_branch = repo.branch_ids.create({
+                        'repo_id': repo.id,
+                        'name': target_branch_name,
+                    })
+                if not target_branch.active:
+                    target_branch.active = True
+                target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
+                if message_commit_sha:
+                    message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
+                    message_commit.ensure_one()
 
-                        # pushes to mainrepo locally not to web because its cloned to temp directory
-                        shell.X(["git", "remote", "set-url", 'origin', self.url])
-                        shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
+            finally:
+                shell.rm(repo_path)
 
-                        message_commit_sha = None
-                        if make_info_commit_msg:
-                            shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
-                            message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                        shell.X(["git", "push", "-f", 'origin', target_branch_name])
-
-                        if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
-                            target_branch = repo.branch_ids.create({
-                                'repo_id': repo.id,
-                                'name': target_branch_name,
-                            })
-                        if not target_branch.active:
-                            target_branch.active = True
-                        target_branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
-                        if message_commit_sha:
-                            message_commit = target_branch.commit_ids.filtered(lambda x: x.name == message_commit_sha)
-                            message_commit.ensure_one()
-
-                finally:
-                    shell.rm(repo_path)
-
-            return message_commit, commits
+        return message_commit
 
     def _merge(self, source, dest, set_tags, logsio=None):
         assert source._name == 'cicd.git.branch'

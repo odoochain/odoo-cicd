@@ -44,7 +44,6 @@ class ReleaseItem(models.Model):
         for rec in self:
             if rec.state in ['new', 'failed']:
                 if rec.release_id.item_ids.filtered(lambda x: x.release_type == 'standard' and x.id != rec.id and x.state in ['new', 'failed']):
-                    breakpoint()
                     raise ValidationError(_("There may only be one new or failed standard item!"))
 
     def open_window(self):
@@ -211,11 +210,16 @@ class ReleaseItem(models.Model):
             repo = self.release_id.repo_id.with_context(active_test=False)
             # remove blocked
             self.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release)
-            message_commit, commits = repo._collect_latest_tested_commits(
-                source_branches=self.branch_ids,
+            critical_date = self.final_curtain or arrow.get().datetime
+            commits = self._get_branches_within_final_curtains(critical_date)
+
+            if set(commits.ids) == set(self.commit_ids.ids):
+                return
+
+            message_commit = repo._recreate_branch_from_commits(
+                commits=commits,
                 target_branch_name=self.release_id.candidate_branch,
                 logsio=logsio,
-                critical_date=self.final_curtain or arrow.get().datetime,
                 make_info_commit_msg=
                     f"Release Item {self.id}\n"
                     f"Includes latest commits from:\n{', '.join(self.mapped('branch_ids.name'))}"
@@ -228,6 +232,22 @@ class ReleaseItem(models.Model):
                 candidate_branch.ensure_one()
 
                 (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
+
+    def _get_branches_within_final_curtains(self, critical_date):
+        commits = self.env['cicd.git.commit']
+        for branch in self.branch_ids:
+            for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
+                if critical_date:
+                    if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
+                        continue
+
+                if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
+                    continue
+
+                commits |= commit
+
+                break
+        return commits
 
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
