@@ -27,6 +27,7 @@ class CicdReleaseAction(models.Model):
 
     @api.model
     def run_action_set(self, release_item, actions):
+        raise Exception("Please debug this once before!")
         errors = []
         with LogsIOWriter.GET(self.release_id.branch_id.name, 'release') as logsio:
             try:

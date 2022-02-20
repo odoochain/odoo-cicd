@@ -107,9 +107,10 @@ class Branch(models.Model):
 
     def _docker_get_state(self, shell, **kwargs):
         containers = shell.machine._get_containers()
-        for key in containers:
-            if key.startswith(self.project_name):
-                state = 'up' if containers[key] == 'running' else 'down'
+        for container_name in containers:
+            updated_containers = set()
+            if container_name.startswith(self.project_name):
+                state = 'up' if containers[container_name] == 'running' else 'down'
 
                 container = self.container_ids.filtered(lambda x: x.name == container_name)
                 if not container:
