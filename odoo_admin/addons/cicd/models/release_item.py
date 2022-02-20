@@ -164,7 +164,16 @@ class ReleaseItem(models.Model):
         finally:
             self.env.cr.commit()
 
-    def _collect_tested_branches(self):
+    def _get_ignored_branch_names(self, repo):
+        all_releases = self.env['cicd.release'].sudo().search([
+            ('branch_id.repo_id', '=', repo.id)
+            ])
+        ignored_branch_names = []
+        ignored_branch_names += list(all_releases.mapped('candidate_branch'))
+        ignored_branch_names += list(all_releases.mapped('branch_id.name'))
+        return ignored_branch_names
+
+    def _collect_tested_branches(self, repo):
         breakpoint()
         for rec in self:
             if rec.state not in ['new', 'failed']:
@@ -172,15 +181,8 @@ class ReleaseItem(models.Model):
             if rec.release_type != 'standard':
                 continue
             repo = rec.release_id.branch_id.repo_id
-            all_releases = self.env['cicd.release'].search([
-                ('branch_id.repo_id', '=', repo.id)
-                ])
-            ignored_branch_names = []
-            ignored_branch_names += list(
-                all_releases.mapped('candidate_branch'))
-            ignored_branch_names += list(
-                all_releases.mapped('branch_id.name'))
 
+            ignored_branch_names = self._get_ignored_branch_names(repo)
             branches = self.env['cicd.git.branch'].search([
                 ('state', 'in', ['tested']),
                 ('block_release', '=', False),
@@ -235,7 +237,13 @@ class ReleaseItem(models.Model):
 
     def _get_branches_within_final_curtains(self, critical_date):
         commits = self.env['cicd.git.commit']
+        repo = self.release_id.repo_id
+        ignored_branch_names = self._get_ignored_branch_names(repo)
+
         for branch in self.branch_ids:
+            if branch.name in ignored_branch_names:
+                continue
+            
             for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
                 if critical_date:
                     if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
