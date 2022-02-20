@@ -220,7 +220,7 @@ class Repository(models.Model):
                             })
                             del branch
 
-            except Exception as ex:
+            except Exception:
                 msg = traceback.format_exc()
                 if logsio:
                     logsio.error(msg)
@@ -242,12 +242,14 @@ class Repository(models.Model):
         repo = self
         # checkout latest / pull latest
         updated_branches = data['updated_branches']
-        breakpoint()
 
         with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
             repo_path = repo._get_main_repo(logsio=logsio)
             machine = repo.machine_id
             repo = repo.with_context(active_test=False)
+
+            releases = self.env['cicd.release'].search([('repo_id', '=', repo.id)])
+            candidate_branch_names = releases.mapped('candidate_branch')
 
             with pg_advisory_lock(self.env.cr, repo._get_lockname()):
                 with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
@@ -263,7 +265,16 @@ class Repository(models.Model):
                             shell.rm(shell.cwd)
                             self.clone_repo(machine, shell.cwd, logsio)
                             shell.checkout_branch(branch)
-                        shell.X(["git", "pull"])
+                        
+                        if branch in candidate_branch_names:
+                            # avoid fast forward git extra commits
+                            shell.X(["git", "checkout", repo.default_branch, "-f"])
+                            if shell.branch_exists(branch):
+                                shell.X(["git", "branch", "-D", branch], allow_error=True)
+                            shell.X(["git", "checkout", branch])
+                            shell.X(["git", "reset", "--hard", f"origin/{branch}"])
+                        else:
+                            shell.X(["git", "pull"])
                         shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
                     # if completely new then all branches:
