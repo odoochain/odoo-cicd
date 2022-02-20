@@ -34,8 +34,8 @@ class Branch(models.Model):
         self._make_task("_docker_stop")
 
     def docker_get_state(self, now=True):
-        for rec in self:
-            rec._make_task("_docker_get_state", now=now, no_repo=True, delete_task=True)
+        self._docker_get_state()
+        # rec._make_task("_docker_get_state", now=now, no_repo=True, delete_task=True)
 
     def create_empty_db(self):
         self._make_task("_create_empty_db")
