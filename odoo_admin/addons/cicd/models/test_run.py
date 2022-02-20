@@ -90,6 +90,7 @@ RUN_POSTGRES=1
 
         root = machine._get_volume('source')
         started = arrow.get()
+        breakpoint()
         with machine._shell(cwd=root, logsio=logsio, project_name=self.branch_id.project_name) as shell:
             report("Checking out source code...")
 
@@ -102,6 +103,8 @@ RUN_POSTGRES=1
                     shell.rm(shell.cwd)
                     reload()
                 except Exception as ex:
+                    if 'reference is not a tree' in str(ex):
+                        raise RetryableJobError("Missing commit not arrived - retrying later.") from ex
                     report("Error occurred", exception=ex, duration=arrow.get() - started)
                     raise
 

@@ -387,8 +387,10 @@ class GitBranch(models.Model):
             rec.block_release = not rec.block_release
 
     def _cron_make_test_runs(self):
+        breakpoint()
         for branch in self.search([('state', '=', 'testable')]):
-            if not branch.test_run_ids.filtered(lambda x: x.state == 'open'):
+            if not branch.test_run_ids.filtered(
+                lambda x: x.state == 'open' and x.commit_id == branch.latest_commit_id):
                 branch._make_task(
                     "_run_tests", silent=True, update_state=True, testrun_id=None)
 

@@ -44,6 +44,7 @@ class ReleaseItem(models.Model):
         for rec in self:
             if rec.state in ['new', 'failed']:
                 if rec.release_id.item_ids.filtered(lambda x: x.release_type == 'standard' and x.id != rec.id and x.state in ['new', 'failed']):
+                    breakpoint()
                     raise ValidationError(_("There may only be one new or failed standard item!"))
 
     def open_window(self):
@@ -98,73 +99,96 @@ class ReleaseItem(models.Model):
         self._do_release()
 
     def _do_release(self):
+        breakpoint()
         try:
             self.env.cr.execute("select id from cicd_release where id=%s for update nowait", (self.release_id.id,))
-        except psycopg2.errors.LockNotAvailable:
-            raise RetryableJobError(f"Could not work exclusivley on release {self.release_id.id} - retrying in few seconds", ignore_retry=True, seconds=15)
+        except psycopg2.errors.LockNotAvailable as ex:
+            raise RetryableJobError(
+                f"Could not work exclusivley on release {self.release_id.id} - retrying in few seconds",
+                ignore_retry=True, seconds=15) from ex
         if not self.release_id.active:
             return
-        if self.state not in ['new', 'failed']:
-            raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
-        if self.release_type == 'hotfix' and not self.branch_ids:
-            raise ValidationError("Hotfix requires explicit branches.")
-        if not self.commit_id:  # needs a collected commit with everything on it
-            return
-        if self.commit_id.test_state == 'failed':
-            if self.state != 'failed':
-                self.state = f'failed'
-        if self.commit_id.test_state != 'success':
-            return
 
-        with self.release_id._get_logsio() as logsio:
+        try:
+            if self.state not in ['new']:
+                raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
+            if self.release_type == 'hotfix' and not self.branch_ids:
+                raise ValidationError("Hotfix requires explicit branches.")
+            if not self.commit_id:  # needs a collected commit with everything on it
+                raise ValidationError("Missing commit.")
 
-            self.try_counter += 1
-            release = self.release_id
-            repo = self.release_id.repo_id.with_context(active_test=False)
-            candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
-            candidate_branch.ensure_one()
-            if not candidate_branch.active:
-                raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
-            changed_lines = repo._merge(
-                candidate_branch,
-                release.branch_id,
-                set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-                logsio=logsio,
-            )
-            self.changed_lines += changed_lines
+            if self.commit_id.test_state != 'success':
+                raise ValidationError(f"Release is missing a valid test run of {self.commit_id.name}")
 
-            try:
-                if not self.changed_lines:
+            with self.release_id._get_logsio() as logsio:
+
+                self.try_counter += 1
+                release = self.release_id
+                repo = self.release_id.repo_id.with_context(active_test=False)
+                candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+                candidate_branch.ensure_one()
+                if not candidate_branch.active:
+                    raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
+                changed_lines = repo._merge(
+                    candidate_branch,
+                    release.branch_id,
+                    set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                    logsio=logsio,
+                )
+                self.changed_lines += changed_lines
+
+                try:
+                    if not self.changed_lines:
+                        self._on_done()
+                        return
+
+                    errors = self.release_id._technically_do_release(self)
+                    if errors:
+                        raise Exception(errors)
                     self._on_done()
-                    return
 
-                errors = self.release_id._technically_do_release(self)
-                if errors:
-                    raise Exception(errors)
-                self._on_done()
+                except Exception:
+                    msg = traceback.format_exc()
+                    self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
+                    self.state = 'failed'
+                    logger.error(msg)
+                    self.env.cr.commit()
 
-            except Exception as ex:
-                msg = traceback.format_exc()
-                self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
-                self.state = 'failed'
-                logger.error(msg)
+                self.log_release = logsio.get_lines()
+                self.env.cr.commit()
 
-            self.log_release = logsio.get_lines()
+        except Exception as ex:
+            self.state = 'failed'
+            msg = traceback.format_exc()
+            self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
+            raise
+        finally:
+            self.env.cr.commit()
 
     def _collect_tested_branches(self):
+        breakpoint()
         for rec in self:
             if rec.state not in ['new', 'failed']:
                 continue
             if rec.release_type != 'standard':
                 continue
-            release = rec.release_id
-            ignored_branch_names = (release.candidate_branch, release.branch_id.name)
+            repo = rec.release_id.branch_id.repo_id
+            all_releases = self.env['cicd.release'].search([
+                ('branch_id.repo_id', '=', repo.id)
+                ])
+            ignored_branch_names = []
+            ignored_branch_names += list(
+                all_releases.mapped('candidate_branch'))
+            ignored_branch_names += list(
+                all_releases.mapped('branch_id.name'))
+
             branches = self.env['cicd.git.branch'].search([
                 ('state', 'in', ['tested']),
                 ('block_release', '=', False),
-                ('name', '!=', rec.release_id.candidate_branch),
+                ('repo_id', '=', repo.id),
+                ('name', 'not in', ignored_branch_names),
                 ('id', 'not in', (rec.release_id.branch_id).ids),
-            ]).filtered(lambda x: x.name not in ignored_branch_names)
+            ])
             for b in branches:
                 if b not in rec.branch_ids:
                     rec.branch_ids += b
@@ -229,3 +253,8 @@ class ReleaseItem(models.Model):
             if rec.state not in ['ignore']:
                 raise ValidationError("Cannot set state to new")
             rec.state = 'new'
+
+    def retry(self):
+        for rec in self:
+            if rec.state == 'failed':
+                rec.state = 'new'

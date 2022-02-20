@@ -395,13 +395,18 @@ echo "--------------------------------------------------------------------------
 
     def _update_docker_containers(self):
         breakpoint()
-        with self._shell() as shell:
-            containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
-            containers_dict = {}
-            for line in containers.split("\n")[1:]:
-                container, state = line.split("\t")
-                containers_dict[container] = state
-            path = Path(self.tempfile_containers).write_text(json.dumps(containers_dict), self._tempfile_containers)
+        for rec in self:
+            with rec._shell() as shell:
+                containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
+                containers_dict = {}
+                for line in containers.split("\n")[1:]:
+                    container, state = line.split("\t")
+                    containers_dict[container] = state
+                path = Path(rec.tempfile_containers)
+                path.write_text(
+                    json.dumps(containers_dict),
+                    self._tempfile_containers
+                    )
 
     def _get_containers(self):
         path = Path(self.tempfile_containers)

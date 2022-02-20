@@ -122,8 +122,9 @@ class Release(models.Model):
         return items
 
     def do_release_if_planned(self):
+        breakpoint()
         for rec in self:
-            item = rec.item_ids.filtered(lambda x: x.state in ('new', 'failed')).sorted(lambda x: x.id)
+            item = rec.item_ids.filtered(lambda x: x.state in ('new')).sorted(lambda x: x.id)
             if not item:
                 continue
             item = item[0]
