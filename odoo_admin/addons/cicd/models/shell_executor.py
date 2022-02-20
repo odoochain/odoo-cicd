@@ -277,7 +277,8 @@ class ShellExecutor(object):
                 raise ShellExecutor.TimeoutConnection()
             if data['started']:
                 break
-            p.commands[0].poll()
+            if p.commands:
+                p.commands[0].poll()
 
         deadline = arrow.get().shift(seconds=timeout)
         timeout_happened = False
