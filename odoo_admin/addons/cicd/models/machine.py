@@ -406,9 +406,9 @@ echo "--------------------------------------------------------------------------
     def _get_containers(self):
         path = Path(self.tempfile_containers)
         if path.exists():
-            content = json.loads(path.read_text())
+            containers = json.loads(path.read_text())
         else:
-            content = {}
+            containers = {}
         return containers
 
     def compute_tempfile_containers(self):
