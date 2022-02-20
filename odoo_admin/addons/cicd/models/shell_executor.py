@@ -20,11 +20,12 @@ DEFAULT_ENV = {
 class ShellExecutor(object):
     class TimeoutConnection(Exception): pass
     class TimeoutFinished(Exception): pass
-    def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env={}):
+
+    def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env=None):
         self.machine = machine
         self.cwd = Path(cwd) if cwd else None
         self.logsio = logsio
-        self.env = env
+        self.env = env or {}
         self.project_name = project_name
         if machine:
             assert machine._name == 'cicd.machine'
@@ -37,7 +38,11 @@ class ShellExecutor(object):
         self.ssh_keyfile = ssh_keyfile
 
     def exists(self, path):
-        res = self._internal_execute(["stat", path])
+        try:
+            res = self._internal_execute(["stat", path])
+        except Exception:
+            breakpoint()
+            res = self._internal_execute(["stat", path])
         return res['exit_code'] == 0
 
     def rm(self, path):
@@ -222,7 +227,7 @@ class ShellExecutor(object):
                     line_decoded = line.decode('utf-8')
                     is_marker = False
                     if marker and marker in line_decoded and on_started:
-                        on_started()
+                        on_marker()
                         is_marker = True
                     if stop_marker and stop_marker in line_decoded and on_stop_marker:
                         on_stop_marker()
@@ -239,8 +244,8 @@ class ShellExecutor(object):
 
         cmd = cmd.replace('\n', ' ')
         bashcmd = (
-            f"#!/bin/bash\n"
-            f"set -o pipefail\n"
+            "#!/bin/bash\n"
+            "set -o pipefail\n"
         )
 
         cwd = cwd or self.cwd
@@ -266,10 +271,13 @@ class ShellExecutor(object):
         p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
         deadline_started = arrow.get().shift(seconds=10)
         while True:
+            if p.returncodes and any(x is not None for x in p.returncodes):
+                break
             if arrow.get() > deadline_started:
                 raise ShellExecutor.TimeoutConnection()
             if data['started']:
                 break
+            p.commands[0].poll()
 
         deadline = arrow.get().shift(seconds=timeout)
         timeout_happened = False

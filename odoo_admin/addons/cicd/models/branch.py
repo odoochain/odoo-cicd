@@ -70,7 +70,7 @@ class GitBranch(models.Model):
 
     test_topics = fields.Text("Test Topics", tracking=True)
     allowed_backup_machine_ids = fields.Many2many('cicd.machine', string="Allowed Backup Machines", compute="_compute_allowed_machines")
-    latest_commit_id = fields.Many2one('cicd.git.commit', compute="_compute_latest_commit")
+    latest_commit_id = fields.Many2one('cicd.git.commit', compute="_compute_latest_commit", search="_search_latest_commit")
 
     approval_state = fields.Selection(related="latest_commit_id.approval_state", tracking=True)
     link_to_instance = fields.Char(compute="_compute_link", string="Link To Instance")
@@ -93,6 +93,17 @@ class GitBranch(models.Model):
     def _compute_latest_commit(self):
         for rec in self:
             rec.latest_commit_id = rec.commit_ids[0] if rec.commit_ids else False
+
+    def _search_latest_commit(self, operator, value):
+        if operator == 'in':
+            branches = self.search([('commit_ids', 'in', value)])
+            ids = []
+            for branch in branches:
+                if branch.latest_commit_id.id in value:
+                    ids.append(branch.id)
+            return [('id', 'in', ids)]
+        else:
+            raise NotImplementedError(operator)
 
     def _compute_any_testing(self):
         for rec in self:

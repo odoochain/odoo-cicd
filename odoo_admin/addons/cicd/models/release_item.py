@@ -177,6 +177,7 @@ class ReleaseItem(models.Model):
         """
         Heavy function - takes longer and does quite some work.
         """
+        breakpoint()
         self.ensure_one()
         if self.state not in ('new', 'failed', 'ignore'):
             raise ValidationError("Branches can only be changed in state 'new', 'failed' or 'ignore'")
