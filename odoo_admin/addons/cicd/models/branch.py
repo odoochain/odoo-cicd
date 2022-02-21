@@ -186,13 +186,13 @@ class GitBranch(models.Model):
             if commit.approval_state == 'check':
                 state = 'approve'
 
-            elif commit.approval_state == 'approved' and commit.test_state in [False, 'open'] and rec.any_testing and not commit.force_approved:
+            elif commit.approval_state == 'approved' and commit.test_state in [False, 'open', 'running'] and rec.any_testing and not commit.force_approved:
                 state = 'testable'
 
             elif commit.test_state == 'failed' or commit.approval_state == 'declined':
                 state = 'dev'
 
-            elif ((commit.test_state == 'success' or (not rec.any_testing and commit.test_state in [False, 'open'])) or commit.force_approved) and commit.approval_state == 'approved':
+            elif ((commit.test_state == 'success' or (not rec.any_testing and commit.test_state in [False, 'open', 'running'])) or commit.force_approved) and commit.approval_state == 'approved':
                 repo = commit.mapped('branch_ids.repo_id')
                 latest_release_items = self.env['cicd.release.item']
                 for release in repo.release_ids:
@@ -206,7 +206,7 @@ class GitBranch(models.Model):
                     state = 'candidate'
                 elif any(x.mapped('branch_ids').contains_commit(commit) for x in all_done_items):
                     state = 'done'
-                elif (commit.test_state in [False, 'open'] and not rec.any_testing) or commit.test_state == 'success' or commit.force_approved:
+                elif (commit.test_state in [False, 'open', 'running'] and not rec.any_testing) or commit.test_state == 'success' or commit.force_approved:
                     state = 'tested'
 
             if state != rec.state:
@@ -392,7 +392,7 @@ class GitBranch(models.Model):
         breakpoint()
         for branch in self.search([('state', '=', 'testable')]):
             if not branch.test_run_ids.filtered(
-                lambda x: x.state == 'open' and x.commit_id == branch.latest_commit_id):
+                lambda x: x.state in [False, 'running', 'open'] and x.commit_id == branch.latest_commit_id):
                 branch._make_task(
                     "_run_tests", silent=True, update_state=True, testrun_id=None)
 

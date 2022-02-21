@@ -32,6 +32,7 @@ class CicdTestRun(models.Model):
     repo_short = fields.Char(related="branch_ids.repo_id.short")
     state = fields.Selection([
         ('open', 'Ready To Test'),
+        ('running', 'Running'),
         ('success', 'Success'),
         ('failed', 'Failed'),
     ], string="Result", required=True, default='open')
@@ -215,8 +216,7 @@ RUN_POSTGRES=1
                         'name': 'Started'
                         }]]
                     self.do_abort = False
-                    self.state = 'failed'
-                    self.env.cr.commit()
+                    self.state = 'running'
 
                     if shell:
                         machine = shell.machine

@@ -186,28 +186,27 @@ class ReleaseItem(models.Model):
             ignored_branch_names = self._get_ignored_branch_names(repo)
             branches = self.env['cicd.git.branch'].search([
                 ('state', 'in', ['tested']),
+                ('active', '=', True),
                 ('block_release', '=', False),
                 ('repo_id', '=', repo.id),
                 ('name', 'not in', ignored_branch_names),
                 ('id', 'not in', (rec.release_id.branch_id).ids),
-            ])
-            for b in branches:
-                if b not in rec.branch_ids:
-                    rec.branch_ids += b
-            rec._filter_out_invalid_branches()
+            ]) | rec.branch_ids
+            rec.branch_ids = [[6, 0, rec._filter_out_invalid_branches(branches).ids]]
             rec._trigger_recreate_candidate_branch_in_git()
 
-    def _filter_out_invalid_branches(self):
-        for rec in self:
-            repo = rec.release_id.repo_id
-            ignored_branch_names = rec._get_ignored_branch_names(repo)
-            for b in rec.branch_ids:
-                if b.state not in ['tested', 'candidate', 'done', 'release']:
-                    rec.branch_ids -= b
-                if b.name in ignored_branch_names:
-                    rec.branch_ids -= b
+    def _filter_out_invalid_branches(self, branches):
+        self.ensure_one()
+        repo = self.release_id.repo_id
+        ignored_branch_names = self._get_ignored_branch_names(repo)
+        for b in list(branches):
+            if b.state not in ['tested', 'candidate', 'done', 'release']:
+                branches -= b
+            if b.name in ignored_branch_names:
+                branches -= b
 
-            rec.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release or not x.active)
+        branches -= branches.filtered(lambda x: x.block_release or not x.active)
+        return branches
 
     def _recreate_candidate_branch_in_git(self):
         """
@@ -222,29 +221,39 @@ class ReleaseItem(models.Model):
         with self.release_id._get_logsio() as logsio:
             repo = self.release_id.repo_id.with_context(active_test=False)
             # remove blocked
-            self._filter_out_invalid_branches()
+            self.branch_ids = [[6, 0, self._filter_out_invalid_branches(self.branch_ids).ids]]
             critical_date = self.final_curtain or arrow.get().datetime
             commits = self._get_branches_within_final_curtains(critical_date)
 
             if set(commits.ids) == set(self.commit_ids.ids):
                 return
+            breakpoint()
 
-            message_commit = repo._recreate_branch_from_commits(
-                commits=commits,
-                target_branch_name=self.release_id.candidate_branch,
-                logsio=logsio,
-                make_info_commit_msg=
-                    f"Release Item {self.id}\n"
-                    f"Includes latest commits from:\n{', '.join(self.mapped('branch_ids.name'))}"
-            )
-            if message_commit and commits:
-                message_commit.approval_state = 'approved'
-                self.commit_ids = [[6, 0, commits.ids]]
-                self.commit_id = message_commit
-                candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
-                candidate_branch.ensure_one()
+            try:
+                message_commit = repo._recreate_branch_from_commits(
+                    commits=commits,
+                    target_branch_name=self.release_id.candidate_branch,
+                    logsio=logsio,
+                    make_info_commit_msg=
+                        f"Release Item {self.id}\n"
+                        f"Includes latest commits from:\n{', '.join(self.mapped('branch_ids.name'))}"
+                )
+            except Exception as ex:
+                msg = traceback.format_exc()
+                self.release_id.message_post(body=f"Merging into candidate failed {self.name} failed: {msg}")
+                self.env.cr.commit()
+                if logsio:
+                    logsio.error(ex)
+                logger.error(ex)
+            else:
+                if message_commit and commits:
+                    message_commit.approval_state = 'approved'
+                    self.commit_ids = [[6, 0, commits.ids]]
+                    self.commit_id = message_commit
+                    candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+                    candidate_branch.ensure_one()
 
-                (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
+                    (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
 
     def _get_branches_within_final_curtains(self, critical_date):
         commits = self.env['cicd.git.commit']

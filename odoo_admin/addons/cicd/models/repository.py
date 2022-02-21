@@ -380,7 +380,14 @@ class Repository(models.Model):
                     try:
                         shell.X(["git", "merge", commit.name])
                     except Exception as ex:
-                        raise UserError(f"Merge-Conflict {commit.name}") from ex
+                        branches = commit.branch_ids.filtered(lambda x: x.latest_commit_id == commit)
+                        self.state = 'failed'
+                        self.env.cr.commit()
+                        raise UserError((
+                            f"Merge-Conflict at {commit.name}.\n"),
+                            f"To resolve try to merge {target_branch_name} into those branches:\n",
+                            ','.join(branches.mapped('name'),
+                            )) from ex
 
                 # pushes to mainrepo locally not to web because its cloned to temp directory
                 shell.X(["git", "remote", "set-url", 'origin', self.url])
