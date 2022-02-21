@@ -322,6 +322,7 @@ RUN_POSTGRES=1
                 rec.success_rate = 0
             else:
                 rec.success_rate = int(100 / float(len(lines)) * float(success_lines))
+            rec.branch_id._compute_state()
 
     @api.constrains('branch_ids')
     def _check_branches(self):
