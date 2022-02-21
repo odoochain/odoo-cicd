@@ -274,6 +274,9 @@ class Repository(models.Model):
                                 shell.X(["git", "branch", "-D", branch], allow_error=True)
                             shell.X(["git", "checkout", branch])
                             shell.X(["git", "reset", "--hard", f"origin/{branch}"])
+
+                            # remove existing instance folder to refetch
+                            shell.rm(branch._get_instance_folder(shell.machine))
                         else:
                             shell.X(["git", "pull"])
                         shell.X(["git", "submodule", "update", "--init", "--recursive"])
