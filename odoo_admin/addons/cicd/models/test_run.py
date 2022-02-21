@@ -314,11 +314,10 @@ RUN_POSTGRES=1
         for rec in self:
             lines = rec.mapped('line_ids').filtered(lambda x: x.ttype != 'log')
             success_lines = len(lines.filtered(lambda x: x.state == 'success' or x.force_success))
-            if rec.state not in ['open', 'running'] and lines:
-                if lines and all(x.state == 'success' or x.force_success for x in lines):
-                    rec.state = 'success'
-                else:
-                    rec.state = 'failed'
+            if lines and all(x.state == 'success' or x.force_success for x in lines):
+                rec.state = 'success'
+            else:
+                rec.state = 'failed'
             if not lines or not success_lines:
                 rec.success_rate = 0
             else:
@@ -497,7 +496,8 @@ class CicdTestRunLine(models.Model):
     @api.recordchange('force_success')
     def _onchange_force(self):
         for rec in self:
-            rec.run_id._compute_success_rate()
+            if rec.run_id.state not in ['running']:
+                rec.run_id._compute_success_rate()
 
     def open_form(self):
         return {
