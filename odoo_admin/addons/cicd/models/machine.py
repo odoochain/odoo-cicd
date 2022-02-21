@@ -403,10 +403,7 @@ echo "--------------------------------------------------------------------------
                     container, state = line.split("\t")
                     containers_dict[container] = state
                 path = Path(rec.tempfile_containers)
-                path.write_text(
-                    json.dumps(containers_dict),
-                    self._tempfile_containers
-                    )
+                path.write_text(json.dumps(containers_dict))
 
     def _get_containers(self):
         path = Path(self.tempfile_containers)
