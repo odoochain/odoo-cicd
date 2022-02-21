@@ -66,10 +66,11 @@ class CicdTestRun(models.Model):
         settings = """
 RUN_POSTGRES=1
         """
+        data['last_report_time'] = arrow.get()
 
         def report(msg, state='success', exception=None, duration=False, ttype='log'):
             if duration is None:
-                duration = 0
+                duration = (arrow.get() - data['last_report_time']).total_seconds()
             elif isinstance(duration, datetime.timedelta):
                 duration = duration.total_seconds()
             ttype = ttype or 'log'
@@ -87,6 +88,7 @@ RUN_POSTGRES=1
                     logsio.info(msg)
                 else:
                     logsio.error(msg)
+            data['last_report_time'] = arrow.get()
 
         root = machine._get_volume('source')
         started = arrow.get()
