@@ -109,6 +109,9 @@ RUN_POSTGRES=1
                         raise RetryableJobError("Missing commit not arrived - retrying later.") from ex
                     report("Error occurred", exception=ex, duration=arrow.get() - started)
                     raise
+            sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+            if sha != self.commit_id.name:
+                raise Exception(f"checkoued SHA {sha} not matching test sha {self.commit_id.name}")
 
             report("Checked out source code")
             shell.cwd = root / shell.project_name
