@@ -21,6 +21,7 @@
 							<field name="final_curtain" />
 							<field name="release_type" readonly="1" />
 							<field name="computed_summary" />
+							<field name="commit_id" readonly="1"/>
 						</group>
 						<notebook>
 							<page string="Log">

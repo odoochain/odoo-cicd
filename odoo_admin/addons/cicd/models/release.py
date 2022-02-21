@@ -136,7 +136,7 @@ class Release(models.Model):
     def collect_tested_branches(self):
         for rec in self:
             rec.item_ids.filtered(
-                lambda x: x.state in ('new', 'failed'))._collect_tested_branches(
+                lambda x: x.state in ('new'))._collect_tested_branches(
                     self.repo_id,
                 )
 

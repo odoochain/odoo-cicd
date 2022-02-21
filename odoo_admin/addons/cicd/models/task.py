@@ -170,12 +170,12 @@ class Task(models.Model):
                         log = msg + '\n' + '\n'.join(logsio.get_lines())
                         self.state = 'failed'
                         if self.branch_id:
-                            self.branch_id.message_post(f"Error happened {self.name}\n{msg}")
+                            self.branch_id.message_post(body=f"Error happened {self.name}\n{msg}")
                     else:
                         self.state = 'done'
                         log = '\n'.join(logsio.get_lines())
                         if self.branch_id:
-                            self.branch_id.message_post(f"Successfully executed {self.name}")
+                            self.branch_id.message_post(body=f"Successfully executed {self.name}")
                     finally:
                         self.env.cr.commit()
 
