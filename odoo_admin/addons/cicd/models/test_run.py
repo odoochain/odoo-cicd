@@ -113,7 +113,7 @@ RUN_POSTGRES=1
             if sha != self.commit_id.name:
                 raise Exception(f"checkoued SHA {sha} not matching test sha {self.commit_id.name}")
 
-            report("Checked out source code")
+            report(f"Checked out source code at {shell.cwd}")
             shell.cwd = root / shell.project_name
             try:
                 try:
