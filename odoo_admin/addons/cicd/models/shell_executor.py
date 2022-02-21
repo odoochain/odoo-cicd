@@ -92,7 +92,7 @@ class ShellExecutor(object):
     def checkout_branch(self, branch, cwd=None):
         if not self.branch_exists(branch):
             self.X(["git", "checkout", "-b", branch, "--track", "origin/" + branch], cwd=cwd, allow_error=True)
-        self.X(["git", "checkout", "-f", "--no-guess", branch], cwd=cwd, allow_error=True)
+        self.X(["git", "checkout", "-f", "--no-guess", branch], cwd=cwd, allow_error=False)
         self._after_checkout(cwd=cwd)
 
     def checkout_commit(self, commit, cwd=None):
@@ -106,10 +106,14 @@ class ShellExecutor(object):
         self._after_checkout(cwd=cwd)
 
     def branch_exists(self, branch, cwd=None):
-        res = self.X(["git", "show-ref", "--verify", "refs/heads/" + branch], cwd=cwd, allow_error=True)
-        if res['exit_code'] is not None and not res['exit_code'] and branch in res['stdout'].strip():
-            return True
-        return False
+        breakpoint()
+        res = self.X(["git", "branch", "--no-color"], cwd=cwd)['stdout'].strip().split("\n")
+        def reformat(x):
+            x = x.replace("* ", "")
+            x = x.strip()
+            return x
+        res = [reformat(x) for x in res]
+        return branch in res
 
     def _after_checkout(self, cwd):
         self.X(["git", "clean", "-xdff"], cwd=cwd)
