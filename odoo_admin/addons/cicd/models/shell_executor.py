@@ -2,6 +2,7 @@ import arrow
 import uuid
 import threading
 from sarge import Capture, run
+from odoo.exceptions import UserError
 import time
 import shlex
 import tempfile
@@ -53,6 +54,8 @@ class ShellExecutor(object):
             if self.logsio:
                 self.logsio.info(f"Path {path} exists and is erased now.")
             self._internal_execute(["rm", "-Rf", path])
+            if self.exists(path):
+                raise UserError(f"Removing of {path} failed.")
         else:
             if self.logsio:
                 self.logsio.info(f"Path {path} did not exist - not erased")

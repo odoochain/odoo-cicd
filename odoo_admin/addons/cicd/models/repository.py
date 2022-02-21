@@ -129,6 +129,7 @@ class Repository(models.Model):
         if temppath and temppath != path:
             with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
                 if not self._is_healthy_repository(shell, temppath):
+                    breakpoint()
                     shell.rm(temppath)
 
                     if limit_branch:
