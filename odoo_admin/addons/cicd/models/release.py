@@ -135,7 +135,10 @@ class Release(models.Model):
 
     def collect_tested_branches(self):
         for rec in self:
-            rec.item_ids.filtered(lambda x: x.state in ('new', 'failed'))._collect_tested_branches()
+            rec.item_ids.filtered(
+                lambda x: x.state in ('new', 'failed'))._collect_tested_branches(
+                    self.repo_id,
+                )
 
     def _technically_do_release(self, release_item):
         errors = self.action_ids.run_action_set(release_item, self.action_ids)

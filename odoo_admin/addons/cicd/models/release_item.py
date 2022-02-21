@@ -156,7 +156,7 @@ class ReleaseItem(models.Model):
                 self.log_release = logsio.get_lines()
                 self.env.cr.commit()
 
-        except Exception as ex:
+        except Exception:
             self.state = 'failed'
             msg = traceback.format_exc()
             self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")

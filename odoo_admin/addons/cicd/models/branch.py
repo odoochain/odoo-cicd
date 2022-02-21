@@ -224,7 +224,7 @@ class GitBranch(models.Model):
                 self.env['cicd.release.item'].search([
                     ('state', '=', ['new', 'failed']),
                     ('release_id.repo_id', '=', rec.repo_id.id)
-                ])._collect_tested_branches()
+                ])._collect_tested_branches(self.repo_id)
 
             if 'block_release' in changeset:
                 rec._compute_state()
