@@ -94,6 +94,7 @@ RUN_POSTGRES=1
 
         root = machine._get_volume('source')
         started = arrow.get()
+        breakpoint()
         with machine._shell(cwd=root, logsio=logsio, project_name=self.branch_id.project_name) as shell:
             breakpoint()
             report("Checking out source code...")
@@ -106,7 +107,8 @@ RUN_POSTGRES=1
                 reload()
             except Exception as ex:
                 try:
-                    shell.rm(shell.cwd)
+                    if shell.cwd != root:
+                        shell.rm(shell.cwd)
                     reload()
                 except Exception as ex:
                     if 'reference is not a tree' in str(ex):

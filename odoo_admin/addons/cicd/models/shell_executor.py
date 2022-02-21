@@ -50,6 +50,8 @@ class ShellExecutor(object):
         return self.remove(path)
 
     def remove(self, path):
+        if path == '/mnt/docker_btrfs/workspace/' or path == '/mnt/docker_btrfs/workspace':
+            raise Exception("DO NOT DELETE THIS and remove this!")
         if self.exists(path):
             if self.logsio:
                 self.logsio.info(f"Path {path} exists and is erased now.")
