@@ -287,6 +287,8 @@ class GitBranch(models.Model):
         tasks.perform()
 
     def _get_instance_folder(self, machine):
+        if not self.project_name:
+            raise ValidationError("Project name not determined.")
         return machine._get_volume('source') / self.project_name
 
     def make_instance_ready_to_login(self):
