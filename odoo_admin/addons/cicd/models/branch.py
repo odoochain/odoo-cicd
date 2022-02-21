@@ -20,7 +20,7 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
-    project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name", depends_context=['testrun'])
+    project_name = fields.Char(compute="_compute_project_name", store=False, search="_search_project_name")
     database_project_name = fields.Char(compute="_compute_project_name", store=False)
     approver_ids = fields.Many2many("res.users", "cicd_git_branch_approver_rel", "branch_id", "user_id", string="Approver")
     machine_id = fields.Many2one(related='repo_id.machine_id')
@@ -287,6 +287,7 @@ class GitBranch(models.Model):
         tasks.perform()
 
     def _get_instance_folder(self, machine):
+        breakpoint()
         return machine._get_volume('source') / self.project_name
 
     def make_instance_ready_to_login(self):
@@ -317,6 +318,8 @@ class GitBranch(models.Model):
     def _get_odoo_proxy_container_name(self):
         return f"{self.project_name}_proxy"
 
+    @api.depends_context('testrun')
+    @api.depends("repo_id", "repo_id.short", "name")
     def _compute_project_name(self):
         for rec in self:
             project_name = os.environ['CICD_PROJECT_NAME'] + "_" + rec.repo_id.short + "_" + rec.name

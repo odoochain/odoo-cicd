@@ -172,8 +172,9 @@ RUN_POSTGRES=1
                     if logsio:
                         logsio.stop_keepalive()
 
-
-
+    def execute_now(self):
+        self.with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).execute()
+        return True
 
     # ----------------------------------------------
     # Entrypoint
@@ -184,6 +185,8 @@ RUN_POSTGRES=1
         with self.branch_id._get_new_logsio_instance('test-run-execute') as logsio2:
             if not logsio:
                 logsio = logsio2
+            testrun_context = f"_testrun_{self.id}"
+            self = self.with_context(testrun=testrun_context) # after logsio, so that logs io projectname is unchanged
             with pg_advisory_lock(self.env.cr, f"testrun.{self.id}", detailinfo="execute test"):
                 if self.state not in ('open') and not self.env.context.get("FORCE_TEST_RUN"):
                     return
@@ -191,6 +194,7 @@ RUN_POSTGRES=1
                 with db_registry.cursor() as cr:
                     env = api.Environment(cr, SUPERUSER_ID, {})
                     self = env[self._name].browse(self.id)
+                    self = self.with_context(testrun=testrun_context)
 
                     self.ensure_one()
                     b = self.branch_id
@@ -203,7 +207,11 @@ RUN_POSTGRES=1
                         return
 
                     self.line_ids = [[6, 0, []]]
-                    self.line_ids = [[0, 0, {'run_id': self.id, 'ttype': 'log', 'name': 'Started'}]]
+                    self.line_ids = [[0, 0, {
+                        'run_id': self.id,
+                        'ttype': 'log',
+                        'name': 'Started'
+                        }]]
                     self.do_abort = False
                     self.state = 'failed'
                     self.env.cr.commit()
@@ -222,13 +230,16 @@ RUN_POSTGRES=1
 
                     with self.prepare_run(machine, logsio) as shell:
                         if b.run_unittests:
-                            self._execute(shell, logsio, self._run_unit_tests, machine, 'test-units')
+                            self._execute(
+                                shell, logsio, self._run_unit_tests, machine, 'test-units')
                             self.env.cr.commit()
                         if b.run_robottests:
-                            self._execute(shell, logsio, self._run_robot_tests, machine, 'test-robot')
+                            self._execute(
+                                shell, logsio, self._run_robot_tests, machine, 'test-robot')
                             self.env.cr.commit()
                         if b.simulate_install_id:
-                            self._execute(shell, logsio, self._run_update_db, machine, 'test-migration')
+                            self._execute(
+                                shell, logsio, self._run_update_db, machine, 'test-migration')
                             self.env.cr.commit()
 
                     if data['technical_errors']:
@@ -250,7 +261,6 @@ RUN_POSTGRES=1
     def _execute(self, shell, logsio, run, machine, appendix):
         try:
             testrun = self
-            testrun = testrun.with_context(testrun=f"_testrun_{testrun.id}_{appendix}") # after logsio, so that logs io projectname is unchanged
             logsio.info("Running " + appendix)
             passed_prepare = False
             try:
