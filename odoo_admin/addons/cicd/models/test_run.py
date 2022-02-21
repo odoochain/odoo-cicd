@@ -509,10 +509,3 @@ class CicdTestRunLine(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
-
-    @api.model
-    def create(self, vals):
-        res = super().create(vals)
-        if res.run_id.state != 'running':
-            res.run_id.state = 'running'  # later success wil be calculated
-        return res
