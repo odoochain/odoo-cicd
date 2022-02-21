@@ -111,14 +111,18 @@ class ReleaseItem(models.Model):
 
         try:
             if self.state not in ['new']:
-                raise ValidationError("Needs state new/failed to be validated, not: {self.state}")
+                raise ValidationError(f"Needs state new to be validated, not: {self.state}")
             if self.release_type == 'hotfix' and not self.branch_ids:
                 raise ValidationError("Hotfix requires explicit branches.")
             if not self.commit_id:  # needs a collected commit with everything on it
-                raise ValidationError("Missing commit.")
+                raise RetryableJobError(
+                    "Missing commit",
+                    ignore_retry=True, seconds=120)
 
             if self.commit_id.test_state != 'success':
-                raise ValidationError(f"Release is missing a valid test run of {self.commit_id.name}")
+                raise RetryableJobError(
+                    f"Release is missing a valid test run of {self.commit_id.name}",
+                    ignore_retry=True, seconds=120)
 
             with self.release_id._get_logsio() as logsio:
 
