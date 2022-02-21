@@ -265,7 +265,7 @@ class Repository(models.Model):
                             shell.rm(shell.cwd)
                             self.clone_repo(machine, shell.cwd, logsio)
                             shell.checkout_branch(branch)
-                        
+
                         if branch in candidate_branch_names:
                             # avoid fast forward git extra commits
                             shell.X(["git", "checkout", repo.default_branch, "-f"])
@@ -275,7 +275,11 @@ class Repository(models.Model):
                             shell.X(["git", "reset", "--hard", f"origin/{branch}"])
 
                             # remove existing instance folder to refetch
-                            shell.rm(branch._get_instance_folder(shell.machine))
+                            db_branch = self.env['cicd.git.branch'].search([
+                                ('name', '=', branch),
+                                ('repo_id', '=', self.id)
+                            ])
+                            shell.rm(db_branch._get_instance_folder(shell.machine))
                         else:
                             shell.X(["git", "pull"])
                         shell.X(["git", "submodule", "update", "--init", "--recursive"])
