@@ -42,6 +42,7 @@ class CicdTestRun(models.Model):
 
     def abort(self):
         self.do_abort = True
+        self.state = 'failed'
 
     def _wait_for_postgres(self, shell):
         timeout = 60
