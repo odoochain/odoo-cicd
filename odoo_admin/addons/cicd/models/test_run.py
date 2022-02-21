@@ -392,7 +392,7 @@ RUN_POSTGRES=1
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
-                index = f"({i + 1} / {len(todo)}"
+                index = f"({i + 1} / {len(todo)})"
                 started = arrow.get()
                 data = {
                     'name': f"{index} {item}",
