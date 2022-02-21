@@ -34,6 +34,23 @@
 										<field name="enduser_summary"/>
 									</tree>
 								</field>
+								<field name="commit_ids" readonly="1">
+									<tree
+										decoration-danger="approval_state == 'declined' or test_state == 'failed'"
+										decoration-muted="not approval_state and not test_state"
+										decoration-success="force_approved or approval_state == 'approved' or test_state == 'success'"
+									>
+										<button name="open_window" string="" icon="fa-external-link" type="object" />
+										<field name="name"/>
+										<field name="test_state"/>
+										<field name="approval_state"/>
+										<field name="force_approved" widget="boolean_toggle"/>
+										<field name="date" />
+										<field name="author"/>
+										<field name="text"/>
+										<button name="view_changes" string="" icon="fa-search" type="object" />
+									</tree>
+								</field>
 							</page>
 						</notebook>
 					</sheet>
