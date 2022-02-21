@@ -240,11 +240,22 @@ class ReleaseItem(models.Model):
             # remove blocked
             self.branch_ids = [[6, 0, self._filter_out_invalid_branches(self.branch_ids).ids]]
             critical_date = self.final_curtain or arrow.get().datetime
-            commits = self._get_branches_within_final_curtains(critical_date)
+            commits = self._get_commits_within_final_curtains(critical_date)
 
             if set(commits.ids) == set(self.commit_ids.ids):
                 return
+
             breakpoint()
+            # if previous release has same commits like this one, then reuse 
+            # the already merged branch here
+            if len(self.release_id.item_ids) > 1:
+                prev_item = self.release_id.item_ids[1]
+                if prev_item.state == 'failed':
+                    prev_commits = self.release_id.item_ids[1].mapped('commit_ids')
+                    if set(prev_commits.ids) == set(self.commit_ids.ids):
+                        if not self.commit_id and prev_item.commit_id:
+                            self.commit_id = prev_item.commit_id
+                            return
 
             try:
                 message_commit = repo._recreate_branch_from_commits(
@@ -273,15 +284,10 @@ class ReleaseItem(models.Model):
 
                     (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
 
-    def _get_branches_within_final_curtains(self, critical_date):
+    def _get_commits_within_final_curtains(self, critical_date):
         commits = self.env['cicd.git.commit']
-        repo = self.release_id.repo_id
-        ignored_branch_names = self._get_ignored_branch_names(repo)
 
         for branch in self.branch_ids:
-            if branch.name in ignored_branch_names:
-                continue
-
             for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
                 if critical_date:
                     if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
