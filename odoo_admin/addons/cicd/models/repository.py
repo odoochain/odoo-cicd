@@ -376,13 +376,12 @@ class Repository(models.Model):
 
                 # pushes to mainrepo locally not to web because its cloned to temp directory
                 shell.X(["git", "remote", "set-url", 'origin', self.url])
-                shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
 
                 message_commit_sha = None
                 if make_info_commit_msg:
                     shell.X(["git", "commit", "--allow-empty", "-m", make_info_commit_msg])
                     message_commit_sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                shell.X(["git", "push", "-f", 'origin', target_branch_name])
+                shell.X(["git", "push", "--set-upstream", "-f", 'origin', target_branch_name])
 
                 if not (target_branch := repo.branch_ids.filtered(lambda x: x.name == target_branch_name)):
                     target_branch = repo.branch_ids.create({
