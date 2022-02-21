@@ -111,7 +111,7 @@ class ReleaseItem(models.Model):
 
         try:
             if self.state not in ['new']:
-                raise ValidationError(f"Needs state new to be validated, not: {self.state}")
+                return
             if self.release_type == 'hotfix' and not self.branch_ids:
                 raise ValidationError("Hotfix requires explicit branches.")
             if not self.commit_id:  # needs a collected commit with everything on it
