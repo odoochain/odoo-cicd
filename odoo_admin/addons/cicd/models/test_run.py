@@ -69,7 +69,7 @@ RUN_POSTGRES=1
         """
         last_report_time = arrow.get()
 
-        def report(msg, state='success', exception=None, duration=False, ttype='log'):
+        def report(msg, state='success', exception=None, duration=None, ttype='log'):
             global last_report_time
             if duration is None:
                 duration = (arrow.get() - last_report_time).total_seconds()
