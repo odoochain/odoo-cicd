@@ -106,7 +106,6 @@ class ShellExecutor(object):
         self._after_checkout(cwd=cwd)
 
     def branch_exists(self, branch, cwd=None):
-        breakpoint()
         res = self.X(["git", "branch", "--no-color"], cwd=cwd)['stdout'].strip().split("\n")
         def reformat(x):
             x = x.replace("* ", "")

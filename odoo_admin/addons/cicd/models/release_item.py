@@ -194,10 +194,20 @@ class ReleaseItem(models.Model):
             for b in branches:
                 if b not in rec.branch_ids:
                     rec.branch_ids += b
+            rec._filter_out_invalid_branches()
+            rec._trigger_recreate_candidate_branch_in_git()
+
+    def _filter_out_invalid_branches(self):
+        for rec in self:
+            repo = rec.release_id.repo_id
+            ignored_branch_names = rec._get_ignored_branch_names(repo)
             for b in rec.branch_ids:
                 if b.state not in ['tested', 'candidate', 'done', 'release']:
                     rec.branch_ids -= b
-            rec._trigger_recreate_candidate_branch_in_git()
+                if b.name in ignored_branch_names:
+                    rec.branch_ids -= b
+
+            rec.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release or not x.active)
 
     def _recreate_candidate_branch_in_git(self):
         """
@@ -212,7 +222,7 @@ class ReleaseItem(models.Model):
         with self.release_id._get_logsio() as logsio:
             repo = self.release_id.repo_id.with_context(active_test=False)
             # remove blocked
-            self.branch_ids -= self.branch_ids.filtered(lambda x: x.block_release)
+            self._filter_out_invalid_branches()
             critical_date = self.final_curtain or arrow.get().datetime
             commits = self._get_branches_within_final_curtains(critical_date)
 
@@ -244,7 +254,7 @@ class ReleaseItem(models.Model):
         for branch in self.branch_ids:
             if branch.name in ignored_branch_names:
                 continue
-            
+
             for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
                 if critical_date:
                     if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):

@@ -287,7 +287,6 @@ class GitBranch(models.Model):
         tasks.perform()
 
     def _get_instance_folder(self, machine):
-        breakpoint()
         return machine._get_volume('source') / self.project_name
 
     def make_instance_ready_to_login(self):
