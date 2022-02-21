@@ -96,9 +96,13 @@ class ShellExecutor(object):
         self._after_checkout(cwd=cwd)
 
     def checkout_commit(self, commit, cwd=None):
-        self.X(["git", "config", "advice.detachedHead", "false"]) # otherwise checking out a commit brings error message
-        self.X(["git", "clean", "-xdff", commit])
+        cwd = cwd or self.cwd
+        self.X(["git", "config", "advice.detachedHead", "false"], cwd=cwd) # otherwise checking out a commit brings error message
+        self.X(["git", "clean", "-xdff", commit], cwd=cwd)
         self.X(["git", "checkout", "-f", commit], cwd=cwd, allow_error=True)
+        sha = self.X(["git", "log", "-n1", "--format=%H"], cwd=cwd)['stdout'].strip()
+        if sha != commit:
+            raise Exception(f"Somehow checking out {commit} in {cwd} failed")
         self._after_checkout(cwd=cwd)
 
     def branch_exists(self, branch, cwd=None):
