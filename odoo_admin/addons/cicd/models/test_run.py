@@ -95,7 +95,9 @@ RUN_POSTGRES=1
             report("Checking out source code...")
 
             def reload():
-                self.branch_id._reload(shell, None, logsio, project_name=shell.project_name, settings=settings, commit=self.commit_id.name)
+                self.branch_id._reload(
+                    shell, None, logsio, project_name=shell.project_name, settings=settings,
+                    commit=self.commit_id.name)
             try:
                 reload()
             except Exception as ex:
