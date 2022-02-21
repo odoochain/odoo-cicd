@@ -6,6 +6,9 @@ import struct
 from pathlib import Path
 import logging
 from odoo.addons.queue_job.exception import RetryableJobError
+import threading
+import arrow
+import time
 logger = logging.getLogger("CICD")
 
 MAIN_FOLDER_NAME = "_main"
@@ -37,7 +40,17 @@ def pg_advisory_xact_lock(cr, lock):
 
 
 @contextmanager
-def pg_advisory_lock(cr, lock):
+def pg_advisory_lock(cr, lock, detailinfo=None):
+    started = arrow.get()
+    data = {'break': False}
+
+    def print_warn_info(started, detailinfo):
+        while not data['break']:
+            time.sleep(1)
+            if (arrow.get() - started).total_seconds() > 5:
+                logger.error(f"Holding advisory lock for longer: {lock} {detailinfo}")
+
+    breakpoint()
     lock = _int_lock(lock)
     cr.execute("SELECT pg_try_advisory_lock(%s);", (lock,))
     if not cr.fetchone()[0]:
@@ -47,14 +60,19 @@ def pg_advisory_lock(cr, lock):
             ignore_retry=True, seconds=5
             )
     logger.info(f"Acquired advisory lock {lock}")
+    t = threading.Thread(target=print_warn_info, args=(started, detailinfo))
+    t.daemon = True
+    t.start()
+
     try:
         yield
     finally:
+        data['break'] = True
         try:
             cr.execute("SELECT pg_advisory_unlock(%s);", (lock,))
         except Exception:
             logger.warn(
-                f"Could not release lock because of connection. Perhaps already closed so ok.",
+                "Could not release lock because of connection. Perhaps already closed so ok.",
                 exc_info=True
                 )
 
