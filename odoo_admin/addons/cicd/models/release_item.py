@@ -184,8 +184,14 @@ class ReleaseItem(models.Model):
             repo = rec.release_id.branch_id.repo_id
 
             ignored_branch_names = self._get_ignored_branch_names(repo)
+
+            # select from many states:
+            # * case: previous release may be failed: technical error, merge conflict
+            # * case: state is done but was released at another release, so check again
+            breakpoint()
+
             branches = self.env['cicd.git.branch'].search([
-                ('state', 'in', ['tested']),
+                ('state', 'in', ['candidate', 'tested', 'release', 'done']), # why so many states
                 ('active', '=', True),
                 ('block_release', '=', False),
                 ('repo_id', '=', repo.id),
@@ -193,6 +199,12 @@ class ReleaseItem(models.Model):
                 ('id', 'not in', (rec.release_id.branch_id).ids),
             ]) | rec.branch_ids
             rec.branch_ids = [[6, 0, rec._filter_out_invalid_branches(branches).ids]]
+
+            # remove branches, that are already merged
+            for branch in list(rec.branch_ids):
+                if branch.latest_commit_id in rec.release_id.branch_id.commit_ids:
+                    rec.branch_ids -= branch
+
             rec._trigger_recreate_candidate_branch_in_git()
 
     def _filter_out_invalid_branches(self, branches):
@@ -240,6 +252,7 @@ class ReleaseItem(models.Model):
                 )
             except Exception as ex:
                 msg = traceback.format_exc()
+                self.state = 'failed'
                 self.release_id.message_post(body=f"Merging into candidate failed {self.name} failed: {msg}")
                 self.env.cr.commit()
                 if logsio:

@@ -365,7 +365,6 @@ class Repository(models.Model):
                 # clear the current candidate
                 breakpoint()
                 if shell.branch_exists(target_branch_name):
-                    breakpoint()
                     shell.checkout_branch(self.default_branch)
                     shell.X(["git", "branch", "-D", target_branch_name])
                 logsio.info("Making target branch {target_branch.name}")
@@ -376,18 +375,17 @@ class Repository(models.Model):
                     # we use git functions to retrieve deltas, git sorting and so;
                     # we want to rely on stand behaviour git.
                     shell.checkout_branch(target_branch_name)
-                    breakpoint()
                     try:
                         shell.X(["git", "merge", commit.name])
                     except Exception as ex:
+                        breakpoint()
                         branches = commit.branch_ids.filtered(lambda x: x.latest_commit_id == commit)
-                        self.state = 'failed'
-                        self.env.cr.commit()
-                        raise UserError((
-                            f"Merge-Conflict at {commit.name}.\n"),
-                            f"To resolve try to merge {target_branch_name} into those branches:\n",
-                            ','.join(branches.mapped('name'),
-                            )) from ex
+                        text = (
+                            f"Merge-Conflict at {commit.name}.\n"
+                            f"To resolve try to merge {self.release_id.branch_id.name} into those branches:\n"
+                            f"{','.join(branches.mapped('name'))}"
+                        )
+                        raise UserError(text) from ex
 
                 # pushes to mainrepo locally not to web because its cloned to temp directory
                 shell.X(["git", "remote", "set-url", 'origin', self.url])

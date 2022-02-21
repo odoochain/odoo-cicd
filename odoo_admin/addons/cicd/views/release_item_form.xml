@@ -26,7 +26,7 @@
 							<page string="Log">
 								<field name="log_release"/>
 							</page>
-							<page string="Branches">
+							<page string="Branches" name="branches">
 								<field name="branch_ids" attrs="{'readonly': [('release_type', '!=', 'hotfix')]}">
 									<tree>
 										<field name="name"/>
@@ -34,6 +34,8 @@
 										<field name="enduser_summary"/>
 									</tree>
 								</field>
+							</page>
+							<page string="Commits" name="commits">
 								<field name="commit_ids" readonly="1">
 									<tree
 										decoration-danger="approval_state == 'declined' or test_state == 'failed'"

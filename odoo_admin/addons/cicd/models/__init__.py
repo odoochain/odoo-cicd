@@ -53,7 +53,6 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
             if duration > 5:
                 logger.warning(f"Holding advisory lock for {duration} seconds: {lock} {detailinfo}")
 
-    breakpoint()
     lock = _int_lock(lock)
     cr.execute("SELECT pg_try_advisory_lock(%s);", (lock,))
     if not cr.fetchone()[0]:
