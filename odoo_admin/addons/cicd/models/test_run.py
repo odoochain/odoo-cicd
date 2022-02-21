@@ -269,7 +269,9 @@ RUN_POSTGRES=1
                     except: pass
                     with db_registry.cursor() as cr:
                         env = api.Environment(cr, SUPERUSER_ID, {})
-                        env[self._name].browse(self.id).state = 'failed'
+                        testrun = env[self._name].browse(self.id)
+                        testrun.state = 'failed'
+                        testrun.branch_id._compute_state()
                         cr.commit()
                     raise
 
