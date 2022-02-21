@@ -49,7 +49,7 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
             time.sleep(1)
             duration = (arrow.get() - started).total_seconds()
             if duration > 5:
-                logger.error(f"Holding advisory lock for {duration} seconds: {lock} {detailinfo}")
+                logger.warn(f"Holding advisory lock for {duration} seconds: {lock} {detailinfo}")
 
     breakpoint()
     lock = _int_lock(lock)
