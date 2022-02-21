@@ -8,7 +8,7 @@ import requests
 from odoo import registry
 from pathlib import Path
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 from ..tools.logsio_writer import LogsIOWriter
 from contextlib import contextmanager
 import humanize
