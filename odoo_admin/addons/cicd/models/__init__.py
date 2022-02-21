@@ -43,6 +43,8 @@ def pg_advisory_xact_lock(cr, lock):
 def pg_advisory_lock(cr, lock, detailinfo=None):
     started = arrow.get()
     data = {'break': False}
+    detailinfo = detailinfo or ''
+    detailinfo = f"{lock}; {detailinfo}"
 
     def print_warn_info(started, detailinfo):
         while not data['break']:

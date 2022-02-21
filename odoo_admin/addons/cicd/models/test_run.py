@@ -179,7 +179,7 @@ RUN_POSTGRES=1
         with self.branch_id._get_new_logsio_instance('test-run-execute') as logsio2:
             if not logsio:
                 logsio = logsio2
-            with pg_advisory_lock(self.env.cr, f"testrun.{self.id}"):
+            with pg_advisory_lock(self.env.cr, f"testrun.{self.id}", detailinfo="execute test"):
                 if self.state not in ('open') and not self.env.context.get("FORCE_TEST_RUN"):
                     return
                 db_registry = registry(self.env.cr.dbname)

@@ -252,7 +252,7 @@ class Repository(models.Model):
             releases = self.env['cicd.release'].search([('repo_id', '=', repo.id)])
             candidate_branch_names = releases.mapped('candidate_branch')
 
-            with pg_advisory_lock(self.env.cr, repo._get_lockname()):
+            with pg_advisory_lock(self.env.cr, repo._get_lockname(), detailinfo=f"cron_fetch_updated_branches {updated_branches}"):
                 with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
                     for branch in updated_branches:
                         logsio.info(f"Pulling {branch}...")
@@ -335,7 +335,7 @@ class Repository(models.Model):
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
-            with pg_advisory_lock(self.env.cr, self._get_lockname()):
+            with pg_advisory_lock(self.env.cr, self._get_lockname(), 'clone_repo {path}'):
                 if not self._is_healthy_repository(shell, path):
                     shell.rm(path)
                     shell.X([
@@ -438,7 +438,7 @@ class Repository(models.Model):
         for repo in self.search([
             ('never_cleanup', '=', False),
         ]):
-            with pg_advisory_lock(self.env.cr, repo._get_lockname()):
+            with pg_advisory_lock(self.env.cr, repo._get_lockname(), f"_cron_cleanup {repo.name}"):
                 dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime("%Y-%m-%d %H:%M:%S")
                 # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
                 db_registry = registry(self.env.cr.dbname)
