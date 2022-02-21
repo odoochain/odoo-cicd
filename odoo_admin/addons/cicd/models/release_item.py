@@ -198,12 +198,13 @@ class ReleaseItem(models.Model):
                 ('name', 'not in', ignored_branch_names),
                 ('id', 'not in', (rec.release_id.branch_id).ids),
             ]) | rec.branch_ids
-            rec.branch_ids = [[6, 0, rec._filter_out_invalid_branches(branches).ids]]
 
             # remove branches, that are already merged
-            for branch in list(rec.branch_ids):
+            branches = rec._filter_out_invalid_branches(branches)
+            for branch in list(branches):
                 if branch.latest_commit_id in rec.release_id.branch_id.commit_ids:
-                    rec.branch_ids -= branch
+                    branches -= branch
+            rec.branch_ids = [[6, 0, branches.ids]]
 
             rec._trigger_recreate_candidate_branch_in_git()
 

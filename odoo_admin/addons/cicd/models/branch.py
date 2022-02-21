@@ -223,7 +223,7 @@ class GitBranch(models.Model):
 
             def _update():
                 self.env['cicd.release.item'].search([
-                    ('state', '=', ['new', 'failed']),
+                    ('state', 'in', ['new', 'failed']),
                     ('release_id.repo_id', '=', rec.repo_id.id)
                 ])._collect_tested_branches(self.repo_id)
 
