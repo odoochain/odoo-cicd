@@ -94,8 +94,8 @@ RUN_POSTGRES=1
 
         root = machine._get_volume('source')
         started = arrow.get()
-        breakpoint()
         with machine._shell(cwd=root, logsio=logsio, project_name=self.branch_id.project_name) as shell:
+            breakpoint()
             report("Checking out source code...")
 
             def reload():
@@ -190,80 +190,92 @@ RUN_POSTGRES=1
             if not logsio:
                 logsio = logsio2
             testrun_context = f"_testrun_{self.id}"
+            self_old = self
             self = self.with_context(testrun=testrun_context) # after logsio, so that logs io projectname is unchanged
             with pg_advisory_lock(self.env.cr, f"testrun.{self.id}", detailinfo="execute test"):
-                if self.state not in ('open') and not self.env.context.get("FORCE_TEST_RUN"):
-                    return
-                db_registry = registry(self.env.cr.dbname)
-                with db_registry.cursor() as cr:
-                    env = api.Environment(cr, SUPERUSER_ID, {})
-                    self = env[self._name].browse(self.id)
-                    self = self.with_context(testrun=testrun_context)
-
-                    self.ensure_one()
-                    b = self.branch_id
-                    started = arrow.get()
-
-                    if not b.any_testing:
-                        self.success_rate = 100
-                        self.state = 'success'
-                        b._compute_state()
+                try:
+                    if self.state not in ('open') and not self.env.context.get("FORCE_TEST_RUN"):
                         return
+                    db_registry = registry(self.env.cr.dbname)
+                    with db_registry.cursor() as cr:
+                        env = api.Environment(cr, SUPERUSER_ID, {})
+                        self = env[self._name].browse(self.id)
+                        self = self.with_context(testrun=testrun_context)
 
-                    self.line_ids = [[6, 0, []]]
-                    self.line_ids = [[0, 0, {
-                        'run_id': self.id,
-                        'ttype': 'log',
-                        'name': 'Started'
-                        }]]
-                    self.do_abort = False
-                    self.state = 'running'
+                        self.ensure_one()
+                        b = self.branch_id
+                        started = arrow.get()
 
-                    if shell:
-                        machine = shell.machine
-                    else:
-                        machine = self.branch_id.repo_id.machine_id
+                        if not b.any_testing:
+                            self.success_rate = 100
+                            self.state = 'success'
+                            b._compute_state()
+                            return
 
-                    data = {
-                        'testrun_id': self.id,
-                        'machine_id': machine.id,
-                        'technical_errors': [],
-                        'run_lines': deque(),
-                    }
+                        self.line_ids = [[6, 0, []]]
+                        self.line_ids = [[0, 0, {
+                            'run_id': self.id,
+                            'ttype': 'log',
+                            'name': 'Started'
+                            }]]
+                        self.do_abort = False
+                        self.state = 'running'
+                        self.env.cr.commit()
 
-                    with self.prepare_run(machine, logsio) as shell:
-                        if b.run_unittests:
-                            self._execute(
-                                shell, logsio, self._run_unit_tests, machine, 'test-units')
-                            self.env.cr.commit()
-                        if b.run_robottests:
-                            self._execute(
-                                shell, logsio, self._run_robot_tests, machine, 'test-robot')
-                            self.env.cr.commit()
-                        if b.simulate_install_id:
-                            self._execute(
-                                shell, logsio, self._run_update_db, machine, 'test-migration')
-                            self.env.cr.commit()
+                        if shell:
+                            machine = shell.machine
+                        else:
+                            machine = self.branch_id.repo_id.machine_id
 
-                    if data['technical_errors']:
-                        for error in data['technical_errors']:
-                            data['run_lines'].append({
-                                'exc_info': error,
-                                'ttype': 'log',
-                                'state': 'failed',
-                            })
-                        raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+                        data = {
+                            'testrun_id': self.id,
+                            'machine_id': machine.id,
+                            'technical_errors': [],
+                            'run_lines': deque(),
+                        }
 
-                    self.duration = (arrow.get() - started).total_seconds()
-                    if logsio:
-                        logsio.info(f"Duration was {self.duration}")
-                    self._compute_success_rate()
-                    self._inform_developer()
-                    self.env.cr.commit()
+                        with self.prepare_run(machine, logsio) as shell:
+                            if b.run_unittests:
+                                self._execute(
+                                    shell, logsio, self._run_unit_tests, machine, 'test-units')
+                                self.env.cr.commit()
+                            if b.run_robottests:
+                                self._execute(
+                                    shell, logsio, self._run_robot_tests, machine, 'test-robot')
+                                self.env.cr.commit()
+                            if b.simulate_install_id:
+                                self._execute(
+                                    shell, logsio, self._run_update_db, machine, 'test-migration')
+                                self.env.cr.commit()
+
+                        if data['technical_errors']:
+                            for error in data['technical_errors']:
+                                data['run_lines'].append({
+                                    'exc_info': error,
+                                    'ttype': 'log',
+                                    'state': 'failed',
+                                })
+                            raise Exception('\n\n\n'.join(map(str, data['technical_errors'])))
+
+                        self.duration = (arrow.get() - started).total_seconds()
+                        if logsio:
+                            logsio.info(f"Duration was {self.duration}")
+                        self._compute_success_rate()
+                        self._inform_developer()
+                        self.env.cr.commit()
+                except Exception:
+                    breakpoint()
+                    try:
+                        self.env.cr.commit()
+                    except: pass
+                    with db_registry.cursor() as cr:
+                        env = api.Environment(cr, SUPERUSER_ID, {})
+                        env[self._name].browse(self.id).state = 'failed'
+                        cr.commit()
+                    raise
 
     def _execute(self, shell, logsio, run, machine, appendix):
         try:
-            testrun = self
             logsio.info("Running " + appendix)
             passed_prepare = False
             try:
@@ -303,10 +315,11 @@ RUN_POSTGRES=1
         for rec in self:
             lines = rec.mapped('line_ids').filtered(lambda x: x.ttype != 'log')
             success_lines = len(lines.filtered(lambda x: x.state == 'success' or x.force_success))
-            if lines and all(x.state == 'success' or x.force_success for x in lines):
-                rec.state = 'success'
-            else:
-                rec.state = 'failed'
+            if rec.state not in ['open', 'running'] and lines:
+                if lines and all(x.state == 'success' or x.force_success for x in lines):
+                    rec.state = 'success'
+                else:
+                    rec.state = 'failed'
             if not lines or not success_lines:
                 rec.success_rate = 0
             else:
@@ -501,5 +514,6 @@ class CicdTestRunLine(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
-        res.run_id.state = 'failed'  # later success wil be calculated
+        if res.run_id.state != 'running':
+            res.run_id.state = 'running'  # later success wil be calculated
         return res

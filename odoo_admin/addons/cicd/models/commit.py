@@ -60,7 +60,7 @@ class GitCommit(models.Model):
     def _compute_test_state(self):
         for rec in self:
             testruns = rec.test_run_ids.sorted(lambda x: x.id, reverse=True)
-            if not testruns or testruns[0].state == 'open':
+            if not testruns or testruns[0].state in ('open', 'running'):
                 rec.test_state = False
                 continue
             new_state = testruns[0].state
