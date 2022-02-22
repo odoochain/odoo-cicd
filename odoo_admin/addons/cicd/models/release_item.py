@@ -224,7 +224,7 @@ class ReleaseItem(models.Model):
             if b.target_release_ids and self.release_id not in b.target_release_ids:
                 branches -= b
 
-            if self.env['cicd.release'].search_count([('repo_id', '=', self.release_id.repo_id)]) > 1:
+            if self.env['cicd.release'].search_count([('repo_id', '=', self.release_id.repo_id.id)]) > 1:
                 if not b.target_release_ids:
                     branches -= b
 

@@ -56,6 +56,7 @@ class GitBranch(models.Model):
         "branch_target_release",
         "branch_id", "release_id",
         string="Target Releases",
+        tracking=True,
     )
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
     release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")

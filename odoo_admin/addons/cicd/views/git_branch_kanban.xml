@@ -42,6 +42,12 @@
 								<t t-esc="db.name"></t> [<t t-esc="db.size_human"></t>]
 							</t>
 						</div>
+						<div t-if="target_release_ids">
+							<strong>Databases:</strong>
+							<t t-foreach="target_release_ids" t-as="release">
+								<t t-esc="release.name"></t>
+							</t>
+						</div>
 					</div>
 				</t>
 
