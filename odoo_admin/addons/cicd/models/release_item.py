@@ -1,4 +1,5 @@
 import traceback
+from . import pg_advisory_lock
 import psycopg2
 import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -62,8 +63,8 @@ class ReleaseItem(models.Model):
         # if not self.changed_lines:
         #     msg = "Nothing new to deploy"
         self.done_date = fields.Datetime.now()
-        self.release_id.message_post_with_template(
-            self.env.ref('cicd.mail_release_done').id,
+        self.release_id.message_post_with_view(
+            self.env.ref('cicd.mail_release_done'),
             )
         self.state = 'done'
         self.branch_ids._compute_state()
@@ -129,37 +130,38 @@ class ReleaseItem(models.Model):
                 self.try_counter += 1
                 release = self.release_id
                 repo = self.release_id.repo_id.with_context(active_test=False)
-                candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
-                candidate_branch.ensure_one()
-                if not candidate_branch.active:
-                    raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
-                changed_lines = repo._merge(
-                    candidate_branch,
-                    release.branch_id,
-                    set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
-                    logsio=logsio,
-                )
-                self.changed_lines += changed_lines
+                with pg_advisory_lock(self.env.cr, repo._get_lockname(), detailinfo=f"release_merge_new_branch {release.name}"):
+                    candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+                    candidate_branch.ensure_one()
+                    if not candidate_branch.active:
+                        raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
+                    changed_lines = repo._merge(
+                        candidate_branch,
+                        release.branch_id,
+                        set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                        logsio=logsio,
+                    )
+                    self.changed_lines += changed_lines
 
-                try:
-                    if not self.changed_lines:
+                    try:
+                        if not self.changed_lines:
+                            self._on_done()
+                            return
+
+                        errors = self.release_id._technically_do_release(self)
+                        if errors:
+                            raise Exception(errors)
                         self._on_done()
-                        return
 
-                    errors = self.release_id._technically_do_release(self)
-                    if errors:
-                        raise Exception(errors)
-                    self._on_done()
+                    except Exception:
+                        msg = traceback.format_exc()
+                        self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
+                        self.state = 'failed'
+                        logger.error(msg)
+                        self.env.cr.commit()
 
-                except Exception:
-                    msg = traceback.format_exc()
-                    self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
-                    self.state = 'failed'
-                    logger.error(msg)
+                    self.log_release = logsio.get_lines()
                     self.env.cr.commit()
-
-                self.log_release = logsio.get_lines()
-                self.env.cr.commit()
 
         except Exception:
             self.state = 'failed'
