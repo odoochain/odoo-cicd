@@ -21,7 +21,7 @@ class ReleaseItem(models.Model):
     done_date = fields.Datetime("Done", tracking=True)
     changed_lines = fields.Integer("Changed Lines", tracking=True)
     final_curtain = fields.Datetime("Final Curtains", tracking=True)
-    log_release = fields.Text("Log")
+    log_release = fields.Text("Log", readonly=True)
     state = fields.Selection([
         ("new", "New"),
         ('done', 'Done'),
@@ -161,7 +161,11 @@ class ReleaseItem(models.Model):
             self.state = 'failed'
             msg = traceback.format_exc()
             self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
+            self.log_release = msg or ''
+            if logsio:
+                self.log_release += logsio.get_lines()
             logger.error(msg)
+            self.env.cr.commit()
             raise
         finally:
             self.env.cr.commit()
