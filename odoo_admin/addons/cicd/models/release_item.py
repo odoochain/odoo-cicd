@@ -307,9 +307,10 @@ class ReleaseItem(models.Model):
                 if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
                     continue
 
-                for branch in commit.branch_ids:
-                    if branch.target_release_ids and self.release_id not in branch.target_release_ids:
+                for branch1 in commit.branch_ids:
+                    if branch1.target_release_ids and self.release_id not in branch1.target_release_ids:
                         continue
+                    del branch1
 
                 commits |= commit
 
