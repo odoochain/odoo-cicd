@@ -51,6 +51,12 @@ class GitBranch(models.Model):
     reload_config = fields.Text("Reload Config", tracking=True)
     autobackup = fields.Boolean("Autobackup", tracking=True)
     enduser_summary = fields.Text("Enduser Summary", tracking=True)
+    target_release_ids = fields.Many2many(
+        "cicd.release",
+        "branch_target_release",
+        "branch_id", "release_id",
+        string="Target Releases",
+    )
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
     release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
 

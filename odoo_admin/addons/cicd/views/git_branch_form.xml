@@ -48,6 +48,7 @@
 							<field name="block_updates_until"/>
 							<field name="last_access"/>
 							<field name="database_size_human"/>
+							<field name="target_release_ids" widget="many2many_tags"/>
 						</group>
 						<group string="Test Topics">
 							<field name="test_topics" nolabel='1'/>

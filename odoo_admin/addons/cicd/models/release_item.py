@@ -121,9 +121,7 @@ class ReleaseItem(models.Model):
                     ignore_retry=True, seconds=120)
 
             if self.commit_id.test_state != 'success':
-                raise RetryableJobError(
-                    f"Release is missing a valid test run of {self.commit_id.name}",
-                    ignore_retry=True, seconds=120)
+                raise Exception(f"Release is missing a valid test run of {self.commit_id.name}")
 
             with self.release_id._get_logsio() as logsio:
 
@@ -253,13 +251,15 @@ class ReleaseItem(models.Model):
             breakpoint()
             # if previous release has same commits like this one, then reuse 
             # the already merged branch here
+            logsio.info(f"Len items: {len(self.release_id.item_ids)}")
             if len(self.release_id.item_ids) > 1:
                 for prev_item in self.release_id.item_ids[1:]:
-                    prev_item = self.release_id.item_ids[1]
+                    logsio.info(f"Checking prev item {prev_item}")
                     prev_commits = prev_item.mapped('commit_ids')
-                    if set(prev_commits.ids) == set(self.commit_ids.ids):
+                    if set(prev_commits.ids) == set(commits.ids):
                         if not self.commit_id and prev_item.commit_id:
                             self.commit_id = prev_item.commit_id
+                            self.commit_ids = [[6, 0, commits.ids]]
                             logsio.info("Found in previous release item same branch constellation - reusing commit {prev_item.commit_id.name}")
                             return
 
@@ -306,6 +306,10 @@ class ReleaseItem(models.Model):
 
                 if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
                     continue
+
+                for branch in commit.branch_ids:
+                    if branch.target_release_ids and self.release_id not in branch.target_release_ids:
+                        continue
 
                 commits |= commit
 
