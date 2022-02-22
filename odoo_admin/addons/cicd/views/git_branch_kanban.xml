@@ -8,6 +8,7 @@
 		<kanban default_group_by="state">
 			<field name="name"/>
 			<field name="last_access"/>
+			<field name="target_release_ids"/>
 			<templates>
 
 				<t t-name="kanban-box">
@@ -32,7 +33,7 @@
 							<strong>DB Size:</strong>
 							<field name="database_size_human"/>
 						</div>
-						<div>
+						<div t-if="last_access">
 							<strong>Last Access:</strong>
 							<field name="last_access"/>
 						</div>
@@ -43,7 +44,7 @@
 							</t>
 						</div>
 						<div t-if="target_release_ids">
-							<strong>Databases:</strong>
+							<strong>Releases:</strong>
 							<t t-foreach="target_release_ids" t-as="release">
 								<t t-esc="release.name"></t>
 							</t>
