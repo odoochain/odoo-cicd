@@ -15,7 +15,8 @@ class CicdReleaseAction(models.Model):
     def _exec_shellscripts(self, logsio, pos):
         for self in self:
             script = self.shell_script_before_update if pos == 'before' else self.shell_script_at_end
-            script = script.encode('utf-8')
+            if not script:
+                return
             filepath = tempfile.mktemp(suffix='.')
             
             with self._contact_machine(logsio) as shell:
@@ -27,7 +28,7 @@ class CicdReleaseAction(models.Model):
 
     @api.model
     def run_action_set(self, release_item, actions):
-        raise Exception("Please debug this once before!")
+        breakpoint()
         errors = []
         with LogsIOWriter.GET(self.release_id.branch_id.name, 'release') as logsio:
             try:
@@ -57,16 +58,15 @@ class CicdReleaseAction(models.Model):
 
     @contextmanager
     def _contact_machine(self, logsio):
+        breakpoint()
         self.ensure_one()
         project_name = self.release_id.project_name
         path = self.machine_id._get_volume("source")
 
         # make sure directory exists
-        with self.machine_id._shellexec(cwd=path, logsio=logsio, project_name=project_name) as shell:
+        with self.machine_id._shell(cwd=path, logsio=logsio, project_name=project_name) as shell:
             if not shell.exists(path):
                 shell.X(["mkdir", "-p", path])
-
-        with self.machine_id._shellexec(cwd=path, logsio=logsio, project_name=project_name) as shell:
             yield shell
 
     def _stop_odoo(self, logsio):

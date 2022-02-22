@@ -97,7 +97,7 @@ class Repository(models.Model):
         repo_path = self._get_main_repo(logsio=logsio, tempfolder=True, machine=machine)
         filename = Path(tempfile.mktemp(suffix='.'))
         try:
-            with machine._shellexec(repo_path, logsio=logsio) as shell:
+            with machine._shell(repo_path, logsio=logsio) as shell:
                 try:
                     shell.checkout_commit(commit)
                     shell.X(["git", "clean", "-xdff"])

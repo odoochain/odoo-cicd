@@ -412,10 +412,11 @@ class Branch(models.Model):
         source_host = compressor.source_volume_id.machine_id.effective_host
         # get list of files
         logsio.info("Identifying latest dump")
-        with compressor.source_volume_id.machine_id._shellexec(logsio=logsio, cwd="") as source_shell:
+        with compressor.source_volume_id.machine_id._shell(logsio=logsio, cwd="") as source_shell:
             output = list(reversed(source_shell.X(["ls", "-tra", compressor.source_volume_id.name])['stdout'].strip().split("\n")))
             for line in output:
-                if line == '.' or line == '..': continue
+                if line == '.' or line == '..':
+                    continue
                 if re.findall(compressor.regex, line):
                     filename = line.strip()
                     break
@@ -438,7 +439,7 @@ class Branch(models.Model):
             assert shell.machine.ttype == 'dev'
             # change working project/directory
             project_name = self.project_name + "_compressor_" + str(compressor.id)
-            with shell.machine._shellexec(instance_path, logsio=logsio, project_name=project_name) as shell2:
+            with shell.machine._shell(instance_path, logsio=logsio, project_name=project_name) as shell2:
                 try:
                     logsio.info(f"Reloading...")
                     self._reload(shell2, task, logsio, project_name=project_name)
@@ -463,7 +464,7 @@ class Branch(models.Model):
         if not self.env['cicd.git.repo']._is_healthy_repository(shell, instance_folder):
             try:
                 self._checkout_latest(shell, logsio=logsio)
-            except Exception as ex:
+            except Exception:
                 shell.rm(instance_folder)
                 self._checkout_latest(shell, logsio=logsio)
         return instance_folder

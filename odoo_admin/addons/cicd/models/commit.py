@@ -107,7 +107,7 @@ class GitCommit(models.Model):
 
         with LogsIOWriter.GET("contains_commit", "Check") as logsio:
             repo_path = repo._get_main_repo(logsio=logsio, machine=repo.machine_id)
-            with repo.machine_id._shellexec(repo_path, logsio=logsio) as shell:
+            with repo.machine_id._shell(repo_path, logsio=logsio) as shell:
                 test = shell.X(['git', 'merge-base', commit.name, self.name], allow_error=True)  # order seems to be irrelevant
                 if test['exit_code']:
                     if 'fatal: Not a valid commit name' in test['stdout']:
