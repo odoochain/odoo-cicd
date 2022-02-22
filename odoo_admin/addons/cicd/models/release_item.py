@@ -142,31 +142,26 @@ class ReleaseItem(models.Model):
                         logsio=logsio,
                     )
                     self.changed_lines += changed_lines
-
-                    try:
-                        if not self.changed_lines:
-                            self._on_done()
-                            return
-
-                        errors = self.release_id._technically_do_release(self)
-                        if errors:
-                            raise Exception(errors)
-                        self._on_done()
-
-                    except Exception:
-                        msg = traceback.format_exc()
-                        self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
-                        self.state = 'failed'
-                        logger.error(msg)
-                        self.env.cr.commit()
-
-                    self.log_release = logsio.get_lines()
                     self.env.cr.commit()
+
+                if not self.changed_lines:
+                    self._on_done()
+                    return
+
+                errors = self.release_id._technically_do_release(self)
+                if errors:
+                    raise Exception(errors)
+
+                if logsio:
+                    self.log_release = logsio.get_lines()
+                self._on_done()
+                self.env.cr.commit()
 
         except Exception:
             self.state = 'failed'
             msg = traceback.format_exc()
             self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
+            logger.error(msg)
             raise
         finally:
             self.env.cr.commit()
