@@ -109,10 +109,11 @@ class Branch(models.Model):
         self._docker_get_state(shell)
 
     def _docker_get_state(self, **kwargs):
+        breakpoint()
         containers = self.mapped('repo_id.machine_id')._get_containers()
         for rec in self:
+            updated_containers = set()
             for container_name in containers:
-                updated_containers = set()
                 if container_name.startswith(rec.project_name):
                     state = 'up' if containers[container_name] == 'running' else 'down'
 
@@ -127,9 +128,9 @@ class Branch(models.Model):
                             container.state = state
                     updated_containers.add(container_name)
 
-                for container in rec.container_ids:
-                    if container.name not in updated_containers:
-                        container.unlink()
+            for container in rec.container_ids:
+                if container.name not in updated_containers:
+                    container.unlink()
 
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')

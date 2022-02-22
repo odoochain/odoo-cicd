@@ -400,13 +400,19 @@ echo "--------------------------------------------------------------------------
                 containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
                 containers_dict = {}
                 for line in containers.split("\n")[1:]:
-                    container, state = line.split("\t")
+                    try:
+                        container, state = line.split("\t")
+                    except:
+                        # perhaps no access or so
+                        pass
                     containers_dict[container] = state
                 path = Path(rec.tempfile_containers)
                 path.write_text(json.dumps(containers_dict))
 
     def _get_containers(self):
         path = Path(self.tempfile_containers)
+        if not path.exists():
+            self._update_docker_containers()
         if path.exists():
             containers = json.loads(path.read_text())
         else:
@@ -415,4 +421,6 @@ echo "--------------------------------------------------------------------------
 
     def compute_tempfile_containers(self):
         for rec in self:
-            self.tempfile_containers = f"/tmp/{self.env.cr.dbname}.machine.{rec.id}.containers"
+            path = Path("/opt/out_dir/docker_states")
+            path.mkdir(exist_ok=True, parents=True)
+            self.tempfile_containers = f"{path}/{self.env.cr.dbname}.machine.{rec.id}.containers"
