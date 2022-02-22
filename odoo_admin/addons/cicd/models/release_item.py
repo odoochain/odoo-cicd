@@ -249,9 +249,9 @@ class ReleaseItem(models.Model):
             # if previous release has same commits like this one, then reuse 
             # the already merged branch here
             if len(self.release_id.item_ids) > 1:
-                prev_item = self.release_id.item_ids[1]
-                if prev_item.state == 'failed':
-                    prev_commits = self.release_id.item_ids[1].mapped('commit_ids')
+                for prev_item in self.release_id.item_ids[1:]:
+                    prev_item = self.release_id.item_ids[1]
+                    prev_commits = prev_item.mapped('commit_ids')
                     if set(prev_commits.ids) == set(self.commit_ids.ids):
                         if not self.commit_id and prev_item.commit_id:
                             self.commit_id = prev_item.commit_id
