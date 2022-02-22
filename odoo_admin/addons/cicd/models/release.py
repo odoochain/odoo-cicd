@@ -90,7 +90,7 @@ class Release(models.Model):
             'interval_type': 'days',
         })
 
-    def _cron_prepare_release(self):
+    def _cron_schedule_release_times(self):
         for self in self:
             self.ensure_one()
             new_items = self.item_ids.filtered(lambda x: x.state == 'new')

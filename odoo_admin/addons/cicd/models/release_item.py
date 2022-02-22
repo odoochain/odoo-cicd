@@ -221,6 +221,13 @@ class ReleaseItem(models.Model):
             if b.name in ignored_branch_names:
                 branches -= b
 
+            if b.target_release_ids and self.release_id not in b.target_release_ids:
+                branches -= b
+
+            if self.env['cicd.release'].search_count([('repo_id', '=', self.release_id.repo_id)]) > 1:
+                if not b.target_release_ids:
+                    branches -= b
+
         branches -= branches.filtered(lambda x: x.block_release or not x.active)
         return branches
 
@@ -306,11 +313,6 @@ class ReleaseItem(models.Model):
 
                 if not commit.force_approved and (commit.test_state != 'success' or commit.approval_state != 'approved'):
                     continue
-
-                for branch1 in commit.branch_ids:
-                    if branch1.target_release_ids and self.release_id not in branch1.target_release_ids:
-                        continue
-                    del branch1
 
                 commits |= commit
 

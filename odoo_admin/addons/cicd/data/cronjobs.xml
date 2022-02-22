@@ -169,17 +169,6 @@ for reason in reasons:
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
-		<record id="prepare_release" model="ir.cron">
-			<field name="name">prepare_release</field>
-			<field name="interval_number">1</field>
-			<field name="interval_type">minutes</field>
-			<field name="model_id" ref="model_cicd_release" />
-			<field name="state">code</field>
-			<field name="code">model.search([])._cron_prepare_release()</field>
-			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
-			<field name="numbercall">-1</field>
-		</record>
-
 		<record id="perform_release" model="ir.cron">
 			<field name="name">perform_release</field>
 			<field name="interval_number">1</field>
