@@ -415,4 +415,4 @@ echo "--------------------------------------------------------------------------
 
     def compute_tempfile_containers(self):
         for rec in self:
-            self.tempfile_containers = f"{self.env.cr.dbname}.machine.{rec.id}.containers"
+            self.tempfile_containers = f"/tmp/{self.env.cr.dbname}.machine.{rec.id}.containers"
