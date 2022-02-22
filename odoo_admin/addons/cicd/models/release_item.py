@@ -182,7 +182,7 @@ class ReleaseItem(models.Model):
     def _collect_tested_branches(self, repo):
         breakpoint()
         for rec in self:
-            if rec.state not in ['new', 'failed']:
+            if rec.state not in ['new']:
                 continue
             if rec.release_type != 'standard':
                 continue
@@ -232,8 +232,8 @@ class ReleaseItem(models.Model):
         """
         breakpoint()
         self.ensure_one()
-        if self.state not in ('new', 'failed', 'ignore'):
-            raise ValidationError("Branches can only be changed in state 'new', 'failed' or 'ignore'")
+        if self.state not in ('new'):
+            raise ValidationError("Branches can only be changed in state 'new'.")
 
         # fetch latest commits:
         with self.release_id._get_logsio() as logsio:
@@ -242,8 +242,12 @@ class ReleaseItem(models.Model):
             self.branch_ids = [[6, 0, self._filter_out_invalid_branches(self.branch_ids).ids]]
             critical_date = self.final_curtain or arrow.get().datetime
             commits = self._get_commits_within_final_curtains(critical_date)
+            logsio.info(f"Identified following commits under final curtain:")
+            for commit in commits:
+                logsio.info(commit.name)
 
             if set(commits.ids) == set(self.commit_ids.ids):
+                logsio.info("The commits did not change - so a new candidate branch is not created.")
                 return
 
             breakpoint()
@@ -256,8 +260,10 @@ class ReleaseItem(models.Model):
                     if set(prev_commits.ids) == set(self.commit_ids.ids):
                         if not self.commit_id and prev_item.commit_id:
                             self.commit_id = prev_item.commit_id
+                            logsio.info("Found in previous release item same branch constellation - reusing commit {prev_item.commit_id.name}")
                             return
 
+            logsio.info("Commits changed, so creating a new candidate branch")
             try:
                 message_commit = repo._recreate_branch_from_commits(
                     commits=commits,
@@ -270,7 +276,11 @@ class ReleaseItem(models.Model):
             except Exception as ex:
                 msg = traceback.format_exc()
                 self.state = 'failed'
-                self.release_id.message_post(body=f"Merging into candidate failed {self.name} failed: {msg}")
+                self.release_id.message_post(body=(
+                    f"Merging into candidate failed {self.name}\n"
+                    f"{ex}\n"
+                    f"{msg}\n"
+                ))
                 self.env.cr.commit()
                 if logsio:
                     logsio.error(ex)

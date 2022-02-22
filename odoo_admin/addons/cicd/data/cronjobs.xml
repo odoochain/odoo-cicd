@@ -1,7 +1,7 @@
 <odoo>
-	<data noupdate='1'>
+	<data noupdate='0'>
 		<record id="fetch_new_branches" model="ir.cron">
-			<field name="name">fetch_new_branches</field>
+			<field name="name">cicd.git.repo:_cron_fetch()</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_git_repo" />
@@ -11,7 +11,7 @@
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="update_docker_states_per_machine" model="ir.cron">
-			<field name="name">update_docker_states</field>
+			<field name="name">cicd.machine:_update_docker_containers()</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_machine" />
@@ -21,17 +21,17 @@
 			<field name="numbercall">-1</field>
 		</record> 
 		<record id="update_docker_states" model="ir.cron">
-			<field name="name">update_docker_states</field>
+			<field name="name">cicd.git.branch:docker_get_state(now=True)</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
-			<field name="code">model.with_context(active_test=False).search([]).docker_get_state(now=False)</field>
+			<field name="code">model.with_context(active_test=False).search([]).docker_get_state(now=True)</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="inactivity_cycle_down" model="ir.cron">
-			<field name="name">cycle down inactive sites</field>
+			<field name="name">cicd.git.branch:inactivity_cycle_down()</field>
 			<field name="interval_number">10</field>
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_git_branch" />
@@ -86,7 +86,7 @@ env['cicd.dump']._cron_update()
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="update_candidates" model="ir.cron">
-			<field name="name">add tested branches to candidates</field>
+			<field name="name">cicd.release:collect_tested_branches()</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_release" />
@@ -96,7 +96,7 @@ env['cicd.dump']._cron_update()
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="clean_old_tasks" model="ir.cron">
-			<field name="name">cleanup old tasks</field>
+			<field name="name">cicd.task:_cron_cleanup()</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">days</field>
 			<field name="model_id" ref="model_cicd_task" />
@@ -106,7 +106,7 @@ env['cicd.dump']._cron_update()
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="clean_branches" model="ir.cron">
-			<field name="name">cleanup branches</field>
+			<field name="name">cicd.git.repo:_cron_cleanup()</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">days</field>
 			<field name="model_id" ref="model_cicd_git_repo" />
@@ -150,7 +150,7 @@ for reason in reasons:
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="after_blocking_done_update" model="ir.cron">
-			<field name="name">after_blocking_done_update</field>
+			<field name="name">cicd.git.branch:_cron_check_blocking_done()</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_git_branch" />
@@ -160,7 +160,7 @@ for reason in reasons:
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="garbage_collect_job" model="ir.cron">
-			<field name="name">garbage_collect git</field>
+			<field name="name">cicd.git.branch:_cron_garbage_collect()</field>
 			<field name="interval_number">4</field>
 			<field name="interval_type">hours</field>
 			<field name="model_id" ref="model_cicd_git_branch" />
