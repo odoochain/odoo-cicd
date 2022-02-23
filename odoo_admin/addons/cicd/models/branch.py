@@ -96,9 +96,9 @@ class GitBranch(models.Model):
         # return all possible states, in order
         return [key for key, val in type(self).state.selection]
 
+
     def _compute_latest_commit(self, shell):
         for rec in self:
-            machine = rec.repo_id.machine_id
             breakpoint()
             shell.checkout_branch(rec.name)
 
