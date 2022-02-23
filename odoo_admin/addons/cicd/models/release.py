@@ -85,7 +85,7 @@ class Release(models.Model):
         self.auto_release_cronjob_id = self.env['ir.cron'].create({
             'name': self.name + " scheduled release",
             'model_id': models.id,
-            'code': f'model.browse({self.id})._cron_prepare_release()',
+            'code': f'model.browse({self.id})._cron_schedule_release_times()',
             'numbercall': -1,
             'interval_type': 'days',
         })
@@ -134,6 +134,7 @@ class Release(models.Model):
             item._trigger_do_release()
 
     def collect_tested_branches(self):
+        breakpoint()
         for rec in self:
             rec.item_ids.filtered(
                 lambda x: x.state in ('new'))._collect_tested_branches(

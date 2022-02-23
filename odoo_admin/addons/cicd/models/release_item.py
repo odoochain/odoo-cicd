@@ -298,6 +298,8 @@ class ReleaseItem(models.Model):
                     self.commit_ids = [[6, 0, commits.ids]]
                     self.commit_id = message_commit
                     candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+                    assert message_commit in candidate_branch.commit_ids
+                    assert candidate_branch.latest_commit_id == message_commit
                     candidate_branch.ensure_one()
 
                     (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
@@ -322,7 +324,7 @@ class ReleaseItem(models.Model):
     def _trigger_recreate_candidate_branch_in_git(self):
         self.ensure_one()
         self.with_delay(
-            identity_key=f"recreate_candidate_branch_in_git: {self.release_id.name}",
+            identity_key=f"recreate_candidate_branch_in_git: release_item_id{self.name}",
             eta=arrow.get().shift(minutes=1).datetime.strftime("%Y-%m-%d %H:%M:%S"),
         )._recreate_candidate_branch_in_git()
 

@@ -80,6 +80,7 @@ class ShellExecutor(object):
         }
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
+
         cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
         if force:
             cmd.insert(1, "-f")
@@ -101,7 +102,7 @@ class ShellExecutor(object):
         cwd = cwd or self.cwd
         self.X(["git", "config", "advice.detachedHead", "false"], cwd=cwd) # otherwise checking out a commit brings error message
         self.X(["git", "clean", "-xdff", commit], cwd=cwd)
-        self.X(["git", "checkout", "-f", commit], cwd=cwd, allow_error=True)
+        self.X(["git", "checkout", "-f", commit], cwd=cwd)
         sha = self.X(["git", "log", "-n1", "--format=%H"], cwd=cwd)['stdout'].strip()
         if sha != commit:
             raise Exception(f"Somehow checking out {commit} in {cwd} failed")

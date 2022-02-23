@@ -64,6 +64,7 @@ class CicdReleaseAction(models.Model):
         path = self.machine_id._get_volume("source")
 
         # make sure directory exists
+        breakpoint()
         with self.machine_id._shell(cwd=path, logsio=logsio, project_name=project_name) as shell:
             if not shell.exists(path):
                 shell.X(["mkdir", "-p", path])
