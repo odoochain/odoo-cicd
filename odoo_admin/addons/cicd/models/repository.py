@@ -314,17 +314,16 @@ class Repository(models.Model):
                         if repo.default_branch:
                             updated_branches.append(repo.default_branch)
 
-                    for branch in updated_branches:
-                        repo.branch_ids.filtered(lambda x: x.name == branch)._compute_latest_commit()
-
                     if updated_branches:
                         repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
                         branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
                         for branch in branches:
                             branch._checkout_latest(shell, logsio=logsio, machine=machine)
                             branch._update_git_commits(shell, logsio)
+                            branch._compute_latest_commit(shell)
                             branch._compute_state()
                             branch._trigger_rebuild_after_fetch(machine=machine)
+                            shell.checkout_branch(repo.default_branch)
 
     def _is_healthy_repository(self, shell, path):
         healthy = False

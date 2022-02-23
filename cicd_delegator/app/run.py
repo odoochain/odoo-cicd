@@ -262,7 +262,8 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 
-def parse_args(argv=sys.argv[1:]):
+def parse_args(argv=None):
+    argv = argv or sys.argv[1:]
     parser = argparse.ArgumentParser(description='Proxy HTTP requests')
     parser.add_argument(
         '--port', dest='port', type=int,
@@ -271,7 +272,8 @@ def parse_args(argv=sys.argv[1:]):
     args = parser.parse_args(argv)
     return args
 
-def main(argv=sys.argv[1:]):
+def main(argv=None):
+    argv = argv or sys.argv[1:]
     args = parse_args(argv)
     logger.info('http server is starting on port {}...'.format(args.port))
     server_address = ('0.0.0.0', args.port)

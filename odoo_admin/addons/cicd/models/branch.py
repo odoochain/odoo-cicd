@@ -96,19 +96,19 @@ class GitBranch(models.Model):
         # return all possible states, in order
         return [key for key, val in type(self).state.selection]
 
-    def _compute_latest_commit(self):
+    def _compute_latest_commit(self, shell):
         for rec in self:
             machine = rec.repo_id.machine_id
-            instance_folder = self._get_instance_folder(machine)
             breakpoint()
-            with machine._shell(cwd=instance_folder) as shell:
-                latest_commit = shell.X(["git", "log", "-n1", '--pretty=%H'])['stdout'].strip().split('\n')[0]
-                commit = rec.commit_ids.filtered(lambda x: x.name == latest_commit)
-                if not commit:
-                    raise Exception(f"Could not find {latest_commit}")
-                commit.ensure_one()
-                if rec.latest_commit_id != commit:
-                    rec.latest_commit_id = commit
+            shell.checkout_branch(rec.name)
+
+            latest_commit = shell.X(["git", "log", "-n1", '--pretty=%H'])['stdout'].strip().split('\n')[0]
+            commit = rec.commit_ids.filtered(lambda x: x.name == latest_commit)
+            if not commit:
+                raise Exception(f"Could not find {latest_commit}")
+            commit.ensure_one()
+            if rec.latest_commit_id != commit:
+                rec.latest_commit_id = commit
 
     def _compute_any_testing(self):
         for rec in self:
