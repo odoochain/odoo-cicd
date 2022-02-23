@@ -314,6 +314,9 @@ class Repository(models.Model):
                         if repo.default_branch:
                             updated_branches.append(repo.default_branch)
 
+                    for branch in updated_branches:
+                        repo.branch_ids.filtered(lambda x: x.name == branch)._compute_latest_commit()
+
                     if updated_branches:
                         repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
                         branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
@@ -382,7 +385,6 @@ class Repository(models.Model):
                     try:
                         shell.X(["git", "merge", commit.name])
                     except Exception as ex:
-                        breakpoint()
                         branches = commit.branch_ids.filtered(lambda x: x.latest_commit_id == commit)
                         text = (
                             f"Merge-Conflict at {commit.name}.\n"
