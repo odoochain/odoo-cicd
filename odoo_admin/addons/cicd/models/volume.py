@@ -27,6 +27,14 @@ class CicdVolumes(models.Model):
     total_size = fields.Float("Total Size")
     used_percent = fields.Float("Used %", compute="_compute_numbers")
 
+    @api.constrains("name")
+    def _check_name(self):
+        for rec in self:
+            if '~' in (rec.name or ''):
+                raise ValidationError("Dont use ~ use absolute paths.")
+            if not rec.name.startswith("/"):
+                raise ValidationError("Use absolute paths please.")
+
     @api.depends("used_size", "total_size", "free_size")
     def _compute_numbers(self):
         for rec in self:

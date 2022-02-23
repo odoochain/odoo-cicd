@@ -44,7 +44,7 @@ class CicdMachine(models.Model):
     ssh_user_cicdlogin = fields.Char(compute="_compute_ssh_user_cicd_login")
     ssh_user_cicdlogin_password_salt = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
     ssh_user_cicdlogin_password = fields.Char(compute="_compute_ssh_user_cicd_login")
-    postgres_server_id = fields.Many2one('cicd.postgres', string="Postgres Server", required=True)
+    postgres_server_id = fields.Many2one('cicd.postgres', string="Postgres Server", required=False)
     upload_dump = fields.Binary("Upload Dump")
     upload_dump_filename = fields.Char("Filename")
     upload_overwrite = fields.Boolean("Overwrite existing")

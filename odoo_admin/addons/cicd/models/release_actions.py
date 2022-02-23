@@ -18,7 +18,7 @@ class CicdReleaseAction(models.Model):
             if not script:
                 return
             filepath = tempfile.mktemp(suffix='.')
-            
+
             with self._contact_machine(logsio) as shell:
                 shell.put(script, filepath)
                 try:
@@ -30,7 +30,7 @@ class CicdReleaseAction(models.Model):
     def run_action_set(self, release_item, actions):
         breakpoint()
         errors = []
-        with LogsIOWriter.GET(self.release_id.branch_id.name, 'release') as logsio:
+        with LogsIOWriter.GET(release_item.release_id.branch_id.name, 'release') as logsio:
             try:
                 actions._exec_shellscripts(logsio, "before")
                 actions._stop_odoo(logsio)
@@ -48,10 +48,10 @@ class CicdReleaseAction(models.Model):
                         action._start_odoo(logsio=logsio)
                     except Exception as ex:
                         errors.append(ex)
-                
+
                 for action in actions:
                     try:
-                        action._exec_shellscripts("after")
+                        action._exec_shellscripts(logsio, "after")
                     except Exception as ex:
                         errors.append(ex)
             return errors
@@ -81,7 +81,7 @@ class CicdReleaseAction(models.Model):
         repo = self[0].release_id.repo_id
         zip_content = repo._get_zipped(logsio, release_item.commit_id.name)
         temppath = tempfile.mktemp(suffix='.')
-        
+
         for self in self:
             with self._contact_machine(logsio) as shell:
                 filename = f"/tmp/release_{release_item.id}"
