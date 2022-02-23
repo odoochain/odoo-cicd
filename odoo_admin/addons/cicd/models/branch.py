@@ -75,7 +75,6 @@ class GitBranch(models.Model):
     container_ids = fields.One2many('docker.container', 'branch_id', string="Containers")
     block_updates_until = fields.Datetime("Block updates until", tracking=True)
 
-    test_topics = fields.Text("Test Topics", tracking=True)
     allowed_backup_machine_ids = fields.Many2many('cicd.machine', string="Allowed Backup Machines", compute="_compute_allowed_machines")
     latest_commit_id = fields.Many2one('cicd.git.commit')
 
