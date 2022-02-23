@@ -87,7 +87,7 @@ class ReleaseItem(models.Model):
         for rec in self:
             summary = []
             for branch in rec.branch_ids.sorted(lambda x: x.date):
-                summary.append(f"* {branch.enduser_summary}")
+                summary.append(f"* {branch.enduser_summary or branch.name}")
             rec.computed_summary = '\n'.join(summary)
 
     def _trigger_do_release(self):
