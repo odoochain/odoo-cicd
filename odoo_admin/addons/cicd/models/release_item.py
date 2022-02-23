@@ -109,6 +109,8 @@ class ReleaseItem(models.Model):
                 ignore_retry=True, seconds=15) from ex
         if not self.release_id.active:
             return
+        if self.planned_date > fields.Datetime.now():
+            return
 
         try:
             if self.state not in ['new']:
@@ -238,7 +240,8 @@ class ReleaseItem(models.Model):
         breakpoint()
         self.ensure_one()
         if self.state not in ('new'):
-            raise ValidationError("Branches can only be changed in state 'new'.")
+            return
+            # raise ValidationError("Branches can only be changed in state 'new'.")
 
         # fetch latest commits:
         with self.release_id._get_logsio() as logsio:
