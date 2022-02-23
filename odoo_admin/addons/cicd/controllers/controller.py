@@ -42,8 +42,10 @@ class Controller(http.Controller):
         if request.env.user.debug_mode_in_instances:
             url += "?debug=1"
 
-        redirect = request.redirect(url if not action else "/" + action + "/") # e.g. mailer/
-        redirect.set_cookie('delegator-path', name)
+        redirect = request.redirect(
+            url if not action else "/" + action + "/")  # e.g. mailer/
+        expires = arrow.utcnow().shift(hours=2)  # .strftime("%a, %d %b %Y %H:%M:%S GMT")
+        redirect.set_cookie('delegator-path', name, expires=expires.datetime)
         redirect.set_cookie('frontend_lang', '', expires=0)
         redirect.set_cookie('im_livechat_history', '', expires=0)
         redirect.set_cookie('session_id', "", expires=0)

@@ -77,7 +77,7 @@ class GitBranch(models.Model):
 
     test_topics = fields.Text("Test Topics", tracking=True)
     allowed_backup_machine_ids = fields.Many2many('cicd.machine', string="Allowed Backup Machines", compute="_compute_allowed_machines")
-    latest_commit_id = fields.Many2one('cicd.git.commit', compute="_compute_latest_commit", search="_search_latest_commit")
+    latest_commit_id = fields.Many2one('cicd.git.commit')
 
     approval_state = fields.Selection(related="latest_commit_id.approval_state", tracking=True)
     link_to_instance = fields.Char(compute="_compute_link", string="Link To Instance")
@@ -96,21 +96,19 @@ class GitBranch(models.Model):
         # return all possible states, in order
         return [key for key, val in type(self).state.selection]
 
-    @api.depends('commit_ids')
     def _compute_latest_commit(self):
         for rec in self:
-            rec.latest_commit_id = rec.commit_ids[0] if rec.commit_ids else False
-
-    def _search_latest_commit(self, operator, value):
-        if operator == 'in':
-            branches = self.search([('commit_ids', 'in', value)])
-            ids = []
-            for branch in branches:
-                if branch.latest_commit_id.id in value:
-                    ids.append(branch.id)
-            return [('id', 'in', ids)]
-        else:
-            raise NotImplementedError(operator)
+            machine = rec.repo_id.machine_id
+            instance_folder = self._get_instance_folder(machine)
+            breakpoint()
+            with machine._shell(cwd=instance_folder) as shell:
+                latest_commit = shell.X(["git", "log", "-n1", '--pretty=%H'])['stdout'].strip().split('\n')[0]
+                commit = rec.commit_ids.filtered(lambda x: x.name == latest_commit)
+                if not commit:
+                    raise Exception(f"Could not find {latest_commit}")
+                commit.ensure_one()
+                if rec.latest_commit_id != commit:
+                    rec.latest_commit_id = commit
 
     def _compute_any_testing(self):
         for rec in self:

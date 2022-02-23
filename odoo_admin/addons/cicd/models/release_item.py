@@ -272,13 +272,17 @@ class ReleaseItem(models.Model):
 
             logsio.info("Commits changed, so creating a new candidate branch")
             try:
+                branches = ', '.join(self.mapped('branch_ids.name'))
+                # after pull the message_commit is sorted with git log and
+                # appears at the top of the branch
                 message_commit = repo._recreate_branch_from_commits(
                     commits=commits,
                     target_branch_name=self.release_id.candidate_branch,
                     logsio=logsio,
-                    make_info_commit_msg=
+                    make_info_commit_msg=(
                         f"Release Item {self.id}\n"
-                        f"Includes latest commits from:\n{', '.join(self.mapped('branch_ids.name'))}"
+                        f"Includes latest commits from:\n{branches}"
+                    )
                 )
             except Exception as ex:
                 msg = traceback.format_exc()
