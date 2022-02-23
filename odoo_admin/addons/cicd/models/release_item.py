@@ -101,6 +101,7 @@ class ReleaseItem(models.Model):
 
     def _do_release(self):
         breakpoint()
+        logsio = None
         try:
             self.env.cr.execute("select id from cicd_release where id=%s for update nowait", (self.release_id.id,))
         except psycopg2.errors.LockNotAvailable as ex:
@@ -196,7 +197,6 @@ class ReleaseItem(models.Model):
             # select from many states:
             # * case: previous release may be failed: technical error, merge conflict
             # * case: state is done but was released at another release, so check again
-            breakpoint()
 
             branches = self.env['cicd.git.branch'].search([
                 ('state', 'in', ['candidate', 'tested', 'release', 'done']), # why so many states
@@ -213,8 +213,6 @@ class ReleaseItem(models.Model):
                 if branch.latest_commit_id in rec.release_id.branch_id.commit_ids:
                     branches -= branch
             rec.branch_ids = [[6, 0, branches.ids]]
-
-            rec._trigger_recreate_candidate_branch_in_git()
 
     def _filter_out_invalid_branches(self, branches):
         self.ensure_one()
@@ -235,6 +233,9 @@ class ReleaseItem(models.Model):
 
         branches -= branches.filtered(lambda x: x.block_release or not x.active)
         return branches
+
+    def recreate_candidate_branch_in_git(self):
+        self._recreate_candidate_branch_in_git()
 
     def _recreate_candidate_branch_in_git(self):
         """
@@ -290,6 +291,9 @@ class ReleaseItem(models.Model):
                         f"Includes latest commits from:\n{branches}"
                     )
                 )
+            except RetryableJobError:
+                raise
+
             except Exception as ex:
                 msg = traceback.format_exc()
                 self.state = 'failed'
@@ -329,17 +333,10 @@ class ReleaseItem(models.Model):
                 break
         return commits
 
-    def _trigger_recreate_candidate_branch_in_git(self):
-        self.ensure_one()
-        self.with_delay(
-            identity_key=f"recreate_candidate_branch_in_git: release_item_id{self.name}",
-            eta=arrow.get().shift(minutes=1).datetime.strftime("%Y-%m-%d %H:%M:%S"),
-        )._recreate_candidate_branch_in_git()
 
     @api.fieldchange("branch_ids")
     def _on_change_branches(self, changeset):
         for rec in self:
-            rec._trigger_recreate_candidate_branch_in_git()
             (changeset['branch_ids']['old'] | changeset['branch_ids']['new'])._compute_state()
 
     def set_to_ignore(self):
@@ -356,6 +353,6 @@ class ReleaseItem(models.Model):
 
     def retry(self):
         for rec in self:
-            if rec.state == 'failed':
+            if rec.state in ('failed', 'ignore'):
                 rec.state = 'new'
                 rec.log_release = False

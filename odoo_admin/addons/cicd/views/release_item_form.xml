@@ -7,6 +7,7 @@
 				<form string="">
 					<header>
 						<field name="state" widget="statusbar" attrs="{'readonly': True}" />
+						<button name="recreate_candidate_branch_in_git" string="Recreate Merged Branch" type="object" />
 					</header>
 					<sheet>
 						<div class="oe_button_box" name="button_box">

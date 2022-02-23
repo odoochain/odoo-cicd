@@ -136,10 +136,12 @@ class Release(models.Model):
     def collect_tested_branches(self):
         breakpoint()
         for rec in self:
-            rec.item_ids.filtered(
-                lambda x: x.state in ('new'))._collect_tested_branches(
-                    self.repo_id,
-                )
+            new_ones = rec.item_ids.filtered(lambda x: x.state in ('new'))
+            new_ones._collect_tested_branches(self.repo_id)
+            for new_one in new_ones:
+                new_one.with_delay(
+                    identity_key=f"recreate_branch_release_item_id{new_one.id}"
+                    )._recreate_candidate_branch_in_git()
 
     def _technically_do_release(self, release_item):
         errors = self.action_ids.run_action_set(release_item, self.action_ids)
