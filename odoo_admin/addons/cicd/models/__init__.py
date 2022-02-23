@@ -51,7 +51,8 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
             time.sleep(1)
             duration = (arrow.get() - started).total_seconds()
             if duration > 5:
-                logger.warning(f"Holding advisory lock for {duration} seconds: {lock} {detailinfo}")
+                logger.warning("Holding advisory lock for %s seconds: %s %s",
+                duration, lock, detailinfo )
 
     lock = _int_lock(lock)
     cr.execute("SELECT pg_try_advisory_lock(%s);", (lock,))
@@ -61,7 +62,7 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
             f"Lock could not be acquired: {lock}\n{trace}",
             ignore_retry=True, seconds=5
             )
-    logger.info(f"Acquired advisory lock {lock}")
+    logger.info("Acquired advisory lock %s ", lock)
     t = threading.Thread(target=print_warn_info, args=(started, detailinfo))
     t.daemon = True
     t.start()
@@ -73,7 +74,7 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
         try:
             cr.execute("SELECT pg_advisory_unlock(%s);", (lock,))
         except Exception:
-            logger.warn(
+            logger.warning(
                 "Could not release lock because of connection. Perhaps already closed so ok.",
                 exc_info=True
                 )

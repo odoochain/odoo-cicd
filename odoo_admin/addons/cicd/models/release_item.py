@@ -157,6 +157,9 @@ class ReleaseItem(models.Model):
                 self._on_done()
                 self.env.cr.commit()
 
+        except RetryableJobError:
+            raise
+
         except Exception:
             self.state = 'failed'
             msg = traceback.format_exc()
@@ -355,3 +358,4 @@ class ReleaseItem(models.Model):
         for rec in self:
             if rec.state == 'failed':
                 rec.state = 'new'
+                rec.log_release = False
