@@ -177,7 +177,6 @@ class GitBranch(models.Model):
         "commit_ids.test_run_ids.state",
     )
     def _compute_state(self):
-        breakpoint()
         for rec in self:
             logger.info(f"Computing branch state for {rec.id}")
             building_tasks = rec.task_ids.filtered(lambda x: any (y in x.name for y in ['update', 'reset', 'restore']))

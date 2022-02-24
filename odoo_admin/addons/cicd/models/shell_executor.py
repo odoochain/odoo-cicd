@@ -107,22 +107,24 @@ class ShellExecutor(object):
         return res
 
     def checkout_branch(self, branch, cwd=None):
-        breakpoint()
-        if not self.branch_exists(branch):
-            self.X(["git", "checkout", "-b", branch, "--track", "origin/" + branch], cwd=cwd, allow_error=True)
-        self.X(["git", "checkout", "-f", "--no-guess", branch], cwd=cwd, allow_error=False)
-        self._after_checkout(cwd=cwd)
+        with self.clone(cwd=cwd) as self:
+            breakpoint()
+            if not self.branch_exists(branch):
+                self.X(["git", "checkout", "-b", branch, "--track", "origin/" + branch], allow_error=True)
+            self.X(["git", "checkout", "-f", "--no-guess", branch], allow_error=False)
+            self._after_checkout()
 
     def checkout_commit(self, commit, cwd=None):
         breakpoint()
         cwd = cwd or self.cwd
-        self.X(["git", "config", "advice.detachedHead", "false"], cwd=cwd) # otherwise checking out a commit brings error message
-        self.X(["git", "clean", "-xdff", commit], cwd=cwd)
-        self.X(["git", "checkout", "-f", commit], cwd=cwd)
-        sha = self.X(["git", "log", "-n1", "--format=%H"], cwd=cwd)['stdout'].strip()
-        if sha != commit:
-            raise Exception(f"Somehow checking out {commit} in {cwd} failed")
-        self._after_checkout(cwd=cwd)
+        with self.clone(cwd=cwd) as self:
+            self.X(["git", "config", "advice.detachedHead", "false"]) # otherwise checking out a commit brings error message
+            self.X(["git", "clean", "-xdff", commit])
+            self.X(["git", "checkout", "-f", commit])
+            sha = self.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+            if sha != commit:
+                raise Exception(f"Somehow checking out {commit} in {cwd} failed")
+            self._after_checkout()
 
     def branch_exists(self, branch, cwd=None):
         res = self.X(["git", "branch", "--no-color"], cwd=cwd)['stdout'].strip().split("\n")
@@ -133,9 +135,9 @@ class ShellExecutor(object):
         res = [reformat(x) for x in res]
         return branch in res
 
-    def _after_checkout(self, cwd):
-        self.X(["git", "clean", "-xdff"], cwd=cwd)
-        self.X(["git", "submodule", "update", "--init", "--force", "--recursive"], cwd=cwd)
+    def _after_checkout(self):
+        self.X(["git", "clean", "-xdff"])
+        self.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
 
     def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, timeout=None):
         effective_env = deepcopy(self.env)

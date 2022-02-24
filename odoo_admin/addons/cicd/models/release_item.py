@@ -124,7 +124,8 @@ class ReleaseItem(models.Model):
                     ignore_retry=True, seconds=120)
 
             if self.commit_id.test_state != 'success':
-                raise Exception(f"Release is missing a valid test run of {self.commit_id.name}")
+                self.log_release = f"Release is missing a valid test run of {self.commit_id.name}"
+                return
 
             with self.release_id._get_logsio() as logsio:
 

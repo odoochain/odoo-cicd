@@ -48,9 +48,9 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
 
     def print_warn_info(started, detailinfo):
         while not data['break']:
-            time.sleep(1)
+            time.sleep(30)
             duration = (arrow.get() - started).total_seconds()
-            if duration > 5:
+            if duration > 20:
                 logger.warning("Holding advisory lock for %s seconds: %s %s",
                 duration, lock, detailinfo )
 
