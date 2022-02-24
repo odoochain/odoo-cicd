@@ -137,6 +137,11 @@ class Release(models.Model):
         breakpoint()
         for rec in self:
             new_ones = rec.item_ids.filtered(lambda x: x.state in ('new'))
+            if not new_ones:
+                items = rec.item_ids.filtered(lambda x: x.state != 'ignore')
+                if not items or items[0].planned_date < fields.Datetime.now():
+                    # check if the last deploy date passed
+                    new_ones = new_ones.create({'release_id': rec.id})
             new_ones._collect_tested_branches(self.repo_id)
             for new_one in new_ones:
                 new_one.with_delay(

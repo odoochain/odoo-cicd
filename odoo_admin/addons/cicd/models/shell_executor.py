@@ -93,12 +93,14 @@ class ShellExecutor(object):
         return res
 
     def checkout_branch(self, branch, cwd=None):
+        breakpoint()
         if not self.branch_exists(branch):
             self.X(["git", "checkout", "-b", branch, "--track", "origin/" + branch], cwd=cwd, allow_error=True)
         self.X(["git", "checkout", "-f", "--no-guess", branch], cwd=cwd, allow_error=False)
         self._after_checkout(cwd=cwd)
 
     def checkout_commit(self, commit, cwd=None):
+        breakpoint()
         cwd = cwd or self.cwd
         self.X(["git", "config", "advice.detachedHead", "false"], cwd=cwd) # otherwise checking out a commit brings error message
         self.X(["git", "clean", "-xdff", commit], cwd=cwd)
