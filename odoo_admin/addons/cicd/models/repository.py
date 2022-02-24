@@ -281,7 +281,9 @@ class Repository(models.Model):
                             ])
                             shell.rm(db_branch._get_instance_folder(shell.machine))
                         else:
+                            shell.X(["ls -pA |grep -v \\.git\\/ |xargs rm -Rf"])
                             shell.X(["git", "pull"])
+                            shell.X(["git", "checkout", "-f"])
                         shell.X(["git", "submodule", "update", "--init", "--recursive"])
 
                     # if completely new then all branches:
