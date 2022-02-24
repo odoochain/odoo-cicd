@@ -125,9 +125,13 @@ class GitBranch(models.Model):
 
     def _compute_releases(self):
         for rec in self:
-            release_items = self.env['cicd.release.item'].search([
-                ('commit_ids', 'in', rec.commit_ids.ids)
-            ])
+            releases = self.env['cicd.release'].search([('repo_id', '=', rec.repo_id.id)])
+            if rec in releases.branch_id or rec.name in releases.mapped('candidate_branch'):
+                release_items = releases.filtered(lambda x: x.branch_id == rec or x.candidate_branch == rec.name).item_ids
+            else:
+                release_items = self.env['cicd.release.item'].search([
+                    ('commit_ids', 'in', rec.commit_ids.ids)
+                ])
             rec.release_item_ids = release_items.ids
 
     def approve(self):
