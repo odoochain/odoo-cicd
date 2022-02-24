@@ -120,63 +120,63 @@ RUN_POSTGRES=1
                 raise Exception(f"checkoued SHA {sha} not matching test sha {self.commit_id.name}")
 
             report(f"Checked out source code at {shell.cwd}")
-            shell.cwd = root / shell.project_name
-            try:
+            with shell.clone(cwd=root / shell.project_name) as shell:
                 try:
-                    if self.do_abort: raise AbortException("User aborted")
-                    report('building')
-                    shell.odoo('build')
-                    report('killing any existing')
-                    shell.odoo('kill', allow_error=True)
-                    shell.odoo('rm', allow_error=True)
-                    report('starting postgres')
-                    shell.odoo('up', '-d', 'postgres')
-                    if self.do_abort: raise AbortException("User aborted")
-                    self._wait_for_postgres(shell)
-                    report('db reset started')
-                    shell.odoo('-f', 'db', 'reset')
-                    if self.do_abort: raise AbortException("User aborted")
-                    report('db reset done')
-                    self._wait_for_postgres(shell)
-                    report('update started')
-                    shell.odoo('update')
-                    if self.do_abort: raise AbortException("User aborted")
-                    report('installation of modules done')
-                    report("Storing snapshot")
-                    shell.odoo('snap', 'save', shell.project_name, force=True)
-                    self._wait_for_postgres(shell)
-                    report("Storing snapshot done")
-                    logsio.info("Preparation done")
-                    report('preparation done', ttype='log', state='success', duration=(arrow.get() - started).total_seconds())
-                    if self.do_abort: raise AbortException("User aborted")
-                    self.env.cr.commit()
-                except Exception as ex:
-                    duration = arrow.get() - started
-                    report("Error occurred", exception=ex, duration=duration)
-
-                    raise
-
-                yield shell
-
-            finally:
-                try:
-                    report('Finalizing Testing')
-                    shell.odoo('kill', allow_error=True)
-                    shell.odoo('rm', force=True, allow_error=True)
-                    shell.odoo('snap', 'clear')
-                    shell.odoo('down', "-v", force=True, allow_error=True)
-                    project_dir = shell.cwd
-                    shell.cwd = shell.cwd.parent
                     try:
-                        shell.rm(project_dir)
-                    except Exception:
-                        msg = f"Failed to remove directory {project_dir}"
-                        if logsio:
-                            logsio.error(msg)
-                        logger.error(msg)
+                        if self.do_abort: raise AbortException("User aborted")
+                        report('building')
+                        shell.odoo('build')
+                        report('killing any existing')
+                        shell.odoo('kill', allow_error=True)
+                        shell.odoo('rm', allow_error=True)
+                        report('starting postgres')
+                        shell.odoo('up', '-d', 'postgres')
+                        if self.do_abort: raise AbortException("User aborted")
+                        self._wait_for_postgres(shell)
+                        report('db reset started')
+                        shell.odoo('-f', 'db', 'reset')
+                        if self.do_abort: raise AbortException("User aborted")
+                        report('db reset done')
+                        self._wait_for_postgres(shell)
+                        report('update started')
+                        shell.odoo('update')
+                        if self.do_abort: raise AbortException("User aborted")
+                        report('installation of modules done')
+                        report("Storing snapshot")
+                        shell.odoo('snap', 'save', shell.project_name, force=True)
+                        self._wait_for_postgres(shell)
+                        report("Storing snapshot done")
+                        logsio.info("Preparation done")
+                        report('preparation done', ttype='log', state='success', duration=(arrow.get() - started).total_seconds())
+                        if self.do_abort: raise AbortException("User aborted")
+                        self.env.cr.commit()
+                    except Exception as ex:
+                        duration = arrow.get() - started
+                        report("Error occurred", exception=ex, duration=duration)
+
+                        raise
+
+                    yield shell
+
                 finally:
-                    if logsio:
-                        logsio.stop_keepalive()
+                    try:
+                        report('Finalizing Testing')
+                        shell.odoo('kill', allow_error=True)
+                        shell.odoo('rm', force=True, allow_error=True)
+                        shell.odoo('snap', 'clear')
+                        shell.odoo('down', "-v", force=True, allow_error=True)
+                        project_dir = shell.cwd
+                        with shell.clone(cwd=shell.cwd.parent) as shell:
+                            try:
+                                shell.rm(project_dir)
+                            except Exception:
+                                msg = f"Failed to remove directory {project_dir}"
+                                if logsio:
+                                    logsio.error(msg)
+                                logger.error(msg)
+                    finally:
+                        if logsio:
+                            logsio.stop_keepalive()
 
     def execute_now(self):
         self.with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).execute()

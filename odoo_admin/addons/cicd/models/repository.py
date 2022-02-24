@@ -291,7 +291,7 @@ class Repository(models.Model):
                             updated_branches.append(branch)
 
                     for branch in updated_branches:
-                        shell.checkout_branch(branch)
+                        shell.checkout_branch(branch, cwd=repo_path)
                         name = branch
                         del branch
 
@@ -307,7 +307,7 @@ class Repository(models.Model):
                         if not branch.active:
                             branch.active = True
 
-                        shell.checkout_branch(repo.default_branch)
+                        shell.checkout_branch(repo.default_branch, cwd=repo_path)
                         del name
 
                     if not repo.branch_ids and not updated_branches:
@@ -323,7 +323,7 @@ class Repository(models.Model):
                             branch._compute_latest_commit(shell)
                             branch._compute_state()
                             branch._trigger_rebuild_after_fetch(machine=machine)
-                            shell.checkout_branch(repo.default_branch)
+                            shell.checkout_branch(repo.default_branch, cwd=repo_path)
 
     def _is_healthy_repository(self, shell, path):
         healthy = False

@@ -136,12 +136,12 @@ class Branch(models.Model):
         shell.odoo('turn-into-dev')
 
     def _reload(self, shell, task, logsio, project_name=None, settings=None, commit=None, **kwargs):
-        shell.cwd = self._make_sure_source_exists(shell, logsio)
-        self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
-        self._collect_all_files_by_their_checksum(shell)
-        if commit:
-            shell.checkout_commit(commit)
-        shell.odoo('reload')
+        with shell.clone(cwd=self._make_sure_source_exists(shell, logsio)) as shell:
+            self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
+            self._collect_all_files_by_their_checksum(shell)
+            if commit:
+                shell.checkout_commit(commit)
+            shell.odoo('reload')
 
     def _build(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio, **kwargs)
@@ -185,7 +185,6 @@ class Branch(models.Model):
             env = update_env={
                 "TZ": "UTC0"
             }
-            breakpoint()
             line = shell.X([
                 "git",
                 "log",
@@ -313,57 +312,57 @@ class Branch(models.Model):
         instance_folder = self._clone_instance_folder(machine, logsio)
         logsio.write_text(f"Cloning {self.name} to {instance_folder}")
 
-        shell.cwd = instance_folder
-        logsio.write_text(f"Checking out {self.name}")
-        try:
-            shell.X(["git", "checkout", "-f", self.name])
-        except Exception as ex:
-            logsio.error(ex)
-            shell.rm(instance_folder)
-            raise RetryableJobError("Cleared directory - branch not found - please retry", ignore_retry=True)
+        with shell.clone(cwd=instance_folder) as shell:
+            logsio.write_text(f"Checking out {self.name}")
+            try:
+                shell.X(["git", "checkout", "-f", self.name])
+            except Exception as ex:
+                logsio.error(ex)
+                shell.rm(instance_folder)
+                raise RetryableJobError("Cleared directory - branch not found - please retry", ignore_retry=True)
 
-        try:
-            shell.X(["git", "pull"])
-        except Exception as ex:
-            logsio.error(f"Error at pulling, cloning path {instance_folder} again:\n{ex}")
-            shell.rm(instance_folder)
-            instance_folder = self._clone_instance_folder(machine, logsio)
+            try:
+                shell.X(["git", "pull"])
+            except Exception as ex:
+                logsio.error(f"Error at pulling, cloning path {instance_folder} again:\n{ex}")
+                shell.rm(instance_folder)
+                instance_folder = self._clone_instance_folder(machine, logsio)
 
-        # delete all other branches:
-        res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
-        for branch in list(filter(lambda x: '* ' not in x, res)):
-            branch = self.repo_id._clear_branch_name(branch)
-            if branch == self.name: continue
-            shell.X(["git", "branch", "-D", branch])
-            del branch
+            # delete all other branches:
+            res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
+            for branch in list(filter(lambda x: '* ' not in x, res)):
+                branch = self.repo_id._clear_branch_name(branch)
+                if branch == self.name: continue
+                shell.X(["git", "branch", "-D", branch])
+                del branch
 
-        current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"])['stdout'].strip().split("\n")))
-        if not current_branch:
-            raise Exception(f"Somehow no current branch found")
-        branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
-        if branch_in_dir != self.name:
-            shell.rm(instance_folder)
-            raise Exception(f"Branch could not be checked out! Was {branch_in_dir} - but should be {self.name}")
+            current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"])['stdout'].strip().split("\n")))
+            if not current_branch:
+                raise Exception(f"Somehow no current branch found")
+            branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
+            if branch_in_dir != self.name:
+                shell.rm(instance_folder)
+                raise Exception(f"Branch could not be checked out! Was {branch_in_dir} - but should be {self.name}")
 
-        logsio.write_text(f"Clean git")
-        shell.X(["git", "clean", "-xdff"])
+            logsio.write_text(f"Clean git")
+            shell.X(["git", "clean", "-xdff"])
 
-        logsio.write_text("Updating submodules")
-        shell.X(["git", "submodule", "update", "--recursive", "--init"])
+            logsio.write_text("Updating submodules")
+            shell.X(["git", "submodule", "update", "--recursive", "--init"])
 
-        logsio.write_text("Getting current commit")
-        commit = shell.X(["git", "rev-parse", "HEAD"])['stdout'].strip()
-        logsio.write_text(commit)
+            logsio.write_text("Getting current commit")
+            commit = shell.X(["git", "rev-parse", "HEAD"])['stdout'].strip()
+            logsio.write_text(commit)
 
         return str(commit)
 
     def inactivity_cycle_down(self):
-        with self._get_new_logsio_instance("inactivity_cycle_down") as logsio:
-            for rec in self:
+        for rec in self:
+            with rec._get_new_logsio_instance("inactivity_cycle_down") as logsio:
                 dest_folder = rec.machine_id._get_volume('source') / rec.project_name
                 try:
                     with rec.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=rec.project_name) as shell:
-                        if (arrow.get() - arrow.get(self.last_access or '1980-04-04')).total_seconds() > self.cycle_down_after_seconds:
+                        if (arrow.get() - arrow.get(rec.last_access or '1980-04-04')).total_seconds() > rec.cycle_down_after_seconds:
                             rec._docker_get_state(shell=shell, now=True)
                             if rec.docker_state == 'up':
                                 logsio.info(f"Cycling down instance due to inactivity")

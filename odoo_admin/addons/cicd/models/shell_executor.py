@@ -1,5 +1,6 @@
 import arrow
 import uuid
+from contextlib import contextmanager
 import threading
 from sarge import Capture, run
 from odoo.exceptions import UserError
@@ -24,7 +25,7 @@ class ShellExecutor(object):
 
     def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env=None):
         self.machine = machine
-        self.cwd = Path(cwd) if cwd else None
+        self._cwd = Path(cwd) if cwd else None
         self.logsio = logsio
         self.env = env or {}
         self.project_name = project_name
@@ -37,6 +38,19 @@ class ShellExecutor(object):
         if env:
             assert isinstance(env, dict)
         self.ssh_keyfile = ssh_keyfile
+
+    @contextmanager
+    def clone(self, cwd, env=None):
+        env2 = deepcopy(self.env)
+        env2.update(env or {})
+        shell2 = ShellExecutor(
+            self.ssh_keyfile, self.machine, cwd,
+            self.logsio, self.project_name, env2)
+        yield shell2
+
+    @property
+    def cwd(self):
+        return self._cwd
 
     def exists(self, path):
         try:
