@@ -391,7 +391,7 @@ class Repository(models.Model):
                         branches = commit.branch_ids.filtered(lambda x: x.latest_commit_id == commit)
                         text = (
                             f"Merge-Conflict at {commit.name}.\n"
-                            f"To resolve try to merge {self.release_id.branch_id.name} into those branches:\n"
+                            f"To resolve try to merge {target_branch_name} into those branches:\n"
                             f"{','.join(branches.mapped('name'))}"
                         )
                         raise UserError(text) from ex
