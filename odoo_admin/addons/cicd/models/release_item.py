@@ -236,6 +236,7 @@ class ReleaseItem(models.Model):
         return branches
 
     def recreate_candidate_branch_in_git(self):
+        self.commit_ids = [[6, 0, []]]
         self._recreate_candidate_branch_in_git()
 
     def _recreate_candidate_branch_in_git(self):
