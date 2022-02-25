@@ -263,20 +263,20 @@ class ReleaseItem(models.Model):
                 logsio.info("The commits did not change - so a new candidate branch is not created.")
                 return
 
-            breakpoint()
-            # if previous release has same commits like this one, then reuse 
-            # the already merged branch here
-            logsio.info(f"Len items: {len(self.release_id.item_ids)}")
-            if len(self.release_id.item_ids) > 1:
-                for prev_item in self.release_id.item_ids[1:]:
-                    logsio.info(f"Checking prev item {prev_item}")
-                    prev_commits = prev_item.mapped('commit_ids')
-                    if set(prev_commits.ids) == set(commits.ids):
-                        if not self.commit_id and prev_item.commit_id:
-                            self.commit_id = prev_item.commit_id
-                            self.commit_ids = [[6, 0, commits.ids]]
-                            logsio.info("Found in previous release item same branch constellation - reusing commit {prev_item.commit_id.name}")
-                            return
+            # breakpoint()
+            # # if previous release has same commits like this one, then reuse 
+            # # the already merged branch here
+            # logsio.info(f"Len items: {len(self.release_id.item_ids)}")
+            # if len(self.release_id.item_ids) > 1:
+            #     for prev_item in self.release_id.item_ids[1:]:
+            #         logsio.info(f"Checking prev item {prev_item}")
+            #         prev_commits = prev_item.mapped('commit_ids')
+            #         if set(prev_commits.ids) == set(commits.ids):
+            #             if not self.commit_id and prev_item.commit_id:
+            #                 self.commit_id = prev_item.commit_id
+            #                 self.commit_ids = [[6, 0, commits.ids]]
+            #                 logsio.info("Found in previous release item same branch constellation - reusing commit {prev_item.commit_id.name}")
+            #                 return
 
             logsio.info("Commits changed, so creating a new candidate branch")
             try:
