@@ -107,6 +107,7 @@ class ShellExecutor(object):
         return res
 
     def checkout_branch(self, branch, cwd=None):
+        cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
             breakpoint()
             if not self.branch_exists(branch):
