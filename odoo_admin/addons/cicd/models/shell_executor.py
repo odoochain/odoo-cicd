@@ -56,7 +56,6 @@ class ShellExecutor(object):
         try:
             res = self._internal_execute(["stat", path])
         except Exception:
-            breakpoint()
             res = self._internal_execute(["stat", path])
         return res['exit_code'] == 0
 
@@ -109,14 +108,12 @@ class ShellExecutor(object):
     def checkout_branch(self, branch, cwd=None):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
-            breakpoint()
             if not self.branch_exists(branch):
                 self.X(["git", "checkout", "-b", branch, "--track", "origin/" + branch], allow_error=True)
             self.X(["git", "checkout", "-f", "--no-guess", branch], allow_error=False)
             self._after_checkout()
 
     def checkout_commit(self, commit, cwd=None):
-        breakpoint()
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
             self.X(["git", "config", "advice.detachedHead", "false"]) # otherwise checking out a commit brings error message

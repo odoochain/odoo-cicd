@@ -63,6 +63,88 @@ class CicdTestRun(models.Model):
             else:
                 break
 
+    def _reload(self, shell, logsio, settings, report, started, root):
+        def reload():
+            self.branch_id._reload(
+                shell, None, logsio, project_name=shell.project_name, settings=settings,
+                commit=self.commit_id.name)
+        try:
+            reload()
+        except RetryableJobError:
+            raise
+        except Exception as ex:
+            try:
+                if shell.cwd != root:
+                    shell.rm(shell.cwd)
+                reload()
+            except RetryableJobError:
+                raise
+            except Exception as ex:
+                if 'reference is not a tree' in str(ex):
+                    raise RetryableJobError("Missing commit not arrived - retrying later.") from ex
+                report("Error occurred", exception=ex, duration=arrow.get() - started)
+                raise
+
+    def _abort_if_required(self):
+        self.env.cr.commit()
+        self.env.clear()
+        if self.do_abort: raise AbortException("User aborted")
+
+
+    def _prepare_run(self, shell, report, logsio, started):
+        self._abort_if_required()
+        report('building')
+        shell.odoo('build')
+        report('killing any existing')
+        shell.odoo('kill', allow_error=True)
+        shell.odoo('rm', allow_error=True)
+        report('starting postgres')
+        shell.odoo('up', '-d', 'postgres')
+
+        self._abort_if_required()
+
+        self._wait_for_postgres(shell)
+        report('db reset started')
+        shell.odoo('-f', 'db', 'reset')
+
+        self._abort_if_required()
+        report('db reset done')
+        self._wait_for_postgres(shell)
+        report('update started')
+        shell.odoo('update')
+
+        self._abort_if_required()
+
+        report('installation of modules done')
+        report("Storing snapshot")
+        shell.odoo('snap', 'save', shell.project_name, force=True)
+        self._wait_for_postgres(shell)
+        report("Storing snapshot done")
+        logsio.info("Preparation done")
+        report('preparation done', ttype='log', state='success', duration=(arrow.get() - started).total_seconds())
+
+        self._abort_if_required()
+
+    def _finalize_testruns(self, shell, report, logsio):
+        try:
+            report('Finalizing Testing')
+            shell.odoo('kill', allow_error=True)
+            shell.odoo('rm', force=True, allow_error=True)
+            shell.odoo('snap', 'clear')
+            shell.odoo('down', "-v", force=True, allow_error=True)
+            project_dir = shell.cwd
+            with shell.clone(cwd=shell.cwd.parent) as shell:
+                try:
+                    shell.rm(project_dir)
+                except Exception:
+                    msg = f"Failed to remove directory {project_dir}"
+                    if logsio:
+                        logsio.error(msg)
+                    logger.error(msg)
+        finally:
+            if logsio:
+                logsio.stop_keepalive()
+
     @contextmanager
     def prepare_run(self, machine, logsio):
         settings = """
@@ -94,28 +176,12 @@ RUN_POSTGRES=1
 
         root = machine._get_volume('source')
         started = arrow.get()
-        breakpoint()
         project_name = self.branch_id.project_name
         assert project_name
         with machine._shell(cwd=root / project_name, logsio=logsio, project_name=project_name) as shell:
             report("Checking out source code...")
+            self._reload(shell, logsio, settings, report, started, root)
 
-            def reload():
-                self.branch_id._reload(
-                    shell, None, logsio, project_name=shell.project_name, settings=settings,
-                    commit=self.commit_id.name)
-            try:
-                reload()
-            except Exception as ex:
-                try:
-                    if shell.cwd != root:
-                        shell.rm(shell.cwd)
-                    reload()
-                except Exception as ex:
-                    if 'reference is not a tree' in str(ex):
-                        raise RetryableJobError("Missing commit not arrived - retrying later.") from ex
-                    report("Error occurred", exception=ex, duration=arrow.get() - started)
-                    raise
             sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
             if sha != self.commit_id.name:
                 raise Exception(f"checkoued SHA {sha} not matching test sha {self.commit_id.name}")
@@ -123,60 +189,19 @@ RUN_POSTGRES=1
             report(f"Checked out source code at {shell.cwd}")
             try:
                 try:
-                    if self.do_abort: raise AbortException("User aborted")
-                    report('building')
-                    shell.odoo('build')
-                    report('killing any existing')
-                    shell.odoo('kill', allow_error=True)
-                    shell.odoo('rm', allow_error=True)
-                    report('starting postgres')
-                    shell.odoo('up', '-d', 'postgres')
-                    if self.do_abort: raise AbortException("User aborted")
-                    self._wait_for_postgres(shell)
-                    report('db reset started')
-                    shell.odoo('-f', 'db', 'reset')
-                    if self.do_abort: raise AbortException("User aborted")
-                    report('db reset done')
-                    self._wait_for_postgres(shell)
-                    report('update started')
-                    shell.odoo('update')
-                    if self.do_abort: raise AbortException("User aborted")
-                    report('installation of modules done')
-                    report("Storing snapshot")
-                    shell.odoo('snap', 'save', shell.project_name, force=True)
-                    self._wait_for_postgres(shell)
-                    report("Storing snapshot done")
-                    logsio.info("Preparation done")
-                    report('preparation done', ttype='log', state='success', duration=(arrow.get() - started).total_seconds())
-                    if self.do_abort: raise AbortException("User aborted")
+                    self._prepare_run(shell, report, logsio, started)
                     self.env.cr.commit()
+                except RetryableJobError:
+                    raise
                 except Exception as ex:
                     duration = arrow.get() - started
                     report("Error occurred", exception=ex, duration=duration)
-
                     raise
 
                 yield shell
 
             finally:
-                try:
-                    report('Finalizing Testing')
-                    shell.odoo('kill', allow_error=True)
-                    shell.odoo('rm', force=True, allow_error=True)
-                    shell.odoo('snap', 'clear')
-                    shell.odoo('down', "-v", force=True, allow_error=True)
-                    project_dir = shell.cwd
-                    with shell.clone(cwd=shell.cwd.parent) as shell:
-                        try:
-                            shell.rm(project_dir)
-                        except Exception:
-                            msg = f"Failed to remove directory {project_dir}"
-                            if logsio:
-                                logsio.error(msg)
-                            logger.error(msg)
-                finally:
-                    if logsio:
-                        logsio.stop_keepalive()
+                self._finalize_testruns(shell, report, logsio)
 
     def execute_now(self):
         self.with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).execute()
@@ -187,7 +212,6 @@ RUN_POSTGRES=1
     # ----------------------------------------------
     # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
     def execute(self, shell=None, task=None, logsio=None):
-        breakpoint()
         with self.branch_id._get_new_logsio_instance('test-run-execute') as logsio2:
             if not logsio:
                 logsio = logsio2
@@ -266,7 +290,6 @@ RUN_POSTGRES=1
                         self._inform_developer()
                         self.env.cr.commit()
                 except Exception:
-                    breakpoint()
                     try:
                         self.env.cr.commit()
                     except: pass
