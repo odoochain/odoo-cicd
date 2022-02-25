@@ -236,6 +236,9 @@ class ReleaseItem(models.Model):
         return branches
 
     def recreate_candidate_branch_in_git(self):
+        if self.state == 'failed':
+            if not self.release_id.item_ids.filtered(lambda x: x.state == 'new'):
+                self.state = 'new'
         self.commit_ids = [[6, 0, []]]
         self._recreate_candidate_branch_in_git()
 

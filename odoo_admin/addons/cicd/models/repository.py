@@ -385,14 +385,13 @@ class Repository(models.Model):
                     # we use git functions to retrieve deltas, git sorting and so;
                     # we want to rely on stand behaviour git.
                     shell.checkout_branch(target_branch_name)
+                    history = []
                     try:
                         shell.X(["git", "merge", commit.name])
+                        history.append(commit.name)
                     except Exception as ex:
-                        branches = commit.branch_ids.filtered(lambda x: x.latest_commit_id == commit)
                         text = (
-                            f"Merge-Conflict at {commit.name}.\n"
-                            f"To resolve try to merge {target_branch_name} into those branches:\n"
-                            f"{','.join(branches.mapped('name'))}"
+                            f"Merge-Conflict - try to merge the branches togehter."
                         )
                         raise UserError(text) from ex
 
