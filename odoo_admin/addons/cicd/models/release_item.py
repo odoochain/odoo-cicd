@@ -99,6 +99,10 @@ class ReleaseItem(models.Model):
     def perform_release(self):
         self._do_release()
 
+    def redo(self):
+        self.ensure_one()
+        self.with_context(override_release_state=True)._do_release()
+
     def _do_release(self):
         breakpoint()
         logsio = None
@@ -115,7 +119,8 @@ class ReleaseItem(models.Model):
 
         try:
             if self.state not in ['new']:
-                return
+                if not self.env.context.get("override_release_state"):
+                    return
             if self.release_type == 'hotfix' and not self.branch_ids:
                 raise ValidationError("Hotfix requires explicit branches.")
             if not self.commit_id:  # needs a collected commit with everything on it
@@ -133,6 +138,7 @@ class ReleaseItem(models.Model):
                 release = self.release_id
                 repo = self.release_id.repo_id.with_context(active_test=False)
                 with pg_advisory_lock(self.env.cr, repo._get_lockname(), detailinfo=f"release_merge_new_branch {release.name}"):
+                    breakpoint()
                     candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
                     candidate_branch.ensure_one()
                     if not candidate_branch.active:
@@ -146,16 +152,13 @@ class ReleaseItem(models.Model):
                     self.changed_lines += changed_lines
                     self.env.cr.commit()
 
-                if not self.changed_lines:
-                    self._on_done()
-                    return
-
                 errors = self.release_id._technically_do_release(self)
                 if errors:
-                    raise Exception(errors)
+                    breakpoint()
+                    raise Exception(','.join(map(str, filter(bool, errors))))
 
                 if logsio:
-                    self.log_release = logsio.get_lines()
+                    self.log_release = ','.join(logsio.get_lines())
                 self._on_done()
                 self.env.cr.commit()
 
@@ -168,7 +171,7 @@ class ReleaseItem(models.Model):
             self.release_id.message_post(body=f"Deployment of version {self.name} failed: {msg}")
             self.log_release = msg or ''
             if logsio:
-                self.log_release += logsio.get_lines()
+                self.log_release += '\n'.join(logsio.get_lines())
             logger.error(msg)
             self.env.cr.commit()
             raise

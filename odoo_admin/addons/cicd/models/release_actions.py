@@ -71,6 +71,7 @@ class CicdReleaseAction(models.Model):
             yield shell
 
     def _stop_odoo(self, logsio):
+        breakpoint()
         for self in self:
             with self._contact_machine(logsio) as shell:
                 if not shell:
