@@ -56,8 +56,7 @@ class Repository(models.Model):
     ticketsystem_id = fields.Many2one("cicd.ticketsystem", string="Ticket-System")
 
     _sql_constraints = [
-        ('name_unique', "unique(named)", _("Only one unique entry allowed.")),
-        ('url_unique', "unique(url)", _("Only one unique entry allowed.")),
+        ('name_unique', "unique(name)", _("Only one unique entry allowed.")),
     ]
 
     def _get_lockname(self):

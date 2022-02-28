@@ -46,7 +46,7 @@
 	</template>
 	<template id="cicd.mail_release_done">
 		Pre-Release Information
-        self.release_id.message_post(body=self.computed_summary)
+        	<span t-esc="summary"/>
 	</template>
 	
 
