@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class AbortException(Exception): pass
 
 class CicdTestRun(models.Model):
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'cicd.open.window.mixin']
     _name = 'cicd.test.run'
     _order = 'id desc'
 

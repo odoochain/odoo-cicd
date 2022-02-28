@@ -140,6 +140,7 @@
 							<page name="tests" string="Tests">
 								<field name="test_run_ids">
 									<tree>
+										<button name="open_window" string="" icon="fa-external-link" type="object" />
 										<field name="date"/>
 										<field name="state"/>
 										<field name="commit_id"/>

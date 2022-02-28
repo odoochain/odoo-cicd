@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class ReleaseItem(models.Model):
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'cicd.open.window.mixin']
     _name = 'cicd.release.item'
     _order = 'id desc'
 
@@ -47,17 +47,6 @@ class ReleaseItem(models.Model):
                 if rec.release_id.item_ids.filtered(lambda x: x.release_type == 'standard' and x.id != rec.id and x.state in ['new']):
                     breakpoint()
                     raise ValidationError(_("There may only be one new standard item!"))
-
-    def open_window(self):
-        self.ensure_one()
-        return {
-            'view_type': 'form',
-            'res_model': self._name,
-            'res_id': self.id,
-            'views': [(False, 'form')],
-            'type': 'ir.actions.act_window',
-            'target': 'current',
-        }
 
     def _on_done(self):
         # if not self.changed_lines:

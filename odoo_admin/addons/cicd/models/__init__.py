@@ -79,6 +79,7 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
                 exc_info=True
                 )
 
+from . import open_window_mixin
 from . import ticketsystem
 from . import mixin_size
 from . import branch

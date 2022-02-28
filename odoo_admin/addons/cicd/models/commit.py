@@ -4,7 +4,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
 
 class GitCommit(models.Model):
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'cicd.open.window.mixin']
     _name = 'cicd.git.commit'
     _order = 'date desc'
 
@@ -89,16 +89,6 @@ class GitCommit(models.Model):
                 rec.branch_id.with_user(self.author_user_id.id).approve()
             if ":RESET:" in rec.text:
                 rec.branch_id.with_user(self.author_user_id.id)._make_task("_prepare_a_new_instance", silen=True)
-
-    def open_window(self):
-        return {
-            'view_type': 'form',
-            'res_model': 'cicd.git.commit',
-            'res_id': self.id,
-            'views': [(False, 'form')],
-            'type': 'ir.actions.act_window',
-            'target': 'current',
-        }
 
     @tools.ormcache('self.id', 'commit')
     def contains_commit(self, commit):
