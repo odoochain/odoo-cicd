@@ -20,6 +20,7 @@
 		<h2>Failed Tests</h2>
 		<table>
 			<tr>
+				<th>Test</th>
 				<th>Tries</th>
 				<th>Type</th>
 				<th>Forced Success</th>
@@ -27,15 +28,11 @@
 			</tr>
 			<t t-foreach="obj.line_ids.filtered(lambda x: x.state == 'failed')" t-as="line" border='1'>
 				<tr>
+					<td><t t-field="line.name"/></td>
 					<td><t t-esc="line.try_count"/></td>
 					<td><t t-esc="line.ttype"/></td>
 					<td><t t-esc="line.force_success"/></td>
 					<td><t t-esc="line.duration"/></td>
-				</tr>
-				<tr>
-					<td colspan='4'><pre>
-						<t t-esc="line.exc_info"/>
-					</pre></td>
 				</tr>
 			</t>
 		</table>
