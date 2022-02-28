@@ -91,14 +91,6 @@ class Branch(models.Model):
             'target': 'self'
         }
 
-    def start_logs(self):
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_url',
-            'url': '/start/' + self.project_name + "/logs/",
-            'target': 'new'
-        }
-
     def _shell_url(self, cmd, machine=None):
         machine = self.machine_id
         machine.make_login_possible_for_webssh_container()
@@ -130,6 +122,18 @@ class Branch(models.Model):
 
     def open_shell(self):
         return self._shell_url(["odoo", "ps"])
+
+    def start_logs(self):
+        with self.shell('show_logs') as shell:
+            stdout = shell.odoo("config", "--full")['stdout']
+            queuejobs = 'RUN_ODOO_QUEUEJOBS=1' in stdout
+            cronjobs = 'RUN_ODOO_CRONJOBS=1' in stdout
+        containers = ['odoo']
+        if queuejobs:
+            containers += ['odoo_queuejobs']
+        if cronjobs:
+            containers += ['odoo_cronjobs']
+        return self._shell_url(["odoo", "logs", "-f"] + containers)
 
     def refresh_tasks(self):
         return True

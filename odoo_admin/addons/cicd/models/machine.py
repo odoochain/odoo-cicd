@@ -183,7 +183,7 @@ class CicdMachine(models.Model):
 
                 command_file = '/tmp/commands.cicd'
                 homedir = '/home/' + rec.ssh_user_cicdlogin
-                test_file_if_required = homedir + '/.setup_login_done'
+                test_file_if_required = homedir + '/.setup_login_done.v2'
                 user_upper = rec.ssh_user_cicdlogin.upper()
 
                 # allow per sudo execution of just the odoo script
@@ -194,7 +194,7 @@ class CicdMachine(models.Model):
 # adding sudoer command for restricted user to odoo framework
 
 tee "/etc/sudoers.d/{rec.ssh_user_cicdlogin}_odoo" <<EOF
-Cmnd_Alias ODOO_COMMANDS_{user_upper} = /usr/local/bin/odoo *
+Cmnd_Alias ODOO_COMMANDS_{user_upper} = /usr/local/sbin/odoo *
 {rec.ssh_user_cicdlogin} ALL=({rec.ssh_user}) NOPASSWD:SETENV: ODOO_COMMANDS_{user_upper}
 EOF
 
@@ -215,6 +215,7 @@ echo 'readonly PATH={homedir}/programs' > "{homedir}/.bash_profile"
 echo 'export PATH' >> "{homedir}/.bash_profile"
 chown -R "{rec.ssh_user_cicdlogin}":"{rec.ssh_user_cicdlogin}" "{homedir}"
 ln -sf /usr/bin/sudo "{homedir}/programs/sudo"
+ln -sf /usr/bin/tmux "{homedir}/programs/tmux"
 
 #------------------------------------------------------------------------------
 # setting username / password
@@ -224,7 +225,7 @@ echo -e "{rec.ssh_user_cicdlogin_password}\n{rec.ssh_user_cicdlogin_password}" |
 # adding wrapper for calling odoo framework in that instance directory
 #!/bin/bash
 tee "{homedir}/programs/odoo" <<EOF
-sudo -u {rec.ssh_user} /usr/local/bin/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" -p "\$PROJECT_NAME" "\$@"
+sudo -u {rec.ssh_user} /usr/local/sbin/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" -p "\$PROJECT_NAME" "\$@"
 EOF
 chmod a+x "{homedir}/programs/odoo"
 
@@ -253,10 +254,6 @@ echo "--------------------------------------------------------------------------
                     res = shell.X(cmd, allow_error=True)
                     if res['exit_code']:
                         raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res.stderr_output}")
-
-    @tools.ormcache()
-    def testoutput(self):
-        print('test')
 
     def write(self, vals):
         if vals.get('upload_dump'):
@@ -378,21 +375,6 @@ echo "--------------------------------------------------------------------------
                 if value:
                     raise Exception('should exist')
 
-    def test_ssh_connection2(self, tests=20):
-        """
-        Test if line break is ok at end
-        """
-        breakpoint()
-        with self._shell() as shell:
-            shell.rm("/tmp/repo1")
-            shell.X(["mkdir", "/tmp/repo1"])
-            shell.X(["touch", "/tmp/repo1/a"])
-            shell.X(["git", "init", "."], cwd="/tmp/repo1")
-            shell.X(["git", "add", "."], cwd="/tmp/repo1")
-            shell.X(["git", "commit", "-am", 'msg'], cwd="/tmp/repo1")
-            test = shell.X(["git", "log", "-n1", '--pretty=%ct'], cwd="/tmp/repo1")
-            print(test['stdout'])
-
     def _update_docker_containers(self):
         breakpoint()
         for rec in self:
@@ -421,6 +403,7 @@ echo "--------------------------------------------------------------------------
 
     def compute_tempfile_containers(self):
         for rec in self:
+            # TODO configurable path sysparameter
             path = Path("/opt/out_dir/docker_states")
             path.mkdir(exist_ok=True, parents=True)
             self.tempfile_containers = f"{path}/{self.env.cr.dbname}.machine.{rec.id}.containers"
