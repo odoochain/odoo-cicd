@@ -174,12 +174,13 @@ class Branch(models.Model):
             commits = _extract_commits()
 
         all_commits = self.env['cicd.git.commit'].search([])
-        all_commits = dict((x.name, x.branch_ids) for x in all_commits)
+        all_commits = dict((x.name, x) for x in all_commits)
 
         for sha in commits:
             if sha in all_commits:
-                if self not in all_commits[sha]:
-                    self.env['cicd.git.commit'].search([('name', '=', sha)]).branch_ids = [[4, self.id]]
+                cicd_commit = all_commits[sha]
+                if self not in cicd_commit.branch_ids:
+                    cicd_commit.branch_ids = [[4, self.id]]
                 continue
 
             env = update_env={
