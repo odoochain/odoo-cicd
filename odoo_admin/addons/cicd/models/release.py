@@ -148,8 +148,13 @@ class Release(models.Model):
                     identity_key=f"recreate_branch_release_item_id{new_one.id}"
                     )._recreate_candidate_branch_in_git()
 
-    def _technically_do_release(self, release_item):
-        errors = self.action_ids.run_action_set(release_item, self.action_ids)
+    def _technically_do_release(self, release_item, merge_commit_id):
+        """
+        merge_commit_id: after merging the main branch with the candidate branch
+          a new commit is created.
+        """
+
+        errors = self.action_ids.run_action_set(release_item, self.action_ids, merge_commit_id)
         return errors
 
     def _send_pre_release_information(self):

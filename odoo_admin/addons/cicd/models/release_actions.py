@@ -27,7 +27,7 @@ class CicdReleaseAction(models.Model):
                     shell.rm(filepath)
 
     @api.model
-    def run_action_set(self, release_item, actions):
+    def run_action_set(self, release_item, actions, merge_commit_id):
         breakpoint()
         errors = []
         with LogsIOWriter.GET(release_item.release_id.branch_id.name, 'release') as logsio:
@@ -35,7 +35,7 @@ class CicdReleaseAction(models.Model):
                 actions._exec_shellscripts(logsio, "before")
                 actions._stop_odoo(logsio)
 
-                actions._update_sourcecode(logsio, release_item)
+                actions._update_sourcecode(logsio, release_item, merge_commit_id)
 
                 actions[0]._run_update(logsio)
 
@@ -58,29 +58,27 @@ class CicdReleaseAction(models.Model):
 
     @contextmanager
     def _contact_machine(self, logsio):
-        breakpoint()
         self.ensure_one()
         project_name = self.release_id.project_name
         path = self.machine_id._get_volume("source")
 
         # make sure directory exists
-        breakpoint()
         with self.machine_id._shell(cwd=path, logsio=logsio, project_name=project_name) as shell:
             if not shell.exists(path):
                 shell.X(["mkdir", "-p", path])
             yield shell
 
     def _stop_odoo(self, logsio):
-        breakpoint()
         for self in self:
             with self._contact_machine(logsio) as shell:
                 if not shell:
                     return
                 shell.odoo("kill")
 
-    def _update_sourcecode(self, logsio, release_item):
+    def _update_sourcecode(self, logsio, release_item, merge_commit_id):
+        breakpoint()
         repo = self[0].release_id.repo_id
-        zip_content = repo._get_zipped(logsio, release_item.commit_id.name)
+        zip_content = repo._get_zipped(logsio, merge_commit_id)
         temppath = tempfile.mktemp(suffix='.')
 
         for self in self:

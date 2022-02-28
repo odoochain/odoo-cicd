@@ -104,7 +104,6 @@ class ReleaseItem(models.Model):
         self.with_context(override_release_state=True)._do_release()
 
     def _do_release(self):
-        breakpoint()
         logsio = None
         try:
             self.env.cr.execute("select id from cicd_release where id=%s for update nowait", (self.release_id.id,))
@@ -138,13 +137,12 @@ class ReleaseItem(models.Model):
                 release = self.release_id
                 repo = self.release_id.repo_id.with_context(active_test=False)
                 with pg_advisory_lock(self.env.cr, repo._get_lockname(), detailinfo=f"release_merge_new_branch {release.name}"):
-                    breakpoint()
                     candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
                     candidate_branch.ensure_one()
                     if not candidate_branch.active:
                         raise UserError(f"Candidate branch '{self.release_id.candidate_branch}' is not active!")
-                    changed_lines = repo._merge(
-                        candidate_branch,
+                    changed_lines, merge_commit_id = repo._merge(
+                        self.commit_id,
                         release.branch_id,
                         set_tags=[f'{repo.release_tag_prefix}{self.name}-' + fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
                         logsio=logsio,
@@ -152,7 +150,7 @@ class ReleaseItem(models.Model):
                     self.changed_lines += changed_lines
                     self.env.cr.commit()
 
-                errors = self.release_id._technically_do_release(self)
+                errors = self.release_id._technically_do_release(self, merge_commit_id)
                 if errors:
                     breakpoint()
                     raise Exception(','.join(map(str, filter(bool, errors))))

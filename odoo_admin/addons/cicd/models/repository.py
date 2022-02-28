@@ -344,7 +344,7 @@ class Repository(models.Model):
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
-            with pg_advisory_lock(self.env.cr, self._get_lockname(), 'clone_repo {path}'):
+            with pg_advisory_lock(self.env.cr, self._get_lockname(), f'clone_repo {path}'):
                 if not self._is_healthy_repository(shell, path):
                     shell.rm(path)
                     shell.X([
@@ -422,7 +422,7 @@ class Repository(models.Model):
         return message_commit
 
     def _merge(self, source, dest, set_tags, logsio=None):
-        assert source._name == 'cicd.git.branch'
+        assert source._name in ['cicd.git.branch', 'cicd.git.commit']
         assert dest._name == 'cicd.git.branch'
         source.ensure_one()
         dest.ensure_one()
@@ -433,9 +433,11 @@ class Repository(models.Model):
             try:
                 shell.checkout_branch(dest.name)
                 commitid = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                branches = [self._clear_branch_name(x) for x in shell.X(["git", "branch", "--contains", commitid])['stdout'].strip().split("\n")]
-                if source.name in branches:
-                    return False
+                if source._name == 'cicd.git.branch':
+                    branches = [self._clear_branch_name(x) for x in shell.X(["git", "branch", "--contains", commitid])['stdout'].strip().split("\n")]
+                    if source.name in branches:
+                        return False
+                breakpoint()
                 shell.checkout_branch(source.name)
                 shell.checkout_branch(dest.name)
                 count_lines = len(shell.X(["git", "diff", "-p", source.name])['stdout'].strip().split("\n"))
@@ -444,8 +446,10 @@ class Repository(models.Model):
                     shell.X(["git", "tag", '-f', tag.replace(':', '_').replace(' ', '_')])
                 shell.X(["git", "remote", "set-url", 'origin', self.url])
                 shell.X(["git", "push", '--tags'])
+                shell.X(["git", "push"])
+                mergecommitid= shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
 
-                return count_lines
+                return count_lines, mergecommitid
 
             finally:
                 shell.rm(repo_path)
