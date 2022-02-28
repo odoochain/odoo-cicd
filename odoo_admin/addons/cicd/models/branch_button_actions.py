@@ -91,11 +91,21 @@ class Branch(models.Model):
             'target': 'self'
         }
 
-    def _shell_url(self, cmd, machine=None):
+    def _shell_url(self, cmd, machine=None, tmux=None):
+        """
+        tmux: -A create or append, -s name of session"
+        """
+        if tmux:
+            "tmux: -A create or append, -s name of session"
+            cmd = [
+                "tmux", "new-session", "-A",
+                "-s", f"{self.project_name}_shell",
+            ] + cmd
+
         machine = self.machine_id
         machine.make_login_possible_for_webssh_container()
         path = machine._get_volume('source')
-        path = path / self.project_name 
+        path = path / self.project_name
         shell_url = _get_shell_url(
             machine.effective_host,
             machine.ssh_user_cicdlogin,
@@ -112,16 +122,16 @@ class Branch(models.Model):
         }
 
     def pgcli(self):
-        return self._shell_url(["odoo", "pgcli"])
+        return self._shell_url(["odoo", "pgcli"], tmux='pgcli')
 
     def open_odoo_shell(self):
-        return self._shell_url(["odoo", "shell"])
+        return self._shell_url(["odoo", "shell"], tmux='odoo_shell')
 
     def debug_webcontainer(self):
-        return self._shell_url(["odoo", "debug", "odoo"])
+        return self._shell_url(["odoo", "debug", "odoo"], tmux='debug_odoo')
 
     def open_shell(self):
-        return self._shell_url(["odoo", "ps"])
+        return self._shell_url(["odoo", "shell"], tmux='_shell')
 
     def start_logs(self):
         with self.shell('show_logs') as shell:
