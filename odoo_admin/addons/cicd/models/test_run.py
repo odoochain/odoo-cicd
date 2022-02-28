@@ -149,6 +149,10 @@ class CicdTestRun(models.Model):
     def prepare_run(self, machine, logsio):
         settings = """
 RUN_POSTGRES=1
+DB_HOST=postgres
+DB_PORT=5432
+DB_USER=odoo
+DB_PWD=odoo
         """
         def report(msg, state='success', exception=None, duration=None, ttype='log'):
             if not hasattr(report, 'last_report_time'):
