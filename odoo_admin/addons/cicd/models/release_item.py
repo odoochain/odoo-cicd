@@ -65,7 +65,8 @@ class ReleaseItem(models.Model):
         self.done_date = fields.Datetime.now()
         self.release_id.message_post_with_view(
             self.env.ref('cicd.mail_release_done'),
-            )
+            values={'summary': self.computed_summary}
+        )
         self.state = 'done'
         self.branch_ids._compute_state()
 
