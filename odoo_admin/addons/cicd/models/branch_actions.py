@@ -262,10 +262,12 @@ class Branch(models.Model):
         if kwargs.get('testrun_id'):
             test_run = self.test_run_ids.browse(kwargs.get('testrun_id'))
         else:
-            test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
+            test_run = self.test_run_ids.filtered(
+                lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
 
         if not test_run:
-            test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id)
+            test_run = self.test_run_ids.filtered(
+                lambda x: x.commit_id == self.latest_commit_id)
             if not test_run:
                 test_run = self.test_run_ids.create({
                     'commit_id': self.latest_commit_id.id,
@@ -338,13 +340,17 @@ class Branch(models.Model):
                 shell.X(["git", "branch", "-D", branch])
                 del branch
 
-            current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"])['stdout'].strip().split("\n")))
+            current_branch = list(filter(lambda x: '* ' in x, shell.X([
+                "git", "branch"])['stdout'].strip().split("\n")))
             if not current_branch:
                 raise Exception(f"Somehow no current branch found")
             branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
             if branch_in_dir != self.name:
                 shell.rm(instance_folder)
-                raise Exception(f"Branch could not be checked out! Was {branch_in_dir} - but should be {self.name}")
+                raise Exception((
+                    f"Branch could not be checked out!"
+                    f"Was {branch_in_dir} - but should be {self.name}"
+                ))
 
             logsio.write_text(f"Clean git")
             shell.X(["git", "clean", "-xdff"])
