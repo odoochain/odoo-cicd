@@ -254,7 +254,7 @@ echo "--------------------------------------------------------------------------
                     cmd = ["sudo", "/bin/bash", command_file]
                     res = shell.X(cmd, allow_error=True)
                     if res['exit_code']:
-                        raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res.stderr}")
+                        raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res['stderr']}")
 
     def write(self, vals):
         if vals.get('upload_dump'):
