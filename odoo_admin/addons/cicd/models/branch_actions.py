@@ -76,6 +76,7 @@ class Branch(models.Model):
         shell.odoo('build')
         logsio.info("Upping")
         shell.odoo("kill")
+        self._kill_tmux_sessions(shell)
         shell.odoo("rm")
         shell.odoo("up", "-d")
         self._after_build(shell, logsio)
@@ -139,7 +140,7 @@ class Branch(models.Model):
 
     def _reload(self, shell, task, logsio, project_name=None, settings=None, commit=None, **kwargs):
         with shell.clone(cwd=self._make_sure_source_exists(shell, logsio)) as shell:
-            self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings) 
+            self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings)
             self._collect_all_files_by_their_checksum(shell)
             if commit:
                 shell.checkout_commit(commit)
@@ -287,7 +288,6 @@ class Branch(models.Model):
         shell.odoo("update-setting", 'web.base.url', shell.machine.external_url)
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
-        self._kill_tmux_sessions(shell)
         self._docker_get_state(shell=shell)
 
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
@@ -534,4 +534,9 @@ for path in base.glob("*"):
 
     def _kill_tmux_sessions(self, shell):
         for rec in self:
-            shell.X(["pkill", "-9", "-f", f'new-session.*-s.*{rec.project_name}'])
+            with rec.repo_id.machine_id._shell() as shell:
+                rec.repo_id.machine_id.make_login_possible_for_webssh_container()
+                test = shell.X([
+                    "sudo", "pkill", "-9", "-f",
+                    f'new-session.*-s.*{rec.project_name}'
+                    ], allow_error=True)

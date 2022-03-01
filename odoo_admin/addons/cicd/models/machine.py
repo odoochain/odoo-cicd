@@ -204,10 +204,11 @@ EOF
 # setting up login to restricted user
 
 grep -q "{rec.ssh_user_cicdlogin}" /etc/passwd || adduser --disabled-password --gecos "" {rec.ssh_user_cicdlogin}
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-grep -q "{pubkey}" ~/.ssh/authorized_keys || echo "\n{pubkey}" >> ~/.ssh/authorized_keys
-grep -q "{pubkey_machine}" ~/.ssh/authorized_keys || echo "\n{pubkey_machine}" >> ~/.ssh/authorized_keys
+mkdir -p "{homedir}/.ssh"
+chmod 700 "{homedir}/.ssh"
+grep -q "{pubkey}" "{homedir}/.ssh/authorized_keys" || echo "\n{pubkey}" >> "{homedir}/.ssh/authorized_keys"
+chmod 600 "{homedir}/.ssh/authorized_keys"
+grep -q "{pubkey_machine}" "{homedir}/.ssh/authorized_keys" || echo "\n{pubkey_machine}" >> "{homedir}/.ssh/authorized_keys"
 usermod --shell /bin/rbash "{rec.ssh_user_cicdlogin}"
 
 #------------------------------------------------------------------------------

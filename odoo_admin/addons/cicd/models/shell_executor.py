@@ -23,7 +23,7 @@ class ShellExecutor(object):
     class TimeoutConnection(Exception): pass
     class TimeoutFinished(Exception): pass
 
-    def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env=None):
+    def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env=None, user=None):
         self.machine = machine
         self._cwd = Path(cwd) if cwd else None
         self.logsio = logsio
@@ -38,14 +38,17 @@ class ShellExecutor(object):
         if env:
             assert isinstance(env, dict)
         self.ssh_keyfile = ssh_keyfile
+        self.user = user
 
     @contextmanager
-    def clone(self, cwd, env=None):
+    def clone(self, cwd=None, env=None, user=None):
         env2 = deepcopy(self.env)
         env2.update(env or {})
+        user = user or self.user
+        cwd = cwd or self.cwd
         shell2 = ShellExecutor(
             self.ssh_keyfile, self.machine, cwd,
-            self.logsio, self.project_name, env2)
+            self.logsio, self.project_name, env2, user=user)
         yield shell2
 
     @property
@@ -187,7 +190,7 @@ class ShellExecutor(object):
 
     def _get_ssh_client(self, cmd='ssh', split_host=False):
         host = self.machine.effective_host
-        user = self.machine.ssh_user
+        user = self.user or self.machine.ssh_user
         base = f"{cmd} -T -oStrictHostKeyChecking=no -i {self.ssh_keyfile}"
         user_host = f"{user}@{host}"
         if split_host:
@@ -228,10 +231,8 @@ class ShellExecutor(object):
 
         stdwriter, errwriter = MyWriter('info', self.logsio, logoutput), MyWriter('error', self.logsio, logoutput)
 
-
         if isinstance(cmd, (tuple, list)):
             cmd = f"{cmd[0]} " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
-
 
         sshcmd = self._get_ssh_client()
         stop_marker = str(uuid.uuid4()) + str(uuid.uuid4())
@@ -263,7 +264,7 @@ class ShellExecutor(object):
                     if stop_marker and stop_marker in line_decoded and on_stop_marker:
                         on_stop_marker()
                         is_marker = True
-                    
+
                     if not is_marker:
                         writer.write(line)
 
@@ -288,7 +289,7 @@ class ShellExecutor(object):
         if env: effective_env.update(env)
         for k, v in effective_env.items():
             bashcmd += f'export {k}="{v}"\n'
-        
+
         bashcmd += (
             f"echo '{start_marker}'\n"
             f"set -e\n"
