@@ -184,7 +184,7 @@ class Branch(models.Model):
                     cicd_commit.branch_ids = [[4, self.id]]
                 continue
 
-            env = update_env={
+            env = {
                 "TZ": "UTC0"
             }
             line = shell.X([
@@ -323,7 +323,9 @@ class Branch(models.Model):
             except Exception as ex:
                 logsio.error(ex)
                 shell.rm(instance_folder)
-                raise RetryableJobError("Cleared directory - branch not found - please retry", ignore_retry=True)
+                raise RetryableJobError(
+                    "Cleared directory - branch not found - please retry",
+                    ignore_retry=True)
 
             try:
                 shell.X(["git", "pull"])
