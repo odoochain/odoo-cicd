@@ -532,4 +532,10 @@ class GitBranch(models.Model):
                 project_name=self.project_name
                 ) as shell:
 
-                yield shell
+                try:
+                    yield shell
+                except Exception as ex:
+                    msg = traceback.format_exc()
+                    logsio.error(ex)
+                    logsio.error(msg)
+                    raise
