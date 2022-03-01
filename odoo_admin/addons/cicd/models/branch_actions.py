@@ -160,6 +160,7 @@ class Branch(models.Model):
         self.ensure_one()
         logsio.info(f"Updating commits for {self.project_name}")
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
+
         def _extract_commits():
             return list(filter(bool, shell.X([
                 "git",
@@ -476,7 +477,6 @@ class Branch(models.Model):
         odoo calls isdir on symlink which fails unfortunately
         hardlink on dir does not work
         so new idea needed
-
 
         Odoo stores its files by sha. If a db is restored then usually it has to rebuild the assets.
         And files are not available.

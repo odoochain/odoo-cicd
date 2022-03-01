@@ -121,45 +121,43 @@ class Task(models.Model):
                 self.env.cr.commit()
 
                 self = self.with_env(env2)
-                with self.branch_id._get_new_logsio_instance(short_name) as logsio:
+                with self.branch_id.shell(short_name) as shell:
                     try:
-                        dest_folder = self.machine_id._get_volume('source') / self.branch_id.project_name
-                        with self.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=self.branch_id.project_name) as shell:
-                            # functions called often block the repository access
-                            args = {
-                                'task': self,
-                                'logsio': logsio,
-                                'shell': shell,
-                                }
-                            if self.kwargs and self.kwargs != 'null':
-                                args.update(json.loads(self.kwargs))
-                            if not args.get('no_repo', False):
-                                self.branch_id.repo_id._get_main_repo(
-                                    destination_folder=dest_folder,
-                                    machine=self.machine_id,
-                                    limit_branch=self.branch_id.name,
-                                    )
-                            obj = self.env[self.model].sudo().browse(self.res_id)
-                            # mini check if it is a git repository:
-                            commit = None
-                            if not args.get('no_repo', False):
-                                try:
-                                    shell.X(["git", "status"])
-                                except Exception:
-                                    pass
-                                else:
-                                    sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                                    commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
-
-                            # if not commit:
-                            #     raise ValidationError(f"Commit {sha} not found in branch.")
-                            # get current commit
+                        # functions called often block the repository access
+                        args = {
+                            'task': self,
+                            'logsio': shell.logsio,
+                            'shell': shell,
+                            }
+                        if self.kwargs and self.kwargs != 'null':
+                            args.update(json.loads(self.kwargs))
+                        if not args.get('no_repo', False):
+                            self.branch_id.repo_id._get_main_repo(
+                                destination_folder=shell.cwd,
+                                machine=self.machine_id,
+                                limit_branch=self.branch_id.name,
+                                )
+                        obj = self.env[self.model].sudo().browse(self.res_id)
+                        # mini check if it is a git repository:
+                        commit = None
+                        if not args.get('no_repo', False):
                             try:
-                                exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
-                            finally:
-                                if commit:
-                                    self.sudo().commit_id = commit
-                                    self.env.cr.commit()
+                                shell.X(["git", "status"])
+                            except Exception:
+                                pass
+                            else:
+                                sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                                commit = self.branch_id.commit_ids.filtered(lambda x: x.name == sha)
+
+                        # if not commit:
+                        #     raise ValidationError(f"Commit {sha} not found in branch.")
+                        # get current commit
+                        try:
+                            exec('obj.' + self.name + "(**args)", {'obj': obj, 'args': args})
+                        finally:
+                            if commit:
+                                self.sudo().commit_id = commit
+                                self.env.cr.commit()
 
                     except RetryableJobError:
                         raise
@@ -167,21 +165,21 @@ class Task(models.Model):
                     except Exception:
                         self.env.cr.rollback()
                         msg = traceback.format_exc()
-                        log = msg + '\n' + '\n'.join(logsio.get_lines())
+                        log = msg + '\n' + '\n'.join(shell.logsio.get_lines())
                         self.state = 'failed'
                         if self.branch_id:
                             self.branch_id.message_post(body=f"Error happened {self.name}\n{msg}")
                     else:
                         self.state = 'done'
-                        log = '\n'.join(logsio.get_lines())
+                        log = '\n'.join(shell.logsio.get_lines())
                         if self.branch_id:
                             self.branch_id.message_post(body=f"Successfully executed {self.name}")
                     finally:
                         self.env.cr.commit()
 
                     duration = (arrow.get() - started).total_seconds()
-                    if logsio:
-                        logsio.info(f"Finished after {duration} seconds!")
+                    if shell.logsio:
+                        shell.logsio.info(f"Finished after {duration} seconds!")
 
                     self.duration = duration
                     self.log = log

@@ -41,7 +41,6 @@ class Compressor(models.Model):
             return
         self.branch_id._make_task("_compress", compress_job_id=self.id)
 
-
     @api.model
     def create(self, vals):
         res = super().create(vals)
