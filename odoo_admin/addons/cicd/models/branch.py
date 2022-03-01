@@ -429,7 +429,7 @@ class GitBranch(models.Model):
 
     def _compute_tasks(self):
         for rec in self:
-            tasks = rec.task_ids
+            tasks = rec.task_ids.with_context(prefetch_fields=False)
 
             def filter(x):
                 if x.state in ['failed']:
