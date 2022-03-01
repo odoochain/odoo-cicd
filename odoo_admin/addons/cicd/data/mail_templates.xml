@@ -28,7 +28,7 @@
 			</tr>
 			<t t-foreach="obj.line_ids.filtered(lambda x: x.state == 'failed')" t-as="line" border='1'>
 				<tr>
-					<td><t t-field="line.name"/></td>
+					<td><t t-esc="line.name"/></td>
 					<td><t t-esc="line.try_count"/></td>
 					<td><t t-esc="line.ttype"/></td>
 					<td><t t-esc="line.force_success"/></td>
