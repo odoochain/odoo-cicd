@@ -183,7 +183,7 @@ class CicdMachine(models.Model):
 
                 command_file = '/tmp/commands.cicd'
                 homedir = '/home/' + rec.ssh_user_cicdlogin
-                test_file_if_required = homedir + '/.setup_login_done.v2'
+                test_file_if_required = homedir + '/.setup_login_done.v3'
                 user_upper = rec.ssh_user_cicdlogin.upper()
 
                 # allow per sudo execution of just the odoo script
@@ -216,6 +216,7 @@ echo 'export PATH' >> "{homedir}/.bash_profile"
 chown -R "{rec.ssh_user_cicdlogin}":"{rec.ssh_user_cicdlogin}" "{homedir}"
 ln -sf /usr/bin/sudo "{homedir}/programs/sudo"
 ln -sf /usr/bin/tmux "{homedir}/programs/tmux"
+ln -sf /usr/bin/rbash "{homedir}/programs/rbash"
 
 #------------------------------------------------------------------------------
 # setting username / password
@@ -253,7 +254,7 @@ echo "--------------------------------------------------------------------------
                     cmd = ["sudo", "/bin/bash", command_file]
                     res = shell.X(cmd, allow_error=True)
                     if res['exit_code']:
-                        raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res.stderr_output}")
+                        raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res.stderr}")
 
     def write(self, vals):
         if vals.get('upload_dump'):
