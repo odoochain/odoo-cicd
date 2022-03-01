@@ -538,5 +538,6 @@ for path in base.glob("*"):
                 rec.repo_id.machine_id.make_login_possible_for_webssh_container()
                 test = shell.X([
                     "sudo", "pkill", "-9", "-f",
+                    "-u", shell.machine.ssh_user_cicdlogin,
                     f'new-session.*-s.*{rec.project_name}'
                     ], allow_error=True)
