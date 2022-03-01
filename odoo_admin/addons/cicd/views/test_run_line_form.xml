@@ -7,12 +7,15 @@
 				<form string="">
 					<header></header>
 					<sheet>
-						<group string="" col="4">
+						<group colspan="4" col="4">
 							<field name="ttype"/>
-							<field name="name"/>
 							<field name="started"/>
-							<field name="exc_info"/>
 						</group>
+						<group string="" colspan="4">
+							<field name="name"/>
+						</group>
+						<separator string="Exception Info" colspan="4"/>
+						<field name="exc_info" nolabel="1" colspan="4"/>
 					</sheet>
 				</form>
 			</field>
