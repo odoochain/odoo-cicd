@@ -304,10 +304,13 @@ class GitBranch(models.Model):
         timeout = machine.test_timeout_web_login
 
         if not self.container_ids:
-            raise UserError("Please make sure that containers exist to start the branch.")
+            raise UserError(
+                "Please make sure that containers exist to start the branch.")
 
         def test_request():
-            response = requests.get("http://" + self._get_odoo_proxy_container_name() + "/web/login", timeout=timeout)
+            response = requests.get(
+                "http://" + self._get_odoo_proxy_container_name() + "/web/login",
+                timeout=timeout)
             return response.status_code == 200
 
         breakpoint()
@@ -429,7 +432,7 @@ class GitBranch(models.Model):
 
     def _compute_tasks(self):
         for rec in self:
-            tasks = rec.task_ids
+            tasks = rec.task_ids.with_context(prefetch_fields=False)
 
             def filter(x):
                 if x.state in ['failed']:
@@ -475,7 +478,8 @@ class GitBranch(models.Model):
 
     def _compute_allowed_machines(self):
         for rec in self:
-            rec.allowed_backup_machine_ids = self.env['cicd.machine'].search([('postgres_server_id.ttype', '=', 'dev')])
+            rec.allowed_backup_machine_ids = self.env['cicd.machine'].search([
+                ('postgres_server_id.ttype', '=', 'dev')])
 
     def set_to_check(self):
         self.latest_commit_id.approval_state = 'check'
@@ -528,4 +532,10 @@ class GitBranch(models.Model):
                 project_name=self.project_name
                 ) as shell:
 
-                yield shell
+                try:
+                    yield shell
+                except Exception as ex:
+                    msg = traceback.format_exc()
+                    logsio.error(ex)
+                    logsio.error(msg)
+                    raise

@@ -184,7 +184,7 @@ class Branch(models.Model):
                     cicd_commit.branch_ids = [[4, self.id]]
                 continue
 
-            env = update_env={
+            env = {
                 "TZ": "UTC0"
             }
             line = shell.X([
@@ -262,10 +262,12 @@ class Branch(models.Model):
         if kwargs.get('testrun_id'):
             test_run = self.test_run_ids.browse(kwargs.get('testrun_id'))
         else:
-            test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
+            test_run = self.test_run_ids.filtered(
+                lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
 
         if not test_run:
-            test_run = self.test_run_ids.filtered(lambda x: x.commit_id == self.latest_commit_id)
+            test_run = self.test_run_ids.filtered(
+                lambda x: x.commit_id == self.latest_commit_id)
             if not test_run:
                 test_run = self.test_run_ids.create({
                     'commit_id': self.latest_commit_id.id,
@@ -321,7 +323,9 @@ class Branch(models.Model):
             except Exception as ex:
                 logsio.error(ex)
                 shell.rm(instance_folder)
-                raise RetryableJobError("Cleared directory - branch not found - please retry", ignore_retry=True)
+                raise RetryableJobError(
+                    "Cleared directory - branch not found - please retry",
+                    ignore_retry=True)
 
             try:
                 shell.X(["git", "pull"])
@@ -338,13 +342,17 @@ class Branch(models.Model):
                 shell.X(["git", "branch", "-D", branch])
                 del branch
 
-            current_branch = list(filter(lambda x: '* ' in x, shell.X(["git", "branch"])['stdout'].strip().split("\n")))
+            current_branch = list(filter(lambda x: '* ' in x, shell.X([
+                "git", "branch"])['stdout'].strip().split("\n")))
             if not current_branch:
                 raise Exception(f"Somehow no current branch found")
             branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
             if branch_in_dir != self.name:
                 shell.rm(instance_folder)
-                raise Exception(f"Branch could not be checked out! Was {branch_in_dir} - but should be {self.name}")
+                raise Exception((
+                    f"Branch could not be checked out!"
+                    f"Was {branch_in_dir} - but should be {self.name}"
+                ))
 
             logsio.write_text(f"Clean git")
             shell.X(["git", "clean", "-xdff"])
@@ -359,19 +367,17 @@ class Branch(models.Model):
         return str(commit)
 
     def inactivity_cycle_down(self):
-        for rec in self:
-            with rec._get_new_logsio_instance("inactivity_cycle_down") as logsio:
-                dest_folder = rec.machine_id._get_volume('source') / rec.project_name
-                try:
-                    with rec.machine_id._shell(cwd=dest_folder, logsio=logsio, project_name=rec.project_name) as shell:
-                        if (arrow.get() - arrow.get(rec.last_access or '1980-04-04')).total_seconds() > rec.cycle_down_after_seconds:
-                            rec._docker_get_state(shell=shell, now=True)
-                            if rec.docker_state == 'up':
-                                logsio.info(f"Cycling down instance due to inactivity")
-                                shell.odoo('kill')
-
-                except Exception as ex:
-                    logsio.error(ex)
+        machines = self.mapped('repo_id.machine_id')
+        for machine in machines:
+            with self.shell("inactivity_cycle_down") as shell:
+                for rec in self.filtered(lambda x: x.repo_id.machine_id == machine):
+                    uptime = (arrow.get() - arrow.get(rec.last_access or '1980-04-04')).total_seconds()
+                    if uptime > rec.cycle_down_after_seconds:
+                        rec._docker_get_state(shell=shell, now=True)
+                        if rec.docker_state == 'up':
+                            shell.logsio.info(
+                                f"Cycling down instance {rec.name} due to inactivity")
+                            shell.odoo('kill')
 
     def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
         home_dir = shell._get_home_dir()
