@@ -110,6 +110,7 @@ class CicdMachine(models.Model):
     def test_shell(self, cmd, cwd=None, env={}):
         with self._shell(cwd=cwd, env=env) as shell:
             return shell.X(cmd, cwd=cwd, env=env)
+
     def test_shell_exists(self, path):
         with self._shell() as shell:
             return shell.exists(path)
@@ -178,12 +179,13 @@ class CicdMachine(models.Model):
 
     def make_login_possible_for_webssh_container(self):
         pubkey = Path("/opt/cicd_sshkey/id_rsa.pub").read_text().strip()
+        pubkey_machine = self.ssh_pubkey
         for rec in self:
             with rec._shell() as shell:
 
                 command_file = '/tmp/commands.cicd'
                 homedir = '/home/' + rec.ssh_user_cicdlogin
-                test_file_if_required = homedir + '/.setup_login_done.v3'
+                test_file_if_required = homedir + '/.setup_login_done.v4'
                 user_upper = rec.ssh_user_cicdlogin.upper()
 
                 # allow per sudo execution of just the odoo script
@@ -205,6 +207,7 @@ grep -q "{rec.ssh_user_cicdlogin}" /etc/passwd || adduser --disabled-password --
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 grep -q "{pubkey}" ~/.ssh/authorized_keys || echo "\n{pubkey}" >> ~/.ssh/authorized_keys
+grep -q "{pubkey_machine}" ~/.ssh/authorized_keys || echo "\n{pubkey_machine}" >> ~/.ssh/authorized_keys
 usermod --shell /bin/rbash "{rec.ssh_user_cicdlogin}"
 
 #------------------------------------------------------------------------------
@@ -217,6 +220,7 @@ chown -R "{rec.ssh_user_cicdlogin}":"{rec.ssh_user_cicdlogin}" "{homedir}"
 ln -sf /usr/bin/sudo "{homedir}/programs/sudo"
 ln -sf /usr/bin/tmux "{homedir}/programs/tmux"
 ln -sf /usr/bin/rbash "{homedir}/programs/rbash"
+ln -sf /usr/bin/pkill "{homedir}/programs/pkill"
 
 #------------------------------------------------------------------------------
 # setting username / password
@@ -302,7 +306,7 @@ echo "--------------------------------------------------------------------------
         env.update({
             "GIT_ASK_YESNO": "false",
             "GIT_TERMINAL_PROMPT": "0",
-            "GIT_SSH_COMMAND": f'ssh -o Batchmode=yes -o StrictHostKeyChecking=no',
+            "GIT_SSH_COMMAND": 'ssh -o Batchmode=yes -o StrictHostKeyChecking=no',
         })
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix='.'))

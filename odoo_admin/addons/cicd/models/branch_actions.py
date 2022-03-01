@@ -75,6 +75,8 @@ class Branch(models.Model):
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Upping")
+        shell.odoo("kill")
+        shell.odoo("rm")
         shell.odoo("up", "-d")
         self._after_build(shell, logsio)
 
@@ -285,6 +287,7 @@ class Branch(models.Model):
         shell.odoo("update-setting", 'web.base.url', shell.machine.external_url)
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
+        self._kill_tmux_sessions(shell)
         self._docker_get_state(shell=shell)
 
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
@@ -528,3 +531,7 @@ for path in base.glob("*"):
             shell.X(["python3", '.cicd_reorder_files'])
         finally:
             shell.rm(".cicd_reorder_files")
+
+    def _kill_tmux_sessions(self, shell):
+        for rec in self:
+            shell.X(["pkill", "-9", "-f", f'new-session.*-s.*{rec.project_name}'])
