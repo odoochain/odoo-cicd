@@ -179,7 +179,6 @@ class Repository(models.Model):
             try:
                 if not repo.login_type:
                     raise ValidationError(f"Login-Type missing for {repo.name}")
-                breakpoint()
                 with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
                     repo_path = repo._get_main_repo(logsio=logsio)
 
@@ -256,7 +255,6 @@ class Repository(models.Model):
                     for branch in updated_branches:
                         logsio.info(f"Pulling {branch}...")
                         shell.X(["git", "fetch", "origin", branch])
-                        breakpoint()
                         try:
                             shell.checkout_branch(branch)
                         except Exception as ex:
