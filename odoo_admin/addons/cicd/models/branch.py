@@ -98,7 +98,6 @@ class GitBranch(models.Model):
 
     def _compute_latest_commit(self, shell):
         for rec in self:
-            breakpoint()
             shell.checkout_branch(rec.name)
 
             latest_commit = shell.X(["git", "log", "-n1", '--pretty=%H'])['stdout'].strip().split('\n')[0]
@@ -310,7 +309,6 @@ class GitBranch(models.Model):
             response = requests.get("http://" + self._get_odoo_proxy_container_name() + "/web/login", timeout=timeout)
             return response.status_code == 200
 
-        breakpoint()
         try:
             test_request()
         except Exception:
@@ -399,7 +397,6 @@ class GitBranch(models.Model):
             rec.block_release = not rec.block_release
 
     def _cron_make_test_runs(self):
-        breakpoint()
         for branch in self.search([('state', '=', 'testable')]):
             if not branch.test_run_ids.filtered(
                 lambda x: x.state in [False, 'running', 'open'] and x.commit_id == branch.latest_commit_id):
