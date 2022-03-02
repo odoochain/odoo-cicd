@@ -154,6 +154,7 @@ DB_PORT=5432
 DB_USER=odoo
 DB_PWD=odoo
 ODOO_DEMO=1
+ODOO_LOG_LEVEL=error
         """
         def report(msg, state='success', exception=None, duration=None, ttype='log'):
             if not hasattr(report, 'last_report_time'):
