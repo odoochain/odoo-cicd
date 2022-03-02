@@ -30,7 +30,7 @@ class Dump(models.Model):
             'url': f'/download/dump/{self.id}',
             'target': 'new'
         }
-        
+
     def unlink(self):
         if not self.env.context.get('dump_no_file_delete', False):
             for rec in self:

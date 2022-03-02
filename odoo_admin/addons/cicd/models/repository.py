@@ -335,14 +335,14 @@ class Repository(models.Model):
                     healthy = False
                 else:
                     healthy = True
-            except:
+            except Exception:
                 pass
         return healthy
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
-            with pg_advisory_lock(self.env.cr, self._get_lockname(), f'clone_repo {path}'):
-                if not self._is_healthy_repository(shell, path):
+            if not self._is_healthy_repository(shell, path):
+                with pg_advisory_lock(self.env.cr, self._get_lockname(), f'clone_repo {path}'):
                     shell.rm(path)
                     shell.X([
                         "git", "clone", self.url,

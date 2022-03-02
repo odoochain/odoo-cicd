@@ -131,7 +131,7 @@ class Branch(models.Model):
         return self._shell_url(["odoo", "debug", "odoo"], tmux='debug_odoo')
 
     def open_shell(self):
-        return self._shell_url(["odoo", "shell"], tmux='_shell')
+        return self._shell_url([], tmux='_shell')
 
     def start_logs(self):
         with self.shell('show_logs') as shell:

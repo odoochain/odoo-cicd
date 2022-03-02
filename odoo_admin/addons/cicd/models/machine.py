@@ -110,6 +110,7 @@ class CicdMachine(models.Model):
     def test_shell(self, cmd, cwd=None, env={}):
         with self._shell(cwd=cwd, env=env) as shell:
             return shell.X(cmd, cwd=cwd, env=env)
+
     def test_shell_exists(self, path):
         with self._shell() as shell:
             return shell.exists(path)
@@ -178,13 +179,15 @@ class CicdMachine(models.Model):
 
     def make_login_possible_for_webssh_container(self):
         pubkey = Path("/opt/cicd_sshkey/id_rsa.pub").read_text().strip()
+        pubkey_machine = self.ssh_pubkey
         for rec in self:
             with rec._shell() as shell:
 
                 command_file = '/tmp/commands.cicd'
                 homedir = '/home/' + rec.ssh_user_cicdlogin
-                test_file_if_required = homedir + '/.setup_login_done.v2'
+                test_file_if_required = homedir + '/.setup_login_done.v4'
                 user_upper = rec.ssh_user_cicdlogin.upper()
+                cicd_user_upper = rec.ssh_user.upper()
 
                 # allow per sudo execution of just the odoo script
                 commands = """
@@ -199,12 +202,22 @@ Cmnd_Alias ODOO_COMMANDS_{user_upper} = /usr/local/sbin/odoo *
 EOF
 
 #------------------------------------------------------------------------------
+# allowing cicd user to kil tmux sessions of restricted login
+
+tee "/etc/sudoers.d/{rec.ssh_user}_kill_tmux_allowed" <<EOF
+Cmnd_Alias ODOO_COMMANDS_{cicd_user_upper}_KILL_TMUX = /usr/bin/pkill *
+{rec.ssh_user} ALL=({rec.ssh_user}) NOPASSWD:SETENV: ODOO_COMMANDS_{cicd_user_upper}_KILL_TMUX
+EOF
+
+#------------------------------------------------------------------------------
 # setting up login to restricted user
 
 grep -q "{rec.ssh_user_cicdlogin}" /etc/passwd || adduser --disabled-password --gecos "" {rec.ssh_user_cicdlogin}
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-grep -q "{pubkey}" ~/.ssh/authorized_keys || echo "\n{pubkey}" >> ~/.ssh/authorized_keys
+mkdir -p "{homedir}/.ssh"
+chmod 700 "{homedir}/.ssh"
+grep -q "{pubkey}" "{homedir}/.ssh/authorized_keys" || echo "\n{pubkey}" >> "{homedir}/.ssh/authorized_keys"
+chmod 600 "{homedir}/.ssh/authorized_keys"
+grep -q "{pubkey_machine}" "{homedir}/.ssh/authorized_keys" || echo "\n{pubkey_machine}" >> "{homedir}/.ssh/authorized_keys"
 usermod --shell /bin/rbash "{rec.ssh_user_cicdlogin}"
 
 #------------------------------------------------------------------------------
@@ -216,6 +229,8 @@ echo 'export PATH' >> "{homedir}/.bash_profile"
 chown -R "{rec.ssh_user_cicdlogin}":"{rec.ssh_user_cicdlogin}" "{homedir}"
 ln -sf /usr/bin/sudo "{homedir}/programs/sudo"
 ln -sf /usr/bin/tmux "{homedir}/programs/tmux"
+ln -sf /usr/bin/rbash "{homedir}/programs/rbash"
+ln -sf /usr/bin/pkill "{homedir}/programs/pkill"
 
 #------------------------------------------------------------------------------
 # setting username / password
@@ -253,7 +268,7 @@ echo "--------------------------------------------------------------------------
                     cmd = ["sudo", "/bin/bash", command_file]
                     res = shell.X(cmd, allow_error=True)
                     if res['exit_code']:
-                        raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res.stderr_output}")
+                        raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res['stderr']}")
 
     def write(self, vals):
         if vals.get('upload_dump'):
@@ -301,7 +316,7 @@ echo "--------------------------------------------------------------------------
         env.update({
             "GIT_ASK_YESNO": "false",
             "GIT_TERMINAL_PROMPT": "0",
-            "GIT_SSH_COMMAND": f'ssh -o Batchmode=yes -o StrictHostKeyChecking=no',
+            "GIT_SSH_COMMAND": 'ssh -o Batchmode=yes -o StrictHostKeyChecking=no',
         })
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix='.'))
