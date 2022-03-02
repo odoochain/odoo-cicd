@@ -157,7 +157,8 @@ class Branch(models.Model):
         if '/' in filename:
             raise ValidationError("Filename mustn't contain slashses!")
         shell.odoo('backup', 'odoo-db', str(volume / filename))
-        task.machine_id.update_dumps()
+        # to avoid serialize access erros which may occur
+        task.machine_id.with_delay().update_dumps()
 
     def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):
         self.ensure_one()
