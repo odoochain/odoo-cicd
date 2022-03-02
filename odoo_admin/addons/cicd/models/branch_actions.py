@@ -181,7 +181,7 @@ class Branch(models.Model):
             if sha in all_commits:
                 cicd_commit = all_commits[sha]
                 if self not in cicd_commit.branch_ids:
-                    cicd_commit.branch_ids = [[4, self.id]]
+                    self.commit_ids |= cicd_commit
                 continue
 
             env = update_env={
