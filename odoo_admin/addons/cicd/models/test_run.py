@@ -12,6 +12,9 @@ from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import logging
 import threading
+from pathlib import Path
+
+
 logger = logging.getLogger(__name__)
 
 class AbortException(Exception): pass
@@ -109,9 +112,9 @@ class CicdTestRun(models.Model):
 
         self._abort_if_required()
         report('db reset done')
-        self._wait_for_postgres(shell)
-        report('update started')
-        shell.odoo('update')
+        #self._wait_for_postgres(shell)
+        #report('update started')
+        #shell.odoo('update')
 
         self._abort_if_required()
 
@@ -414,6 +417,11 @@ ODOO_LOG_LEVEL=error
         shell.odoo('build')
         def _x(item):
             shell.odoo("snap", "restore", shell.project_name)
+            
+            self._wait_for_postgres(shell)
+            logsio.info('update started')
+            shell.odoo('update')
+            
             self._wait_for_postgres(shell)
             shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
 
@@ -429,8 +437,6 @@ ODOO_LOG_LEVEL=error
         files = shell.odoo(*cmd)['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
-        shell.odoo("snap", "restore", shell.project_name)
-        self._wait_for_postgres(shell)
 
         self._generic_run(
             shell, logsio, files, 
@@ -443,47 +449,68 @@ ODOO_LOG_LEVEL=error
                 ),
             try_count=self.branch_id.retry_unit_tests,
         )
+    
+    def _get_unit_tests_by_modules(self, files):
+        tests_by_module = {}
+        for f in files:
+            f = Path(f)
+            module = str(f.parent.parent.name)
+            tests_by_module.setdefault(module, [])
+            fpath = str(f)
+            if fpath not in tests_by_module['module']:
+                tests_by_module['module'].append(fpath)
+        return tests_by_module
 
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1):
         """
         Timeout in seconds.
 
         """
-        for i, item in enumerate(todo):
-            trycounter = 0
-            while trycounter < try_count:
-                if self.do_abort:
-                    raise AbortException("Aborted by user")
-                trycounter += 1
-                logsio.info(f"Try #{trycounter}")
+        i = 0
+        for module, tests in self._get_unit_tests_by_modules(todo):
 
-                index = f"({i + 1} / {len(todo)})"
-                started = arrow.get()
-                data = {
-                    'name': f"{index} {item}",
-                    'ttype': ttype,
-                    'run_id': self.id,
-                    'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
-                    'try_count': trycounter,
-                }
-                try:
-                    logsio.info(f"Running {index} {item}")
-                    execute_run(item)
+            shell.odoo("snap", "restore", shell.project_name)
+            self._wait_for_postgres(shell)
+            shell.odoo('update', module)
+            self._wait_for_postgres(shell)
+            
+            for item in tests:
+                i += 1
+                
+                trycounter = 0
+                while trycounter < try_count:
+                    if self.do_abort:
+                        raise AbortException("Aborted by user")
+                    trycounter += 1
+                    logsio.info(f"Try #{trycounter}")
 
-                except Exception:
-                    msg = traceback.format_exc()
-                    logsio.error(f"Error happened: {msg}")
-                    data['state'] = 'failed'
-                    data['exc_info'] = msg
-                else:
-                    data['state'] = 'success'
-                end = arrow.get()
-                data['duration'] = (end - started).total_seconds()
-                if data['state'] == 'success':
-                    break
+                    index = f"({i + 1} / {len(todo)})"
+                    started = arrow.get()
+                    data = {
+                        'name': f"{index} {item}",
+                        'ttype': ttype,
+                        'run_id': self.id,
+                        'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                        'try_count': trycounter,
+                    }
+                    try:
+                        logsio.info(f"Running {index} {item}")
+                        execute_run(item)
 
-            self.line_ids = [[0, 0, data]]
-            self.env.cr.commit()
+                    except Exception:
+                        msg = traceback.format_exc()
+                        logsio.error(f"Error happened: {msg}")
+                        data['state'] = 'failed'
+                        data['exc_info'] = msg
+                    else:
+                        data['state'] = 'success'
+                    end = arrow.get()
+                    data['duration'] = (end - started).total_seconds()
+                    if data['state'] == 'success':
+                        break
+
+                self.line_ids = [[0, 0, data]]
+                self.env.cr.commit()
 
     def _inform_developer(self):
         for rec in self:
