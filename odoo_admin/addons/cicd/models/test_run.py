@@ -112,13 +112,9 @@ class CicdTestRun(models.Model):
 
         self._abort_if_required()
         report('db reset done')
-        #self._wait_for_postgres(shell)
-        #report('update started')
-        #shell.odoo('update')
 
         self._abort_if_required()
 
-        report('installation of modules done')
         report("Storing snapshot")
         shell.odoo('snap', 'save', shell.project_name, force=True)
         self._wait_for_postgres(shell)
@@ -443,7 +439,16 @@ ODOO_LOG_LEVEL=error
             i += 1
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
-            shell.odoo('update', module)
+
+            success = self._generic_run(
+                shell, logsio, [module],
+                'unittest',
+                lambda item: shell.odoo('update', item),
+                name_prefix='install '
+            )
+            if not success:
+                continue
+
             self._wait_for_postgres(shell)
         
             self._generic_run(
@@ -474,6 +479,8 @@ ODOO_LOG_LEVEL=error
         Timeout in seconds.
 
         """
+        success = True
+        len_todo = len(todo)
         for i, item in enumerate(todo):
             trycounter = 0
             while trycounter < try_count:
@@ -482,17 +489,21 @@ ODOO_LOG_LEVEL=error
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
-                index = f"({i + 1} / {len(todo)})"
+                name = name_prefix
+                if len_todo > 1:
+                    name += "({i + 1} / {len_todo}) "
+                
+                name += item
                 started = arrow.get()
                 data = {
-                    'name': f"{name_prefix}{index} {item}",
+                    'name': name,
                     'ttype': ttype,
                     'run_id': self.id,
                     'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
                     'try_count': trycounter,
                 }
                 try:
-                    logsio.info(f"Running {index} {item}")
+                    logsio.info(f"Running {name}")
                     execute_run(item)
 
                 except Exception:
@@ -500,6 +511,7 @@ ODOO_LOG_LEVEL=error
                     logsio.error(f"Error happened: {msg}")
                     data['state'] = 'failed'
                     data['exc_info'] = msg
+                    success = False
                 else:
                     data['state'] = 'success'
                 end = arrow.get()
@@ -509,6 +521,7 @@ ODOO_LOG_LEVEL=error
 
             self.line_ids = [[0, 0, data]]
             self.env.cr.commit()
+        return success
 
     def _inform_developer(self):
         for rec in self:
