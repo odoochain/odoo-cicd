@@ -436,27 +436,32 @@ ODOO_LOG_LEVEL=error
             cmd += ['--all']
         files = shell.odoo(*cmd)['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
-
-
-        self._generic_run(
-            shell, logsio, files, 
-            'unittest',
-            lambda item: shell.odoo(
+    
+        tests_by_module = self._get_unit_tests_by_modules(files)
+        for module, tests in tests_by_module.items():
+            shell.odoo("snap", "restore", shell.project_name)
+            self._wait_for_postgres(shell)
+            shell.odoo('update', module)
+            self._wait_for_postgres(shell)
+        
+            self._generic_run(
+                shell, logsio, tests, 
                 'unittest',
-                item,
-                "--non-interactive",
-                timeout=self.branch_id.timeout_tests,
-                ),
-            try_count=self.branch_id.retry_unit_tests,
-        )
+                lambda item: shell.odoo(
+                    'unittest',
+                    item,
+                    "--non-interactive",
+                    timeout=self.branch_id.timeout_tests,
+                    ),
+                try_count=self.branch_id.retry_unit_tests,
+            )
     
     def _get_unit_tests_by_modules(self, files):
         tests_by_module = {}
-        for f in files:
-            f = Path(f)
+        for fpath in files:
+            f = Path(fpath)
             module = str(f.parent.parent.name)
             tests_by_module.setdefault(module, [])
-            fpath = str(f)
             if fpath not in tests_by_module['module']:
                 tests_by_module['module'].append(fpath)
         return tests_by_module
@@ -469,10 +474,6 @@ ODOO_LOG_LEVEL=error
         i = 0
         for module, tests in self._get_unit_tests_by_modules(todo):
 
-            shell.odoo("snap", "restore", shell.project_name)
-            self._wait_for_postgres(shell)
-            shell.odoo('update', module)
-            self._wait_for_postgres(shell)
             
             for item in tests:
                 i += 1
