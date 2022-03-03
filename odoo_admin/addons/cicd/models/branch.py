@@ -519,7 +519,7 @@ class GitBranch(models.Model):
             'target': 'current',
         }
     
-    @propery
+    @property
     def project_path(self):
         return self.machine_id._get_volume('source') / self.project_name
 
