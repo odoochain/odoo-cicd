@@ -185,6 +185,8 @@ class Branch(models.Model):
             if sha in all_commits:
                 cicd_commit = all_commits[sha]
                 if self not in cicd_commit.branch_ids:
+                    # Ist das nicht klarer so? commit_ids könnt ja mal umdefiniert werden
+                    # cicd_commit.branch_ids |= self
                     self.commit_ids |= cicd_commit
                 continue
 
@@ -373,15 +375,21 @@ class Branch(models.Model):
     def inactivity_cycle_down(self):
         machines = self.mapped('repo_id.machine_id')
         for machine in machines:
-            with self.shell("inactivity_cycle_down") as shell:
+            with LogsIOWriter.GET(machine.name, 'inactivity_cycle_down') as logsio:
                 for rec in self.filtered(lambda x: x.repo_id.machine_id == machine):
-                    uptime = (arrow.get() - arrow.get(rec.last_access or '1980-04-04')).total_seconds()
-                    if uptime > rec.cycle_down_after_seconds:
-                        rec._docker_get_state(shell=shell, now=True)
-                        if rec.docker_state == 'up':
-                            shell.logsio.info(
-                                f"Cycling down instance {rec.name} due to inactivity")
-                            shell.odoo('kill')
+                    with rec.machine_id._shell(
+                        cwd=rec.project_path,
+                        logsio=logsio,
+                        project_name=rec.project_name
+                    ) as shell:
+                        
+                        uptime = (arrow.get() - arrow.get(rec.last_access or '1980-04-04')).total_seconds()
+                        if uptime > rec.cycle_down_after_seconds:
+                            rec._docker_get_state(shell=shell, now=True)
+                            if rec.docker_state == 'up':
+                                shell.logsio.info(
+                                    f"Cycling down instance {rec.name} due to inactivity")
+                                shell.odoo('kill')
 
     def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
         home_dir = shell._get_home_dir()
