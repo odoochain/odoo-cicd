@@ -20,21 +20,21 @@ class Task(models.Model):
 
     model = fields.Char("Model")
     res_id = fields.Integer("ID")
-    display_name = fields.Char(compute="_compute_display_name")
+    display_name = fields.Char(compute="_compute_display_name", store=True)
     machine_id = fields.Many2one('cicd.machine', string="Machine", readonly=True)
     branch_id = fields.Many2one('cicd.git.branch', string="Branch")
     name = fields.Char("Name")
     date = fields.Datetime("Date", default=lambda self: fields.Datetime.now(), readonly=True)
-    is_done = fields.Boolean(compute="_compute_is_done", store=False)
+    is_done = fields.Boolean(compute="_compute_is_done", store=False, prefetch=False)
 
     state = fields.Selection(selection=STATES, string="State")
     log = fields.Text("Log", readonly=True)
-    error = fields.Text("Exception", compute="_compute_state")
+    error = fields.Text("Exception", compute="_compute_state", prefetch=False)
     dump_used = fields.Char("Dump used", readonly=True)
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
     queuejob_uuid = fields.Char("Queuejob UUID")
-    queue_job_id = fields.Many2one('queue.job', compute="_compute_queuejob")
+    queue_job_id = fields.Many2one('queue.job', compute="_compute_queuejob", prefetch=False)
 
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
@@ -60,6 +60,7 @@ class Task(models.Model):
         for rec in self:
             rec.is_done = rec.state in ['done', 'failed'] if rec.state else True
 
+    @api.depends('name')
     def _compute_display_name(self):
         for rec in self:
             name = rec.name
