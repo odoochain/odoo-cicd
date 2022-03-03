@@ -266,7 +266,8 @@ class GitBranch(models.Model):
     def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, **kwargs):
         for rec in self:
             identity_key = identity_key or f"{rec.repo_id.short}-{rec.name}-{execute}"
-            if not now and rec.task_ids.filtered(lambda x: x.state in [False, 'pending', 'enqueued', 'started'] and x.identity_key == identity_key):
+            tasks = rec.task_ids.with_context(prefetch_fields=False)
+            if not now and tasks.filtered(lambda x: x.state in [False, 'pending', 'enqueued', 'started'] and x.identity_key == identity_key):
                 if silent:
                     return
                 raise ValidationError(f"Task already exists. Not triggered again. Idkey: {identity_key}")
@@ -287,7 +288,7 @@ class GitBranch(models.Model):
 
     def _cron_execute_task(self):
         self.ensure_one()
-        tasks = self.task_ids.filtered(lambda x: x.state == 'new')
+        tasks = self.task_ids.with_context(prefetch_fields=False).filtered(lambda x: x.state == 'new')
         if not tasks:
             return
         tasks = tasks[-1]
