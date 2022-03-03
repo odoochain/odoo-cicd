@@ -465,8 +465,8 @@ ODOO_LOG_LEVEL=error
             f = Path(fpath)
             module = str(f.parent.parent.name)
             tests_by_module.setdefault(module, [])
-            if fpath not in tests_by_module['module']:
-                tests_by_module['module'].append(fpath)
+            if fpath not in tests_by_module[module]:
+                tests_by_module[module].append(fpath)
         return tests_by_module
  
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1, name_prefix=''):
