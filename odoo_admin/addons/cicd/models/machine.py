@@ -394,7 +394,7 @@ echo "--------------------------------------------------------------------------
         breakpoint()
         for rec in self:
             with rec._shell() as shell:
-                containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
+                containers = shell.X(["sudo", "docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
                 containers_dict = {}
                 for line in containers.split("\n")[1:]:
                     try:
