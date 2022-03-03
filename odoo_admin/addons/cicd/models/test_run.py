@@ -491,7 +491,7 @@ ODOO_LOG_LEVEL=error
 
                 name = name_prefix
                 if len_todo > 1:
-                    name += "({i + 1} / {len_todo}) "
+                    name += f"({i + 1} / {len_todo}) "
                 
                 name += item
                 started = arrow.get()
