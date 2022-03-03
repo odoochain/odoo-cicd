@@ -178,7 +178,7 @@ class GitBranch(models.Model):
     def _compute_state(self):
         for rec in self:
             logger.info(f"Computing branch state for {rec.id}")
-            building_tasks = rec.task_ids.filtered(lambda x: any (y in x.name for y in ['update', 'reset', 'restore']))
+            building_tasks = rec.task_ids.with_context(prefetch_fields=False).filtered(lambda x: any (y in x.name for y in ['update', 'reset', 'restore']))
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
                     rec.state = 'new'
