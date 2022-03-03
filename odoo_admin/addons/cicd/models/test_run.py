@@ -465,53 +465,47 @@ ODOO_LOG_LEVEL=error
             if fpath not in tests_by_module['module']:
                 tests_by_module['module'].append(fpath)
         return tests_by_module
-
+ 
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1):
         """
         Timeout in seconds.
 
         """
-        i = 0
-        for module, tests in self._get_unit_tests_by_modules(todo):
+        for i, item in enumerate(todo):
+            trycounter = 0
+            while trycounter < try_count:
+                if self.do_abort:
+                    raise AbortException("Aborted by user")
+                trycounter += 1
+                logsio.info(f"Try #{trycounter}")
 
-            
-            for item in tests:
-                i += 1
-                
-                trycounter = 0
-                while trycounter < try_count:
-                    if self.do_abort:
-                        raise AbortException("Aborted by user")
-                    trycounter += 1
-                    logsio.info(f"Try #{trycounter}")
+                index = f"({i + 1} / {len(todo)})"
+                started = arrow.get()
+                data = {
+                    'name': f"{index} {item}",
+                    'ttype': ttype,
+                    'run_id': self.id,
+                    'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                    'try_count': trycounter,
+                }
+                try:
+                    logsio.info(f"Running {index} {item}")
+                    execute_run(item)
 
-                    index = f"({i + 1} / {len(todo)})"
-                    started = arrow.get()
-                    data = {
-                        'name': f"{index} {item}",
-                        'ttype': ttype,
-                        'run_id': self.id,
-                        'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
-                        'try_count': trycounter,
-                    }
-                    try:
-                        logsio.info(f"Running {index} {item}")
-                        execute_run(item)
+                except Exception:
+                    msg = traceback.format_exc()
+                    logsio.error(f"Error happened: {msg}")
+                    data['state'] = 'failed'
+                    data['exc_info'] = msg
+                else:
+                    data['state'] = 'success'
+                end = arrow.get()
+                data['duration'] = (end - started).total_seconds()
+                if data['state'] == 'success':
+                    break
 
-                    except Exception:
-                        msg = traceback.format_exc()
-                        logsio.error(f"Error happened: {msg}")
-                        data['state'] = 'failed'
-                        data['exc_info'] = msg
-                    else:
-                        data['state'] = 'success'
-                    end = arrow.get()
-                    data['duration'] = (end - started).total_seconds()
-                    if data['state'] == 'success':
-                        break
-
-                self.line_ids = [[0, 0, data]]
-                self.env.cr.commit()
+            self.line_ids = [[0, 0, data]]
+            self.env.cr.commit()
 
     def _inform_developer(self):
         for rec in self:
