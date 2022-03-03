@@ -518,13 +518,16 @@ class GitBranch(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
+    
+    @propery
+    def project_path(self):
+        return self.machine_id._get_volume('source') / self.project_name
 
     @contextmanager
     def shell(self, logs_title):
         with self._get_new_logsio_instance(logs_title) as logsio:
-            dest_folder = self.machine_id._get_volume('source') / self.project_name
             with self.machine_id._shell(
-                cwd=dest_folder,
+                cwd=self.project_path,
                 logsio=logsio,
                 project_name=self.project_name
                 ) as shell:
