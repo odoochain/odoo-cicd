@@ -178,7 +178,7 @@ class GitBranch(models.Model):
     def _compute_state(self):
         for rec in self:
             logger.info(f"Computing branch state for {rec.id}")
-            building_tasks = rec.task_ids.filtered(lambda x: any (y in x.name for y in ['update', 'reset', 'restore']))
+            building_tasks = rec.task_ids.with_context(prefetch_fields=False).filtered(lambda x: any (y in x.name for y in ['update', 'reset', 'restore']))
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
                     rec.state = 'new'
@@ -266,7 +266,8 @@ class GitBranch(models.Model):
     def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, **kwargs):
         for rec in self:
             identity_key = identity_key or f"{rec.repo_id.short}-{rec.name}-{execute}"
-            if not now and rec.task_ids.filtered(lambda x: x.state in [False, 'pending', 'enqueued', 'started'] and x.identity_key == identity_key):
+            tasks = rec.task_ids.with_context(prefetch_fields=False)
+            if not now and tasks.filtered(lambda x: x.state in [False, 'pending', 'enqueued', 'started'] and x.identity_key == identity_key):
                 if silent:
                     return
                 raise ValidationError(f"Task already exists. Not triggered again. Idkey: {identity_key}")
@@ -287,7 +288,7 @@ class GitBranch(models.Model):
 
     def _cron_execute_task(self):
         self.ensure_one()
-        tasks = self.task_ids.filtered(lambda x: x.state == 'new')
+        tasks = self.task_ids.with_context(prefetch_fields=False).filtered(lambda x: x.state == 'new')
         if not tasks:
             return
         tasks = tasks[-1]
@@ -519,13 +520,16 @@ class GitBranch(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
+    
+    @property
+    def project_path(self):
+        return self.machine_id._get_volume('source') / self.project_name
 
     @contextmanager
     def shell(self, logs_title):
         with self._get_new_logsio_instance(logs_title) as logsio:
-            dest_folder = self.machine_id._get_volume('source') / self.project_name
             with self.machine_id._shell(
-                cwd=dest_folder,
+                cwd=self.project_path,
                 logsio=logsio,
                 project_name=self.project_name
                 ) as shell:

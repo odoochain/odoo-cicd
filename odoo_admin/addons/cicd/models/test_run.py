@@ -12,6 +12,9 @@ from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import logging
 import threading
+from pathlib import Path
+
+
 logger = logging.getLogger(__name__)
 
 class AbortException(Exception): pass
@@ -109,13 +112,9 @@ class CicdTestRun(models.Model):
 
         self._abort_if_required()
         report('db reset done')
-        self._wait_for_postgres(shell)
-        report('update started')
-        shell.odoo('update')
 
         self._abort_if_required()
 
-        report('installation of modules done')
         report("Storing snapshot")
         shell.odoo('snap', 'save', shell.project_name, force=True)
         self._wait_for_postgres(shell)
@@ -414,6 +413,11 @@ ODOO_LOG_LEVEL=error
         shell.odoo('build')
         def _x(item):
             shell.odoo("snap", "restore", shell.project_name)
+            
+            self._wait_for_postgres(shell)
+            logsio.info('update started')
+            shell.odoo('update')
+            
             self._wait_for_postgres(shell)
             shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
 
@@ -428,27 +432,55 @@ ODOO_LOG_LEVEL=error
             cmd += ['--all']
         files = shell.odoo(*cmd)['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
+    
+        tests_by_module = self._get_unit_tests_by_modules(files)
+        i = 0
+        for module, tests in tests_by_module.items():
+            i += 1
+            shell.odoo("snap", "restore", shell.project_name)
+            self._wait_for_postgres(shell)
 
-        shell.odoo("snap", "restore", shell.project_name)
-        self._wait_for_postgres(shell)
-
-        self._generic_run(
-            shell, logsio, files, 
-            'unittest',
-            lambda item: shell.odoo(
+            success = self._generic_run(
+                shell, logsio, [module],
                 'unittest',
-                item,
-                "--non-interactive",
-                timeout=self.branch_id.timeout_tests,
-                ),
-            try_count=self.branch_id.retry_unit_tests,
-        )
+                lambda item: shell.odoo('update', item),
+                name_prefix='install '
+            )
+            if not success:
+                continue
 
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1):
+            self._wait_for_postgres(shell)
+        
+            self._generic_run(
+                shell, logsio, tests, 
+                'unittest',
+                lambda item: shell.odoo(
+                    'unittest',
+                    item,
+                    "--non-interactive",
+                    timeout=self.branch_id.timeout_tests,
+                    ),
+                try_count=self.branch_id.retry_unit_tests,
+                name_prefix=f"({i} / {len(tests_by_module)}) {module} "
+            )
+    
+    def _get_unit_tests_by_modules(self, files):
+        tests_by_module = {}
+        for fpath in files:
+            f = Path(fpath)
+            module = str(f.parent.parent.name)
+            tests_by_module.setdefault(module, [])
+            if fpath not in tests_by_module[module]:
+                tests_by_module[module].append(fpath)
+        return tests_by_module
+ 
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1, name_prefix=''):
         """
         Timeout in seconds.
 
         """
+        success = True
+        len_todo = len(todo)
         for i, item in enumerate(todo):
             trycounter = 0
             while trycounter < try_count:
@@ -457,17 +489,21 @@ ODOO_LOG_LEVEL=error
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
-                index = f"({i + 1} / {len(todo)})"
+                name = name_prefix
+                if len_todo > 1:
+                    name += f"({i + 1} / {len_todo}) "
+                
+                name += item
                 started = arrow.get()
                 data = {
-                    'name': f"{index} {item}",
+                    'name': name,
                     'ttype': ttype,
                     'run_id': self.id,
                     'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
                     'try_count': trycounter,
                 }
                 try:
-                    logsio.info(f"Running {index} {item}")
+                    logsio.info(f"Running {name}")
                     execute_run(item)
 
                 except Exception:
@@ -475,6 +511,7 @@ ODOO_LOG_LEVEL=error
                     logsio.error(f"Error happened: {msg}")
                     data['state'] = 'failed'
                     data['exc_info'] = msg
+                    success = False
                 else:
                     data['state'] = 'success'
                 end = arrow.get()
@@ -484,6 +521,7 @@ ODOO_LOG_LEVEL=error
 
             self.line_ids = [[0, 0, data]]
             self.env.cr.commit()
+        return success
 
     def _inform_developer(self):
         for rec in self:
