@@ -438,7 +438,9 @@ ODOO_LOG_LEVEL=error
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
     
         tests_by_module = self._get_unit_tests_by_modules(files)
+        i = 0
         for module, tests in tests_by_module.items():
+            i += 1
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
             shell.odoo('update', module)
@@ -454,6 +456,7 @@ ODOO_LOG_LEVEL=error
                     timeout=self.branch_id.timeout_tests,
                     ),
                 try_count=self.branch_id.retry_unit_tests,
+                name_prefix=f"({i} / {len(tests_by_module)}) {module} "
             )
     
     def _get_unit_tests_by_modules(self, files):
@@ -466,7 +469,7 @@ ODOO_LOG_LEVEL=error
                 tests_by_module['module'].append(fpath)
         return tests_by_module
  
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1):
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1, name_prefix=''):
         """
         Timeout in seconds.
 
@@ -482,7 +485,7 @@ ODOO_LOG_LEVEL=error
                 index = f"({i + 1} / {len(todo)})"
                 started = arrow.get()
                 data = {
-                    'name': f"{index} {item}",
+                    'name': f"{name_prefix}{index} {item}",
                     'ttype': ttype,
                     'run_id': self.id,
                     'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
