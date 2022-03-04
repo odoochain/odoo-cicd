@@ -404,7 +404,7 @@ echo "--------------------------------------------------------------------------
                 for line in containers.split("\n")[1:]:
                     try:
                         container, state = line.split("\t")
-                    except:
+                    except Exception:
                         # perhaps no access or so
                         pass
                     containers_dict[container] = state
