@@ -14,6 +14,7 @@ class ReleaseItem(models.Model):
     _inherit = ['mail.thread', 'cicd.open.window.mixin']
     _name = 'cicd.release.item'
     _order = 'id desc'
+    _log_access = False
 
     name = fields.Char("Version")
     release_id = fields.Many2one('cicd.release', string="Release")
