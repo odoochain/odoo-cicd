@@ -394,7 +394,12 @@ echo "--------------------------------------------------------------------------
         breakpoint()
         for rec in self:
             with rec._shell() as shell:
-                containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
+                try:
+                    containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
+                except Exception as e:
+                    logger.error(e)
+                    continue
+
                 containers_dict = {}
                 for line in containers.split("\n")[1:]:
                     try:
