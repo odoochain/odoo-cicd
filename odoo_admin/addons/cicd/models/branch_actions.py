@@ -160,7 +160,7 @@ class Branch(models.Model):
         # to avoid serialize access erros which may occur
         task.machine_id.with_delay().update_dumps()
 
-    def _update_git_commits(self, shell, logsio, force_instance_folder=None, force_commits=None, **kwargs):
+    def _update_git_commits(self, shell, logsio, force_instance_folder=None, **kwargs):
         self.ensure_one()
         logsio.info(f"Updating commits for {self.project_name}")
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
@@ -177,14 +177,10 @@ class Branch(models.Model):
                 # "--since='last 4 months'",
             ], logoutput=False, cwd=instance_folder)['stdout'].strip().split("\n")))
 
-        if force_commits:
-            commits = force_commits
-            commits = [(x, None) for x in commits]
-        else:
-            commits = _extract_commits()
-            commits = [list(x.split("___")) for x in commits]
-            for commit in commits:
-                commit[1] = arrow.get(int(commit[1]))
+        commits = _extract_commits()
+        commits = [list(x.split("___")) for x in commits]
+        for commit in commits:
+            commit[1] = arrow.get(int(commit[1]))
 
         all_commits = self.env['cicd.git.commit'].with_context(active_test=False).search([])
         all_commits = dict((x.name, x) for x in all_commits)
