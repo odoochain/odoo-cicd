@@ -24,7 +24,7 @@ def is_lock_set(cr, lock):
 def _int_lock(lock):
     if isinstance(lock, str):
         hasher = hashlib.sha1(str(lock).encode())
-        # pg_lock accepts an int8 so we build an hash composed with
+        # pg_lock accepss an int8 so we build an hash composed with
         # contextual information and we throw away some bits
         int_lock = struct.unpack("q", hasher.digest()[:8])
     else:

@@ -166,26 +166,35 @@ class Branch(models.Model):
         instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
 
         def _extract_commits():
+            # removing the 4 months filter:
+            # old branches get stuck and stuck other branches because latest commit 
+            # cannot be found, if that filter is active.
             return list(filter(bool, shell.X([
                 "git",
                 "log",
-                "--pretty=format:%H",
-                "--since='last 4 months'",
+                "--pretty=format:%H___%ct",
+                "-n", "300",
+                # "--since='last 4 months'",
             ], cwd=instance_folder)['stdout'].strip().split("\n")))
 
         if force_commits:
             commits = force_commits
+            commits = [(x, None) for x in commits]
         else:
             commits = _extract_commits()
+            commits = [list(x.split("___")) for x in commits]
+            for commit in commits:
+                commit[1] = arrow.get(int(commit[1]))
 
-        all_commits = self.env['cicd.git.commit'].search([])
+        all_commits = self.env['cicd.git.commit'].with_context(active_test=False).search([])
         all_commits = dict((x.name, x) for x in all_commits)
 
-        for sha in commits:
+        for commit in commits:
+            sha, date = commit
             if sha in all_commits:
                 cicd_commit = all_commits[sha]
                 if self not in cicd_commit.branch_ids:
-                    # Ist das nicht klarer so? commit_ids könnt ja mal umdefiniert werden
+                    # memory error otherwise - reported by MT
                     # cicd_commit.branch_ids |= self
                     self.commit_ids |= cicd_commit
                 continue
@@ -193,17 +202,17 @@ class Branch(models.Model):
             env = {
                 "TZ": "UTC0"
             }
-            line = shell.X([
-                "git",
-                "log",
-                sha,
-                "-n1",
-                "--pretty=format:%ct",
-            ], cwd=instance_folder, env=env)['stdout'].strip().split(',')
-            if not line or not any(line):
-                continue
-
-            date = arrow.get(int(line[0]))
+            if date is None:
+                line = shell.X([
+                    "git",
+                    "log",
+                    sha,
+                    "-n1",
+                    "--pretty=format:%ct",
+                ], cwd=instance_folder, env=env)['stdout'].strip().split(',')
+                if not line or not any(line):
+                    continue
+                date = arrow.get(int(line[0]))
 
             info = shell.X([
                 "git",
