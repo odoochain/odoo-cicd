@@ -214,7 +214,7 @@ class Branch(models.Model):
                     continue
                 date = arrow.get(int(line[0]))
 
-            logsio.info(f"Getting detail information of sha {sha} ({icommit} / {len(commits)}")
+            logsio.info(f"Getting detail information of sha {sha} ({icommit} / {len(commits)})")
 
             info = shell.X([
                 "git",
