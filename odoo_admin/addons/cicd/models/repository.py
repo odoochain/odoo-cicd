@@ -221,7 +221,7 @@ class Repository(models.Model):
 
                         for branch in set(updated_branches):
                             repo.with_delay(
-                                identity_key=f'fetch_updated_branch_{repo.short or repo.name}_{branch}',
+                                identity_key=f'fetch_updated_branch_{repo.short or repo.name}_branch:{branch}',
                             )._cron_fetch_update_branches({
                                 'updated_branches': [branch],
                             })
