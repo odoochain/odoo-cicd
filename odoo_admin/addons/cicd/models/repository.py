@@ -342,7 +342,7 @@ class Repository(models.Model):
 
     def _is_healthy_repository(self, shell, path):
         self.ensure_one()
-        with pg_advisory_lock(self.env.cr, self._get_lockname(shell.machine, path), detailinfo=f"_is_healthy"):
+        with pg_advisory_lock(self.env.cr, self._get_lockname(shell.machine, path), detailinfo="_is_healthy"):
             healthy = False
             if shell.exists(path):
                 try:

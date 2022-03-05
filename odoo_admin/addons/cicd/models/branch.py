@@ -14,6 +14,8 @@ from contextlib import contextmanager
 import humanize
 import logging
 from .consts import STATES
+from odoo.addons.queue_job.exception import RetryableJobError
+
 logger = logging.getLogger(__name__)
 
 class GitBranch(models.Model):
@@ -103,7 +105,7 @@ class GitBranch(models.Model):
             latest_commit = shell.X(["git", "log", "-n1", '--pretty=%H'])['stdout'].strip().split('\n')[0]
             commit = rec.commit_ids.filtered(lambda x: x.name == latest_commit)
             if not commit:
-                raise Exception(f"Could not find {latest_commit}")
+                raise RetryableJobError(f"Could not find {latest_commit}", ignore_retry=True, seconds=120)
             commit.ensure_one()
             if rec.latest_commit_id != commit:
                 rec.latest_commit_id = commit
