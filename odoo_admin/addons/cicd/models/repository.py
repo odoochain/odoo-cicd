@@ -252,38 +252,43 @@ class Repository(models.Model):
 
             with pg_advisory_lock(self.env.cr, repo._get_lockname(), detailinfo=f"cron_fetch_updated_branches {updated_branches}"):
                 with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
-                    for branch in updated_branches:
-                        logsio.info(f"Pulling {branch}...")
-                        shell.X(["git", "fetch", "origin", branch])
-                        try:
-                            shell.checkout_branch(branch)
-                        except Exception as ex:
-                            logsio.error(ex)
-                            logsio.info("Recreating workspace folder")
-                            shell.rm(shell.cwd)
-                            self.clone_repo(machine, shell.cwd, logsio)
-                            shell.checkout_branch(branch)
+                    try:
+                        for branch in updated_branches:
+                            logsio.info(f"Pulling {branch}...")
+                            shell.X(["git", "fetch", "origin", branch])
+                            try:
+                                shell.checkout_branch(branch)
+                            except Exception as ex:
+                                logsio.error(ex)
+                                logsio.info("Recreating workspace folder")
+                                shell.rm(shell.cwd)
+                                self.clone_repo(machine, shell.cwd, logsio)
+                                shell.checkout_branch(branch)
 
-                        if branch in candidate_branch_names:
-                            # avoid fast forward git extra commits
-                            shell.X(["git", "checkout", repo.default_branch, "-f"])
-                            if shell.branch_exists(branch):
-                                shell.X(["git", "branch", "-D", branch], allow_error=True)
-                            shell.X(["git", "checkout", branch])
-                            shell.X(["git", "reset", "--hard", f"origin/{branch}"])
+                            if branch in candidate_branch_names:
+                                # avoid fast forward git extra commits
+                                shell.X(["git", "checkout", repo.default_branch, "-f"])
+                                if shell.branch_exists(branch):
+                                    shell.X(["git", "branch", "-D", branch], allow_error=True)
+                                shell.X(["git", "checkout", branch])
+                                shell.X(["git", "reset", "--hard", f"origin/{branch}"])
 
-                            # remove existing instance folder to refetch
-                            db_branch = self.env['cicd.git.branch'].search([
-                                ('name', '=', branch),
-                                ('repo_id', '=', self.id)
-                            ])
-                            shell.rm(db_branch._get_instance_folder(shell.machine))
-                        else:
-                            # option P makes .git --> .git/
-                            shell.X(["ls -pA |grep -v \\.git\\/ |xargs rm -Rf"])
-                            shell.X(["git", "pull"])
-                            shell.X(["git", "checkout", "-f"])
-                        shell.X(["git", "submodule", "update", "--init", "--recursive"])
+                                # remove existing instance folder to refetch
+                                db_branch = self.env['cicd.git.branch'].search([
+                                    ('name', '=', branch),
+                                    ('repo_id', '=', self.id)
+                                ])
+                                shell.rm(db_branch._get_instance_folder(shell.machine))
+                            else:
+                                # option P makes .git --> .git/
+                                shell.X(["ls -pA |grep -v \\.git\\/ |xargs rm -Rf"])
+                                shell.X(["git", "pull"])
+                                shell.X(["git", "checkout", "-f"])
+                            shell.X(["git", "submodule", "update", "--init", "--recursive"])
+                    except Exception as ex:
+                        logger.error('error', exc_info=True)
+                        if '.git/index.lock' in str(ex):
+                            raise RetryableJobError(str(ex), seconds=5) from ex
 
                     # if completely new then all branches:
                     if not repo.branch_ids:
