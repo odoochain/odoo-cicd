@@ -388,7 +388,7 @@ class Repository(models.Model):
                         history.append(commit.name)
                     except Exception as ex:
                         text = (
-                            f"Merge-Conflict - try to merge the branches togehter."
+                            "Merge-Conflict - try to merge the branches togehter."
                         )
                         raise UserError(text) from ex
 
