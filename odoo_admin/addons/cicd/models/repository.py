@@ -320,9 +320,6 @@ class Repository(models.Model):
                             branch._checkout_latest(shell, logsio=logsio, machine=machine)
                             branch._update_git_commits(shell, logsio, force_instance_folder=repo_path)
 
-                        if not branch.active:
-                            branch.active = True
-
                         shell.checkout_branch(repo.default_branch, cwd=repo_path)
                         del name
 
