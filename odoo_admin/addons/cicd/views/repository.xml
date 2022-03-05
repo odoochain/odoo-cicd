@@ -35,6 +35,7 @@
 							<field name="release_tag_prefix"/>
 							<field name="remove_web_assets_after_restore"/>
 							<field name="ttype"/>
+							<field name="analyze_last_n_commits"/>
 						</group>
 						<notebook>
 							<page name="cleanup" string="Cleanup">

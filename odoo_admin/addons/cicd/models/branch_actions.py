@@ -173,9 +173,9 @@ class Branch(models.Model):
                 "git",
                 "log",
                 "--pretty=format:%H___%ct",
-                "-n", "300",
+                "-n", str(self.repo_id.analyze_last_n_commits),
                 # "--since='last 4 months'",
-            ], cwd=instance_folder)['stdout'].strip().split("\n")))
+            ], logoutput=False, cwd=instance_folder)['stdout'].strip().split("\n")))
 
         if force_commits:
             commits = force_commits

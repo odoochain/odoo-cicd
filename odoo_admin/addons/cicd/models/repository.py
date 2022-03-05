@@ -29,6 +29,7 @@ class Repository(models.Model):
         ('username', 'Username'),
         ('key', 'Key'),
     ])
+    analyze_last_n_commits = fields.Integer("Anlayze last n commits", default=200)
     key = fields.Text("Key")
     username = fields.Char("Username")
     password = fields.Char("Password")
