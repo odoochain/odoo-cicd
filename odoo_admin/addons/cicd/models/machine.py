@@ -393,23 +393,27 @@ echo "--------------------------------------------------------------------------
     def _update_docker_containers(self):
         breakpoint()
         for rec in self:
-            with rec._shell() as shell:
-                try:
-                    containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
-                except Exception as e:
-                    logger.error(e)
-                    continue
-
-                containers_dict = {}
-                for line in containers.split("\n")[1:]:
+            try:
+                with rec._shell() as shell:
                     try:
-                        container, state = line.split("\t")
-                    except Exception:
-                        # perhaps no access or so
-                        pass
-                    containers_dict[container] = state
-                path = Path(rec.tempfile_containers)
-                path.write_text(json.dumps(containers_dict))
+                        containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
+                    except Exception as e:
+                        logger.error(e)
+                        continue
+
+                    containers_dict = {}
+                    for line in containers.split("\n")[1:]:
+                        try:
+                            container, state = line.split("\t")
+                        except Exception:
+                            # perhaps no access or so
+                            pass
+                        containers_dict[container] = state
+                    path = Path(rec.tempfile_containers)
+                    path.write_text(json.dumps(containers_dict))
+            except Exception as ex:
+                logger.error('error', exc_info=True)
+
 
     def _get_containers(self):
         path = Path(self.tempfile_containers)
