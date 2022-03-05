@@ -6,6 +6,7 @@
 			<field name="inherit_id" ref="queue_job.view_queue_job_tree"/>
 			<field name="arch" type="xml">
 				<field name="name" position="before">
+					<field name="id"/>
 					<field name="branch"/>
 					<field name="identity_key"/>
 				</field>
