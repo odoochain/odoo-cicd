@@ -189,7 +189,7 @@ class Branch(models.Model):
         all_commits = self.env['cicd.git.commit'].with_context(active_test=False).search([])
         all_commits = dict((x.name, x) for x in all_commits)
 
-        for commit in commits:
+        for icommit, commit in enumerate(commits):
             sha, date = commit
             if sha in all_commits:
                 cicd_commit = all_commits[sha]
@@ -209,10 +209,12 @@ class Branch(models.Model):
                     sha,
                     "-n1",
                     "--pretty=format:%ct",
-                ], cwd=instance_folder, env=env)['stdout'].strip().split(',')
+                ], logoutput=False, cwd=instance_folder, env=env)['stdout'].strip().split(',')
                 if not line or not any(line):
                     continue
                 date = arrow.get(int(line[0]))
+
+            logsio.info(f"Getting detail information of sha {sha} ({icommit} / {len(commits)}")
 
             info = shell.X([
                 "git",
@@ -220,7 +222,7 @@ class Branch(models.Model):
                 sha,
                 "--date=format:%Y-%m-%d %H:%M:%S",
                 "-n1",
-            ], cwd=instance_folder, env=env)['stdout'].strip().split("\n")
+            ], logoutput=False, cwd=instance_folder, env=env)['stdout'].strip().split("\n")
 
             def _get_item(name):
                 for line in info:
