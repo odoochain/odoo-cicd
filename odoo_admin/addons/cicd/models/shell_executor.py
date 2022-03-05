@@ -57,9 +57,9 @@ class ShellExecutor(object):
 
     def exists(self, path):
         try:
-            res = self._internal_execute(["stat", path])
+            res = self._internal_execute(["stat", path], logoutput=False)
         except Exception:
-            res = self._internal_execute(["stat", path])
+            res = self._internal_execute(["stat", path], logoutput=False)
         return res['exit_code'] == 0
 
     def rm(self, path):
@@ -76,7 +76,8 @@ class ShellExecutor(object):
                 raise UserError(f"Removing of {path} failed.")
         else:
             if self.logsio:
-                self.logsio.info(f"Path {path} did not exist - not erased")
+                if not str(path).startswith("/tmp"):
+                    self.logsio.info(f"Path {path} did not exist - not erased")
 
     def _get_home_dir(self):
         with self.machine._shell() as shell:
