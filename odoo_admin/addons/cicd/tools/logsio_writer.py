@@ -37,7 +37,7 @@ class LogsIOWriter(object):
     def GET(stream, source, host='cicdlogs', port=6689):
         res = LogsIOWriter(stream=stream, source=source, host=host, port=port)
         try:
-            res.start_keepalive()
+            # res.start_keepalive()
             yield res
         finally:
             res.stop_keepalive()

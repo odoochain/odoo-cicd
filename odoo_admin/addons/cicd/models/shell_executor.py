@@ -66,6 +66,9 @@ class ShellExecutor(object):
         return self.remove(path)
 
     def remove(self, path):
+        if '_main_rsodoo' in str(path):
+            breakpoint()
+            raise Exception('check here please')
         if path == '/mnt/docker_btrfs/workspace/' or path == '/mnt/docker_btrfs/workspace':
             raise Exception("DO NOT DELETE THIS and remove this!")
         if self.exists(path):
@@ -113,8 +116,11 @@ class ShellExecutor(object):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
             if not self.branch_exists(branch):
+                self.logsio and self.logsio.info(f"Tracking remote branch and checking out {branch}")
                 self.X(["git", "checkout", "-b", branch, "--track", "origin/" + branch], allow_error=True)
+            self.logsio and self.logsio.info(f"Checking out {branch} regularly")
             self.X(["git", "checkout", "-f", "--no-guess", branch], allow_error=False)
+            self.logsio and self.logsio.info(f"Checked out {branch}")
             self._after_checkout()
 
     def checkout_commit(self, commit, cwd=None):
@@ -138,8 +144,11 @@ class ShellExecutor(object):
         return branch in res
 
     def _after_checkout(self):
+        self.logsio and self.logsio.info(f"Cleaning git...")
         self.X(["git", "clean", "-xdff"])
+        self.logsio and self.logsio.info(f"Updating submodules...")
         self.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
+        self.logsio and self.logsio.info(f"_after_checkout finished.")
 
     def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, timeout=None):
         effective_env = deepcopy(self.env)

@@ -59,9 +59,17 @@ class Repository(models.Model):
         ('name_unique', "unique(name)", _("Only one unique entry allowed.")),
     ]
 
-    def _get_lockname(self):
+    def _get_repo_path(self, machine):
+        from . import MAIN_FOLDER_NAME
         self.ensure_one()
-        return f"repo_{self.id}"
+        path = Path(machine.workspace) / (MAIN_FOLDER_NAME + "_" + self.short)
+        return path
+
+    def _get_lockname(self, machine=None, path=None):
+        self.ensure_one()
+        machine = machine or self.machine_id
+        path = path or self._get_repo_path(machine)
+        return f"repo_{machine.id}_{path}"
 
     @api.constrains("username")
     def _check_username(self):
@@ -113,11 +121,10 @@ class Repository(models.Model):
 
     def _get_main_repo(self, tempfolder=False, destination_folder=False, logsio=None, machine=None, limit_branch=None):
         self.ensure_one()
-        from . import MAIN_FOLDER_NAME
         machine = machine or self.machine_id
         if not machine.workspace:
             raise ValidationError(_("Please configure a workspace!"))
-        path = Path(machine.workspace) / (MAIN_FOLDER_NAME + "_" + self.short)
+        path = self._get_repo_path(machine)
         self.clone_repo(machine, path, logsio)
 
         temppath = path
@@ -250,12 +257,13 @@ class Repository(models.Model):
             releases = self.env['cicd.release'].search([('repo_id', '=', repo.id)])
             candidate_branch_names = releases.mapped('candidate_branch')
 
-            with pg_advisory_lock(self.env.cr, repo._get_lockname(), detailinfo=f"cron_fetch_updated_branches {updated_branches}"):
+            with pg_advisory_lock(self.env.cr, repo._get_lockname(machine, repo_path), detailinfo=f"cron_fetch_updated_branches {updated_branches}"):
                 with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
                     try:
                         for branch in updated_branches:
                             logsio.info(f"Pulling {branch}...")
                             shell.X(["git", "fetch", "origin", branch])
+                            logsio.info(f"pulled {branch}...")
                             try:
                                 shell.checkout_branch(branch)
                             except Exception as ex:
@@ -288,7 +296,8 @@ class Repository(models.Model):
                     except Exception as ex:
                         logger.error('error', exc_info=True)
                         if '.git/index.lock' in str(ex):
-                            raise RetryableJobError(str(ex), seconds=5) from ex
+                            raise RetryableJobError(str(ex), seconds=5, ignore_retry=True) from ex
+                        raise
 
                     # if completely new then all branches:
                     if not repo.branch_ids:
@@ -332,22 +341,24 @@ class Repository(models.Model):
                             shell.checkout_branch(repo.default_branch, cwd=repo_path)
 
     def _is_healthy_repository(self, shell, path):
-        healthy = False
-        if shell.exists(path):
-            try:
-                res = shell.X(["git", "status", "-s"], cwd=path, logoutput=False)
-                if res['stdout'].strip():
-                    healthy = False
-                else:
-                    healthy = True
-            except Exception:
-                pass
+        self.ensure_one()
+        with pg_advisory_lock(self.env.cr, self._get_lockname(shell.machine, path), detailinfo=f"_is_healthy"):
+            healthy = False
+            if shell.exists(path):
+                try:
+                    res = shell.X(["git", "status", "-s"], cwd=path, logoutput=False)
+                    if res['stdout'].strip():
+                        healthy = False
+                    else:
+                        healthy = True
+                except Exception:
+                    pass
         return healthy
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
             if not self._is_healthy_repository(shell, path):
-                with pg_advisory_lock(self.env.cr, self._get_lockname(), f'clone_repo {path}'):
+                with pg_advisory_lock(self.env.cr, self._get_lockname(shell.machine, path), f'clone_repo {path}'):
                     shell.rm(path)
                     shell.X([
                         "git", "clone", self.url,
@@ -461,15 +472,16 @@ class Repository(models.Model):
         for repo in self.search([
             ('never_cleanup', '=', False),
         ]):
-            with pg_advisory_lock(self.env.cr, repo._get_lockname(), f"_cron_cleanup {repo.name}"):
-                dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime("%Y-%m-%d %H:%M:%S")
-                # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
-                db_registry = registry(self.env.cr.dbname)
-                branches = repo.branch_ids.filtered(lambda x: (x.last_access or x.date_registered).strftime("%Y-%m-%d %H:%M:%S") < dt)
-                with db_registry.cursor() as cr:
-                    env = api.Environment(cr, SUPERUSER_ID)
-                    for branch in branches.with_env(env):
-                        branch.active = False
+            dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime("%Y-%m-%d %H:%M:%S")
+
+            # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+            db_registry = registry(self.env.cr.dbname)
+            branches = repo.branch_ids.filtered(lambda x: (x.last_access or x.date_registered).strftime(
+                "%Y-%m-%d %H:%M:%S") < dt)
+            with db_registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID)
+                for branch in branches.with_env(env):
+                    branch.active = False
 
     def new_branch(self):
         return {
