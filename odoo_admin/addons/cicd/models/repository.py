@@ -251,13 +251,13 @@ class Repository(models.Model):
 
         with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
             repo_path = repo._get_main_repo(logsio=logsio)
-            machine = repo.machine_id
             repo = repo.with_context(active_test=False)
-
-            releases = self.env['cicd.release'].search([('repo_id', '=', repo.id)])
-            candidate_branch_names = releases.mapped('candidate_branch')
-
+            machine = repo.machine_id
             with pg_advisory_lock(self.env.cr, repo._get_lockname(machine, repo_path), detailinfo=f"cron_fetch_updated_branches {updated_branches}"):
+
+                releases = self.env['cicd.release'].search([('repo_id', '=', repo.id)])
+                candidate_branch_names = releases.mapped('candidate_branch')
+
                 with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
                     try:
                         for branch in updated_branches:
@@ -356,9 +356,9 @@ class Repository(models.Model):
         return healthy
 
     def clone_repo(self, machine, path, logsio):
-        with machine._gitshell(self, cwd="", logsio=logsio) as shell:
-            if not self._is_healthy_repository(shell, path):
-                with pg_advisory_lock(self.env.cr, self._get_lockname(shell.machine, path), f'clone_repo {path}'):
+        with pg_advisory_lock(self.env.cr, self._get_lockname(machine, path), f'clone_repo'):
+            with machine._gitshell(self, cwd="", logsio=logsio) as shell:
+                if not self._is_healthy_repository(shell, path):
                     shell.rm(path)
                     shell.X([
                         "git", "clone", self.url,

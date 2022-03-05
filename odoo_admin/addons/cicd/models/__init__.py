@@ -1,6 +1,7 @@
 import os
 import traceback
 from contextlib import contextmanager
+import random
 import hashlib
 import struct
 from pathlib import Path
@@ -57,10 +58,11 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
     lock = _int_lock(lock)
     cr.execute("SELECT pg_try_advisory_lock(%s);", (lock,))
     if not cr.fetchone()[0]:
+        breakpoint()
         trace = '\n'.join(traceback.format_stack())
         raise RetryableJobError(
-            f"Lock could not be acquired: {lock}\n{trace}",
-            ignore_retry=True, seconds=5
+            f"Lock could not be acquired: {lock} {detailinfo}\n{trace}",
+            ignore_retry=True, seconds=random.randint(1,12),
             )
     logger.info("Acquired advisory lock %s ", lock)
     t = threading.Thread(target=print_warn_info, args=(started, detailinfo))
