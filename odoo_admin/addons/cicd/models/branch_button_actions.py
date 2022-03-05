@@ -25,6 +25,7 @@ class Branch(models.Model):
         self._make_task("_shrink_db")
 
     def docker_start(self):
+        breakpoint()
         self._make_task("_docker_start", no_repo=True)
 
     def docker_remove(self):
