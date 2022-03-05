@@ -29,4 +29,5 @@ class queuejob(models.Model):
                     b = b[0]
                 else:
                     b = False
-            rec.branch = b
+            if b != rec.branch:
+                rec.branch = b
