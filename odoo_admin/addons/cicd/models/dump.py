@@ -55,48 +55,51 @@ class Dump(models.Model):
     def _update_dumps(self, machine):
         breakpoint()
         with machine._shell() as shell:
-            for volume in machine.volume_ids.filtered(lambda x: x.ttype in ['dumps', 'dumps_in']):
-                with machine._shell() as shell:
-                    splitter = "_____SPLIT_______"
-                    volname = volume.name or ''
-                    if not volname.endswith("/"):
-                        volname += "/"
-                    files = shell.X([
-                        "find", volname,
-                        "-maxdepth", "1",
-                        "-printf", f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
-                    ])['stdout'].strip().split("\n")
+            try:
+                for volume in machine.volume_ids.filtered(lambda x: x.ttype in ['dumps', 'dumps_in']):
+                    with machine._shell() as shell:
+                        splitter = "_____SPLIT_______"
+                        volname = volume.name or ''
+                        if not volname.endswith("/"):
+                            volname += "/"
+                        files = shell.X([
+                            "find", volname,
+                            "-maxdepth", "1",
+                            "-printf", f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
+                        ])['stdout'].strip().split("\n")
 
-                    Files = {}
-                    for line in files:
-                        filename, date, size = line.split(splitter)
-                        if filename.endswith("/"):
-                            continue
-                        date = arrow.get(date[:15])
-                        path = volname + filename
-                        Files[path] = {
-                            'date': date.strftime("%Y-%m-%d %H:%M:%S"),
-                            'size': int(size),
-                        }
-                        del path, date, filename, size, line
+                        Files = {}
+                        for line in files:
+                            filename, date, size = line.split(splitter)
+                            if filename.endswith("/"):
+                                continue
+                            date = arrow.get(date[:15])
+                            path = volname + filename
+                            Files[path] = {
+                                'date': date.strftime("%Y-%m-%d %H:%M:%S"),
+                                'size': int(size),
+                            }
+                            del path, date, filename, size, line
 
-                    for filepath, file in Files.items():
+                        for filepath, file in Files.items():
 
-                        dumps = self.sudo().with_context(active_test=False).search([
-                            ('name', '=', filepath),
-                            ('machine_id', '=', machine.id)
-                            ])
-                        if not dumps:
-                            dumps = dumps.sudo().create({
-                                'name': filepath,
-                                'machine_id': machine.id,
-                            })
+                            dumps = self.sudo().with_context(active_test=False).search([
+                                ('name', '=', filepath),
+                                ('machine_id', '=', machine.id)
+                                ])
+                            if not dumps:
+                                dumps = dumps.sudo().create({
+                                    'name': filepath,
+                                    'machine_id': machine.id,
+                                })
 
-                        dumps.ensure_one()
-                        dumps.date_modified = file['date']
-                        dumps.size = file['size']
+                            dumps.ensure_one()
+                            dumps.date_modified = file['date']
+                            dumps.size = file['size']
 
-                    for dump in dumps.search([('name', 'like', volname)]):
-                        if dump.name.startswith(volname):
-                            if dump.name not in Files:
-                                dump.with_context(dump_no_file_delete=True).unlink()
+                        for dump in dumps.search([('name', 'like', volname)]):
+                            if dump.name.startswith(volname):
+                                if dump.name not in Files:
+                                    dump.with_context(dump_no_file_delete=True).unlink()
+            except Exception:
+                logger.error('error', exc_info=True)
