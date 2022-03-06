@@ -271,7 +271,8 @@ class Repository(models.Model):
                                 breakpoint()
                                 logsio.error(ex)
 
-                                if self._exception_means_broken_repo(ex):
+                                severity = self._exception_meaning(ex)
+                                if severity == 'broken':
                                     logsio.info("Recreating workspace folder")
                                     shell.rm(shell.cwd)
                                     self.clone_repo(machine, shell.cwd, logsio)
@@ -301,8 +302,8 @@ class Repository(models.Model):
                             shell.X(["git", "submodule", "update", "--init", "--recursive"])
                     except Exception as ex:
                         logger.error('error', exc_info=True)
-                        if not self._exception_means_broken_repo(ex):
-                            raise RetryableJobError(str(ex), seconds=5, ignore_retry=True) from ex
+                        if self._exception_meaning(ex) == 'retry':
+                            raise RetryableJobError(str(ex), seconds=10, ignore_retry=True) from ex
                         raise
 
                     # if completely new then all branches:
@@ -538,7 +539,7 @@ class Repository(models.Model):
         else:
             raise NotImplementedError()
 
-    def _exception_means_broken_repo(self, ex):
+    def _exception_meaning(self, ex):
         """
         Checks error message from git if the repo is broken and needs recreation.
         Recreation is a problem, because current state is lost, so this should be 
@@ -547,8 +548,11 @@ class Repository(models.Model):
 
         exmessage = str(ex)
         if any(x in exmessage for x in [
-            'could not read Username for',
             '.git/index.lock',
         ]):
-            return False
-        return True
+            return 'retry'
+        if any(x in exmessage for x in [
+            'could not read Username for',
+        ]):
+            return 'hangs_not_broken'
+        return 'broken'
