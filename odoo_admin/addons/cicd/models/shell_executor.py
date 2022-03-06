@@ -260,8 +260,10 @@ class ShellExecutor(object):
             data['started'] = True
 
         def on_stop_marker():
-            data['stop_marker'] = True
-            data['stop_marker_arrived'] = arrow.get()
+            data.update({
+                'stop_marker': True,
+                'stop_marker_arrived': arrow.get(),
+            })
 
         def collect(capture, writer, marker=None, on_marker=None, stop_marker=None, on_stop_marker=None):
             while not data['stop']:
@@ -345,7 +347,7 @@ class ShellExecutor(object):
                     break
                 time.sleep(0.05)
 
-                if data.get('stop_marker'):
+                if data.get('stop_marker') and data.get('stop_marker_arrived'):
                     if (arrow.get() - data['stop_marker_arrived']).total_seconds() > 10 and not p.returncodes:
                         break
                 if p.commands[0].returncode is not None and not data.get('stop_marker_arrived'):
