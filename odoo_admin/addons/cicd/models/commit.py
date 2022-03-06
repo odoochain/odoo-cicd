@@ -10,7 +10,7 @@ class GitCommit(models.Model):
 
     short = fields.Char(compute="_compute_short")
     name = fields.Char("SHA", required=True)
-    branch_ids = fields.Many2many('cicd.git.branch', string="Repo", required=True)
+    branch_ids = fields.Many2many('cicd.git.branch', string="Branches", required=True)
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     author = fields.Char("Author")
