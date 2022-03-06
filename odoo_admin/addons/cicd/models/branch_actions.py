@@ -484,7 +484,8 @@ class Branch(models.Model):
 
     def _make_sure_source_exists(self, shell, logsio):
         instance_folder = self._get_instance_folder(shell.machine)
-        if not self.env['cicd.git.repo']._is_healthy_repository(shell, instance_folder):
+        self.ensure_one()
+        if not self.repo_id._is_healthy_repository(shell, instance_folder):
             try:
                 self._checkout_latest(shell, logsio=logsio)
             except Exception:
