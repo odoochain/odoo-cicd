@@ -1,4 +1,5 @@
 import traceback
+import time
 import json
 from contextlib import contextmanager
 import re
@@ -318,7 +319,12 @@ class GitBranch(models.Model):
         try:
             test_request()
         except Exception:
-            self._make_task("_reload_and_restart", now=True)
+            deadline = arrow.get().shift(seconds=30)
+            while arrow.get() < deadline:
+                try:
+                    self._make_task("_reload_and_restart", now=True)
+                except RetryableJobError as ex:
+                    time.sleep(1)
 
         if test_request():
             return
