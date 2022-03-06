@@ -42,7 +42,7 @@
 					</group>
 					<notebook>
 						<page string="Test Runs">
-							<field name="test_run_ids" create='0' delete='0'>
+							<field name="test_run_ids">
 							</field>
 
 						</page>
