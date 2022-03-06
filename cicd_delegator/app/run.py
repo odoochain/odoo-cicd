@@ -161,14 +161,23 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             req_header, cookies = self.parse_headers()
             url, query_params = self._rewrite_path(req_header, cookies)
-            resp = requests.get(
-                url, headers=req_header, verify=False,
-                allow_redirects=False, params=query_params,
-                cookies=cookies,
-            )
-            sent = True
+            conn_exception = None
+            try:
+                resp = requests.get(
+                    url, headers=req_header, verify=False,
+                    allow_redirects=False, params=query_params,
+                    cookies=cookies,
+                )
+            except Exception as ex:
+                conn_exception = ex
+            finally:
+                sent = True
 
-            if self.path == "/_" or self.path.endswith('/web/session/logout'):
+            redirect_to_index = self.path == "/_" or self.path.endswith('/web/session/logout')
+            if conn_exception:
+                redirect_to_index = True
+
+            if redirect_to_index:
                 self._redirect_to_index(cookies and cookies.get('delegator-path') or None)
             else:
                 self.send_response(resp.status_code)

@@ -1,3 +1,3 @@
 #!/bin/bash
-./odoo kill cicd_delegator
-./odoo up cicd_delegator
+./cicd kill cicd_delegator
+./cicd up cicd_delegator
