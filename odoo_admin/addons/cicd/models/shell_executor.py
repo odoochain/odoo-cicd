@@ -66,8 +66,8 @@ class ShellExecutor(object):
         return self.remove(path)
 
     def remove(self, path):
+        # TODO remove in near future (now 6.3.2021)
         if '_main_rsodoo' in str(path):
-            breakpoint()
             raise Exception('check here please')
         if path == '/mnt/docker_btrfs/workspace/' or path == '/mnt/docker_btrfs/workspace':
             raise Exception("DO NOT DELETE THIS and remove this!")
