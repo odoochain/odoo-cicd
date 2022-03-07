@@ -501,8 +501,7 @@ class Branch(models.Model):
                         compressor.last_input_size = int(shell.X(['stat', '-c', '%s', output_path])['stdout'].strip())
                         compressor.date_last_success = fields.Datetime.now()
                     finally:
-                        breakpoint()
-                        shell.odoo('down', '-v')
+                        shell.odoo('down', '-v', force=True, allow_error=True)
 
                 finally:
                     shell.rm(instance_path)
