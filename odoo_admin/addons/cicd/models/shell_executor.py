@@ -309,7 +309,6 @@ class ShellExecutor(object):
             f"echo 1>&2\n"
             f"echo '{stop_marker}' \n"
         )
-        logger.debug(bashcmd)
 
         p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
         deadline_started = arrow.get().shift(seconds=10)
