@@ -20,7 +20,7 @@ class Compressor(models.Model):
     last_input_size = fields.Integer("Last Input Size")
     last_input_size_human = fields.Char("Last Input Size")
     last_output_size = fields.Integer("Last Input Size")
-    last_output_size_human = fields.Char("Last Input Size")
+    last_output_size_human = fields.Char("Last Output Size")
     performance = fields.Integer("Performance", compute="_compute_numbers")
 
     def _ensure_cronjob(self):

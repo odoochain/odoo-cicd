@@ -498,7 +498,7 @@ class Branch(models.Model):
                         logsio.info("Dumping compressed dump")
                         output_path = compressor.volume_id.name + "/" + compressor.output_filename
                         shell.odoo('backup', 'odoo-db', output_path)
-                        compressor.last_input_size = int(shell.X(['stat', '-c', '%s', output_path])['stdout'].strip())
+                        compressor.last_output_size = int(shell.X(['stat', '-c', '%s', output_path])['stdout'].strip())
                         compressor.date_last_success = fields.Datetime.now()
                     finally:
                         shell.odoo('down', '-v', force=True, allow_error=True)
