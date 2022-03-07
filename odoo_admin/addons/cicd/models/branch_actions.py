@@ -8,7 +8,6 @@ import arrow
 from odoo import _, api, models, fields
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import inspect
-import os
 from pathlib import Path
 from odoo.addons.queue_job.exception import RetryableJobError
 import logging
@@ -99,17 +98,17 @@ class Branch(models.Model):
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
         self.repo_id.machine_id._update_docker_containers()
-        self._docker_get_state(shell=shell)
+        self._docker_get_state()
 
     def _docker_stop(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
         self.repo_id.machine_id._update_docker_containers()
-        self._docker_get_state(shell)
+        self._docker_get_state()
 
     def _docker_remove(self, shell, task, logsio, **kwargs):
         shell.odoo('rm')
         self.repo_id.machine_id._update_docker_containers()
-        self._docker_get_state(shell)
+        self._docker_get_state()
 
     def _docker_get_state(self, **kwargs):
         breakpoint()
@@ -130,6 +129,7 @@ class Branch(models.Model):
                         if container.state != state:
                             container.state = state
                     updated_containers.add(container_name)
+                del container_name
 
             for container in rec.container_ids:
                 if container.name not in updated_containers:

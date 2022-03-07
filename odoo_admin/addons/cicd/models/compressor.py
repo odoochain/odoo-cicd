@@ -1,4 +1,4 @@
-from odoo import _, api, fields, models, SUPERUSER_ID
+from odoo import _, api, fields, models
 import humanize
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 

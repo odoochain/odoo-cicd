@@ -71,7 +71,6 @@ class Task(models.Model):
             rec.display_name = name
 
     def perform(self, now=False):
-        breakpoint()
         self.ensure_one()
 
         if not now:

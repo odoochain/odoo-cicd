@@ -299,7 +299,7 @@ class ShellExecutor(object):
         terr = threading.Thread(target=collect, args=(stderr, errwriter))
         tstd.daemon = True
         terr.daemon = True
-        [x.start() for x in [tstd, terr]]
+        [x.start() for x in [tstd, terr]]  # NOQA
         # endregion
 
         # region: build command chain

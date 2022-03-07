@@ -10,9 +10,9 @@ from odoo import registry
 from pathlib import Path
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError, UserError
+import humanize
 from ..tools.logsio_writer import LogsIOWriter
 from contextlib import contextmanager
-import humanize
 import logging
 from .consts import STATES
 from odoo.addons.queue_job.exception import RetryableJobError
@@ -113,8 +113,8 @@ class GitBranch(models.Model):
 
     def _compute_any_testing(self):
         for rec in self:
-            fields = [k for k, v in rec._fields.items() if getattr(v, 'testrun_field', False)]
-            rec.any_testing = any(rec[f] for f in fields)
+            _fields = [k for k, v in rec._fields.items() if getattr(v, 'testrun_field', False)]
+            rec.any_testing = any(rec[f] for f in _fields)
 
     @api.model
     def create(self, vals):
@@ -140,20 +140,16 @@ class GitBranch(models.Model):
         self.approver_ids = [[0, 0, {
             'user_id': self.env.user.id,
             'commit_id': self.commit_ids[0].id,
-            'comment': self.approve_message,
             'state': 'ok',
         }]]
-        self.approve_message = False
         self.state = 'approved'
 
     def decline(self):
         self.approver_ids = [[0, 0, {
             'user_id': self.env.user.id,
             'commit_id': self.commit_ids[0].id,
-            'comment': self.approve_message,
             'state': 'not ok',
         }]]
-        self.approve_message = False
         self.state = 'rework'
 
     @api.depends("container_ids", "container_ids.state")
@@ -180,7 +176,6 @@ class GitBranch(models.Model):
     )
     def _compute_state(self):
         for rec in self:
-            logger.info(f"Computing branch state for {rec.id}")
             building_tasks = rec.task_ids.with_context(prefetch_fields=False).filtered(lambda x: any (y in x.name for y in ['update', 'reset', 'restore']))
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
