@@ -5,7 +5,6 @@ import threading
 from sarge import Capture, run
 from odoo.exceptions import UserError
 import time
-import shlex
 import tempfile
 from copy import deepcopy
 from pathlib import Path
@@ -20,10 +19,16 @@ DEFAULT_ENV = {
 
 
 class ShellExecutor(object):
-    class TimeoutConnection(Exception): pass
-    class TimeoutFinished(Exception): pass
+    class TimeoutConnection(Exception):
+        pass
 
-    def __init__(self, ssh_keyfile, machine, cwd, logsio, project_name=None, env=None, user=None):
+    class TimeoutFinished(Exception):
+        pass
+
+    def __init__(
+        self, ssh_keyfile, machine,
+        cwd, logsio, project_name=None, env=None, user=None
+    ):
         self.machine = machine
         self._cwd = Path(cwd) if cwd else None
         self.logsio = logsio
@@ -69,8 +74,6 @@ class ShellExecutor(object):
         # TODO remove in near future (now 6.3.2021)
         if '_main_rsodoo' in str(path):
             raise Exception('check here please')
-        if path == '/mnt/docker_btrfs/workspace/' or path == '/mnt/docker_btrfs/workspace':
-            raise Exception("DO NOT DELETE THIS and remove this!")
         if self.exists(path):
             if self.logsio:
                 self.logsio.info(f"Path {path} exists and is erased now.")
@@ -92,7 +95,7 @@ class ShellExecutor(object):
         return res
 
     def odoo(self, *cmd, allow_error=False, force=False, timeout=None):
-        env={
+        env = {
             'NO_PROXY': "*",
             'DOCKER_CLIENT_TIMEOUT': "600",
             'COMPOSE_HTTP_TIMEOUT': "600",
@@ -126,7 +129,7 @@ class ShellExecutor(object):
     def checkout_commit(self, commit, cwd=None):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
-            self.X(["git", "config", "advice.detachedHead", "false"]) # otherwise checking out a commit brings error message
+            self.X(["git", "config", "advice.detachedHead", "false"])  # otherwise checking out a commit brings error message
             self.X(["git", "clean", "-xdff", commit])
             self.X(["git", "checkout", "-f", commit])
             sha = self.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
@@ -136,6 +139,7 @@ class ShellExecutor(object):
 
     def branch_exists(self, branch, cwd=None):
         res = self.X(["git", "branch", "--no-color"], cwd=cwd)['stdout'].strip().split("\n")
+
         def reformat(x):
             x = x.replace("* ", "")
             x = x.strip()
@@ -144,13 +148,18 @@ class ShellExecutor(object):
         return branch in res
 
     def _after_checkout(self):
-        self.logsio and self.logsio.info(f"Cleaning git...")
-        self.X(["git", "clean", "-xdff"])
-        self.logsio and self.logsio.info(f"Updating submodules...")
-        self.X(["git", "submodule", "update", "--init", "--force", "--recursive"])
-        self.logsio and self.logsio.info(f"_after_checkout finished.")
+        self.logsio and self.logsio.info("Cleaning git...")
+        self.X([
+            "git", "clean", "-xdff"])
+        self.logsio and self.logsio.info("Updating submodules...")
+        self.X([
+            "git", "submodule", "update", "--init", "--force", "--recursive"])
+        self.logsio and self.logsio.info("_after_checkout finished.")
 
-    def X(self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, timeout=None):
+    def X(
+        self, cmd, allow_error=False, env=None,
+        cwd=None, logoutput=True, timeout=None
+    ):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
@@ -222,7 +231,7 @@ class ShellExecutor(object):
         if isinstance(cmd, (tuple, list)):
             cmd = f"{cmd[0]} " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
         cmd = cmd.replace('\n', ' ')
-        #endregion
+        # endregion
 
         # region: Writer Class
         class MyWriter(object):
@@ -248,15 +257,15 @@ class ShellExecutor(object):
                         self.logsio.info(line)
 
         stdwriter, errwriter = MyWriter('info', self.logsio, logoutput), MyWriter('error', self.logsio, logoutput)
-        #endregion
+        # endregion
 
         sshcmd = self._get_ssh_client()
         stop_marker = str(uuid.uuid4()) + str(uuid.uuid4())
         start_marker = str(uuid.uuid4()) + str(uuid.uuid4())
 
         # region: start collecting threads
-        stdout = Capture(buffer_size=-1) # line buffering
-        stderr = Capture(buffer_size=-1) # line buffering
+        stdout = Capture(buffer_size=-1)  # line buffering
+        stderr = Capture(buffer_size=-1)  # line buffering
         data = {
             'stop': False,
             'started': False,
@@ -289,7 +298,7 @@ class ShellExecutor(object):
         tstd.daemon = True
         terr.daemon = True
         [x.start() for x in [tstd, terr]]
-        #endregion
+        # endregion
 
         # region: build command chain
         bashcmd = (
@@ -302,8 +311,11 @@ class ShellExecutor(object):
             bashcmd += f"cd '{cwd}' || exit 15\n"
 
         effective_env = deepcopy(DEFAULT_ENV)
-        if self.env: effective_env.update(self.env)
-        if env: effective_env.update(env)
+        if self.env:
+            effective_env.update(self.env)
+        if env:
+            effective_env.update(env)
+
         for k, v in effective_env.items():
             bashcmd += f'export {k}="{v}"\n'
 
@@ -316,7 +328,7 @@ class ShellExecutor(object):
             f"echo '{stop_marker}' \n"
         )
         # logger.debug(bashcmd)
-        #endregion
+        # endregion
 
         # region: run command
         p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
@@ -366,7 +378,7 @@ class ShellExecutor(object):
             data['stop'] = True
         tstd.join()
         terr.join()
-        #endregion
+        # endregion
 
         # region: evaluate run result
         stdout = '\n'.join(stdwriter.all_lines)
@@ -384,7 +396,7 @@ class ShellExecutor(object):
         # remove last line from bashcmd if good:
         if return_code == 0 and stdout.endswith("\n"):
             stdout = stdout[:-1]
-        #endregion
+        # endregion
 
         return {
             'timeout': timeout_happened,
