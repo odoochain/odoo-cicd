@@ -39,7 +39,7 @@ class Branch(models.Model):
             try:
                 logsio.info("Updating")
                 result = shell.odoo("update", "--since-git-sha", commit, "--no-dangling-check")
-                if result['returncode']:
+                if result['exit_code']:
                     raise Exception("Error at update")
             except Exception as ex:
                 logger.error(ex)
