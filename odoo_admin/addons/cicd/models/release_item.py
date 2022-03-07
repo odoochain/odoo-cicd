@@ -113,6 +113,12 @@ class ReleaseItem(models.Model):
                     return
             if self.release_type == 'hotfix' and not self.branch_ids:
                 raise ValidationError("Hotfix requires explicit branches.")
+
+            if not self.branch_ids:
+                self.state = 'done'
+                # no branches so no release
+                return
+
             if not self.commit_id:  # needs a collected commit with everything on it
                 raise RetryableJobError(
                     "Missing commit",
@@ -251,7 +257,7 @@ class ReleaseItem(models.Model):
             self.branch_ids = [[6, 0, self._filter_out_invalid_branches(self.branch_ids).ids]]
             critical_date = self.final_curtain or arrow.get().datetime
             commits = self._get_commits_within_final_curtains(critical_date)
-            logsio.info(f"Identified following commits under final curtain:")
+            logsio.info("Identified following commits under final curtain:")
             for commit in commits:
                 logsio.info(commit.name)
 
