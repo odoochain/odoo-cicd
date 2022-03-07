@@ -211,12 +211,20 @@ class ShellExecutor(object):
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
 
-        def convert(x):
+        # region: conversions
+        def convert_path(x):
             if isinstance(x, Path):
                 x = str(x)
             return x
 
-        cmd = list(map(convert, cmd))
+        cmd = list(map(convert_path, cmd))
+
+        if isinstance(cmd, (tuple, list)):
+            cmd = f"{cmd[0]} " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
+        cmd = cmd.replace('\n', ' ')
+        #endregion
+
+        # region: Writer Class
         class MyWriter(object):
             def __init__(self, ttype, logsio, logoutput):
                 self.text = [""]
@@ -240,14 +248,13 @@ class ShellExecutor(object):
                         self.logsio.info(line)
 
         stdwriter, errwriter = MyWriter('info', self.logsio, logoutput), MyWriter('error', self.logsio, logoutput)
-
-        if isinstance(cmd, (tuple, list)):
-            cmd = f"{cmd[0]} " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
+        #endregion
 
         sshcmd = self._get_ssh_client()
         stop_marker = str(uuid.uuid4()) + str(uuid.uuid4())
         start_marker = str(uuid.uuid4()) + str(uuid.uuid4())
 
+        # region: start collecting threads
         stdout = Capture(buffer_size=-1) # line buffering
         stderr = Capture(buffer_size=-1) # line buffering
         data = {
@@ -282,8 +289,9 @@ class ShellExecutor(object):
         tstd.daemon = True
         terr.daemon = True
         [x.start() for x in [tstd, terr]]
+        #endregion
 
-        cmd = cmd.replace('\n', ' ')
+        # region: build command chain
         bashcmd = (
             "#!/bin/bash\n"
             "set -o pipefail\n"
@@ -307,8 +315,10 @@ class ShellExecutor(object):
             f"echo 1>&2\n"
             f"echo '{stop_marker}' \n"
         )
-        logger.debug(bashcmd)
+        # logger.debug(bashcmd)
+        #endregion
 
+        # region: run command
         p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
         deadline_started = arrow.get().shift(seconds=10)
         while True:
@@ -356,9 +366,11 @@ class ShellExecutor(object):
             data['stop'] = True
         tstd.join()
         terr.join()
+        #endregion
+
+        # region: evaluate run result
         stdout = '\n'.join(stdwriter.all_lines)
         stderr = '\n'.join(errwriter.all_lines)
-
 
         if p.returncodes:
             return_code = p.returncodes[0]
@@ -372,6 +384,7 @@ class ShellExecutor(object):
         # remove last line from bashcmd if good:
         if return_code == 0 and stdout.endswith("\n"):
             stdout = stdout[:-1]
+        #endregion
 
         return {
             'timeout': timeout_happened,
