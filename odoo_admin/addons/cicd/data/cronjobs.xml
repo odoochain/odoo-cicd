@@ -126,7 +126,7 @@ model.search([]).collect_tested_branches()
 			<field name="code">
 days = int(env['ir.config_parameter'].sudo().get_param(key="delete-jobs-older-than-days", default=10))
 dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
-model.search([('date_created', '&lt;', dt), ('state', '=', 'done')]).unlink()
+model.search([('date_created', '&lt;', dt), ('state', '=', 'done')], limit=100).unlink()
 
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
