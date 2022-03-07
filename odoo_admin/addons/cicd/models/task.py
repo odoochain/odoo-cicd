@@ -115,7 +115,7 @@ class Task(models.Model):
         if not self.branch_id:
             breakpoint()
             raise Exception("Branch not given for task.")
-        with pg_advisory_lock(self.env.cr, self.branch_id.id, detailinfo=f"taskid: {self.id} - {self.name}"):
+        with pg_advisory_lock(self.env.cr, f"task-branch-{self.branch_id.id}", detailinfo=f"taskid: {self.id} - {self.name} at branch {self.branch_id.name}"):
             with self._new_cursor(not now) as env2:
                 self = env2[self._name].browse(self.id)
                 self.state = 'started'
