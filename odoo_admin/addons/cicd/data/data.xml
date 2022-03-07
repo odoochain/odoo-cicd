@@ -3,9 +3,13 @@
 
 	<record model='ir.config_parameter' id='delete_days'>
 		<field name='key'>delete-jobs-older-than-days</field>
-		<field name='value'>10</field>
+		<field name='value'>2</field>
 	</record>
 	
+	<record model='ir.config_parameter' id='delete_days_tasks'>
+		<field name='key'>delete-tasks-older-than-days</field>
+		<field name='value'>10</field>
+	</record>
 
 	</data>
 </odoo>
