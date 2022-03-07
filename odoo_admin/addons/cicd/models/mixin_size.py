@@ -1,6 +1,6 @@
 import humanize
-from odoo import _, api, fields, models, SUPERUSER_ID
-from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from odoo import api, fields, models
+
 
 class MixinSize(models.AbstractModel):
     _name = 'cicd.mixin.size'
@@ -13,5 +13,6 @@ class MixinSize(models.AbstractModel):
         for rec in self:
             rec.size_human = humanize.naturalsize(rec.size)
 
-class MixinSize(models.AbstractModel):
+
+class MixinSizeDocker(models.AbstractModel):
     _name = 'cicd.mixin.docker'
