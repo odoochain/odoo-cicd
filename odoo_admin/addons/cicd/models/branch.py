@@ -266,11 +266,18 @@ class GitBranch(models.Model):
         for rec in self:
             rec.db_size_humanize = humanize.naturalsize(rec.db_size)
 
-    def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, **kwargs):
+    def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, reuse=False, **kwargs):
         for rec in self:
             identity_key = identity_key or f"{rec.repo_id.short}-{rec.name}-{execute}"
             tasks = rec.task_ids.with_context(prefetch_fields=False)
-            if not now and tasks.filtered(lambda x: x.state in [False, 'pending', 'enqueued', 'started'] and x.identity_key == identity_key):
+
+            if reuse and tasks and tasks[0].name == execute and tasks[0].state == 'failed':
+                if tasks[0].queue_job_id and tasks[0].queue_job_id.state in ['failed']:
+                    tasks[0].queue_job_id.state = 'pending'
+                    return
+
+            if not now and tasks.filtered(
+                lambda x: x.state in [False, 'pending', 'enqueued', 'started'] and x.identity_key == identity_key):
                 if silent:
                     return
                 raise ValidationError(f"Task already exists. Not triggered again. Idkey: {identity_key}")
@@ -322,8 +329,8 @@ class GitBranch(models.Model):
             deadline = arrow.get().shift(seconds=30)
             while arrow.get() < deadline:
                 try:
-                    self._make_task("_reload_and_restart", now=True)
-                except RetryableJobError as ex:
+                    self._make_task("_reload_and_restart", now=True, reuse=True)
+                except RetryableJobError:
                     time.sleep(1)
 
         if test_request():
@@ -343,6 +350,8 @@ class GitBranch(models.Model):
         for rec in self:
             project_name = os.environ['CICD_PROJECT_NAME'] + "_" + rec.repo_id.short + "_" + rec.name
             dbname = project_name.lower().replace("-", "_")
+            if any(dbname.startswith(x) for x in "0123456789"):
+                dbname = 'db' + dbname
             if self.env.context.get('testrun'):
                 project_name += self.env.context['testrun']
             # incompatibility to capital letters in btrfs; constraining to lowercase
@@ -442,14 +451,14 @@ class GitBranch(models.Model):
             # removed from mt again because it is slow - in feature system of rs
             #tasks = rec.task_ids # added prefetch=False to fields so all rec.task_ids everywhere should be optimized
 
-            def filter(x):
+            def _filter(x):
                 if x.state in ['failed']:
                     return True
                 if '_docker_get_state' in x.name:
                     return False
                 return True
 
-            rec.task_ids_filtered = [[6, 0, tasks.filtered(filter).ids]]
+            rec.task_ids_filtered = [[6, 0, tasks.filtered(_filter).ids]]
 
     @api.depends('commit_ids')
     def _compute_commit_ids(self):
@@ -518,7 +527,7 @@ class GitBranch(models.Model):
         ])
 
         return {
-            'name': f"Jobs",
+            'name': "Jobs",
             'view_type': 'form',
             'res_model': jobs._name,
             'context': {
