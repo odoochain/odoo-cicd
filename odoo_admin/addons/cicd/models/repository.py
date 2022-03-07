@@ -178,63 +178,67 @@ class Repository(models.Model):
 
     @api.model
     def _cron_fetch(self):
+        breakpoint()
         logsio = None
         repos = self
         if not repos:
             repos = self.search([('autofetch', '=', True)])
 
         for repo in repos:
-            try:
-                if not repo.login_type:
-                    raise ValidationError(f"Login-Type missing for {repo.name}")
-                with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
-                    repo_path = repo._get_main_repo(logsio=logsio)
+            repo.with_delay(identity_key=f"queuejob_fetch_{repo.short}")._queuejob_fetch()
 
-                    with repo.machine_id._gitshell(repo=repo, cwd=repo_path, logsio=logsio) as shell:
-                        updated_branches = set()
 
-                        for remote in repo._get_remotes(shell):
-                            fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'])['stderr'].strip().split("\n")))
-                            for fi in fetch_info:
-                                while "  " in fi:
-                                    fi = fi.replace("  ", " ")
-                                fi = fi.strip()
-                                if '[new tag]' in fi:
-                                    continue
-                                elif '[new branch]' in fi:
-                                    branch = fi.replace("[new branch]", "").split("->")[0].strip()
-                                else:
-                                    branch = fi.split("/")[-1]
-                                try:
-                                    branch = repo._clear_branch_name(branch)
-                                except InvalidBranchName:
-                                    logsio.error("Invalid Branch name: {branch}")
-                                    continue
+    def _queuejob_fetch(self):
+        self.ensure_one()
+        try:
+            if not self.login_type:
+                raise ValidationError(f"Login-Type missing for {self.name}")
+            with LogsIOWriter.GET(self.name, 'fetch') as logsio:
+                repo_path = self._get_main_repo(logsio=logsio)
 
-                                if not branch.startswith(repo.release_tag_prefix):
-                                    updated_branches.add(branch)
+                with self.machine_id._gitshell(repo=self, cwd=repo_path, logsio=logsio) as shell:
+                    updated_branches = set()
 
-                            del fetch_info
+                    for remote in self._get_remotes(shell):
+                        fetch_info = list(filter(lambda x: " -> " in x, shell.X(["git", "fetch", remote, '--dry-run'])['stderr'].strip().split("\n")))
+                        for fi in fetch_info:
+                            while "  " in fi:
+                                fi = fi.replace("  ", " ")
+                            fi = fi.strip()
+                            if '[new tag]' in fi:
+                                continue
+                            elif '[new branch]' in fi:
+                                branch = fi.replace("[new branch]", "").split("->")[0].strip()
+                            else:
+                                branch = fi.split("/")[-1]
+                            try:
+                                branch = self._clear_branch_name(branch)
+                            except InvalidBranchName:
+                                logsio.error("Invalid Branch name: {branch}")
+                                continue
 
-                        if not updated_branches:
-                            continue
+                            if not branch.startswith(self.release_tag_prefix):
+                                updated_branches.add(branch)
 
-                        for branch in set(updated_branches):
-                            repo.with_delay(
-                                identity_key=f'fetch_updated_branch_{repo.short or repo.name}_branch:{branch}',
-                            )._cron_fetch_update_branches({
-                                'updated_branches': [branch],
-                            })
-                            del branch
+                        del fetch_info
 
-            except Exception:
-                msg = traceback.format_exc()
-                if logsio:
-                    logsio.error(msg)
-                logger.error('error', exc_info=True)
-                if len(self) == 1:
-                    raise
-                continue
+                    if not updated_branches:
+                        return
+
+                    for branch in set(updated_branches):
+                        self.with_delay(
+                            identity_key=f'fetch_updated_branch_{self.short or self.name}_branch:{branch}',
+                        )._cron_fetch_update_branches({
+                            'updated_branches': [branch],
+                        })
+                        del branch
+
+        except Exception:
+            msg = traceback.format_exc()
+            if logsio:
+                logsio.error(msg)
+            logger.error('error', exc_info=True)
+            raise
 
     def _clean_remote_branches(self, branches):
         """
