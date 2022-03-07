@@ -49,8 +49,8 @@ class Task(models.Model):
             self.env.cr.execute("select state, exc_info from queue_job where uuid=%s", (rec.queuejob_uuid,))
             qj = self.env.cr.fetchone()
             if not qj:
-                rec.state = False
-                rec.error = False
+                # keep last state as queuejobs are deleted from time to time
+                pass
             else:
                 rec.state = qj[0]
                 rec.error = qj[1]
