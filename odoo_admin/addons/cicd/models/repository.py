@@ -484,7 +484,9 @@ class Repository(models.Model):
 
             # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
             db_registry = registry(self.env.cr.dbname)
-            branches = repo.branch_ids.filtered(lambda x: (x.last_access or x.date_registered).strftime(
+            branches = repo.branch_ids.filtered(
+                lambda x: x.last_access or x.date_registered).filtered(
+                lambda x: (x.last_access or x.date_registered).strftime(
                 "%Y-%m-%d %H:%M:%S") < dt)
             with db_registry.cursor() as cr:
                 env = api.Environment(cr, SUPERUSER_ID)

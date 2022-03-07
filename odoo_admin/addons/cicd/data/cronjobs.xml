@@ -124,7 +124,7 @@ model.search([]).collect_tested_branches()
 			<field name="model_id" ref="queue_job.model_queue_job" />
 			<field name="state">code</field>
 			<field name="code">
-days = int(self.env['ir.config_parameter'].sudo().get_param(key="delete-jobs-older-than-days", default=10))
+days = int(env['ir.config_parameter'].sudo().get_param(key="delete-jobs-older-than-days", default=10))
 dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
 model.search([('date_created', '&lt;', dt), ('state', '=', 'done')]).unlink()
 env['cicd.task'].search([('date_created', '&lt;', dt), ('state', '=', 'done')]).unlink()
