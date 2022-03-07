@@ -41,14 +41,16 @@ class ShellExecutor(object):
         self.user = user
 
     @contextmanager
-    def clone(self, cwd=None, env=None, user=None):
+    def clone(self, cwd=None, env=None, user=None, project_name=None):
         env2 = deepcopy(self.env)
         env2.update(env or {})
         user = user or self.user
         cwd = cwd or self.cwd
+        project_name = project_name or self.project_name
         shell2 = ShellExecutor(
             self.ssh_keyfile, self.machine, cwd,
-            self.logsio, self.project_name, env2, user=user)
+            self.logsio, project_name, env2, user=user
+        )
         yield shell2
 
     @property
