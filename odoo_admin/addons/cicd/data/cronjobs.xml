@@ -126,7 +126,25 @@ model.search([]).collect_tested_branches()
 			<field name="code">
 days = int(env['ir.config_parameter'].sudo().get_param(key="delete-jobs-older-than-days", default=10))
 dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
-model.search([('date_created', '&lt;', dt), ('state', '=', 'done')], limit=100).unlink()
+model.search([('date_created', '&lt;', dt), ('state', '=', 'done')], limit=500).unlink()
+model.search([('identity_key', 'ilike', 'queuejob_fetch'), ('state', '=', 'done')], limit=200, order='id asc').unlink()
+
+			</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="clear_old_mail_messages" model="ir.cron">
+			<field name="name">clear_old_mail_messages</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_mail_message" />
+			<field name="state">code</field>
+			<field name="code">
+days = int(env['ir.config_parameter'].sudo().get_param(key="delete-tasks-older-than-days", default=10))
+dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+ids = tuple(model.search([('date_created', '&lt;', dt)], limit=500).ids)
+if ids:
+	env.cr.execute("delete from mail_message where id in %s", (ids, ))
 
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
@@ -141,7 +159,7 @@ model.search([('date_created', '&lt;', dt), ('state', '=', 'done')], limit=100).
 			<field name="code">
 days = int(env['ir.config_parameter'].sudo().get_param(key="delete-tasks-older-than-days", default=10))
 dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
-model.search([('date_created', '&lt;', dt)], limit=100).unlink()
+model.search([('date_created', '&lt;', dt)], limit=500).unlink()
 
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
