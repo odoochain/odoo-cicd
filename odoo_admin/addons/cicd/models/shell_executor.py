@@ -205,7 +205,7 @@ class ShellExecutor(object):
             capt = Capture()
             p = run(cmd + f" '{filename}' '{host}:{dest}'", stdout=capt, stderr=capt)
             if p.commands[0].returncode:
-                raise Exception("Transfer failed")
+                raise Exception(f"Transfer failed to {host}:{dest}")
         finally:
             filename.unlink()
 
