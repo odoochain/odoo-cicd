@@ -249,6 +249,8 @@ class ReleaseItem(models.Model):
         if self.state not in ('new'):
             return
             # raise ValidationError("Branches can only be changed in state 'new'.")
+        if not self.branch_ids:
+            return
 
         # fetch latest commits:
         with self.release_id._get_logsio() as logsio:

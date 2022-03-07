@@ -40,7 +40,7 @@ class Release(models.Model):
                     raise ValidationError("Invalid Project-Name")
 
     def make_hotfix(self):
-        existing = self.item_ids.filtered(lambda x: x.release_type == 'hotfix' and x.state not in ['done', 'failed'])
+        existing = self.item_ids.with_context(prefetch_fields=False).filtered(lambda x: x.release_type == 'hotfix' and x.state not in ['done', 'failed'])
         if existing:
             raise ValidationError("Hotfix already exists. Please finish it before")
         self.item_ids = [[0, 0, {
@@ -49,7 +49,7 @@ class Release(models.Model):
 
     def _compute_latest_release_done(self):
         for rec in self:
-            items = rec.item_ids.sorted(lambda x: x.create_date, reverse=True)
+            items = rec.item_ids.with_context(prefetch_fields=False).sorted(lambda x: x.create_date, reverse=True)
             if not items:
                 rec.is_latest_release_done = False
             else:
@@ -93,7 +93,7 @@ class Release(models.Model):
     def _cron_schedule_release_times(self):
         for self in self:
             self.ensure_one()
-            new_items = self.item_ids.filtered(lambda x: x.state == 'new')
+            new_items = self.with_context(prefetch_fields=False).item_ids.filtered(lambda x: x.state == 'new')
             final_curtain_dt = arrow.get().shift(minutes=self.countdown_minutes).strftime("%Y-%m-%d %H:%M:%S")
             if not new_items:
                 new_items = self.item_ids.create({
@@ -112,7 +112,7 @@ class Release(models.Model):
             yield logsio
 
     def _ensure_item(self):
-        items = self.item_ids.sorted(lambda x: x.id, reverse=True).filtered(lambda x: x. release_type == 'standard')
+        items = self.with_context(prefetch_fields=False).item_ids.sorted(lambda x: x.id, reverse=True).filtered(lambda x: x. release_type == 'standard')
         if not items or items[0].state in ['done', 'failed']:
             items = self.item_ids.create({
                 'release_id': self.id,
@@ -124,7 +124,7 @@ class Release(models.Model):
     def do_release_if_planned(self):
         breakpoint()
         for rec in self:
-            item = rec.item_ids.filtered(lambda x: x.state in ('new')).sorted(lambda x: x.id)
+            item = rec.item_ids.with_context(prefetch_fields=False).filtered(lambda x: x.state in ('new')).sorted(lambda x: x.id)
             if not item:
                 continue
             item = item[0]
@@ -136,9 +136,9 @@ class Release(models.Model):
     def collect_tested_branches(self):
         breakpoint()
         for rec in self:
-            new_ones = rec.item_ids.filtered(lambda x: x.state in ('new'))
+            new_ones = rec.item_ids.with_context(prefetch_fields=False).filtered(lambda x: x.state in ('new'))
             if not new_ones:
-                items = rec.item_ids.filtered(lambda x: x.state != 'ignore')
+                items = rec.item_ids.with_context(prefetch_fields=False).filtered(lambda x: x.state != 'ignore')
                 if not items or items[0].planned_date < fields.Datetime.now():
                     # check if the last deploy date passed
                     new_ones = new_ones.create({'release_id': rec.id})
@@ -151,7 +151,7 @@ class Release(models.Model):
     def _technically_do_release(self, release_item, merge_commit_id):
         """
         merge_commit_id: after merging the main branch with the candidate branch
-          a new commit is created.
+        a new commit is created.
         """
 
         errors = self.action_ids.run_action_set(release_item, self.action_ids, merge_commit_id)

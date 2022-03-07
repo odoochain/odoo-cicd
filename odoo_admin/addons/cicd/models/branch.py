@@ -267,7 +267,9 @@ class GitBranch(models.Model):
             tasks = rec.task_ids.with_context(prefetch_fields=False)
 
             if reuse and tasks and tasks[0].name == execute and tasks[0].state == 'failed':
-                if tasks[0].queue_job_id and tasks[0].queue_job_id.state in ['failed']:
+                if now:
+                    tasks[0].perform(now=now)
+                elif tasks[0].queue_job_id and tasks[0].queue_job_id.state in ['failed']:
                     tasks[0].queue_job_id.state = 'pending'
                     return
 
@@ -322,11 +324,13 @@ class GitBranch(models.Model):
             test_request()
         except Exception:
             deadline = arrow.get().shift(seconds=30)
-            while arrow.get() < deadline:
+            while True:
                 try:
                     self._make_task("_reload_and_restart", now=True, reuse=True)
                 except RetryableJobError:
                     time.sleep(1)
+                if arrow.get() > deadline:
+                    raise ValidationError("Timeout: could start instance within a certain amount of time - please check logs if there is bug in the source code of the instance or contact your developer")
 
         if test_request():
             return
