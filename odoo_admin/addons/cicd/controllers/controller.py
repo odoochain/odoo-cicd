@@ -81,3 +81,10 @@ class Controller(http.Controller):
             url = f'/web'
         redirect = request.redirect(url)
         return redirect
+
+    @http.route("/trigger/repo/update")
+    def _trigger_repo_update(self, **kwargs):
+        repos = request.env['cicd.git.repo'].sudo().search([])
+        for repo in repos:
+            repo.with_delay()._queuejob_fetch()
+        return "Thanks for informing"
