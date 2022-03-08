@@ -82,10 +82,12 @@ class Controller(http.Controller):
         redirect = request.redirect(url)
         return redirect
 
-    @http.route("/trigger/repo/<webhook_id>", auth='public', type="json")
-    def _trigger_repo_update(self, webhook_id, **kwargs):
+    @http.route("/trigger/repo/<webhook_id>/<webhook_secret>", auth='public', type="json")
+    def _trigger_repo_update(self, webhook_id, webhook_secret, **kwargs):
         repos = request.env['cicd.git.repo'].sudo().search([
-            ('webhook_id', '=', webhook_id)])
+            ('webhook_id', '=', webhook_id),
+            ('webhook_secret', '=', webhook_secret),
+        ])
         if not repos:
             raise Exception("Invalid webhook")
         for repo in repos:

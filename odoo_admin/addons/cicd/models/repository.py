@@ -24,6 +24,7 @@ class Repository(models.Model):
 
     short = fields.Char(compute="_compute_shortname", string="Name", compute_sudo=True)
     webhook_id = fields.Char("Webhook ID", help="/trigger/repo/<this id>")
+    webhook_secret = fields.Char("Webhook Secret")
     machine_id = fields.Many2one('cicd.machine', string="Development Machine", required=True, domain=[('ttype', '=', 'dev')])
     name = fields.Char("URL", required=True)
     login_type = fields.Selection([
