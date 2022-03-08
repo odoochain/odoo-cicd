@@ -16,6 +16,7 @@ from contextlib import contextmanager
 import logging
 from .consts import STATES
 from odoo.addons.queue_job.exception import RetryableJobError
+from itertools import groupby
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,9 @@ class GitBranch(models.Model):
         tracking=True,
     )
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
-    release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
+
+    release_item_ids = fields.Many2many('cicd.release.item', string="Releases")
+    computed_release_item_ids = fields.Many2many('cicd.release.item', "Releases", compute="_compute_releases")
 
     any_testing = fields.Boolean(compute="_compute_any_testing")
     run_unittests = fields.Boolean("Run Unittests", default=True, testrun_field=True)
@@ -127,14 +130,11 @@ class GitBranch(models.Model):
 
     def _compute_releases(self):
         for rec in self:
+            release_items = rec.release_item_ids.ids
             releases = self.env['cicd.release'].search([('repo_id', '=', rec.repo_id.id)])
             if rec in releases.branch_id or rec.name in releases.mapped('candidate_branch'):
                 release_items = releases.filtered(lambda x: x.branch_id == rec or x.candidate_branch == rec.name).item_ids
-            else:
-                release_items = self.env['cicd.release.item'].search([
-                    ('commit_ids', 'in', rec.commit_ids.ids)
-                ])
-            rec.release_item_ids = release_items.ids
+            rec.computed_release_item_ids = release_items.ids
 
     def approve(self):
         self.approver_ids = [[0, 0, {
@@ -173,6 +173,7 @@ class GitBranch(models.Model):
         "commit_ids.force_approved",
         "commit_ids.test_run_ids",
         "commit_ids.test_run_ids.state",
+        "release_item_ids.state",
     )
     def _compute_state(self):
         for rec in self:
@@ -197,21 +198,27 @@ class GitBranch(models.Model):
             elif commit.test_state == 'failed' or commit.approval_state == 'declined':
                 state = 'dev'
 
-            elif ((commit.test_state == 'success' or (not rec.any_testing and commit.test_state in [False, 'open', 'running'])) or commit.force_approved) and commit.approval_state == 'approved':
-                repo = commit.mapped('branch_ids.repo_id')
-                latest_release_items = self.env['cicd.release.item']
-                for release in repo.release_ids:
-                    if release.item_ids.filtered(lambda x: x.state != 'ignore'):
-                        latest_release_items |= release.item_ids[0]
-                all_done_items = repo.mapped('release_ids.item_ids').filtered(lambda x: x.state in ['done'])
+            elif rec.block_release:
+                state = 'blocked'
 
-                if rec.block_release:
-                    state = 'blocked'
-                elif any(x.mapped('branch_ids').contains_commit(commit) for x in latest_release_items.filtered(lambda x: x.state in ['new', 'failed'])):
+            elif (commit.test_state == 'success' or not rec.any_testing or commit.force_approved) and commit.approval_state == 'approved':
+                release_items = rec.release_items_ids.filtered(lambda ri: ri.state != 'ignore')
+                release_states = release_items.mapped('state')
+                
+                latest_states = set()
+                keyfunc = lambda ri: ri.release_id
+                release_items_by_release = groupby(release_items.sorted(keyfunc), keyfunc)
+
+                for release, release_items in release_items_by_release.items():
+                    release_items = release_items.sorted()
+                    latest_state = release_items and release_items[0].state
+                    latest_states.add(last_state)
+
+                if set(['new', 'failed']) & latest_states:
                     state = 'candidate'
-                elif any(x.mapped('branch_ids').contains_commit(commit) for x in all_done_items):
+                elif list(latest_states) == ['done']:
                     state = 'done'
-                elif (commit.test_state in [False, 'open', 'running'] and not rec.any_testing) or commit.test_state == 'success' or commit.force_approved:
+                else:
                     state = 'tested'
 
             if state != rec.state:

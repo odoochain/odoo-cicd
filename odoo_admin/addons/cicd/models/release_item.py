@@ -17,7 +17,7 @@ class ReleaseItem(models.Model):
     _log_access = False
 
     name = fields.Char("Version")
-    release_id = fields.Many2one('cicd.release', string="Release")
+    release_id = fields.Many2one('cicd.release', string="Release", required=True, ondelete="cascade")
     planned_date = fields.Datetime("Planned Deploy Date", default=lambda self: fields.Datetime.now(), tracking=True)
     done_date = fields.Datetime("Done", tracking=True)
     changed_lines = fields.Integer("Changed Lines", tracking=True)
