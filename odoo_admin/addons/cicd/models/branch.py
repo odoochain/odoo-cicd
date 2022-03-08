@@ -203,13 +203,20 @@ class GitBranch(models.Model):
 
             elif (commit.test_state == 'success' or not rec.any_testing or commit.force_approved) and commit.approval_state == 'approved':
                 release_items = rec.release_item_ids.filtered(lambda ri: ri.state != 'ignore')
-                
+
                 latest_states = set()
                 keyfunc = lambda ri: ri.release_id
                 release_items_by_release = groupby(release_items.sorted(keyfunc), keyfunc)
 
                 for release, release_items in release_items_by_release:
+                    # suggestion for next line:
+                    # release_item = next(release_items):
+                    # reason: avoid iteration of all release_items and sorting them; may be several thousands after
+                    # some time; release_items is sorted by the _order by odoo itself
                     release_items = self.env['cicd.release.item'].union(*release_items).sorted()
+
+                    # suggestion for next 2 lines:
+                    # latest_state |= set(release_item.mapped('state')[:1]) as  [][:1] == []
                     latest_state = release_items and release_items[0].state
                     latest_states.add(latest_state)
 
