@@ -58,7 +58,6 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
     lock = _int_lock(lock)
     cr.execute("SELECT pg_try_advisory_lock(%s);", (lock,))
     if not cr.fetchone()[0]:
-        breakpoint()
         trace = '\n'.join(traceback.format_stack())
         raise RetryableJobError(
             f"Lock could not be acquired: {lock} {detailinfo}\n{trace}",
