@@ -184,7 +184,7 @@ class ReleaseItem(models.Model):
     def _collect_tested_branches(self, repo):
         breakpoint()
         for rec in self:
-            if rec.type == 'hotfix':
+            if rec.release_type == 'hotfix':
                 continue
             if rec.state not in ['new']:
                 continue
