@@ -36,6 +36,7 @@
 							<field name="remove_web_assets_after_restore"/>
 							<field name="ttype"/>
 							<field name="analyze_last_n_commits"/>
+							<field name="webhook_id"/>
 						</group>
 						<notebook>
 							<page name="cleanup" string="Cleanup">

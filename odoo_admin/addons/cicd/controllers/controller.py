@@ -78,14 +78,16 @@ class Controller(http.Controller):
             menu_id = request.env.ref("cicd.root_menu").id
             url = f"/web#menu_id={menu_id}&model=cicd.git.branch&id={branch and branch.id or 0}&view_type=form"
         else:
-            url = f'/web'
+            url = '/web'
         redirect = request.redirect(url)
         return redirect
 
-    @http.route("/trigger/repo/<short_repo_name>")
-    def _trigger_repo_update(self, short_repo_name, **kwargs):
-        repos = request.env['cicd.git.repo'].sudo().search([])
+    @http.route("/trigger/repo/<webhook_id>")
+    def _trigger_repo_update(self, webhook_id, **kwargs):
+        repos = request.env['cicd.git.repo'].sudo().search([
+            ('webhook_id', '=', webhook_id)])
+        if not repos:
+            raise Exception("Invalid webhook")
         for repo in repos:
-            if repo.short == short_repo_name:
-                repo.with_delay(identity_key=f'queuejob_fetch {repo.short}')._queuejob_fetch()
+            repo.with_delay(identity_key=f'queuejob_fetch {repo.short}')._queuejob_fetch()
         return "Thanks for informing"
