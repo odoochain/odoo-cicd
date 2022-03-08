@@ -1,4 +1,7 @@
 from contextlib import contextmanager
+import base64
+import tempfile
+import subprocess
 import datetime
 from . import pg_advisory_lock
 import psycopg2
@@ -411,6 +414,10 @@ ODOO_LOG_LEVEL=error
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo('build')
+        host_run_dir = [x for x in shell.odoo('config', '--full')['stdout'].splitlines() if 'HOST_RUN_DIR:' in x]
+        host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
+        robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
+
         def _x(item):
             shell.odoo("snap", "restore", shell.project_name)
 
@@ -419,12 +426,19 @@ ODOO_LOG_LEVEL=error
             shell.odoo('update')
 
             self._wait_for_postgres(shell)
-            import pudb;pudb.set_trace()
+            shell.odoo('up', '-d')
+            self._wait_for_postgres(shell)
+
             try:
                 shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
-            except Exception as ex:
+            except Exception:
                 # test failed - no prob - just collect outputs
                 pass
+            robot_results_tar = shell.grab_folder_as_tar(robot_out)
+            robot_results_tar = base64.encodestring(robot_results_tar)
+            return {
+                'robot_output': robot_results_tar,
+            }
 
         self._generic_run(
             shell, logsio, files,
@@ -455,9 +469,9 @@ ODOO_LOG_LEVEL=error
                 continue
 
             self._wait_for_postgres(shell)
-        
+
             self._generic_run(
-                shell, logsio, tests, 
+                shell, logsio, tests,
                 'unittest',
                 lambda item: shell.odoo(
                     'unittest',
@@ -468,7 +482,7 @@ ODOO_LOG_LEVEL=error
                 try_count=self.branch_id.retry_unit_tests,
                 name_prefix=f"({i} / {len(tests_by_module)}) {module} "
             )
-    
+
     def _get_unit_tests_by_modules(self, files):
         tests_by_module = {}
         for fpath in files:
@@ -478,7 +492,7 @@ ODOO_LOG_LEVEL=error
             if fpath not in tests_by_module[module]:
                 tests_by_module[module].append(fpath)
         return tests_by_module
- 
+
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1, name_prefix=''):
         """
         Timeout in seconds.
@@ -497,7 +511,7 @@ ODOO_LOG_LEVEL=error
                 name = name_prefix
                 if len_todo > 1:
                     name += f"({i + 1} / {len_todo}) "
-                
+
                 name += item
                 started = arrow.get()
                 data = {
@@ -509,7 +523,9 @@ ODOO_LOG_LEVEL=error
                 }
                 try:
                     logsio.info(f"Running {name}")
-                    execute_run(item)
+                    result = execute_run(item)
+                    if result:
+                        data.update(result)
 
                 except Exception:
                     msg = traceback.format_exc()
@@ -544,6 +560,7 @@ ODOO_LOG_LEVEL=error
             )
 
 class CicdTestRunLine(models.Model):
+    _inherit = 'cicd.open.window.mixin'
     _name = 'cicd.test.run.line'
     _order = 'started desc'
 
@@ -567,6 +584,7 @@ class CicdTestRunLine(models.Model):
     force_success = fields.Boolean("Force Success")
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
     try_count = fields.Integer("Try Count")
+    robot_output = fields.Binary("Robot Output", attachment=True)
 
     def toggle_force_success(self):
         self.sudo().force_success = not self.sudo().force_success
@@ -577,13 +595,9 @@ class CicdTestRunLine(models.Model):
             if rec.run_id.state not in ['running']:
                 rec.run_id._compute_success_rate()
 
-    def open_form(self):
+    def robot_results(self):
         return {
-            'name': self.name,
-            'view_type': 'form',
-            'res_model': self._name,
-            'res_id': self.id,
-            'views': [(False, 'form')],
-            'type': 'ir.actions.act_window',
-            'target': 'current',
+            'type': 'ir.actions.act_url',
+            'url': f'/robot_output/{self.id}',
+            'target': 'new'
         }

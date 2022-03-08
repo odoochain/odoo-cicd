@@ -1,4 +1,7 @@
 import base64
+from pathlib import Path
+import subprocess
+import tempfile
 import arrow
 from odoo import http
 from odoo.http import content_disposition, request
@@ -96,3 +99,26 @@ class Controller(http.Controller):
             # the event could be lost
             repo.with_delay()._queuejob_fetch()
         return {"result": "ok"}
+
+    @http.route("/robot_output/<model('cicd.test.run.line'):line>")
+    def robot_output(self, line, **kwargs):
+        line = line.sudo()
+        if not line.robot_output:
+            return 'no data'
+
+        path = f"/tmp/robot_output/{request.env.cr.dbname}/{line.id}"
+        path.mkdir(exist_ok=True, parents=True)
+
+        filename = Path(tempfile.mktemp())
+        try:
+            content = base64.b64decode(line.robot_output)
+            filename.write_bytes(content)
+
+            subprocess.check_call([
+                "tar", "xfz", filename
+            ], cwd=path)
+
+        finally:
+            if filename.exists():
+                filename.unlink()
+
