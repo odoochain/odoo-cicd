@@ -203,7 +203,6 @@ class GitBranch(models.Model):
 
             elif (commit.test_state == 'success' or not rec.any_testing or commit.force_approved) and commit.approval_state == 'approved':
                 release_items = rec.release_item_ids.filtered(lambda ri: ri.state != 'ignore')
-                release_states = release_items.mapped('state')
                 
                 latest_states = set()
                 keyfunc = lambda ri: ri.release_id
