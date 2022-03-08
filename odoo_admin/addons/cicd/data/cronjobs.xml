@@ -2,7 +2,7 @@
 	<data noupdate='0'>
 		<record id="fetch_new_branches" model="ir.cron">
 			<field name="name">cicd.git.repo:_cron_fetch()</field>
-			<field name="interval_number">5</field>
+			<field name="interval_number">30</field>
 			<field name="interval_type">seconds</field>
 			<field name="model_id" ref="model_cicd_git_repo" />
 			<field name="state">code</field>
