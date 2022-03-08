@@ -212,7 +212,7 @@ class GitBranch(models.Model):
                 for release, release_items in release_items_by_release:
                     release_items = self.env['cicd.release.item'].union(*release_items).sorted()
                     latest_state = release_items and release_items[0].state
-                    latest_states.add(last_state)
+                    latest_states.add(latest_state)
 
                 if set(['new', 'failed']) & latest_states:
                     state = 'candidate'
