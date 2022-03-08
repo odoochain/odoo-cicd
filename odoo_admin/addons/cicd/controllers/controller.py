@@ -91,5 +91,8 @@ class Controller(http.Controller):
         if not repos:
             raise Exception("Invalid webhook")
         for repo in repos:
-            repo.with_delay(identity_key=f'queuejob_fetch {repo.short}')._queuejob_fetch()
+            # no identity key, why:
+            # 2 quick push events shall trigger a fetch, otherwise in very rare conditions
+            # the event could be lost
+            repo.with_delay()._queuejob_fetch()
         return {"result": "ok"}
