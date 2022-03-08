@@ -209,7 +209,7 @@ class GitBranch(models.Model):
                 release_items_by_release = groupby(release_items.sorted(keyfunc), keyfunc)
 
                 for release, release_items in release_items_by_release:
-                    release_items = self.env['cicd.release.item'].union(*release_items).sorted()
+                    release_items = self.env['cicd.release.item'].union(*release_items).sorted(lambda x: x.id)
                     latest_state = release_items and release_items[0].state
                     latest_states.add(latest_state)
 
@@ -233,7 +233,7 @@ class GitBranch(models.Model):
 
             def _update():
                 self.env['cicd.release.item'].search([
-                    ('state', 'in', ['new', 'failed']),
+                    ('state', 'in', ['new']),
                     ('release_id.repo_id', '=', rec.repo_id.id)
                 ])._collect_tested_branches(self.repo_id)
 

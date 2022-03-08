@@ -73,9 +73,6 @@ class ShellExecutor(object):
         return self.remove(path)
 
     def remove(self, path):
-        # TODO remove in near future (now 6.3.2021)
-        if '_main_rsodoo' in str(path):
-            raise Exception('check here please')
         if self.exists(path):
             if self.logsio:
                 self.logsio.info(f"Path {path} exists and is erased now.")
