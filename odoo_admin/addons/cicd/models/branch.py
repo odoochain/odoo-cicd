@@ -209,7 +209,7 @@ class GitBranch(models.Model):
                 keyfunc = lambda ri: ri.release_id
                 release_items_by_release = groupby(release_items.sorted(keyfunc), keyfunc)
 
-                for release, release_items in release_items_by_release.items():
+                for release, release_items in release_items_by_release:
                     release_items = release_items.sorted()
                     latest_state = release_items and release_items[0].state
                     latest_states.add(last_state)
