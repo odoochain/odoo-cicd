@@ -402,7 +402,7 @@ ODOO_LOG_LEVEL=error
             self._wait_for_postgres(shell)
 
         self._generic_run(
-            shell, logsio, [None], 
+            shell, logsio, [None],
             'migration', _x,
         )
 
@@ -413,16 +413,21 @@ ODOO_LOG_LEVEL=error
         shell.odoo('build')
         def _x(item):
             shell.odoo("snap", "restore", shell.project_name)
-            
+
             self._wait_for_postgres(shell)
             logsio.info('update started')
             shell.odoo('update')
-            
+
             self._wait_for_postgres(shell)
-            shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
+            import pudb;pudb.set_trace()
+            try:
+                shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
+            except Exception as ex:
+                # test failed - no prob - just collect outputs
+                pass
 
         self._generic_run(
-            shell, logsio, files, 
+            shell, logsio, files,
             'robottest', _x,
         )
 
@@ -432,7 +437,7 @@ ODOO_LOG_LEVEL=error
             cmd += ['--all']
         files = shell.odoo(*cmd)['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
-    
+
         tests_by_module = self._get_unit_tests_by_modules(files)
         i = 0
         for module, tests in tests_by_module.items():
