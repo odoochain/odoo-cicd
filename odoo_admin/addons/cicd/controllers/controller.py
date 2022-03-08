@@ -78,6 +78,21 @@ class Controller(http.Controller):
             menu_id = request.env.ref("cicd.root_menu").id
             url = f"/web#menu_id={menu_id}&model=cicd.git.branch&id={branch and branch.id or 0}&view_type=form"
         else:
-            url = f'/web'
+            url = '/web'
         redirect = request.redirect(url)
         return redirect
+
+    @http.route("/trigger/repo/<webhook_id>/<webhook_secret>", auth='public', type="json")
+    def _trigger_repo_update(self, webhook_id, webhook_secret, **kwargs):
+        repos = request.env['cicd.git.repo'].sudo().search([
+            ('webhook_id', '=', webhook_id),
+            ('webhook_secret', '=', webhook_secret),
+        ])
+        if not repos:
+            raise Exception("Invalid webhook")
+        for repo in repos:
+            # no identity key, why:
+            # 2 quick push events shall trigger a fetch, otherwise in very rare conditions
+            # the event could be lost
+            repo.with_delay()._queuejob_fetch()
+        return {"result": "ok"}

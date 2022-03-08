@@ -154,3 +154,6 @@ class Branch(models.Model):
 
     def garbage_collect(self):
         self._make_task("_gc")
+
+    def fetch(self):
+        self.repo_id._fetch_branch(self.name)

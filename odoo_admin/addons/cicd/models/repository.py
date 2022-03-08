@@ -23,6 +23,8 @@ class Repository(models.Model):
     _name = 'cicd.git.repo'
 
     short = fields.Char(compute="_compute_shortname", string="Name", compute_sudo=True)
+    webhook_id = fields.Char("Webhook ID", help="/trigger/repo/<this id>")
+    webhook_secret = fields.Char("Webhook Secret")
     machine_id = fields.Many2one('cicd.machine', string="Development Machine", required=True, domain=[('ttype', '=', 'dev')])
     name = fields.Char("URL", required=True)
     login_type = fields.Selection([
@@ -226,11 +228,7 @@ class Repository(models.Model):
                         return
 
                     for branch in set(updated_branches):
-                        self.with_delay(
-                            identity_key=f'fetch_updated_branch_{self.short or self.name}_branch:{branch}',
-                        )._cron_fetch_update_branches({
-                            'updated_branches': [branch],
-                        })
+                        self._fetch_branch(branch)
                         del branch
 
         except Exception:
@@ -239,6 +237,15 @@ class Repository(models.Model):
                 logsio.error(msg)
             logger.error('error', exc_info=True)
             raise
+
+    def _fetch_branch(self, branch):
+        assert isinstance(branch, str)
+        self.ensure_one()
+        self.with_delay(
+            identity_key=f'fetch_updated_branch_{self.short or self.name}_branch:{branch}',
+        )._cron_fetch_update_branches({
+            'updated_branches': [branch],
+        })
 
     def _clean_remote_branches(self, branches):
         """
@@ -253,6 +260,7 @@ class Repository(models.Model):
         repo = self
         # checkout latest / pull latest
         updated_branches = data['updated_branches']
+        breakpoint()
 
         with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
             repo_path = repo._get_main_repo(logsio=logsio)
@@ -265,6 +273,7 @@ class Repository(models.Model):
 
                 with repo.machine_id._gitshell(repo, cwd=repo_path, logsio=logsio) as shell:
                     try:
+                        breakpoint()
                         for branch in updated_branches:
                             logsio.info(f"Pulling {branch}...")
                             shell.X(["git", "fetch", "origin", branch])
@@ -338,6 +347,7 @@ class Repository(models.Model):
                             updated_branches.append(repo.default_branch)
 
                     if updated_branches:
+                        breakpoint()
                         repo.clear_caches() # for contains_commit function; clear caches tested in shell and removes all caches; method_name
                         branches = repo.branch_ids.filtered(lambda x: x.name in updated_branches)
                         for branch in branches:

@@ -37,6 +37,11 @@
 							<field name="ttype"/>
 							<field name="analyze_last_n_commits"/>
 						</group>
+						<group string="Webhooks">
+							<div>http://host/trigger/repo/webhook_id/webhook_secret</div>
+							<field name="webhook_id"/>
+							<field name="webhook_secret"/>
+						</group>
 						<notebook>
 							<page name="cleanup" string="Cleanup">
 								<group>
