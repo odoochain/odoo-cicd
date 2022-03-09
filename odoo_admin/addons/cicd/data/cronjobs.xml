@@ -142,7 +142,7 @@ model.search([('identity_key', 'ilike', 'queuejob_fetch'), ('state', '=', 'done'
 			<field name="code">
 days = int(env['ir.config_parameter'].sudo().get_param(key="delete-tasks-older-than-days", default=10))
 dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
-ids = tuple(model.search([('date_created', '&lt;', dt)], limit=500).ids)
+ids = tuple(model.search([('create_date', '&lt;', dt)], limit=500).ids)
 if ids:
 	env.cr.execute("delete from mail_message where id in %s", (ids, ))
 
@@ -159,7 +159,7 @@ if ids:
 			<field name="code">
 days = int(env['ir.config_parameter'].sudo().get_param(key="delete-tasks-older-than-days", default=10))
 dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
-model.search([('date_created', '&lt;', dt)], limit=500).unlink()
+model.search([('create_date', '&lt;', dt)], limit=500).unlink()
 
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
