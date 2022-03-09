@@ -39,6 +39,7 @@ class CicdTestRun(models.Model):
         ('open', 'Ready To Test'),
         ('running', 'Running'),
         ('success', 'Success'),
+        ('omitted', 'Omitted'),
         ('failed', 'Failed'),
     ], string="Result", required=True, default='open')
     success_rate = fields.Integer("Success Rate [%]")
@@ -112,7 +113,6 @@ class CicdTestRun(models.Model):
         report('db reset started')
         shell.odoo('-f', 'db', 'reset')
         # required for turn-into-dev
-        breakpoint()
         shell.odoo('update', 'mail')
 
         self._abort_if_required()
@@ -235,6 +235,7 @@ ODOO_DEMO=1
     # ----------------------------------------------
     # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
     def execute(self, shell=None, task=None, logsio=None):
+        breakpoint()
         with self.branch_id._get_new_logsio_instance('test-run-execute') as logsio2:
             if not logsio:
                 logsio = logsio2
@@ -338,7 +339,6 @@ ODOO_DEMO=1
                 msg = traceback.format_exc()
                 if not passed_prepare:
                     duration = (arrow.get() - started).total_seconds()
-                    breakpoint()
                     self.line_ids = [[0, 0, {
                         'duration': duration,
                         'exc_info': msg,

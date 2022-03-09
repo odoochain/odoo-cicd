@@ -35,6 +35,7 @@ class Task(models.Model):
     commit_id = fields.Many2one("cicd.git.commit", string="Commit", readonly=True)
     queuejob_uuid = fields.Char("Queuejob UUID")
     queue_job_id = fields.Many2one('queue.job', compute="_compute_queuejob", prefetch=False)
+    testrun_id = fields.Many2one('cicd.test.run')
 
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()

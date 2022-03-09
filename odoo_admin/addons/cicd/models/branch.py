@@ -273,9 +273,13 @@ class GitBranch(models.Model):
         for rec in self:
             rec.db_size_humanize = humanize.naturalsize(rec.db_size)
 
-    def _make_task(self, execute, now=False, machine=None, silent=False, identity_key=None, reuse=False, **kwargs):
+    def _make_task(
+        self, execute, now=False, machine=None, silent=False,
+        identity_key=None, reuse=False, testrun_id=None, **kwargs
+    ):
         for rec in self:
-            identity_key = identity_key or f"{rec.repo_id.short}-{rec.name}-{execute}"
+            identity_key = identity_key or \
+                f"{rec.repo_id.short}-{rec.name}-{execute}"
             tasks = rec.task_ids.with_context(prefetch_fields=False)
 
             if reuse and tasks and tasks[0].name == execute and tasks[0].state == 'failed':
@@ -286,10 +290,13 @@ class GitBranch(models.Model):
                     return
 
             if not now and tasks.filtered(
-                lambda x: x.state in [False, 'pending', 'enqueued', 'started'] and x.identity_key == identity_key):
+                lambda x: x.state in [
+                    False, 'pending', 'enqueued', 'started'] and x.identity_key == identity_key):
                 if silent:
                     return
-                raise ValidationError(f"Task already exists. Not triggered again. Idkey: {identity_key}")
+                raise ValidationError(
+                    f"Task already exists. Not triggered again. Idkey: {identity_key}")
+
             task = rec.env['cicd.task'].sudo().create({
                 'model': self._name,
                 'res_id': rec.id,
@@ -298,6 +305,7 @@ class GitBranch(models.Model):
                 'machine_id': (machine and machine.id) or rec.machine_id.id,
                 'identity_key': identity_key if identity_key else False,
                 'kwargs': json.dumps(kwargs),
+                'testrun_id': testrun_id and testrun_id.id or False,
             })
             task.perform(now=now)
 
@@ -435,12 +443,28 @@ class GitBranch(models.Model):
                 branch._make_task(
                     "_run_tests", silent=True, update_state=True, testrun_id=None)
 
-        for testrun in self.env['cicd.test.run'].search([('state', '=', 'open')]):
-            # if a test already exists for the branch no second is created unless the other is done or failed
-            # this is because only one active task per method is allowed
-            testrun.branch_id._make_task(
+        breakpoint()
+        # revive dead test
+        for running in self.env['cicd.test.run'].search([('state', '=', 'running')]):
+            # check if task exists and has an active queuejob
+            tasks = self.env['cicd.task'].search([('testrun_id', '=', running.id)])
+            tasks = tasks.filtered(lambda x: x.queuejob_id.state in ['started', 'enqueued', 'pending'])
+            if not tasks:
+                running.state = 'open'
+
+        def kf(x):
+            return x.branch_id
+
+        tests_by_branch = dict(groupby(self.env['cicd.test.run'].search(
+            [('state', '=', 'open')], order='id desc').sorted(kf), kf))
+        for branch, tests in tests_by_branch.items():
+            tests = self.env['cicd.test.run'].union(*list(tests))
+            if not tests:
+                continue
+            branch._make_task(
                 "_run_tests", silent=True, update_state=True,
-                testrun_id=testrun.id)
+                testrun_id=tests[0].id)
+            tests[1:].write({'state': 'omitted'})
 
     def _trigger_rebuild_after_fetch(self, machine):
         """
