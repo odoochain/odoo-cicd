@@ -94,8 +94,8 @@ class CicdTestRun(models.Model):
     def _abort_if_required(self):
         self.env.cr.commit()
         self.env.clear()
-        if self.do_abort: raise AbortException("User aborted")
-
+        if self.do_abort:
+            raise AbortException("User aborted")
 
     def _prepare_run(self, shell, report, logsio, started):
         self._abort_if_required()
@@ -437,13 +437,14 @@ ODOO_LOG_LEVEL=error
 
             try:
                 shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
+                state = 'success'
             except Exception:
-                # test failed - no prob - just collect outputs
-                pass
+                state = 'failed'
             robot_results_tar = shell.grab_folder_as_tar(robot_out)
             robot_results_tar = base64.encodestring(robot_results_tar)
             return {
                 'robot_output': robot_results_tar,
+                'state': state,
             }
 
         self._generic_run(
@@ -541,7 +542,8 @@ ODOO_LOG_LEVEL=error
                     data['exc_info'] = msg
                     success = False
                 else:
-                    data['state'] = 'success'
+                    if 'state' not in data:  # e.g. robottests return state from run
+                        data['state'] = 'success'
                 end = arrow.get()
                 data['duration'] = (end - started).total_seconds()
                 if data['state'] == 'success':
