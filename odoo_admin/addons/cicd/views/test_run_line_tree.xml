@@ -5,7 +5,7 @@
 			<field name="model">cicd.test.run.line</field>
 			<field name="arch" type="xml">
 				<tree decoration-danger="state == 'failed'" decoration-success="state == 'success'">
-					<button name="open_form" string="" icon="fa-external-link" type="object" />
+					<button name="open_window" string="" icon="fa-external-link" type="object" />
 					<field name="ttype"/>
 					<field name="name"/>
 					<field name="started"/>
@@ -14,6 +14,8 @@
 					<!-- <button string="Toggle" name="toggle_force_success" type="object"/> -->
 					<field name="force_success" widget="boolean_toggle"/>
 					<field name="try_count"/>
+					<field name="robot_output" invisible='1'/>
+					<button name="robot_results" string="" icon="fa-search" type="object" attrs="{'invisible': [('robot_output', '=', False)]}"/>
 				</tree>
 			</field>
 		</record>

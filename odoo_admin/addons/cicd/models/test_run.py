@@ -1,4 +1,7 @@
 from contextlib import contextmanager
+import base64
+import tempfile
+import subprocess
 import datetime
 from . import pg_advisory_lock
 import psycopg2
@@ -96,6 +99,7 @@ class CicdTestRun(models.Model):
 
     def _prepare_run(self, shell, report, logsio, started):
         self._abort_if_required()
+        breakpoint()
         report('building')
         shell.odoo('build')
         report('killing any existing')
@@ -120,6 +124,7 @@ class CicdTestRun(models.Model):
         self._wait_for_postgres(shell)
         report("Storing snapshot done")
         logsio.info("Preparation done")
+        breakpoint()
         report('preparation done', ttype='log', state='success', duration=(arrow.get() - started).total_seconds())
 
         self._abort_if_required()
@@ -317,6 +322,7 @@ ODOO_LOG_LEVEL=error
                 msg = traceback.format_exc()
                 if not passed_prepare:
                     duration = (arrow.get() - started).total_seconds()
+                    breakpoint()
                     self.line_ids = [[0, 0, {
                         'duration': duration,
                         'exc_info': msg,
@@ -385,15 +391,18 @@ ODOO_LOG_LEVEL=error
         self.state = 'open' # regular cronjob makes task for that
 
     def _run_create_empty_db(self, shell, task, logsio):
+
+        def _emptydb(item):
+            self.branch_id._create_empty_db(shell, task, logsio)
+
         self._generic_run(
             shell, logsio, [None], 
-            'emptydb',
-            lambda item: self.branch_id._create_empty_db(shell, task, logsio),
+            'emptydb', _emptydb,
         )
 
     def _run_update_db(self, shell, logsio, **kwargs):
 
-        def _x(item):
+        def _update(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
 
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
@@ -403,7 +412,7 @@ ODOO_LOG_LEVEL=error
 
         self._generic_run(
             shell, logsio, [None],
-            'migration', _x,
+            'migration', _update,
         )
 
     def _run_robot_tests(self, shell, logsio, **kwargs):
@@ -411,7 +420,11 @@ ODOO_LOG_LEVEL=error
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo('build')
-        def _x(item):
+        host_run_dir = [x for x in shell.odoo('config', '--full')['stdout'].splitlines() if 'HOST_RUN_DIR:' in x]
+        host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
+        robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
+
+        def _run_robot_run(item):
             shell.odoo("snap", "restore", shell.project_name)
 
             self._wait_for_postgres(shell)
@@ -419,16 +432,23 @@ ODOO_LOG_LEVEL=error
             shell.odoo('update')
 
             self._wait_for_postgres(shell)
-            import pudb;pudb.set_trace()
+            shell.odoo('up', '-d')
+            self._wait_for_postgres(shell)
+
             try:
                 shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
-            except Exception as ex:
+            except Exception:
                 # test failed - no prob - just collect outputs
                 pass
+            robot_results_tar = shell.grab_folder_as_tar(robot_out)
+            robot_results_tar = base64.encodestring(robot_results_tar)
+            return {
+                'robot_output': robot_results_tar,
+            }
 
         self._generic_run(
             shell, logsio, files,
-            'robottest', _x,
+            'robottest', _run_robot_run,
         )
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
@@ -445,30 +465,31 @@ ODOO_LOG_LEVEL=error
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
 
+            def _update(item):
+                shell.odoo('update', item)
+
             success = self._generic_run(
                 shell, logsio, [module],
-                'unittest',
-                lambda item: shell.odoo('update', item),
+                'unittest', _update,
                 name_prefix='install '
             )
             if not success:
                 continue
 
             self._wait_for_postgres(shell)
-        
+
+            def _unittest(item):
+                shell.odoo(
+                    'unittest', item, "--non-interactive",
+                    timeout=self.branch_id.timeout_tests)
+
             self._generic_run(
-                shell, logsio, tests, 
-                'unittest',
-                lambda item: shell.odoo(
-                    'unittest',
-                    item,
-                    "--non-interactive",
-                    timeout=self.branch_id.timeout_tests,
-                    ),
+                shell, logsio, tests,
+                'unittest', _unittest,
                 try_count=self.branch_id.retry_unit_tests,
                 name_prefix=f"({i} / {len(tests_by_module)}) {module} "
             )
-    
+
     def _get_unit_tests_by_modules(self, files):
         tests_by_module = {}
         for fpath in files:
@@ -478,7 +499,7 @@ ODOO_LOG_LEVEL=error
             if fpath not in tests_by_module[module]:
                 tests_by_module[module].append(fpath)
         return tests_by_module
- 
+
     def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1, name_prefix=''):
         """
         Timeout in seconds.
@@ -497,7 +518,7 @@ ODOO_LOG_LEVEL=error
                 name = name_prefix
                 if len_todo > 1:
                     name += f"({i + 1} / {len_todo}) "
-                
+
                 name += item
                 started = arrow.get()
                 data = {
@@ -509,7 +530,9 @@ ODOO_LOG_LEVEL=error
                 }
                 try:
                     logsio.info(f"Running {name}")
-                    execute_run(item)
+                    result = execute_run(item)
+                    if result:
+                        data.update(result)
 
                 except Exception:
                     msg = traceback.format_exc()
@@ -544,6 +567,7 @@ ODOO_LOG_LEVEL=error
             )
 
 class CicdTestRunLine(models.Model):
+    _inherit = 'cicd.open.window.mixin'
     _name = 'cicd.test.run.line'
     _order = 'started desc'
 
@@ -567,6 +591,7 @@ class CicdTestRunLine(models.Model):
     force_success = fields.Boolean("Force Success")
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
     try_count = fields.Integer("Try Count")
+    robot_output = fields.Binary("Robot Output", attachment=True)
 
     def toggle_force_success(self):
         self.sudo().force_success = not self.sudo().force_success
@@ -577,13 +602,9 @@ class CicdTestRunLine(models.Model):
             if rec.run_id.state not in ['running']:
                 rec.run_id._compute_success_rate()
 
-    def open_form(self):
+    def robot_results(self):
         return {
-            'name': self.name,
-            'view_type': 'form',
-            'res_model': self._name,
-            'res_id': self.id,
-            'views': [(False, 'form')],
-            'type': 'ir.actions.act_window',
-            'target': 'current',
+            'type': 'ir.actions.act_url',
+            'url': f'/robot_output/{self.id}',
+            'target': 'new'
         }

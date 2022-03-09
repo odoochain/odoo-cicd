@@ -1,3 +1,4 @@
+import tempfile
 import arrow
 import uuid
 from contextlib import contextmanager
@@ -5,7 +6,6 @@ import threading
 from sarge import Capture, run
 from odoo.exceptions import UserError
 import time
-import tempfile
 from copy import deepcopy
 from pathlib import Path
 from ..tools.logsio_writer import LogsIOWriter
@@ -71,6 +71,15 @@ class ShellExecutor(object):
 
     def rm(self, path):
         return self.remove(path)
+
+    def grab_folder_as_tar(self, path):
+        if not self.exists(path):
+            return None
+        filename = Path(tempfile.mktemp())
+        self._internal_execute(["tar", "cfz", filename, '.'], cwd=path)
+        content = self.get(filename)
+        self.remove(filename)
+        return content
 
     def remove(self, path):
         if self.exists(path):
