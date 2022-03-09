@@ -374,7 +374,7 @@ class Repository(models.Model):
         return healthy
 
     def clone_repo(self, machine, path, logsio):
-        with pg_advisory_lock(self.env.cr, self._get_lockname(machine, path), f'clone_repo'):
+        with pg_advisory_lock(self.env.cr, self._get_lockname(machine, path), 'clone_repo'):
             with machine._gitshell(self, cwd="", logsio=logsio) as shell:
                 if not self._is_healthy_repository(shell, path):
                     shell.rm(path)
@@ -404,7 +404,6 @@ class Repository(models.Model):
             try:
 
                 # clear the current candidate
-                breakpoint()
                 if shell.branch_exists(target_branch_name):
                     shell.checkout_branch(self.default_branch)
                     shell.X(["git", "branch", "-D", target_branch_name])
