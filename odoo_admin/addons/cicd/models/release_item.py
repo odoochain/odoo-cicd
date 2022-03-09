@@ -268,21 +268,6 @@ class ReleaseItem(models.Model):
                 logsio.info("The commits did not change - so a new candidate branch is not created.")
                 return
 
-            # breakpoint()
-            # # if previous release has same commits like this one, then reuse 
-            # # the already merged branch here
-            # logsio.info(f"Len items: {len(self.release_id.item_ids)}")
-            # if len(self.release_id.item_ids) > 1:
-            #     for prev_item in self.release_id.item_ids[1:]:
-            #         logsio.info(f"Checking prev item {prev_item}")
-            #         prev_commits = prev_item.mapped('commit_ids')
-            #         if set(prev_commits.ids) == set(commits.ids):
-            #             if not self.commit_id and prev_item.commit_id:
-            #                 self.commit_id = prev_item.commit_id
-            #                 self.commit_ids = [[6, 0, commits.ids]]
-            #                 logsio.info("Found in previous release item same branch constellation - reusing commit {prev_item.commit_id.name}")
-            #                 return
-
             logsio.info("Commits changed, so creating a new candidate branch")
             try:
                 branches = ', '.join(self.mapped('branch_ids.name'))
@@ -317,16 +302,22 @@ class ReleaseItem(models.Model):
                     message_commit.approval_state = 'approved'
                     self.commit_ids = [[6, 0, commits.ids]]
                     self.commit_id = message_commit
-                    candidate_branch = repo.branch_ids.filtered(lambda x: x.name == self.release_id.candidate_branch)
+                    candidate_branch = repo.branch_ids.filtered(
+                        lambda x: x.name == self.release_id.candidate_branch)
                     candidate_branch.ensure_one()
 
-                    (self.release_id.branch_id | self.branch_ids | candidate_branch)._compute_state()
+                    (
+                        self.release_id.branch_id
+                        | self.branch_ids
+                        | candidate_branch
+                    )._compute_state()
 
     def _get_commits_within_final_curtains(self, critical_date):
         commits = self.env['cicd.git.commit']
 
         for branch in self.branch_ids:
-            for commit in branch.commit_ids.sorted(lambda x: x.date, reverse=True):
+            for commit in branch.commit_ids.sorted(
+                    lambda x: x.date, reverse=True):
                 if critical_date:
                     if commit.date.strftime("%Y-%m-%d %H:%M:%S") > critical_date.strftime("%Y-%m-%d %H:%M:%S"):
                         continue
@@ -338,7 +329,6 @@ class ReleaseItem(models.Model):
 
                 break
         return commits
-
 
     @api.fieldchange("branch_ids")
     def _on_change_branches(self, changeset):
