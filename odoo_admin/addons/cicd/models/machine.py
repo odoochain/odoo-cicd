@@ -50,7 +50,6 @@ class CicdMachine(models.Model):
     upload_overwrite = fields.Boolean("Overwrite existing")
     upload_volume_id = fields.Many2one('cicd.machine.volume', "Upload Volume", domain=[('ttype', '=', 'dumps')])
     test_timeout_web_login = fields.Integer("Timeout Test Weblogin", default=10, required=True)
-    container_states = fields.Text("Json")
     tempfile_containers = fields.Char(compute="compute_tempfile_containers")
 
     @api.depends('ssh_user')

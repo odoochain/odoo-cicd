@@ -17,6 +17,7 @@ import logging
 import threading
 from pathlib import Path
 
+MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +100,6 @@ class CicdTestRun(models.Model):
 
     def _prepare_run(self, shell, report, logsio, started):
         self._abort_if_required()
-        breakpoint()
         report('building')
         shell.odoo('build')
         report('killing any existing')
@@ -113,18 +113,21 @@ class CicdTestRun(models.Model):
         self._wait_for_postgres(shell)
         report('db reset started')
         shell.odoo('-f', 'db', 'reset')
+        shell.odoo('update', 'mail')    # Discussion: mail is dangerous subjects at testing;  turn-into-dev fails
+                                        # if no mail objects exist
 
         self._abort_if_required()
         report('db reset done')
 
         self._abort_if_required()
+        report("Turning into dev db (change password, set mailserver)")
+        shell.odoo('turn-into-dev')
 
         report("Storing snapshot")
         shell.odoo('snap', 'save', shell.project_name, force=True)
         self._wait_for_postgres(shell)
         report("Storing snapshot done")
         logsio.info("Preparation done")
-        breakpoint()
         report('preparation done', ttype='log', state='success', duration=(arrow.get() - started).total_seconds())
 
         self._abort_if_required()
@@ -170,11 +173,16 @@ ODOO_LOG_LEVEL=error
             ttype = ttype or 'log'
             if exception:
                 state = 'failed'
-                msg = (msg or '') + '\n' + str(ex)
+                msg = (msg or '') + '\n' + str(exception)
             else:
                 state = state or 'success'
 
-            self.line_ids = [[0, 0, {'state': state, 'name': msg, 'ttype': 'preparation', 'duration': duration}]]
+            self.line_ids = [[0, 0, {
+                'state': state,
+                'name': msg,
+                'ttype': 'preparation',
+                'duration': duration
+                }]]
             self.env.cr.commit()
 
             if logsio:
@@ -286,6 +294,9 @@ ODOO_LOG_LEVEL=error
 
                         if data['technical_errors']:
                             for error in data['technical_errors']:
+                                if len(error) > MAX_ERROR_SIZE:
+                                    error = error[-MAX_ERROR_SIZE:]
+
                                 data['run_lines'].append({
                                     'exc_info': error,
                                     'ttype': 'log',

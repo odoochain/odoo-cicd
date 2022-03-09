@@ -46,14 +46,13 @@ class Task(models.Model):
                 rec.error = False
                 continue
 
-            self.env.cr.execute("select state, exc_info from queue_job where uuid=%s", (rec.queuejob_uuid,))
-            qj = self.env.cr.fetchone()
+            qj = self.env['queue.job'].sudo().search([('uuid', '=', rec.queuejob_uuid)], limit=1)
             if not qj:
                 # keep last state as queuejobs are deleted from time to time
                 pass
             else:
-                rec.state = qj[0]
-                rec.error = qj[1]
+                rec.state = qj.state
+                rec.error = qj.exc_info
 
     @api.depends('state')
     def _compute_is_done(self):

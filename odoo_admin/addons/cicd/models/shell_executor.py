@@ -249,23 +249,37 @@ class ShellExecutor(object):
                 self.ttype = ttype
                 self.line = ""
                 self.logsio = logsio
-                self.all_lines = []
                 self.logoutput = logoutput
+                self.filepath = tempfile.mktemp(suffix='shellwriter.log')
+                self.file = open(self.filepath, 'a+')
+
+            def __del__(self):
+                self.cleanup()
+
+            def cleanup(self):
+                if not self.file.closed:
+                    self.file.close()
+
+            def get_all_lines(self):
+                self.file.seek(0)
+                return self.file.read()
 
             def write(self, line):
                 if line is None:
                     return
                 line = line.decode("utf-8")
+                self.file.write(line)
                 if line.endswith("\n"):
                     line = line[:-1]
-                self.all_lines += [line]
                 if logoutput and self.logsio:
                     if self.ttype == 'error':
                         self.logsio.error(line)
                     else:
                         self.logsio.info(line)
 
-        stdwriter, errwriter = MyWriter('info', self.logsio, logoutput), MyWriter('error', self.logsio, logoutput)
+        stdwriter = MyWriter('info', self.logsio, logoutput)
+        errwriter = MyWriter('error', self.logsio, logoutput)
+
         # endregion
 
         sshcmd = self._get_ssh_client()
@@ -396,8 +410,11 @@ class ShellExecutor(object):
         # endregion
 
         # region: evaluate run result
-        stdout = '\n'.join(stdwriter.all_lines)
-        stderr = '\n'.join(errwriter.all_lines)
+        stdout = stdwriter.get_all_lines()
+        stderr = errwriter.get_all_lines()
+
+        stdwriter.cleanup()
+        errwriter.cleanup()
 
         if p.returncodes:
             return_code = p.returncodes[0]
