@@ -100,13 +100,15 @@ class Controller(http.Controller):
             repo.with_delay()._queuejob_fetch()
         return {"result": "ok"}
 
-    @http.route("/robot_output/<model('cicd.test.run.line'):line>")
+    @http.route([
+        "/robot_output/<model('cicd.test.run.line'):line>",
+        ])
     def robot_output(self, line, **kwargs):
         line = line.sudo()
         if not line.robot_output:
             return 'no data'
 
-        path = f"/tmp/robot_output/{request.env.cr.dbname}/{line.id}"
+        path = Path(f"/tmp/robot_output/{request.env.cr.dbname}/{line.id}")
         path.mkdir(exist_ok=True, parents=True)
 
         filename = Path(tempfile.mktemp())
@@ -118,7 +120,35 @@ class Controller(http.Controller):
                 "tar", "xfz", filename
             ], cwd=path)
 
+            html = list(path.glob("**/log.html"))
+            if html:
+                html = html[0].read_text()
+                html = html.replace("src=\\\"", f"src=\\\"{line.id}/")
+                html = html.replace("href=\\\"", f"href=\\\"{line.id}/")
+                return html
+
         finally:
             if filename.exists():
                 filename.unlink()
+
+    @http.route([
+        "/robot_output/<model('cicd.test.run.line'):line>/<filepath>",
+        ])
+    def robot_output_resource(self, line, filepath, **kwargs):
+        line = line.sudo()
+        path = Path(f"/tmp/robot_output/{request.env.cr.dbname}/{line.id}")
+
+        filepath = ''.join(reversed(''.join(reversed(filepath)).split("/", 1)[0]))
+        filepath = list(path.glob("**/" + filepath))
+        filename, content = None, None
+        for filepath in filepath:
+            filepath = Path(filepath)
+            if filepath.exists():
+                content = filepath.read_bytes()
+                filename = filepath.name
+
+        if content:
+            return http.request.make_response(content, [
+                ('Content-Type', 'image/png'),
+            ])
 

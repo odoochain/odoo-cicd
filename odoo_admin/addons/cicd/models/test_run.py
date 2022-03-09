@@ -99,6 +99,7 @@ class CicdTestRun(models.Model):
 
     def _prepare_run(self, shell, report, logsio, started):
         self._abort_if_required()
+        breakpoint()
         report('building')
         shell.odoo('build')
         report('killing any existing')
@@ -123,6 +124,7 @@ class CicdTestRun(models.Model):
         self._wait_for_postgres(shell)
         report("Storing snapshot done")
         logsio.info("Preparation done")
+        breakpoint()
         report('preparation done', ttype='log', state='success', duration=(arrow.get() - started).total_seconds())
 
         self._abort_if_required()
@@ -320,6 +322,7 @@ ODOO_LOG_LEVEL=error
                 msg = traceback.format_exc()
                 if not passed_prepare:
                     duration = (arrow.get() - started).total_seconds()
+                    breakpoint()
                     self.line_ids = [[0, 0, {
                         'duration': duration,
                         'exc_info': msg,
@@ -388,15 +391,18 @@ ODOO_LOG_LEVEL=error
         self.state = 'open' # regular cronjob makes task for that
 
     def _run_create_empty_db(self, shell, task, logsio):
+
+        def _emptydb(item):
+            self.branch_id._create_empty_db(shell, task, logsio)
+
         self._generic_run(
             shell, logsio, [None], 
-            'emptydb',
-            lambda item: self.branch_id._create_empty_db(shell, task, logsio),
+            'emptydb', _emptydb,
         )
 
     def _run_update_db(self, shell, logsio, **kwargs):
 
-        def _x(item):
+        def _update(item):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
 
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
@@ -406,7 +412,7 @@ ODOO_LOG_LEVEL=error
 
         self._generic_run(
             shell, logsio, [None],
-            'migration', _x,
+            'migration', _update,
         )
 
     def _run_robot_tests(self, shell, logsio, **kwargs):
@@ -418,7 +424,7 @@ ODOO_LOG_LEVEL=error
         host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
         robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
 
-        def _x(item):
+        def _run_robot_run(item):
             shell.odoo("snap", "restore", shell.project_name)
 
             self._wait_for_postgres(shell)
@@ -442,7 +448,7 @@ ODOO_LOG_LEVEL=error
 
         self._generic_run(
             shell, logsio, files,
-            'robottest', _x,
+            'robottest', _run_robot_run,
         )
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
@@ -459,10 +465,12 @@ ODOO_LOG_LEVEL=error
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
 
+            def _update(item):
+                shell.odoo('update', item)
+
             success = self._generic_run(
                 shell, logsio, [module],
-                'unittest',
-                lambda item: shell.odoo('update', item),
+                'unittest', _update,
                 name_prefix='install '
             )
             if not success:
@@ -470,15 +478,14 @@ ODOO_LOG_LEVEL=error
 
             self._wait_for_postgres(shell)
 
+            def _unittest(item):
+                shell.odoo(
+                    'unittest', item, "--non-interactive",
+                    timeout=self.branch_id.timeout_tests)
+
             self._generic_run(
                 shell, logsio, tests,
-                'unittest',
-                lambda item: shell.odoo(
-                    'unittest',
-                    item,
-                    "--non-interactive",
-                    timeout=self.branch_id.timeout_tests,
-                    ),
+                'unittest', _unittest,
                 try_count=self.branch_id.retry_unit_tests,
                 name_prefix=f"({i} / {len(tests_by_module)}) {module} "
             )
