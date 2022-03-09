@@ -101,7 +101,6 @@ class GitBranch(models.Model):
         # return all possible states, in order
         return [key for key, val in type(self).state.selection]
 
-
     def _compute_latest_commit(self, shell):
         for rec in self:
             shell.checkout_branch(rec.name)
@@ -167,12 +166,12 @@ class GitBranch(models.Model):
         # "block_release", # not needed here - done in _onchange_state_event
         "task_ids",
         "task_ids.state",
-        "commit_ids",
-        "commit_ids.approval_state",
-        "commit_ids.test_state",
-        "commit_ids.force_approved",
-        "commit_ids.test_run_ids",
-        "commit_ids.test_run_ids.state",
+        "latest_commit_id",
+        "latest_commit_id.approval_state",
+        "latest_commit_id.test_state",
+        "latest_commit_id.force_approved",
+        "latest_commit_id.test_run_ids",
+        "latest_commit_id.test_run_ids.state",
         "release_item_ids.state",
     )
     def _compute_state(self):
@@ -187,7 +186,7 @@ class GitBranch(models.Model):
             else:
                 state = 'dev'
 
-            commit = rec.commit_ids.sorted(lambda x: x.date, reverse=True)[0]
+            commit = rec.latest_commit_id
 
             if commit.approval_state == 'check':
                 state = 'approve'
