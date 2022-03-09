@@ -173,7 +173,7 @@ class ShellExecutor(object):
             effective_env.update(env)
         res = self._internal_execute(
             cmd, cwd=cwd, env=env,
-            logoutput=logoutput, allow_error=allow_error, timeout=timeout)
+            logoutput=logoutput, timeout=timeout)
         if not allow_error:
             if res['exit_code'] is None:
                 raise Exception("Timeout happend: {cmd}")
@@ -224,7 +224,8 @@ class ShellExecutor(object):
             return base, user_host
         return base + " " + user_host + " "
 
-    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, allow_error=False, timeout=9999):
+    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, timeout=None):
+
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
 
@@ -286,7 +287,9 @@ class ShellExecutor(object):
         def on_stop_marker():
             data['stop_marker'] = arrow.get()
 
-        def collect(capture, writer, marker=None, on_marker=None, stop_marker=None, on_stop_marker=None):
+        def collect(capture, writer, marker=None, on_marker=None,
+                stop_marker=None, on_stop_marker=None):
+
             while not data['stop']:
                 for line in capture:
                     line_decoded = line.decode('utf-8')
@@ -301,7 +304,10 @@ class ShellExecutor(object):
                     if not is_marker:
                         writer.write(line)
 
-        tstd = threading.Thread(target=collect, args=(stdout, stdwriter, start_marker, on_started, stop_marker, on_stop_marker))
+        tstd = threading.Thread(target=collect, args=(
+            stdout, stdwriter, start_marker,
+            on_started, stop_marker, on_stop_marker))
+
         terr = threading.Thread(target=collect, args=(stderr, errwriter))
         tstd.daemon = True
         terr.daemon = True
@@ -356,14 +362,16 @@ class ShellExecutor(object):
             if not p.commands:
                 raise Exception(f"Command failed: {cmd}")
             while True:
-
                 p.commands[0].poll()
 
-                if p.commands[0].returncode is not None and not p.commands[0].returncode and data['stop_marker']:
+                if p.commands[0].returncode is not None and \
+                        not p.commands[0].returncode and \
+                        data.get('stop_marker'):
                     # Perfect End
                     break
 
-                if p.commands[0].returncode is not None and p.commands[0].returncode:
+                if p.commands[0].returncode is not None and \
+                        p.commands[0].returncode:
                     break
 
                 if arrow.get() > deadline:
@@ -393,13 +401,14 @@ class ShellExecutor(object):
 
         if p.returncodes:
             return_code = p.returncodes[0]
-        elif data['stop_marker']:
+        elif data.get('stop_marker'):
             # script finished but ssh didnt get it
             return_code = 0
             if stderr.endswith("\n"):
                 stderr = stderr[:-1]
         else:
             raise ShellExecutor.TimeoutFinished()
+
         # remove last line from bashcmd if good:
         if return_code == 0 and stdout.endswith("\n"):
             stdout = stdout[:-1]
