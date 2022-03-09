@@ -113,8 +113,9 @@ class CicdTestRun(models.Model):
         self._wait_for_postgres(shell)
         report('db reset started')
         shell.odoo('-f', 'db', 'reset')
-        shell.odoo('update', 'mail')    # Discussion: mail is dangerous subjects at testing;  turn-into-dev fails
-                                        # if no mail objects exist
+        # required for turn-into-dev
+        breakpoint()
+        shell.odoo('update', 'mail')
 
         self._abort_if_required()
         report('db reset done')
@@ -128,7 +129,10 @@ class CicdTestRun(models.Model):
         self._wait_for_postgres(shell)
         report("Storing snapshot done")
         logsio.info("Preparation done")
-        report('preparation done', ttype='log', state='success', duration=(arrow.get() - started).total_seconds())
+        report(
+            'preparation done', ttype='log', state='success',
+            duration=(arrow.get() - started).total_seconds()
+        )
 
         self._abort_if_required()
 
@@ -161,7 +165,6 @@ DB_PORT=5432
 DB_USER=odoo
 DB_PWD=odoo
 ODOO_DEMO=1
-ODOO_LOG_LEVEL=error
         """
         def report(msg, state='success', exception=None, duration=None, ttype='log'):
             if not hasattr(report, 'last_report_time'):
