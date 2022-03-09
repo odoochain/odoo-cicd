@@ -8,6 +8,7 @@
 					<button name="open_window" string="" icon="fa-external-link" type="object" />
 					<field name="ttype"/>
 					<field name="name"/>
+					<button name="robot_results" string="" icon="fa-search" type="object" attrs="{'invisible': [('robot_output', '=', False)]}"/>
 					<field name="started"/>
 					<field name="duration"/>
 					<field name="state"/>
@@ -15,7 +16,6 @@
 					<field name="force_success" widget="boolean_toggle"/>
 					<field name="try_count"/>
 					<field name="robot_output" invisible='1'/>
-					<button name="robot_results" string="" icon="fa-search" type="object" attrs="{'invisible': [('robot_output', '=', False)]}"/>
 				</tree>
 			</field>
 		</record>
