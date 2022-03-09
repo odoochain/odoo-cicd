@@ -534,7 +534,7 @@ ODOO_DEMO=1
                 if len_todo > 1:
                     name += f"({i + 1} / {len_todo}) "
 
-                name += item
+                name += (item or '')
                 started = arrow.get()
                 data = {
                     'name': name,
