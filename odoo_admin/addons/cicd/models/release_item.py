@@ -95,6 +95,7 @@ class ReleaseItem(models.Model):
         self.with_context(override_release_state=True)._do_release()
 
     def _do_release(self):
+        breakpoint()
         logsio = None
         try:
             self.env.cr.execute("select id from cicd_release where id=%s for update nowait", (self.release_id.id,))
