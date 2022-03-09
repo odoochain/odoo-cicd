@@ -19,6 +19,7 @@ from itertools import groupby
 
 logger = logging.getLogger(__name__)
 
+
 class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
@@ -382,7 +383,7 @@ class GitBranch(models.Model):
                 'machine_id': (machine and machine.id) or rec.machine_id.id,
                 'identity_key': identity_key if identity_key else False,
                 'kwargs': json.dumps(kwargs),
-                'testrun_id': testrun_id and testrun_id.id or False,
+                'testrun_id': testrun_id or False,
             })
             task.perform(now=now)
 
@@ -547,14 +548,13 @@ class GitBranch(models.Model):
                     "_run_tests", silent=True, update_state=True,
                     testrun_id=None)
 
-        breakpoint()
         # revive dead test
         for running in self.env['cicd.test.run'].search([
                 ('state', '=', 'running')]):
             # check if task exists and has an active queuejob
             tasks = self.env['cicd.task'].search([
                 ('testrun_id', '=', running.id)])
-            tasks = tasks.filtered(lambda x: x.queuejob_id.state in [
+            tasks = tasks.filtered(lambda x: x.queue_job_id.state in [
                 'started', 'enqueued', 'pending'])
             if not tasks:
                 running.state = 'open'
@@ -562,9 +562,10 @@ class GitBranch(models.Model):
         def kf(x):
             return x.branch_id
 
-        tests_by_branch = dict(groupby(self.env['cicd.test.run'].search(
-            [('state', '=', 'open')], order='id desc').sorted(kf), kf))
-        for branch, tests in tests_by_branch.items():
+        open_tests = self.env['cicd.test.run'].search([
+            ('state', '=', 'open')], order='id desc')
+
+        for branch, tests in groupby(open_tests.sorted(kf), kf):
             tests = self.env['cicd.test.run'].union(*list(tests))
             if not tests:
                 continue
