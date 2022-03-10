@@ -173,6 +173,7 @@ class Task(models.Model):
                     if args.get("delete_task"):
                         if self.state == 'done':
                             self.unlink()
+
     @api.model
     def _cron_cleanup(self):
         dt = arrow.get().shift(days=-20).strftime("%Y-%m-%d %H:%M:%S")
@@ -203,43 +204,40 @@ class Task(models.Model):
                     task.state = 'failed'
 
     def _internal_exec(self, shell):
-            # functions called often block the repository access
-            args = {
-                'task': self,
-                'logsio': shell.logsio,
-                'shell': shell,
-                }
-            if self.kwargs and self.kwargs != 'null':
-                args.update(json.loads(self.kwargs))
-            if not args.get('no_repo', False):
-                self.branch_id.repo_id._get_main_repo(
-                    destination_folder=shell.cwd,
-                    machine=self.machine_id,
-                    limit_branch=self.branch_id.name,
-                    )
-            obj = self.env[self.model].sudo().browse(self.res_id)
-            # mini check if it is a git repository:
-            commit = None
-            if not args.get('no_repo', False):
-                try:
-                    shell.X(["git", "status"])
-                except Exception:
-                    pass
-                else:
-                    sha = shell.X([
-                        "git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                    commit = self.branch_id.commit_ids.filtered(
-                        lambda x: x.name == sha)
-
-            # if not commit:
-            #     raise ValidationError(f"Commit {sha} not found in branch.")
-            # get current commit
+        # functions called often block the repository access
+        args = {
+            'task': self,
+            'logsio': shell.logsio,
+            'shell': shell,
+            }
+        if self.kwargs and self.kwargs != 'null':
+            args.update(json.loads(self.kwargs))
+        if not args.get('no_repo', False):
+            self.branch_id.repo_id._get_main_repo(
+                destination_folder=shell.cwd,
+                machine=self.machine_id,
+                limit_branch=self.branch_id.name,
+                )
+        obj = self.env[self.model].sudo().browse(self.res_id)
+        # mini check if it is a git repository:
+        commit = None
+        if not args.get('no_repo', False):
             try:
-                exec('obj.' + self.name + "(**args)", {
-                    'obj': obj,
-                    'args': args
-                    })
-            finally:
-                if commit:
-                    self.sudo().commit_id = commit
-                    self.env.cr.commit()
+                shell.X(["git", "status"])
+            except Exception:
+                pass
+            else:
+                sha = shell.X([
+                    "git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                commit = self.branch_id.commit_ids.filtered(
+                    lambda x: x.name == sha)
+
+        try:
+            exec('obj.' + self.name + "(**args)", {
+                'obj': obj,
+                'args': args
+                })
+        finally:
+            if commit:
+                self.sudo().commit_id = commit
+                self.env.cr.commit()
