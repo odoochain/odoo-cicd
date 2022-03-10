@@ -16,6 +16,7 @@ from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 logger = logging.getLogger('cicd_task')
 
+
 class Task(models.Model):
     _name = 'cicd.task'
     _order = 'date desc'
