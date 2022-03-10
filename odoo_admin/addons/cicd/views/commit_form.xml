@@ -21,7 +21,6 @@
 					<ul>
 						<li><b>:REVIEW:</b> - sets this commit to be reviewed</li>
 						<li><b>:TEST:</b> - sets this commit to run tests</li>
-						<li><b>:APPROVE:</b> - approves the commit with pushing; author of commit is taken as approving user if can be found</li>
 						<li><b>:RESET:</b> - resets the database</li>
 					</ul>
 					</div>

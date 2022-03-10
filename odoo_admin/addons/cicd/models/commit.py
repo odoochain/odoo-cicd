@@ -85,8 +85,6 @@ class GitCommit(models.Model):
                 rec.approval_state = 'check'
             if ":TEST:" in rec.text:
                 rec.branch_id.run_tests()
-            if ":APPROVE:" in rec.text:
-                rec.branch_id.with_user(self.author_user_id.id).approve()
             if ":RESET:" in rec.text:
                 rec.branch_id.with_user(self.author_user_id.id)._make_task("_prepare_a_new_instance", silen=True)
 

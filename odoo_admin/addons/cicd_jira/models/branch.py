@@ -27,9 +27,8 @@ class Branch(models.Model):
                 ts = rec.repo_id.ticketsystem_id
                 issue = self._get_jira_issue()
                 if issue:
-                    # TODO correct state
-                    #ts._jira_set_state(issue, 'done')
-                    pass
+                    state = ts.jira_state_mapping_ids.map(ts, rec.state)
+                    ts._jira_set_state(issue, state)
 
     def _report_comment_to_ticketsystem(self, comment):
         super()._report_comment_to_ticketsystem(comment)

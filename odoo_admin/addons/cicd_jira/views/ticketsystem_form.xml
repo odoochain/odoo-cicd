@@ -9,6 +9,14 @@
 						<field name="jira_username" attrs="{'required': [('ttype', '=', 'jira')]}"/>
 						<field name="jira_apitoken" attrs="{'required': [('ttype', '=', 'jira')]}"/>
 					</group>
+					<group string="States" attrs="{'invisible': [('ttype', '!=', 'jira')]}">
+						<field name="jira_state_mapping_ids" nolabel='1'>
+							<tree editable="bottom">
+								<field name="name"/>
+								<field name="jira_state"/>
+							</tree>
+						</field>
+					</group>
 				</xpath>
 			</field>
 		</record>

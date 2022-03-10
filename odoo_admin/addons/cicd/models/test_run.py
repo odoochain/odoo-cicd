@@ -1,12 +1,8 @@
 from contextlib import contextmanager
 import base64
-import tempfile
-import subprocess
 import datetime
 from . import pg_advisory_lock
-import psycopg2
 from odoo.addons.queue_job.exception import RetryableJobError
-import sys
 from collections import deque
 import traceback
 import time
@@ -14,14 +10,16 @@ import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import logging
-import threading
 from pathlib import Path
 
 MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
 
 logger = logging.getLogger(__name__)
 
-class AbortException(Exception): pass
+
+class AbortException(Exception):
+    pass
+
 
 class CicdTestRun(models.Model):
     _inherit = ['mail.thread', 'cicd.open.window.mixin']
@@ -41,6 +39,7 @@ class CicdTestRun(models.Model):
         ('open', 'Ready To Test'),
         ('running', 'Running'),
         ('success', 'Success'),
+        ('omitted', 'Omitted'),
         ('failed', 'Failed'),
     ], string="Result", required=True, default='open')
     success_rate = fields.Integer("Success Rate [%]")
@@ -114,7 +113,6 @@ class CicdTestRun(models.Model):
         report('db reset started')
         shell.odoo('-f', 'db', 'reset')
         # required for turn-into-dev
-        breakpoint()
         shell.odoo('update', 'mail')
 
         self._abort_if_required()
@@ -166,6 +164,7 @@ DB_USER=odoo
 DB_PWD=odoo
 ODOO_DEMO=1
         """
+
         def report(msg, state='success', exception=None, duration=None, ttype='log'):
             if not hasattr(report, 'last_report_time'):
                 report.last_report_time = arrow.get()
@@ -199,13 +198,16 @@ ODOO_DEMO=1
         started = arrow.get()
         project_name = self.branch_id.project_name
         assert project_name
-        with machine._shell(cwd=root / project_name, logsio=logsio, project_name=project_name) as shell:
+        with machine._shell(
+                cwd=root / project_name, logsio=logsio, project_name=project_name
+        ) as shell:
             report("Checking out source code...")
             self._reload(shell, logsio, settings, report, started, root)
 
             sha = shell.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
             if sha != self.commit_id.name:
-                raise Exception(f"checkoued SHA {sha} not matching test sha {self.commit_id.name}")
+                raise Exception(
+                    f"checkoued SHA {sha} not matching test sha {self.commit_id.name}")
 
             report(f"Checked out source code at {shell.cwd}")
             try:
@@ -233,11 +235,11 @@ ODOO_DEMO=1
     # ----------------------------------------------
     # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
     def execute(self, shell=None, task=None, logsio=None):
+        breakpoint()
         with self.branch_id._get_new_logsio_instance('test-run-execute') as logsio2:
             if not logsio:
                 logsio = logsio2
             testrun_context = f"_testrun_{self.id}"
-            self_old = self
             self = self.with_context(testrun=testrun_context) # after logsio, so that logs io projectname is unchanged
             with pg_advisory_lock(self.env.cr, f"testrun.{self.id}", detailinfo="execute test"):
                 try:
@@ -316,7 +318,8 @@ ODOO_DEMO=1
                 except Exception:
                     try:
                         self.env.cr.commit()
-                    except: pass
+                    except Exception:
+                        pass
                     with db_registry.cursor() as cr:
                         env = api.Environment(cr, SUPERUSER_ID, {})
                         testrun = env[self._name].browse(self.id)
@@ -336,7 +339,6 @@ ODOO_DEMO=1
                 msg = traceback.format_exc()
                 if not passed_prepare:
                     duration = (arrow.get() - started).total_seconds()
-                    breakpoint()
                     self.line_ids = [[0, 0, {
                         'duration': duration,
                         'exc_info': msg,
@@ -410,7 +412,7 @@ ODOO_DEMO=1
             self.branch_id._create_empty_db(shell, task, logsio)
 
         self._generic_run(
-            shell, logsio, [None], 
+            shell, logsio, [None],
             'emptydb', _emptydb,
         )
 
@@ -421,7 +423,7 @@ ODOO_DEMO=1
 
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
             self._wait_for_postgres(shell)
-            shell.odoo('update', self.timeout_migration)
+            shell.odoo('update', timeout=self.timeout_migration)
             self._wait_for_postgres(shell)
 
         self._generic_run(
@@ -434,7 +436,8 @@ ODOO_DEMO=1
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         shell.odoo('build')
-        host_run_dir = [x for x in shell.odoo('config', '--full')['stdout'].splitlines() if 'HOST_RUN_DIR:' in x]
+        configuration = shell.odoo('config', '--full')['stdout'].splitlines()
+        host_run_dir = [x for x in configuration if 'HOST_RUN_DIR:' in x]
         host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
         robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
 
@@ -515,7 +518,8 @@ ODOO_DEMO=1
                 tests_by_module[module].append(fpath)
         return tests_by_module
 
-    def _generic_run(self, shell, logsio, todo, ttype, execute_run, try_count=1, name_prefix=''):
+    def _generic_run(self, shell, logsio, todo, ttype, execute_run,
+            try_count=1, name_prefix=''):
         """
         Timeout in seconds.
 
@@ -530,11 +534,11 @@ ODOO_DEMO=1
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
-                name = name_prefix
+                name = name_prefix or ''
                 if len_todo > 1:
                     name += f"({i + 1} / {len_todo}) "
 
-                name += item
+                name += (item or '')
                 started = arrow.get()
                 data = {
                     'name': name,
@@ -556,7 +560,8 @@ ODOO_DEMO=1
                     data['exc_info'] = msg
                     success = False
                 else:
-                    if 'state' not in data:  # e.g. robottests return state from run
+                    # e.g. robottests return state from run
+                    if 'state' not in data:
                         data['state'] = 'success'
                 end = arrow.get()
                 data['duration'] = (end - started).total_seconds()
@@ -570,7 +575,9 @@ ODOO_DEMO=1
     def _inform_developer(self):
         for rec in self:
             partners = (
-                rec.commit_id.author_user_ids.mapped('partner_id') | rec.mapped('message_follower_ids.partner_id') | rec.branch_id.mapped('message_follower_ids.partner_id')
+                rec.commit_id.author_user_ids.mapped('partner_id')
+                | rec.mapped('message_follower_ids.partner_id')
+                | rec.branch_id.mapped('message_follower_ids.partner_id')
             )
 
             rec.message_post_with_view(
@@ -581,6 +588,7 @@ ODOO_DEMO=1
                     "obj": rec,
                 },
             )
+
 
 class CicdTestRunLine(models.Model):
     _inherit = 'cicd.open.window.mixin'
