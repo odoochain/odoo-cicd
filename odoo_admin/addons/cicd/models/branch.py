@@ -227,8 +227,10 @@ class GitBranch(models.Model):
         "latest_commit_id.test_run_ids",
         "latest_commit_id.test_run_ids.state",
         "release_item_ids.state",
+        "any_testing",
     )
     def _compute_state(self):
+        breakpoint()
         for rec in self:
             tasks = rec.task_ids.with_context(prefetch_fields=False)
             building_tasks = tasks.filtered(
@@ -492,7 +494,8 @@ class GitBranch(models.Model):
     @api.constrains("backup_filename")
     def _check_backup_filename(self):
         for rec in self:
-            if not rec.backup_filename: continue
+            if not rec.backup_filename:
+                continue
             if '/' in rec.backup_filename:
                 raise ValidationError("No slashes in backup filename allowed!")
 
@@ -502,9 +505,10 @@ class GitBranch(models.Model):
             if not rec.active:
                 rec._make_task("_destroy_instance")
 
-    def _destroy_instance(self):
+    def _destroy_instance(self, shell, task, logsio, **kwargs):
         with self._get_new_logsio_instance('set_inactive') as logsio:
-            for machine in self.env['cicd.machine'].search([]):
+            for machine in self.env['cicd.machine'].search([
+                    ('ttype', '=', 'dev')]):
                 try:
                     path = machine._get_volume('source')
                 except Exception:
@@ -513,18 +517,18 @@ class GitBranch(models.Model):
                 # delete instance folder
                 with machine._shell(cwd=path, logsio=logsio) as shell:
                     project_path = path / self.project_name
+                    if shell.exists(project_path):
+                        try:
+                            shell.odoo("kill")
+                        except Exception as ex:
+                            logsio.error(str(ex))
 
-                    try:
-                        shell.odoo("kill")
-                    except Exception as ex:
-                        logsio.error(str(ex))
+                        try:
+                            shell.odoo("rm")
+                        except Exception as ex:
+                            logsio.error(str(ex))
 
-                    try:
-                        shell.odoo("rm")
-                    except Exception as ex:
-                        logsio.error(str(ex))
-
-                    shell.rm(project_path)
+                        shell.rm(project_path, force=True)
 
                 # delete db
                 if machine.postgres_server_id.ttype == 'dev':
