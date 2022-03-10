@@ -13,7 +13,7 @@ class Release(models.Model):
     active = fields.Boolean("Active", default=True, store=True)
     name = fields.Char("Name", required=True)
     project_name = fields.Char("Project Name", required=True, help="techincal name - no special characters")
-    repo_id = fields.Many2one("cicd.git.repo", required=True, string="Repo", store=True)
+    repo_id = fields.eany2one("cicd.git.repo", required=True, string="Repo", store=True)
     repo_short = fields.Char(related="repo_id.short")
     branch_id = fields.Many2one('cicd.git.branch', string="Branch", required=True)
     candidate_branch = fields.Char(string="Candidate", required=True, default="master_candidate")
