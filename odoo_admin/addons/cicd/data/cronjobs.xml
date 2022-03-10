@@ -181,6 +181,7 @@ reasons = [
 	'psycopg2.errors.LockNotAvailable',
 	'Timeout',
 	'.git/index.lock',
+	'duplicate key value violates unique constraint "cicd_git_commit_name"',
 ]
 for reason in reasons:
 	model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]).write({'state': 'pending'})</field>
