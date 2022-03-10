@@ -227,8 +227,10 @@ class GitBranch(models.Model):
         "latest_commit_id.test_run_ids",
         "latest_commit_id.test_run_ids.state",
         "release_item_ids.state",
+        "any_testing",
     )
     def _compute_state(self):
+        breakpoint()
         for rec in self:
             tasks = rec.task_ids.with_context(prefetch_fields=False)
             building_tasks = tasks.filtered(
