@@ -394,6 +394,7 @@ class Branch(models.Model):
                             shell.logsio.info(
                                 f"Cycling down instance {rec.name} due to inactivity")
                             shell.odoo('kill')
+                            shell.odoo('rm', allow_error=True)
 
     def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
         home_dir = shell._get_home_dir()

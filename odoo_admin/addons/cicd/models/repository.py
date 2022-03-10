@@ -486,21 +486,38 @@ class Repository(models.Model):
 
     @api.model
     def _cron_cleanup(self):
+        FT = "%Y-%m-%d %H:%M:%S"
         for repo in self.search([
             ('never_cleanup', '=', False),
         ]):
-            dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime("%Y-%m-%d %H:%M:%S")
+            dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime(FT)
 
             # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
             db_registry = registry(self.env.cr.dbname)
             branches = repo.branch_ids.filtered(
                 lambda x: x.last_access or x.date_registered).filtered(
-                lambda x: (x.last_access or x.date_registered).strftime(
-                "%Y-%m-%d %H:%M:%S") < dt)
+                lambda x: (x.last_access or x.date_registered).strftime(FT) < dt)
+            
+            # keep release branches
+            releases = self.env['cicd.release'].search([('repo_id', '=', repo.id)])
+            names = list(releases.mapped('branch_id.name'))
+            names += list(releases.mapped('candidate_branch'))
+            branches = branches.filtered(lambda x: x.name not in names)
+            del names
+
+            # keep branches if last access
+            def not_last_accessed(branch):
+                if not branch.last_access:
+                    return True
+                return branch.last_access.strftime(FT) < dt
+
+            branches = branches.filtered(not_last_accessed)
+
             with db_registry.cursor() as cr:
                 env = api.Environment(cr, SUPERUSER_ID)
                 for branch in branches.with_env(env):
                     branch.active = False
+            del dt
 
     def new_branch(self):
         return {
