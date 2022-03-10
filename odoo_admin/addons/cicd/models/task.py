@@ -1,17 +1,15 @@
 import json
-import psycopg2
-from odoo.addons.queue_job.exception import RetryableJobError
 import traceback
 from . import pg_advisory_lock
-import os
 import arrow
 import traceback
+from contextlib import contextmanager
+import logging
+from odoo.addons.queue_job.exception import RetryableJobError
 from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo import registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from odoo.addons.queue_job.models.queue_job import STATES
-from contextlib import contextmanager
-import logging
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 logger = logging.getLogger('cicd_task')
