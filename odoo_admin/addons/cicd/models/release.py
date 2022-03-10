@@ -103,9 +103,6 @@ class Release(models.Model):
                     'planned_date': arrow.get().shift(minutes=self.planned_timestamp_after_preparation).strftime("%Y-%m-%d %H:%M:%S"),
                 })
 
-            # if release did not happen or so, then update final curtain:
-            new_items.final_curtain = final_curtain_dt
-
     @contextmanager
     def _get_logsio(self):
         with LogsIOWriter.GET(self.repo_id.short, "Release") as logsio:
