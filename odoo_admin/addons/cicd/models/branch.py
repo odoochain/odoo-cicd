@@ -522,7 +522,7 @@ class GitBranch(models.Model):
     def purge_instance_folder(self):
         for rec in self:
             with rec.repo_id.machine_id._shell() as shell:
-                folder = rec._get_instance_folder()
+                folder = rec._get_instance_folder(shell.machine)
                 shell.remove(folder)
 
     def delete_db(self):
