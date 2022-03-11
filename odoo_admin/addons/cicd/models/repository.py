@@ -126,24 +126,23 @@ class Repository(models.Model):
 
     def _get_zipped(self, logsio, commit):
         machine = self.machine_id
-        repo_path = self._get_main_repo(
-            logsio=logsio, tempfolder=True, machine=machine)
-        filename = Path(tempfile.mktemp(suffix='.get_zipped'))
-        try:
-            with machine._shell(repo_path, logsio=logsio) as shell:
-                try:
-                    shell.checkout_commit(commit)
-                    shell.X(["git", "clean", "-xdff"])
-                    shell.X(["tar", "cfz", filename, "-C", repo_path, '.'])
-                    content = shell.get(filename)
-                    shell.X(["rm", filename])
-                    return content
-                finally:
-                    shell.rm(repo_path)
+        with self._temp_repo(machine=machine) as repo_path:
+            filename = Path(tempfile.mktemp(suffix='.get_zipped'))
+            try:
+                with machine._shell(repo_path, logsio=logsio) as shell:
+                    try:
+                        shell.checkout_commit(commit)
+                        shell.X(["git", "clean", "-xdff"])
+                        shell.X(["tar", "cfz", filename, "-C", repo_path, '.'])
+                        content = shell.get(filename)
+                        shell.X(["rm", filename])
+                        return content
+                    finally:
+                        shell.rm(repo_path)
 
-        finally:
-            if filename.exists():
-                filename.unlink()
+            finally:
+                if filename.exists():
+                    filename.unlink()
 
     def _technical_clone_repo(
             self, path, machine, logsio=None, branch=None, depth=None):
@@ -170,7 +169,8 @@ class Repository(models.Model):
 
     @contextmanager
     def _temp_repo(
-            self, machine, logsio=None, branch=None, depth=None):
+            self, machine, logsio=None, branch=None, depth=None,
+            pull=False):
 
         path = tempfile.mktemp(suffix='.temporary_repo')
 
@@ -178,6 +178,7 @@ class Repository(models.Model):
             path, machine, branch=branch, depth=depth)
         try:
             yield path
+
         finally:
             with machine._shell() as shell:
                 shell.remove(path)
@@ -560,22 +561,26 @@ class Repository(models.Model):
         assert target_branch_name
         assert commits._name == 'cicd.git.commit'
         machine = self.machine_id
-        repo_path = self._get_main_repo(tempfolder=True)
-        repo = self.with_context(active_test=False)
-        message_commit = None  # commit sha of the created message commit
-        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
-            try:
+
+        with self._temp_repo(machine=self.machine_id) as repo_path:
+            self = self.with_context(active_test=False)
+            message_commit = None  # commit sha of the created message commit
+            with machine._gitshell(
+                self, cwd=repo_path, logsio=logsio
+            ) as shell:
 
                 # clear the current candidate
                 if shell.branch_exists(target_branch_name):
                     shell.checkout_branch(self.default_branch)
                     shell.X(["git", "branch", "-D", target_branch_name])
                 logsio.info("Making target branch {target_branch.name}")
-                shell.checkout_branch(repo.default_branch)
+                shell.checkout_branch(self.default_branch)
                 shell.X([
-                    "git", "checkout", "--no-guess", "-b", target_branch_name])
+                    "git", "checkout", "--no-guess",
+                    "-b", target_branch_name])
 
-                repo._merge_commits_on_target(shell, target_branch_name, commits)
+                self._merge_commits_on_target(
+                    shell, target_branch_name, commits)
 
                 # pushes to mainrepo locally not to web because its
                 # cloned to temp directory
@@ -592,10 +597,10 @@ class Repository(models.Model):
                     "git", "push", "--set-upstream", "-f", 'origin',
                     target_branch_name])
 
-                if not (target_branch := repo.branch_ids.filtered(
+                if not (target_branch := self.branch_ids.filtered(
                         lambda x: x.name == target_branch_name)):
-                    target_branch = repo.branch_ids.create({
-                        'repo_id': repo.id,
+                    target_branch = self.branch_ids.create({
+                        'repo_id': self.id,
                         'name': target_branch_name,
                     })
                 if not target_branch.active:
@@ -607,9 +612,6 @@ class Repository(models.Model):
                         lambda x: x.name == message_commit_sha)
                     message_commit.ensure_one()
 
-            finally:
-                shell.rm(repo_path)
-
         return message_commit
 
     def _merge(self, source, dest, set_tags, logsio=None):
@@ -619,9 +621,11 @@ class Repository(models.Model):
         dest.ensure_one()
 
         machine = self.machine_id
-        repo_path = self._get_main_repo(tempfolder=True)
-        with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
-            try:
+        with self._temp_repo(machine=machine) as repo_path:
+            with machine._gitshell(
+                self, cwd=repo_path, logsio=logsio
+            ) as shell:
+
                 shell.checkout_branch(dest.name)
                 commitid = shell.X([
                     "git", "log", "-n1", "--format=%H"])['stdout'].strip()
@@ -647,9 +651,6 @@ class Repository(models.Model):
                     "git", "log", "-n1", "--format=%H"])['stdout'].strip()
 
                 return count_lines, mergecommitid
-
-            finally:
-                shell.rm(repo_path)
 
     @api.model
     def _cron_cleanup(self):

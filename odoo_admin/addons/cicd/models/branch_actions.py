@@ -551,7 +551,8 @@ class Branch(models.Model):
             assert shell.machine.ttype == 'dev'
 
             with self.repo_id._temp_repo(
-                machine=shell.machine, branch=compressor.branch_id.name
+                machine=shell.machine, branch=compressor.branch_id.name,
+                pull=True,
             ) as instance_path:
                 # change working project/directory
                 breakpoint()
