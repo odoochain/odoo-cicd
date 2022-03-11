@@ -521,7 +521,6 @@ class Repository(models.Model):
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
-            breakpoint()
             if not self._is_healthy_repository(shell, path):
                 with pg_advisory_lock(
                         self.env.cr,
@@ -768,3 +767,11 @@ class Repository(models.Model):
         ]):
             return 'hangs_not_broken'
         return 'broken'
+
+    def purge_old_sources(self):
+        for rec in self:
+            for branch in self.env['cicd.git.branch'].search([
+                ('repo_id', '=', rec.id),
+                ('active', '=', False)
+            ]):
+                branch.with_delay().purge_instance_folder()

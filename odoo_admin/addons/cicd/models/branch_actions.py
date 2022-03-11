@@ -380,7 +380,7 @@ class Branch(models.Model):
                 shell.rm(instance_folder)
                 raise RetryableJobError(
                     "Cleared directory - branch not found - please retry",
-                    ignore_retry=True)
+                    ignore_retry=True) from ex
 
             try:
                 shell.X(["git", "pull"])
@@ -555,7 +555,6 @@ class Branch(models.Model):
                 pull=True,
             ) as instance_path:
                 # change working project/directory
-                breakpoint()
                 with shell.clone(
                     cwd=instance_path,
                     project_name=self.project_name

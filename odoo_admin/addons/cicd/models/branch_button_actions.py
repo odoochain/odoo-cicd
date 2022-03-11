@@ -25,7 +25,6 @@ class Branch(models.Model):
         self._make_task("_shrink_db")
 
     def docker_start(self):
-        breakpoint()
         self._make_task("_docker_start", no_repo=True)
 
     def docker_remove(self):
@@ -97,7 +96,7 @@ class Branch(models.Model):
         tmux: -A create or append, -s name of session"
         """
         if tmux:
-            "tmux: -A create or append, -s name of session"
+            # tmux: -A create or append, -s name of session"
             cmd = [
                 "tmux", "new-session", "-A",
                 "-s", f"{self.project_name}_shell",

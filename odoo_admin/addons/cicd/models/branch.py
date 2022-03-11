@@ -410,7 +410,7 @@ class GitBranch(models.Model):
 
         try:
             test_request()
-        except Exception:
+        except Exception as ex:
             deadline = arrow.get().shift(seconds=30)
             while True:
                 try:
@@ -419,13 +419,14 @@ class GitBranch(models.Model):
 
                 except RetryableJobError:
                     time.sleep(1)
+
                 if arrow.get() > deadline:
                     raise ValidationError((
                         "Timeout: could start instance within a "
                         "certain amount of time - please check logs "
                         "if there is bug in the source code of the "
                         "instance or contact your developer"
-                        ))
+                        )) from ex
 
         if test_request():
             return
@@ -513,12 +514,26 @@ class GitBranch(models.Model):
                         except Exception as ex:
                             logsio.error(str(ex))
 
-                        shell.rm(project_path, force=True)
+                    self.with_delay().purge_instance_folder()
 
                 # delete db
-                if machine.postgres_server_id.ttype == 'dev':
-                    machine.postgres_server_id.database_ids.filtered(
-                        lambda x: x.name == shell.project_name).delete_db()
+                self.with_delay().delete_db()
+
+    def purge_instance_folder(self):
+        for rec in self:
+            with rec.repo_id.machine_id._shell() as shell:
+                folder = rec._get_instance_folder()
+                shell.remove(folder)
+
+    def delete_db(self):
+        for rec in self:
+            machine = rec.repo_id.machine
+            if machine.postgres_server_id.ttype != 'dev':
+                continue
+            with machine._shell() as shell:
+                dbs = machine.postgres_server_id.database_ids.filtered(
+                    lambda x: x.name == rec.project_name)
+                dbs.delete_db()
 
     def toggle_active(self):
         for rec in self:
