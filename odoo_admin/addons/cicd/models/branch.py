@@ -281,20 +281,7 @@ class GitBranch(models.Model):
                     release_items.sorted(keyfunc), keyfunc)
 
                 for release, release_items in release_items_by_release:
-                    # suggestion for next line:
-                    # release_item = next(release_items):
-                    # reason: avoid iteration of all release_items and
-                    # sorting them; may be several thousands after
-                    # some time; release_items is sorted by the _order
-                    # by odoo itself
-                    release_items = self.env['cicd.release.item'].union(
-                        *release_items).sorted(lambda x: x.id, reverse=True)
-
-                    # suggestion for next 2 lines:
-                    # latest_state |= set(release_item.mapped('state')[:1]) as
-                    # [][:1] == []
-                    latest_state = release_items and release_items[0].state
-                    latest_states.add(latest_state)
+                    latest_states.add(next(release_items).state)
 
                 if set(['new', 'failed']) & latest_states:
                     state = 'candidate'
@@ -308,7 +295,6 @@ class GitBranch(models.Model):
                 rec.with_delay(
                     identity_key=f"report_ticket_system branch:{rec.name}:"
                 )._report_new_state_to_ticketsystem()
-
 
     @api.fieldchange('state', 'block_release')
     def _onchange_state_event(self, changeset):
