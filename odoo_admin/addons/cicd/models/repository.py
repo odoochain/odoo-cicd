@@ -13,6 +13,7 @@ from odoo.addons.queue_job.exception import (
 )
 import logging
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 
@@ -167,9 +168,23 @@ class Repository(models.Model):
                 shell.X(["mv", temppath, path])
             return
 
+    @contextmanager
+    def _temp_repo(
+            self, machine, logsio=None, branch=None, depth=None):
+
+        path = tempfile.mktemp(suffix='.temporary_repo')
+
+        self._technical_clone_repo(
+            path, machine, branch=branch, depth=depth)
+        try:
+            yield path
+        finally:
+            with machine._shell() as shell:
+                shell.remove(path)
+
     def _get_main_repo(
-            self, tempfolder=False, destination_folder=False,
-            logsio=None, machine=None, limit_branch=None, no_lock=False,
+            self, destination_folder=False,
+            logsio=None, machine=None, limit_branch=None,
             depth=None
             ):
 
@@ -177,30 +192,13 @@ class Repository(models.Model):
         machine = machine or self.machine_id
         if not machine.workspace:
             raise ValidationError(_("Please configure a workspace!"))
-        if tempfolder and destination_folder:
-            raise Exception("XOR here please")
-        if tempfolder:
-            tempfolder = tempfile.mktemp(suffix='._get_main_repo')
         path = None
-
-        if no_lock:
-            # always clone
-            # so rest of the optimzation down there may be ignored
-            path = destination_folder or tempfolder
-            if not path:
-                raise ValidationError(
-                    "No Lock requires tempfolder or destination folder")
-
-            self._technical_clone_repo(
-                path, machine, branch=limit_branch, depth=depth)
-            return path
 
         repo_path = self._get_repo_path(machine)
         self.clone_repo(machine, repo_path, logsio)
 
-        path = repo_path
-        path = destination_folder or tempfolder
-        if path and path != repo_path:
+        path = destination_folder or repo_path
+        if path != repo_path:
             with machine._shell(
                     cwd=self.machine_id.workspace, logsio=logsio) as shell:
                 if not self._is_healthy_repository(shell, path):
@@ -261,6 +259,7 @@ class Repository(models.Model):
             if not self.login_type:
                 raise ValidationError(f"Login-Type missing for {self.name}")
             with LogsIOWriter.GET(self.name, 'fetch') as logsio:
+                breakpoint()
                 repo_path = self._get_main_repo(logsio=logsio)
 
                 with self.machine_id._gitshell(
@@ -316,7 +315,11 @@ class Repository(models.Model):
         assert isinstance(branch, str)
         self.ensure_one()
         self.with_delay(
-            identity_key=f'fetch_updated_branch_{self.short or self.name}_branch:{branch}',
+            identity_key=(
+                "fetch_updated_branch_"
+                f"{self.short or self.name}_branch:{branch}"
+                ),
+
         )._cron_fetch_update_branches({
             'updated_branches': [branch],
         })
@@ -330,6 +333,85 @@ class Repository(models.Model):
                 continue
             yield branch.split("/")[-1].strip()
 
+    def _checkout_branch_recreate_repo_on_need(self, shell, branch):
+        try:
+            shell.checkout_branch(branch)
+        except Exception as ex:
+            breakpoint()
+            shell.logsio.error(ex)
+
+            severity = self._exception_meaning(ex)
+            if severity == 'broken':
+                shell.logsio.info("Recreating workspace folder")
+                shell.rm(shell.cwd)
+                self.clone_repo(shell.machine, shell.cwd, shell.logsio)
+                shell.checkout_branch(branch)
+            else:
+                raise
+
+    def _pull_hard_reset(self, shell, branch):
+        """
+        * avoid fast forward git extra commits
+        * deletes local existance of branch
+
+        """
+        shell.X([
+            "git", "checkout", self.default_branch,
+            "-f"])
+        if shell.branch_exists(branch):
+            shell.X([
+                "git", "branch", "-D", branch],
+                allow_error=True)
+        shell.X(["git", "checkout", branch])
+        shell.X([
+            "git", "reset", "--hard",
+            f"origin/{branch}"])
+
+        # remove existing instance folder to refetch
+        db_branch = self.env['cicd.git.branch'].search([
+            ('name', '=', branch),
+            ('repo_id', '=', self.id)
+        ])
+        shell.rm(db_branch._get_instance_folder(
+            shell.machine))
+
+    def _pull(self, shell, branch):
+        # option P makes .git --> .git/
+        shell.X([
+            "ls -pA |grep -v \\.git\\/ |xargs rm -Rf"])
+        shell.X(["git", "pull"])
+        shell.X(["git", "checkout", "-f"])
+
+    def _prepare_pulled_branch(self, shell, branch):
+        releases = self.env['cicd.release'].search([
+            ('repo_id', '=', self.id)])
+        candidate_branch_names = releases.mapped('candidate_branch')
+        try:
+            breakpoint()
+            logsio = shell.logsio
+            logsio.info(f"Pulling {branch}...")
+            shell.X(["git", "fetch", "origin", branch])
+            logsio.info(f"pulled {branch}...")
+
+            self._checkout_branch_recreate_repo_on_need(
+                shell, branch)
+
+            if branch in candidate_branch_names:
+                self._pull_hard_reset(shell, branch)
+            else:
+                self._pull(shell, branch)
+            shell.X([
+                "git", "submodule", "update",
+                "--init", "--recursive"])
+
+        except Exception as ex:
+            logger.error('error', exc_info=True)
+            if self._exception_meaning(ex) == 'retry':
+                raise RetryableJobError(
+                    str(ex), seconds=10,
+                    ignore_retry=True) from ex
+            raise
+
     def _cron_fetch_update_branches(self, data):
         repo = self
         # checkout latest / pull latest
@@ -340,76 +422,18 @@ class Repository(models.Model):
             repo_path = repo._get_main_repo(logsio=logsio)
             repo = repo.with_context(active_test=False)
             machine = repo.machine_id
+
             with pg_advisory_lock(self.env.cr, repo._get_lockname(
                     machine, repo_path),
                     detailinfo=(
                         f"cron_fetch_updated_branches {updated_branches}"
                     )):
 
-                releases = self.env['cicd.release'].search([
-                    ('repo_id', '=', repo.id)])
-                candidate_branch_names = releases.mapped('candidate_branch')
-
                 with repo.machine_id._gitshell(
                         repo, cwd=repo_path, logsio=logsio) as shell:
-                    try:
-                        breakpoint()
-                        for branch in updated_branches:
-                            logsio.info(f"Pulling {branch}...")
-                            shell.X(["git", "fetch", "origin", branch])
-                            logsio.info(f"pulled {branch}...")
-                            try:
-                                shell.checkout_branch(branch)
-                            except Exception as ex:
-                                breakpoint()
-                                logsio.error(ex)
 
-                                severity = self._exception_meaning(ex)
-                                if severity == 'broken':
-                                    logsio.info("Recreating workspace folder")
-                                    shell.rm(shell.cwd)
-                                    self.clone_repo(machine, shell.cwd, logsio)
-                                    shell.checkout_branch(branch)
-                                else:
-                                    raise
-
-                            if branch in candidate_branch_names:
-                                # avoid fast forward git extra commits
-                                shell.X([
-                                    "git", "checkout", repo.default_branch,
-                                    "-f"])
-                                if shell.branch_exists(branch):
-                                    shell.X([
-                                        "git", "branch", "-D", branch],
-                                        allow_error=True)
-                                shell.X(["git", "checkout", branch])
-                                shell.X([
-                                    "git", "reset", "--hard",
-                                    f"origin/{branch}"])
-
-                                # remove existing instance folder to refetch
-                                db_branch = self.env['cicd.git.branch'].search([
-                                    ('name', '=', branch),
-                                    ('repo_id', '=', self.id)
-                                ])
-                                shell.rm(db_branch._get_instance_folder(
-                                    shell.machine))
-                            else:
-                                # option P makes .git --> .git/
-                                shell.X([
-                                    "ls -pA |grep -v \\.git\\/ |xargs rm -Rf"])
-                                shell.X(["git", "pull"])
-                                shell.X(["git", "checkout", "-f"])
-                            shell.X([
-                                "git", "submodule", "update",
-                                "--init", "--recursive"])
-                    except Exception as ex:
-                        logger.error('error', exc_info=True)
-                        if self._exception_meaning(ex) == 'retry':
-                            raise RetryableJobError(
-                                str(ex), seconds=10,
-                                ignore_retry=True) from ex
-                        raise
+                    for branch in updated_branches:
+                        repo._prepare_pulled_branch(shell, branch)
 
                     # if completely new then all branches:
                     if not repo.branch_ids:
@@ -444,34 +468,52 @@ class Repository(models.Model):
                         if repo.default_branch:
                             updated_branches.append(repo.default_branch)
 
-                    if updated_branches:
-                        breakpoint()
-                        # for contains_commit function;
-                        # clear caches tested in shell and removes
-                        # all caches; method_name
-                        repo.clear_caches()
-                        branches = repo.branch_ids.filtered(
-                            lambda x: x.name in updated_branches)
-                        for branch in branches:
-                            branch._checkout_latest(
-                                shell, logsio=logsio, machine=machine)
-                            branch._update_git_commits(shell, logsio)
-                            branch._compute_latest_commit(shell)
-                            branch._compute_state()
-                            branch._trigger_rebuild_after_fetch(
-                                machine=machine)
-                            shell.checkout_branch(
-                                repo.default_branch, cwd=repo_path)
+                    for branch_name in updated_branches:
+                        self._postprocess_branch_updates(
+                            repo, repo_path, branch_name)
+
+    def _postprocess_branch_updates(self, repo, repo_path, branch_name):
+        """
+        If a branch was updated, then the
+        """
+        if not branch_name:
+            return
+
+        assert isinstance(branch_name, str)
+
+        # for contains_commit function;
+        # clear caches tested in shell and removes
+        # all caches; method_name
+        repo.clear_caches()
+        branch = repo.branch_ids.filtered(
+            lambda x: x.name == branch_name)
+        machine = repo.machine_id
+        with repo.machine_id._shell() as shell:
+            logsio = shell.logsio
+            branch._checkout_latest(
+                shell, logsio=logsio, machine=machine)
+            branch._update_git_commits(shell, logsio)
+            branch._compute_latest_commit(shell)
+            branch._compute_state()
+            branch._trigger_rebuild_after_fetch(
+                machine=machine)
+            shell.checkout_branch(
+                repo.default_branch, cwd=repo_path)
 
     def _is_healthy_repository(self, shell, path):
         self.ensure_one()
         healthy = False
         if shell.exists(path):
             try:
-                shell.X([
+                rc = shell.X([
                     "git", "status", "-s"], cwd=path, logoutput=False,
-                    allow_error=False
+                    allow_error=True
                 )
+                if rc['exit_code']:
+                    if '.git/index.lock' in rc['std_err']:
+                        pass
+                    else:
+                        raise
             except Exception:
                 healthy = False
         return healthy
@@ -485,6 +527,22 @@ class Repository(models.Model):
                 ):
                     shell.rm(path)
                     self._technical_clone_repo(path, machine=machine)
+
+    def _merge_commits_on_target(self, shell, target, commits):
+        for commit in commits:
+            # we use git functions to retrieve deltas, git sorting and
+            # so; we want to rely on stand behaviour git.
+            shell.checkout_branch(target)
+            history = []
+            try:
+                shell.X(["git", "merge", commit.name])
+                history.append(commit.name)
+            except Exception as ex:
+                text = (
+                    "Merge-Conflict - "
+                    "try to merge the branches togehter."
+                )
+                raise UserError(text) from ex
 
     def _recreate_branch_from_commits(
         self, commits, target_branch_name, logsio, make_info_commit_msg
@@ -504,7 +562,7 @@ class Repository(models.Model):
         machine = self.machine_id
         repo_path = self._get_main_repo(tempfolder=True)
         repo = self.with_context(active_test=False)
-        message_commit = None # commit sha of the created message commit
+        message_commit = None  # commit sha of the created message commit
         with machine._gitshell(self, cwd=repo_path, logsio=logsio) as shell:
             try:
 
@@ -517,20 +575,7 @@ class Repository(models.Model):
                 shell.X([
                     "git", "checkout", "--no-guess", "-b", target_branch_name])
 
-                for commit in commits:
-                    # we use git functions to retrieve deltas, git sorting and so;
-                    # we want to rely on stand behaviour git.
-                    shell.checkout_branch(target_branch_name)
-                    history = []
-                    try:
-                        shell.X(["git", "merge", commit.name])
-                        history.append(commit.name)
-                    except Exception as ex:
-                        text = (
-                            "Merge-Conflict - "
-                            "try to merge the branches togehter."
-                        )
-                        raise UserError(text) from ex
+                repo._merge_commits_on_target(shell, target_branch_name, commits)
 
                 # pushes to mainrepo locally not to web because its
                 # cloned to temp directory
@@ -598,7 +643,7 @@ class Repository(models.Model):
                 shell.X(["git", "remote", "set-url", 'origin', self.url])
                 shell.X(["git", "push", '--tags'])
                 shell.X(["git", "push"])
-                mergecommitid= shell.X([
+                mergecommitid = shell.X([
                     "git", "log", "-n1", "--format=%H"])['stdout'].strip()
 
                 return count_lines, mergecommitid
@@ -620,7 +665,8 @@ class Repository(models.Model):
             db_registry = registry(self.env.cr.dbname)
             branches = repo.branch_ids.filtered(
                 lambda x: x.last_access or x.date_registered).filtered(
-                lambda x: (x.last_access or x.date_registered).strftime(FT) < dt)
+                lambda x: (
+                    x.last_access or x.date_registered).strftime(FT) < dt)
 
             # keep release branches
             releases = self.env['cicd.release'].search([

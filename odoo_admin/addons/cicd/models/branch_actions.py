@@ -29,25 +29,37 @@ class Branch(models.Model):
         self._update_all_modules(shell, task, logsio, **kwargs)
 
     def _update_odoo(self, shell, task, logsio, **kwargs):
-        if self.block_updates_until and self.block_updates_until > fields.Datetime.now():
-            raise RetryableJobError("Branch is blocked - have to wait", seconds=10, ignore_retry=True)
-        tasks = self.task_ids.filtered(lambda x: x.state == 'done' and x.name in ['_update_all_modules', '_update_odoo']).sorted(lambda x: x.id, reverse=True)
+        if self.block_updates_until and \
+                self.block_updates_until > fields.Datetime.now():
+            raise RetryableJobError(
+                "Branch is blocked - have to wait",
+                seconds=10, ignore_retry=True
+                )
+
+        tasks = self.task_ids.with_context(prefetch_fields=False).filtered(
+            lambda x: x.state == 'done' and x.name in [
+                '_update_all_modules', '_update_odoo'])
         commit = None
         if tasks:
             commit = tasks[0].commit_id.name
         if commit:
             try:
                 logsio.info("Updating")
-                result = shell.odoo("update", "--since-git-sha", commit, "--no-dangling-check")
+                result = shell.odoo(
+                    "update", "--since-git-sha", commit, "--no-dangling-check")
+
                 if result['exit_code']:
                     raise Exception("Error at update")
             except Exception as ex:
                 logger.error(ex)
                 logsio.error(ex)
-                logsio.info(f"Running full update now - update since sha {commit} did not succeed")
+                logsio.info((
+                    "Running full update now - "
+                    f"update since sha {commit} did not succeed"))
                 self._update_all_modules(shell=shell, task=task, logsio=logsio, **kwargs)
         else:
-            self._update_all_modules(shell=shell, task=task, logsio=logsio, **kwargs)
+            self._update_all_modules(
+                shell=shell, task=task, logsio=logsio, **kwargs)
 
     def _update_all_modules(self, shell, task, logsio, **kwargs):
         logsio.info("Reloading")
@@ -91,7 +103,9 @@ class Branch(models.Model):
         shell.odoo('kill')
         shell.odoo('rm')
         logsio.info(f"Restoring {self.dump_id.name}")
-        shell.odoo('-f', 'restore', 'odoo-db', '--no-remove-webassets', self.dump_id.name)
+        shell.odoo(
+            '-f', 'restore', 'odoo-db', '--no-remove-webassets',
+            self.dump_id.name)
         if self.remove_web_assets_after_restore:
             shell.odoo('-f', 'remove-web-assets')
 
@@ -117,9 +131,11 @@ class Branch(models.Model):
             updated_containers = set()
             for container_name in containers:
                 if container_name.startswith(rec.project_name):
-                    state = 'up' if containers[container_name] == 'running' else 'down'
+                    container_state = containers[container_name]
+                    state = 'up' if container_state == 'running' else 'down'
 
-                    container = rec.container_ids.filtered(lambda x: x.name == container_name)
+                    container = rec.container_ids.filtered(
+                        lambda x: x.name == container_name)
                     if not container:
                         rec.container_ids = [[0, 0, {
                             'name': container_name,
@@ -138,9 +154,16 @@ class Branch(models.Model):
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
 
-    def _reload(self, shell, task, logsio, project_name=None, settings=None, commit=None, **kwargs):
-        with shell.clone(cwd=self._make_sure_source_exists(shell, logsio)) as shell:
-            self._make_instance_docker_configs(shell, forced_project_name=project_name, settings=settings)
+    def _reload(
+            self, shell, task, logsio,
+            project_name=None, settings=None, commit=None, **kwargs
+            ):
+
+        with shell.clone(
+            cwd=self._make_sure_source_exists(shell, logsio)
+        ) as shell:
+            self._make_instance_docker_configs(
+                shell, forced_project_name=project_name, settings=settings)
             self._collect_all_files_by_their_checksum(shell)
             if commit:
                 shell.checkout_commit(commit)
@@ -153,36 +176,44 @@ class Branch(models.Model):
     def _dump(self, shell, task, logsio, **kwargs):
         volume = task.machine_id._get_volume('dumps')
         logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
-        filename = task.branch_id.backup_filename or (self.project_name + ".dump.gz")
+        filename = task.branch_id.backup_filename or (
+            self.project_name + ".dump.gz")
         if '/' in filename:
             raise ValidationError("Filename mustn't contain slashses!")
         shell.odoo('backup', 'odoo-db', str(volume / filename))
         # to avoid serialize access erros which may occur
         task.machine_id.with_delay().update_dumps()
 
-    def _update_git_commits(self, shell, logsio, force_instance_folder=None, **kwargs):
+    def _update_git_commits(
+            self, shell, logsio,
+            force_instance_folder=None, **kwargs
+            ):
+
         self.ensure_one()
         logsio.info(f"Updating commits for {self.project_name}")
-        instance_folder = force_instance_folder or self._get_instance_folder(self.machine_id)
+        instance_folder = force_instance_folder or self._get_instance_folder(
+            self.machine_id)
 
         def _extract_commits():
             # removing the 4 months filter:
-            # old branches get stuck and stuck other branches because latest commit 
-            # cannot be found, if that filter is active.
+            # old branches get stuck and stuck other branches because
+            # latest commit # cannot be found, if that filter is active.
             return list(filter(bool, shell.X([
                 "git",
                 "log",
                 "--pretty=format:%H___%ct",
                 "-n", str(self.repo_id.analyze_last_n_commits),
                 # "--since='last 4 months'",
-            ], logoutput=False, cwd=instance_folder)['stdout'].strip().split("\n")))
+            ], logoutput=False, cwd=instance_folder)[
+                'stdout'].strip().split("\n")))
 
         commits = _extract_commits()
         commits = [list(x.split("___")) for x in commits]
         for commit in commits:
             commit[1] = arrow.get(int(commit[1]))
 
-        all_commits = self.env['cicd.git.commit'].with_context(active_test=False).search([])
+        all_commits = self.env['cicd.git.commit'].with_context(
+            active_test=False).search([])
         all_commits = dict((x.name, x) for x in all_commits)
 
         for icommit, commit in enumerate(commits):
@@ -205,12 +236,16 @@ class Branch(models.Model):
                     sha,
                     "-n1",
                     "--pretty=format:%ct",
-                ], logoutput=False, cwd=instance_folder, env=env)['stdout'].strip().split(',')
+                ], logoutput=False, cwd=instance_folder, env=env)[
+                    'stdout'].strip().split(',')
+
                 if not line or not any(line):
                     continue
                 date = arrow.get(int(line[0]))
 
-            logsio.info(f"Getting detail information of sha {sha} ({icommit} / {len(commits)})")
+            logsio.info((
+                f"Getting detail information of sha "
+                f"{sha} ({icommit} / {len(commits)})"))
 
             info = shell.X([
                 "git",
@@ -218,7 +253,8 @@ class Branch(models.Model):
                 sha,
                 "--date=format:%Y-%m-%d %H:%M:%S",
                 "-n1",
-            ], logoutput=False, cwd=instance_folder, env=env)['stdout'].strip().split("\n")
+            ], logoutput=False, cwd=instance_folder, env=env)[
+                'stdout'].strip().split("\n")
 
             def _get_item(name):
                 for line in info:
@@ -276,7 +312,8 @@ class Branch(models.Model):
             test_run = self.test_run_ids.browse(kwargs.get('testrun_id'))
         else:
             test_run = self.test_run_ids.filtered(
-                lambda x: x.commit_id == self.latest_commit_id and x.state == 'open')
+                lambda x: x.commit_id ==
+                    self.latest_commit_id and x.state == 'open')
 
         if not test_run:
             test_run = self.test_run_ids.filtered(
@@ -286,7 +323,9 @@ class Branch(models.Model):
                     'commit_id': self.latest_commit_id.id,
                     'branch_id': b.id,
                 })
-                self.env.cr.commit() # so that it is available in sub cr in testrun execute
+
+                # so that it is available in sub cr in testrun execute
+                self.env.cr.commit()
         else:
             test_run = test_run.filtered(lambda x: x.state == 'open')
 
@@ -294,8 +333,11 @@ class Branch(models.Model):
             test_run[0].execute(shell, task, logsio)
 
     def _after_build(self, shell, logsio, **kwargs):
-        shell.odoo("remove-settings", '--settings', 'web.base.url,web.base.url.freeze')
-        shell.odoo("update-setting", 'web.base.url', shell.machine.external_url)
+        shell.odoo(
+            "remove-settings", '--settings', 'web.base.url,web.base.url.freeze'
+            )
+        shell.odoo(
+            "update-setting", 'web.base.url', shell.machine.external_url)
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
         self._docker_get_state(shell=shell)
@@ -310,7 +352,7 @@ class Branch(models.Model):
             branch.garbage_collect()
 
     def _gc(self, shell, logsio, **kwargs):
-        logsio.write_text(f"Compressing git")
+        logsio.write_text("Compressing git")
         shell.X(["git", "gc", "--aggressive", "--prune=now"])
 
     def _clone_instance_folder(self, machine, logsio):
@@ -343,7 +385,9 @@ class Branch(models.Model):
             try:
                 shell.X(["git", "pull"])
             except Exception as ex:
-                logsio.error(f"Error at pulling, cloning path {instance_folder} again:\n{ex}")
+                logsio.error((
+                    "Error at pulling,"
+                    f"cloning path {instance_folder} again:\n{ex}"))
                 shell.rm(instance_folder)
                 instance_folder = self._clone_instance_folder(machine, logsio)
 
@@ -351,7 +395,10 @@ class Branch(models.Model):
             res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
             for branch in list(filter(lambda x: '* ' not in x, res)):
                 branch = self.repo_id._clear_branch_name(branch)
-                if branch == self.name: continue
+
+                if branch == self.name:
+                    continue
+
                 shell.X(["git", "branch", "-D", branch])
                 del branch
 
@@ -362,6 +409,7 @@ class Branch(models.Model):
             branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
             if branch_in_dir != self.name:
                 shell.rm(instance_folder)
+
                 raise Exception((
                     f"Branch could not be checked out!"
                     f"Was {branch_in_dir} - but should be {self.name}"
@@ -382,40 +430,63 @@ class Branch(models.Model):
     def inactivity_cycle_down(self):
         machines = self.mapped('repo_id.machine_id')
         for machine in machines:
-            for rec in self.filtered(lambda x: x.repo_id.machine_id == machine):
+            for rec in self.filtered(
+                    lambda x: x.repo_id.machine_id == machine):
                 with rec.machine_id._shell(
                     cwd=rec.project_path,
                     project_name=rec.project_name
                 ) as shell:
-                    uptime = (arrow.get() - arrow.get(rec.last_access or '1980-04-04')).total_seconds()
+                    last_access = arrow.get(rec.last_access or '1980-04-04')
+                    uptime = (arrow.get() - last_access).total_seconds()
                     if uptime > rec.cycle_down_after_seconds:
                         rec._docker_get_state(shell=shell, now=True)
                         if rec.docker_state == 'up':
-                            shell.logsio.info(
-                                f"Cycling down instance {rec.name} due to inactivity")
+                            shell.logsio.info((
+                                "Cycling down instance "
+                                f"{rec.name} due to inactivity"
+                            ))
                             shell.odoo('kill')
                             shell.odoo('rm', allow_error=True)
 
-    def _make_instance_docker_configs(self, shell, forced_project_name=None, settings=None):
+    def _make_instance_docker_configs(
+            self, shell, forced_project_name=None, settings=None):
+
         home_dir = shell._get_home_dir()
         machine = shell.machine
         project_name = forced_project_name or self.project_name
-        content = (current_dir.parent / 'data' / 'template_cicd_instance.yml.template').read_text()
+        content = ((
+            current_dir.parent
+            / 'data'
+            / 'template_cicd_instance.yml.template')).read_text()
+
         values = os.environ.copy()
         values['PROJECT_NAME'] = project_name
         content = content.format(**values)
-        shell.put(content, home_dir + f"/.odoo/docker-compose.{project_name}.yml")
+        shell.put(content, (
+            f"{home_dir}"
+            f"/.odoo/docker-compose.{project_name}.yml"
+            ))
 
-        content = (current_dir.parent / 'data' / 'template_cicd_instance.settings').read_text()
+        content = ((
+            current_dir.parent
+            / 'data'
+            / 'template_cicd_instance.settings')).read_text()
         assert machine
+
         if not machine.postgres_server_id:
-            raise ValidationError(_(f"Please configure a db server for {machine.name}"))
+            raise ValidationError(
+                _(f"Please configure a db server for {machine.name}"))
+
         content += "\n" + (self.reload_config or '')
         if settings:
             content += "\n" + settings
 
         shell.put(
-            content.format(branch=self, project_name=project_name, machine=machine),
+            content.format(
+                branch=self,
+                project_name=project_name,
+                machine=machine),
+
             home_dir + f'/.odoo/settings.{project_name}'
             )
 
@@ -433,11 +504,18 @@ class Branch(models.Model):
 
     def _compress(self, shell, task, logsio, compress_job_id):
         self.ensure_one()
-        compressor = self.env['cicd.compressor'].sudo().browse(compress_job_id).sudo()
+        compressor = self.env['cicd.compressor'].sudo().browse(
+            compress_job_id).sudo()
+
         # get list of files
+
         logsio.info("Identifying latest dump")
-        with compressor.source_volume_id.machine_id._shell(logsio=logsio, cwd="") as source_shell:
-            output = list(reversed(source_shell.X(["ls", "-trA", compressor.source_volume_id.name])['stdout'].strip().split("\n")))
+        with compressor.source_volume_id.machine_id._shell(
+                logsio=logsio, cwd="") as source_shell:
+            output = list(reversed(source_shell.X([
+                "ls", "-trA", compressor.source_volume_id.name])[
+                    'stdout'].strip().split("\n")))
+
             for line in output:
                 if line == '.' or line == '..':
                     continue
@@ -449,11 +527,12 @@ class Branch(models.Model):
                 return
 
         # if the machines are the same, then just rewrite destination path
-        # if machines are different then copy locally and then put it on the machine
+        # if machines are different then copy locally and then put it on the
+        # machine
         appendix = "_compressor"
         if compressor.anonymize:
             appendix += '_anonymize'
-        self = self.with_context(testrun=appendix)  # TODO: perhaps rename testrun to something more generic as not only used in testruns
+        self = self.with_context(testrun=appendix)
         dest_file_path = shell.machine._get_volume('dumps') / self.project_name
 
         # release db resources:
@@ -465,16 +544,24 @@ class Branch(models.Model):
             shell.machine,
             dest_file_path,
         ) as effective_dest_file_path:
-            compressor.last_input_size = int(shell.X(['stat', '-c', '%s', effective_dest_file_path])['stdout'].strip())
+            compressor.last_input_size = int(shell.X([
+                'stat', '-c', '%s', effective_dest_file_path])[
+                    'stdout'].strip())
 
-            instance_path = self.repo_id._get_main_repo(tempfolder=True, logsio=logsio, machine=shell.machine)
             assert shell.machine.ttype == 'dev'
-            # change working project/directory
-            breakpoint()
-            with shell.clone(cwd=instance_path, project_name=self.project_name) as shell:
-                try:
+
+            with self.repo_id._temp_repo(
+                machine=shell.machine, branch=compressor.branch_id.name
+            ) as instance_path:
+                # change working project/directory
+                breakpoint()
+                with shell.clone(
+                    cwd=instance_path,
+                    project_name=self.project_name
+                ) as shell:
+
                     logsio.info("Reloading...")
-                    settings=(
+                    settings = (
                         "\n"
                         f"DBNAME={self.database_project_name}\n"
                         "RUN_CRONJOBS=0\n"
@@ -486,26 +573,30 @@ class Branch(models.Model):
                         "DB_PWD=odoo\n"
                         "DB_PORT=5432\n"
                     )
-                    self._reload(shell, task, logsio, project_name=self.project_name, settings=settings)
+                    self._reload(
+                        shell, task, logsio,
+                        project_name=self.project_name, settings=settings)
                     logsio.info(f"Restoring {effective_dest_file_path}...")
                     shell.odoo("up", "-d", "postgres")
                     try:
-                        shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
+                        shell.odoo(
+                            "-f", "restore", "odoo-db",
+                            effective_dest_file_path)
                         logsio.info("Clearing DB...")
                         shell.odoo('-f', 'cleardb')
                         if compressor.anonymize:
                             logsio.info("Anonymizing DB...")
                             shell.odoo('-f', 'anonymize')
                         logsio.info("Dumping compressed dump")
-                        output_path = compressor.volume_id.name + "/" + compressor.output_filename
+                        output_path = compressor.volume_id.name + "/" + \
+                            compressor.output_filename
                         shell.odoo('backup', 'odoo-db', output_path)
-                        compressor.last_output_size = int(shell.X(['stat', '-c', '%s', output_path])['stdout'].strip())
+                        compressor.last_output_size = int(shell.X([
+                            'stat', '-c', '%s', output_path])[
+                                'stdout'].strip())
                         compressor.date_last_success = fields.Datetime.now()
                     finally:
                         shell.odoo('down', '-v', force=True, allow_error=True)
-
-                finally:
-                    shell.rm(instance_path)
 
     def _make_sure_source_exists(self, shell, logsio):
         instance_folder = self._get_instance_folder(shell.machine)
@@ -526,7 +617,8 @@ class Branch(models.Model):
         hardlink on dir does not work
         so new idea needed
 
-        Odoo stores its files by sha. If a db is restored then usually it has to rebuild the assets.
+        Odoo stores its files by sha. If a db is restored then usually
+        it has to rebuild the assets.
         And files are not available.
         To save space we make the following:
 
@@ -573,8 +665,10 @@ for path in base.glob("*"):
 
     def _kill_tmux_sessions(self, shell):
         for rec in self:
-            with rec.repo_id.machine_id._shell() as shell:
-                rec.repo_id.machine_id.make_login_possible_for_webssh_container()
+            machine = rec.repo_id.machine_id
+            with machine._shell() as shell:
+                machine.make_login_possible_for_webssh_container()
+
                 test = shell.X([
                     "sudo", "pkill", "-9", "-f",
                     "-u", shell.machine.ssh_user_cicdlogin,

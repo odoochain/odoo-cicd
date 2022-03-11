@@ -34,13 +34,21 @@ class NewBranch(models.TransientModel):
         machine = self.repo_id.machine_id
         with LogsIOWriter.GET("cicd", "new_branch") as logsio:
             repo_path = self.repo_id._get_main_repo(tempfolder=True)
-            with machine._gitshell(self.repo_id, cwd=repo_path, logsio=logsio) as shell:
+            with machine._gitshell(
+                self.repo_id, cwd=repo_path, logsio=logsio
+            ) as shell:
+
                 shell.checkout_branch(self.source_branch_id.name)
                 if shell.branch_exists(self.new_name):
-                    raise ValidationError(f"Branch {self.new_name} already exists.")
+                    raise ValidationError(
+                        f"Branch {self.new_name} already exists.")
+
                 shell.X(["git", "checkout", "-b", self.new_name])
-                shell.X(["git", "remote", "set-url", 'origin', self.repo_id.url])
-                shell.X(["git", "push", "--set-upstream", "-f", 'origin', self.new_name])
+                shell.X([
+                    "git", "remote", "set-url", 'origin', self.repo_id.url])
+                shell.X([
+                    "git", "push", "--set-upstream",
+                    "-f", 'origin', self.new_name])
                 branch = self.source_branch_id.create({
                     'name': self.new_name,
                     'dump_id': self.dump_id.id,
