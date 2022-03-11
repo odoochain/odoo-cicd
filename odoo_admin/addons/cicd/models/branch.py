@@ -288,7 +288,7 @@ class GitBranch(models.Model):
                     # some time; release_items is sorted by the _order
                     # by odoo itself
                     release_items = self.env['cicd.release.item'].union(
-                        *release_items).sorted(lambda x: x.id)
+                        *release_items).sorted(lambda x: x.id, reverse=True)
 
                     # suggestion for next 2 lines:
                     # latest_state |= set(release_item.mapped('state')[:1]) as
