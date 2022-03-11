@@ -233,9 +233,9 @@ class GitBranch(models.Model):
         breakpoint()
         for rec in self:
             tasks = rec.task_ids.with_context(prefetch_fields=False)
-            building_tasks = tasks.filtered(
-                lambda x: any(y in x.name for y in [
-                    'update', 'reset', 'restore']))
+            task_names = set(tasks.mapped('name'))
+            building_tasks = any(
+                x in task_names for x in ['update', 'reset', 'restore'])
 
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
