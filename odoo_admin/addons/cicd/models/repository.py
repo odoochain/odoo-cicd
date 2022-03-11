@@ -261,8 +261,6 @@ class Repository(models.Model):
             if not self.login_type:
                 raise ValidationError(f"Login-Type missing for {self.name}")
             with LogsIOWriter.GET(self.name, 'fetch') as logsio:
-                breakpoint()
-                import pudb;pudb.set_trace()
                 repo_path = self._get_main_repo(logsio=logsio)
 
                 with self.machine_id._gitshell(
