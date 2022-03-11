@@ -82,6 +82,8 @@ class ShellExecutor(object):
         return content
 
     def remove(self, path):
+        if '_main_rsodoo' in str(path):
+            import pudb;pudb.set_trace()
         if self.exists(path):
             if self.logsio:
                 self.logsio.info(f"Path {path} exists and is erased now.")

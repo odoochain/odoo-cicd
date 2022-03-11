@@ -515,12 +515,15 @@ class Repository(models.Model):
                         pass
                     else:
                         raise
+                healthy = True
+
             except Exception:
                 healthy = False
         return healthy
 
     def clone_repo(self, machine, path, logsio):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
+            breakpoint()
             if not self._is_healthy_repository(shell, path):
                 with pg_advisory_lock(
                         self.env.cr,
