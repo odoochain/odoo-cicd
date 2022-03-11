@@ -2,8 +2,6 @@ import traceback
 from . import pg_advisory_lock
 from odoo import registry
 import arrow
-from git import Repo
-from contextlib import contextmanager
 from pathlib import Path
 import tempfile
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -14,7 +12,7 @@ from odoo.addons.queue_job.exception import (
     JobError,
 )
 import logging
-from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 
 logger = logging.getLogger(__name__)
 
@@ -146,6 +144,22 @@ class Repository(models.Model):
             if filename.exists():
                 filename.unlink()
 
+    def _technical_clone_repo(
+            self, path, machine, logsio=None, branch=None, depth=None):
+
+        with machine._gitshell(
+            self, cwd=self.machine_id.workspace, logsio=logsio
+        ) as shell:
+
+            cmd = ["git", "clone"]
+            if branch:
+                cmd += ["--branch", limit_branch]
+            if depth:
+                cmd += ["--depth", str(depth)]
+            cmd += [self.url, path]
+            shell.X(cmd)
+            return
+
     def _get_main_repo(
             self, tempfolder=False, destination_folder=False,
             logsio=None, machine=None, limit_branch=None, no_lock=False,
@@ -169,21 +183,11 @@ class Repository(models.Model):
                 raise ValidationError(
                     "No Lock requires tempfolder or destination folder")
 
-            with machine._gitshell(
-                self, cwd=self.machine_id.workspace, logsio=logsio
-            ) as shell:
-
-                cmd = ["git", "clone"]
-                if limit_branch:
-                    cmd += ["--branch", limit_branch]
-                if depth:
-                    cmd += ["--depth", str(depth)]
-                cmd += [self.url, path]
-                shell.X(cmd)
-                return
+            self._technical_clone_repo(
+                path, machine, branch=limit_branch, depth=depth)
 
         repo_path = self._get_repo_path(machine)
-        self.clone_repo(machine, path, logsio)
+        self.clone_repo(machine, repo_path, logsio)
 
         path = repo_path
         path = destination_folder or tempfolder
@@ -195,9 +199,8 @@ class Repository(models.Model):
 
                     if limit_branch:
                         # make sure branch exists in source repo
-                        with machine._shell(
-                                cwd=repo_path, logsio=logsio) as tempshell:
-                            tempshell.checkout_branch(limit_branch)
+                        with shell.clone(cwd=repo_path) as shell2:
+                            shell2.checkout_branch(limit_branch)
 
                     cmd = ["git", "clone"]
                     if limit_branch:
@@ -249,6 +252,7 @@ class Repository(models.Model):
             if not self.login_type:
                 raise ValidationError(f"Login-Type missing for {self.name}")
             with LogsIOWriter.GET(self.name, 'fetch') as logsio:
+                breakpoint()
                 repo_path = self._get_main_repo(logsio=logsio)
 
                 with self.machine_id._gitshell(
@@ -256,9 +260,14 @@ class Repository(models.Model):
                     updated_branches = set()
 
                     for remote in self._get_remotes(shell):
-                        fetch_info = list(filter(lambda x: " -> " in x, shell.X([
+
+                        fetch_output = shell.X([
                             "git", "fetch", remote, '--dry-run'])[
-                                'stderr'].strip().split("\n")))
+                                'stderr'].strip().split("\n")
+
+                        fetch_info = \
+                            list(filter(lambda x: " -> " in x, fetch_output))
+
                         for fi in fetch_info:
                             while "  " in fi:
                                 fi = fi.replace("  ", " ")
@@ -406,8 +415,7 @@ class Repository(models.Model):
                         name = branch
                         del branch
 
-                        date_registered = arrow.utcnow().strftime(
-                            DEFAULT_SERVER_DATETIME_FORMAT)
+                        date_registered = arrow.utcnow().strftime(DTF)
                         if not (branch := repo.branch_ids.filtered(
                             lambda x: x.name == name)):
                             branch = repo.branch_ids.create({
@@ -468,10 +476,7 @@ class Repository(models.Model):
                         self._get_lockname(machine, path), 'clone_repo'
                 ):
                     shell.rm(path)
-                    shell.X([
-                        "git", "clone", self.url,
-                        path
-                    ])
+                    self._technical_clone_repo(path, machine=machine)
 
     def _recreate_branch_from_commits(
         self, commits, target_branch_name, logsio, make_info_commit_msg
@@ -501,7 +506,8 @@ class Repository(models.Model):
                     shell.X(["git", "branch", "-D", target_branch_name])
                 logsio.info("Making target branch {target_branch.name}")
                 shell.checkout_branch(repo.default_branch)
-                shell.X(["git", "checkout", "--no-guess", "-b", target_branch_name])
+                shell.X([
+                    "git", "checkout", "--no-guess", "-b", target_branch_name])
 
                 for commit in commits:
                     # we use git functions to retrieve deltas, git sorting and so;
@@ -513,11 +519,13 @@ class Repository(models.Model):
                         history.append(commit.name)
                     except Exception as ex:
                         text = (
-                            "Merge-Conflict - try to merge the branches togehter."
+                            "Merge-Conflict - "
+                            "try to merge the branches togehter."
                         )
                         raise UserError(text) from ex
 
-                # pushes to mainrepo locally not to web because its cloned to temp directory
+                # pushes to mainrepo locally not to web because its
+                # cloned to temp directory
                 shell.X(["git", "remote", "set-url", 'origin', self.url])
 
                 message_commit_sha = None
@@ -596,7 +604,8 @@ class Repository(models.Model):
         for repo in self.search([
             ('never_cleanup', '=', False),
         ]):
-            dt = arrow.get().shift(days=-1 * repo.cleanup_untouched).strftime(FT)
+            dt = arrow.get().shift(
+                days=-1 * repo.cleanup_untouched).strftime(FT)
 
             # try nicht unbedingt notwendig; bei __exit__
             # wird ein close aufgerufen
