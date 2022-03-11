@@ -13,7 +13,7 @@ class TicketSystem(models.Model):
         selection_add=[('jira', 'JIRA')], ondelete={'jira': 'cascade'})
 
     def _map_state(self, odoo_name):
-        mapping = self.state_mapping_ids.filtered(lambda x: x.name == odoo_name)
+        mapping = self.jira_state_mapping_ids.filtered(lambda x: x.name == odoo_name)
         if mapping:
             return mapping[0].jira_state
 
@@ -27,10 +27,13 @@ class TicketSystem(models.Model):
         return jira
 
     def _jira_get_state(self, jira, issue, state):
+        all_transitions = [x['name'].lower() for x in jira.transitions(issue)]
         for x in jira.transitions(issue):
             if x['name'].lower() == state.lower():
                 return x['id']
-        raise ValidationError(f"Did not find {state}")
+        raise ValidationError((
+            f"Did not find '{state}' -"
+            f"all values {all_transitions}"))
 
     def _jira_set_state(self, issue, state):
         jira = self._get_jira_connection()

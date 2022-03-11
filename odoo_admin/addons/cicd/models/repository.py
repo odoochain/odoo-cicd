@@ -428,7 +428,7 @@ class Repository(models.Model):
                     machine, repo_path),
                     detailinfo=(
                         f"cron_fetch_updated_branches {updated_branches}"
-                    )):
+                )):
 
                 with repo.machine_id._gitshell(
                         repo, cwd=repo_path, logsio=logsio) as shell:
@@ -471,9 +471,9 @@ class Repository(models.Model):
 
                     for branch_name in updated_branches:
                         self._postprocess_branch_updates(
-                            repo, repo_path, branch_name)
+                            shell, repo, repo_path, branch_name, logsio=logsio)
 
-    def _postprocess_branch_updates(self, repo, repo_path, branch_name):
+    def _postprocess_branch_updates(self, shell, repo, repo_path, branch_name, logsio):
         """
         If a branch was updated, then the
         """
@@ -489,17 +489,15 @@ class Repository(models.Model):
         branch = repo.branch_ids.filtered(
             lambda x: x.name == branch_name)
         machine = repo.machine_id
-        with repo.machine_id._shell() as shell:
-            logsio = shell.logsio
-            branch._checkout_latest(
-                shell, logsio=logsio, machine=machine)
-            branch._update_git_commits(shell, logsio)
-            branch._compute_latest_commit(shell)
-            branch._compute_state()
-            branch._trigger_rebuild_after_fetch(
-                machine=machine)
-            shell.checkout_branch(
-                repo.default_branch, cwd=repo_path)
+        branch._checkout_latest(
+            shell, logsio=logsio, machine=machine)
+        branch._update_git_commits(shell, logsio)
+        branch._compute_latest_commit(shell)
+        branch._compute_state()
+        branch._trigger_rebuild_after_fetch(
+            machine=machine)
+        shell.checkout_branch(
+            repo.default_branch, cwd=repo_path)
 
     def _is_healthy_repository(self, shell, path):
         self.ensure_one()
