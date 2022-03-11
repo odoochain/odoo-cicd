@@ -34,5 +34,6 @@ class TestBranchState(common.TransactionCase):
             'name': 'branch1',
             'repo_id': repo.id,
         })
+        branch._compute_state()
 
         self.assertEqual(branch.state, 'new')
