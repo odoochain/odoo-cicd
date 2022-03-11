@@ -505,13 +505,19 @@ class Repository(models.Model):
             branches = branches.filtered(lambda x: x.name not in names)
             del names
 
-            # keep branches if last access
-            def not_last_accessed(branch):
-                if not branch.last_access:
-                    return True
-                return branch.last_access.strftime(FT) < dt
+            # keep new, dev and done
+            branches = branches.filtered(lambda x: x.state in [
+                'new', 'dev', 'done'])
 
-            branches = branches.filtered(not_last_accessed)
+            # keep branches with recents updates
+            def outdated_commits(branch):
+                if not branch.latest_commit_id:
+                    return True
+                if not branch.latest_commit_id.date:
+                    return True
+                return bool(branch.latest_commit_id.date.strftime(FT) < dt)
+
+            branches = branches.filtered(outdated_commits)
 
             with db_registry.cursor() as cr:
                 env = api.Environment(cr, SUPERUSER_ID)
