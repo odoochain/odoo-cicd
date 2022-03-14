@@ -306,10 +306,11 @@ class Branch(models.Model):
         If update_state is set, then the state is set to 'tested'
         """
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+        breakpoint()
         b = task.branch_id
 
         if task.testrun_id:
-            test_run = task.test_run_id
+            test_run = task.testrun_id
         else:
             test_run = self.test_run_ids.filtered(
                 lambda x: x.commit_id ==
