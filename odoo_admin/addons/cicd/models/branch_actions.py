@@ -308,8 +308,8 @@ class Branch(models.Model):
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
         b = task.branch_id
 
-        if kwargs.get('testrun_id'):
-            test_run = self.test_run_ids.browse(kwargs.get('testrun_id'))
+        if task.testrun_id:
+            test_run = task.test_run_id
         else:
             test_run = self.test_run_ids.filtered(
                 lambda x: x.commit_id ==

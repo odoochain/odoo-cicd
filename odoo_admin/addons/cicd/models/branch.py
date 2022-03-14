@@ -543,7 +543,9 @@ class GitBranch(models.Model):
         for rec in self:
             rec.block_release = not rec.block_release
 
+    # env['cicd.git.branch']._cron_make_test_runs()
     def _cron_make_test_runs(self):
+        breakpoint()
         for branch in self.search([('state', '=', 'testable')]):
             if not branch.test_run_ids.filtered(
                 lambda x: x.state in [False, 'running', 'open'] and
