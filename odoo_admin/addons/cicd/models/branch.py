@@ -131,10 +131,12 @@ class GitBranch(models.Model):
 
     def _get_last_access_file(self):
         self.ensure_one()
-        return Path((
-            "/opt/odoo_out/"
+        path = Path((
+            "/opt/out_dir/last_access/"
             f"last_access_{self.id}"
         ))
+        path.parent.mkdir(exist_ok=True)
+        return path
 
     def _compute_last_access(self):
         for rec in self:
