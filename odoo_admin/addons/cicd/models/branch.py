@@ -36,7 +36,10 @@ class GitBranch(models.Model):
     backup_machine_id = fields.Many2one(
         'cicd.machine', string="Machine for backup/restore")
     backup_filename = fields.Char("Backup Filename")
-    last_access = fields.Datetime("Last Access", readonly=True)
+    last_access = fields.Datetime(
+        "Last Access", readonly=True,
+        compute='_compute_last_access',
+        inverse='_set_last_access')
     cycle_down_after_seconds = fields.Integer(
         "Cycle Down After Seconds", default=3600)
     name = fields.Char("Git Branch", required=True)
@@ -125,6 +128,28 @@ class GitBranch(models.Model):
             "unique(name, repo_id)",
             _("Only one unique entry allowed.")),
     ]
+
+    def _get_last_access_file(self):
+        self.ensure_one()
+        return Path((
+            "/opt/odoo_out/"
+            f"last_access_{self.id}"
+        ))
+
+    def _compute_last_access(self):
+        for rec in self:
+            file = self._get_last_access_file()
+            if not file.exists():
+                rec.last_access = False
+            else:
+                date = arrow.get(file.read_text())
+                rec.last_access = date.strftime("%Y-%m-%d %H:%M:%S")
+
+    def _set_last_access(self):
+        for rec in self:
+            rec._get_last_access_file().write_text(
+                arrow.get().strftime("%Y-%m-%d %H:%M:%S")
+            )
 
     def _compute_link(self):
         for rec in self:
