@@ -140,7 +140,7 @@ class GitBranch(models.Model):
 
     def _compute_last_access(self):
         for rec in self:
-            file = self._get_last_access_file()
+            file = rec._get_last_access_file()
             if not file.exists():
                 rec.last_access = False
             else:
