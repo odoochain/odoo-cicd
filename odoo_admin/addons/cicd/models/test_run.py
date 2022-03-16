@@ -311,11 +311,6 @@ ODOO_DEMO=1
 
             # after logsio, so that logs io projectname is unchanged
             self = self.with_context(testrun=testrun_context)
-            self.env.cr.execute((
-                "select * from cicd_test_run "
-                "where id = %s "
-                "for udpate nowait "
-            ), (self.id,))
             with pg_advisory_lock(
                 self.env.cr,
                 f"testrun.{self.id}", detailinfo="execute test"
