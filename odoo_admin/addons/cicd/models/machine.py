@@ -390,12 +390,14 @@ echo "--------------------------------------------------------------------------
                     raise Exception('should exist')
 
     def _update_docker_containers(self):
-        breakpoint()
         for rec in self:
             try:
                 with rec._shell() as shell:
                     try:
-                        containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
+                        containers = shell.X([
+                            "docker", "ps", "-a",
+                            "--format", "{{ .Names }}\t{{ .State }}"], timeout=20)[
+                                'stdout'].strip()
                     except Exception as e:
                         logger.error(e)
                         continue

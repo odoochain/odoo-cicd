@@ -120,6 +120,8 @@ class Release(models.Model):
                 planned_date = rec._compute_next_date(
                     last_item.planned_maximum_finish_date
                 )
+                if planned_date < fields.Datetime.now().strftime(DTF):
+                    planned_date = rec._compute_next_date(fields.Datetime.now())
                 rec.item_ids = [[0, 0, {
                     'planned_date': planned_date,
                 }]]

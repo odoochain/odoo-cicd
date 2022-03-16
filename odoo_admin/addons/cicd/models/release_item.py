@@ -269,7 +269,7 @@ class ReleaseItem(models.Model):
                     self.state = 'failed_too_late'
                     return
 
-        if self.state == ['collecting', 'collecting_merge_conflict']:
+        if self.state in ['collecting', 'collecting_merge_conflict']:
             self._collect()
             if self.needs_merge or not self.item_branch_id:
                 self.merge()
@@ -308,7 +308,8 @@ class ReleaseItem(models.Model):
 
         elif self.state == 'ready':
             if now > self.planned_date:
-                self._do_release()
+                if self.release_id.auto_release:
+                    self._do_release()
 
         elif self.state == 'done':
             pass

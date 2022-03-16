@@ -17,6 +17,6 @@ class Schedule(models.AbstractModel):
             (start_from and arrow.get(start_from) or arrow.utcnow()).strftime(
                 DTF))
         test = test.replace(hour=self.hour, minute=self.minute)
-        if test.strftime(DTF) < start_from.strftime(DTF):
+        if test.strftime(DTF) < (start_from or arrow.utcnow()).strftime(DTF):
             test = test.shift(days=1)
         return test.strftime(DTF)

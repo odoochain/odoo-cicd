@@ -12,5 +12,5 @@ def migrate(cr, version):
     ))
     cr.execute((
         "delete from ir_cron "
-        "where name ilike '%scheduled release%'"
+        "where cron_name ilike '%scheduled release%'"
     ))

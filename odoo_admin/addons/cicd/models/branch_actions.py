@@ -25,7 +25,10 @@ class Branch(models.Model):
         else:
             self.backup_machine_id = dump.machine_id
             self.dump_id = dump
-        self._restore_dump(shell, task, logsio, **kwargs)
+        if self.dump_id:
+            self._restore_dump(shell, task, logsio, **kwargs)
+        else:
+            self._reset_db(shell, task, logsio, **kwargs)
         self._update_all_modules(shell, task, logsio, **kwargs)
 
     def _update_odoo(self, shell, task, logsio, **kwargs):
@@ -291,17 +294,6 @@ class Branch(models.Model):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
-    def _create_empty_db(self, shell, task, logsio, **kwargs):
-        logsio.info("Reloading")
-        self._reload(shell, task, logsio)
-        shell.odoo('reload')
-        logsio.info("Building")
-        shell.odoo('build')
-        logsio.info("Downing")
-        shell.odoo('kill')
-        shell.odoo('rm')
-        shell.odoo('-f', 'db', 'reset')
-
     def _run_tests(self, shell, task, logsio, **kwargs):
         """
         If update_state is set, then the state is set to 'tested'
@@ -447,11 +439,12 @@ class Branch(models.Model):
                     uptime = (arrow.get() - last_access).total_seconds()
                     if uptime > rec.cycle_down_after_seconds:
                         rec._docker_get_state(shell=shell, now=True)
-                        if rec.docker_state == 'up':
-                            shell.logsio.info((
-                                "Cycling down instance "
-                                f"{rec.name} due to inactivity"
-                            ))
+                        if 'up' in rec.mapped('container_ids.state'):
+                            if shell.logsio:
+                                shell.logsio.info((
+                                    "Cycling down instance "
+                                    f"{rec.name} due to inactivity"
+                                ))
                             shell.odoo('kill')
                             shell.odoo('rm', allow_error=True)
 

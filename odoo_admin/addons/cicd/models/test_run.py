@@ -55,6 +55,8 @@ class CicdTestRun(models.Model):
     duration = fields.Integer("Duration [s]", tracking=True)
 
     def abort(self):
+        self.env.cr.commit()
+        self.env.clear()
         self.do_abort = True
         self.state = 'failed'
 
@@ -84,22 +86,40 @@ class CicdTestRun(models.Model):
 
     def _reload(self, shell, logsio, settings, report, started, root):
         def reload():
-            self.branch_id._reload(
-                shell, None, logsio, project_name=shell.project_name,
-                settings=settings, commit=self.commit_id.name)
+            try:
+                self.branch_id._reload(
+                    shell, None, logsio, project_name=shell.project_name,
+                    settings=settings, commit=self.commit_id.name)
+            except Exception as ex:
+                logger.error((
+                    "!!!!!!!!\n"
+                    "!!!!!!!!\n"
+                    "!!!!!!!!\n"
+                    "!!!!!!!!\n"
+                ))
+                logger.error(ex)
+                report(str(ex))
+                report("Exception at reload")
+                raise
+            else:
+                report("Reloaded")
         logsio.info("Reloading for test run")
+        report("Reloading for test run")
         try:
             try:
                 reload()
             except RetryableJobError:
+                report("Retryable error occurred at reloading")
                 raise
             except Exception as ex:
+                report("Reloading: Exception stage 1 hit")
                 report(str(ex))
                 try:
                     if shell.cwd != root:
                         shell.rm(shell.cwd)
                     reload()
                 except RetryableJobError:
+                    report("Retryable error occurred at reloading stage 2")
                     raise
                 except Exception as ex:
                     if 'reference is not a tree' in str(ex):
@@ -121,13 +141,10 @@ class CicdTestRun(models.Model):
             raise
 
     def _abort_if_required(self):
-        self.env.cr.commit()
-        self.env.clear()
         if self.do_abort:
             raise AbortException("User aborted")
 
     def _prepare_run(self, shell, report, logsio, started):
-        breakpoint()
         self._abort_if_required()
         report('building')
         shell.odoo('build')
@@ -227,10 +244,13 @@ ODOO_DEMO=1
                     logsio.error(msg)
             report.last_report_time = arrow.get()
 
+        report("Prepare run...")
         root = machine._get_volume('source')
+        report(f"Root: {root}")
         started = arrow.get()
         self.date = fields.Datetime.now()
         project_name = self.branch_id.project_name
+        report(f"Project Name: {project_name}")
         assert project_name
         with machine._shell(
             cwd=root / project_name, logsio=logsio,
@@ -239,8 +259,8 @@ ODOO_DEMO=1
             try:
                 report("Checking out source code...")
                 self._reload(shell, logsio, settings, report, started, root)
-                report("Reloaded")
 
+                report("Checking commit")
                 sha = shell.X(["git", "log", "-n1", "--format=%H"])[
                     'stdout'].strip()
                 if sha != self.commit_id.name:
@@ -248,6 +268,7 @@ ODOO_DEMO=1
                         f"checked-out SHA {sha} "
                         f"not matching test sha {self.commit_id.name}"
                         ))
+                report("Commit matches")
             except WrongShaException:
                 pass
 
@@ -261,7 +282,6 @@ ODOO_DEMO=1
             try:
                 try:
                     self._prepare_run(shell, report, logsio, started)
-                    self.env.cr.commit()
                 except RetryableJobError:
                     raise
                 except Exception as ex:
@@ -283,7 +303,6 @@ ODOO_DEMO=1
     # ----------------------------------------------
     # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
     def execute(self, shell=None, task=None, logsio=None):
-        breakpoint()
         with self.branch_id._get_new_logsio_instance(
                 'test-run-execute') as logsio2:
             if not logsio:
@@ -376,6 +395,7 @@ ODOO_DEMO=1
                         self.env.cr.commit()
                 except Exception as ex:
                     try:
+                        self.flush()
                         self.env.cr.commit()
                     except Exception:
                         pass
