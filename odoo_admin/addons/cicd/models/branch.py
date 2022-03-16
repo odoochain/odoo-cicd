@@ -24,6 +24,9 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
+    is_release_branch = fields.Boolean(
+        compute="_compute_is_release_branch",
+        search="_search_release_branch")
     project_name = fields.Char(
         compute="_compute_project_name", store=False,
         search="_search_project_name")
@@ -730,3 +733,20 @@ class GitBranch(models.Model):
                     logsio.error(ex)
                     logsio.error(msg)
                     raise
+
+    def _compute_is_release_branch(self):
+        for rec in self:
+            rec.is_release_branch = self.env[
+                'cicd.release.item'].search_count([
+                    ('item_branch_name', '=', rec.name),
+                    ('release_id.repo_id', '=', rec.repo_id.id)
+                ])
+
+    def _search_release_branch(self, operator, value):
+        if operator == '=' and not value:
+            names = self.env['cicd.release.item'].sudo().search([]).mapped(
+                'item_branch_name')
+            return [('name', 'not in', names)]
+
+        else:
+            raise NotImplementedError(operator)
