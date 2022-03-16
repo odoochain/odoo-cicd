@@ -307,7 +307,7 @@ class Branch(models.Model):
         else:
             test_run = self.test_run_ids.filtered(
                 lambda x: x.commit_id ==
-                    self.latest_commit_id and x.state == 'open')
+                    self.latest_commit_id and x.state in ('open', 'omitted'))
 
         if not test_run:
             test_run = self.test_run_ids.filtered(
@@ -326,7 +326,8 @@ class Branch(models.Model):
                 # so that it is available in sub cr in testrun execute
                 self.env.cr.commit()
         else:
-            test_run = test_run.filtered(lambda x: x.state == 'open')
+            test_run = test_run.filtered(lambda x: x.state in ('open', 'omitted'))
+            test_run.filtered(lambda x: x.state != 'open').write({'state': 'open'})
 
         if test_run:
             test_run[0].execute(shell, task, logsio)
