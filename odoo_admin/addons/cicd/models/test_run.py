@@ -55,6 +55,8 @@ class CicdTestRun(models.Model):
     duration = fields.Integer("Duration [s]", tracking=True)
 
     def abort(self):
+        self.env.cr.commit()
+        self.env.clear()
         self.do_abort = True
         self.state = 'failed'
 
@@ -233,6 +235,7 @@ ODOO_DEMO=1
                 'ttype': 'preparation',
                 'duration': duration
                 }]]
+                self.env.cr.commit()
 
             if logsio:
                 if state == 'success':
@@ -345,6 +348,7 @@ ODOO_DEMO=1
                             }]]
                         self.do_abort = False
                         self.state = 'running'
+                        self.env.cr.commit()
 
                         if shell:
                             machine = shell.machine
@@ -363,14 +367,17 @@ ODOO_DEMO=1
                                 self._execute(
                                     shell, logsio, self._run_unit_tests,
                                     machine, 'test-units')
+                                self.env.cr.commit()
                             if b.run_robottests:
                                 self._execute(
                                     shell, logsio, self._run_robot_tests,
                                     machine, 'test-robot')
+                                self.env.cr.commit()
                             if b.simulate_install_id:
                                 self._execute(
                                     shell, logsio, self._run_update_db,
                                     machine, 'test-migration')
+                                self.env.cr.commit()
 
                         if data['technical_errors']:
                             for error in data['technical_errors']:
@@ -390,6 +397,7 @@ ODOO_DEMO=1
                             logsio.info(f"Duration was {self.duration}")
                         self._compute_success_rate()
                         self._inform_developer()
+                        self.env.cr.commit()
                 except Exception as ex:
                     try:
                         self.flush()
@@ -429,6 +437,7 @@ ODOO_DEMO=1
                         'name': "Failed at preparation",
                         'state': 'failed',
                     }]]
+                    self.env.cr.commit()
 
         except Exception as ex:
             msg = traceback.format_exc()
@@ -445,6 +454,7 @@ ODOO_DEMO=1
             'ttype': 'failed',
             'name': msg
         }]]
+        self.env.cr.commit()
 
     def _compute_success_rate(self):
         for rec in self:
@@ -661,6 +671,7 @@ ODOO_DEMO=1
                     break
 
             self.line_ids = [[0, 0, data]]
+            self.env.cr.commit()
         return success
 
     def _inform_developer(self):
