@@ -67,7 +67,7 @@ class Branch(models.Model):
 
     def run_tests(self, update_state=True, silent=False):
         self.with_delay(identity_key=(
-            f"{self.id}-run-tests"
+            f"{self.latest_commit_id.name}-run-tests"
         ))._run_tests()
 
     def start(self):
