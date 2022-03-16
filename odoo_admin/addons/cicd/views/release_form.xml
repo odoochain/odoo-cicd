@@ -6,9 +6,8 @@
 			<field name="arch" type="xml">
 				<form string="">
 					<header>
-						<button string="Collect tested branches" name="collect_tested_branches" class="oe_highlight" type="object"/>
 						<button string="Make Hotfix" name="make_hotfix" type="object"/>
-						<field name="state" widget="statusbar" />
+						<field name="state" widget="statusbar"  states='failed_technically,collecting_merge_conflict'/>
 					</header>
 					<sheet>
 						<div class="oe_button_box" name="button_box">
@@ -21,15 +20,15 @@
 							<field name="repo_id"/>
 							<field name="project_name"/>
 							<field name="branch_id" domain="[('repo_id', '=', repo_id)]"/>
-							<field name="candidate_branch" />
 							<field name="sequence_id"/>
 							<field name="send_pre_release_information"/>
 						</group>
 						<group string="Continuous Deployment">
 							<field name="countdown_minutes"/>
+							<field name="minutes_to_release"/>
 							<field name="auto_release"/>
-							<field name="auto_release_cronjob_id" readonly='1' attrs="{'invisible': [('auto_release', '=', False)]}"/>
-							<field name="planned_timestamp_after_preparation" attrs="{'invisible': [('auto_release', '=', False)], 'required': [('auto_release', '=', True)]}" />
+							<field name="hour" />
+							<field name="minute" />
 						</group>
 						<notebook>
 							<page string="Versions">
@@ -37,12 +36,9 @@
 									<tree editable="bottom" create='0' delete='0'>
 										<button name="open_window" string="" icon='fa-external-link' type="object" />
 										<field name="name" readonly='1'/>
-										<field name="try_counter"/>
 										<field name="release_type"/>
-										<field name="branch_ids" widget='many2many_tags' attrs="{'readonly': [('release_type', '!=', 'hotfix')]}"/>
-										<field name="final_curtain"/>
+										<field name="branch_branch_ids" widget='many2many_tags' attrs="{'readonly': [('release_type', '!=', 'hotfix')]}"/>
 										<field name="planned_date"/>
-										<field name="count_failed_queuejobs"/>
 										<field name="done_date" readonly='1'/>
 										<field name="state" readonly='1'/>
 									</tree>

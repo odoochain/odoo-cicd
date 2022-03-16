@@ -3,6 +3,7 @@
     'auto_install': True,
     'data': [   'security/groups.xml',
                 'data/cronjobs.xml',
+                'data/cronjobs_release.xml',
                 'data/data.xml',
                 'data/mail_templates.xml',
                 'data/queuejob_functions.xml',
@@ -52,4 +53,4 @@
     'name': 'cicd',
     'qweb': [],
     'test': [],
-    'version': '15.0.1.1'}
+    'version': '15.0.1.2'}

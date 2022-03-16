@@ -89,9 +89,15 @@ class GitBranch(models.Model):
     release_ids = fields.One2many(
         "cicd.release", "branch_id", string="Releases")
 
-    release_item_ids = fields.Many2many('cicd.release.item', string="Releases")
+    release_branch_ids = fields.Many2one(
+        'cicd.release.item.branch', 'branch_id')
+    # DID not work: raise TypeError("Type of related field %s is inconsistent with %s" % (self, field))
+    # release_item_ids = fields.Many2many(
+    #     'cicd.release.item',
+    #     related='release_branch_ids.item_id', string="Releases")
     computed_release_item_ids = fields.Many2many(
-        'cicd.release.item', "Releases", compute="_compute_releases")
+        'cicd.release.item', "Releases", compute="_compute_releases",
+        search='_search_release_items')
 
     any_testing = fields.Boolean(compute="_compute_any_testing")
     run_unittests = fields.Boolean(
@@ -202,16 +208,35 @@ class GitBranch(models.Model):
                 res.repo_id.remove_web_assets_after_restore
         return res
 
+    def _search_release_items(self, operator, value):
+        if operator == 'in':
+            branch = self.env['cicd.release.item.branch'].search([
+                ('item_id', 'in', value)]).branch_id
+            return [('id', 'in', branch.ids)]
+        else:
+            raise NotImplementedError()
+
     def _compute_releases(self):
+        """
+        On item branch or master branch restrict releases to show
+        """
         for rec in self:
-            release_items = rec.release_item_ids.ids
+            release_items = self.env['cicd.release.item.branch'].search([
+                ('branch_id', '=', rec.id)
+            ]).mapped('item_id')
             releases = self.env['cicd.release'].search([
                 ('repo_id', '=', rec.repo_id.id)])
-            if rec in releases.branch_id or rec.name in releases.mapped(
-                    'candidate_branch'):
+
+            item_branches = releases.mapped('item_ids.item_branch_id')
+
+            if rec in releases.branch_id:
                 release_items = releases.filtered(
                     lambda x: x.branch_id == rec
-                    or x.candidate_branch == rec.name).item_ids
+                ).item_ids
+            elif rec in item_branches:
+                release_items = releases.item_ids.filtered(
+                    lambda x: x.item_branch_id == rec)
+
             rec.computed_release_item_ids = release_items
 
     def approve(self):
@@ -253,8 +278,12 @@ class GitBranch(models.Model):
         "latest_commit_id.force_approved",
         "latest_commit_id.test_run_ids",
         "latest_commit_id.test_run_ids.state",
-        "release_item_ids.state",
+        "computed_release_item_ids.state",
+        "computed_release_item_ids",
+        "release_branch_ids.state",
+        "release_branch_ids",
         "any_testing",
+        "block_release",
     )
     def _compute_state(self):
         for rec in self:
@@ -278,8 +307,9 @@ class GitBranch(models.Model):
                 state = 'approve'
 
             elif commit.approval_state == 'approved' and \
-                    commit.test_state in [False, 'open', 'running'] and \
-                        rec.any_testing and not commit.force_approved:
+                commit.test_state in [False, 'open', 'running'] and \
+                    rec.any_testing and not commit.force_approved:
+
                 state = 'testable'
 
             elif commit.test_state == 'failed' or \
@@ -295,24 +325,16 @@ class GitBranch(models.Model):
                     or commit.force_approved
                     ) and commit.approval_state == 'approved':
 
-                release_items = rec.release_item_ids.filtered(
-                    lambda ri: ri.state != 'ignore')
+                release_items = rec.computed_release_item_ids.mapped(
+                    'release_id.next_to_finish_item_id')
+                latest_states = release_items.mapped('state')
 
-                latest_states = set()
-
-                def keyfunc(ri):
-                    return ri.release_id
-
-                release_items_by_release = groupby(
-                    release_items.sorted(keyfunc), keyfunc)
-
-                for release, release_items in release_items_by_release:
-                    latest_states.add(next(release_items).state)
-
-                if set(['new', 'failed']) & latest_states:
-                    state = 'candidate'
-                elif list(latest_states) == ['done']:
+                if release_items and all(x == 'done' for x in latest_states):
                     state = 'done'
+                elif 'collecting_merge_conflict' in latest_states:
+                    state = 'merge_conflict'
+                elif release_items:
+                    state = 'candidate'
                 else:
                     state = 'tested'
 
@@ -321,28 +343,6 @@ class GitBranch(models.Model):
                 rec.with_delay(
                     identity_key=f"report_ticket_system branch:{rec.name}:"
                 )._report_new_state_to_ticketsystem()
-
-    @api.fieldchange('state', 'block_release')
-    def _onchange_state_event(self, changeset):
-        for rec in self:
-
-            def _update():
-                self.env['cicd.release.item'].search([
-                    ('state', 'in', ['new']),
-                    ('release_id.repo_id', '=', rec.repo_id.id)
-                ])._collect_tested_branches(self.repo_id)
-
-            if 'block_release' in changeset:
-                rec._compute_state()
-                _update()
-                continue
-
-            if 'state' in changeset:
-                old_state = changeset['state']['old']
-                new_state = changeset['state']['new']
-                if new_state == 'tested' or old_state == 'tested':
-                    _update()
-                    continue
 
     @api.depends("name", "ticket_system_ref")
     def _compute_ticket_system_url(self):
@@ -415,6 +415,7 @@ class GitBranch(models.Model):
 
     def _get_instance_folder(self, machine):
         if not self.project_name:
+            breakpoint()
             raise ValidationError("Project name not determined.")
         return machine._get_volume('source') / self.project_name
 
@@ -735,6 +736,10 @@ class GitBranch(models.Model):
                 ) as shell:
 
                 try:
+                    if shell.cwd and shell.exists(shell.cwd) and \
+                            shell.remove(shell.cwd / "/.git"):
+                        shell.checkout_branch(self.name)
+
                     yield shell
                 except Exception as ex:
                     msg = traceback.format_exc()
