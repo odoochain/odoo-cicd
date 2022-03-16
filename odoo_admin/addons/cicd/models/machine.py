@@ -106,7 +106,8 @@ class CicdMachine(models.Model):
         os.chmod(ssh_pubkeyfile, rights_keyfile)
         return ssh_keyfile
 
-    def test_shell(self, cmd, cwd=None, env={}):
+    def test_shell(self, cmd, cwd=None, env=None):
+        env = env or {}
         with self._shell(cwd=cwd, env=env) as shell:
             return shell.X(cmd, cwd=cwd, env=env)
 
@@ -115,7 +116,8 @@ class CicdMachine(models.Model):
             return shell.exists(path)
 
     @contextmanager
-    def _shell(self, cwd=None, logsio=None, project_name=None, env={}):
+    def _shell(self, cwd=None, logsio=None, project_name=None, env=None):
+        env = env or {}
         self.ensure_one()
         ssh_keyfile = self._place_ssh_credentials()
 
@@ -296,11 +298,10 @@ echo "--------------------------------------------------------------------------
         else:
             vol = self.volume_ids.browse(vals['upload_volume_id'])
 
-        with self._shell(cwd='~', logsio=None) as shell1:
-            with shell1.shell() as shell2:
-                path = Path(vol.name) / filename
-                content = base64.b64decode(content)
-                shell2.write_bytes(path, content)
+        with self._shell(cwd='~', logsio=None) as shell:
+            path = Path(vol.name) / filename
+            content = base64.b64decode(content)
+            shell.put(content, path)
         self.message_post(body="New dump uploaded: " + filename)
 
         for f in ['upload_volume_id', 'upload_overwrite']:

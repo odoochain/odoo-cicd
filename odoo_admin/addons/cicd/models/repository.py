@@ -497,8 +497,7 @@ class Repository(models.Model):
         branch._update_git_commits(shell, logsio)
         branch._compute_latest_commit(shell)
         branch._compute_state()
-        branch._trigger_rebuild_after_fetch(
-            machine=machine)
+        branch._trigger_rebuild_after_fetch()
         shell.checkout_branch(
             repo.default_branch, cwd=repo_path)
 

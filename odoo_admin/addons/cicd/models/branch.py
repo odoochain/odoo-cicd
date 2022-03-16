@@ -355,7 +355,8 @@ class GitBranch(models.Model):
 
     def _make_task(
         self, execute, now=False, machine=None, silent=False,
-        identity_key=None, reuse=False, testrun_id=None, **kwargs
+        identity_key=None, reuse=False, testrun_id=None,
+        **kwargs
     ):
         for rec in self:
             identity_key = identity_key or \
@@ -542,7 +543,7 @@ class GitBranch(models.Model):
 
     def delete_db(self):
         for rec in self:
-            machine = rec.repo_id.machine
+            machine = rec.repo_id.machine_id
             if machine.postgres_server_id.ttype != 'dev':
                 continue
             with machine._shell() as shell:
@@ -565,9 +566,7 @@ class GitBranch(models.Model):
             if not branch.test_run_ids.filtered(
                 lambda x: x.state in [False, 'running', 'open'] and
                     x.commit_id == branch.latest_commit_id):
-                branch._make_task(
-                    "_run_tests", silent=True, update_state=True,
-                    testrun_id=None)
+                branch.with_delay()._run_tests()
 
         # revive dead test
         for running in self.env['cicd.test.run'].search([
@@ -590,12 +589,10 @@ class GitBranch(models.Model):
             tests = self.env['cicd.test.run'].union(*list(tests))
             if not tests:
                 continue
-            branch._make_task(
-                "_run_tests", silent=True, update_state=True,
-                testrun_id=tests[0].id)
+            branch.with_delay()._run_tests(testrun_id=tests[0].id)
             tests[1:].write({'state': 'omitted'})
 
-    def _trigger_rebuild_after_fetch(self, machine):
+    def _trigger_rebuild_after_fetch(self):
         """
         After new source is fetched then the instance is rebuilt.
         """
@@ -714,16 +711,16 @@ class GitBranch(models.Model):
         return self.machine_id._get_volume('source') / self.project_name
 
     @contextmanager
-    def shell(self, logs_title):
+    def shell(self, logs_title, prepare=True):
         with self._get_new_logsio_instance(logs_title) as logsio:
             with self.machine_id._shell(
                 cwd=self.project_path,
                 logsio=logsio,
                 project_name=self.project_name
-                ) as shell:
+            ) as shell:
 
                 try:
-                    if shell.cwd and shell.exists(shell.cwd) and \
+                    if prepare and shell.cwd and shell.exists(shell.cwd) and \
                             shell.remove(shell.cwd / "/.git"):
                         shell.checkout_branch(self.name)
 

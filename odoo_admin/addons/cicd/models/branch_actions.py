@@ -294,31 +294,31 @@ class Branch(models.Model):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
-    def _run_tests(self, shell, task, logsio, **kwargs):
+    def _run_tests(self, shell=None, task=None, logsio=None, test_run=None, **kwargs):
         """
         If update_state is set, then the state is set to 'tested'
         """
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
         breakpoint()
-        b = task.branch_id
+        b = task and task.branch_id or self
 
-        if task.testrun_id:
+        if not test_run and task and task.testrun_id:
             test_run = task.testrun_id
-        else:
+        elif not test_run:
             test_run = self.test_run_ids.filtered(
                 lambda x: x.commit_id ==
                     self.latest_commit_id and x.state in ('open', 'omitted'))
 
         if not test_run:
-            test_run = self.test_run_ids.filtered(
-                lambda x: x.commit_id == self.latest_commit_id)
+            test_run = b.test_run_ids.filtered(
+                lambda x: x.commit_id == b.latest_commit_id)
             if test_run:
                 test_run = test_run.filtered(lambda x: x.state == 'failed')
                 if test_run:
                     test_run[0].state = 'open'
 
             if not test_run:
-                test_run = self.test_run_ids.create({
+                test_run = b.test_run_ids.create({
                     'commit_id': self.latest_commit_id.id,
                     'branch_id': b.id,
                 })
@@ -330,7 +330,7 @@ class Branch(models.Model):
             test_run.filtered(lambda x: x.state != 'open').write({'state': 'open'})
 
         if test_run:
-            test_run[0].execute(shell, task, logsio)
+            test_run[0].with_delay().execute(task=task)
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo(
