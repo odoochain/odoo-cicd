@@ -235,7 +235,7 @@ ODOO_DEMO=1
                 'ttype': 'preparation',
                 'duration': duration
                 }]]
-                self.env.cr.commit()
+            self.env.cr.commit()
 
             if logsio:
                 if state == 'success':

@@ -440,10 +440,11 @@ class Branch(models.Model):
                     if uptime > rec.cycle_down_after_seconds:
                         rec._docker_get_state(shell=shell, now=True)
                         if 'up' in rec.mapped('container_ids.state'):
-                            shell.logsio.info((
-                                "Cycling down instance "
-                                f"{rec.name} due to inactivity"
-                            ))
+                            if shell.logsinfo:
+                                shell.logsio.info((
+                                    "Cycling down instance "
+                                    f"{rec.name} due to inactivity"
+                                ))
                             shell.odoo('kill')
                             shell.odoo('rm', allow_error=True)
 
