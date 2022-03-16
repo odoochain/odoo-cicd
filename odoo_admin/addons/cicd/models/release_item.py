@@ -308,7 +308,8 @@ class ReleaseItem(models.Model):
 
         elif self.state == 'ready':
             if now > self.planned_date:
-                self._do_release()
+                if self.release_id.auto_release:
+                    self._do_release()
 
         elif self.state == 'done':
             pass
