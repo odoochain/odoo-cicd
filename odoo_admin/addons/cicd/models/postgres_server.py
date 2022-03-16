@@ -1,9 +1,8 @@
 import psycopg2
-from odoo import _, api, fields, models, SUPERUSER_ID
-from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from odoo import _, api, fields, models
 from ..tools.tools import get_host_ip
 from contextlib import contextmanager
-import humanize
+from odoo import registry
 
 class PostgresServer(models.Model):
     _inherit = ['cicd.mixin.size']
@@ -55,28 +54,31 @@ class PostgresServer(models.Model):
 
     def update_databases(self):
         for rec in self:
-            with rec._get_conn() as cr:
-                cr.execute("""
-                    SELECT datname, pg_database_size(datname)
-                    FROM pg_database
-                    WHERE datistemplate = false
-                    AND datname not in ('postgres');
-                """)
-                dbs = cr.fetchall()
-                all_dbs = set()
-                for db in dbs:
-                    dbname = db[0]
-                    dbsize = db[1]
-                    all_dbs.add(dbname)
-                    db_db = rec.database_ids.sudo().filtered(lambda x: x.name == dbname)
-                    if not db_db:
-                        db_db = rec.database_ids.sudo().create({
-                            'server_id': rec.id,
-                            'name': dbname
-                        })
-                    db_db.size = dbsize
+            with db_registry(self.env.cr.dbname) as odoocr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+                rec = rec.with_env(env)
+                with rec._get_conn() as cr:
+                    cr.execute("""
+                        SELECT datname, pg_database_size(datname)
+                        FROM pg_database
+                        WHERE datistemplate = false
+                        AND datname not in ('postgres');
+                    """)
+                    dbs = cr.fetchall()
+                    all_dbs = set()
+                    for db in dbs:
+                        dbname = db[0]
+                        dbsize = db[1]
+                        all_dbs.add(dbname)
+                        db_db = rec.database_ids.sudo().filtered(lambda x: x.name == dbname)
+                        if not db_db:
+                            db_db = rec.database_ids.sudo().create({
+                                'server_id': rec.id,
+                                'name': dbname
+                            })
+                        db_db.size = dbsize
 
-                for db in rec.database_ids:
-                    if db.name not in all_dbs:
-                        db.sudo().unlink()
-        return True
+                    for db in rec.database_ids:
+                        if db.name not in all_dbs:
+                            db.sudo().unlink()
+                odoocr.commit()
