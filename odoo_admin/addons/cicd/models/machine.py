@@ -396,7 +396,7 @@ echo "--------------------------------------------------------------------------
                     try:
                         containers = shell.X([
                             "docker", "ps", "-a",
-                            "--format", "{{ .Names }}\t{{ .State }}", timeout=20])[
+                            "--format", "{{ .Names }}\t{{ .State }}"], timeout=20)[
                                 'stdout'].strip()
                     except Exception as e:
                         logger.error(e)
