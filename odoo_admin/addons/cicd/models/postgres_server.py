@@ -1,6 +1,6 @@
 import psycopg2
 from odoo import _, api, fields, models
-from odoo.tools import SUPERUSER_ID
+from odoo import SUPERUSER_ID
 from ..tools.tools import get_host_ip
 from contextlib import contextmanager
 from odoo import registry
