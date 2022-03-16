@@ -25,7 +25,10 @@ class Branch(models.Model):
         else:
             self.backup_machine_id = dump.machine_id
             self.dump_id = dump
-        self._restore_dump(shell, task, logsio, **kwargs)
+        if self.dump_id:
+            self._restore_dump(shell, task, logsio, **kwargs)
+        else:
+            self._reset_db(shell, task, logsio, **kwargs)
         self._update_all_modules(shell, task, logsio, **kwargs)
 
     def _update_odoo(self, shell, task, logsio, **kwargs):
@@ -290,17 +293,6 @@ class Branch(models.Model):
     def _anonymize(self, shell, task, logsio, **kwargs):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
-
-    def _create_empty_db(self, shell, task, logsio, **kwargs):
-        logsio.info("Reloading")
-        self._reload(shell, task, logsio)
-        shell.odoo('reload')
-        logsio.info("Building")
-        shell.odoo('build')
-        logsio.info("Downing")
-        shell.odoo('kill')
-        shell.odoo('rm')
-        shell.odoo('-f', 'db', 'reset')
 
     def _run_tests(self, shell, task, logsio, **kwargs):
         """
