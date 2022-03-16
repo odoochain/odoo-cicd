@@ -566,7 +566,8 @@ class GitBranch(models.Model):
             if not branch.test_run_ids.filtered(
                 lambda x: x.state in [False, 'running', 'open'] and
                     x.commit_id == branch.latest_commit_id):
-                branch.with_delay()._run_tests()
+                branch.with_delay(
+                    f"{branch.id}-run-tests")._run_tests()
 
         # revive dead test
         for running in self.env['cicd.test.run'].search([
@@ -589,7 +590,8 @@ class GitBranch(models.Model):
             tests = self.env['cicd.test.run'].union(*list(tests))
             if not tests:
                 continue
-            branch.with_delay()._run_tests(testrun_id=tests[0].id)
+            branch.with_delay(
+                f"{branch.id}-run-tests")._run_tests(testrun_id=tests[0].id)
             tests[1:].write({'state': 'omitted'})
 
     def _trigger_rebuild_after_fetch(self):

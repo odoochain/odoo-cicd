@@ -66,7 +66,9 @@ class Branch(models.Model):
         self._make_task("_restore_dump", machine=self.backup_machine_id)
 
     def run_tests(self, update_state=True, silent=False):
-        self.with_delay()._run_tests()
+        self.with_delay(identity_key=(
+            f"{self.branch_id.id}-run-tests"
+        ))._run_tests()
 
     def start(self):
         breakpoint()
