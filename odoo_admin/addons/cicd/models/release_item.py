@@ -269,7 +269,7 @@ class ReleaseItem(models.Model):
                     self.state = 'failed_too_late'
                     return
 
-        if self.state == ['collecting', 'collecting_merge_conflict']:
+        if self.state in ['collecting', 'collecting_merge_conflict']:
             self._collect()
             if self.needs_merge or not self.item_branch_id:
                 self.merge()
