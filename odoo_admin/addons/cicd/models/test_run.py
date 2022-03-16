@@ -139,13 +139,10 @@ class CicdTestRun(models.Model):
             raise
 
     def _abort_if_required(self):
-        self.env.cr.commit()
-        self.env.clear()
         if self.do_abort:
             raise AbortException("User aborted")
 
     def _prepare_run(self, shell, report, logsio, started):
-        breakpoint()
         self._abort_if_required()
         report('building')
         shell.odoo('build')
@@ -236,7 +233,6 @@ ODOO_DEMO=1
                 'ttype': 'preparation',
                 'duration': duration
                 }]]
-            self.env.cr.commit()
 
             if logsio:
                 if state == 'success':
@@ -283,7 +279,6 @@ ODOO_DEMO=1
             try:
                 try:
                     self._prepare_run(shell, report, logsio, started)
-                    self.env.cr.commit()
                 except RetryableJobError:
                     raise
                 except Exception as ex:
@@ -305,7 +300,6 @@ ODOO_DEMO=1
     # ----------------------------------------------
     # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
     def execute(self, shell=None, task=None, logsio=None):
-        breakpoint()
         with self.branch_id._get_new_logsio_instance(
                 'test-run-execute') as logsio2:
             if not logsio:
@@ -314,6 +308,11 @@ ODOO_DEMO=1
 
             # after logsio, so that logs io projectname is unchanged
             self = self.with_context(testrun=testrun_context)
+            self.env.cr.execute((
+                "select * from cicd_test_run "
+                "where id = %s "
+                "for udpate nowait "
+            ), (self.id,))
             with pg_advisory_lock(
                 self.env.cr,
                 f"testrun.{self.id}", detailinfo="execute test"
@@ -346,7 +345,6 @@ ODOO_DEMO=1
                             }]]
                         self.do_abort = False
                         self.state = 'running'
-                        self.env.cr.commit()
 
                         if shell:
                             machine = shell.machine
@@ -365,17 +363,14 @@ ODOO_DEMO=1
                                 self._execute(
                                     shell, logsio, self._run_unit_tests,
                                     machine, 'test-units')
-                                self.env.cr.commit()
                             if b.run_robottests:
                                 self._execute(
                                     shell, logsio, self._run_robot_tests,
                                     machine, 'test-robot')
-                                self.env.cr.commit()
                             if b.simulate_install_id:
                                 self._execute(
                                     shell, logsio, self._run_update_db,
                                     machine, 'test-migration')
-                                self.env.cr.commit()
 
                         if data['technical_errors']:
                             for error in data['technical_errors']:
@@ -395,9 +390,9 @@ ODOO_DEMO=1
                             logsio.info(f"Duration was {self.duration}")
                         self._compute_success_rate()
                         self._inform_developer()
-                        self.env.cr.commit()
                 except Exception as ex:
                     try:
+                        self.flush()
                         self.env.cr.commit()
                     except Exception:
                         pass
@@ -434,7 +429,6 @@ ODOO_DEMO=1
                         'name': "Failed at preparation",
                         'state': 'failed',
                     }]]
-                    self.env.cr.commit()
 
         except Exception as ex:
             msg = traceback.format_exc()
@@ -451,7 +445,6 @@ ODOO_DEMO=1
             'ttype': 'failed',
             'name': msg
         }]]
-        self.env.cr.commit()
 
     def _compute_success_rate(self):
         for rec in self:
@@ -668,7 +661,6 @@ ODOO_DEMO=1
                     break
 
             self.line_ids = [[0, 0, data]]
-            self.env.cr.commit()
         return success
 
     def _inform_developer(self):

@@ -176,7 +176,6 @@
 							<page string="Docker" name="docker">
 								<group>
 									<field name="cycle_down_after_seconds"/>
-									<field name="docker_state"/>
 								</group>
 								<group string="Actions">
 									<button name="docker_start" string="Start/Restart Containers" type="object"/>

@@ -67,8 +67,6 @@ class GitBranch(models.Model):
             ))
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
-    docker_state = fields.Char(
-        "Docker State", readonly=True, compute="_compute_docker_state")
     state = fields.Selection(
         STATES, string="State", default="new",
         tracking=True, compute="_compute_state", store=True,
@@ -254,15 +252,6 @@ class GitBranch(models.Model):
             'state': 'not ok',
         }]]
         self.state = 'rework'
-
-    @api.depends("container_ids", "container_ids.state")
-    def _compute_docker_state(self):
-        for rec in self:
-            count_up = len(rec.container_ids.filtered(
-                lambda x: x.state == 'up'))
-            count_down = len(rec.container_ids.filtered(
-                lambda x: x.state == 'down'))
-            rec.docker_state = f"Up: {count_up} Down: {count_down}"
 
     def set_state(self, state, raise_exception=False):
         self.ensure_one()
@@ -498,11 +487,6 @@ class GitBranch(models.Model):
     def _get_new_logsio_instance(self, source):
         self.ensure_one()
         with LogsIOWriter.GET(f"{self.project_name}", source) as logs:
-            trace = '\n'.join(traceback.format_stack())
-            logs.write_text((
-                f"New Logsio-Instance Started: {arrow.get()}: \n"
-                f"{trace}"
-            ))
             yield logs
 
     @api.constrains("backup_filename")
