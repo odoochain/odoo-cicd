@@ -14,6 +14,7 @@ class ItemBranch(models.Model):
         ('merged', 'Merged'),
         ('conflict', 'Conflict'),
     ], string="State", default="candidate")
+    commit_date = fields.Datetime(related="commit_id.date")
 
     @api.constrains("commit_id", "branch_id")
     def _check_branch_commit(self):
