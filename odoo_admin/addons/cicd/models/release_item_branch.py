@@ -38,3 +38,12 @@ class ItemBranch(models.Model):
     def _updated_commit(self):
         for rec in self:
             rec.state = 'candidate'
+
+    def open_window(self):
+        return super().open_window({
+            'res_model': self.commit_id._name,
+            'res_id': self.commit_id.id,
+        })
+
+    def view_changes(self):
+        return self.commit_id.view_changes()

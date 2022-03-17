@@ -14,53 +14,43 @@
 							<button type="object" class="oe_stat_button" icon="fa-recycle" name="retry" string="Retry" states='failed_technically,collecting_merge_conflict' />
 						</div>
 						<group>
-							<field name="release_id" readonly="1" />
-							<field name="name" readonly="1" />
-							<field name="release_type" readonly="1" />
-							<field name="computed_summary" />
+							<group>
+								<field name="release_id" readonly="1" />
+								<field name="name" readonly="1" />
+								<field name="release_type" readonly="1" />
+							</group>
+							<group string="Deadlines">
+								<field name="stop_collecting_at" />
+								<field name="planned_date" />
+								<field name="planned_maximum_finish_date" />
+							</group>
 						</group>
-						<group string="Deadlines">
-							<field name="stop_collecting_at" />
-							<field name="planned_date" />
-							<field name="planned_maximum_finish_date" />
-						</group>
-						<group string="Merge Information">
-							<field name="commit_id" readonly="1"/>
-							<field name="item_branch_name" attrs="{'invisible': [('item_branch_id', '!=', False)]}"/>
-							<field name="item_branch_id"  attrs="{'invisible': [('item_branch_id', '=', False)]}"/>
-						</group>
-						<notebook>
-							<page string="Log">
-								<field name="log_release"/>
-							</page>
-							<page string="Branches" name="branches">
+						<group>
+							<group string="Merge Information">
+								<field name="commit_id" readonly="1"/>
+								<field name="item_branch_name" attrs="{'invisible': [('item_branch_id', '!=', False)]}"/>
+								<field name="item_branch_id"  attrs="{'invisible': [('item_branch_id', '=', False)]}"/>
+							</group>
+							<group string="Branches" name="branches">
 								<field name="branch_ids" attrs="{'readonly': [('release_type', '!=', 'hotfix')]}">
 									<tree>
 										<field name="branch_id"/>
+										<button name="open_window" string="" icon="fa-external-link" type="object" />
 										<field name="commit_id"/>
 										<field name="state"/>
-									</tree>
-								</field>
-							</page>
-							<!-- <page string="Commits" name="commits">
-								<field name="commit_ids" readonly="1">
-									<tree
-										decoration-danger="approval_state == 'declined' or test_state == 'failed'"
-										decoration-muted="not approval_state and not test_state"
-										decoration-success="force_approved or approval_state == 'approved' or test_state == 'success'"
-									>
-										<button name="open_window" string="" icon="fa-external-link" type="object" />
-										<field name="name"/>
-										<field name="test_state"/>
-										<field name="approval_state"/>
-										<field name="force_approved" widget="boolean_toggle"/>
 										<field name="date" />
-										<field name="author"/>
-										<field name="text"/>
 										<button name="view_changes" string="" icon="fa-search" type="object" />
 									</tree>
 								</field>
-							</page> -->
+							</group>
+						</group>
+						<notebook>
+							<page name="summary" string="Summary">
+								<field name="computed_summary" />
+							</page>
+							<page string="Log">
+								<field name="log_release"/>
+							</page>
 						</notebook>
 					</sheet>
 					<div class="oe_chatter">
