@@ -57,7 +57,7 @@ class PostgresServer(models.Model):
         for rec in self:
             db_registry = registry(self.env.cr.dbname)
             with db_registry.cursor() as odoocr:
-                env = api.Environment(cr, SUPERUSER_ID, {})
+                env = api.Environment(odoocr, SUPERUSER_ID, {})
                 rec = rec.with_env(env)
                 with rec._get_conn() as cr:
                     cr.execute("""

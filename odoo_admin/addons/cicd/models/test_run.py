@@ -273,9 +273,9 @@ ODOO_DEMO=1
                 pass
 
             except Exception as ex:
+                logger.error(ex)
                 report("Error at reloading the instance / getting source")
                 report(str(ex))
-                logger.error(ex)
                 raise
 
             report(f"Checked out source code at {shell.cwd}")
@@ -303,6 +303,13 @@ ODOO_DEMO=1
     # ----------------------------------------------
     # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
     def execute(self, shell=None, task=None, logsio=None):
+        if self.search_count([
+            ('commit_id', '=', self.commit_id.id),
+            ('state', 'in', ['open', 'running'])
+        ]):
+            self.state = 'omitted'
+            return
+
         with self.branch_id._get_new_logsio_instance(
                 'test-run-execute') as logsio2:
             if not logsio:
@@ -321,6 +328,8 @@ ODOO_DEMO=1
                         return
                     db_registry = registry(self.env.cr.dbname)
                     with db_registry.cursor() as cr:
+                        cr.commit()
+                        cr.autocommit(True)
                         env = api.Environment(cr, SUPERUSER_ID, {})
                         self = env[self._name].browse(self.id)
                         self = self.with_context(testrun=testrun_context)
@@ -343,7 +352,6 @@ ODOO_DEMO=1
                             }]]
                         self.do_abort = False
                         self.state = 'running'
-                        self.env.cr.commit()
 
                         if shell:
                             machine = shell.machine
