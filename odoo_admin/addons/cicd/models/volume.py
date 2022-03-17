@@ -45,7 +45,13 @@ class CicdVolumes(models.Model):
 
     @api.model
     def _cron_update(self):
-        self.sudo().search([])._update_sizes()
+        for volume in self.sudo().search([]):
+            volume.with_delay(
+                identity_key=(
+                    "volumesize-"
+                    f"{volume.id}"
+                )
+            )._update_sizes()
 
     def _update_sizes(self):
         for rec in self:

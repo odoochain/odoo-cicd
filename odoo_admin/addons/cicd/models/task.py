@@ -194,6 +194,7 @@ class Task(models.Model):
                 rec.queue_job_id = False
 
     def _set_failed_if_no_queuejob(self):
+        breakpoint()
         for task in self:
             if not task.queue_job_id:
                 if not task.state or task.state in ['started']:

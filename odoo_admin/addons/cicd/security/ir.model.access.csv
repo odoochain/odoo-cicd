@@ -39,3 +39,4 @@ model_cicd_git_branch_new,cicd.group_developer,cicd_git_branch_new_cicd_group_de
 
 model_cicd_git_repo,cicd.group_developer,cicd_git_repo_cicd_group_developer,cicd.git.repo - cicd_group_developer,1,0,0,0
 
+

@@ -394,10 +394,6 @@ class GitBranch(models.Model):
             })
             task.perform(now=now)
 
-    @api.model
-    def _cron_update_docker_states(self):
-        self.search([])._docker_get_state()
-
     def _cron_execute_task(self):
         self.ensure_one()
         tasks = self.task_ids.with_context(prefetch_fields=False).filtered(lambda x: x.state == 'new')

@@ -129,8 +129,9 @@ class Branch(models.Model):
 
     def _docker_get_state(self, **kwargs):
         breakpoint()
-        containers = self.mapped('repo_id.machine_id')._get_containers()
+        containers = self.mapped('repo_id.machine_id').sudo()._get_containers()
         for rec in self:
+            rec = rec.sudo()
             updated_containers = set()
             for container_name in containers:
                 if container_name.startswith(rec.project_name):
@@ -675,3 +676,15 @@ for path in base.glob("*"):
                     "-u", shell.machine.ssh_user_cicdlogin,
                     f'new-session.*-s.*{rec.project_name}'
                     ], allow_error=True)
+
+    @api.model
+    def _cron_docker_get_state(self):
+        for branch in self.sudo().with_context(
+            active_test=False
+        ).search([]):
+            branch.with_delay(
+                identity_key=(
+                    "docker_get_state_"
+                    f"branch_{branch.id}"
+                )
+            ).docker_get_state()

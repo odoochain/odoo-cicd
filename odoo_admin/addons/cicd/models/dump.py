@@ -44,7 +44,12 @@ class Dump(models.Model):
     @api.model
     def _cron_update(self):
         for machine in self.env['cicd.machine'].sudo().search([]):
-            self._update_dumps(machine)
+            self.with_delay(
+                identity_key=(
+                    "update-dump-"
+                    f"{machine.id}"
+                )
+            )._update_dumps(machine)
 
     @api.constrains("name")
     def _check_name(self):
