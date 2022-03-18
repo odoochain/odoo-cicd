@@ -2,7 +2,7 @@ import psycopg2
 from odoo import _, api, fields, models
 from odoo import SUPERUSER_ID
 from ..tools.tools import get_host_ip
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from odoo import registry
 
 class PostgresServer(models.Model):
