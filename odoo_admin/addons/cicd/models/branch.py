@@ -96,9 +96,10 @@ class GitBranch(models.Model):
     # release_item_ids = fields.Many2many(
     #     'cicd.release.item',
     #     related='release_branch_ids.item_id', string="Releases")
-    computed_release_item_ids = fields.Many2many(
-        'cicd.release.item', "Releases", compute="_compute_releases",
-        search='_search_release_items')
+    release_item_ids = fields.Many2many('cicd.release.item', 'cicd_release_item_branch', 'branch_id', 'item_id', 'Releases')
+    #computed_release_item_ids = fields.Many2many(
+    #    'cicd.release.item', "Releases", compute="_compute_releases",
+    #    search='_search_release_items')
 
     any_testing = fields.Boolean(compute="_compute_any_testing")
     run_unittests = fields.Boolean(
@@ -217,28 +218,28 @@ class GitBranch(models.Model):
         else:
             raise NotImplementedError()
 
-    def _compute_releases(self):
-        """
-        On item branch or master branch restrict releases to show
-        """
-        for rec in self:
-            release_items = self.env['cicd.release.item.branch'].search([
-                ('branch_id', '=', rec.id)
-            ]).mapped('item_id')
-            releases = self.env['cicd.release'].search([
-                ('repo_id', '=', rec.repo_id.id)])
+    #def _compute_releases(self):
+    #    """
+    #    On item branch or master branch restrict releases to show
+    #    """
+    #    for rec in self:
+    #        release_items = self.env['cicd.release.item.branch'].search([
+    #            ('branch_id', '=', rec.id)
+    #        ]).mapped('item_id')
+    #        releases = self.env['cicd.release'].search([
+    #            ('repo_id', '=', rec.repo_id.id)])
 
-            item_branches = releases.mapped('item_ids.item_branch_id')
+    #        item_branches = releases.mapped('item_ids.item_branch_id')
 
-            if rec in releases.branch_id:
-                release_items = releases.filtered(
-                    lambda x: x.branch_id == rec
-                ).item_ids
-            elif rec in item_branches:
-                release_items = releases.item_ids.filtered(
-                    lambda x: x.item_branch_id == rec)
+    #        if rec in releases.branch_id:
+    #            release_items = releases.filtered(
+    #                lambda x: x.branch_id == rec
+    #            ).item_ids
+    #        elif rec in item_branches:
+    #            release_items = releases.item_ids.filtered(
+    #                lambda x: x.item_branch_id == rec)
 
-            rec.computed_release_item_ids = release_items
+    #        rec.computed_release_item_ids = release_items
 
     def approve(self):
         self.approver_ids = [[0, 0, {
@@ -270,8 +271,8 @@ class GitBranch(models.Model):
         "latest_commit_id.force_approved",
         "latest_commit_id.test_run_ids",
         "latest_commit_id.test_run_ids.state",
-        "computed_release_item_ids.state",
-        "computed_release_item_ids",
+        "release_item_ids.state",
+        "release_item_ids",
         "release_branch_ids.state",
         "release_branch_ids",
         "any_testing",
@@ -317,7 +318,7 @@ class GitBranch(models.Model):
                     or commit.force_approved
                     ) and commit.approval_state == 'approved':
 
-                release_items = rec.computed_release_item_ids.mapped(
+                release_items = rec.release_item_ids.mapped(
                     'release_id.next_to_finish_item_id')
                 latest_states = release_items.mapped('state')
 
