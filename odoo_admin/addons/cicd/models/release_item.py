@@ -367,6 +367,7 @@ class ReleaseItem(models.Model):
                 ('block_release', '=', False),
                 ('name', 'not in', ignored_branch_names),
                 ('state', 'in', ['tested', 'candidate', 'merge_conflict']), # CODE review: merge_conflict!
+                ('target_release_id', '=', rec.release_id.id),
             ])
 
             def _keep_undeployed_commits(branch):
