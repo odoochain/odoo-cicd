@@ -162,7 +162,7 @@
 								</group>
 							</page>
 							<page string="Releases" name="releases">
-								<field name="release_item_ids" >
+								<field name="computed_release_item_ids" >
 									<tree>
 										<field name="release_id"/>
 										<field name="planned_date"/>
