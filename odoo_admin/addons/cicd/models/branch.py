@@ -216,28 +216,28 @@ class GitBranch(models.Model):
         else:
             raise NotImplementedError()
 
-    #def _compute_releases(self):
-    #    """
-    #    On item branch or master branch restrict releases to show
-    #    """
-    #    for rec in self:
-    #        release_items = self.env['cicd.release.item.branch'].search([
-    #            ('branch_id', '=', rec.id)
-    #        ]).mapped('item_id')
-    #        releases = self.env['cicd.release'].search([
-    #            ('repo_id', '=', rec.repo_id.id)])
+    def _compute_releases(self):
+        """
+        On item branch or master branch restrict releases to show
+        """
+        for rec in self:
+            release_items = self.env['cicd.release.item.branch'].search([
+                ('branch_id', '=', rec.id)
+            ]).mapped('item_id')
+            releases = self.env['cicd.release'].search([
+                ('repo_id', '=', rec.repo_id.id)])
 
-    #        item_branches = releases.mapped('item_ids.item_branch_id')
+            item_branches = releases.mapped('item_ids.item_branch_id')
 
-    #        if rec in releases.branch_id:
-    #            release_items = releases.filtered(
-    #                lambda x: x.branch_id == rec
-    #            ).item_ids
-    #        elif rec in item_branches:
-    #            release_items = releases.item_ids.filtered(
-    #                lambda x: x.item_branch_id == rec)
+            if rec in releases.branch_id:
+                release_items = releases.filtered(
+                    lambda x: x.branch_id == rec
+                ).item_ids
+            elif rec in item_branches:
+                release_items = releases.item_ids.filtered(
+                    lambda x: x.item_branch_id == rec)
 
-    #        rec.computed_release_item_ids = release_items
+            rec.computed_release_item_ids = release_items
 
     def approve(self):
         self.approver_ids = [[0, 0, {
