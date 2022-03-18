@@ -96,6 +96,9 @@ class GitBranch(models.Model):
     # release_item_ids = fields.Many2many(
     #     'cicd.release.item',
     #     related='release_branch_ids.item_id', string="Releases")
+    release_item_ids = fields.Many2many(
+        'cicd.release.item', 'cicd_release_item_branch', 'branch_id',
+        'item_id', 'Releases')
     computed_release_item_ids = fields.Many2many(
         'cicd.release.item', "Releases", compute="_compute_releases",
         search='_search_release_items')
@@ -270,8 +273,8 @@ class GitBranch(models.Model):
         "latest_commit_id.force_approved",
         "latest_commit_id.test_run_ids",
         "latest_commit_id.test_run_ids.state",
-        "computed_release_item_ids.state",
-        "computed_release_item_ids",
+        "release_item_ids.state",
+        "release_item_ids",
         "release_branch_ids.state",
         "release_branch_ids",
         "any_testing",
@@ -318,7 +321,7 @@ class GitBranch(models.Model):
                     or commit.force_approved
                     ) and commit.approval_state == 'approved':
 
-                release_items = rec.computed_release_item_ids.mapped(
+                release_items = rec.release_item_ids.mapped(
                     'release_id.next_to_finish_item_id')
                 latest_states = release_items.mapped('state')
 
