@@ -407,9 +407,13 @@ class CicdTestRun(models.Model):
 
         if self.search_count([
             ('commit_id', '=', self.commit_id.id),
+            ('id', '!=', self.id),
             ('state', 'in', ['open', 'running'])
         ]):
             self.state = 'omitted'
+            self.line_ids = [[6, 0, []]]
+            self.as_job(
+                "omitted_compute_success_rate", True)._compute_success_rate()
             return
 
         self = self._with_context()
