@@ -224,10 +224,9 @@ class GitBranch(models.Model):
             releases = self.env['cicd.release'].search([
                 ('repo_id', '=', rec.repo_id.id)])
 
-            item_branches = self.release_item_ids\
-                .with_context(prefetch_fields=False).item_branch_id
             release_items = rec.release_item_ids.with_context(
                 prefetch_fields=False)
+            item_branches = release_items.item_branch_id
 
             if rec in releases.branch_id:
                 release_items = releases.filtered(
