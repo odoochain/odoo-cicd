@@ -502,27 +502,11 @@ class CicdTestRun(models.Model):
     def _execute(self, shell, logsio, run, appendix):
         try:
             logsio.info("Running " + appendix)
-            passed_prepare = False
-            try:
-                started = arrow.get()
-                run(shell, logsio)
-            except Exception:
-                msg = traceback.format_exc()
-                if not passed_prepare:
-                    duration = (arrow.get() - started).total_seconds()
-                    self._report(
-                        "Failed at preparation", exception=msg,
-                        duration=duration, ttype='preparation'
-                    )
-
+            run(shell, logsio)
         except Exception as ex:
+            logger.error(ex, exc_info=True)
             msg = traceback.format_exc()
             self._report(msg, exception=ex)
-            logger.error(ex)
-            logger.error(msg)
-            if logsio:
-                logsio.error(ex)
-                logsio.error(msg)
 
     def _compute_success_rate(self, task=None):
         self.ensure_one()
@@ -570,15 +554,15 @@ class CicdTestRun(models.Model):
         self.state = 'open'
         self.success_rate = 0
 
-    def _run_create_empty_db(self, shell, task, logsio):
+    # def _run_create_empty_db(self, shell, task, logsio):
 
-        def _emptydb(item):
-            self.branch_id._create_empty_db(shell, task, logsio)
+    #     def _emptydb(item):
+    #         self.branch_id._create_empty_db(shell, task, logsio)
 
-        self._generic_run(
-            shell, logsio, [None],
-            'emptydb', _emptydb,
-        )
+    #     self._generic_run(
+    #         shell, logsio, [None],
+    #         'emptydb', _emptydb,
+    #     )
 
     def _run_update_db(self, shell, logsio, **kwargs):
 
@@ -733,8 +717,8 @@ class CicdTestRun(models.Model):
                 data['duration'] = (end - started).total_seconds()
                 if data['state'] == 'success':
                     break
-
             self.line_ids = [[0, 0, data]]
+            self.env.cr.commit()
         return success
 
     def _inform_developer(self):
