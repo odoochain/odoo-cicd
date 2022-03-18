@@ -43,7 +43,7 @@ class CicdTestRun(models.Model):
     _order = 'id desc'
 
     name = fields.Char(compute="_compute_name")
-    do_abort = fields.Boolean("Abort when possible")
+    do_abort = fields.Boolean("Abort when possible", tracking=True)
     date = fields.Datetime(
         "Date Started", default=lambda self: fields.Datetime.now(),
         required=True, tracking=True)
@@ -61,7 +61,7 @@ class CicdTestRun(models.Model):
         ('success', 'Success'),
         ('omitted', 'Omitted'),
         ('failed', 'Failed'),
-    ], string="Result", required=True, default='open')
+    ], string="Result", required=True, default='open', tracking=True)
     success_rate = fields.Integer("Success Rate [%]", tracking=True)
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     duration = fields.Integer("Duration [s]", tracking=True)
@@ -140,6 +140,9 @@ class CicdTestRun(models.Model):
         except RetryableJobError as ex:
             self._report("Retrying", exception=ex)
             raise
+
+        except AbortException as ex:
+            pass
 
         except Exception as ex:
             self._report("Error", exception=ex)
