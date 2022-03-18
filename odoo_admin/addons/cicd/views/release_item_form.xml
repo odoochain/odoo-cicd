@@ -38,7 +38,7 @@
 										<button name="open_window" string="" icon="fa-external-link" type="object" />
 										<field name="commit_id"/>
 										<field name="state"/>
-										<field name="date" />
+										<field name="commit_date" />
 										<button name="view_changes" string="" icon="fa-search" type="object" />
 									</tree>
 								</field>

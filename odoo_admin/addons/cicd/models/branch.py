@@ -92,10 +92,6 @@ class GitBranch(models.Model):
 
     release_branch_ids = fields.Many2one(
         'cicd.release.item.branch', 'branch_id')
-    # DID not work: raise TypeError("Type of related field %s is inconsistent with %s" % (self, field))
-    # release_item_ids = fields.Many2many(
-    #     'cicd.release.item',
-    #     related='release_branch_ids.item_id', string="Releases")
     release_item_ids = fields.Many2many(
         'cicd.release.item', 'cicd_release_item_branch', 'branch_id',
         'item_id', 'Releases')
@@ -220,28 +216,28 @@ class GitBranch(models.Model):
         else:
             raise NotImplementedError()
 
-    def _compute_releases(self):
-        """
-        On item branch or master branch restrict releases to show
-        """
-        for rec in self:
-            release_items = self.env['cicd.release.item.branch'].search([
-                ('branch_id', '=', rec.id)
-            ]).mapped('item_id')
-            releases = self.env['cicd.release'].search([
-                ('repo_id', '=', rec.repo_id.id)])
+    #def _compute_releases(self):
+    #    """
+    #    On item branch or master branch restrict releases to show
+    #    """
+    #    for rec in self:
+    #        release_items = self.env['cicd.release.item.branch'].search([
+    #            ('branch_id', '=', rec.id)
+    #        ]).mapped('item_id')
+    #        releases = self.env['cicd.release'].search([
+    #            ('repo_id', '=', rec.repo_id.id)])
 
-            item_branches = releases.mapped('item_ids.item_branch_id')
+    #        item_branches = releases.mapped('item_ids.item_branch_id')
 
-            if rec in releases.branch_id:
-                release_items = releases.filtered(
-                    lambda x: x.branch_id == rec
-                ).item_ids
-            elif rec in item_branches:
-                release_items = releases.item_ids.filtered(
-                    lambda x: x.item_branch_id == rec)
+    #        if rec in releases.branch_id:
+    #            release_items = releases.filtered(
+    #                lambda x: x.branch_id == rec
+    #            ).item_ids
+    #        elif rec in item_branches:
+    #            release_items = releases.item_ids.filtered(
+    #                lambda x: x.item_branch_id == rec)
 
-            rec.computed_release_item_ids = release_items
+    #        rec.computed_release_item_ids = release_items
 
     def approve(self):
         self.approver_ids = [[0, 0, {
