@@ -233,7 +233,7 @@ class GitBranch(models.Model):
                     lambda x: x.branch_id == rec
                 ).item_ids
             elif rec in item_branches:
-                release_items = self.releases.item_ids.filtered(
+                release_items = releases.item_ids.filtered(
                     lambda x: x.item_branch_id == rec)
 
             rec.computed_release_item_ids = release_items
