@@ -12,10 +12,11 @@ class Controller(http.Controller):
     @http.route("/last_access/<name>", type="http", auth="public")
     def last_access(self, name):
         branch = request.env['cicd.git.branch'].sudo().search([('project_name', '=', name)])
-        branch.with_delay().write({
-            'identity_key': f"last-access-{branch.id}",
+        branch.with_delay(
+            identity_key=f"last-access-{branch.id}",
+            eta=arrow.utcnow().shift(minutes=10).strftime(DTF),
+        ).write({
             'last_access': arrow.utcnow().datetime.strftime(DTF),
-            'eta': arrow.utcnow().shift(minutes=10).strftime(DTF)
         })
         return "OK"
 
