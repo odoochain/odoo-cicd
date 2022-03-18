@@ -46,7 +46,8 @@ class CicdTestRun(models.Model):
     name = fields.Char(compute="_compute_name")
     do_abort = fields.Boolean("Abort when possible", tracking=True)
     create_date = fields.Datetime(
-        default=lambda self: fields.Datetime.now(), required=True)
+        default=lambda self: fields.Datetime.now(), required=True,
+        readonly=True)
     date = fields.Datetime(
         "Date Started", default=lambda self: fields.Datetime.now(),
         required=True, tracking=True)
