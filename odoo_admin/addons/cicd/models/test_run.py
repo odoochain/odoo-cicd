@@ -457,7 +457,6 @@ class CicdTestRun(models.Model):
                 logsio.info("No testing - so done")
                 self.success_rate = 100
                 self.state = 'success'
-                b._compute_state()
                 return
 
             self.line_ids = [[6, 0, []]]

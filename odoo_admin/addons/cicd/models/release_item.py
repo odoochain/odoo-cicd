@@ -97,7 +97,6 @@ class ReleaseItem(models.Model):
             values={'summary': self.computed_summary}
         )
         self.state = 'done'
-        self.branch_ids._compute_state()
 
     def _compute_failed_jobs(self):
         for rec in self:
@@ -233,14 +232,6 @@ class ReleaseItem(models.Model):
                     candidate_branch._compute_state()
 
                 self.mapped('branch_ids.branch_id')._compute_state()
-
-    @api.fieldchange("branch_ids")
-    def _on_change_branches(self, changeset):
-        for rec in self:
-            branches = (
-                changeset['branch_ids']['old']
-                | changeset['branch_ids']['new'])
-            branches.branch_id._compute_state()
 
     def abort(self):
         for rec in self:
