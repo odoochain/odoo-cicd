@@ -192,10 +192,11 @@ class ReleaseItem(models.Model):
                             f"{branches}"
                         )
                     )
-                    item_branch = message_commit.branch_ids.filtered(
-                        lambda x: x.name == self.item_branch_name)
-                    self.item_branch_id = item_branch
-                    self.branch_ids.write({'state': 'merged'})
+                    if message_commit:
+                        item_branch = message_commit.branch_ids.filtered(
+                            lambda x: x.name == self.item_branch_name)
+                        self.item_branch_id = item_branch
+                        self.branch_ids.write({'state': 'merged'})
 
                 except MergeConflict as ex:
                     for commit in ex.conflicts:
@@ -206,7 +207,8 @@ class ReleaseItem(models.Model):
                     return
 
                 self.needs_merge = False
-                assert self.item_branch_id
+                if self.branch_ids:
+                    assert self.item_branch_id
 
             except RetryableJobError:
                 raise
@@ -271,6 +273,7 @@ class ReleaseItem(models.Model):
 
         if self.state in ['collecting', 'collecting_merge_conflict']:
             self._collect()
+                
             if self.needs_merge or not self.item_branch_id:
                 self.merge()
 
