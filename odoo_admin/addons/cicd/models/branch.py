@@ -395,7 +395,8 @@ class GitBranch(models.Model):
 
     def _cron_execute_task(self):
         self.ensure_one()
-        tasks = self.task_ids.with_context(prefetch_fields=False).filtered(lambda x: x.state == 'new')
+        tasks = self.task_ids.with_context(prefetch_fields=False).filtered(
+            lambda x: x.state == 'new')
         if not tasks:
             return
         tasks = tasks[-1]
@@ -541,10 +542,9 @@ class GitBranch(models.Model):
             machine = rec.repo_id.machine_id
             if machine.postgres_server_id.ttype != 'dev':
                 continue
-            with machine._shell() as shell:
-                dbs = machine.postgres_server_id.database_ids.filtered(
-                    lambda x: x.name == rec.project_name)
-                dbs.delete_db()
+            dbs = machine.postgres_server_id.database_ids.filtered(
+                lambda x: x.name == rec.project_name)
+            dbs.delete_db()
 
     def toggle_active(self):
         for rec in self:
@@ -588,8 +588,8 @@ class GitBranch(models.Model):
             if not tests:
                 continue
             branch.with_delay(
-                identity_key=f"{branch.latest_commit_id.name}-run-tests")._run_tests(
-                    testrun_id=tests[0].id)
+                identity_key=f"{branch.latest_commit_id.name}-run-tests")\
+                ._run_tests(testrun_id=tests[0].id)
             tests[1:].write({'state': 'omitted'})
 
     def _trigger_rebuild_after_fetch(self):
@@ -609,8 +609,9 @@ class GitBranch(models.Model):
     def _compute_tasks(self):
         for rec in self:
             tasks = rec.task_ids.with_context(prefetch_fields=False)
-            # removed from mt again because it is slow - in feature system of rs
-            # tasks = rec.task_ids # added prefetch=False to fields so all
+            # TODO understand prefetch attribute
+            # removed from mt again because it is slow - in feature system of
+            # rs # tasks = rec.task_ids # added prefetch=False to fields so all
             # rec.task_ids everywhere should be optimized
 
             def _filter(x):
@@ -625,7 +626,6 @@ class GitBranch(models.Model):
     @api.depends('commit_ids')
     def _compute_commit_ids(self):
         for rec in self:
-            #rec.commit_ids_ui = rec.commit_ids[:200]
             rec.commit_ids_ui = rec.commit_ids.sorted(
                 lambda x: x.date, reverse=True)
 
@@ -676,7 +676,7 @@ class GitBranch(models.Model):
 
     def ticketsystem_set_state(self, state):
         assert state in ['done', 'in progress']
-        #override / implement!
+        # override / implement!
 
     def _report_new_state_to_ticketsystem(self):
         self.ensure_one()
