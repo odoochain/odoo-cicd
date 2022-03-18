@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 KEEP_ALIVE_MESSAGE = "Keep alive signal - still working"
 
+
 class LogsIOWriter(object):
     def __init__(self, stream, source, host='cicdlogs', port=6689):
         if isinstance(stream, dict):
@@ -32,6 +33,10 @@ class LogsIOWriter(object):
             self.port = port
         self.tz = os.getenv("TIMEZONE", 'utc')
         self._send(f"+input|{self.stream}|{self.source}")
+
+    def __del__(self):
+        if self.keep_alive_thread:
+            self.keep_alive_thread = False
 
     @contextmanager
     def GET(stream, source, host='cicdlogs', port=6689):
