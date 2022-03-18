@@ -221,20 +221,20 @@ class GitBranch(models.Model):
         On item branch or master branch restrict releases to show
         """
         for rec in self:
-            release_items = self.env['cicd.release.item.branch'].search([
-                ('branch_id', '=', rec.id)
-            ]).mapped('item_id')
             releases = self.env['cicd.release'].search([
                 ('repo_id', '=', rec.repo_id.id)])
 
-            item_branches = releases.mapped('item_ids.item_branch_id')
+            item_branches = self.release_item_ids\
+                .with_context(prefetch_fields=False).item_branch_id
+            release_items = rec.release_item_ids.with_context(
+                prefetch_fields=False)
 
             if rec in releases.branch_id:
                 release_items = releases.filtered(
                     lambda x: x.branch_id == rec
                 ).item_ids
             elif rec in item_branches:
-                release_items = releases.item_ids.filtered(
+                release_items = self.releases.item_ids.filtered(
                     lambda x: x.item_branch_id == rec)
 
             rec.computed_release_item_ids = release_items
