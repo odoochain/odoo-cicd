@@ -38,12 +38,15 @@ class WrongShaException(Exception):
 
 
 class CicdTestRun(models.Model):
+    _log_access = False
     _inherit = ['mail.thread', 'cicd.open.window.mixin']
     _name = 'cicd.test.run'
     _order = 'id desc'
 
     name = fields.Char(compute="_compute_name")
     do_abort = fields.Boolean("Abort when possible", tracking=True)
+    create_date = fields.Datetime(
+        default=lambda self: fields.Datetime.now(), required=True)
     date = fields.Datetime(
         "Date Started", default=lambda self: fields.Datetime.now(),
         required=True, tracking=True)
