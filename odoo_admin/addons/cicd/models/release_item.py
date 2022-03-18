@@ -205,6 +205,9 @@ class ReleaseItem(models.Model):
                                 'state': 'conflict'})
                     self.state = 'collecting_merge_conflict'
                     return
+                else:
+                    if self.state == 'collecting_merge_conflict':
+                        self.state = 'collecting'
 
                 self.needs_merge = False
                 if self.branch_ids:
@@ -363,7 +366,7 @@ class ReleaseItem(models.Model):
                 ('repo_id', '=', rec.repo_id.id),
                 ('block_release', '=', False),
                 ('name', 'not in', ignored_branch_names),
-                ('state', 'in', ['tested', 'candidate']),
+                ('state', 'in', ['tested', 'candidate', 'merge_conflict']), # CODE review: merge_conflict!
             ])
 
             def _keep_undeployed_commits(branch):
