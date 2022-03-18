@@ -5,13 +5,18 @@ import tempfile
 import arrow
 from odoo import http
 from odoo.http import content_disposition, request
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 
 class Controller(http.Controller):
 
     @http.route("/last_access/<name>", type="http", auth="public")
     def last_access(self, name):
         branch = request.env['cicd.git.branch'].sudo().search([('project_name', '=', name)])
-        branch.last_access = arrow.utcnow().datetime.strftime("%Y-%m-%d %H:%M:%S")
+        branch.with_delay().write({
+            'identity_key': f"last-access-{branch.id}",
+            'last_access': arrow.utcnow().datetime.strftime(DTF),
+            'eta': arrow.utcnow().shift(minutes=10).strftime(DTF)
+        })
         return "OK"
 
     @http.route('/start/<name>/mailer/startup')
