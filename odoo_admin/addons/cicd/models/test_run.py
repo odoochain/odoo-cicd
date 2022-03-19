@@ -24,6 +24,8 @@ SETTINGS = (
     "DB_USER=odoo\n"
     "DB_PWD=odoo\n"
     "ODOO_DEMO=1\n"
+    "RUN_ODOO_QUEUEJOBS=1\n"
+    "RUN_ODOO_CRONJOBS=1\n"
 )
 
 logger = logging.getLogger(__name__)
@@ -293,6 +295,7 @@ class CicdTestRun(models.Model):
                 self.as_job('prepare', False)._prepare_run()
 
     def execute_now(self):
+        breakpoint()
         self.with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).execute()
         return True
 
@@ -365,8 +368,7 @@ class CicdTestRun(models.Model):
 
         qj = self._get_queuejobs('active')
         if qj:
-            self._trigger_wait_for_finish()
-            return
+            raise RetryableJobError("Waiting for test finish", seconds=30)
 
         with self._logsio(None) as logsio:
             logsio.info(f"Duration was {self.duration}")
@@ -580,6 +582,7 @@ class CicdTestRun(models.Model):
         )
 
     def _run_robot_tests(self, shell, logsio, **kwargs):
+        breakpoint()
         files = shell.odoo('list-robot-test-files')['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
