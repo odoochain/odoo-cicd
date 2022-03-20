@@ -602,11 +602,13 @@ class CicdTestRun(models.Model):
         host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
         robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
 
+        self._report("Installing all modules from MANIFEST...", exception=ex)
         SNAP_NAME = "robot_tests"
         shell.odoo("snap", "restore", shell.project_name)
         # only base db exists no installed modules
         shell.odoo("update")
         shell.odoo("snap", "save", SNAP_NAME)
+        self._report("Installed all modules from MANIFEST", exception=ex)
 
         def _run_robot_run(item):
             shell.odoo("snap", "restore", SNAP_NAME)
