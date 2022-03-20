@@ -64,7 +64,9 @@ class Branch(models.Model):
 
         self._make_task("_restore_dump", machine=self.backup_machine_id)
 
-    def run_tests(self, update_state=True, silent=False):
+    def run_tests(self):
+        if not self.latest_commit_id:
+            raise ValidationError("Missing latest commit.")
         self.with_delay(identity_key=(
             f"{self.latest_commit_id.name}-run-tests"
         ))._run_tests()

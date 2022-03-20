@@ -24,8 +24,9 @@ SETTINGS = (
     "DB_USER=odoo\n"
     "DB_PWD=odoo\n"
     "ODOO_DEMO=1\n"
-    "RUN_ODOO_QUEUEJOBS=1\n"
-    "RUN_ODOO_CRONJOBS=1\n"
+    "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1\n"
+    "RUN_ODOO_QUEUEJOBS=0\n"
+    "RUN_ODOO_CRONJOBS=0\n"
 )
 
 logger = logging.getLogger(__name__)
@@ -368,7 +369,9 @@ class CicdTestRun(models.Model):
 
         qj = self._get_queuejobs('active')
         if qj:
-            raise RetryableJobError("Waiting for test finish", seconds=30)
+            raise RetryableJobError(
+                "Waiting for test finish", seconds=30,
+                ignore_retry=True)
 
         with self._logsio(None) as logsio:
             logsio.info(f"Duration was {self.duration}")
@@ -481,6 +484,7 @@ class CicdTestRun(models.Model):
 
     def _run_tests(self):
         self = self._with_context()
+        self._report("Starting Tests")
         self._switch_to_running_state()
 
         b = self.branch_id
@@ -604,12 +608,13 @@ class CicdTestRun(models.Model):
             self._wait_for_postgres(shell)
 
             try:
+                breakpoint()
                 shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
                 state = 'success'
             except Exception:
                 state = 'failed'
             robot_results_tar = shell.grab_folder_as_tar(robot_out)
-            robot_results_tar = base64.encodestring(robot_results_tar)
+            robot_results_tar = base64.b64encode(robot_results_tar)
             return {
                 'robot_output': robot_results_tar,
                 'state': state,
@@ -677,6 +682,7 @@ class CicdTestRun(models.Model):
         Timeout in seconds.
 
         """
+        self.line_ids.filtered(lambda x: x.ttype == ttype).unlink()
         success = True
         len_todo = len(todo)
         for i, item in enumerate(todo):

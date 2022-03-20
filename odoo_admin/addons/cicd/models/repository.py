@@ -154,21 +154,25 @@ class Repository(models.Model):
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
             temppath = tempfile.mktemp(suffix='.clone_repo')
+            try:
 
-            cmd = ["git", "clone"]
-            if branch:
-                cmd += ["--branch", branch]
-            if depth:
-                cmd += ["--depth", str(depth)]
-            cmd += [self.url, temppath]
-            shell.X(cmd)
+                cmd = ["git", "clone"]
+                if branch:
+                    cmd += ["--branch", branch]
+                if depth:
+                    cmd += ["--depth", str(depth)]
+                cmd += [self.url, temppath]
+                shell.X(cmd)
 
-            if shell.exists(path):
-                # clone may happened during that clone
+                if shell.exists(path):
+                    # clone may happened during that clone
+                    shell.remove(temppath)
+                else:
+                    shell.X(["mv", temppath, path])
+                return
+            finally:
+                # if something failed cleanup
                 shell.remove(temppath)
-            else:
-                shell.X(["mv", temppath, path])
-            return
 
     @contextmanager
     def _temp_repo(

@@ -292,7 +292,7 @@ class ReleaseItem(models.Model):
 
             # TODO make sure quality assurance
             if not success and not open_runs:
-                self.item_branch_id.run_tests(silent=True)
+                self.item_branch_id.with_delay().run_tests()
 
             elif success:
                 try:
