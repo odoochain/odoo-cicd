@@ -297,7 +297,10 @@ class CicdTestRun(models.Model):
 
     def execute_now(self):
         breakpoint()
-        self.with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).execute()
+        self.with_context(
+            test_queue_job_no_delay=True,
+            DEBUG_TESTRUN=True,
+            FORCE_TEST_RUN=True).execute()
         return True
 
     def _get_qj_marker(self, suffix, afterrun):
@@ -366,6 +369,8 @@ class CicdTestRun(models.Model):
         self.ensure_one()
         if not self.exists():
             return
+        if self.env.context.get('test_queue_job_no_delay'):
+            return
 
         qj = self._get_queuejobs('active')
         if qj:
@@ -410,27 +415,28 @@ class CicdTestRun(models.Model):
     def execute(self, task=None):
         self.ensure_one()
 
-        queuejobs = self._get_queuejobs('active')
-        if queuejobs:
-            return
+        if not self.env.context.get('test_queue_job_no_delay'):
+            queuejobs = self._get_queuejobs('active')
+            if queuejobs:
+                return
 
-        if self.search_count([
-            ('commit_id', '=', self.commit_id.id),
-            ('id', '!=', self.id),
-            ('state', 'in', ['open', 'running'])
-        ]):
-            self.state = 'omitted'
-            self.line_ids = [[6, 0, []]]
-            self.as_job(
-                "omitted_compute_success_rate", True)._compute_success_rate()
-            return
+            if self.search_count([
+                ('commit_id', '=', self.commit_id.id),
+                ('id', '!=', self.id),
+                ('state', 'in', ['open', 'running'])
+            ]):
+                self.state = 'omitted'
+                self.line_ids = [[6, 0, []]]
+                self.as_job(
+                    "omitted_compute_success_rate", True)._compute_success_rate()
+                return
 
-        self = self._with_context()
+            self = self._with_context()
 
-        # after logsio, so that logs io projectname is unchanged
-        if self.state not in ('open') and not self.env.context.get(
-                "FORCE_TEST_RUN"):
-            return
+            # after logsio, so that logs io projectname is unchanged
+            if self.state not in ('open') and not self.env.context.get(
+                    "FORCE_TEST_RUN"):
+                return
 
         self.state = 'open'
         self.do_abort = False
@@ -596,8 +602,14 @@ class CicdTestRun(models.Model):
         host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
         robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
 
+        SNAP_NAME = "robot_tests"
+        shell.odoo("snap", "restore", shell.project_name)
+        # only base db exists no installed modules
+        shell.odoo("update")
+        shell.odoo("snap", "save", SNAP_NAME)
+
         def _run_robot_run(item):
-            shell.odoo("snap", "restore", shell.project_name)
+            shell.odoo("snap", "restore", SNAP_NAME)
             shell.odoo('up', '-d')
             self._wait_for_postgres(shell)
 
