@@ -319,11 +319,15 @@ class GitBranch(models.Model):
                 release_items = rec.release_item_ids.mapped(
                     'release_id.next_to_finish_item_id')
                 latest_states = release_items.mapped('state')
+                merge_conflict = 'conflict' in \
+                    release_items.branch_ids.filtered(
+                        lambda x: x.commit_id == rec.latest_commit_id
+                    ).mapped('state')
 
-                if release_items and all(x == 'done' for x in latest_states):
-                    state = 'done'
-                elif 'collecting_merge_conflict' in latest_states:
+                if merge_conflict: # elif 'collecting_merge_conflict' in latest_states: 
                     state = 'merge_conflict'
+                elif release_items and all(x == 'done' for x in latest_states):
+                    state = 'done'
                 elif release_items:
                     state = 'candidate'
                 else:
