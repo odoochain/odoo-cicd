@@ -483,6 +483,7 @@ class CicdTestRun(models.Model):
             self.as_job('prepare-run', False).prepare_run()
 
     def _run_tests(self):
+        breakpoint()
         self = self._with_context()
         self._report("Starting Tests")
         self._switch_to_running_state()
@@ -590,7 +591,6 @@ class CicdTestRun(models.Model):
         files = shell.odoo('list-robot-test-files')['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
-        shell.odoo('build')
         configuration = shell.odoo('config', '--full')['stdout'].splitlines()
         host_run_dir = [x for x in configuration if 'HOST_RUN_DIR:' in x]
         host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
@@ -598,12 +598,6 @@ class CicdTestRun(models.Model):
 
         def _run_robot_run(item):
             shell.odoo("snap", "restore", shell.project_name)
-
-            self._wait_for_postgres(shell)
-            logsio.info('update started')
-            shell.odoo('update')
-
-            self._wait_for_postgres(shell)
             shell.odoo('up', '-d')
             self._wait_for_postgres(shell)
 

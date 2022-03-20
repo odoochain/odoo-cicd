@@ -380,6 +380,8 @@ class Repository(models.Model):
             ('name', '=', branch),
             ('repo_id', '=', self.id)
         ])
+        if not db_branch:
+            raise ValidationError(f"Branch {branch} does not exist yet.")
         shell.rm(db_branch._get_instance_folder(
             shell.machine))
 
