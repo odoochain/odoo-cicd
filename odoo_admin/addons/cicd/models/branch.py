@@ -93,9 +93,10 @@ class GitBranch(models.Model):
 
     release_branch_ids = fields.Many2one(
         'cicd.release.item.branch', 'branch_id')
-    release_item_ids = fields.Many2many(
-        'cicd.release.item', 'cicd_release_item_branch', 'branch_id',
-        'item_id', 'Releases')
+    # Update Fehler: psycopg2.errors.UndefinedColumn: column "id" referenced in foreign key constraint does not exist
+    # release_item_ids = fields.Many2many(
+    #     'cicd.release.item', 'cicd_release_item_branch', 'branch_id',
+    #     'item_id', 'Releases')
     computed_release_item_ids = fields.Many2many(
         'cicd.release.item', "Releases", compute="_compute_releases",
         search='_search_release_items')
@@ -225,8 +226,9 @@ class GitBranch(models.Model):
             releases = self.env['cicd.release'].search([
                 ('repo_id', '=', rec.repo_id.id)])
 
-            release_items = rec.release_item_ids.with_context(
-                prefetch_fields=False)
+            release_items = self.env['cicd.release.item'].search([
+                ('branch_ids.branch_id', '=', rec)]).with_context(
+                    prefetch_fields=False)
             item_branches = release_items.item_branch_id
 
             if rec in releases.branch_id:
@@ -269,8 +271,8 @@ class GitBranch(models.Model):
         "latest_commit_id.force_approved",
         "latest_commit_id.test_run_ids",
         "latest_commit_id.test_run_ids.state",
-        "release_item_ids.state",
-        "release_item_ids",
+        "computed_release_item_ids.state",
+        "computed_release_item_ids",
         "release_branch_ids.state",
         "release_branch_ids",
         "any_testing",
@@ -317,7 +319,7 @@ class GitBranch(models.Model):
                     or commit.force_approved
                     ) and commit.approval_state == 'approved':
 
-                release_items = rec.release_item_ids.mapped(
+                release_items = rec.computed_release_item_ids.mapped(
                     'release_id.next_to_finish_item_id')
                 latest_states = release_items.mapped('state')
                 merge_conflict = 'conflict' in \
