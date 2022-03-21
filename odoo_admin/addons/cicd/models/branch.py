@@ -227,7 +227,7 @@ class GitBranch(models.Model):
                 ('repo_id', '=', rec.repo_id.id)])
 
             release_items = self.env['cicd.release.item'].search([
-                ('branch_ids.branch_id', '=', rec)]).with_context(
+                ('branch_ids.branch_id', '=', rec.id)]).with_context(
                     prefetch_fields=False)
             item_branches = release_items.item_branch_id
 
