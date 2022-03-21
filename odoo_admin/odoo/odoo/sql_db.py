@@ -311,12 +311,7 @@ class Cursor(BaseCursor):
         except Exception as e:
             if self._default_log_exceptions if log_exceptions is None else log_exceptions:
                 _logger.error("bad query: %s\nERROR: %s", tools.ustr(self._obj.query or query), e)
-            msg = (
-                f"{query}\n"
-                f"{params}\n"
-                f"{e}"
-            )
-            raise Exception(msg) from e
+            raise
 
         # simple query count is always computed
         self.sql_log_count += 1
