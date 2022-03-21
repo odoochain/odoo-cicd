@@ -44,7 +44,7 @@
                 'views/menu.xml',
                 'security/ir.model.access.csv'],
     'demo': [],
-    'depends': ['mail', 'queue_job'],
+    'depends': ['mail', 'queue_job', 'visualize_queries'],
     'external_dependencies': {   'python': [   'pudb',
                                                'sarge',
                                                'bson',

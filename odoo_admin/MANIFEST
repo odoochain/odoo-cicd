@@ -18,5 +18,6 @@
         "addons",
         "addons/queue",
         "addons_robot",
+        "addons/odoo_visualize_queries",
     ]
 }

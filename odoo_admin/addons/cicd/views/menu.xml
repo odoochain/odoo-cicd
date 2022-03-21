@@ -3,6 +3,10 @@
 		<menuitem name="CICD" parent="" id="root_menu" sequence="-1000"/>
 		<menuitem name="Configuration" parent="root_menu" id="config_menu" sequence="9999"/>
 
+		<!-- Put DB Queries into configuration -->
+		<record model="ir.ui.menu" id="odoo_visualize_queries" parent="config_menu"/>
+
+
 		<record model="ir.ui.menu" id="queue_job.menu_queue_job">
 			<field name="parent_id" ref="root_menu"/>
 			<field name="sequence">1000</field>
