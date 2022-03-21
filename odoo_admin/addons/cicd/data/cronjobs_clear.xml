@@ -1,0 +1,69 @@
+<odoo>
+	<data noupdate='0'>
+		<record id="clear_unimportant_done_jobs" model="ir.cron">
+			<field name="name">clear_unimportant_done_jobs</field>
+			<field name="interval_number">10</field>
+			<field name="interval_type">seconds</field>
+			<field name="model_id" ref="model_queue_job" />
+			<field name="state">code</field>
+			<field name="code">
+model.search([('name', 'ilike', 'docker_get_state'), ('state', '=', 'done')], order='id desc', limit=500).unlink()
+model.search([('name', 'ilike', 'update_sizes'), ('state', '=', 'done')], order='id desc', limit=500).unlink()
+model.search([('name', 'ilike', 'update_dumps'), ('state', '=', 'done')], order='id desc', limit=500).unlink()
+			</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+
+
+		<record id="clear_old_queuejobs" model="ir.cron">
+			<field name="name">clear_old_jobs</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="queue_job.model_queue_job" />
+			<field name="state">code</field>
+			<field name="code">
+days = int(env['ir.config_parameter'].sudo().get_param(key="delete-jobs-older-than-days", default=10))
+dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+model.search([('date_created', '&lt;', dt), ('state', '=', 'done')], limit=500).unlink()
+model.search([('identity_key', 'ilike', 'queuejob_fetch'), ('state', '=', 'done')], limit=200, order='id asc').unlink()
+
+			</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="clear_old_mail_messages" model="ir.cron">
+			<field name="name">clear_old_mail_messages</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="mail.model_mail_message" />
+			<field name="state">code</field>
+			<field name="code">
+days = int(env['ir.config_parameter'].sudo().get_param(key="delete-tasks-older-than-days", default=10))
+dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+ids = tuple(model.search([('create_date', '&lt;', dt)], limit=500).ids)
+if ids:
+	env.cr.execute("delete from mail_message where id in %s", (ids, ))
+
+			</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="clear_old_tasks" model="ir.cron">
+			<field name="name">clear_old_tasks</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_task" />
+			<field name="state">code</field>
+			<field name="code">
+days = int(env['ir.config_parameter'].sudo().get_param(key="delete-tasks-older-than-days", default=10))
+dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+model.search([('create_date', '&lt;', dt)], limit=500).unlink()
+
+			</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+
+	</data>
+</odoo>
