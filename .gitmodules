@@ -2,3 +2,7 @@
 	path = odoo_admin/addons_robot
 	url = https://github.com/marcwimmer/odoo-robot_utils
 	branch = 15.0
+[submodule "odoo_admin/addons/odoo_visualize_queries"]
+	path = odoo_admin/addons/odoo_visualize_queries
+	url = ssh://git@github.com/marcwimmer/odoo-visualize-queries.git
+	branch = 15.0
