@@ -82,8 +82,7 @@ class CicdTestRun(models.Model):
         self.do_abort = False
         self.state = 'failed'
 
-    def _wait_for_postgres(self, shell):
-        timeout = 60
+    def _wait_for_postgres(self, shell, timeout=300):
         started = arrow.get()
         deadline = started.shift(seconds=timeout)
 
@@ -613,6 +612,8 @@ class CicdTestRun(models.Model):
 
         def _run_robot_run(item):
             shell.odoo("snap", "restore", SNAP_NAME)
+            self._report("Restored snapshot - driving up db.")
+            shell.odoo('up', '-d', 'postgres')
             shell.odoo('up', '-d')
             self._wait_for_postgres(shell)
 
