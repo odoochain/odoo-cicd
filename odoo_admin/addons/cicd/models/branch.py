@@ -602,10 +602,10 @@ class GitBranch(models.Model):
         After new source is fetched then the instance is rebuilt.
         """
         for rec in self:
-            if not rec.database_size:
-                if rec.repo_id.initialize_new_branches:
-                    rec._make_task("_prepare_a_new_instance", silent=True)
-                    rec.force_prepare_dump = False
+            if (not rec.database_size and rec.repo_id.initialize_new_branches) or \
+                        rec.force_prepare_dump:
+                rec._make_task("_prepare_a_new_instance", silent=True)
+                rec.force_prepare_dump = False
             else:
                 rec._make_task("_update_odoo", silent=True)
 
