@@ -25,7 +25,7 @@ class NewBranch(models.TransientModel):
     @api.constrains("new_name")
     def _check_name(self):
         for rec in self:
-            invalid_chars = '(_)/:?!#*\\ '
+            invalid_chars = '()/:?!#*\\ '
             for c in invalid_chars:
                 if c in rec.new_name:
                     raise ValidationError(_("Invalid Name: " + rec.new_name))
