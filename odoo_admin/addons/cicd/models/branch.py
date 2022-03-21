@@ -24,6 +24,7 @@ class GitBranch(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
+    force_prepare_dump = fields.Boolean("Force prepare Dump")
     is_release_branch = fields.Boolean(
         compute="_compute_is_release_branch",
         search="_search_release_branch")
@@ -604,6 +605,7 @@ class GitBranch(models.Model):
             if not rec.database_size:
                 if rec.repo_id.initialize_new_branches:
                     rec._make_task("_prepare_a_new_instance", silent=True)
+                    rec.force_prepare_dump = False
             else:
                 rec._make_task("_update_odoo", silent=True)
 

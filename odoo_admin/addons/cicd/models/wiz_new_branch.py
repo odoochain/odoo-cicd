@@ -53,6 +53,7 @@ class NewBranch(models.TransientModel):
                         'name': self.new_name,
                         'dump_id': self.dump_id.id,
                         'backup_machine_id': self.repo_id.machine_id.id,
+                        'force_prepare_dump': True,
                     })
                     branch.fetch()
 
