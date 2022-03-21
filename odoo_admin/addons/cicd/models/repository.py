@@ -25,9 +25,11 @@ class InvalidBranchName(Exception):
 class NewBranch(Exception):
     pass
 
+
 class MergeConflict(Exception):
     def __init__(self, conflicts):
         self.conflicts = conflicts
+
 
 class Repository(models.Model):
     _name = 'cicd.git.repo'

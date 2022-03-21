@@ -17,6 +17,7 @@
 						<button name="start_webmailer" string="Webmailer" type="object" groups="cicd.group_approver"/>
 						<button name="start_logs" string="Logs" type="object" groups="cicd.group_developer"/>
 						<button name="debug_webcontainer" string="Debug" type="object" groups="cicd.group_developer"/>
+						<button name="new_branch" string="New Branch" type="object" groups="cicd.group_make_branches"/>
 						<field name="state" widget="statusbar" options="{'clickable': 0}" />
 					</header>
 					<sheet>

@@ -15,6 +15,7 @@ current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.curre
 
 logger = logging.getLogger(__name__)
 
+
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
@@ -688,3 +689,14 @@ for path in base.glob("*"):
                     f"branch_{branch.id}"
                 )
             ).docker_get_state()
+
+    def new_branch(self):
+        self.ensure_one()
+        if not self.env.user.has_group("cicd.group_make_branches"):
+            raise UserError("Missing rights to create branch.")
+        action = self.repo_id.new_branch()
+        action['context'].update({
+            'default_source_branch_id': self.id,
+            'default_dump_id': self.dump_id.id,
+    })
+        return action

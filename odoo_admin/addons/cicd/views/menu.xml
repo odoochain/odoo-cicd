@@ -4,7 +4,9 @@
 		<menuitem name="Configuration" parent="root_menu" id="config_menu" sequence="9999"/>
 
 		<!-- Put DB Queries into configuration -->
-		<record model="ir.ui.menu" id="odoo_visualize_queries" parent="config_menu"/>
+		<record model="ir.ui.menu" id="visualize_queries.menu_queries">
+			<field name="parent_id" ref="config_menu"/>
+		</record>
 
 
 		<record model="ir.ui.menu" id="queue_job.menu_queue_job">

@@ -9,7 +9,8 @@
         "cicd_jira",
         "field_onchange",
         "queue_job",
-        "robot_utils"
+        "robot_utils",
+        "visualize_queries",
     ],
     "version": 15.0,
     "addons_paths": [
