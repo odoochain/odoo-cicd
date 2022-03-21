@@ -54,6 +54,7 @@ class NewBranch(models.TransientModel):
                         'dump_id': self.dump_id.id,
                         'backup_machine_id': self.repo_id.machine_id.id,
                     })
+                    branch.fetch()
 
                 return {
                     'view_type': 'form',
