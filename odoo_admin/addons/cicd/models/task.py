@@ -166,14 +166,14 @@ class Task(models.Model):
                     if args.get("delete_task") and state == 'done':
                         self.unlink()
                     else:
-                        self.with_delay().write({
+                        self.write({
                             'state': state,
                             'log': log,
                             'duration': duration
                         })
                         if self.branch_id:
                             if state == 'failed':
-                                self.branch_id.with_delay().message_post(
+                                self.branch_id.message_post(
                                     body=f"Error happened {self.name}\n{msg}")
                             elif state == 'done':
                                 self.branch_id.message_post(

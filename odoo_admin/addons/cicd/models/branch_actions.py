@@ -129,7 +129,6 @@ class Branch(models.Model):
         self._docker_get_state()
 
     def _docker_get_state(self, **kwargs):
-        breakpoint()
         containers = self.mapped('repo_id.machine_id').sudo()._get_containers()
         for rec in self:
             rec = rec.sudo()
