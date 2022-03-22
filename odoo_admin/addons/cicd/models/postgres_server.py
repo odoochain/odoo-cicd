@@ -55,32 +55,34 @@ class PostgresServer(models.Model):
 
     def update_databases(self):
         for rec in self:
-            db_registry = registry(self.env.cr.dbname)
-            with closing(db_registry.cursor()) as odoocr:
-                env = api.Environment(odoocr, SUPERUSER_ID, {})
-                rec = rec.with_env(env)
-                with rec._get_conn() as cr:
-                    cr.execute("""
-                        SELECT datname, pg_database_size(datname)
-                        FROM pg_database
-                        WHERE datistemplate = false
-                        AND datname not in ('postgres');
-                    """)
-                    dbs = cr.fetchall()
-                    all_dbs = set()
-                    for db in dbs:
-                        dbname = db[0]
-                        dbsize = db[1]
-                        all_dbs.add(dbname)
-                        db_db = rec.database_ids.sudo().filtered(lambda x: x.name == dbname)
-                        if not db_db:
-                            db_db = rec.database_ids.sudo().create({
-                                'server_id': rec.id,
-                                'name': dbname
-                            })
-                        db_db.size = dbsize
+            self.env['base'].flush()
+            self.env.cr.commit()
 
-                    for db in rec.database_ids:
-                        if db.name not in all_dbs:
-                            db.sudo().unlink()
-                odoocr.commit()
+            with rec._get_conn() as cr:
+                cr.execute("""
+                    SELECT datname, pg_database_size(datname)
+                    FROM pg_database
+                    WHERE datistemplate = false
+                    AND datname not in ('postgres');
+                """)
+                dbs = cr.fetchall()
+            all_dbs = set()
+            for db in dbs:
+                dbname = db[0]
+                dbsize = db[1]
+                all_dbs.add(dbname)
+                db_db = rec.database_ids.sudo().filtered(
+                    lambda x: x.name == dbname)
+                if not db_db:
+                    db_db = rec.database_ids.sudo().create({
+                        'server_id': rec.id,
+                        'name': dbname
+                    })
+                db_db.size = dbsize
+                self.env['base'].flush()
+                self.env.cr.commit()
+
+            for db in rec.database_ids:
+                if db.name not in all_dbs:
+                    db.sudo().unlink()
+                    self.env.cr.commit()

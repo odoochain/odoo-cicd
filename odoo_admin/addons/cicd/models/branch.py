@@ -561,6 +561,7 @@ class GitBranch(models.Model):
             rec.block_release = not rec.block_release
 
     # env['cicd.git.branch']._cron_make_test_runs()
+    @api.model
     def _cron_make_test_runs(self):
         breakpoint()
         for branch in self.search([('state', '=', 'testable')]):

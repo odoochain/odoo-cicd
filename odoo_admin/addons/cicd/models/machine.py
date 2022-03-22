@@ -10,7 +10,7 @@ import grp
 import hashlib
 from pathlib import Path
 from ..tools.logsio_writer import LogsIOWriter
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from odoo import _, api, fields, models, SUPERUSER_ID, tools
 import subprocess
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -121,9 +121,19 @@ class CicdMachine(models.Model):
         self.ensure_one()
         ssh_keyfile = self._place_ssh_credentials()
 
+        # avoid long locking
+        with closing(self.env.registry.cursor()) as cr:
+            env2 = api.Environment(cr, SUPERUSER_ID, {})
+            machine = self.with_env(env2)
+            user = machine.ssh_user
+            host = machine.effective_host
+            env2.cr.rollback()
+            env2.clear()
+
         shell = ShellExecutor(
-            ssh_keyfile=ssh_keyfile, machine=self, cwd=cwd,
-            logsio=logsio, project_name=project_name, env=env
+            ssh_keyfile=ssh_keyfile, host=host, cwd=cwd,
+            logsio=logsio, project_name=project_name, env=env,
+            user=user,
         )
         yield shell
 
@@ -413,7 +423,7 @@ echo "--------------------------------------------------------------------------
                             pass
                     path = Path(rec.tempfile_containers)
                     path.write_text(json.dumps(containers_dict))
-            except Exception as ex:
+            except Exception:
                 logger.error('error', exc_info=True)
 
 

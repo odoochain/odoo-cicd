@@ -30,16 +30,15 @@ class ShellExecutor(object):
         pass
 
     def __init__(
-        self, ssh_keyfile, machine,
+        self, ssh_keyfile, host,
         cwd, logsio, project_name=None, env=None, user=None
     ):
-        self.machine = machine
+
+        self.host = host
         self._cwd = Path(cwd) if cwd else None
         self.logsio = logsio
         self.env = env or {}
         self.project_name = project_name
-        if machine:
-            assert machine._name == 'cicd.machine'
         if logsio:
             assert isinstance(logsio, LogsIOWriter)
         if project_name:
@@ -48,6 +47,8 @@ class ShellExecutor(object):
             assert isinstance(env, dict)
         self.ssh_keyfile = ssh_keyfile
         self.user = user
+        if not user:
+            raise Exception("User required!")
 
     @contextmanager
     def clone(self, cwd=None, env=None, user=None, project_name=None):
@@ -57,7 +58,7 @@ class ShellExecutor(object):
         cwd = cwd or self.cwd
         project_name = project_name or self.project_name
         shell2 = ShellExecutor(
-            self.ssh_keyfile, self.machine, cwd,
+            self.ssh_keyfile, self.host, cwd,
             self.logsio, project_name, env2, user=user
         )
         yield shell2
@@ -98,10 +99,9 @@ class ShellExecutor(object):
                     self.logsio.info(f"Path {path} did not exist - not erased")
 
     def _get_home_dir(self):
-        with self.machine._shell() as shell:
-            res = shell.X(
-                ['echo', '$HOME'],
-            )['stdout'].strip()
+        res = self._internal_execute(
+            ['echo', '$HOME'], cwd='/', env=self.env,
+            logoutput=False, timeout=10)['stdout'].strip()
         if res.endswith("/~"):
             res = res[:-2]
         return res
@@ -239,8 +239,8 @@ class ShellExecutor(object):
             filename.unlink()
 
     def _get_ssh_client(self, cmd='ssh', split_host=False):
-        host = self.machine.effective_host
-        user = self.user or self.machine.ssh_user
+        host = self.host
+        user = self.user
         base = f"{cmd} -T -oStrictHostKeyChecking=no -i {self.ssh_keyfile}"
         user_host = f"{user}@{host}"
         if split_host:
