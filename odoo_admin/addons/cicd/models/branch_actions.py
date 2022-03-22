@@ -449,7 +449,7 @@ class Branch(models.Model):
                                     "Cycling down instance "
                                     f"{rec.name} due to inactivity"
                                 ))
-                            shell.odoo('kill')
+                            shell.odoo('kill', allow_error=True)
                             shell.odoo('rm', allow_error=True)
 
     def _make_instance_docker_configs(
