@@ -404,6 +404,9 @@ echo "--------------------------------------------------------------------------
         for rec in self:
             try:
                 with rec._shell() as shell:
+                    rec.env['base'].flush()
+                    rec.env.cr.commit()
+
                     try:
                         containers = shell.X([
                             "docker", "ps", "-a",
