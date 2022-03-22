@@ -425,7 +425,7 @@ class Repository(models.Model):
             raise
 
     def _cron_fetch_update_branches(self, data):
-        repo = self
+        repo = self.sudo()  # may be triggered by queuejob
         # checkout latest / pull latest
         updated_branches = data['updated_branches']
         breakpoint()
