@@ -14,7 +14,7 @@ class NewBranch(models.TransientModel):
     def default_get(self, fields):
         res = super().default_get(fields)
         if res.get('repo_id'):
-            repo = self.env['cicd.git.repo'].browse(res['repo_id'])
+            repo = self.env['cicd.git.repo'].sudo().browse(res['repo_id'])
             res['dump_id'] = repo.default_simulate_install_id_dump_id.id
         return res
 
