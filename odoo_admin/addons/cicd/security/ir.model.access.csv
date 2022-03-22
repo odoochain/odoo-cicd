@@ -42,5 +42,4 @@ model_cicd_queue_job,cicd.group_approver,cicd_queue_job_cicd_group_approver,cicd
 
 
 
-
-
+model_queue_job,cicd.group_approver,queue_job_cicd_group_approver,queue.job - cicd_group_approver,1,1,1,0
