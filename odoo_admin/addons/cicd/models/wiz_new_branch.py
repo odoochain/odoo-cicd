@@ -31,8 +31,18 @@ class NewBranch(models.TransientModel):
                     raise ValidationError(_("Invalid Name: " + rec.new_name))
 
     def ok(self):
-        repo = self.repo_id.sudo()
-        machine = repo.machine_id
+        branch = self.source_branch_id.create({
+            'name': self.new_name,
+            'dump_id': self.dump_id.id,
+            'backup_machine_id': self.repo_id.sudo().machine.id,
+            'force_prepare_dump': True,
+        })
+        self.with_delay()._make_branch(branch.sudo())
+        return {'type': 'ir.actions.act_window_close'}
+
+    def _make_branch(self, branch):
+        machine = branch.repo_id.machine_id
+        repo = branch.repo_id
         with LogsIOWriter.GET("cicd", "new_branch") as logsio:
             with repo._temp_repo(machine=machine) as repo_path:
                 with machine._gitshell(
@@ -50,12 +60,6 @@ class NewBranch(models.TransientModel):
                     shell.X([
                         "git", "push", "--set-upstream",
                         "-f", 'origin', self.new_name])
-                    branch = self.source_branch_id.create({
-                        'name': self.new_name,
-                        'dump_id': self.dump_id.id,
-                        'backup_machine_id': machine.id,
-                        'force_prepare_dump': True,
-                    })
                     branch.fetch()
 
                 return {
