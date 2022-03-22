@@ -127,7 +127,8 @@ class ShellExecutor(object):
                     "Seems that a reload of the instance is required."
                 ))
             else:
-                raise Exception(res['stdout'])
+                raise Exception('\n'.join([filter(
+                    bool, res['stdout'], res['stderr']])))
         return res
 
     def checkout_branch(self, branch, cwd=None):
