@@ -603,41 +603,42 @@ class CicdTestRun(models.Model):
         host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
         robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
 
-        self._report("Installing all modules from MANIFEST...")
-        SNAP_NAME = "robot_tests"
-        shell.odoo("snap", "restore", shell.project_name)
-        # only base db exists no installed modules
-        shell.odoo("update")
-        shell.odoo("robot", "--all", "--install-required-modules")
+        try:
+            self._report("Installing all modules from MANIFEST...")
+            SNAP_NAME = "robot_tests"
+            shell.odoo("snap", "restore", shell.project_name)
+            shell.odoo('up', '-d', 'postgres')
+            self._wait_for_postgres(shell)
+            # only base db exists no installed modules
+            shell.odoo("update")
+            shell.odoo("robot", "--all", "--install-required-modules")
 
-        shell.odoo("snap", "save", SNAP_NAME)
-        self._report("Installed all modules from MANIFEST")
+            shell.odoo("snap", "save", SNAP_NAME)
+            self._report("Installed all modules from MANIFEST")
+        except Exception as ex:
+            self._report("Error at preparing robot tests", exception=ex)
+            self.env['base'].flush()
+            self.env.cr.commit()
+            raise
 
         def _run_robot_run(item):
 
-            # TODO discuss - slow systems; timeouts everywhere
-            MAX_TRIES = 5
-            for i in range(MAX_TRIES):
-                try:
-                    shell.odoo("snap", "restore", SNAP_NAME)
-                    self._report("Restored snapshot - driving up db.")
-                    shell.odoo('up', '-d', 'postgres')
-                    shell.odoo('up', '-d')
-                    self._wait_for_postgres(shell)
-                except Exception:
-                    if i == MAX_TRIES - 1:
-                        self._report("Tried to start db from snapshot - failed - retrying")
-                        raise
-                    self._report("Tried to start db from snapshot - failed - retrying")
-                else:
-                    break
+            shell.odoo("snap", "restore", SNAP_NAME)
+            self._report("Restored snapshot - driving up db.")
+            shell.odoo('up', '-d', 'postgres')
+            shell.odoo('up', '-d')
+            self._wait_for_postgres(shell)
 
             try:
                 breakpoint()
                 shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
                 state = 'success'
-            except Exception:
+            except Exception as ex:
                 state = 'failed'
+                self._report("Error at test", exception=ex)
+                self.env['base'].flush()
+                self.env.cr.commit()
+
             robot_results_tar = shell.grab_folder_as_tar(robot_out)
             robot_results_tar = base64.b64encode(robot_results_tar)
             return {
@@ -648,6 +649,7 @@ class CicdTestRun(models.Model):
         self._generic_run(
             shell, logsio, files,
             'robottest', _run_robot_run,
+            try_count=self.branch_id.retry_unit_tests,
         )
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
