@@ -738,6 +738,7 @@ class CicdTestRun(models.Model):
                 if data['state'] == 'success':
                     break
             self.line_ids = [[0, 0, data]]
+            self.env['base'].flush()
             self.env.cr.commit()
         return success
 
