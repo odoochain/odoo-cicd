@@ -607,6 +607,7 @@ class CicdTestRun(models.Model):
         shell.odoo("snap", "restore", shell.project_name)
         # only base db exists no installed modules
         shell.odoo("update")
+        shell.odoo("robot", "--all", "--install-required-modules")
 
         shell.odoo("snap", "save", SNAP_NAME)
         self._report("Installed all modules from MANIFEST")
