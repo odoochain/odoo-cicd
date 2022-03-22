@@ -614,6 +614,7 @@ class CicdTestRun(models.Model):
             shell.odoo("robot", "--all", "--install-required-modules")
 
             shell.odoo("snap", "save", SNAP_NAME)
+            shell.odoo("kill")
             self._report("Installed all modules from MANIFEST")
         except Exception as ex:
             self._report("Error at preparing robot tests", exception=ex)
@@ -625,7 +626,11 @@ class CicdTestRun(models.Model):
 
             shell.odoo("snap", "restore", SNAP_NAME)
             self._report("Restored snapshot - driving up db.")
+            shell.odoo("kill")
+            shell.odoo("rm", allow_error=True)
             shell.odoo('up', '-d', 'postgres')
+            shell.odoo('up', '-d', 'postgres')
+            shell.odoo('up', '-d')
             shell.odoo('up', '-d')
             self._wait_for_postgres(shell)
 
