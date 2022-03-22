@@ -35,7 +35,7 @@ model_cicd_compressor,cicd.group_developer,cicd_compressor_base_group_developer,
 model_cicd_ticketsystem,base.group_user,cicd_ticketsystem_base_group_user,cicd.ticketsystem - base_group_user,1,0,0,0
 model_cicd_ticketsystem,cicd.group_developer,cicd_ticketsystem_cicd_group_developer,cicd.ticketsystem - cicd_group_developer,1,1,1,1
 
-model_cicd_git_branch_new,cicd.group_developer,cicd_git_branch_new_cicd_group_developer,cicd.git.branch.new - cicd_group_developer,1,1,1,1
+model_cicd_git_branch_new,cicd.group_approver,cicd_git_branch_new_cicd_group_approver,cicd.git.branch.new - cicd_group_approver,1,1,1,1
 
 model_cicd_git_repo,cicd.group_developer,cicd_git_repo_cicd_group_developer,cicd.git.repo - cicd_group_developer,1,0,0,0
 
