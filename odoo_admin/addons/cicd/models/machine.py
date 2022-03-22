@@ -407,10 +407,10 @@ echo "--------------------------------------------------------------------------
                     for line in containers.split("\n")[1:]:
                         try:
                             container, state = line.split("\t")
+                            containers_dict[container] = state
                         except Exception:
                             # perhaps no access or so
                             pass
-                        containers_dict[container] = state
                     path = Path(rec.tempfile_containers)
                     path.write_text(json.dumps(containers_dict))
             except Exception as ex:
