@@ -624,34 +624,25 @@ class CicdTestRun(models.Model):
 
         def _run_robot_run(item):
 
-            counter = 0
-            while True:
-                counter += 1
-                shell.odoo("snap", "restore", SNAP_NAME)
-                self._report("Restored snapshot - driving up db.")
-                shell.odoo("kill")
-                shell.odoo("rm", allow_error=True)
-                shell.odoo('up', '-d', 'postgres')
-                shell.odoo('up', '-d')
-                self._wait_for_postgres(shell)
+            shell.odoo("snap", "restore", SNAP_NAME)
+            self._report("Restored snapshot - driving up db.")
+            shell.odoo("kill", allow_error=True)
+            shell.odoo("rm", allow_error=True)
+            shell.odoo('up', '-d', 'postgres')
+            shell.odoo('up', '-d')
+            self._wait_for_postgres(shell)
 
-                try:
-                    breakpoint()
-                    shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
-                    state = 'success'
-                except Exception as ex:
-                    if 'FATAL:  database "odoo" does not exist' in str(ex):
-                        pass
-                    else:
-                        state = 'failed'
-                        self._report("Error at test", exception=ex)
-                        if counter > 10:
-                            raise
-                else:
-                    break
-                finally:
-                    self.env['base'].flush()
-                    self.env.cr.commit()
+            try:
+                breakpoint()
+                shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
+                state = 'success'
+            except Exception as ex:
+                state = 'failed'
+                self._report("Robot Test error (but retrying)", exception=ex)
+                raise
+            finally:
+                self.env['base'].flush()
+                self.env.cr.commit()
 
             robot_results_tar = shell.grab_folder_as_tar(robot_out)
             robot_results_tar = base64.b64encode(robot_results_tar)
