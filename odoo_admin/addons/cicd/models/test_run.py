@@ -251,6 +251,8 @@ class CicdTestRun(models.Model):
             state = state or 'success'
 
         self.line_ids = [[0, 0, data]]
+        self.env['base'].flush()
+        self.env.cr.commit()
 
         with self._logsio(None) as logsio:
             if state == 'success':
@@ -612,11 +614,23 @@ class CicdTestRun(models.Model):
         self._report("Installed all modules from MANIFEST")
 
         def _run_robot_run(item):
-            shell.odoo("snap", "restore", SNAP_NAME)
-            self._report("Restored snapshot - driving up db.")
-            shell.odoo('up', '-d', 'postgres')
-            shell.odoo('up', '-d')
-            self._wait_for_postgres(shell)
+
+            # TODO discuss - slow systems; timeouts everywhere
+            MAX_TRIES = 5
+            for i in range(MAX_TRIES):
+                try:
+                    shell.odoo("snap", "restore", SNAP_NAME)
+                    self._report("Restored snapshot - driving up db.")
+                    shell.odoo('up', '-d', 'postgres')
+                    shell.odoo('up', '-d')
+                    self._wait_for_postgres(shell)
+                except Exception:
+                    if i == MAX_TRIES - 1:
+                        self._report("Tried to start db from snapshot - failed - retrying")
+                        raise
+                    self._report("Tried to start db from snapshot - failed - retrying")
+                else:
+                    break
 
             try:
                 breakpoint()
