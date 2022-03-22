@@ -36,11 +36,11 @@ class ShellExecutor(object):
     ):
 
         self.host = host
+        self.machine = machine
         self._cwd = Path(cwd) if cwd else None
         self.logsio = logsio
         self.env = env or {}
         self.project_name = project_name
-        self.machine = machine
         if logsio:
             assert isinstance(logsio, LogsIOWriter)
         if project_name:
@@ -61,7 +61,8 @@ class ShellExecutor(object):
         project_name = project_name or self.project_name
         shell2 = ShellExecutor(
             self.ssh_keyfile, self.host, cwd,
-            self.logsio, project_name, env2, user=user
+            self.logsio, project_name, env2, user=user,
+            machine=self.machine,
         )
         yield shell2
 

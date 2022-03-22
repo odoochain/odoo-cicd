@@ -456,6 +456,7 @@ class Branch(models.Model):
 
     def _make_instance_docker_configs(
             self, shell, forced_project_name=None, settings=None):
+        breakpoint()
 
         home_dir = shell._get_home_dir()
         machine = shell.machine
