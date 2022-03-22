@@ -97,6 +97,8 @@ class Branch(models.Model):
         self._after_build(shell, logsio)
 
     def _restore_dump(self, shell, task, logsio, **kwargs):
+        if not self.dump_id:
+            raise ValidationError(_("Dump missing - cannot restore"))
         self._reload(shell, task, logsio)
         task.sudo().write({'dump_used': self.dump_id.name})
         logsio.info("Reloading")

@@ -243,6 +243,7 @@ class Task(models.Model):
                 'args': args
                 })
         finally:
-            if commit:
-                self.sudo().commit_id = commit
+            if commit and self.sudo().commit_id != commit:
+                self.sudo().with_delay().write({'commit_id': commit.id})
+                self.env['base'].flush()
                 self.env.cr.commit()
