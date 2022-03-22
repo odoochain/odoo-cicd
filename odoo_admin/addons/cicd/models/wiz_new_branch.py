@@ -20,7 +20,7 @@ class NewBranch(models.TransientModel):
 
     @api.onchange('repo_id')
     def _onchange_repo(self):
-        self.dump_id = self.repo_id.default_simulate_install_id_dump_id
+        self.dump_id = self.repo_id.sudo().default_simulate_install_id_dump_id
 
     @api.constrains("new_name")
     def _check_name(self):
@@ -31,11 +31,12 @@ class NewBranch(models.TransientModel):
                     raise ValidationError(_("Invalid Name: " + rec.new_name))
 
     def ok(self):
-        machine = self.repo_id.machine_id
+        repo = self.repo_id.sudo()
+        machine = repo.machine_id
         with LogsIOWriter.GET("cicd", "new_branch") as logsio:
-            with self.repo_id._temp_repo(machine=machine) as repo_path:
+            with repo._temp_repo(machine=machine) as repo_path:
                 with machine._gitshell(
-                    self.repo_id, cwd=repo_path, logsio=logsio
+                    repo, cwd=repo_path, logsio=logsio
                 ) as shell:
 
                     shell.checkout_branch(self.source_branch_id.name)
@@ -45,14 +46,14 @@ class NewBranch(models.TransientModel):
 
                     shell.X(["git", "checkout", "-b", self.new_name])
                     shell.X([
-                        "git", "remote", "set-url", 'origin', self.repo_id.url])
+                        "git", "remote", "set-url", 'origin', repo.url])
                     shell.X([
                         "git", "push", "--set-upstream",
                         "-f", 'origin', self.new_name])
                     branch = self.source_branch_id.create({
                         'name': self.new_name,
                         'dump_id': self.dump_id.id,
-                        'backup_machine_id': self.repo_id.machine_id.id,
+                        'backup_machine_id': machine.id,
                         'force_prepare_dump': True,
                     })
                     branch.fetch()
