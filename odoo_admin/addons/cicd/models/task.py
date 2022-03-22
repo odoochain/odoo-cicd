@@ -34,14 +34,13 @@ class Task(models.Model):
 
     state = fields.Selection(selection=STATES, string="State")
     log = fields.Text("Log", readonly=True)
-    error = fields.Text("Exception", compute="_compute_state", prefetch=False)
     dump_used = fields.Char("Dump used", readonly=True)
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one(
         "cicd.git.commit", string="Commit", readonly=True)
     queuejob_uuid = fields.Char("Queuejob UUID")
     queue_job_id = fields.Many2one(
-        'queue.job', compute="_compute_queuejob", prefetch=False)
+        'queue.job', compute="_compute_queuejob")
     testrun_id = fields.Many2one('cicd.test.run')
 
     kwargs = fields.Text("KWargs")
@@ -123,11 +122,13 @@ class Task(models.Model):
         # TODO make testruns not block reloading
         self = self.with_context(active_test=False)
         if not self.branch_id:
-            breakpoint()
             raise Exception("Branch not given for task.")
         detailinfo = (
             f"taskid: {self.id} - {self.name} at branch {self.branch_id.name}"
         )
+        self.env['base'].flush()
+        self.env.cr.commit()
+
         with pg_advisory_lock(
             self.env.cr, f"task-branch-{self.branch_id.id}",
             detailinfo=detailinfo
@@ -136,11 +137,12 @@ class Task(models.Model):
                 self = env2[self._name].browse(self.id)
                 self.state = 'started'
                 self.env.cr.commit()
+                self.env.clear()
 
-                self = self.with_env(env2)
                 with self.branch_id.shell(short_name) as shell:
 
-                    started = arrow.get()
+                    started = arrow.utcnow()
+                    breakpoint()
                     try:
                         self._internal_exec(shell)
                     except RetryableJobError:
@@ -150,29 +152,34 @@ class Task(models.Model):
                         self.env.cr.rollback()
                         msg = traceback.format_exc()
                         log = msg + '\n' + '\n'.join(shell.logsio.get_lines())
-                        self.state = 'failed'
-                        if self.branch_id:
-                            self.branch_id.message_post(
-                                body=f"Error happened {self.name}\n{msg}")
+                        state = 'failed'
                     else:
-                        self.state = 'done'
+                        state = 'done'
                         log = '\n'.join(shell.logsio.get_lines())
-                        if self.branch_id:
-                            self.branch_id.message_post(
-                                body=f"Successfully executed {self.name}")
-                    finally:
-                        self.env.cr.commit()
 
                     duration = (arrow.get() - started).total_seconds()
                     if shell.logsio:
                         shell.logsio.info(
                             f"Finished after {duration} seconds!")
+                    breakpoint()
 
-                    self.duration = duration
-                    self.log = log
-                    if args.get("delete_task"):
-                        if self.state == 'done':
-                            self.unlink()
+                    if args.get("delete_task") and state == 'done':
+                        self.unlink()
+                    else:
+                        self.with_delay().write({
+                            'state': state,
+                            'log': log,
+                            'duration': duration
+                        })
+                        if self.branch_id:
+                            if state == 'failed':
+                                self.branch_id.with_delay().message_post(
+                                    body=f"Error happened {self.name}\n{msg}")
+                            elif state == 'done':
+                                self.branch_id.message_post(
+                                    body=f"Successfully executed {self.name}")
+                    self.env['base'].flush()
+                    self.env.cr.commit()
 
     @api.model
     def _cron_cleanup(self):
@@ -185,6 +192,7 @@ class Task(models.Model):
         for rec in self.filtered(lambda x: x.state in ['failed']):
             rec.queue_job_id.requeue()
 
+    @api.depends('queuejob_uuid')
     def _compute_queuejob(self):
         for rec in self:
             if rec.queuejob_uuid:
@@ -194,14 +202,10 @@ class Task(models.Model):
                 rec.queue_job_id = False
 
     def _set_failed_if_no_queuejob(self):
-        breakpoint()
         for task in self:
-            if not task.queue_job_id:
-                if not task.state or task.state in ['started']:
-                    task.state = 'failed'
-                continue
-            if task.queue_job_id.state in ['failed', 'done']:
-                if not task.state or task.state == 'started':
+            task._compute_queuejob()
+            if task.state == 'started':
+                if task.queue_job_id.state in [False, 'done', 'failed']:
                     task.state = 'failed'
 
     def _internal_exec(self, shell):

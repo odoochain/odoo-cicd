@@ -296,7 +296,9 @@ class Branch(models.Model):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
-    def _run_tests(self, shell=None, task=None, logsio=None, test_run=None, **kwargs):
+    def _run_tests(
+        self, shell=None, task=None, logsio=None, test_run=None, **kwargs
+    ):
         """
         If update_state is set, then the state is set to 'tested'
         """
