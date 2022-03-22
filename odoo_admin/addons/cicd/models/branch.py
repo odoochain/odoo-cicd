@@ -754,3 +754,8 @@ class GitBranch(models.Model):
 
         else:
             raise NotImplementedError(operator)
+
+    def unlink(self):
+        for rec in self:
+            rec.active = False
+        return True
