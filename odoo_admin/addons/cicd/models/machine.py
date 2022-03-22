@@ -133,7 +133,7 @@ class CicdMachine(models.Model):
         shell = ShellExecutor(
             ssh_keyfile=ssh_keyfile, host=host, cwd=cwd,
             logsio=logsio, project_name=project_name, env=env,
-            user=user,
+            user=user, machine=self,
         )
         yield shell
 

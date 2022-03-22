@@ -31,7 +31,8 @@ class ShellExecutor(object):
 
     def __init__(
         self, ssh_keyfile, host,
-        cwd, logsio, project_name=None, env=None, user=None
+        cwd, logsio, project_name=None, env=None, user=None,
+        machine=None
     ):
 
         self.host = host
@@ -39,6 +40,7 @@ class ShellExecutor(object):
         self.logsio = logsio
         self.env = env or {}
         self.project_name = project_name
+        self.machine = machine
         if logsio:
             assert isinstance(logsio, LogsIOWriter)
         if project_name:
