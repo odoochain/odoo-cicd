@@ -38,18 +38,15 @@ class PostgresServer(models.Model):
     @api.model
     def _get_conn(self):
         with self._extra_env() as self:
-            user = self.db_user
-            host = self.db_host
-            port = self.db_port
-            password = self.db_pwd
+            params = {
+                'user': self.db_user,
+                'host': self.db_host,
+                'port': self.db_port,
+                'password': self.db_pwd,
+                'dbname': 'postgres',
+            }
 
-        conn = psycopg2.connect(
-            user=user,
-            host=host,
-            port=port,  
-            password=password,
-            dbname='postgres',
-        )
+        conn = psycopg2.connect(**params)
         try:
             try:
                 cr = conn.cursor()

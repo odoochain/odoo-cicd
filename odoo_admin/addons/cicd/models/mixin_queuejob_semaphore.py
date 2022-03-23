@@ -37,6 +37,7 @@ class SemaphoreQueuejob(models.AbstractModel):
             if not count_jobs:
                 yield
 
+    @contextmanager
     def semaphore_with_delay(self, enabled, appendix=False, **params):
         _params = {}
         _params.update(params)
@@ -49,4 +50,7 @@ class SemaphoreQueuejob(models.AbstractModel):
             yield self
         else:
             if jobs and jobs.state in ['done', 'failed']:
-                yield self.with_delay(**params)
+                new_self = self.with_delay(**params)
+                yield new_self
+            else:
+                yield None

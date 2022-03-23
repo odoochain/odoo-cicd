@@ -102,9 +102,11 @@ class Task(models.Model):
             self.state = 'started'
             self.started = fields.Datetime.now()
 
-            self.semaphore_with_delay(
+            with self.semaphore_with_delay(
                 enabled=not now,
-            )._internal_exec(now)
+            ) as self:
+                if self:
+                    self._internal_exec(now)
 
     @api.model
     def _cron_cleanup(self):
