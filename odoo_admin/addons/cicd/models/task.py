@@ -110,8 +110,8 @@ class Task(models.Model):
             self.env.cr.execute((
                 "select count(*) "
                 "from queue_job "
-                "where identity_key = %s",
-            ), (self.qj_identity_key,))
+                "where identity_key = %s"
+            ), tuple([self.qj_identity_key]))
             count_jobs = self.env.cr.fetchone()[0]
             if count_jobs:
                 return
@@ -120,7 +120,7 @@ class Task(models.Model):
         self.started = fields.Datetime.now()
 
         self.custom_with_delay(
-            now=not now,
+            delayed=not now,
             identity_key=self.qj_identity_key,
         )._internal_exec(now)
 
@@ -226,7 +226,7 @@ class Task(models.Model):
             duration = (arrow.utcnow() - arrow.get(self.started)) \
                 .total_seconds()
         self.custom_with_delay(
-            not now,
+            delayed=not now,
             identity_key=self.qj_identity_key + "-finish"
         )._finish_task(
             state=state,
