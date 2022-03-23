@@ -46,7 +46,7 @@ class PostgresServer(models.Model):
         conn = psycopg2.connect(
             user=user,
             host=host,
-            port=post,
+            port=port,  
             password=password,
             dbname='postgres',
         )

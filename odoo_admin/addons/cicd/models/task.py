@@ -137,7 +137,8 @@ class Task(models.Model):
                 qj.unlink()
                 rec._exec(now=False)
             elif qj:
-                pass  # already working
+                if self.state != 'started':
+                    self.state = 'started'
             else: # if not qj
                 rec._exec(now=False)
 
