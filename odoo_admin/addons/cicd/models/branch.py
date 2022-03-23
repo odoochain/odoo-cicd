@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class GitBranch(models.Model):
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
     _name = 'cicd.git.branch'
 
     force_prepare_dump = fields.Boolean("Force prepare Dump")
@@ -489,10 +489,19 @@ class GitBranch(models.Model):
             rec.project_name = project_name
             rec.database_project_name = dbname
 
+    def _unblocked_read(self, fields):
+        with self._extra_env() as branch:
+            res = {}
+            for field in fields:
+                res[field] = branch[field]
+        return res
+
     @contextmanager
     def _get_new_logsio_instance(self, source):
         self.ensure_one()
-        with LogsIOWriter.GET(f"{self.project_name}", source) as logs:
+        project_name = self._unblocked_read(['project_name'])
+
+        with LogsIOWriter.GET(f"{project_name}", source) as logs:
             yield logs
 
     @api.constrains("backup_filename")
@@ -517,10 +526,12 @@ class GitBranch(models.Model):
                     path = machine._get_volume('source')
                 except Exception:
                     continue
+                self.env['base'].flush()
+                self.env.cr.commit()
 
                 # delete instance folder
                 with machine._shell(cwd=path, logsio=logsio) as shell:
-                    project_path = path / self.project_name
+                    project_path = self.project_path
                     if shell.exists(project_path):
                         try:
                             shell.odoo("kill")
@@ -571,18 +582,6 @@ class GitBranch(models.Model):
                 branch.with_delay(
                     identity_key=f"{branch.latest_commit_id.name}-run-tests"
                     )._run_tests()
-
-        # # revive dead test
-        # using queuejobs now not needed
-        # for running in self.env['cicd.test.run'].search([
-        #         ('state', '=', 'running')]):
-        #     # check if task exists and has an active queuejob
-        #     tasks = self.env['cicd.task'].search([
-        #         ('testrun_id', '=', running.id)])
-        #     tasks = tasks.filtered(lambda x: x.queue_job_id.state in [
-        #         'started', 'enqueued', 'pending'])
-        #     if not tasks:
-        #         running.state = 'open'
 
         def kf(x):
             return x.branch_id
@@ -716,7 +715,9 @@ class GitBranch(models.Model):
 
     @property
     def project_path(self):
-        return self.machine_id._get_volume('source') / self.project_name
+        with self._extra_env() as self:
+            res = self.machine_id._get_volume('source') / self.project_name
+        return res
 
     @contextmanager
     def shell(self, logs_title, prepare=True):

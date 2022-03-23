@@ -5,6 +5,7 @@ from ..tools.tools import get_host_ip
 from contextlib import contextmanager, closing
 from odoo import registry
 
+
 class PostgresServer(models.Model):
     _inherit = ['cicd.mixin.size']
     _name = 'cicd.postgres'
@@ -85,4 +86,5 @@ class PostgresServer(models.Model):
             for db in rec.database_ids:
                 if db.name not in all_dbs:
                     db.sudo().unlink()
+                    self.env['base'].flush()
                     self.env.cr.commit()

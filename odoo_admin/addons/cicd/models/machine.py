@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class CicdMachine(models.Model):
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
     _name = 'cicd.machine'
 
     name = fields.Char("Name")
@@ -122,13 +122,9 @@ class CicdMachine(models.Model):
         ssh_keyfile = self._place_ssh_credentials()
 
         # avoid long locking
-        with closing(self.env.registry.cursor()) as cr:
-            env2 = api.Environment(cr, SUPERUSER_ID, {})
-            machine = self.with_env(env2)
+        with self._extra_env() as machine:
             user = machine.ssh_user
             host = machine.effective_host
-            env2.cr.rollback()
-            env2.clear()
 
         shell = ShellExecutor(
             ssh_keyfile=ssh_keyfile, host=host, cwd=cwd,

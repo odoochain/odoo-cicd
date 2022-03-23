@@ -38,13 +38,11 @@ class Task(models.Model):
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one(
         "cicd.git.commit", string="Commit", readonly=True)
-    queuejob_uuid = fields.Char("Queuejob UUID")
-    queue_job_id = fields.Many2one(
-        'queue.job', compute="_compute_queuejob")
     testrun_id = fields.Many2one('cicd.test.run')
 
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
+    started = fields.Datetime("Started")
 
     def _compute_state(self):
         for rec in self:
@@ -80,16 +78,7 @@ class Task(models.Model):
 
     def perform(self, now=False):
         self.ensure_one()
-
-        if not now:
-            job = self.with_delay(
-                identity_key=self._get_identity_key(),
-                eta=arrow.get().shift(seconds=10).strftime(
-                    DEFAULT_SERVER_DATETIME_FORMAT),
-            )._exec(now)
-            self.queuejob_uuid = job.uuid
-        else:
-            self._exec(now)
+        self._exec(now)
 
     def _get_identity_key(self):
         appendix = \
@@ -106,80 +95,34 @@ class Task(models.Model):
             name = name[1:]
         return name
 
-    @contextmanager
-    def _new_cursor(self, new_cursor):
-        if new_cursor:
-            with closing(self.env.registry.cursor()) as cr:
-                env2 = api.Environment(cr, SUPERUSER_ID, {})
-                yield env2
-        else:
-            yield self.env
+    @property
+    def qj_identity_key(self):
+        return (
+            "execute-task-"
+            f"{self.id}"
+        )
 
     def _exec(self, now=False):
-        self = self.sudo()
-        args = {}
-        short_name = self._get_short_name()
-        # TODO make testruns not block reloading
-        self = self.with_context(active_test=False)
         if not self.branch_id:
             raise Exception("Branch not given for task.")
-        detailinfo = (
-            f"taskid: {self.id} - {self.name} at branch {self.branch_id.name}"
-        )
-        self.env['base'].flush()
-        self.env.cr.commit()
 
-        with pg_advisory_lock(
-            self.env.cr, f"task-branch-{self.branch_id.id}",
-            detailinfo=detailinfo
-        ):
-            with self._new_cursor(not now) as env2:
-                self = env2[self._name].browse(self.id)
-                self.state = 'started'
-                self.env.cr.commit()
-                self.env.clear()
+        if not now:
+            self.env.cr.execute((
+                "select count(*) "
+                "from queue_job "
+                "where identity_key = %s"
+            ), tuple([self.qj_identity_key]))
+            count_jobs = self.env.cr.fetchone()[0]
+            if count_jobs:
+                return
 
-                with self.branch_id.shell(short_name) as shell:
+        self.state = 'started'
+        self.started = fields.Datetime.now()
 
-                    started = arrow.utcnow()
-                    breakpoint()
-                    try:
-                        self._internal_exec(shell)
-                    except RetryableJobError:
-                        raise
-
-                    except Exception:
-                        self.env.cr.rollback()
-                        msg = traceback.format_exc()
-                        log = msg + '\n' + '\n'.join(shell.logsio.get_lines())
-                        state = 'failed'
-                    else:
-                        state = 'done'
-                        log = '\n'.join(shell.logsio.get_lines())
-
-                    duration = (arrow.get() - started).total_seconds()
-                    if shell.logsio:
-                        shell.logsio.info(
-                            f"Finished after {duration} seconds!")
-                    breakpoint()
-
-                    if args.get("delete_task") and state == 'done':
-                        self.unlink()
-                    else:
-                        self.write({
-                            'state': state,
-                            'log': log,
-                            'duration': duration
-                        })
-                        if self.branch_id:
-                            if state == 'failed':
-                                self.branch_id.message_post(
-                                    body=f"Error happened {self.name}\n{msg}")
-                            elif state == 'done':
-                                self.branch_id.message_post(
-                                    body=f"Successfully executed {self.name}")
-                    self.env['base'].flush()
-                    self.env.cr.commit()
+        self.custom_with_delay(
+            delayed=not now,
+            identity_key=self.qj_identity_key,
+        )._internal_exec(now)
 
     @api.model
     def _cron_cleanup(self):
@@ -197,7 +140,7 @@ class Task(models.Model):
         for rec in self:
             if rec.queuejob_uuid:
                 rec.queue_job_id = self.env['queue.job'].search([
-                    ('uuid', '=', rec.queuejob_uuid)], limit=1)
+                    ('identity_key', '=', rec.qj_identity_key)], limit=1)
             else:
                 rec.queue_job_id = False
 
@@ -208,8 +151,8 @@ class Task(models.Model):
                 if task.queue_job_id.state in [False, 'done', 'failed']:
                     task.state = 'failed'
 
-    def _internal_exec(self, shell):
-        # functions called often block the repository access
+    def _get_args(self, shell):
+        self.ensure_one()
         args = {
             'task': self,
             'logsio': shell.logsio,
@@ -223,27 +166,100 @@ class Task(models.Model):
                 machine=self.machine_id,
                 limit_branch=self.branch_id.name,
                 )
-        obj = self.env[self.model].sudo().browse(self.res_id)
-        # mini check if it is a git repository:
+        self.env['base'].flush()
+        self.env.cr.commit()
+        return args
+
+    def _internal_exec(self, now=False, delete_after=False):
+        # functions called often block the repository access
+        args = {}
+        log = None
         commit = None
-        if not args.get('no_repo', False):
-            try:
-                shell.X(["git", "status"])
-            except Exception:
-                pass
-            else:
-                sha = shell.X([
-                    "git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                commit = self.branch_id.commit_ids.filtered(
-                    lambda x: x.name == sha)
 
         try:
-            exec('obj.' + self.name + "(**args)", {
-                'obj': obj,
-                'args': args
-                })
-        finally:
-            if commit and self.sudo().commit_id != commit:
-                self.sudo().with_delay().write({'commit_id': commit.id})
+            self = self.sudo().with_context(active_test=False)
+            short_name = self._get_short_name()
+            with self.branch_id.shell(short_name) as shell:
                 self.env['base'].flush()
                 self.env.cr.commit()
+                args = self._get_args(shell)
+                delete_after = args.get('delete_task')
+                obj = self.env[self.model].sudo().browse(self.res_id)
+                if self.res_id and not obj.exists():
+                    raise Exception((
+                        f"Not found: {self.res_id} {self.model}"
+                    ))
+
+
+                # mini check if it is a git repository:
+                if not args.get('no_repo', False):
+                    try:
+                        shell.X(["git", "status"])
+                    except Exception:
+                        pass
+                    else:
+                        sha = shell.X([
+                            "git", "log", "-n1",
+                            "--format=%H"])['stdout'].strip()
+                        commit = self.branch_id.commit_ids.filtered(
+                            lambda x: x.name == sha)
+
+                exec('obj.' + self.name + "(**args)", {
+                    'obj': obj,
+                    'args': args
+                    })
+                if shell.logsio:
+                    shell.logsio.info(f"Finished!")
+
+        except Exception:
+            self.env.cr.rollback()
+            self.env.clear()
+            log = msg + '\n' + '\n'.join(shell.logsio.get_lines())
+            state = 'failed'
+        else:
+            state = 'done'
+            log = '\n'.join(shell.logsio.get_lines())
+
+        duration = 0
+        if self.started:
+            duration = (arrow.utcnow() - arrow.get(self.started)) \
+                .total_seconds()
+        self.custom_with_delay(
+            delayed=not now,
+            identity_key=self.qj_identity_key + "-finish"
+        )._finish_task(
+            state=state,
+            duration=duration,
+            delete_after=delete_after,
+            log=log,
+            commit_id=commit and commit.id or False,
+        )
+
+    def _finish_task(self, state, duration, delete_after, log, commit_id):
+
+        if delete_after and state == 'done':
+            self.unlink()
+            return
+
+        self.write({
+            'state': state,
+            'log': log,
+            'duration': duration
+        })
+        if self.branch_id:
+            if state == 'failed':
+                self.branch_id.message_post(
+                    body=f"Error happened {self.name}\n{log[-250:]}")
+            elif state == 'done':
+                self.branch_id.message_post(
+                    body=f"Successfully executed {self.name}")
+        self.env['base'].flush()
+        self.env.cr.commit()
+
+    def custom_with_delay(self, delayed, identity_key):
+        if delayed:
+            return self.with_delay(
+                identity_key=identity_key
+            )
+        else:
+            return self
