@@ -46,13 +46,8 @@ class Task(models.Model):
 
     def _compute_state(self):
         for rec in self:
-            if not rec.queuejob_uuid:
-                rec.state = False
-                rec.error = False
-                continue
-
             qj = self.env['queue.job'].sudo().search([(
-                'uuid', '=', rec.queuejob_uuid)], limit=1)
+                'identity_key', '=', rec.qj_identity_key)], limit=1)
             if not qj:
                 # keep last state as queuejobs are deleted from time to time
                 pass
@@ -134,15 +129,6 @@ class Task(models.Model):
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in ['failed']):
             rec.queue_job_id.requeue()
-
-    @api.depends('queuejob_uuid')
-    def _compute_queuejob(self):
-        for rec in self:
-            if rec.queuejob_uuid:
-                rec.queue_job_id = self.env['queue.job'].search([
-                    ('identity_key', '=', rec.qj_identity_key)], limit=1)
-            else:
-                rec.queue_job_id = False
 
     def _set_failed_if_no_queuejob(self):
         for task in self:
