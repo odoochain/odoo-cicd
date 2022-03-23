@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class ReleaseItem(models.Model):
-    _inherit = ['mail.thread', 'cicd.open.window.mixin']
+    _inherit = ['mail.thread', 'cicd.open.window.mixin', 'cicd.mixin.extra_env']
     _name = 'cicd.release.item'
     _order = 'id desc'
     _log_access = False
@@ -124,9 +124,11 @@ class ReleaseItem(models.Model):
         breakpoint()
         try:
             with self.release_id._get_logsio() as logsio:
-                merge_commit_id = self.item_branch_id.latest_commit_id
+                with self._extra_env() as self2:
+                    commit_sha = self.item_branch_id.latest_commit_id.name
+                assert commit_sha
                 errors = self.release_id.action_ids.run_action_set(
-                    self, self.release_id.action_ids, merge_commit_id)
+                    self, self.release_id.action_ids, commit_sha)
                 if errors:
                     raise Exception(str(';'.join(map(str, errors))))
                 else:

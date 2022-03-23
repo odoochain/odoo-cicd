@@ -27,15 +27,20 @@ class CicdReleaseAction(models.Model):
                     shell.rm(filepath)
 
     @api.model
-    def run_action_set(self, release_item, actions, merge_commit_id):
+    def run_action_set(self, release_item, actions, commit_sha):
         breakpoint()
         errors = []
-        with LogsIOWriter.GET(release_item.release_id.branch_id.name, 'release') as logsio:
+
+        with release_item._extra_env() as unblocked_item:
+            branch_name = unblocked_item.release_id.branch_id.name 
+
+        with LogsIOWriter.GET(branch_name, 'release') as logsio:
             try:
                 actions._exec_shellscripts(logsio, "before")
                 actions._stop_odoo(logsio)
 
-                actions._update_sourcecode(logsio, release_item, merge_commit_id)
+                actions._update_sourcecode(
+                    logsio, release_item, commit_sha)
 
                 actions[0]._run_update(logsio)
 

@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Release(models.Model):
-    _inherit = ['mail.thread', 'mixin.schedule']
+    _inherit = ['mail.thread', 'mixin.schedule', 'cicd.mixin.extra_env']
     _name = 'cicd.release'
 
     active = fields.Boolean("Active", default=True, store=True)
@@ -90,7 +90,9 @@ class Release(models.Model):
 
     @contextmanager
     def _get_logsio(self):
-        with LogsIOWriter.GET(self.repo_id.short, "Release") as logsio:
+        with self._extra_env() as self2:
+            short = self2.repo_id.short
+        with LogsIOWriter.GET(short, "Release") as logsio:
             yield logsio
 
     def _ensure_item(self):
