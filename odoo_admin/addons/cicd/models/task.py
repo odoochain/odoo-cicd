@@ -16,6 +16,7 @@ logger = logging.getLogger('cicd_task')
 
 
 class Task(models.Model):
+    _inherit = ['mixin.queuejob.semaphore', 'cicd.mixin.extra_env'']
     _name = 'cicd.task'
     _order = 'date desc'
 
@@ -43,11 +44,6 @@ class Task(models.Model):
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
     started = fields.Datetime("Started")
-
-    def _get_queuejob(self):
-        self.ensure_one()
-        return self.env['queue.job'].sudo().search([(
-                'identity_key', '=', self.qj_identity_key)], limit=1)
 
     def _compute_state(self):
         for rec in self:
@@ -79,13 +75,16 @@ class Task(models.Model):
         self.ensure_one()
         self._exec(now)
 
-    def _get_identity_key(self):
+    @property
+    def semaphore_qj_identity_key(self):
         appendix = \
             f"branch:{self.branch_id.repo_id.short}-{self.branch_id.name}:"
 
         if self.identity_key:
             return self.identity_key + " " + appendix
         name = self._get_short_name()
+        with self._extra_env() as self2:
+            
         return f"{self.branch_id.project_name}_{name} " + appendix
 
     def _get_short_name(self):
@@ -94,34 +93,17 @@ class Task(models.Model):
             name = name[1:]
         return name
 
-    @property
-    def qj_identity_key(self):
-        return (
-            "execute-task-"
-            f"{self.id}"
-        )
-
     def _exec(self, now=False):
         if not self.branch_id:
             raise Exception("Branch not given for task.")
 
-        if not now:
-            self.env.cr.execute((
-                "select count(*) "
-                "from queue_job "
-                "where identity_key = %s"
-            ), tuple([self.qj_identity_key]))
-            count_jobs = self.env.cr.fetchone()[0]
-            if count_jobs:
-                return
+        with self.qj_semaphore(not now):
+            self.state = 'started'
+            self.started = fields.Datetime.now()
 
-        self.state = 'started'
-        self.started = fields.Datetime.now()
-
-        self.custom_with_delay(
-            delayed=not now,
-            identity_key=self.qj_identity_key,
-        )._internal_exec(now)
+            self.custom_with_delay(
+                enabled=not now,
+            )._internal_exec(now)
 
     @api.model
     def _cron_cleanup(self):
@@ -146,7 +128,7 @@ class Task(models.Model):
         for task in self:
             task._compute_state()
             if task.state == 'started':
-                qj = task._get_queuejob()
+                qj = task._semaphore_get_queuejob()
                 if not qj or qj.state in ['done', 'failed']:
                     task.state = 'failed'
 
@@ -224,16 +206,18 @@ class Task(models.Model):
         if self.started:
             duration = (arrow.utcnow() - arrow.get(self.started)) \
                 .total_seconds()
-        self.custom_with_delay(
+
+        with self.semaphore_with_delay(
             delayed=not now,
-            identity_key=self.qj_identity_key + "-finish"
-        )._finish_task(
-            state=state,
-            duration=duration,
-            delete_after=delete_after,
-            log=log,
-            commit_id=commit and commit.id or False,
-        )
+            appendix='finish',
+        ) as self:
+            self._finish_task(
+                state=state,
+                duration=duration,
+                delete_after=delete_after,
+                log=log,
+                commit_id=commit and commit.id or False,
+            )
 
     def _finish_task(self, state, duration, delete_after, log, commit_id):
 
@@ -245,6 +229,7 @@ class Task(models.Model):
             'state': state,
             'log': log,
             'duration': duration
+            'commit_id': commit_id,
         })
         if self.branch_id:
             if state == 'failed':
@@ -255,11 +240,3 @@ class Task(models.Model):
                     body=f"Successfully executed {self.name}")
         self.env['base'].flush()
         self.env.cr.commit()
-
-    def custom_with_delay(self, delayed, identity_key):
-        if delayed:
-            return self.with_delay(
-                identity_key=identity_key
-            )
-        else:
-            return self
