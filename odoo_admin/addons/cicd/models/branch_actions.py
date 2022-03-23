@@ -135,6 +135,10 @@ class Branch(models.Model):
         for rec in self:
             rec = rec.sudo()
             updated_containers = set()
+
+            self.env['base'].flush()
+            self.env.cr.commit()
+
             for container_name in containers:
                 if container_name.startswith(rec.project_name):
                     container_state = containers[container_name]
@@ -152,11 +156,17 @@ class Branch(models.Model):
                         if container.state != state:
                             container.state = state
                     updated_containers.add(container_name)
+
+                    self.env['base'].flush()
+                    self.env.cr.commit()
+
                 del container_name
 
             for container in rec.container_ids:
                 if container.name not in updated_containers:
                     container.unlink()
+                    self.env['base'].flush()
+                    self.env.cr.commit()
 
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
@@ -457,6 +467,8 @@ class Branch(models.Model):
                                 ))
                             shell.odoo('kill', allow_error=True)
                             shell.odoo('rm', allow_error=True)
+                self.env['base'].flush()
+                self.env.cr.commit()
 
     def _make_instance_docker_configs(
             self, shell, forced_project_name=None, settings=None):
