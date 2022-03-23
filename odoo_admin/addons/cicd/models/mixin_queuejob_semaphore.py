@@ -32,7 +32,7 @@ class SemaphoreQueuejob(models.AbstractModel):
                 "from queue_job "
                 "where identity_key = %s "
                 "and state not in %s"
-            ), tuple([self.qj_identity_key, ignore_states]))
+            ), tuple([self.semaphore_qj_identity_key, ignore_states]))
             count_jobs = self.env.cr.fetchone()[0]
             if not count_jobs:
                 yield

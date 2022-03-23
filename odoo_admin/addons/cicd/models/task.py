@@ -102,7 +102,7 @@ class Task(models.Model):
             self.state = 'started'
             self.started = fields.Datetime.now()
 
-            self.custom_with_delay(
+            self.semaphore_with_delay(
                 enabled=not now,
             )._internal_exec(now)
 
