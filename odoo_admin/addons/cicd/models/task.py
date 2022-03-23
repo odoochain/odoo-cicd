@@ -57,7 +57,7 @@ class Task(models.Model):
                 pass
             else:
                 rec.state = qj.state
-                rec.error = qj.exc_info
+                rec.log = qj.exc_info
 
     @api.depends('state')
     def _compute_is_done(self):
