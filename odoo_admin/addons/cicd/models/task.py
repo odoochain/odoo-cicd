@@ -52,8 +52,17 @@ class Task(models.Model):
                 # keep last state as queuejobs are deleted from time to time
                 pass
             else:
-                rec.state = qj.state
-                rec.log = qj.exc_info
+                if 'done' in qj.mapped('state'):
+                    rec.state = 'done'
+                elif 'failed' in qj.mapped('state'):
+                    rec.state = 'failed'
+                elif qj:
+                    rec.state = 'started'
+                else:
+                    rec.state = False
+                if qj:
+                    qj = qj.sorted(lambda x: x.id, reverse=True)[0]
+                    rec.log = qj.exc_info
 
     @api.depends('state')
     def _compute_is_done(self):
@@ -98,7 +107,7 @@ class Task(models.Model):
         if not self.branch_id:
             raise Exception("Branch not given for task.")
 
-        with self.qj_semaphore(not now, ignore_states=['done']):
+        with self.semaphore_with_delay(not now, ignore_states=['done']):
             self.state = 'started'
             self.started = fields.Datetime.now()
 
@@ -128,11 +137,12 @@ class Task(models.Model):
                 rec._exec(now=False)
 
     def _set_failed_if_no_queuejob(self):
+        return
         for task in self:
             task._compute_state()
             if task.state == 'started':
                 qj = task._semaphore_get_queuejob()
-                if not qj or qj.state in ['done', 'failed']:
+                if not qj or all([x.state in ['failed'] for x in qj]):
                     task.state = 'failed'
 
     def _get_args(self, shell):
@@ -160,7 +170,10 @@ class Task(models.Model):
         log = None
         commit = None
         logsio = None
-
+        with self._extra_env() as check:
+            previous = check.branch_id.task_ids.filtered(lambda x: x.id < check.id)
+            if any(x in [False, 'started'] for x in previous.mapped('state')):
+                raise RetryableJobError("Previous tasks exist.", seconds=30)
         try:
             self = self.sudo().with_context(active_test=False)
             short_name = self._get_short_name()
@@ -219,13 +232,14 @@ class Task(models.Model):
             enabled=not now,
             appendix='finish',
         ) as self:
-            self._finish_task(
-                state=state,
-                duration=duration,
-                delete_after=delete_after,
-                log=log,
-                commit_id=commit and commit.id or False,
-            )
+            if self:
+                self._finish_task(
+                    state=state,
+                    duration=duration,
+                    delete_after=delete_after,
+                    log=log,
+                    commit_id=commit and commit.id or False,
+                )
 
     def _finish_task(self, state, duration, delete_after, log, commit_id):
 

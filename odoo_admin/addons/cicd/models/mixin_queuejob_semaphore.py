@@ -11,7 +11,7 @@ class SemaphoreQueuejob(models.AbstractModel):
         self.ensure_one()
         idkey = idkey or self.semaphore_qj_identity_key
         return self.env['queue.job'].sudo().search([(
-                'identity_key', '=', idkey)], limit=1)
+                'identity_key', '=', idkey)])
 
     @property
     def semaphore_qj_identity_key(self):
@@ -20,36 +20,25 @@ class SemaphoreQueuejob(models.AbstractModel):
             f"{self.id}"
         )
 
-    @contextmanager
-    def qj_semaphore(self, enabled=True, ignore_states=None):
-        if not enabled:
-            yield
-        else:
-
-            ignore_states = tuple(ignore_states or ['i dont exist'])
-            self.env.cr.execute((
-                "select count(*) "
-                "from queue_job "
-                "where identity_key = %s "
-                "and state not in %s"
-            ), tuple([self.semaphore_qj_identity_key, ignore_states]))
-            count_jobs = self.env.cr.fetchone()[0]
-            if not count_jobs:
-                yield
 
     @contextmanager
-    def semaphore_with_delay(self, enabled, appendix=False, **params):
+    def semaphore_with_delay(self, enabled, appendix=False, ignore_states=None, **params):
         _params = {}
         _params.update(params)
-        params['identity_key'] = self.semaphore_qj_identity_key
-        if appendix:
-            params['identity_key'] += appendix
 
-        jobs = self._semaphore_get_queuejob(params['identity_key'])
         if not enabled:
             yield self
         else:
-            if jobs and jobs.state in ['done', 'failed']:
+            ignore_states = tuple(ignore_states or [])
+            params['identity_key'] = self.semaphore_qj_identity_key
+            if appendix:
+                params['identity_key'] += appendix
+
+            jobs = self._semaphore_get_queuejob(params['identity_key'])
+            if ignore_states:
+                jobs = jobs.filtered(lambda x: x.state not in ignore_states)
+            
+            if not jobs or all(x.state in ['done'] for x in jobs):
                 new_self = self.with_delay(**params)
                 yield new_self
             else:

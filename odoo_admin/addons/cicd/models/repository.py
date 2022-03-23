@@ -467,6 +467,9 @@ class Repository(models.Model):
                                 'date_registered': date_registered,
                                 'repo_id': repo.id,
                             })
+                            branch.flush()
+                            branch.env.cr.commit()
+
                             branch._checkout_latest(
                                 shell, logsio=logsio, machine=machine)
                             branch._update_git_commits(
