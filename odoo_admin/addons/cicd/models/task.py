@@ -44,7 +44,6 @@ class Task(models.Model):
     identity_key = fields.Char()
     started = fields.Datetime("Started")
 
-
     def _compute_state(self):
         for rec in self:
             if not rec.queuejob_uuid:
@@ -123,7 +122,7 @@ class Task(models.Model):
         self.custom_with_delay(
             now=not now,
             identity_key=self.qj_identity_key,
-        )._internal_exec( now)
+        )._internal_exec(now)
 
     @api.model
     def _cron_cleanup(self):
@@ -141,7 +140,7 @@ class Task(models.Model):
         for rec in self:
             if rec.queuejob_uuid:
                 rec.queue_job_id = self.env['queue.job'].search([
-                    ('uuid', '=', rec.queuejob_uuid)], limit=1)
+                    ('identity_key', '=', rec.qj_identity_key)], limit=1)
             else:
                 rec.queue_job_id = False
 
@@ -205,14 +204,12 @@ class Task(models.Model):
                         commit = self.branch_id.commit_ids.filtered(
                             lambda x: x.name == sha)
 
-                try:
-                    exec('obj.' + self.name + "(**args)", {
-                        'obj': obj,
-                        'args': args
-                        })
-                    if shell.logsio:
-                        shell.logsio.info(
-                            f"Finished!")
+                exec('obj.' + self.name + "(**args)", {
+                    'obj': obj,
+                    'args': args
+                    })
+                if shell.logsio:
+                    shell.logsio.info(f"Finished!")
 
         except Exception:
             self.env.cr.rollback()
@@ -224,10 +221,10 @@ class Task(models.Model):
             state = 'done'
             log = '\n'.join(shell.logsio.get_lines())
 
-
         duration = 0
         if self.started:
-            duration = (arrow.utcnow() - arrow.get(self.started)).total_seconds()
+            duration = (arrow.utcnow() - arrow.get(self.started)) \
+                .total_seconds()
         self.custom_with_delay(
             not now,
             identity_key=self.qj_identity_key + "-finish"
