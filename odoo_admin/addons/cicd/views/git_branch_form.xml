@@ -90,8 +90,6 @@
 										<field name="machine_id"/>
 										<field name="date" />
 										<field name="state" />
-										<field name="queue_job_id" groups="base.group_no_one"/>
-										<field name="queuejob_uuid" groups="base.group_no_one"/>
 									</tree>
 								</field>
 							</page>
