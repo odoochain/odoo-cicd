@@ -358,7 +358,11 @@ class Branch(models.Model):
 
     def _gc(self, shell, logsio, **kwargs):
         logsio.write_text("Compressing git")
-        shell.X(["git", "gc", "--aggressive", "--prune=now"])
+        res = shell.X(["git", "gc", "--aggressive", "--prune=now"], allow_error=True)
+        if 'gc is already running' in res['stderr']:
+            pass
+        else:
+            raise Exception(res['stderr'])
 
     def _clone_instance_folder(self, machine, logsio):
         instance_folder = self._get_instance_folder(machine)

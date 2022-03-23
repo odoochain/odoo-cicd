@@ -132,14 +132,18 @@ class Task(models.Model):
 
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in ['failed']):
-            rec.queue_job_id.requeue()
+            qj = rec._get_queuejob()
+            if qj and qj.state in ['done', 'failed']:
+                qj.requeue()
+            else:
+                rec._exec(now=False)
 
     def _set_failed_if_no_queuejob(self):
         for task in self:
             task._compute_state()
             if task.state == 'started':
                 qj = task._get_queuejob()
-                if not qj or task.queue_job_id.state in ['done', 'failed']:
+                if not qj or qj.state in ['done', 'failed']:
                     task.state = 'failed'
 
     def _get_args(self, shell):
