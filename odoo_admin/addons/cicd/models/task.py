@@ -214,7 +214,6 @@ class Task(models.Model):
         except Exception:
             self.env.cr.rollback()
             self.env.clear()
-            msg = traceback.format_exc()
             log = msg + '\n' + '\n'.join(shell.logsio.get_lines())
             state = 'failed'
         else:
@@ -250,7 +249,7 @@ class Task(models.Model):
         if self.branch_id:
             if state == 'failed':
                 self.branch_id.message_post(
-                    body=f"Error happened {self.name}\n{msg}")
+                    body=f"Error happened {self.name}\n{log[-250:]}")
             elif state == 'done':
                 self.branch_id.message_post(
                     body=f"Successfully executed {self.name}")
