@@ -110,7 +110,7 @@ class Dump(models.Model):
                             })
 
                         dumps.ensure_one()
-                        if dumps.date_modified.strftime(DTF) != file['date']:
+                        if not dumps.date_modified or dumps.date_modified.strftime(DTF) != file['date']:
                             dumps.date_modified = file['date']
                         if dumps.size != file['size']:
                             dumps.size = file['size']
