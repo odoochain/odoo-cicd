@@ -51,7 +51,7 @@ class Task(models.Model):
 
     def _compute_state(self):
         for rec in self:
-            qj = self._get_queuejob()
+            qj = rec._get_queuejob()
             if not qj:
                 # keep last state as queuejobs are deleted from time to time
                 pass
@@ -138,7 +138,7 @@ class Task(models.Model):
         for task in self:
             task._compute_state()
             if task.state == 'started':
-                qj = self._get_queuejob()
+                qj = task._get_queuejob()
                 if not qj or task.queue_job_id.state in ['done', 'failed']:
                     task.state = 'failed'
 

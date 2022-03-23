@@ -17,7 +17,7 @@ class PostgresServer(models.Model):
     db_pwd = fields.Char("DB Password", default="cicd_is_cool", required=True)
     db_port = fields.Integer("DB Port", default=5432, required=True)
     database_ids = fields.One2many('cicd.database', 'server_id', string="Databases")
-    size = fields.Float(compute="_compute_size")
+    size = fields.Float(compute="_compute_size", store=True)
     ttype = fields.Selection([
         ('production', "Production"),
         ('dev', 'Dev'),
