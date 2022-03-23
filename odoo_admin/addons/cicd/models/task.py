@@ -16,7 +16,7 @@ logger = logging.getLogger('cicd_task')
 
 
 class Task(models.Model):
-    _inherit = ['mixin.queuejob.semaphore', 'cicd.mixin.extra_env'']
+    _inherit = ['mixin.queuejob.semaphore', 'cicd.mixin.extra_env']
     _name = 'cicd.task'
     _order = 'date desc'
 
@@ -47,7 +47,7 @@ class Task(models.Model):
 
     def _compute_state(self):
         for rec in self:
-            qj = rec._get_queuejob()
+            qj = rec._semaphore_get_queuejob()
             if not qj:
                 # keep last state as queuejobs are deleted from time to time
                 pass
@@ -84,8 +84,9 @@ class Task(models.Model):
             return self.identity_key + " " + appendix
         name = self._get_short_name()
         with self._extra_env() as self2:
-            
-        return f"{self.branch_id.project_name}_{name} " + appendix
+            project_name = self2.branch_id.project_name
+
+        return f"{project_name}_{name} " + appendix
 
     def _get_short_name(self):
         name = self.name or ''
@@ -97,7 +98,7 @@ class Task(models.Model):
         if not self.branch_id:
             raise Exception("Branch not given for task.")
 
-        with self.qj_semaphore(not now):
+        with self.qj_semaphore(not now, ignore_states=['done']):
             self.state = 'started'
             self.started = fields.Datetime.now()
 
@@ -228,7 +229,7 @@ class Task(models.Model):
         self.write({
             'state': state,
             'log': log,
-            'duration': duration
+            'duration': duration,
             'commit_id': commit_id,
         })
         if self.branch_id:
@@ -240,3 +241,9 @@ class Task(models.Model):
                     body=f"Successfully executed {self.name}")
         self.env['base'].flush()
         self.env.cr.commit()
+
+    def confirm_read_and_ignore(self):
+        if self.state == 'failed':
+            job = self._semaphore.get_queuejob()
+            if job.state == 'failed':
+                job.state = 'done'

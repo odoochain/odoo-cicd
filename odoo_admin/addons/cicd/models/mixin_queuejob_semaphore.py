@@ -21,16 +21,18 @@ class SemaphoreQueuejob(models.AbstractModel):
         )
 
     @contextmanager
-    def qj_semaphore(self, enabled=True):
+    def qj_semaphore(self, enabled=True, ignore_states=None):
         if not enabled:
             yield
-
         else:
+
+            ignore_states = tuple(ignore_states or ['i dont exist'])
             self.env.cr.execute((
                 "select count(*) "
                 "from queue_job "
-                "where identity_key = %s"
-            ), tuple([self.qj_identity_key]))
+                "where identity_key = %s "
+                "and state not in %s"
+            ), tuple([self.qj_identity_key, ignore_states]))
             count_jobs = self.env.cr.fetchone()[0]
             if not count_jobs:
                 yield
