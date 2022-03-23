@@ -353,7 +353,7 @@ class Branch(models.Model):
 
     @api.model
     def _cron_garbage_collect(self):
-        for branch in self.search([('garbage_collect', '=', True)]):
+        for branch in self.search([('repo_id.garbage_collect', '=', True)]):
             branch.garbage_collect()
 
     def _gc(self, shell, logsio, **kwargs):
