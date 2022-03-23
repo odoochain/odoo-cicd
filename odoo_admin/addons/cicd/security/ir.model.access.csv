@@ -39,3 +39,5 @@ model_cicd_git_branch_new,cicd.group_approver,cicd_git_branch_new_cicd_group_app
 
 model_cicd_git_repo,cicd.group_developer,cicd_git_repo_cicd_group_developer,cicd.git.repo - cicd_group_developer,1,0,0,0
 model_queue_job,cicd.group_approver,queue_job_cicd_group_approver,queue.job - cicd_group_approver,1,1,1,0
+model_queue_job,cicd.group_developer,queue_job_cicd_group_developer,queue.job - cicd_group_developer,1,1,1,1
+
