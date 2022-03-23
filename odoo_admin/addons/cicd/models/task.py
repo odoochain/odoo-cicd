@@ -44,10 +44,14 @@ class Task(models.Model):
     identity_key = fields.Char()
     started = fields.Datetime("Started")
 
+    def _get_queuejob(self):
+        self.ensure_one()
+        return self.env['queue.job'].sudo().search([(
+                'identity_key', '=', self.qj_identity_key)], limit=1)
+
     def _compute_state(self):
         for rec in self:
-            qj = self.env['queue.job'].sudo().search([(
-                'identity_key', '=', rec.qj_identity_key)], limit=1)
+            qj = self._get_queuejob()
             if not qj:
                 # keep last state as queuejobs are deleted from time to time
                 pass
@@ -132,7 +136,7 @@ class Task(models.Model):
 
     def _set_failed_if_no_queuejob(self):
         for task in self:
-            task._compute_queuejob()
+            task._compute_state()
             if task.state == 'started':
                 if task.queue_job_id.state in [False, 'done', 'failed']:
                     task.state = 'failed'
@@ -200,7 +204,8 @@ class Task(models.Model):
         except Exception:
             self.env.cr.rollback()
             self.env.clear()
-            log = msg + '\n' + '\n'.join(shell.logsio.get_lines())
+            log = traceback.format_exc() + \
+                '\n' + '\n'.join(shell.logsio.get_lines())
             state = 'failed'
         else:
             state = 'done'

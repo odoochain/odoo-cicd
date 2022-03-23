@@ -41,9 +41,9 @@ class CicdMachine(models.Model):
     reload_config = fields.Text("Settings")
     external_url = fields.Char("External http-Address")
 
-    ssh_user_cicdlogin = fields.Char(compute="_compute_ssh_user_cicd_login")
+    ssh_user_cicdlogin = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
     ssh_user_cicdlogin_password_salt = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
-    ssh_user_cicdlogin_password = fields.Char(compute="_compute_ssh_user_cicd_login")
+    ssh_user_cicdlogin_password = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
     postgres_server_id = fields.Many2one('cicd.postgres', string="Postgres Server", required=False)
     upload_dump = fields.Binary("Upload Dump")
     upload_dump_filename = fields.Char("Filename")
@@ -55,10 +55,10 @@ class CicdMachine(models.Model):
     @api.depends('ssh_user')
     def _compute_ssh_user_cicd_login(self):
         for rec in self:
-            rec.ssh_user_cicdlogin = (self.ssh_user or '') + "_restricted_cicdlogin"
+            rec.ssh_user_cicdlogin = (rec.ssh_user or '') + "_restricted_cicdlogin"
             if not rec.ssh_user_cicdlogin_password_salt:
                 rec.ssh_user_cicdlogin_password_salt = str(arrow.get())
-            ho = hashlib.md5((rec.ssh_user_cicdlogin + self.ssh_user_cicdlogin_password_salt).encode('utf-8'))
+            ho = hashlib.md5((rec.ssh_user_cicdlogin + rec.ssh_user_cicdlogin_password_salt).encode('utf-8'))
             rec.ssh_user_cicdlogin_password = ho.hexdigest()
 
     def _compute_workspace(self):
