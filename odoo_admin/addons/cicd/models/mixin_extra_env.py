@@ -6,7 +6,6 @@ class MixinExtraEnv(models.AbstractModel):
     _name = 'cicd.mixin.extra_env'
 
     @contextmanager
-    @api.depends('size')
     def _extra_env(self, obj=None):
         obj = obj or self
         obj.ensure_one()
@@ -15,6 +14,10 @@ class MixinExtraEnv(models.AbstractModel):
         with closing(self.env.registry.cursor()) as cr:
             env = api.Environment(cr, SUPERUSER_ID, {})
             obj = obj.with_env(env)
-            yield obj
-            env.cr.rollback()
-            env.clear()
+
+            try:
+                yield obj
+
+            finally:
+                env.cr.rollback()
+                env.clear()
