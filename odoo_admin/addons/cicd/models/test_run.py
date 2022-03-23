@@ -565,6 +565,7 @@ class CicdTestRun(models.Model):
             raise ValidationError(
                 _("State of branch does not allow a repeated test run"))
         self = self.sudo()
+        self.line_ids.unlink()
         self.state = 'open'
         self.success_rate = 0
 
@@ -714,7 +715,6 @@ class CicdTestRun(models.Model):
         Timeout in seconds.
 
         """
-        self.line_ids.filtered(lambda x: x.ttype == ttype).unlink()
         success = True
         len_todo = len(todo)
         for i, item in enumerate(todo):

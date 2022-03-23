@@ -7,7 +7,7 @@ from odoo import registry
 
 
 class PostgresServer(models.Model):
-    _inherit = ['cicd.mixin.size']
+    _inherit = ['cicd.mixin.size', 'cicd.mixin.extra_env']
     _name = 'cicd.postgres'
 
     name = fields.Char("Name")
@@ -37,11 +37,17 @@ class PostgresServer(models.Model):
     @contextmanager
     @api.model
     def _get_conn(self):
+        with self._extra_env() as self:
+            user = self.db_user
+            host = self.db_host
+            port = self.db_port
+            password = self.db_pwd
+
         conn = psycopg2.connect(
-            user=self.db_user,
-            host=self.db_host,
-            port=self.db_port,
-            password=self.db_pwd,
+            user=user,
+            host=host,
+            port=post,
+            password=password,
             dbname='postgres',
         )
         try:

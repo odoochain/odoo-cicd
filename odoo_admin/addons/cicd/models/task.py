@@ -134,8 +134,11 @@ class Task(models.Model):
         for rec in self.filtered(lambda x: x.state in ['failed']):
             qj = rec._get_queuejob()
             if qj and qj.state in ['done', 'failed']:
-                qj.requeue()
-            else:
+                qj.unlink()
+                rec._exec(now=False)
+            elif qj:
+                pass  # already working
+            else: # if not qj
                 rec._exec(now=False)
 
     def _set_failed_if_no_queuejob(self):

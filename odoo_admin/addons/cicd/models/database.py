@@ -39,7 +39,7 @@ class Database(models.Model):
             self.env['base'].flush()
             self.env.cr.commit()
 
-            machin._update_dumps(machine)
+            machine._update_dumps(machine)
 
     def _compute_machine(self):
         for rec in self:
