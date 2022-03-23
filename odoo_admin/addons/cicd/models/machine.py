@@ -55,10 +55,10 @@ class CicdMachine(models.Model):
     @api.depends('ssh_user')
     def _compute_ssh_user_cicd_login(self):
         for rec in self:
-            rec.ssh_user_cicdlogin = (self.ssh_user or '') + "_restricted_cicdlogin"
+            rec.ssh_user_cicdlogin = (rec.ssh_user or '') + "_restricted_cicdlogin"
             if not rec.ssh_user_cicdlogin_password_salt:
                 rec.ssh_user_cicdlogin_password_salt = str(arrow.get())
-            ho = hashlib.md5((rec.ssh_user_cicdlogin + self.ssh_user_cicdlogin_password_salt).encode('utf-8'))
+            ho = hashlib.md5((rec.ssh_user_cicdlogin + rec.ssh_user_cicdlogin_password_salt).encode('utf-8'))
             rec.ssh_user_cicdlogin_password = ho.hexdigest()
 
     def _compute_workspace(self):
