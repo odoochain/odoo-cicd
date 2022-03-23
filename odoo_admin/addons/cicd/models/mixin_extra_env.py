@@ -21,3 +21,10 @@ class MixinExtraEnv(models.AbstractModel):
             finally:
                 env.cr.rollback()
                 env.clear()
+
+    def _unblocked_read(self, fields):
+        with self._extra_env() as branch:
+            res = {}
+            for field in fields:
+                res[field] = branch[field]
+        return res

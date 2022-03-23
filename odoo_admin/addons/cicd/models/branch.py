@@ -409,10 +409,10 @@ class GitBranch(models.Model):
         tasks.perform()
 
     def _get_instance_folder(self, machine):
-        if not self.project_name:
-            breakpoint()
+        project_name = self._unblocked_read(['project_name'])
+        if not project_name:
             raise ValidationError("Project name not determined.")
-        return machine._get_volume('source') / self.project_name
+        return machine._get_volume('source') / project_name
 
     def make_instance_ready_to_login(self):
         machine = self.machine_id
@@ -466,7 +466,8 @@ class GitBranch(models.Model):
             ))
 
     def _get_odoo_proxy_container_name(self):
-        return f"{self.project_name}_proxy"
+        project_name = self._unblocked_read(['project_name'])
+        return f"{project_name}_proxy"
 
     @api.depends_context('testrun')
     @api.depends("repo_id", "repo_id.short", "name")
@@ -488,13 +489,6 @@ class GitBranch(models.Model):
             project_name = project_name.lower()
             rec.project_name = project_name
             rec.database_project_name = dbname
-
-    def _unblocked_read(self, fields):
-        with self._extra_env() as branch:
-            res = {}
-            for field in fields:
-                res[field] = branch[field]
-        return res
 
     @contextmanager
     def _get_new_logsio_instance(self, source):
@@ -559,8 +553,9 @@ class GitBranch(models.Model):
             machine = rec.repo_id.machine_id
             if machine.postgres_server_id.ttype != 'dev':
                 continue
+            project_name = self._unblocked_read(['project_name'])
             dbs = machine.postgres_server_id.database_ids.filtered(
-                lambda x: x.name == rec.project_name)
+                lambda x: x.name == project_name)
             dbs.delete_db()
 
     def toggle_active(self):
@@ -721,11 +716,12 @@ class GitBranch(models.Model):
 
     @contextmanager
     def shell(self, logs_title, prepare=True):
+        project_name = self._unblocked_read(['project_name'])
         with self._get_new_logsio_instance(logs_title) as logsio:
             with self.machine_id._shell(
                 cwd=self.project_path,
                 logsio=logsio,
-                project_name=self.project_name
+                project_name=project_name
             ) as shell:
 
                 try:
@@ -734,6 +730,7 @@ class GitBranch(models.Model):
                         shell.checkout_branch(self.name)
 
                     yield shell
+
                 except Exception as ex:
                     msg = traceback.format_exc()
                     logsio.error(ex)
