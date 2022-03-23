@@ -138,7 +138,8 @@ class Task(models.Model):
         for task in self:
             task._compute_state()
             if task.state == 'started':
-                if task.queue_job_id.state in [False, 'done', 'failed']:
+                qj = self._get_queuejob()
+                if not qj or task.queue_job_id.state in ['done', 'failed']:
                     task.state = 'failed'
 
     def _get_args(self, shell):
