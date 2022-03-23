@@ -95,19 +95,15 @@ class LogsIOWriter(object):
     def info(self, msg):
         msg = self._format('INFO', msg)
         self._write_text(msg)
-        # logger.info(msg)
 
     def error(self, msg):
         msg = self._format('ERROR', msg)
         self._write_text(msg)
-        logger.error(msg)
 
     def warn(self, msg):
         msg = self._format('WARN', msg)
         self._write_text(msg)
-        logger.warn(msg)
 
     def debug(self, msg):
         msg = self._format('DEBUG', msg)
         self._write_text(msg)
-        # logger.debug(msg)

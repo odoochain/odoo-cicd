@@ -157,11 +157,13 @@ class Task(models.Model):
         args = {}
         log = None
         commit = None
+        logsio = None
 
         try:
             self = self.sudo().with_context(active_test=False)
             short_name = self._get_short_name()
             with self.branch_id.shell(short_name) as shell:
+                logsio = shell.logsio
                 self.env['base'].flush()
                 self.env.cr.commit()
                 args = self._get_args(shell)
@@ -196,12 +198,15 @@ class Task(models.Model):
         except Exception:
             self.env.cr.rollback()
             self.env.clear()
+            logsio_lines = logsio.get_lines() if logsio else ""
             log = traceback.format_exc() + \
-                '\n' + '\n'.join(shell.logsio.get_lines())
+                '\n' + '\n'.join(logsio_lines)
             state = 'failed'
         else:
             state = 'done'
-            log = '\n'.join(shell.logsio.get_lines())
+            log = ""
+            if logsio:
+                log = '\n'.join(logsio.get_lines())
 
         duration = 0
         if self.started:
@@ -209,7 +214,7 @@ class Task(models.Model):
                 .total_seconds()
 
         with self.semaphore_with_delay(
-            delayed=not now,
+            enabled=not now,
             appendix='finish',
         ) as self:
             self._finish_task(
@@ -242,6 +247,7 @@ class Task(models.Model):
         self.env['base'].flush()
         self.env.cr.commit()
 
+    # TODO .....mmhhh
     def confirm_read_and_ignore(self):
         if self.state == 'failed':
             job = self._semaphore.get_queuejob()

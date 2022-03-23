@@ -409,7 +409,7 @@ class GitBranch(models.Model):
         tasks.perform()
 
     def _get_instance_folder(self, machine):
-        project_name = self._unblocked_read(['project_name'])
+        project_name = self._unblocked('project_name')
         if not project_name:
             raise ValidationError("Project name not determined.")
         return machine._get_volume('source') / project_name
@@ -466,7 +466,7 @@ class GitBranch(models.Model):
             ))
 
     def _get_odoo_proxy_container_name(self):
-        project_name = self._unblocked_read(['project_name'])
+        project_name = self._unblocked('project_name')
         return f"{project_name}_proxy"
 
     @api.depends_context('testrun')
@@ -493,7 +493,7 @@ class GitBranch(models.Model):
     @contextmanager
     def _get_new_logsio_instance(self, source):
         self.ensure_one()
-        project_name = self._unblocked_read(['project_name'])
+        project_name = self._unblocked('project_name')
 
         with LogsIOWriter.GET(f"{project_name}", source) as logs:
             yield logs
@@ -553,7 +553,7 @@ class GitBranch(models.Model):
             machine = rec.repo_id.machine_id
             if machine.postgres_server_id.ttype != 'dev':
                 continue
-            project_name = self._unblocked_read(['project_name'])
+            project_name = self._unblocked('project_name')
             dbs = machine.postgres_server_id.database_ids.filtered(
                 lambda x: x.name == project_name)
             dbs.delete_db()
@@ -716,7 +716,7 @@ class GitBranch(models.Model):
 
     @contextmanager
     def shell(self, logs_title, prepare=True):
-        project_name = self._unblocked_read(['project_name'])
+        project_name = self._unblocked('project_name')
         with self._get_new_logsio_instance(logs_title) as logsio:
             with self.machine_id._shell(
                 cwd=self.project_path,
