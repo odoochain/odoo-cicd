@@ -110,7 +110,7 @@ class Task(models.Model):
         with self.semaphore_with_delay(not now, ignore_states=['done']):
             if now:
                 # commits happening
-                self.state = 'done'
+                self.state = 'failed'
             else:
                 self.state = 'started'
             self.started = fields.Datetime.now()
