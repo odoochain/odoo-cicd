@@ -438,25 +438,27 @@ class GitBranch(models.Model):
                 timeout=timeout)
             return response.status_code == 200
 
-        try:
-            test_request()
-        except Exception as ex:
-            deadline = arrow.get().shift(seconds=30)
-            while True:
-                try:
-                    self._make_task(
-                        "_reload_and_restart", now=True, reuse=True)
-
-                except RetryableJobError:
-                    time.sleep(1)
-
-                if arrow.get() > deadline:
+        deadline = arrow.utcnow().shift(seconds=120)
+        breakpoint()
+        while True:
+            try:
+                test_request()
+            except Exception as ex:
+                if arrow.utcnow() > deadline:
                     raise ValidationError((
                         "Timeout: could start instance within a "
                         "certain amount of time - please check logs "
                         "if there is bug in the source code of the "
                         "instance or contact your developer"
                         )) from ex
+
+                try:
+                    self._make_task(
+                        "_reload_and_restart", now=True, reuse=True)
+                except RetryableJobError:
+                    time.sleep(1)
+            else:
+                break
 
         if test_request():
             return
