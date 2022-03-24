@@ -92,11 +92,17 @@ class ReleaseItem(models.Model):
         # if not self.changed_lines:
         #     msg = "Nothing new to deploy"
         self.done_date = fields.Datetime.now()
+        self.state = 'done'
+        self._send_release_mail()
+
+    def _send_release_mail(self):
         self.release_id.message_post_with_view(
             self.env.ref('cicd.mail_release_done'),
-            values={'summary': self.computed_summary}
+            values={
+                'summary': self.computed_summary.split("\n"),
+                'item': self,
+                }
         )
-        self.state = 'done'
 
     def _compute_failed_jobs(self):
         for rec in self:
@@ -422,3 +428,6 @@ class ReleaseItem(models.Model):
             raise ValidationError("Invalid state to switch from.")
         self.planned_date = fields.Datetime.now()
         self.state = 'collecting'
+
+    def resend_release_mail(self):
+        self._send_release_mail()
