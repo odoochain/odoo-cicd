@@ -5,6 +5,9 @@
 		<field name="model">queue.job</field>
 		<field name="inherit_id" ref="queue_job.view_queue_job_form"/>
 		<field name="arch" type="xml">
+			<xpath expr="//form" position="attributes">
+				<attribute name="delete">1</attribute>
+			</xpath>
 			<header position="inside">
 				<button name="run_now" string="Run Now" type="object" groups="base.group_no_one"/>
 			</header>
