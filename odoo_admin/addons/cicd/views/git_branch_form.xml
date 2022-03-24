@@ -187,6 +187,10 @@
 									<div>
 										Executes docker-compose stop.
 									</div>
+									<button name="docker_remove" string="Remove Containers" type="object"/>
+									<div>
+										Executes docker-compose remove.
+									</div>
 									<button name="build" string="Build" type="object" />
 									<div>
 										Builds docker machines

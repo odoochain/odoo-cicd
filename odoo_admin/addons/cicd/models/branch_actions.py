@@ -126,6 +126,7 @@ class Branch(models.Model):
         self._docker_get_state()
 
     def _docker_remove(self, shell, task, logsio, **kwargs):
+        shell.odoo('kill')
         shell.odoo('rm')
         self.repo_id.machine_id._update_docker_containers()
         self._docker_get_state()

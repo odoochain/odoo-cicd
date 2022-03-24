@@ -6,21 +6,24 @@ class MixinExtraEnv(models.AbstractModel):
     _name = 'cicd.mixin.extra_env'
 
     @contextmanager
-    def _extra_env(self, obj=None):
+    def _extra_env(self, obj=None, enabled=True):
         obj = obj or self
         obj.ensure_one()
+        if not enabled:
+            yield obj
+        else:
 
-        # avoid long locking
-        with closing(self.env.registry.cursor()) as cr:
-            env = api.Environment(cr, SUPERUSER_ID, {})
-            obj = obj.with_env(env)
+            # avoid long locking
+            with closing(self.env.registry.cursor()) as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+                obj = obj.with_env(env)
 
-            try:
-                yield obj
+                try:
+                    yield obj
 
-            finally:
-                env.cr.rollback()
-                env.clear()
+                finally:
+                    env.cr.rollback()
+                    env.clear()
 
     def _unblocked_read(self, fields):
         with self._extra_env() as self:
