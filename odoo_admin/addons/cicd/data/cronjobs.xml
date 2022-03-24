@@ -157,15 +157,5 @@ for reason in reasons:
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
-		<record id="update_task_states" model="ir.cron">
-			<field name="name">update_task_states_to_failed_where_queuejob_is_missing</field>
-			<field name="interval_number">20</field>
-			<field name="interval_type">seconds</field>
-			<field name="model_id" ref="model_cicd_task" />
-			<field name="state">code</field>
-			<field name="code">model.search([('state', 'in', [False, 'started'])])._set_failed_if_no_queuejob()</field>
-			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
-			<field name="numbercall">-1</field>
-		</record>
 	</data>
 </odoo>

@@ -136,15 +136,6 @@ class Task(models.Model):
             else: # if not qj
                 rec._exec(now=False)
 
-    def _set_failed_if_no_queuejob(self):
-        return
-        for task in self:
-            task._compute_state()
-            if task.state == 'started':
-                qj = task._semaphore_get_queuejob()
-                if not qj or all([x.state in ['failed'] for x in qj]):
-                    task.state = 'failed'
-
     def _get_args(self, shell):
         self.ensure_one()
         args = {
