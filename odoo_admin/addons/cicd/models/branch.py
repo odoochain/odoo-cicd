@@ -318,22 +318,37 @@ class GitBranch(models.Model):
                     or commit.force_approved
                     ) and commit.approval_state == 'approved':
 
-                release_items = rec.computed_release_item_ids.mapped(
-                    'release_id.next_to_finish_item_id')
-                latest_states = release_items.mapped('state')
-                merge_conflict = 'conflict' in \
-                    release_items.branch_ids.filtered(
-                        lambda x: x.commit_id == rec.latest_commit_id
-                    ).mapped('state')
+                release_items = rec.computed_release_item_ids
 
-                if merge_conflict: # elif 'collecting_merge_conflict' in latest_states: 
-                    state = 'merge_conflict'
-                elif release_items and all(x == 'done' for x in latest_states):
-                    state = 'done'
-                elif release_items:
-                    state = 'candidate'
-                else:
-                    state = 'tested'
+                # Determine suitable state state
+                worst = None
+                for release in release_items.release_id:
+                    last_item = (release.next_to_finish_item_id | \
+                        release.last_item_id).filtered(
+                            lambda x: rec in x.branch_ids.branch_id)
+                    last_done_item = release.with_context(
+                        prefetch_fields=False).item_ids.filtered(
+                            lambda x: x.state == 'done' and 
+                            rec.latest_commit_id in x.branch_ids.commit_id)
+
+                    merge_conflict = 'conflict' in last_item.branch_ids.filtered(
+                        lambda x: x.commit_id == rec.latest_commit_id).mapped(
+                        'state')
+
+                    if merge_conflict:
+                        # always wins
+                        worst = 'merge_conflict'
+                    elif last_done_item:
+                        if worst in [None]:
+                            worst = 'done'
+                    elif release_items:
+                        if worst in [None, 'tested', 'done']:
+                            worst = 'candidate'
+                    else:
+                        if worst in [None, 'done']:
+                            worst = 'tested'
+                if worst:
+                    state = worst
 
             if state != rec.state:
                 rec.state = state
