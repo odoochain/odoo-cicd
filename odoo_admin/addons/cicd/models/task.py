@@ -173,7 +173,8 @@ class Task(models.Model):
         with self._extra_env() as check:
             previous = check.branch_id.task_ids.filtered(lambda x: x.id < check.id)
             if any(x in [False, 'started'] for x in previous.mapped('state')):
-                raise RetryableJobError("Previous tasks exist.", seconds=30)
+                raise RetryableJobError(
+                    "Previous tasks exist.", ignore_retry=True, seconds=30)
         try:
             self = self.sudo().with_context(active_test=False)
             short_name = self._get_short_name()
