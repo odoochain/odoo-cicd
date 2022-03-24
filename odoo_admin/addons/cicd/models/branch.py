@@ -321,11 +321,12 @@ class GitBranch(models.Model):
                 release_items = rec.computed_release_item_ids
 
                 # Determine suitable state state
-                worst = None
+                state = 'tested'
                 for release in release_items.release_id:
                     last_item = (release.next_to_finish_item_id | \
                         release.last_item_id).filtered(
-                            lambda x: rec in x.branch_ids.branch_id)
+                            lambda x: rec in x.branch_ids.branch_id).filtered(
+                                lambda x: x.state != 'done')
                     last_done_item = release.with_context(
                         prefetch_fields=False).item_ids.filtered(
                             lambda x: x.state == 'done' and 
@@ -337,18 +338,13 @@ class GitBranch(models.Model):
 
                     if merge_conflict:
                         # always wins
-                        worst = 'merge_conflict'
+                        state = 'merge_conflict'
                     elif last_done_item:
-                        if worst in [None]:
-                            worst = 'done'
-                    elif release_items:
-                        if worst in [None, 'tested', 'done']:
-                            worst = 'candidate'
-                    else:
-                        if worst in [None, 'done']:
-                            worst = 'tested'
-                if worst:
-                    state = worst
+                        if state in ['tested']:
+                            state = 'done'
+                    elif last_item:
+                        if state in ['tested', 'done']:
+                            state = 'candidate'
 
             if state != rec.state:
                 rec.state = state
