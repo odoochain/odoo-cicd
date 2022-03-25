@@ -118,6 +118,8 @@ class Branch(models.Model):
             dump.name)
         if self.remove_web_assets_after_restore:
             shell.odoo('-f', 'remove-web-assets')
+        self.last_restore_dump_name = dump.name
+        self.last_restore_dump_date = dump.date_modified
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')

@@ -49,7 +49,7 @@ class NewBranch(models.TransientModel):
                 if c in rec.new_name:
                     raise ValidationError(_("Invalid Name: " + rec.new_name))
 
-    def ok(self):
+    def do_dump(self):
         branch = self.source_branch_id.create({
             'name': self.new_name,
             'dump_id': self.dump_id.id,

@@ -12,13 +12,16 @@
 							<field name="ttype" />
 							<field name="machine_id" />
 							<field name="branch_id" />
-							<field name="volume_id" />
+
+							<field name="backup_volume_id"  attrs="{'invisible': [('ttype', '=', 'restore')]}"/>
 							<field name="filename" attrs="{'invisible': [('ttype', '=', 'restore')]}"/>
+
+							<field name="restore_volume_id"  attrs="{'invisible': [('ttype', '=', 'backup')]}"/>
 							<field name="dump_id" attrs="{'invisible': [('ttype', '=', 'backup')]}"/>
 						</group>
 					</sheet>
 					<footer>
-						<button name="OK" string="ok" type="object" />
+						<button name="do_dump" string="OK" type="object" />
 						<button special="cancel" string="Cancel" class="oe_link" />
 					</footer>
 				</form>

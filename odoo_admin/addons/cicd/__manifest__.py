@@ -9,6 +9,7 @@
                 'data/data.xml',
                 'data/mail_templates.xml',
                 'data/queuejob_functions.xml',
+                'views/backup_dump_form.xml',
                 'views/commit_form.xml',
                 'views/compressor_tree.xml',
                 'views/dump_form.xml',

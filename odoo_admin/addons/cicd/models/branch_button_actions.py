@@ -59,10 +59,37 @@ class Branch(models.Model):
     def remove_web_assets(self):
         self._make_task("_remove_web_assets")
 
-    def restore_dump(self):
-        self._check_dump_requirements()
+    def backup(self):
+        return {
+            'view_type': 'form',
+            'res_model': 'cicd.wiz.dump',
+            'context': {
+                'default_ttype': 'backup',
+                'default_branch_id': self.id,
+                'default_machine_id': self.repo_id.machine_id.id,
+            },
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'flags': {'form': {
+            }},
+            'target': 'new',
+        }
 
-        self._make_task("_restore_dump", machine=self.backup_machine_id)
+    def restore_dump(self):
+        return {
+            'view_type': 'form',
+            'res_model': 'cicd.wiz.dump',
+            'context': {
+                'default_ttype': 'restore',
+                'default_branch_id': self.id,
+                'default_machine_id': self.repo_id.machine_id.id,
+            },
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'flags': {'form': {
+            }},
+            'target': 'new',
+        }
 
     def run_tests(self):
         if not self.latest_commit_id:
