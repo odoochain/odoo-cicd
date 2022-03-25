@@ -38,7 +38,7 @@ class SemaphoreQueuejob(models.AbstractModel):
             jobs = self._semaphore_get_queuejob(params['identity_key'])
             if ignore_states:
                 jobs = jobs.filtered(lambda x: x.state not in ignore_states)
-            
+
             if not jobs or all(x.state in ['done'] for x in jobs):
                 new_self = self.with_delay(**params)
                 yield new_self

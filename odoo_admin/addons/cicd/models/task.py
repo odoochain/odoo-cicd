@@ -133,7 +133,8 @@ class Task(models.Model):
 
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in ['failed']):
-            qj = rec._get_queuejob()
+            qj = rec._semaphore_get_queuejob()
+            qj = qj and qj[0]
             if qj and qj.state in ['done', 'failed']:
                 qj.unlink()
                 rec._exec(now=False)
