@@ -20,6 +20,7 @@ from .shell_executor import ShellExecutor
 import logging
 logger = logging.getLogger(__name__)
 
+
 class CicdMachine(models.Model):
     _inherit = ['mail.thread', 'cicd.mixin.extra_env']
     _name = 'cicd.machine'
@@ -93,6 +94,7 @@ class CicdMachine(models.Model):
         ]:
             if file.exists():
                 os.chmod(file, rights_keyfile)
+
         def content_differs(file, content):
             if not file.exists():
                 return True

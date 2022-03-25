@@ -96,8 +96,12 @@ class Branch(models.Model):
         shell.odoo("up", "-d")
         self._after_build(shell, logsio)
 
-    def _restore_dump(self, shell, task, logsio, **kwargs):
-        if not self.dump_id:
+    def _restore_dump(self, shell, task, logsio, dump, **kwargs):
+        dump = dump or self.dump_id
+        if isinstance(dump, int):
+            dump = self.env['cicd.dump'].browse(dump)
+
+        if not dump:
             raise ValidationError(_("Dump missing - cannot restore"))
         self._reload(shell, task, logsio)
         task.sudo().write({'dump_used': self.dump_id.name})
@@ -108,12 +112,14 @@ class Branch(models.Model):
         logsio.info("Downing")
         shell.odoo('kill')
         shell.odoo('rm')
-        logsio.info(f"Restoring {self.dump_id.name}")
+        logsio.info(f"Restoring {dump.name}")
         shell.odoo(
             '-f', 'restore', 'odoo-db', '--no-remove-webassets',
-            self.dump_id.name)
+            dump.name)
         if self.remove_web_assets_after_restore:
             shell.odoo('-f', 'remove-web-assets')
+        self.last_restore_dump_name = dump.name
+        self.last_restore_dump_date = dump.date_modified
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
@@ -191,11 +197,17 @@ class Branch(models.Model):
         self._reload(shell, task, logsio, **kwargs)
         shell.odoo('build')
 
-    def _dump(self, shell, task, logsio, **kwargs):
-        volume = task.machine_id._get_volume('dumps')
+    def _dump(self, shell, task, logsio, volume=None, filename=None, **kwargs):
+        volume = volume or task.machine_id._get_volume('dumps')
+        if isinstance(volume, int):
+            volume = self.env['cicd.machine.volume'].browse(volume)
+            volume = Path(volume.name)
+
         logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
-        filename = task.branch_id.backup_filename or (
+        filename = filename or task.branch_id.backup_filename or (
             self.project_name + ".dump.gz")
+        assert isinstance(filename, str)
+
         if '/' in filename:
             raise ValidationError("Filename mustn't contain slashses!")
         shell.odoo('backup', 'odoo-db', str(volume / filename))
@@ -516,7 +528,9 @@ class Branch(models.Model):
 
     def _cron_autobackup(self):
         for rec in self:
-            rec._make_task("_dump", machine=rec.backup_machine_id)
+            rec._make_task(
+                "_dump", machine=rec.backup_machine_id,
+                ignore_previous_tasks=True)
 
     def _reset_db(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
