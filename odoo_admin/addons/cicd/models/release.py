@@ -95,17 +95,17 @@ class Release(models.Model):
         with LogsIOWriter.GET(short, "Release") as logsio:
             yield logsio
 
-    def _ensure_item(self):
-        items = self.with_context(prefetch_fields=False).item_ids.sorted(
-            lambda x: x.id, reverse=True).filtered(
-                lambda x: x. release_type == 'standard')
-        if not items or items[0].state in ['done', 'failed']:
-            items = self.item_ids.create({
-                'release_id': self.id,
-            })
-        else:
-            items = items[0]
-        return items
+#    def _ensure_item(self):
+#        items = self.with_context(prefetch_fields=False).item_ids.sorted(
+#            lambda x: x.id, reverse=True).filtered(
+#                lambda x: x. release_type == 'standard')
+#        if not items or items[0].state in ['done', 'failed']:
+#            items = self.item_ids.create({
+#                'release_id': self.id,
+#            })
+#        else:
+#            items = items[0]
+#        return items
 
     def _send_pre_release_information(self):
         for rec in self:
@@ -116,8 +116,9 @@ class Release(models.Model):
     def cron_heartbeat(self):
         for rec in self.search([('auto_release', '=', True)]):
             last_item = rec.last_item_id
-            if last_item.state in [False, 'ready', 'done'] or \
-                    'failed_' in last_item.state:
+            if last_item.state in [False, 'ready'] or \
+            last_item.is_failed or \
+            last_item.is_done:
 
                 planned_date = self._compute_next_date(
                     last_item.planned_maximum_finish_date)
@@ -127,16 +128,16 @@ class Release(models.Model):
                 }]]
 
             for item in self.env['cicd.release.item'].search([
-                ('state', 'not ilike', 'failed_'),
-                ('state', '!=', 'done'),
+                ('is_failed', '=', 'False'),
+                ('is_done', '=', 'False'),
                 ('release_id', '=', rec.id),
             ]):
                 item.cron_heartbeat()
 
     def make_hotfix(self):
         existing = self.item_ids.with_context(prefetch_fields=False).filtered(
-            lambda x: x.release_type == 'hotfix' and x.state not in [
-                'done', 'failed'])
+            lambda x: x.release_type == 'hotfix' and not x.is_done and not x.is_failed
+        )
         if existing:
             raise ValidationError((
                 "Hotfix already exists. "
