@@ -333,7 +333,7 @@ class GitBranch(models.Model):
                                 lambda x: x.state != 'done')
                     last_done_item = release.with_context(
                         prefetch_fields=False).item_ids.filtered(
-                            lambda x: x.state == 'done' and 
+                            lambda x: x.state == 'done' and
                             rec.latest_commit_id in x.branch_ids.commit_id)
 
                     merge_conflict = 'conflict' in last_item.branch_ids.filtered(
