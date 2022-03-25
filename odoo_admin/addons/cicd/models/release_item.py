@@ -50,6 +50,7 @@ class ReleaseItem(models.Model):
         ('failed_merge_master', "Failed: merge on master"),
         ('ready', 'Ready'),
         ('done', 'Done'),
+        #('done_nothing_todo', 'Nothing todo'),
     ], string="State", default='collecting', required=True, tracking=True)
     computed_summary = fields.Text(
         "Computed Summary",
@@ -137,8 +138,9 @@ class ReleaseItem(models.Model):
                     self, self.release_id.action_ids, commit_sha)
                 if errors:
                     raise Exception(str(';'.join(map(str, errors))))
-                else:
-                    self.state = 'done'
+                # is done in _on_done
+                #else:
+                #    self.state = 'done'
 
                 self.log_release = ','.join(logsio.get_lines())
                 self._on_done()
@@ -281,7 +283,10 @@ class ReleaseItem(models.Model):
 
             if self.stop_collecting_at < now:
                 if not self.branch_ids:
-                    self.state = 'done'
+                    #goto next release date (less release itmes)? or new state nothing to do?
+                    #less release items
+                    self.planned_date = self.release_id._compute_next_date_grather_now(self.planned_maximum_finish_date)
+                    #self.state = 'done_nothing_todo'
                 else:
                     states = self.branch_ids.mapped('state')
                     if 'candidate' in states and 'conflict' not in states:

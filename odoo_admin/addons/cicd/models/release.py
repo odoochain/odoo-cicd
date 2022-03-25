@@ -114,16 +114,13 @@ class Release(models.Model):
 
     @api.model
     def cron_heartbeat(self):
-
-        for rec in self.search([]):
+        for rec in self.search([('auto_release', '=', True)]):
             last_item = rec.last_item_id
             if last_item.state in [False, 'ready', 'done'] or \
                     'failed_' in last_item.state:
-                planned_date = rec._compute_next_date(
-                    last_item.planned_maximum_finish_date
-                )
-                if planned_date < fields.Datetime.now().strftime(DTF):
-                    planned_date = rec._compute_next_date(fields.Datetime.now())
+
+                planned_date = self._compute_next_date_grather_now(last_item.planned_maximum_finish_date)
+                
                 rec.item_ids = [[0, 0, {
                     'planned_date': planned_date,
                 }]]
