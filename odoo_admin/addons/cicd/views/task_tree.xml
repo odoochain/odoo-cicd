@@ -9,6 +9,7 @@
 				<button name="requeue" type="object" icon="fa-repeat" states='failed'/>
 				<button name="unlink" type="object" string="X" confirm="Delete?"/>
 				<field name="id"/>
+				<field name="branch_id"/>
 				<field name="display_name" />
 				<field name="duration"/>
 				<field name="machine_id"/>
