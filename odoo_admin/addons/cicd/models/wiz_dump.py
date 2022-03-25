@@ -34,11 +34,6 @@ class MakeDump(models.TransientModel):
                     lambda x: x.ttype in ['dumps'])
                 if len(volumes) == 1:
                     res['backup_volume_id'] = volumes.id
-            else:
-                volumes = machine.volume_ids.filtered(
-                    lambda x: x.ttype in ['dumps', 'dumps_in'])
-                if len(volumes) == 1:
-                    res['restore_volume_id'] = volumes.id
         return res
 
     def do_dump(self):

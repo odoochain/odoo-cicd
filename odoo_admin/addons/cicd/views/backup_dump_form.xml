@@ -16,7 +16,6 @@
 							<field name="backup_volume_id"  attrs="{'invisible': [('ttype', '=', 'restore')], 'required': [('ttype', '=', 'backup')]}"/>
 							<field name="filename" attrs="{'invisible': [('ttype', '=', 'restore')], 'required': [('ttype', '=', 'backup')]}"/>
 
-							<field name="restore_volume_id"  attrs="{'invisible': [('ttype', '=', 'backup')], 'required': [('ttype', '=', 'restore')]}"/>
 							<field name="dump_id" attrs="{'invisible': [('ttype', '=', 'backup')], 'required': [('ttype', '=', 'restore')]}"/>
 						</group>
 					</sheet>
