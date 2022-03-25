@@ -32,6 +32,7 @@
                 'views/release_tree.xml',
                 'views/repository.xml',
                 'views/task_form.xml',
+                'views/task_search.xml',
                 'views/task_tree.xml',
                 'views/test_run_form.xml',
                 'views/test_run_kanban.xml',
