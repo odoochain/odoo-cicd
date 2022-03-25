@@ -200,9 +200,9 @@ class Branch(models.Model):
     def _dump(self, shell, task, logsio, volume=None, filename=None, **kwargs):
         volume = volume or task.machine_id._get_volume('dumps')
         if isinstance(volume, int):
-            volume = self.env['cicd.volume'].browse(volume)
+            volume = self.env['cicd.machine.volume'].browse(volume)
 
-        assert volume._name == 'cicd.volume'
+        assert volume._name == 'cicd.machine.volume'
         logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
         filename = filename or task.branch_id.backup_filename or (
             self.project_name + ".dump.gz")
