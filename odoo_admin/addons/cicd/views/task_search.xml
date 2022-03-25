@@ -8,11 +8,10 @@
 				<filter name='started' string="Started" domain="[('state', '=', 'started')]" />
 				<filter name='failed' string="Failed" domain="[('state', '=', 'started')]" />
 				<filter name="group_by_branch" string="State" domain="[]" context="{'group_by':'branch_id'}"/>
-				<filter name="group_by_state" string="Branch"  domain="[('day', '=', current_date)]" context="{'group_by':'state'}"/>
+				<filter name="group_by_state" string="Branch"  domain="[]" context="{'group_by':'state'}"/>
 			</search>
 			</field>
 		</record>
-	
 
 	</data>
 </odoo>

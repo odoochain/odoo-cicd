@@ -377,6 +377,7 @@ class GitBranch(models.Model):
     def _make_task(
         self, execute, now=False, machine=None, silent=False,
         identity_key=None, reuse=False, testrun_id=None,
+        ignore_previous_tasks=False,
         **kwargs
     ):
         for rec in self:
@@ -387,7 +388,8 @@ class GitBranch(models.Model):
             if reuse and tasks and tasks[0].name == execute and \
                     tasks[0].state == 'failed':
                 if now:
-                    tasks[0].perform(now=now)
+                    tasks[0].perform(
+                        now=now, ignore_previous_tasks=ignore_previous_tasks)
                 elif tasks[0].queue_job_id and \
                         tasks[0].queue_job_id.state in ['failed']:
                     tasks[0].queue_job_id.state = 'pending'

@@ -81,9 +81,9 @@ class Task(models.Model):
             name = name.split("(")[0]
             rec.display_name = name
 
-    def perform(self, now=False):
+    def perform(self, now=False, ignore_previous_tasks=False):
         self.ensure_one()
-        self._exec(now)
+        self._exec(now, ignore_previous_tasks=ignore_previous_tasks)
 
     @property
     def semaphore_qj_identity_key(self):
@@ -104,7 +104,7 @@ class Task(models.Model):
             name = name[1:]
         return name
 
-    def _exec(self, now=False):
+    def _exec(self, now=False, ignore_previous_tasks=False):
         if not self.branch_id:
             raise Exception("Branch not given for task.")
 
@@ -120,7 +120,9 @@ class Task(models.Model):
                 enabled=not now,
             ) as self:
                 if self:
-                    self._internal_exec(now)
+                    self._internal_exec(
+                        now, ignore_previous_tasks=ignore_previous_tasks
+                    )
 
     @api.model
     def _cron_cleanup(self):
@@ -160,7 +162,9 @@ class Task(models.Model):
         self.env.cr.commit()
         return args
 
-    def _internal_exec(self, now=False, delete_after=False):
+    def _internal_exec(
+        self, now=False, delete_after=False, ignore_previous_tasks=False
+    ):
         # functions called often block the repository access
         args = {}
         log = None
