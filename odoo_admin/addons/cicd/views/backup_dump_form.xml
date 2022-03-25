@@ -9,15 +9,15 @@
 					<header></header>
 					<sheet>
 						<group string="" col="2">
-							<field name="ttype" />
+							<field name="ttype" readonly='1'/>
+							<field name="branch_id" readonly='1'/>
 							<field name="machine_id" />
-							<field name="branch_id" />
 
-							<field name="backup_volume_id"  attrs="{'invisible': [('ttype', '=', 'restore')]}"/>
-							<field name="filename" attrs="{'invisible': [('ttype', '=', 'restore')]}"/>
+							<field name="backup_volume_id"  attrs="{'invisible': [('ttype', '=', 'restore')], 'required': [('ttype', '=', 'backup')]}"/>
+							<field name="filename" attrs="{'invisible': [('ttype', '=', 'restore')], 'required': [('ttype', '=', 'backup')]}"/>
 
-							<field name="restore_volume_id"  attrs="{'invisible': [('ttype', '=', 'backup')]}"/>
-							<field name="dump_id" attrs="{'invisible': [('ttype', '=', 'backup')]}"/>
+							<field name="restore_volume_id"  attrs="{'invisible': [('ttype', '=', 'backup')], 'required': [('ttype', '=', 'restore')]}"/>
+							<field name="dump_id" attrs="{'invisible': [('ttype', '=', 'backup')], 'required': [('ttype', '=', 'restore')]}"/>
 						</group>
 					</sheet>
 					<footer>

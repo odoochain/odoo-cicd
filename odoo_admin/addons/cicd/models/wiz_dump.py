@@ -14,13 +14,38 @@ class MakeDump(models.TransientModel):
     machine_id = fields.Many2one(
         'cicd.machine', string="Machine", required=True)
     backup_volume_id = fields.Many2one(
-        'cicd.machine.volume', domain="[('machine_id', '=', machine_id), ('ttype', 'in', ['dumps'])]", required=True)
+        'cicd.machine.volume',
+        domain=(
+            "[('machine_id', '=', machine_id), "
+            "('ttype', 'in', ['dumps'])]"
+        ))
     restore_volume_id = fields.Many2one(
-        'cicd.machine.volume', domain="[('machine_id', '=', machine_id), ('ttype', 'in', ['dumps', 'dumps_in'])]", required=True)
+        'cicd.machine.volume',
+        domain=(
+            "[('machine_id', '=', machine_id), "
+            "('ttype', 'in', ['dumps', 'dumps_in'])]"
+        ))
     filename = fields.Char("Filename")
     dump_id = fields.Many2one('cicd.dump', string="Dump")
 
-    def ok(self):
+    @api.model
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        if res.get('machine_id') and not res.get('backup_volume_id'):
+            machine = self.env['cicd.machine'].browse(res['machine_id'])
+            if res['ttype'] == 'backup':
+                volumes = machine.volume_ids.filtered(
+                    lambda x: x.ttype in ['dumps'])
+                if len(volumes) == 1:
+                    res['backup_volume_id'] = volumes.id
+            else:
+                volumes = machine.volume_ids.filtered(
+                    lambda x: x.ttype in ['dumps', 'dumps_in'])
+                if len(volumes) == 1:
+                    res['backup_volume_id'] = volumes.id
+        return res
+
+    def do_dump(self):
         if self.ttype == 'backup':
             assert self.filename
             self.branch_id._make_task(

@@ -107,7 +107,7 @@
 		<record id='tasks_action' model='ir.actions.act_window'>
 			<field name='name'>Tasks</field>
 			<field name='res_model'>cicd.task</field>
-			<field name='view_mode'>tree</field>
+			<field name='view_mode'>tree,form</field>
 			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
 		</record>
 		<menuitem parent="root_menu" id="menu_tasks" action="tasks_action"/>
