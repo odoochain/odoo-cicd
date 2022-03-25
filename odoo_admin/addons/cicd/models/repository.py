@@ -67,7 +67,7 @@ class Repository(models.Model):
         "Cleanup after days", default=20, required=True)
     autofetch = fields.Boolean("Autofetch", default=True)
     garbage_collect = fields.Boolean(
-        "Garbage Collect to reduce size", default=True)
+        "Garbage Collect to reduce size", default=False)
     initialize_new_branches = fields.Boolean("Initialize new Branches")
     release_tag_prefix = fields.Char(
         "Release Tag Prefix", default="release-", required=True)

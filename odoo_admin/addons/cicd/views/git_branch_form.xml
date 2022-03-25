@@ -84,6 +84,7 @@
 										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
 										<button name="perform" string="Perform" type="object" groups="base.group_no_one"/>
 										<button name="requeue" type="object" icon="fa-repeat" states='failed'/>
+										<button name="unlink" type="object" string="X" confirm="Delete?"/>
 										<field name="id"/>
 										<field name="display_name" />
 										<field name="duration"/>
@@ -186,6 +187,10 @@
 									<button name="docker_stop" string="Stop Containers" type="object"/>
 									<div>
 										Executes docker-compose stop.
+									</div>
+									<button name="docker_remove" string="Remove Containers" type="object"/>
+									<div>
+										Executes docker-compose remove.
 									</div>
 									<button name="build" string="Build" type="object" />
 									<div>

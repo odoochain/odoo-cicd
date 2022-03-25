@@ -108,7 +108,11 @@ class Task(models.Model):
             raise Exception("Branch not given for task.")
 
         with self.semaphore_with_delay(not now, ignore_states=['done']):
-            self.state = 'started'
+            if now:
+                # commits happening
+                self.state = 'failed'
+            else:
+                self.state = 'started'
             self.started = fields.Datetime.now()
 
             with self.semaphore_with_delay(
@@ -161,11 +165,13 @@ class Task(models.Model):
         log = None
         commit = None
         logsio = None
-        with self._extra_env() as check:
-            previous = check.branch_id.task_ids.filtered(lambda x: x.id < check.id)
-            if any(x in [False, 'started'] for x in previous.mapped('state')):
-                raise RetryableJobError(
-                    "Previous tasks exist.", ignore_retry=True, seconds=30)
+        if not now:
+            with self._extra_env(enabled=not now) as check:
+                previous = check.branch_id.task_ids.filtered(
+                    lambda x: x.id < check.id)
+                if any(x in [False, 'started'] for x in previous.mapped('state')):
+                    raise RetryableJobError(
+                        "Previous tasks exist.", ignore_retry=True, seconds=30)
         try:
             self = self.sudo().with_context(active_test=False)
             short_name = self._get_short_name()
@@ -180,7 +186,6 @@ class Task(models.Model):
                     raise Exception((
                         f"Not found: {self.res_id} {self.model}"
                     ))
-
 
                 # mini check if it is a git repository:
                 if not args.get('no_repo', False):
