@@ -7,11 +7,12 @@ from contextlib import contextmanager, closing
 class SemaphoreQueuejob(models.AbstractModel):
     _name = 'mixin.queuejob.semaphore'
 
-    def _semaphore_get_queuejob(self, idkey=None):
+    def _semaphore_get_queuejob(self, idkey=None, limit=None):
         self.ensure_one()
         idkey = idkey or self.semaphore_qj_identity_key
         return self.env['queue.job'].sudo().search([(
-                'identity_key', '=', idkey)])
+                'identity_key', '=', idkey)
+                ], order='id desc', limit=limit)
 
     @property
     def semaphore_qj_identity_key(self):

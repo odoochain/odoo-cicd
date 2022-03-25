@@ -44,6 +44,7 @@ class Task(models.Model):
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
     started = fields.Datetime("Started")
+    ignore_previous_tasks = fields.Boolean("Ignore previous tasks")
 
     def _compute_state(self):
         for rec in self:
@@ -165,7 +166,7 @@ class Task(models.Model):
         log = None
         commit = None
         logsio = None
-        if not now:
+        if not now and not self.ignore_previous_tasks:
             with self._extra_env(enabled=not now) as check:
                 previous = check.branch_id.task_ids.filtered(
                     lambda x: x.id < check.id)
@@ -260,9 +261,11 @@ class Task(models.Model):
         self.env['base'].flush()
         self.env.cr.commit()
 
-    # TODO .....mmhhh
-    def confirm_read_and_ignore(self):
-        if self.state == 'failed':
-            job = self._semaphore.get_queuejob()
-            if job.state == 'failed':
-                job.state = 'done'
+    @api.model
+    def _cron_check_states_vs_queuejobs(self):
+        pass
+        # think what to do; failed job may be requeued
+        # if self.state == 'started':
+        #     jobs = self._semaphore.get_queuejob()
+        #     if jobs and jobs[0].state in ['done']job.state == 'failed':
+        #         job.state = 'done'
