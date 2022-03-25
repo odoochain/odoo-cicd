@@ -26,7 +26,9 @@ class MakeDump(models.TransientModel):
             "('ttype', 'in', ['dumps', 'dumps_in'])]"
         ))
     filename = fields.Char("Filename")
-    dump_id = fields.Many2one('cicd.dump', string="Dump")
+    dump_id = fields.Many2one(
+        'cicd.dump', string="Dump",
+        domain="[('volume_id', '=', restore_volume_id)]")
 
     @api.model
     def default_get(self, fields):

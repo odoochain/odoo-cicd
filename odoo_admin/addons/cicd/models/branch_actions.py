@@ -201,8 +201,8 @@ class Branch(models.Model):
         volume = volume or task.machine_id._get_volume('dumps')
         if isinstance(volume, int):
             volume = self.env['cicd.machine.volume'].browse(volume)
+            volume = Path(volume.name)
 
-        assert volume._name == 'cicd.machine.volume'
         logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
         filename = filename or task.branch_id.backup_filename or (
             self.project_name + ".dump.gz")
