@@ -76,8 +76,8 @@ class GitBranch(models.Model):
         tracking=True, compute="_compute_state", store=True,
         group_expand="_expand_states")
     dump_id = fields.Many2one("cicd.dump", string="Dump")
-    last_restore_dump_name = fields.Char("Restored Dump Name")
-    last_restore_dump_date = fields.Char("Restored Dump Date")
+    last_restore_dump_name = fields.Char("Restored Dump Name", readonly=True)
+    last_restore_dump_date = fields.Char("Restored Dump Date", readonly=True)
     remove_web_assets_after_restore = fields.Boolean(
         "Remove Webassets", default=True)
     reload_config = fields.Text("Reload Config", tracking=True)
