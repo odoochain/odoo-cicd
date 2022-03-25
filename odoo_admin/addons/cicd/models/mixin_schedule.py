@@ -10,15 +10,6 @@ class Schedule(models.AbstractModel):
 
     hour = fields.Integer("Hour")
     minute = fields.Integer("Minute")
-    
-    def _compute_next_date_grather_now(self, start_from):
-        d = self._compute_next_date(
-            start_from
-        )
-        now = fields.Datetime.now()
-        if d < fields.Datetime.to_string(now):
-            d = self._compute_next_date(now)
-        return d
 
     @api.model
     def _compute_next_date(self, start_from):
@@ -26,6 +17,8 @@ class Schedule(models.AbstractModel):
             (start_from and arrow.get(start_from) or arrow.utcnow()).strftime(
                 DTF))
         test = test.replace(hour=self.hour, minute=self.minute)
-        if test.strftime(DTF) < (start_from or arrow.utcnow()).strftime(DTF):
+        min_date = min(start_from.strftime(DTF), arrow.utcnow().strftime(DTF))
+        while test.strftime(DTF) < min_date:
             test = test.shift(days=1)
+
         return test.strftime(DTF)

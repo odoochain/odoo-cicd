@@ -277,16 +277,17 @@ class ReleaseItem(models.Model):
 
         if self.state in ['collecting', 'collecting_merge_conflict']:
             self._collect()
-                
+
             if self.needs_merge or not self.item_branch_id:
                 self.merge()
 
             if self.stop_collecting_at < now:
                 if not self.branch_ids:
-                    #goto next release date (less release itmes)? or new state nothing to do?
-                    #less release items
-                    self.planned_date = self.release_id._compute_next_date_grather_now(self.planned_maximum_finish_date)
-                    #self.state = 'done_nothing_todo'
+                    # goto next release date (less release itmes)? or new state nothing to do?
+                    # less release items
+                    self.planned_date = self.release_id._compute_next_date(
+                        self.planned_maximum_finish_date)
+                    # self.state = 'done_nothing_todo'
                 else:
                     states = self.branch_ids.mapped('state')
                     if 'candidate' in states and 'conflict' not in states:
