@@ -21,7 +21,8 @@ class Dump(models.Model):
     def _compute_volume(self):
         for rec in self:
             name = '/'.join(rec.name.split("/")[:-1])
-            volumes = rec.machine_id.volume_ids.filtered(lambda x: x.name.startswith(name))
+            volumes = rec.machine_id.volume_ids.filtered(
+                lambda x: x.name.startswith(name))
             rec.volume_id = False
             if volumes:
                 rec.volume_id = volumes[0]
@@ -30,7 +31,6 @@ class Dump(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            #'url': 'http://www.mut.de',
             'url': f'/download/dump/{self.id}',
             'target': 'new'
         }
