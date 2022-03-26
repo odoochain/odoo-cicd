@@ -50,6 +50,7 @@ class ReleaseItem(models.Model):
         ('failed_merge_master', "Failed: merge on master"),
         ('ready', 'Ready'),
         ('done', 'Done'),
+        ('done_nothing_todo', 'Nothing todo'),
     ], string="State", default='collecting', required=True, tracking=True)
     computed_summary = fields.Text(
         "Computed Summary",
@@ -70,6 +71,23 @@ class ReleaseItem(models.Model):
         ('hotfix', 'Hotfix'),
     ], default="standard", required=True, readonly=True)
 
+    is_done = fields.Boolean('Is done', compute="_compute_is_state", store=True)
+    is_failed = fields.Boolean('Is done', compute="_compute_is_state", store=True)
+
+    def _is_done(self):
+        self.ensure_one()
+        return self.state and self.state.startswith('done')
+    
+    def _is_failed(self):
+        self.ensure_one()
+        return self.state and self.state.startswith('failed')
+
+    @api.depends('state')
+    def _compute_is_state(self):
+        for rec in self:
+            rec.is_done = self._is_done()
+            rec.is_failed = self._is_failed()
+
     @api.depends(
         'planned_date',
         'release_id.countdown_minutes',
@@ -87,7 +105,7 @@ class ReleaseItem(models.Model):
                     ).strftime(DTF)
                 rec.planned_maximum_finish_date = start_from.shift(
                     minutes=rec.release_id.minutes_to_release).strftime(DTF)
-
+    
     def _on_done(self):
         # if not self.changed_lines:
         #     msg = "Nothing new to deploy"
@@ -137,8 +155,6 @@ class ReleaseItem(models.Model):
                     self, self.release_id.action_ids, commit_sha)
                 if errors:
                     raise Exception(str(';'.join(map(str, errors))))
-                else:
-                    self.state = 'done'
 
                 self.log_release = ','.join(logsio.get_lines())
                 self._on_done()
@@ -243,8 +259,8 @@ class ReleaseItem(models.Model):
 
     def abort(self):
         for rec in self:
-            if rec.state == 'done':
-                raise ValidationError("Cannot set a done release to fail")
+            if rec.is_done:
+                raise ValidationError("Cannot set a done release to failed")
             rec.state = 'failed_user'
 
     def _lock(self):
@@ -268,20 +284,19 @@ class ReleaseItem(models.Model):
         deadline = self.planned_maximum_finish_date
 
         if deadline < now:
-            if 'failed_' not in self.state:
-                if self.state not in ['done']:
-                    self.state = 'failed_too_late'
-                    return
+            if not self.is_failed and not self.is_done:
+                self.state = 'failed_too_late'
+                return
 
         if self.state in ['collecting', 'collecting_merge_conflict']:
             self._collect()
-                
+
             if self.needs_merge or not self.item_branch_id:
                 self.merge()
 
             if self.stop_collecting_at < now:
                 if not self.branch_ids:
-                    self.state = 'done'
+                    self.state = 'done_nothing_todo'
                 else:
                     states = self.branch_ids.mapped('state')
                     if 'candidate' in states and 'conflict' not in states:
@@ -316,10 +331,7 @@ class ReleaseItem(models.Model):
                 if self.release_id.auto_release:
                     self._do_release()
 
-        elif self.state == 'done':
-            pass
-
-        elif 'failed_' in self.state:
+        elif self.is_done or self.is_failed:
             pass
 
         else:
@@ -371,7 +383,7 @@ class ReleaseItem(models.Model):
 
             def _keep_undeployed_commits(branch):
                 done_items = self.release_id.item_ids.filtered(
-                    lambda x: x.state == 'done')
+                    lambda x: x.is_done)
                 done_commits = done_items.branch_ids.mapped('commit_id')
                 return branch.latest_commit_id not in done_commits
 
@@ -431,3 +443,4 @@ class ReleaseItem(models.Model):
 
     def resend_release_mail(self):
         self._send_release_mail()
+
