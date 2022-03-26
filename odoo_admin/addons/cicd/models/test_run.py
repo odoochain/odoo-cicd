@@ -164,7 +164,7 @@ class CicdTestRun(models.Model):
 
         started = arrow.utcnow()
         with self._shell() as shell:
-            self._checkout_source_code()
+            self._checkout_source_code(shell)
             self._abort_if_required()
             self._report('building')
             shell.odoo('build')
