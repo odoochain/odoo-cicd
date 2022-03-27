@@ -433,7 +433,12 @@ echo "--------------------------------------------------------------------------
         if not path.exists():
             self._update_docker_containers()
         if path.exists():
-            containers = json.loads(path.read_text())
+            try:
+                containers = json.loads(path.read_text())
+            except json.decoder.JSONDecodeError:
+                containers = {}
+            except Exception:
+                raise
         else:
             containers = {}
         return containers
