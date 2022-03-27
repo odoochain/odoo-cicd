@@ -126,12 +126,13 @@ class Release(models.Model):
                 rec.item_ids = [[0, 0, {
                     'planned_date': planned_date,
                 }]]
-
-            for item in self.env['cicd.release.item'].search([
-                ('is_failed', '=', 'False'),
-                ('is_done', '=', 'False'),
+            
+            items = last_item.search([
                 ('release_id', '=', rec.id),
-            ]):
+                ('is_failed', '=', False),
+                ('is_done', '=', False),
+            ])
+            for item in items:
                 item.cron_heartbeat()
 
     def make_hotfix(self):
