@@ -110,7 +110,8 @@ class CicdTestRun(models.Model):
             try:
                 self.branch_id._reload(
                     shell, None, shell.logsio, project_name=shell.project_name,
-                    settings=settings, commit=self.commit_id.name)
+                    settings=settings, commit=self.commit_id.name
+                )
             except Exception as ex:
                 logger.error(ex)
                 self._report("Exception at reload", exception=ex)
@@ -266,7 +267,7 @@ class CicdTestRun(models.Model):
         self._reload(
             shell, SETTINGS,
             str(Path(shell.cwd).parent)
-            )
+        )
 
         self._report("Checking commit")
         sha = shell.X(["git", "log", "-n1", "--format=%H"])[
