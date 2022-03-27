@@ -110,7 +110,8 @@ class CicdTestRun(models.Model):
             try:
                 self.branch_id._reload(
                     shell, None, shell.logsio, project_name=shell.project_name,
-                    settings=settings, commit=self.commit_id.name)
+                    settings=settings, commit=self.commit_id.name
+                )
             except Exception as ex:
                 logger.error(ex)
                 self._report("Exception at reload", exception=ex)
@@ -164,6 +165,7 @@ class CicdTestRun(models.Model):
 
         started = arrow.utcnow()
         with self._shell() as shell:
+            self._checkout_source_code(shell)
             self._abort_if_required()
             self._report('building')
             shell.odoo('build')
@@ -260,41 +262,33 @@ class CicdTestRun(models.Model):
             else:
                 logsio.error(msg)
 
+    def _checkout_source_code(self, shell):
+        self._report("Checking out source code...")
+        self._reload(
+            shell, SETTINGS,
+            str(Path(shell.cwd).parent)
+        )
+
+        self._report("Checking commit")
+        sha = shell.X(["git", "log", "-n1", "--format=%H"])[
+            'stdout'].strip()
+        if sha != self.commit_id.name:
+            raise WrongShaException((
+                f"checked-out SHA {sha} "
+                f"not matching test sha {self.commit_id.name}"
+                ))
+        self._report("Commit matches")
+        self._report(f"Checked out source code at {shell.cwd}")
+
     @contextmanager
     def prepare_run(self):
-        settings = SETTINGS
         self = self._with_context()
         self._switch_to_running_state()
 
         self._report("Prepare run...")
         self.date = fields.Datetime.now()
         with self._shell() as shell:
-            try:
-                self._report("Checking out source code...")
-                self._reload(
-                    shell, settings,
-                    str(Path(shell.cwd).parent)
-                    )
-
-                self._report("Checking commit")
-                sha = shell.X(["git", "log", "-n1", "--format=%H"])[
-                    'stdout'].strip()
-                if sha != self.commit_id.name:
-                    raise WrongShaException((
-                        f"checked-out SHA {sha} "
-                        f"not matching test sha {self.commit_id.name}"
-                        ))
-                self._report("Commit matches")
-                self._report(f"Checked out source code at {shell.cwd}")
-
-            except Exception as ex:
-                logger.error(ex)
-                self._report(
-                    "Error at getting source")
-                self._report(str(ex))
-                raise
-            else:
-                self.as_job('prepare', False)._prepare_run()
+            self.as_job('prepare', False)._prepare_run()
 
     def execute_now(self):
         breakpoint()

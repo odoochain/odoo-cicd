@@ -428,8 +428,8 @@ class GitBranch(models.Model):
         tasks = tasks[-1]
         tasks.perform()
 
-    def _get_instance_folder(self, machine):
-        project_name = self._unblocked('project_name')
+    def _get_instance_folder(self, machine, project_name=None):
+        project_name = project_name or self._unblocked('project_name')
         if not project_name:
             raise ValidationError("Project name not determined.")
         return machine._get_volume('source') / project_name

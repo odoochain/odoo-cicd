@@ -184,7 +184,7 @@ class Branch(models.Model):
             ):
 
         with shell.clone(
-            cwd=self._make_sure_source_exists(shell, logsio)
+            cwd=self._make_sure_source_exists(shell, logsio, project_name=project_name)
         ) as shell:
             self._make_instance_docker_configs(
                 shell, forced_project_name=project_name, settings=settings)
@@ -387,8 +387,8 @@ class Branch(models.Model):
         else:
             raise Exception(res['stderr'])
 
-    def _clone_instance_folder(self, machine, logsio):
-        instance_folder = self._get_instance_folder(machine)
+    def _clone_instance_folder(self, machine, logsio, project_name=None):
+        instance_folder = self._get_instance_folder(machine, project_name)
         self.repo_id._get_main_repo(
             logsio=logsio,
             destination_folder=instance_folder,
@@ -400,7 +400,7 @@ class Branch(models.Model):
     def _checkout_latest(self, shell, logsio, machine=None, **kwargs):
         machine = machine or shell.machine
         logsio.write_text(f"Updating instance folder {self.name}")
-        instance_folder = self._clone_instance_folder(machine, logsio)
+        instance_folder = self._clone_instance_folder(machine, logsio, shell.project_name)
         logsio.write_text(f"Cloning {self.name} to {instance_folder}")
 
         with shell.clone(cwd=instance_folder) as shell:
@@ -636,8 +636,8 @@ class Branch(models.Model):
                     finally:
                         shell.odoo('down', '-v', force=True, allow_error=True)
 
-    def _make_sure_source_exists(self, shell, logsio):
-        instance_folder = self._get_instance_folder(shell.machine)
+    def _make_sure_source_exists(self, shell, logsio, project_name=None):
+        instance_folder = self._get_instance_folder(shell.machine, project_name)
         self.ensure_one()
         if not self.repo_id._is_healthy_repository(shell, instance_folder):
             try:

@@ -85,8 +85,8 @@ class ReleaseItem(models.Model):
     @api.depends('state')
     def _compute_is_state(self):
         for rec in self:
-            rec.is_done = self._is_done()
-            rec.is_failed = self._is_failed()
+            rec.is_done = rec._is_done()
+            rec.is_failed = rec._is_failed()
 
     @api.depends(
         'planned_date',
