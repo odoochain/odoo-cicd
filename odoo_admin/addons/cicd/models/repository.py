@@ -689,7 +689,7 @@ class Repository(models.Model):
             releases = self.env['cicd.release'].search([
                 ('repo_id', '=', repo.id)])
             names = list(releases.mapped('branch_id.name'))
-            names += list(releases.mapped('candidate_branch'))
+            names += list(releases.mapped('item_ids.item_branch_id.name'))
             branches = branches.filtered(lambda x: x.name not in names)
             del names
 
