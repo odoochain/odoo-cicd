@@ -121,7 +121,7 @@ class Release(models.Model):
             last_item.is_failed or \
             last_item.is_done:
 
-                planned_date = self.compute_next_date(
+                planned_date = rec.compute_next_date(
                     last_item.planned_maximum_finish_date)
 
                 rec.item_ids = [[0, 0, {
