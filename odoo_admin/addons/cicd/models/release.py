@@ -12,13 +12,14 @@ class Release(models.Model):
     _inherit = ['mail.thread', 'mixin.schedule', 'cicd.mixin.extra_env']
     _name = 'cicd.release'
 
-    active = fields.Boolean("Active", default=True, store=True)
+    active = fields.Boolean("Active", default=True)
     name = fields.Char("Name", required=True)
     project_name = fields.Char(
         "Project Name", required=True,
         help="techincal name - no special characters")
     repo_id = fields.Many2one(
-        "cicd.git.repo", required=True, string="Repo", store=True)
+        "cicd.git.repo", 'Repo', required=True
+    )
     repo_short = fields.Char(related="repo_id.short")
     branch_id = fields.Many2one(
         'cicd.git.branch', string="Branch", required=True)
@@ -120,7 +121,7 @@ class Release(models.Model):
             last_item.is_failed or \
             last_item.is_done:
 
-                planned_date = self._compute_next_date(
+                planned_date = self.compute_next_date(
                     last_item.planned_maximum_finish_date)
 
                 rec.item_ids = [[0, 0, {
