@@ -184,7 +184,7 @@ class Branch(models.Model):
             ):
 
         with shell.clone(
-            cwd=self._make_sure_source_exists(shell, logsio, project_name=project_name)
+            cwd=self._make_sure_source_exists(shell, logsio)
         ) as shell:
             self._make_instance_docker_configs(
                 shell, forced_project_name=project_name, settings=settings)
@@ -636,8 +636,8 @@ class Branch(models.Model):
                     finally:
                         shell.odoo('down', '-v', force=True, allow_error=True)
 
-    def _make_sure_source_exists(self, shell, logsio, project_name=None):
-        instance_folder = self._get_instance_folder(shell.machine, project_name)
+    def _make_sure_source_exists(self, shell, logsio):
+        instance_folder = self._get_instance_folder(shell.machine)
         self.ensure_one()
         if not self.repo_id._is_healthy_repository(shell, instance_folder):
             try:
