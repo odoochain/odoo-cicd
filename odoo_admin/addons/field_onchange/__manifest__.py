@@ -14,4 +14,4 @@
     'qweb': [],
     'sequence': -1,
     'test': [],
-    'version': '13.0.1.0'}
+    'version': '15.0.1.0'}
