@@ -41,6 +41,6 @@ class Schedule(models.AbstractModel):
 
     def compute_next_date(self, start_from=None):
         return fields.Datetime.to_string(
-            self._compute_next_date()
+            self._compute_next_date(start_from)
         )
     
