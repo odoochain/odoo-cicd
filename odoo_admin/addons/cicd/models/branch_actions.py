@@ -50,7 +50,8 @@ class Branch(models.Model):
             try:
                 logsio.info("Updating")
                 result = shell.odoo(
-                    "update", "--since-git-sha", commit, "--no-dangling-check")
+                    "update", "--since-git-sha", commit,
+                    "--no-dangling-check", "--i18n")
 
                 if result['exit_code']:
                     raise Exception("Error at update")
@@ -71,7 +72,7 @@ class Branch(models.Model):
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Updating")
-        shell.odoo('update', "--no-dangling-check")
+        shell.odoo('update', "--no-dangling-check", "--i18n")
         logsio.info("Upping")
         shell.odoo("up", "-d")
 

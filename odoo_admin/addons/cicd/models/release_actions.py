@@ -101,7 +101,7 @@ class CicdReleaseAction(models.Model):
         with self._contact_machine(logsio) as shell:
             shell.odoo("reload")
             shell.odoo("build")
-            shell.odoo("update")
+            shell.odoo("update", "--i18n")
 
     def _start_odoo(self, logsio):
         for self in self:
