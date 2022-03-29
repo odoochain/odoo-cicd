@@ -25,10 +25,12 @@ class CicdSchedule(models.Model):
         return dates
 
     def compute_next_min(self, start_from=None):
-        return min(self.compute_next(start_from))
+        dates = self.compute_next(start_from)
+        return dates and min(dates)
 
     def compute_next_max(self, start_from=None):
-        return max(self.compute_next(start_from))
+        dates = self.compute_next(start_from)
+        return dates and max(dates)
 
 
 class Schedule(models.AbstractModel):
