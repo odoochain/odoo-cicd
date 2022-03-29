@@ -12,13 +12,14 @@ class Release(models.Model):
     _inherit = ['mail.thread', 'mixin.schedule', 'cicd.mixin.extra_env']
     _name = 'cicd.release'
 
-    active = fields.Boolean("Active", default=True, store=True)
+    active = fields.Boolean("Active", default=True)
     name = fields.Char("Name", required=True)
     project_name = fields.Char(
         "Project Name", required=True,
         help="techincal name - no special characters")
     repo_id = fields.Many2one(
-        "cicd.git.repo", required=True, string="Repo", store=True)
+        "cicd.git.repo", 'Repo', required=True
+    )
     repo_short = fields.Char(related="repo_id.short")
     branch_id = fields.Many2one(
         'cicd.git.branch', string="Branch", required=True)
@@ -95,17 +96,17 @@ class Release(models.Model):
         with LogsIOWriter.GET(short, "Release") as logsio:
             yield logsio
 
-    def _ensure_item(self):
-        items = self.with_context(prefetch_fields=False).item_ids.sorted(
-            lambda x: x.id, reverse=True).filtered(
-                lambda x: x. release_type == 'standard')
-        if not items or items[0].state in ['done', 'failed']:
-            items = self.item_ids.create({
-                'release_id': self.id,
-            })
-        else:
-            items = items[0]
-        return items
+#    def _ensure_item(self):
+#        items = self.with_context(prefetch_fields=False).item_ids.sorted(
+#            lambda x: x.id, reverse=True).filtered(
+#                lambda x: x. release_type == 'standard')
+#        if not items or items[0].state in ['done', 'failed']:
+#            items = self.item_ids.create({
+#                'release_id': self.id,
+#            })
+#        else:
+#            items = items[0]
+#        return items
 
     def _send_pre_release_information(self):
         for rec in self:
@@ -116,27 +117,29 @@ class Release(models.Model):
     def cron_heartbeat(self):
         for rec in self.search([('auto_release', '=', True)]):
             last_item = rec.last_item_id
-            if last_item.state in [False, 'ready', 'done'] or \
-                    'failed_' in last_item.state:
+            if last_item.state in [False, 'ready'] or \
+            last_item.is_failed or \
+            last_item.is_done:
 
-                planned_date = self._compute_next_date(
+                planned_date = rec.compute_next_date(
                     last_item.planned_maximum_finish_date)
 
                 rec.item_ids = [[0, 0, {
                     'planned_date': planned_date,
                 }]]
-
-            for item in self.env['cicd.release.item'].search([
-                ('state', 'not ilike', 'failed_'),
-                ('state', '!=', 'done'),
+            
+            items = last_item.search([
                 ('release_id', '=', rec.id),
-            ]):
+                ('is_failed', '=', False),
+                ('is_done', '=', False),
+            ])
+            for item in items:
                 item.cron_heartbeat()
 
     def make_hotfix(self):
         existing = self.item_ids.with_context(prefetch_fields=False).filtered(
-            lambda x: x.release_type == 'hotfix' and x.state not in [
-                'done', 'failed'])
+            lambda x: x.release_type == 'hotfix' and not x.is_done and not x.is_failed
+        )
         if existing:
             raise ValidationError((
                 "Hotfix already exists. "

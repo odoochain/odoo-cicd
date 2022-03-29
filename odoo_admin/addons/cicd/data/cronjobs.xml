@@ -131,6 +131,7 @@ reasons = [
 	'Lock could not be acquired',
 	'LockNotAvailable',
 	'Permission denied',
+	'does not exist yet',
 ]
 for reason in reasons:
 	model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]).write({'state': 'pending'})</field>
