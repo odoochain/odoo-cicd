@@ -72,7 +72,7 @@ class Branch(models.Model):
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Updating")
-        shell.odoo('update', "--no-dangling-check", "--i18n")
+        shell.odoo('update', "--no-dangling-check") # , "--i18n")
         logsio.info("Upping")
         shell.odoo("up", "-d")
 
