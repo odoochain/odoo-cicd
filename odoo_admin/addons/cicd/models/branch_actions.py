@@ -355,8 +355,10 @@ class Branch(models.Model):
                 # so that it is available in sub cr in testrun execute
                 self.env.cr.commit()
         else:
-            test_run = test_run.filtered(lambda x: x.state in ('open', 'omitted'))
-            test_run.filtered(lambda x: x.state != 'open').write({'state': 'open'})
+            test_run = test_run.filtered(
+                lambda x: x.state in ('open', 'omitted'))
+            test_run.filtered(
+                lambda x: x.state != 'open').write({'state': 'open'})
 
         if test_run:
             test_run[0].with_delay().execute(task=task)
@@ -369,6 +371,7 @@ class Branch(models.Model):
             "update-setting", 'web.base.url', shell.machine.external_url)
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
+        shell.odoo('restore-web-icons')
         self._docker_get_state(shell=shell)
 
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
@@ -382,7 +385,9 @@ class Branch(models.Model):
 
     def _gc(self, shell, logsio, **kwargs):
         logsio.write_text("Compressing git")
-        res = shell.X(["git", "gc", "--aggressive", "--prune=now"], allow_error=True)
+        res = shell.X([
+            "git", "gc", "--aggressive",
+            "--prune=now"], allow_error=True)
         if 'gc is already running' in res['stderr']:
             pass
         else:
