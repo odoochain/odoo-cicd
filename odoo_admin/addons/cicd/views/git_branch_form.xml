@@ -19,8 +19,8 @@
 						<button name="debug_webcontainer" string="Debug" type="object" groups="cicd.group_developer"/>
 						<button name="new_branch" string="New Branch" type="object" groups="cicd.group_make_branches"/>
 						<field name="state" widget="statusbar" options="{'clickable': 0}" />
-						<button name="backup" string="Backup Dump" type="object" groups="cicd.group_key_user"/>
-						<button name="restore_dump" string="Restore Dump" type="object"/>
+						<button name="backup" string="Backup Dump" type="object"/>
+						<button name="restore_dump" string="Restore Dump" type="object" groups="cicd.group_key_user"/>
 					</header>
 					<sheet>
 						<field name="block_release" invisible='1'/>
