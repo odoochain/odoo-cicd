@@ -368,6 +368,7 @@ class Branch(models.Model):
             "update-setting", 'web.base.url', shell.machine.external_url)
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
+        shell.odoo('restore-web-icons')
         self._docker_get_state(shell=shell)
 
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
