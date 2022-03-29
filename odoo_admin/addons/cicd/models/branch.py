@@ -620,7 +620,7 @@ class GitBranch(models.Model):
                         rec.force_prepare_dump:
                 rec._make_task("_prepare_a_new_instance", silent=True)
                 rec.force_prepare_dump = False
-            else:
+            elif rec.database_size:
                 rec._make_task("_update_odoo", silent=True)
 
     def contains_commit(self, commit):
