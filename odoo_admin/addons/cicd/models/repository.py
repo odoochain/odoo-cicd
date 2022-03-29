@@ -641,27 +641,34 @@ class Repository(models.Model):
             with machine._gitshell(
                 self, cwd=repo_path, logsio=logsio
             ) as shell:
-
+                shell.logsio.info(f"Checking out {dest.name}")
                 shell.checkout_branch(dest.name)
                 commitid = shell.X([
                     "git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                shell.logsio.info(f"Commit-ID is {commitid}")
                 if source._name == 'cicd.git.branch':
                     branches = [self._clear_branch_name(x) for x in shell.X([
                         "git", "branch", "--contains", commitid])[
                             'stdout'].strip().split("\n")]
                     if source.name in branches:
                         return False
-                breakpoint()
+                shell.logsio.info(f"Checking out {source.name}")
                 shell.checkout_branch(source.name)
+                shell.logsio.info(f"Checking out {dest.name}")
                 shell.checkout_branch(dest.name)
                 count_lines = len(shell.X(["git", "diff", "-p", source.name])[
                     'stdout'].strip().split("\n"))
-                shell.X(["git", "merge", source.name])
+                shell.logsio.info(f"Count lines: {count_lines}")
+                shell.X(["git", "merge", "--no-edit", source.name])
+                shell.logsio.info(f"Merged {source.name}")
                 for tag in set_tags:
+                    shell.logsio.info(f"Setting tag {tag}")
                     shell.X(["git", "tag", '-f', tag.replace(':', '_').replace(
                         ' ', '_')])
                 shell.X(["git", "remote", "set-url", 'origin', self.url])
+                shell.logsio.info("Pushing tags")
                 shell.X(["git", "push", '--tags'])
+                shell.logsio.info("Pushing ")
                 shell.X(["git", "push"])
                 mergecommitid = shell.X([
                     "git", "log", "-n1", "--format=%H"])['stdout'].strip()

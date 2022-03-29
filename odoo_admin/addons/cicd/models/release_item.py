@@ -43,7 +43,6 @@ class ReleaseItem(models.Model):
         ('collecting_merge_conflict', 'Collecting Merge Conflict'),
         ('integrating', 'Integration'),
         ('failed_merge', 'Failed: Merge Conflict'),
-        ('failed_integration', 'Failed: Integration'),
         ('failed_technically', 'Failed technically'),
         ('failed_too_late', 'Failed: too late'),
         ('failed_user', "Failed: by user"),
