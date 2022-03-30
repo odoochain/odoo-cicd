@@ -140,18 +140,27 @@ class GitBranch(models.Model):
     ]
 
     def compute_containers_text(self):
-        breakpoint()
         for rec in self:
             with rec._extra_env() as x_rec:
-                containers_json = x_rec.repo_id.machine._get_containers()
+                containers_json = x_rec.repo_id.machine_id._get_containers()
                 project_name = x_rec.project_name
             containers = []
             for k, v in containers_json.items():
-                if k.endswith(project_name):
+                if project_name + '_' in k:
                     containers.append((
                         f"{k}:{v.lower()}"
                     ))
-            rec.containers = '\n'.join(containers)
+
+            def sortorder(x):
+                state = x.split(":")[1]
+                states = {
+                    'running': 1,
+                    'down': 2,
+                    'exited': 2,
+                }
+                return states.get(state)
+
+            rec.containers = '\n'.join(sorted(containers, key=sortorder))
 
     def _get_last_access_file(self):
         self.ensure_one()

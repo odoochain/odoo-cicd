@@ -442,7 +442,7 @@ class Branch(models.Model):
                 if uptime <= x_rec.cycle_down_after_seconds:
                     continue
 
-                if ":up" in x_rec.containers:
+                if ":running" in x_rec.containers:
                     x_rec.with_delay(
                         identity_key=f"cycle_down:{x_rec.name}"
                     )._cycle_down_instance()
