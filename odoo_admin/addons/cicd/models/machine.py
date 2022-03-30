@@ -407,6 +407,7 @@ echo "--------------------------------------------------------------------------
 
     def _update_docker_containers(self):
         for rec in self:
+            self.env.cr.commit()
             try:
                 with rec._shell() as shell:
                     try:
@@ -417,6 +418,9 @@ echo "--------------------------------------------------------------------------
                     except Exception as e:
                         logger.error(e)
                         continue
+                    self.env.cr.commit()
+                    with rec._extra_env() as x_rec:
+                        tempfile_containers = x_rec.tempfile_containers
 
                     containers_dict = {}
                     for line in containers.split("\n")[1:]:
@@ -426,7 +430,7 @@ echo "--------------------------------------------------------------------------
                             # perhaps no access or so
                             continue
                         containers_dict[container] = state
-                    path = Path(rec.tempfile_containers)
+                    path = Path(tempfile_containers)
                     path.write_text(json.dumps(containers_dict))
             except Exception:
                 logger.error('error', exc_info=True)

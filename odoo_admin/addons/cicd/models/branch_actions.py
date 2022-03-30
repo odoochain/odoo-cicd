@@ -745,6 +745,7 @@ for path in base.glob("*"):
         branches = self.sudo().with_context(
             active_test=False
         ).search([])
+        self.env.cr.commit()
         branches.with_delay(
             identity_key=(
                 "docker_get_state_"
