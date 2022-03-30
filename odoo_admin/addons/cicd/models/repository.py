@@ -32,6 +32,7 @@ class MergeConflict(Exception):
 
 
 class Repository(models.Model):
+    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
     _name = 'cicd.git.repo'
 
     short = fields.Char(
@@ -90,14 +91,16 @@ class Repository(models.Model):
     def _get_repo_path(self, machine):
         from . import MAIN_FOLDER_NAME
         self.ensure_one()
-        path = Path(machine.workspace) / (MAIN_FOLDER_NAME + "_" + self.short)
+        path = Path(machine._unblocked('workspace')) / (
+            MAIN_FOLDER_NAME + "_" + self._unblocked('short'))
         return path
 
     def _get_lockname(self, machine=None, path=None):
         self.ensure_one()
-        machine = machine or self.machine_id
-        path = path or self._get_repo_path(machine)
-        return f"repo_{machine.id}_{path}"
+        with self._extra_env() as x_self:
+            machine = machine or x_self.machine_id
+            path = path or x_self._get_repo_path(machine)
+            return f"repo_{machine.id}_{path}"
 
     @api.constrains("username")
     def _check_username(self):
@@ -196,7 +199,7 @@ class Repository(models.Model):
             self, destination_folder=False,
             logsio=None, machine=None, limit_branch=None,
             depth=None
-            ):
+        ):
 
         self.ensure_one()
         machine = machine or self.machine_id
@@ -269,11 +272,13 @@ class Repository(models.Model):
             if not self.login_type:
                 raise ValidationError(f"Login-Type missing for {self.name}")
             with LogsIOWriter.GET(self.name, 'fetch') as logsio:
-                breakpoint()
+                self.env.cr.commit()
+
                 repo_path = self._get_main_repo(logsio=logsio)
 
                 with self.machine_id._gitshell(
                         repo=self, cwd=repo_path, logsio=logsio) as shell:
+                    self.env.cr.commit()
                     updated_branches = set()
 
                     for remote in self._get_remotes(shell):
@@ -313,6 +318,7 @@ class Repository(models.Model):
                     for branch in set(updated_branches):
                         self._fetch_branch(branch)
                         del branch
+
 
         except Exception:
             msg = traceback.format_exc()

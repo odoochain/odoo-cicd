@@ -48,7 +48,7 @@ class Dump(models.Model):
     @api.model
     def _cron_update(self):
         for machine in self.env['cicd.machine'].sudo().search([]):
-            self.with_delay(
+            machine.with_delay(
                 identity_key=(
                     "update-dump-"
                     f"{machine.id}"
@@ -66,12 +66,12 @@ class Dump(models.Model):
         with self.machine_id._shell() as shell:
             machine = self.machine_id
             self.env.cr.commit()
-            for volume in machine.volume_ids.filtered(
+            for volume in machine.volume_ids.with_context(prefetch_fields=False).filtered(
                     lambda x: x.ttype in ['dumps', 'dumps_in']):
+                volname = volume.name or ''
                 self.env.cr.commit()
 
                 splitter = "_____SPLIT_______"
-                volname = volume.name or ''
                 if not volname.endswith("/"):
                     volname += "/"
                 files = shell.X([

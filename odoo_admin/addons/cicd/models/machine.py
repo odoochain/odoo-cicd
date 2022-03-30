@@ -336,9 +336,10 @@ echo "--------------------------------------------------------------------------
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix='.'))
             try:
-                if repo.login_type == 'key':
+
+                if repo._unblocked('login_type') == 'key':
                     env['GIT_SSH_COMMAND'] += f'   -i {file}  '
-                    shell.put(repo.key, file)
+                    shell.put(repo._unblocked('key'), file)
                     shell.X(["chmod", '400', str(file)])
                 else:
                     pass
