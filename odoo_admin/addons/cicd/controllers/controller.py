@@ -96,9 +96,10 @@ class Controller(http.Controller):
         repos = request.env['cicd.git.repo'].sudo().search([
             ('webhook_id', '=', webhook_id),
             ('webhook_secret', '=', webhook_secret),
-        ])
+        ]).with_context(prefetch_fields=False)
         if not repos:
             raise Exception("Invalid webhook")
+        request.env.cr.commit()
         for repo in repos:
             # no identity key, why:
             # 2 quick push events shall trigger a fetch, otherwise in very rare conditions

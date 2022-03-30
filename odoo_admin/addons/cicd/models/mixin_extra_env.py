@@ -8,7 +8,6 @@ class MixinExtraEnv(models.AbstractModel):
     @contextmanager
     def _extra_env(self, obj=None, enabled=True):
         obj = obj or self
-        obj.ensure_one()
         if not enabled:
             yield obj
         else:
