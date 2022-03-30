@@ -170,7 +170,7 @@ class Task(models.Model):
         breakpoint()
         args = {}
         log = None
-        commit = None
+        commit_ids = None
         logsio = None
         if not now and not self.ignore_previous_tasks:
             with self._extra_env(enabled=not now) as check:
