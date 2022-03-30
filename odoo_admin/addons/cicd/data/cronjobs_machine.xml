@@ -11,16 +11,12 @@
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="update_volumes_dumps" model="ir.cron">
-			<field name="name">update_volumes_dumps</field>
+			<field name="name">update_dumps</field>
 			<field name="interval_number">30</field>
 			<field name="interval_type">seconds</field>
 			<field name="model_id" ref="model_cicd_machine" />
 			<field name="state">code</field>
-			<field name="code">
-env['cicd.machine.volume']._cron_update()
-env.cr.commit()
-env['cicd.dump']._cron_update()
-			</field>
+			<field name="code">model._cron_update_dumps()</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>

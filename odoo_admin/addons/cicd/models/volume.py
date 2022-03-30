@@ -43,15 +43,6 @@ class CicdVolumes(models.Model):
             rec.total_size_human = humanize.naturalsize(rec.total_size * 1024 * 1024 * 1024)
             rec.used_percent = 100 * rec.used_size / rec.total_size if rec.total_size else 0
 
-    @api.model
-    def _cron_update(self):
-        for machine in self.env['cicd.machine'].with_context(prefetch_fields=False).search([]):
-            self.sudo().search([
-                    ('machine_id', '=', machine.id)]).with_context(
-                        prefetch_fields=False).with_delay(
-                identity_key=(f"volumesize-{machine.id}")
-            )._update_sizes()
-
     def _update_sizes(self):
         for machine in self.sudo().mapped('machine_id'):
             with machine._shell() as shell:

@@ -45,17 +45,6 @@ class Dump(models.Model):
 
         return super().unlink()
 
-    @api.model
-    def _cron_update(self):
-        for machine in self.env['cicd.machine'].sudo().search([]):
-            machine.with_delay(
-                identity_key=(
-                    "update-dump-"
-                    f"{machine.id}"
-                )
-            )._update_dumps(machine)
-            self.env.cr.commit()
-
     @api.constrains("name")
     def _check_name(self):
         for rec in self:
@@ -66,7 +55,8 @@ class Dump(models.Model):
         with self.machine_id._shell() as shell:
             machine = self.machine_id
             self.env.cr.commit()
-            for volume in machine.volume_ids.with_context(prefetch_fields=False).filtered(
+
+            for volume in machine.volume_ids.filtered(
                     lambda x: x.ttype in ['dumps', 'dumps_in']):
                 volname = volume.name or ''
                 self.env.cr.commit()
