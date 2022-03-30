@@ -81,9 +81,10 @@ class CicdMachine(models.Model):
     def _place_ssh_credentials(self):
         self.ensure_one()
         with self._extra_env() as machine:
-            effective_host = machine.effective_host
-            ssh_key = machine.ssh_key
-            ssh_pubkey = machine.ssh_pubkey
+            data = machine.read(['effective_host', 'ssh_key', 'ssh_pubkey'])[0]
+            effective_host = data['effective_host']
+            ssh_key = data['ssh_key']
+            ssh_pubkey = data['ssh_pubkey']
 
         # place private keyfile
         ssh_dir = Path(os.path.expanduser("~/.ssh"))
