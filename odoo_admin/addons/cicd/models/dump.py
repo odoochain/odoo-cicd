@@ -118,4 +118,4 @@ class Dump(models.Model):
                         if dump.name not in Files:
                             dump.with_context(
                                 dump_no_file_delete=True).unlink()
-                                self.env.cr.commit()
+                            self.env.cr.commit()
