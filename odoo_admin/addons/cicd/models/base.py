@@ -1,5 +1,5 @@
 ###########
-# BETA TEST
+# ALPHA TEST
 ##############
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
