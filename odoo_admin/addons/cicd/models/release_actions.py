@@ -4,7 +4,9 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from contextlib import contextmanager
 from ..tools.logsio_writer import LogsIOWriter
 
+
 class CicdReleaseAction(models.Model):
+    _inherit = 'cicd.mixin.size'
     _name = 'cicd.release.action'
 
     release_id = fields.Many2one('cicd.release', string="Release", required=True)
@@ -13,13 +15,16 @@ class CicdReleaseAction(models.Model):
     shell_script_at_end = fields.Text("Shell Script At End (finally)")
 
     def _exec_shellscripts(self, logsio, pos):
-        for self in self:
-            script = self.shell_script_before_update if pos == 'before' else self.shell_script_at_end
+        for rec in self:
+            script = rec.shell_script_before_update \
+                if pos == 'before' else rec.shell_script_at_end
+
             if not script:
                 return
+
             filepath = tempfile.mktemp(suffix='.')
 
-            with self._contact_machine(logsio) as shell:
+            with rec._contact_machine(logsio) as shell:
                 shell.put(script, filepath)
                 try:
                     shell.X(["/bin/bash", filepath])
@@ -64,11 +69,14 @@ class CicdReleaseAction(models.Model):
     @contextmanager
     def _contact_machine(self, logsio):
         self.ensure_one()
-        project_name = self.release_id.project_name
+        project_name = self.release_id._unblocked('project_name')
         path = self.machine_id._get_volume("source")
 
         # make sure directory exists
-        with self.machine_id._shell(cwd=path, logsio=logsio, project_name=project_name) as shell:
+        with self.machine_id._shell(
+            cwd=path, logsio=logsio,
+            project_name=project_name
+        ) as shell:
             if not shell.exists(path):
                 shell.X(["mkdir", "-p", path])
             yield shell
@@ -82,12 +90,13 @@ class CicdReleaseAction(models.Model):
 
     def _update_sourcecode(self, logsio, release_item, merge_commit_id):
         breakpoint()
-        repo = self[0].release_id.repo_id
-        zip_content = repo._get_zipped(logsio, merge_commit_id)
+        with self._extra_env() as x_self:
+            repo = x_self[0].release_id.repo_id
+            zip_content = repo._get_zipped(logsio, merge_commit_id)
         temppath = tempfile.mktemp(suffix='.')
 
-        for self in self:
-            with self._contact_machine(logsio) as shell:
+        for rec in self:
+            with rec._contact_machine(logsio) as shell:
                 filename = f"/tmp/release_{release_item.id}"
                 shell.put(zip_content, filename)
                 temppath = tempfile.mktemp(suffix='.')

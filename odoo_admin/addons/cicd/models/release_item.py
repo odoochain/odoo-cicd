@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class ReleaseItem(models.Model):
-    _inherit = ['mail.thread', 'cicd.open.window.mixin', 'cicd.mixin.extra_env']
+    _inherit = [
+        'mail.thread', 'cicd.open.window.mixin', 'cicd.mixin.extra_env']
     _name = 'cicd.release.item'
     _order = 'id desc'
     _log_access = False
@@ -147,8 +148,8 @@ class ReleaseItem(models.Model):
         breakpoint()
         try:
             with self.release_id._get_logsio() as logsio:
-                with self._extra_env() as self2:
-                    commit_sha = self.item_branch_id.latest_commit_id.name
+                with self._extra_env() as x_self:
+                    commit_sha = x_self.item_branch_id.latest_commit_id.name
                 assert commit_sha
                 errors = self.release_id.action_ids.run_action_set(
                     self, self.release_id.action_ids, commit_sha)
@@ -180,13 +181,15 @@ class ReleaseItem(models.Model):
 
     def _get_ignored_branch_names(self):
         self.ensure_one()
-        all_releases = self.env['cicd.release'].sudo().search([
-            ('branch_id.repo_id', '=', self.repo_id.id)
-            ])
-        ignored_branch_names = []
-        ignored_branch_names += list(all_releases.item_ids.mapped(
-            'item_branch_name'))
-        ignored_branch_names += list(all_releases.branch_id.mapped('name'))
+        with self._extra_env() as x_self:
+            all_releases = x_self.env['cicd.release'].sudo().search([
+                ('branch_id.repo_id', '=', x_self.repo_id.id)
+                ])
+            ignored_branch_names = []
+            ignored_branch_names += list(all_releases.item_ids.mapped(
+                'item_branch_name'))
+            ignored_branch_names += list(
+                all_releases.branch_id.mapped('name'))
         return ignored_branch_names
 
     def merge(self):

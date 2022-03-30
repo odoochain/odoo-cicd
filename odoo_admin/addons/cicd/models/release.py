@@ -111,15 +111,14 @@ class Release(models.Model):
     def _send_pre_release_information(self):
         for rec in self:
             pass
-            # import pudb;pudb.set_trace()
 
     @api.model
     def cron_heartbeat(self):
         for rec in self.search([('auto_release', '=', True)]):
             last_item = rec.last_item_id
             if last_item.state in [False, 'ready'] or \
-            last_item.is_failed or \
-            last_item.is_done:
+                    last_item.is_failed or \
+                    last_item.is_done:
 
                 planned_date = rec.compute_next_date(
                     last_item.planned_maximum_finish_date)
@@ -137,8 +136,10 @@ class Release(models.Model):
                 item.cron_heartbeat()
 
     def make_hotfix(self):
-        existing = self.item_ids.with_context(prefetch_fields=False).filtered(
-            lambda x: x.release_type == 'hotfix' and not x.is_done and not x.is_failed
+        existing = self.item_ids.filtered(
+            lambda x: x.release_type == 'hotfix' 
+            and not x.is_done 
+            and not x.is_failed
         )
         if existing:
             raise ValidationError((
