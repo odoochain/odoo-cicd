@@ -80,14 +80,19 @@ class CicdMachine(models.Model):
 
     def _place_ssh_credentials(self):
         self.ensure_one()
+        with self._extra_env() as machine:
+            effective_host = machine.effective_host
+            ssh_key = machine.ssh_key
+            ssh_pubkey = machine.ssh_pubkey
+
         # place private keyfile
         ssh_dir = Path(os.path.expanduser("~/.ssh"))
         ssh_dir.mkdir(exist_ok=True)
         os.chown(ssh_dir, pwd.getpwnam('odoo').pw_uid, grp.getgrnam('odoo').gr_gid)
         os.chmod(ssh_dir, 0o700)
 
-        ssh_keyfile = ssh_dir / self.effective_host
-        ssh_pubkeyfile = ssh_dir / (self.effective_host + '.pub')
+        ssh_keyfile = ssh_dir / effective_host
+        ssh_pubkeyfile = ssh_dir / (effective_host + '.pub')
         rights_keyfile = 0o600
         for file in [
             ssh_keyfile, ssh_pubkeyfile,
@@ -100,10 +105,10 @@ class CicdMachine(models.Model):
                 return True
             return file.read_text() != content
 
-        if content_differs(ssh_keyfile, self.ssh_key):
-            ssh_keyfile.write_text(self.ssh_key)
-        if content_differs(ssh_pubkeyfile, self.ssh_pubkey):
-            ssh_pubkeyfile.write_text(self.ssh_pubkey)
+        if content_differs(ssh_keyfile, ssh_key):
+            ssh_keyfile.write_text(ssh_key)
+        if content_differs(ssh_pubkeyfile, ssh_pubkey):
+            ssh_pubkeyfile.write_text(ssh_pubkey)
         os.chmod(ssh_keyfile, rights_keyfile)
         os.chmod(ssh_pubkeyfile, rights_keyfile)
         return ssh_keyfile
@@ -402,6 +407,7 @@ echo "--------------------------------------------------------------------------
         for rec in self:
             try:
                 with rec._shell() as shell:
+                    #warum flush und commit?
                     rec.env['base'].flush()
                     rec.env.cr.commit()
 
@@ -426,7 +432,6 @@ echo "--------------------------------------------------------------------------
                     path.write_text(json.dumps(containers_dict))
             except Exception:
                 logger.error('error', exc_info=True)
-
 
     def _get_containers(self):
         path = Path(self.tempfile_containers)
