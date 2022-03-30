@@ -683,20 +683,18 @@ class Repository(models.Model):
 
     @api.model
     def _cron_cleanup(self):
-        FT = "%Y-%m-%d %H:%M:%S"
         for repo in self.search([
             ('never_cleanup', '=', False),
         ]):
             dt = arrow.get().shift(
-                days=-1 * repo.cleanup_untouched).strftime(FT)
+                days=-1 * repo.cleanup_untouched).strftime(DFT)
 
             # try nicht unbedingt notwendig; bei __exit__
             # wird ein close aufgerufen
-            db_registry = registry(self.env.cr.dbname)
             branches = repo.branch_ids.filtered(
                 lambda x: x.last_access or x.date_registered).filtered(
                 lambda x: (
-                    x.last_access or x.date_registered).strftime(FT) < dt)
+                    x.last_access or x.date_registered).strftime(DFT) < dt)
 
             # keep release branches
             releases = self.env['cicd.release'].search([
@@ -716,14 +714,16 @@ class Repository(models.Model):
                     return True
                 if not branch.latest_commit_id.date:
                     return True
-                return bool(branch.latest_commit_id.date.strftime(FT) < dt)
+                return bool(branch.latest_commit_id.date.strftime(DFT) < dt)
 
             branches = branches.filtered(outdated_commits)
 
-            with closing(db_registry.cursor()) as cr:
-                env = api.Environment(cr, SUPERUSER_ID, {})
-                for branch in branches.with_env(env):
-                    branch.active = False
+            for branch in branches:
+                branch.with_delay(
+                    identity_key=f"deactivate-branch-{branch.id}"
+                ).write({'active': False})
+            self.env.cr.commit()
+
             del dt
 
     def new_branch(self):

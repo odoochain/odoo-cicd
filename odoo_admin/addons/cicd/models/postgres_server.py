@@ -61,6 +61,13 @@ class PostgresServer(models.Model):
         finally:
             conn.close()
 
+    @api.model
+    def _cron_update_databases(self):
+        for rec in self:
+            rec.with_delay(
+                identity_key=f"update_databases_{rec.name}-{rec.id}"
+            ).update_databases()
+
     def update_databases(self):
         breakpoint()
         for rec in self:
