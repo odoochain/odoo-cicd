@@ -450,7 +450,10 @@ class CicdTestRun(models.Model):
 
     def _with_context(self):
         testrun_context = f"_testrun_{self.id}"
-        self = self.with_context(testrun=testrun_context)
+        self = self.with_context(
+            testrun=testrun_context,
+            prefetch_fields=False
+            )
 
         # lock test run
         self.env.cr.execute((
