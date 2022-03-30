@@ -12,17 +12,17 @@
 		</record>
 		<record id="update_docker_states_per_machine" model="ir.cron">
 			<field name="name">cicd.machine:_update_docker_containers()</field>
-			<field name="interval_number">10</field>
+			<field name="interval_number">30</field>
 			<field name="interval_type">seconds</field>
 			<field name="model_id" ref="model_cicd_machine" />
 			<field name="state">code</field>
-			<field name="code">model.search([])._update_docker_containers()</field>
+			<field name="code">model._cron_update_docker_containers()</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="update_docker_states" model="ir.cron">
 			<field name="name">cicd.git.branch:docker_get_state(now=True)</field>
-			<field name="interval_number">20</field>
+			<field name="interval_number">40</field>
 			<field name="interval_type">seconds</field>
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
@@ -36,7 +36,7 @@
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
-			<field name="code">model.with_context(active_test=False).search([]).inactivity_cycle_down()</field>
+			<field name="code">model._inactivity_cycle_down()</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>

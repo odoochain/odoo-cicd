@@ -472,37 +472,47 @@ class Branch(models.Model):
 
         return str(commit)
 
-    def inactivity_cycle_down(self):
-        for rec in self:
+    def _cron_inactivity_cycle_down(self):
+        branches = self.with_context(
+            active_test=False,
+            prefetch_fields=False
+        ).search([])
+        self.env.cr.commit()
+
+        for rec in branches:
             with rec._extra_env() as x_rec:
                 last_access = arrow.get(x_rec.last_access or '1980-04-04')
                 uptime = (arrow.get() - last_access).total_seconds()
                 if uptime <= x_rec.cycle_down_after_seconds:
                     continue
-                project_path = x_rec.project_path
-                project_name = x_rec.project_name
-                machine = x_rec.machine_id
 
-            with machine._shell(
-                cwd=project_path,
-                project_name=project_name
-            ) as shell:
-                with rec._extra_env() as x_rec:
-                    x_rec._docker_get_state(shell=shell, now=True)
-                    container_states = x_rec.mapped('container_ids.state')
-                    name = x_rec.name
-                if 'up' in container_states:
-                    if shell.logsio:
-                        shell.logsio.info((
-                            "Cycling down instance "
-                            f"{name} due to inactivity"
-                        ))
-                    logger.info((
-                        "Shutting down instance due to inactivity "
-                        f"{name}"
-                    ))
-                    shell.odoo('kill', allow_error=True)
-                    shell.odoo('rm', allow_error=True)
+                if 'up' in x_rec.mapped('container_ids.state'):
+                    x_rec.with_delay(
+                        identity_key=f"cycle_down:{x_rec.name}"
+                    )._cycle_down_instance()
+                    x_rec.env.cr.commit()
+
+    def _cycle_down_instance(self):
+        self.ensure_one()
+        with self.machine_id._shell(
+            cwd=self.project_path,
+            project_name=self.project_name
+        ) as shell:
+            self.env.cr.commit()
+            with self._extra_env() as x_rec:
+                name = x_rec.name
+            if shell.logsio:
+                shell.logsio.info((
+                    "Cycling down instance "
+                    f"{name} due to inactivity"
+                ))
+            logger.info((
+                "Shutting down instance due to inactivity "
+                f"{name}"
+                ))
+            shell.odoo('kill', allow_error=True)
+            shell.odoo('rm', allow_error=True)
+
 
     def _make_instance_docker_configs(
             self, shell, forced_project_name=None, settings=None):

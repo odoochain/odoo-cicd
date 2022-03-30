@@ -405,11 +405,15 @@ echo "--------------------------------------------------------------------------
                 if value:
                     raise Exception('should exist')
 
-    def _update_docker_containers(self):
-        for rec in self:
+    def _cron_update_docker_containers(self):
+        machines = self.search([])
+        self.env.cr.commit()
+
+        for rec in machines:
             self.env.cr.commit()
             try:
                 with rec._shell() as shell:
+                    self.env.cr.commit()
                     try:
                         containers = shell.X([
                             "docker", "ps", "-a",
