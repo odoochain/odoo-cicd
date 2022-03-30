@@ -60,6 +60,7 @@ model.search([]).update_databases()
 			<field name="state">code</field>
 			<field name="code">
 env['cicd.machine.volume']._cron_update()
+env.cr.commit()
 env['cicd.dump']._cron_update()
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />

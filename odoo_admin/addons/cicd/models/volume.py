@@ -45,31 +45,35 @@ class CicdVolumes(models.Model):
 
     @api.model
     def _cron_update(self):
-        for volume in self.sudo().search([]):
-            volume.with_delay(
-                identity_key=(
-                    "volumesize-"
-                    f"{volume.id}"
-                )
+        for machine in self.env['cicd.machine'].with_context(prefetch_fields=False).search([]):
+            self.sudo().search([
+                    ('machine_id', '=', machine.id)]).with_context(
+                        prefetch_fields=False).with_delay(
+                identity_key=(f"volumesize-{machine.id}")
             )._update_sizes()
 
     def _update_sizes(self):
-        for rec in self:
-            with rec.machine_id._shell() as shell:
-                try:
-                    stdout = shell.X([
-                        "df", rec.name
-                    ])['stdout'].strip()
-                except Exception as ex:
-                    logger.error(ex)
-                else:
-                    while "  " in stdout:
-                        stdout = stdout.replace("  ", " ")
-                    stdout = stdout.split("\n")
-                    if len(stdout) > 1:
-                        stdout = stdout[-1]
-                    stdout = stdout.split(" ")
-                    rec.used_percent = stdout[4].replace("%", "")
-                    rec.total_size = int(stdout[1]) / 1024 / 1024
-                    rec.used_size = int(stdout[2]) / 1024 / 1024
-                    rec.free_size = int(stdout[3]) / 1024 / 1024
+        for machine in self.sudo().mapped('machine_id'):
+            with machine._shell() as shell:
+                self.env.cr.commit()
+                for rec in self.filtered(
+                        lambda x: x.machine_id == machine):
+                    self.env.cr.commit()
+
+                    try:
+                        stdout = shell.X([
+                            "df", rec.name
+                        ])['stdout'].strip()
+                    except Exception as ex:
+                        logger.error(ex)
+                    else:
+                        while "  " in stdout:
+                            stdout = stdout.replace("  ", " ")
+                        stdout = stdout.split("\n")
+                        if len(stdout) > 1:
+                            stdout = stdout[-1]
+                        stdout = stdout.split(" ")
+                        rec.used_percent = stdout[4].replace("%", "")
+                        rec.total_size = int(stdout[1]) / 1024 / 1024
+                        rec.used_size = int(stdout[2]) / 1024 / 1024
+                        rec.free_size = int(stdout[3]) / 1024 / 1024

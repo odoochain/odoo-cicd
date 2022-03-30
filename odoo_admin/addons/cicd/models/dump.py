@@ -53,7 +53,8 @@ class Dump(models.Model):
                     "update-dump-"
                     f"{machine.id}"
                 )
-            )._update_dumps(machine)
+            )._update_dumps()
+            self.env.cr.commit()
 
     @api.constrains("name")
     def _check_name(self):
@@ -61,66 +62,60 @@ class Dump(models.Model):
             while rec.name.endswith("/"):
                 rec.name = rec.name[:-1]
 
-    def _update_dumps(self, machine):
-        breakpoint()
-        env = self.env
+    def _update_dumps(self):
+        with self.machine_id._shell() as shell:
+            machine = self.machine_id
+            self.env.cr.commit()
+            for volume in machine.volume_ids.filtered(
+                    lambda x: x.ttype in ['dumps', 'dumps_in']):
+                self.env.cr.commit()
 
-        env['base'].flush()
-        env.cr.commit()
+                splitter = "_____SPLIT_______"
+                volname = volume.name or ''
+                if not volname.endswith("/"):
+                    volname += "/"
+                files = shell.X([
+                    "find", volname,
+                    "-maxdepth", "1",
+                    "-printf", f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
+                ])['stdout'].strip().split("\n")
 
-        with machine._shell() as shell:
-            try:
-                for volume in machine.volume_ids.filtered(lambda x: x.ttype in ['dumps', 'dumps_in']):
-                    env['base'].flush()
-                    env.cr.commit()
+                Files = {}
+                for line in files:
+                    filename, date, size = line.split(splitter)
+                    if filename.endswith("/"):
+                        continue
+                    date = arrow.get(date[:15])
+                    path = volname + filename
+                    Files[path] = {
+                        'date': date.strftime(DTF),
+                        'size': int(size),
+                    }
+                    del path, date, filename, size, line
 
-                    splitter = "_____SPLIT_______"
-                    volname = volume.name or ''
-                    if not volname.endswith("/"):
-                        volname += "/"
-                    files = shell.X([
-                        "find", volname,
-                        "-maxdepth", "1",
-                        "-printf", f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
-                    ])['stdout'].strip().split("\n")
+                for filepath, file in Files.items():
 
-                    Files = {}
-                    for line in files:
-                        filename, date, size = line.split(splitter)
-                        if filename.endswith("/"):
-                            continue
-                        date = arrow.get(date[:15])
-                        path = volname + filename
-                        Files[path] = {
-                            'date': date.strftime(DTF),
-                            'size': int(size),
-                        }
-                        del path, date, filename, size, line
+                    dumps = self.sudo().with_context(active_test=False).search([
+                        ('name', '=', filepath),
+                        ('machine_id', '=', machine.id)
+                        ])
+                    if not dumps:
+                        dumps = dumps.sudo().create({
+                            'name': filepath,
+                            'machine_id': machine.id,
+                        })
 
-                    for filepath, file in Files.items():
+                    dumps.ensure_one()
+                    if not dumps.date_modified or \
+                            dumps.date_modified.strftime(DTF) != file['date']:
+                        dumps.date_modified = file['date']
+                    if dumps.size != file['size']:
+                        dumps.size = file['size']
+                    self.env.cr.commit()
 
-                        dumps = self.sudo().with_context(active_test=False).search([
-                            ('name', '=', filepath),
-                            ('machine_id', '=', machine.id)
-                            ])
-                        if not dumps:
-                            dumps = dumps.sudo().create({
-                                'name': filepath,
-                                'machine_id': machine.id,
-                            })
-
-                        dumps.ensure_one()
-                        if not dumps.date_modified or dumps.date_modified.strftime(DTF) != file['date']:
-                            dumps.date_modified = file['date']
-                        if dumps.size != file['size']:
-                            dumps.size = file['size']
-                        env['base'].flush()
-                        env.cr.commit()
-
-                    for dump in dumps.search([('name', 'like', volname)]):
-                        if dump.name.startswith(volname):
-                            if dump.name not in Files:
-                                dump.with_context(dump_no_file_delete=True).unlink()
-                                env.cr.commit()
-            except Exception:
-                logger.error('error', exc_info=True)
+                for dump in dumps.search([('name', 'like', volname)]):
+                    if dump.name.startswith(volname):
+                        if dump.name not in Files:
+                            dump.with_context(
+                                dump_no_file_delete=True).unlink()
+                                self.env.cr.commit()
