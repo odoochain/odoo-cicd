@@ -46,6 +46,8 @@ class PostgresServer(models.Model):
                 'port': self.db_port,
                 'password': self.db_pwd,
                 'dbname': 'postgres',
+                'connect_timeout': 5,
+                'options': '-c statement_timeout=10000',
             }
 
         conn = psycopg2.connect(**params)
@@ -60,6 +62,7 @@ class PostgresServer(models.Model):
             conn.close()
 
     def update_databases(self):
+        breakpoint()
         for rec in self:
             self.env.cr.commit()
             with rec._get_conn() as cr:
