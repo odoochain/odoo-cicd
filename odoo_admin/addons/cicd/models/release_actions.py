@@ -6,7 +6,7 @@ from ..tools.logsio_writer import LogsIOWriter
 
 
 class CicdReleaseAction(models.Model):
-    _inherit = 'cicd.mixin.size'
+    _inherit = 'cicd.mixin.extra_env'
     _name = 'cicd.release.action'
 
     release_id = fields.Many2one('cicd.release', string="Release", required=True)
