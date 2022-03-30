@@ -52,7 +52,7 @@ class Dump(models.Model):
                 rec.name = rec.name[:-1]
 
     def _update_dumps(self, machine):
-        with machine_id._shell() as shell:
+        with machine._shell() as shell:
             machine = self.machine_id
             self.env.cr.commit()
 
