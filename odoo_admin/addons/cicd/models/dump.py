@@ -53,7 +53,7 @@ class Dump(models.Model):
                     "update-dump-"
                     f"{machine.id}"
                 )
-            )._update_dumps()
+            )._update_dumps(machine)
             self.env.cr.commit()
 
     @api.constrains("name")
@@ -62,7 +62,7 @@ class Dump(models.Model):
             while rec.name.endswith("/"):
                 rec.name = rec.name[:-1]
 
-    def _update_dumps(self):
+    def _update_dumps(self, machine):
         with self.machine_id._shell() as shell:
             machine = self.machine_id
             self.env.cr.commit()

@@ -161,6 +161,7 @@ class CicdMachine(models.Model):
     def update_dumps(self):
         for rec in self:
             rec.env['cicd.dump']._update_dumps(rec)
+            self.env.cr.commit()
 
     def update_volumes(self):
         self.mapped('volume_ids')._update_sizes()
