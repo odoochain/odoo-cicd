@@ -33,9 +33,6 @@ class Branch(models.Model):
     def docker_stop(self):
         self._make_task("_docker_stop")
 
-    def docker_get_state(self):
-        self._docker_get_state()
-
     def create_empty_db(self):
         self._make_task("_create_empty_db")
 

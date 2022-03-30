@@ -100,7 +100,6 @@ from . import release
 from . import release_item
 from . import registry
 from . import test_run
-from . import container
 from . import database
 from . import postgres_server
 from . import user

@@ -426,38 +426,39 @@ echo "--------------------------------------------------------------------------
 
         for rec in machines:
             self.env.cr.commit()
-            try:
-                with rec._shell() as shell:
-                    self.env.cr.commit()
-                    try:
-                        containers = shell.X([
-                            "docker", "ps", "-a",
-                            "--format", "{{ .Names }}\t{{ .State }}"], timeout=20)[
-                                'stdout'].strip()
-                    except Exception as e:
-                        logger.error(e)
-                        continue
-                    self.env.cr.commit()
-                    with rec._extra_env() as x_rec:
-                        tempfile_containers = x_rec.tempfile_containers
+            rec.with_delay(
+                identity_key=f"docker-containers-{rec.id}-{rec.name}"
+            )._fetch_psaux_docker_containers()
 
-                    containers_dict = {}
-                    for line in containers.split("\n")[1:]:
-                        try:
-                            container, state = line.split("\t")
-                        except Exception:
-                            # perhaps no access or so
-                            continue
-                        containers_dict[container] = state
-                    path = Path(tempfile_containers)
-                    path.write_text(json.dumps(containers_dict))
-            except Exception:
-                logger.error('error', exc_info=True)
+    def _fetch_psaux_docker_containers(self):
+        self.ensure_one()
+        with self._shell() as shell:
+            tempfile_containers = self.tempfile_containers
+            self.env.cr.commit()
+            containers = shell.X([
+                "docker", "ps", "-a",
+                "--format", "{{ .Names }}\t{{ .State }}"], timeout=20)[
+                    'stdout'].strip()
+
+            containers_dict = {}
+            for line in containers.split("\n")[1:]:
+                try:
+                    container, state = line.split("\t")
+                except Exception:
+                    # perhaps no access or so
+                    continue
+                containers_dict[container] = state
+            path = Path(tempfile_containers)
+            path.write_text(json.dumps(containers_dict))
 
     def _get_containers(self):
-        path = Path(self.tempfile_containers)
+        with self._extra_env() as x_self:
+            path = Path(x_self.tempfile_containers)
+
         if not path.exists():
-            self._update_docker_containers()
+            self._fetch_psaux_docker_containers()
+            self.env.cr.commit()
+
         if path.exists():
             try:
                 containers = json.loads(path.read_text())
@@ -474,4 +475,7 @@ echo "--------------------------------------------------------------------------
             # TODO configurable path sysparameter
             path = Path("/opt/out_dir/docker_states")
             path.mkdir(exist_ok=True, parents=True)
-            self.tempfile_containers = f"{path}/{self.env.cr.dbname}.machine.{rec.id}.containers"
+            self.tempfile_containers = (
+                f"{path}/{self.env.cr.dbname}.machine."
+                f"{rec.id}.containers"
+            )
