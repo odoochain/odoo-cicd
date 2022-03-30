@@ -130,7 +130,7 @@ class GitBranch(models.Model):
     link_to_instance = fields.Char(
         compute="_compute_link", string="Link To Instance")
 
-    containers = fields.Text(compute="_compute_containers_text", store=False)
+    containers = fields.Text(compute="compute_containers_text", store=False)
 
     _sql_constraints = [
         (
@@ -139,7 +139,7 @@ class GitBranch(models.Model):
             _("Only one unique entry allowed.")),
     ]
 
-    def _compute_containers_text(self):
+    def compute_containers_text(self):
         breakpoint()
         for rec in self:
             with rec._extra_env() as x_rec:
