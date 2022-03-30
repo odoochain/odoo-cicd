@@ -199,14 +199,8 @@
 										Builds docker machines
 									</div>
 								</group>
-								<button name="docker_get_state" string="Update Docker State" type="object"/>
-								<field name="container_ids">
-									<tree>
-										<field name="name"/>
-										<field name="state"/>
-										<field name="state_string"/>
-									</tree>
-								</field>
+								<button name="compute_containers_text" string="Update Docker State" type="object"/>
+								<field name="containers"/>
 							</page>
 						</notebook>
 					</sheet>

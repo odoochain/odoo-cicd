@@ -124,59 +124,16 @@ class Branch(models.Model):
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
-        self.repo_id.machine_id._update_docker_containers()
-        self._docker_get_state()
+        self.repo_id.machine_id._fetch_psaux_docker_containers()
 
     def _docker_stop(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
-        self.repo_id.machine_id._update_docker_containers()
-        self._docker_get_state()
+        self.repo_id.machine_id._fetch_psaux_docker_containers()
 
     def _docker_remove(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
         shell.odoo('rm')
-        self.repo_id.machine_id._update_docker_containers()
-        self._docker_get_state()
-
-    def _docker_get_state(self, **kwargs):
-        with self._extra_env() as x_self: 
-            containers = x_self.mapped(
-                'repo_id.machine_id').sudo()._get_containers()
-
-        self.env.cr.commit()
-
-        for rec in self:
-            rec = rec.sudo()
-            updated_containers = set()
-
-            self.env.cr.commit()
-
-            for container_name in containers:
-                if container_name.startswith(rec.project_name):
-                    container_state = containers[container_name]
-                    state = 'up' if container_state == 'running' else 'down'
-
-                    container = rec.container_ids.filtered(
-                        lambda x: x.name == container_name
-                    )
-                    if not container:
-                        rec.container_ids = [[0, 0, {
-                            'name': container_name,
-                            'state': state,
-                        }]]
-                    else:
-                        if container.state != state:
-                            container.state = state
-                    updated_containers.add(container_name)
-
-                    self.env.cr.commit()
-
-                del container_name
-
-            for container in rec.container_ids:
-                if container.name not in updated_containers:
-                    container.unlink()
-                    self.env.cr.commit()
+        self.repo_id.machine_id._fetch_psaux_docker_containers()
 
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
@@ -379,7 +336,6 @@ class Branch(models.Model):
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
         shell.odoo('restore-web-icons')
-        self._docker_get_state(shell=shell)
 
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
         # todo make button
@@ -486,7 +442,7 @@ class Branch(models.Model):
                 if uptime <= x_rec.cycle_down_after_seconds:
                     continue
 
-                if 'up' in x_rec.mapped('container_ids.state'):
+                if ":running" in x_rec.containers:
                     x_rec.with_delay(
                         identity_key=f"cycle_down:{x_rec.name}"
                     )._cycle_down_instance()
@@ -512,7 +468,6 @@ class Branch(models.Model):
                 ))
             shell.odoo('kill', allow_error=True)
             shell.odoo('rm', allow_error=True)
-
 
     def _make_instance_docker_configs(
             self, shell, forced_project_name=None, settings=None):
@@ -749,18 +704,6 @@ for path in base.glob("*"):
                     "-u", shell.machine.ssh_user_cicdlogin,
                     f'new-session.*-s.*{rec.project_name}'
                     ], allow_error=True)
-
-    @api.model
-    def _cron_docker_get_state(self):
-        branches = self.sudo().with_context(
-            active_test=False
-        ).search([])
-        self.env.cr.commit()
-        branches.with_delay(
-            identity_key=(
-                "docker_get_state_"
-            )
-        ).docker_get_state()
 
     def new_branch(self):
         self.ensure_one()

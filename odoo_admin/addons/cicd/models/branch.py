@@ -118,8 +118,6 @@ class GitBranch(models.Model):
     test_run_ids = fields.One2many(
         'cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     block_release = fields.Boolean("Block Release", tracking=True)
-    container_ids = fields.One2many(
-        'docker.container', 'branch_id', string="Containers")
     block_updates_until = fields.Datetime("Block updates until", tracking=True)
 
     allowed_backup_machine_ids = fields.Many2many(
@@ -132,12 +130,37 @@ class GitBranch(models.Model):
     link_to_instance = fields.Char(
         compute="_compute_link", string="Link To Instance")
 
+    containers = fields.Text(compute="compute_containers_text", store=False)
+
     _sql_constraints = [
         (
             'name_repo_id_unique',
             "unique(name, repo_id)",
             _("Only one unique entry allowed.")),
     ]
+
+    def compute_containers_text(self):
+        for rec in self:
+            with rec._extra_env() as x_rec:
+                containers_json = x_rec.repo_id.machine_id._get_containers()
+                project_name = x_rec.project_name
+            containers = []
+            for k, v in containers_json.items():
+                if project_name + '_' in k:
+                    containers.append((
+                        f"{k}:{v.lower()}"
+                    ))
+
+            def sortorder(x):
+                state = x.split(":")[1]
+                states = {
+                    'running': 1,
+                    'down': 2,
+                    'exited': 2,
+                }
+                return states.get(state)
+
+            rec.containers = '\n'.join(sorted(containers, key=sortorder))
 
     def _get_last_access_file(self):
         self.ensure_one()
@@ -632,8 +655,6 @@ class GitBranch(models.Model):
             def _filter(x):
                 if x.state in ['failed']:
                     return True
-                if '_docker_get_state' in x.name:
-                    return False
                 return True
 
             rec.task_ids_filtered = [[6, 0, tasks.filtered(_filter).ids]]
