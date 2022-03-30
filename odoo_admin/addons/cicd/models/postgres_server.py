@@ -63,52 +63,52 @@ class PostgresServer(models.Model):
 
     @api.model
     def _cron_update_databases(self):
-        for rec in self:
+        for rec in self.search([]):
+            self.env.cr.commit()
             rec.with_delay(
                 identity_key=f"update_databases_{rec.name}-{rec.id}"
             ).update_databases()
 
     def update_databases(self):
-        breakpoint()
-        for rec in self:
-            self.env.cr.commit()
-            with rec._get_conn() as cr:
-                cr.execute("""
-                    SELECT datname, pg_database_size(datname)
-                    FROM pg_database
-                    WHERE datistemplate = false
-                    AND datname not in ('postgres');
-                """)
-                dbs = cr.fetchall()
+        self.ensure_one()
+        self.env.cr.commit()
+        with self._get_conn() as cr:
+            cr.execute("""
+                SELECT datname, pg_database_size(datname)
+                FROM pg_database
+                WHERE datistemplate = false
+                AND datname not in ('postgres');
+            """)
+            dbs = cr.fetchall()
 
-            all_dbs = set()
+        all_dbs = set()
 
-            for db in dbs:
-                dbname = db[0]
-                dbsize = db[1]
-                all_dbs.add(dbname)
-                with rec._extra_env() as x_rec:
-                    db_db = x_rec.database_ids.sudo().filtered(
-                        lambda x: x.name == dbname)
+        for db in dbs:
+            dbname = db[0]
+            dbsize = db[1]
+            all_dbs.add(dbname)
+            with self._extra_env() as x_rec:
+                db_db = x_rec.database_ids.sudo().filtered(
+                    lambda x: x.name == dbname)
 
-                    changed = False
-                    if not db_db:
-                        db_db = x_rec.database_ids.sudo().create({
-                            'server_id': rec.id,
-                            'name': dbname,
-                            'size': dbsize,
-                        })
+                changed = False
+                if not db_db:
+                    db_db = x_rec.database_ids.sudo().create({
+                        'server_id': x_rec.id,
+                        'name': dbname,
+                        'size': dbsize,
+                    })
+                    changed = True
+                else:
+                    if db_db.size != dbsize:
                         changed = True
-                    else:
-                        if db_db.size != dbsize:
-                            changed = True
-                            db_db.size = dbsize
+                        db_db.size = dbsize
 
-                    if changed:
-                        x_rec._compute_size()
-                    x_rec.env.cr.commit()
+                if changed:
+                    x_rec._compute_size()
+                x_rec.env.cr.commit()
 
-            for db in rec.database_ids:
-                if db.name not in all_dbs:
-                    db.sudo().unlink()
-                    self.env.cr.commit()
+        for db in self.database_ids:
+            if db.name not in all_dbs:
+                db.sudo().unlink()
+                self.env.cr.commit()
