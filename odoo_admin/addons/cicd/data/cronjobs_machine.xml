@@ -20,7 +20,5 @@
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
-	
-
 	</data>
 </odoo>
