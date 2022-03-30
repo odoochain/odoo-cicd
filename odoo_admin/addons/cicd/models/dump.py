@@ -95,7 +95,9 @@ class Dump(models.Model):
 
                 for filepath, file in Files.items():
 
-                    dumps = self.sudo().with_context(active_test=False).search([
+                    dumps = self.sudo().with_context(
+                        active_test=False, prefetch_fields=False
+                    ).search([
                         ('name', '=', filepath),
                         ('machine_id', '=', machine.id)
                         ])
