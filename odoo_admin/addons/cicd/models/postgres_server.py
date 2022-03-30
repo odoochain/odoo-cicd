@@ -4,6 +4,8 @@ from odoo import SUPERUSER_ID
 from ..tools.tools import get_host_ip
 from contextlib import contextmanager, closing
 from odoo import registry
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class PostgresServer(models.Model):
@@ -17,7 +19,7 @@ class PostgresServer(models.Model):
     db_pwd = fields.Char("DB Password", default="cicd_is_cool", required=True)
     db_port = fields.Integer("DB Port", default=5432, required=True)
     database_ids = fields.One2many('cicd.database', 'server_id', string="Databases")
-    size = fields.Float(compute="_compute_size", store=True)
+    size = fields.Float()
     ttype = fields.Selection([
         ('production', "Production"),
         ('dev', 'Dev'),
@@ -59,9 +61,7 @@ class PostgresServer(models.Model):
 
     def update_databases(self):
         for rec in self:
-            self.env['base'].flush()
             self.env.cr.commit()
-
             with rec._get_conn() as cr:
                 cr.execute("""
                     SELECT datname, pg_database_size(datname)
@@ -70,24 +70,35 @@ class PostgresServer(models.Model):
                     AND datname not in ('postgres');
                 """)
                 dbs = cr.fetchall()
+
             all_dbs = set()
+
             for db in dbs:
                 dbname = db[0]
                 dbsize = db[1]
                 all_dbs.add(dbname)
-                db_db = rec.database_ids.sudo().filtered(
-                    lambda x: x.name == dbname)
-                if not db_db:
-                    db_db = rec.database_ids.sudo().create({
-                        'server_id': rec.id,
-                        'name': dbname
-                    })
-                db_db.size = dbsize
-                self.env['base'].flush()
-                self.env.cr.commit()
+                with rec._extra_env() as x_rec:
+                    db_db = x_rec.database_ids.sudo().filtered(
+                        lambda x: x.name == dbname)
+
+                    changed = False
+                    if not db_db:
+                        db_db = x_rec.database_ids.sudo().create({
+                            'server_id': rec.id,
+                            'name': dbname,
+                            'size': dbsize,
+                        })
+                        changed = True
+                    else:
+                        if db_db.size != dbsize:
+                            changed = True
+                            db_db.size = dbsize
+
+                    if changed:
+                        x_rec._compute_size()
+                    x_rec.env.cr.commit()
 
             for db in rec.database_ids:
                 if db.name not in all_dbs:
                     db.sudo().unlink()
-                    self.env['base'].flush()
                     self.env.cr.commit()

@@ -139,12 +139,16 @@ class Branch(models.Model):
         self._docker_get_state()
 
     def _docker_get_state(self, **kwargs):
-        containers = self.mapped('repo_id.machine_id').sudo()._get_containers()
+        with self._extra_env() as x_self: 
+            containers = x_self.mapped(
+                'repo_id.machine_id').sudo()._get_containers()
+
+        self.env.cr.commit()
+
         for rec in self:
             rec = rec.sudo()
             updated_containers = set()
 
-            self.env['base'].flush()
             self.env.cr.commit()
 
             for container_name in containers:
@@ -165,7 +169,6 @@ class Branch(models.Model):
                             container.state = state
                     updated_containers.add(container_name)
 
-                    self.env['base'].flush()
                     self.env.cr.commit()
 
                 del container_name
@@ -173,7 +176,6 @@ class Branch(models.Model):
             for container in rec.container_ids:
                 if container.name not in updated_containers:
                     container.unlink()
-                    self.env['base'].flush()
                     self.env.cr.commit()
 
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
@@ -184,9 +186,10 @@ class Branch(models.Model):
             project_name=None, settings=None, commit=None, **kwargs
             ):
 
-        with shell.clone(
-            cwd=self._make_sure_source_exists(shell, logsio)
-        ) as shell:
+        cwd = self._make_sure_source_exists(shell, logsio)
+
+        breakpoint()
+        with shell.clone(cwd=cwd) as shell:
             self._make_instance_docker_configs(
                 shell, forced_project_name=project_name, settings=settings)
             self._collect_all_files_by_their_checksum(shell)
@@ -367,8 +370,12 @@ class Branch(models.Model):
         shell.odoo(
             "remove-settings", '--settings', 'web.base.url,web.base.url.freeze'
             )
+
+        with self._extra_env() as x_self:
+            external_url = x_self.machine_id.external_url
+
         shell.odoo(
-            "update-setting", 'web.base.url', shell.machine.external_url)
+            "update-setting", 'web.base.url', external_url)
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
         shell.odoo('restore-web-icons')
@@ -466,28 +473,29 @@ class Branch(models.Model):
         return str(commit)
 
     def inactivity_cycle_down(self):
-        machines = self.mapped('repo_id.machine_id')
-        for machine in machines:
-            for rec in self.filtered(
-                    lambda x: x.repo_id.machine_id == machine):
-                with rec.machine_id._shell(
-                    cwd=rec.project_path,
-                    project_name=rec.project_name
-                ) as shell:
-                    last_access = arrow.get(rec.last_access or '1980-04-04')
-                    uptime = (arrow.get() - last_access).total_seconds()
-                    if uptime > rec.cycle_down_after_seconds:
-                        rec._docker_get_state(shell=shell, now=True)
-                        if 'up' in rec.mapped('container_ids.state'):
-                            if shell.logsio:
-                                shell.logsio.info((
-                                    "Cycling down instance "
-                                    f"{rec.name} due to inactivity"
-                                ))
-                            shell.odoo('kill', allow_error=True)
-                            shell.odoo('rm', allow_error=True)
-                self.env['base'].flush()
-                self.env.cr.commit()
+        breakpoint()
+        for rec in self:
+            with rec._extra_env() as x_rec:
+                last_access = arrow.get(x_rec.last_access or '1980-04-04')
+                uptime = (arrow.get() - last_access).total_seconds()
+                if uptime <= x_rec.cycle_down_after_seconds:
+                    continue
+
+            with rec.machine_id._shell(
+                cwd=rec.project_path,
+                project_name=rec.project_name
+            ) as shell:
+                with rec._extra_env() as x_rec:
+                    x_rec._docker_get_state(shell=shell, now=True)
+                    container_states = x_rec.mapped('container_ids.state')
+                if 'up' in container_states:
+                    if shell.logsio:
+                        shell.logsio.info((
+                            "Cycling down instance "
+                            f"{rec.name} due to inactivity"
+                        ))
+                    shell.odoo('kill', allow_error=True)
+                    shell.odoo('rm', allow_error=True)
 
     def _make_instance_docker_configs(
             self, shell, forced_project_name=None, settings=None):
@@ -495,7 +503,7 @@ class Branch(models.Model):
 
         home_dir = shell._get_home_dir()
         machine = shell.machine
-        project_name = forced_project_name or self.project_name
+        project_name = forced_project_name or self._unblocked('project_name')
         content = ((
             current_dir.parent
             / 'data'
@@ -515,25 +523,28 @@ class Branch(models.Model):
             / 'template_cicd_instance.settings')).read_text()
         assert machine
 
-        if not machine.postgres_server_id:
-            raise ValidationError(
-                _(f"Please configure a db server for {machine.name}"))
+        with machine._extra_env() as x_machine:
+            if not x_machine.postgres_server_id:
+                raise ValidationError(
+                    _(f"Please configure a db server for {x_machine.name}"))
 
-        content += "\n" + (self.reload_config or '')
+        content += "\n" + (self._unblocked('reload_config') or '')
         if settings:
             content += "\n" + settings
 
-        shell.put(
-            content.format(
-                branch=self,
-                project_name=project_name,
-                machine=machine),
+        with self._extra_env() as x_self:
+            with machine._extra_env() as x_machine:
+                shell.put(
+                    content.format(
+                        branch=x_self,
+                        project_name=project_name,
+                        machine=x_machine),
 
-            home_dir + f'/.odoo/settings.{project_name}'
-            )
+                    home_dir + f'/.odoo/settings.{project_name}'
+                    )
 
     def _cron_autobackup(self):
-        for rec in self:
+        for rec in self.search([('autobackup', '=', True)]):
             rec._make_task(
                 "_dump", machine=rec.backup_machine_id,
                 ignore_previous_tasks=True)
@@ -643,9 +654,13 @@ class Branch(models.Model):
                         shell.odoo('down', '-v', force=True, allow_error=True)
 
     def _make_sure_source_exists(self, shell, logsio):
+        breakpoint()
         instance_folder = self._get_instance_folder(shell.machine)
         self.ensure_one()
-        if not self.repo_id._is_healthy_repository(shell, instance_folder):
+        with self._extra_env() as x_self:
+            healthy = x_self.repo_id._is_healthy_repository(shell, instance_folder)
+
+        if not healthy:
             try:
                 self._checkout_latest(shell, logsio=logsio)
             except Exception:
@@ -712,7 +727,6 @@ for path in base.glob("*"):
             machine = rec.repo_id.machine_id
             with machine._shell() as shell:
                 machine.make_login_possible_for_webssh_container()
-
                 test = shell.X([
                     "sudo", "pkill", "-9", "-f",
                     "-u", shell.machine.ssh_user_cicdlogin,
@@ -721,15 +735,14 @@ for path in base.glob("*"):
 
     @api.model
     def _cron_docker_get_state(self):
-        for branch in self.sudo().with_context(
+        branches = self.sudo().with_context(
             active_test=False
-        ).search([]):
-            branch.with_delay(
-                identity_key=(
-                    "docker_get_state_"
-                    f"branch_{branch.id}"
-                )
-            ).docker_get_state()
+        ).search([])
+        branches.with_delay(
+            identity_key=(
+                "docker_get_state_"
+            )
+        ).docker_get_state()
 
     def new_branch(self):
         self.ensure_one()

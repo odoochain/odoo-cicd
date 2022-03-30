@@ -167,6 +167,7 @@ class Task(models.Model):
         self, now=False, delete_after=False, ignore_previous_tasks=False
     ):
         # functions called often block the repository access
+        breakpoint()
         args = {}
         log = None
         commit = None
@@ -178,13 +179,12 @@ class Task(models.Model):
                 if any(x in [False, 'started'] for x in previous.mapped('state')):
                     raise RetryableJobError(
                         "Previous tasks exist.", ignore_retry=True, seconds=30)
+
         try:
             self = self.sudo().with_context(active_test=False)
             short_name = self._get_short_name()
             with self.branch_id.shell(short_name) as shell:
                 logsio = shell.logsio
-                self.env['base'].flush()
-                self.env.cr.commit()
                 args = self._get_args(shell)
                 delete_after = args.get('delete_task')
                 obj = self.env[self.model].sudo().browse(self.res_id)
@@ -203,15 +203,17 @@ class Task(models.Model):
                         sha = shell.X([
                             "git", "log", "-n1",
                             "--format=%H"])['stdout'].strip()
-                        commit = self.branch_id.commit_ids.filtered(
-                            lambda x: x.name == sha)
+
+                        commit_ids = self.branch_id.commit_ids.filtered(
+                            lambda x: x.name == sha).ids
+                self.env.cr.commit()
 
                 exec('obj.' + self.name + "(**args)", {
                     'obj': obj,
                     'args': args
                     })
                 if shell.logsio:
-                    shell.logsio.info(f"Finished!")
+                    shell.logsio.info("Finished!")
 
         except Exception:
             self.env.cr.rollback()
@@ -241,7 +243,7 @@ class Task(models.Model):
                     duration=duration,
                     delete_after=delete_after,
                     log=log,
-                    commit_id=commit and commit.id or False,
+                    commit_id=commit_ids and commit_ids[0] or False
                 )
 
     def _finish_task(self, state, duration, delete_after, log, commit_id):

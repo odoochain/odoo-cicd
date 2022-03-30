@@ -17,7 +17,7 @@ class MixinExtraEnv(models.AbstractModel):
             with closing(self.env.registry.cursor()) as cr:
                 env = api.Environment(cr, SUPERUSER_ID, self._context)
                 env.reset()
-                obj = obj.with_env(env)
+                obj = obj.with_env(env).with_context(prefetch_fields=False)
 
                 try:
                     yield obj

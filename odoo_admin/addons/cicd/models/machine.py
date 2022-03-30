@@ -178,10 +178,11 @@ class CicdMachine(models.Model):
         return user_id
 
     def _get_volume(self, ttype):
-        res = self.volume_ids.filtered(lambda x: x.ttype == ttype)
-        if not res:
-            raise ValidationError(_("Could not find: {}").format(ttype))
-        return Path(res[0].name)
+        with self._extra_env() as x_self:
+            res = x_self.volume_ids.filtered(lambda x: x.ttype == ttype)
+            if not res:
+                raise ValidationError(_("Could not find: {}").format(ttype))
+            return Path(res[0].name)
 
     def springclean(self, **args):
         """

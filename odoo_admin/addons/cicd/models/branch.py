@@ -371,11 +371,6 @@ class GitBranch(models.Model):
         for rec in self:
             rec.test_run_ids = rec.mapped('commit_ids.test_run_ids')
 
-    @api.depends("db_size")
-    def _compute_human(self):
-        for rec in self:
-            rec.db_size_humanize = humanize.naturalsize(rec.db_size)
-
     def _make_task(
         self, execute, now=False, machine=None, silent=False,
         identity_key=None, reuse=False, testrun_id=None,
