@@ -25,6 +25,7 @@ class CicdMachine(models.Model):
     _inherit = ['mail.thread', 'cicd.mixin.extra_env']
     _name = 'cicd.machine'
 
+    active = fields.Boolean("Active", default=True)
     name = fields.Char("Name")
     is_docker_host = fields.Boolean("Is Docker Host", default=True)
     host = fields.Char("Host")
