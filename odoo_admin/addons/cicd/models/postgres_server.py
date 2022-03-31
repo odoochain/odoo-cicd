@@ -107,11 +107,12 @@ class PostgresServer(models.Model):
 
                 if changed:
                     x_rec._compute_size()
+                    changed = False
                 x_rec.env.cr.commit()
 
         for db in self.database_ids:
             if db.name not in all_dbs:
                 db.sudo().unlink()
+                changed = True
+                self._compute_size()
                 self.env.cr.commit()
-        self._compute_size()
-        self.env.cr.commit()
