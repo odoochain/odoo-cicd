@@ -9,11 +9,12 @@ Pillow==8.1.2  # could be 7.0.0 (Focal) when backported security patches are pre
 PyPDF2==1.26.0
 Werkzeug==0.16.1
 XlsxWriter==1.1.2
-arrow>=0.14.6
+arrow
 bson
 buttervolume>=3.7
 chardet==3.0.4
 click-default-group>=1.2.1
+croniter
 decorator==4.4.2
 docker-compose==1.29.2
 docutils==0.16
@@ -40,7 +41,6 @@ paramiko
 passlib==1.7.2
 polib==1.1.0
 psutil==5.6.6
-psycopg2-binary>=2.8.3
 psycopg2==2.7.7; sys_platform != 'win32' and python_version < '3.8'
 psycopg2==2.8.6; sys_platform == 'win32' or python_version >= '3.8'
 pudb

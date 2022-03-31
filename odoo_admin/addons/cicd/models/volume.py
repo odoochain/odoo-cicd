@@ -43,20 +43,20 @@ class CicdVolumes(models.Model):
             rec.total_size_human = humanize.naturalsize(rec.total_size * 1024 * 1024 * 1024)
             rec.used_percent = 100 * rec.used_size / rec.total_size if rec.total_size else 0
 
-    @api.model
-    def _cron_update(self):
-        self.sudo().search([])._update_sizes()
-
     def _update_sizes(self):
-        for rec in self:
-            with rec.machine_id._shell() as shell:
-                try:
-                    stdout = shell.X([
-                        "df", rec.name
-                    ])['stdout'].strip()
-                except Exception as ex:
-                    logger.error(ex)
-                else:
+        for machine in self.sudo().mapped('machine_id'):
+            with machine._shell() as shell:
+                self.env.cr.commit()
+                for rec in self.filtered(
+                        lambda x: x.machine_id == machine):
+                    self.env.cr.commit()
+
+                    try:
+                        stdout = shell.X(["df", rec.name])['stdout'].strip()
+                    except Exception as ex:
+                        logger.error(ex)
+                        continue
+
                     while "  " in stdout:
                         stdout = stdout.replace("  ", " ")
                     stdout = stdout.split("\n")
@@ -67,3 +67,4 @@ class CicdVolumes(models.Model):
                     rec.total_size = int(stdout[1]) / 1024 / 1024
                     rec.used_size = int(stdout[2]) / 1024 / 1024
                     rec.free_size = int(stdout[3]) / 1024 / 1024
+                    self.env.cr.commit() 

@@ -17,7 +17,10 @@
 						<button name="start_webmailer" string="Webmailer" type="object" groups="cicd.group_approver"/>
 						<button name="start_logs" string="Logs" type="object" groups="cicd.group_developer"/>
 						<button name="debug_webcontainer" string="Debug" type="object" groups="cicd.group_developer"/>
+						<button name="new_branch" string="New Branch" type="object" groups="cicd.group_make_branches"/>
 						<field name="state" widget="statusbar" options="{'clickable': 0}" />
+						<button name="backup" string="Backup Dump" type="object"/>
+						<button name="restore_dump" string="Restore Dump" type="object" groups="cicd.group_key_user"/>
 					</header>
 					<sheet>
 						<field name="block_release" invisible='1'/>
@@ -83,6 +86,7 @@
 										<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
 										<button name="perform" string="Perform" type="object" groups="base.group_no_one"/>
 										<button name="requeue" type="object" icon="fa-repeat" states='failed'/>
+										<button name="unlink" type="object" string="X" confirm="Delete?"/>
 										<field name="id"/>
 										<field name="display_name" />
 										<field name="duration"/>
@@ -107,17 +111,17 @@
 							</page>
 							<page name="backup" string="Backup/Restore">
 								<field name="allowed_backup_machine_ids" invisible='1'/>
-								<group string="Restore" col='6'>
-									<field name="backup_machine_id" string="Machine" domain="[('id', 'in', allowed_backup_machine_ids)]"/>
-									<field name="dump_id" domain="[('machine_id', '=', backup_machine_id)]"/>
-									<field name="remove_web_assets_after_restore"/>
-									<button name="restore_dump" string="Restore Dump" type="object" confirm="Current data is lost. Continue?"/>
+								<group string="Branch was restored from this dump">
+									<field name="last_restore_dump_name"/>
+									<field name="last_restore_dump_date"/>
 								</group>
-								<group string="Backup" col='6'>
+								<group string="Restore" col='6'>
+									<field name="remove_web_assets_after_restore"/>
+								</group>
+								<group string="Daily Backup" col='2'>
 									<field name="backup_machine_id" domain="[('id', 'in', allowed_backup_machine_ids)]"/>
 									<field name="backup_filename" string="Machine" placeholder="Enter a filename - if empty then project name is used."/>
 									<field name="autobackup"></field>
-									<button name="dump" string="Dump" type="object"/>
 								</group>
 							</page>
 							<page name="config_page" string="Configuration" groups="cicd.group_developer">
@@ -127,7 +131,7 @@
 								<div>
 								<pre>
 									Additional configuration like for example:
-									
+
 									RUN_ODOO_QUEUEJOBS=1
 									RUN_ODOO_CRONJOBS=1
 
@@ -169,7 +173,6 @@
 										<field name="done_date"/>
 										<field name="state"/>
 										<field name="release_type"/>
-										<field name="final_curtain"/>
 										<field name="computed_summary"/>
 									</tree>
 								</field>
@@ -177,7 +180,6 @@
 							<page string="Docker" name="docker">
 								<group>
 									<field name="cycle_down_after_seconds"/>
-									<field name="docker_state"/>
 								</group>
 								<group string="Actions">
 									<button name="docker_start" string="Start/Restart Containers" type="object"/>
@@ -188,19 +190,17 @@
 									<div>
 										Executes docker-compose stop.
 									</div>
+									<button name="docker_remove" string="Remove Containers" type="object"/>
+									<div>
+										Executes docker-compose remove.
+									</div>
 									<button name="build" string="Build" type="object" />
 									<div>
 										Builds docker machines
 									</div>
 								</group>
-								<button name="docker_get_state" string="Update Docker State" type="object"/>
-								<field name="container_ids">
-									<tree>
-										<field name="name"/>
-										<field name="state"/>
-										<field name="state_string"/>
-									</tree>
-								</field>
+								<button name="compute_containers_text" string="Update Docker State" type="object"/>
+								<field name="containers"/>
 							</page>
 						</notebook>
 					</sheet>

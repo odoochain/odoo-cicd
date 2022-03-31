@@ -10,7 +10,7 @@ import grp
 import hashlib
 from pathlib import Path
 from ..tools.logsio_writer import LogsIOWriter
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from odoo import _, api, fields, models, SUPERUSER_ID, tools
 import subprocess
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -20,10 +20,12 @@ from .shell_executor import ShellExecutor
 import logging
 logger = logging.getLogger(__name__)
 
+
 class CicdMachine(models.Model):
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
     _name = 'cicd.machine'
 
+    active = fields.Boolean("Active", default=True)
     name = fields.Char("Name")
     is_docker_host = fields.Boolean("Is Docker Host", default=True)
     host = fields.Char("Host")
@@ -41,9 +43,9 @@ class CicdMachine(models.Model):
     reload_config = fields.Text("Settings")
     external_url = fields.Char("External http-Address")
 
-    ssh_user_cicdlogin = fields.Char(compute="_compute_ssh_user_cicd_login")
+    ssh_user_cicdlogin = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
     ssh_user_cicdlogin_password_salt = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
-    ssh_user_cicdlogin_password = fields.Char(compute="_compute_ssh_user_cicd_login")
+    ssh_user_cicdlogin_password = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
     postgres_server_id = fields.Many2one('cicd.postgres', string="Postgres Server", required=False)
     upload_dump = fields.Binary("Upload Dump")
     upload_dump_filename = fields.Char("Filename")
@@ -55,10 +57,10 @@ class CicdMachine(models.Model):
     @api.depends('ssh_user')
     def _compute_ssh_user_cicd_login(self):
         for rec in self:
-            rec.ssh_user_cicdlogin = (self.ssh_user or '') + "_restricted_cicdlogin"
+            rec.ssh_user_cicdlogin = (rec.ssh_user or '') + "_restricted_cicdlogin"
             if not rec.ssh_user_cicdlogin_password_salt:
                 rec.ssh_user_cicdlogin_password_salt = str(arrow.get())
-            ho = hashlib.md5((rec.ssh_user_cicdlogin + self.ssh_user_cicdlogin_password_salt).encode('utf-8'))
+            ho = hashlib.md5((rec.ssh_user_cicdlogin + rec.ssh_user_cicdlogin_password_salt).encode('utf-8'))
             rec.ssh_user_cicdlogin_password = ho.hexdigest()
 
     def _compute_workspace(self):
@@ -79,34 +81,42 @@ class CicdMachine(models.Model):
 
     def _place_ssh_credentials(self):
         self.ensure_one()
+        with self._extra_env() as machine:
+            data = machine.read(['effective_host', 'ssh_key', 'ssh_pubkey'])[0]
+            effective_host = data['effective_host']
+            ssh_key = data['ssh_key']
+            ssh_pubkey = data['ssh_pubkey']
+
         # place private keyfile
         ssh_dir = Path(os.path.expanduser("~/.ssh"))
         ssh_dir.mkdir(exist_ok=True)
         os.chown(ssh_dir, pwd.getpwnam('odoo').pw_uid, grp.getgrnam('odoo').gr_gid)
         os.chmod(ssh_dir, 0o700)
 
-        ssh_keyfile = ssh_dir / self.effective_host
-        ssh_pubkeyfile = ssh_dir / (self.effective_host + '.pub')
+        ssh_keyfile = ssh_dir / effective_host
+        ssh_pubkeyfile = ssh_dir / (effective_host + '.pub')
         rights_keyfile = 0o600
         for file in [
             ssh_keyfile, ssh_pubkeyfile,
         ]:
             if file.exists():
                 os.chmod(file, rights_keyfile)
+
         def content_differs(file, content):
             if not file.exists():
                 return True
             return file.read_text() != content
 
-        if content_differs(ssh_keyfile, self.ssh_key):
-            ssh_keyfile.write_text(self.ssh_key)
-        if content_differs(ssh_pubkeyfile, self.ssh_pubkey):
-            ssh_pubkeyfile.write_text(self.ssh_pubkey)
+        if content_differs(ssh_keyfile, ssh_key):
+            ssh_keyfile.write_text(ssh_key)
+        if content_differs(ssh_pubkeyfile, ssh_pubkey):
+            ssh_pubkeyfile.write_text(ssh_pubkey)
         os.chmod(ssh_keyfile, rights_keyfile)
         os.chmod(ssh_pubkeyfile, rights_keyfile)
         return ssh_keyfile
 
-    def test_shell(self, cmd, cwd=None, env={}):
+    def test_shell(self, cmd, cwd=None, env=None):
+        env = env or {}
         with self._shell(cwd=cwd, env=env) as shell:
             return shell.X(cmd, cwd=cwd, env=env)
 
@@ -115,13 +125,20 @@ class CicdMachine(models.Model):
             return shell.exists(path)
 
     @contextmanager
-    def _shell(self, cwd=None, logsio=None, project_name=None, env={}):
+    def _shell(self, cwd=None, logsio=None, project_name=None, env=None):
+        env = env or {}
         self.ensure_one()
         ssh_keyfile = self._place_ssh_credentials()
 
+        # avoid long locking
+        with self._extra_env() as machine:
+            user = machine.ssh_user
+            host = machine.effective_host
+
         shell = ShellExecutor(
-            ssh_keyfile=ssh_keyfile, machine=self, cwd=cwd,
-            logsio=logsio, project_name=project_name, env=env
+            ssh_keyfile=ssh_keyfile, host=host, cwd=cwd,
+            logsio=logsio, project_name=project_name, env=env,
+            user=user, machine=self,
         )
         yield shell
 
@@ -145,6 +162,7 @@ class CicdMachine(models.Model):
     def update_dumps(self):
         for rec in self:
             rec.env['cicd.dump']._update_dumps(rec)
+            self.env.cr.commit()
 
     def update_volumes(self):
         self.mapped('volume_ids')._update_sizes()
@@ -162,10 +180,11 @@ class CicdMachine(models.Model):
         return user_id
 
     def _get_volume(self, ttype):
-        res = self.volume_ids.filtered(lambda x: x.ttype == ttype)
-        if not res:
-            raise ValidationError(_("Could not find: {}").format(ttype))
-        return Path(res[0].name)
+        with self._extra_env() as x_self:
+            res = x_self.volume_ids.filtered(lambda x: x.ttype == ttype)
+            if not res:
+                raise ValidationError(_("Could not find: {}").format(ttype))
+            return Path(res[0].name)
 
     def springclean(self, **args):
         """
@@ -296,11 +315,10 @@ echo "--------------------------------------------------------------------------
         else:
             vol = self.volume_ids.browse(vals['upload_volume_id'])
 
-        with self._shell(cwd='~', logsio=None) as shell1:
-            with shell1.shell() as shell2:
-                path = Path(vol.name) / filename
-                content = base64.b64decode(content)
-                shell2.write_bytes(path, content)
+        with self._shell(cwd='~', logsio=None) as shell:
+            path = Path(vol.name) / filename
+            content = base64.b64decode(content)
+            shell.put(content, path)
         self.message_post(body="New dump uploaded: " + filename)
 
         for f in ['upload_volume_id', 'upload_overwrite']:
@@ -320,9 +338,10 @@ echo "--------------------------------------------------------------------------
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix='.'))
             try:
-                if repo.login_type == 'key':
+
+                if repo._unblocked('login_type') == 'key':
                     env['GIT_SSH_COMMAND'] += f'   -i {file}  '
-                    shell.put(repo.key, file)
+                    shell.put(repo._unblocked('key'), file)
                     shell.X(["chmod", '400', str(file)])
                 else:
                     pass
@@ -389,37 +408,65 @@ echo "--------------------------------------------------------------------------
                 if value:
                     raise Exception('should exist')
 
-    def _update_docker_containers(self):
-        breakpoint()
-        for rec in self:
-            try:
-                with rec._shell() as shell:
-                    try:
-                        containers = shell.X(["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"])['stdout'].strip()
-                    except Exception as e:
-                        logger.error(e)
-                        continue
+    def _cron_update_dumps(self):
+        for machine in self.search([]):
+            self.env.cr.commit()
+            machine.volume_ids.with_delay(
+                identity_key=f"machine-update-vol-sizes-{machine.id}",
+            )._update_sizes()
+            self.env.cr.commit()
 
-                    containers_dict = {}
-                    for line in containers.split("\n")[1:]:
-                        try:
-                            container, state = line.split("\t")
-                        except Exception:
-                            # perhaps no access or so
-                            pass
-                        containers_dict[container] = state
-                    path = Path(rec.tempfile_containers)
-                    path.write_text(json.dumps(containers_dict))
-            except Exception as ex:
-                logger.error('error', exc_info=True)
+            self.env['cicd.dump']._with_delay(
+                identity_key=f"dump-udpate-{machine.id}"
+            )._update_dumps(machine)
+            self.env.cr.commit()
 
+    def _cron_update_docker_containers(self):
+        machines = self.env['cicd.git.repo'].search([]).mapped('machine_id')
+        self.env.cr.commit()
+
+        for rec in machines:
+            self.env.cr.commit()
+            rec.with_delay(
+                identity_key=f"docker-containers-{rec.id}-{rec.name}"
+            )._fetch_psaux_docker_containers()
+
+    def _fetch_psaux_docker_containers(self):
+        self.ensure_one()
+        with self._shell() as shell:
+            tempfile_containers = self.tempfile_containers
+            self.env.cr.commit()
+            containers = shell.X([
+                "docker", "ps", "-a",
+                "--format", "{{ .Names }}\t{{ .State }}"], timeout=20)[
+                    'stdout'].strip()
+
+            containers_dict = {}
+            for line in containers.split("\n")[1:]:
+                try:
+                    container, state = line.split("\t")
+                except Exception:
+                    # perhaps no access or so
+                    continue
+                containers_dict[container] = state
+            path = Path(tempfile_containers)
+            path.write_text(json.dumps(containers_dict))
 
     def _get_containers(self):
-        path = Path(self.tempfile_containers)
+        with self._extra_env() as x_self:
+            path = Path(x_self.tempfile_containers)
+
         if not path.exists():
-            self._update_docker_containers()
+            self._fetch_psaux_docker_containers()
+            self.env.cr.commit()
+
         if path.exists():
-            containers = json.loads(path.read_text())
+            try:
+                containers = json.loads(path.read_text())
+            except json.decoder.JSONDecodeError:
+                containers = {}
+            except Exception:
+                raise
         else:
             containers = {}
         return containers
@@ -429,4 +476,7 @@ echo "--------------------------------------------------------------------------
             # TODO configurable path sysparameter
             path = Path("/opt/out_dir/docker_states")
             path.mkdir(exist_ok=True, parents=True)
-            self.tempfile_containers = f"{path}/{self.env.cr.dbname}.machine.{rec.id}.containers"
+            self.tempfile_containers = (
+                f"{path}/{self.env.cr.dbname}.machine."
+                f"{rec.id}.containers"
+            )

@@ -17,9 +17,7 @@
 						<field name="dump_used"/>
 						<field name="branch_id"/>
 						<field name="machine_id"/>
-					</group>
-					<group string="Error" style="font-size: 7pt;">
-						<field name="error" attrs="{'invisible': [('error', '=', False)]}"/>
+						<field name="ignore_previous_tasks"/>
 					</group>
 					<group string="Log" style="font-size: 7pt;">
 						<field name="log" nolabel='1'/>

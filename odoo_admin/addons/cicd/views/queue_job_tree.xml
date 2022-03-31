@@ -5,10 +5,16 @@
 			<field name="model">queue.job</field>
 			<field name="inherit_id" ref="queue_job.view_queue_job_tree"/>
 			<field name="arch" type="xml">
+
+				<xpath expr="//tree" position="attributes">
+					<attribute name="delete">1</attribute>
+				</xpath>
+
 				<field name="name" position="before">
 					<field name="id"/>
 					<field name="branch"/>
 					<field name="identity_key"/>
+					<field name="uuid"/>
 				</field>
 				<field name="uuid" position="attributes">
 					<attribute name="invisible">1</attribute>

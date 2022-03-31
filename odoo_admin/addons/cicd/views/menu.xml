@@ -2,7 +2,13 @@
 	<data noupdate='0'>
 		<menuitem name="CICD" parent="" id="root_menu" sequence="-1000"/>
 		<menuitem name="Configuration" parent="root_menu" id="config_menu" sequence="9999"/>
-		
+
+		<!-- Put DB Queries into configuration -->
+		<record model="ir.ui.menu" id="visualize_queries.menu_queries">
+			<field name="parent_id" ref="config_menu"/>
+		</record>
+
+
 		<record model="ir.ui.menu" id="queue_job.menu_queue_job">
 			<field name="parent_id" ref="root_menu"/>
 			<field name="sequence">1000</field>
@@ -15,6 +21,9 @@
 			<field name='name'>Branches</field>
 			<field name='res_model'>cicd.git.branch</field>
 			<field name='view_mode'>kanban,tree,form</field>
+			<field name="context">{
+				'search_default_no_release_branches': 1,
+			}</field>
 			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
 		</record>
 		<menuitem parent="root_menu" id="menu_branches" action="branches_action"/>
@@ -94,5 +103,20 @@
 			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
 		</record>
 		<menuitem parent="config_menu" id="menu_ticketsystems" action="ticketsystems_action"/>
+		
+		<record id='schedule_action' model='ir.actions.act_window'>
+			<field name='name'>Schedules</field>
+			<field name='res_model'>cicd.schedule</field>
+			<field name='view_mode'>tree,form</field>
+		</record>
+		<menuitem parent="config_menu" id="menu_schedule" action="schedule_action"/>
+
+		<record id='tasks_action' model='ir.actions.act_window'>
+			<field name='name'>Tasks</field>
+			<field name='res_model'>cicd.task</field>
+			<field name='view_mode'>tree,form</field>
+			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
+		</record>
+		<menuitem parent="root_menu" id="menu_tasks" action="tasks_action"/>
 	</data>
 </odoo>

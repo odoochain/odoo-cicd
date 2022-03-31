@@ -6,55 +6,51 @@
 			<field name="arch" type="xml">
 				<form string="">
 					<header>
-						<field name="state" widget="statusbar" attrs="{'readonly': True}" />
-						<button name="recreate_candidate_branch_in_git" string="Recreate Merged Branch" type="object" />
+						<field name="state" widget="statusbar" attrs="{'readonly': True}" statusbar_visible="collecting,integrating,ready,done" />
+						<button name="release_now" string="Release Now" type="object" states='collecting,ready,failed_too_late'/>
+						<button name="resend_release_mail" string="Resend Releae Mail" type="object" />
 					</header>
 					<sheet>
 						<div class="oe_button_box" name="button_box">
-							<button type="object" class="oe_stat_button" icon="fa-recycle" name="retry" string="Retry" states='failed' />
-							<button type="object" class="oe_stat_button" icon="fa-times" name="set_to_ignore" string="Ignore Release" states='new,failed' />
-							<button type="object" class="oe_stat_button" icon="fa-check" name="reschedule" string="Reschedule" states="ignore"/>
+							<button type="object" class="oe_stat_button" icon="fa-recycle" name="retry" string="Retry" states='failed_technically,collecting_merge_conflict' />
 						</div>
 						<group>
-							<field name="release_id" readonly="1" />
-							<field name="name" readonly="1" />
-							<field name="planned_date" />
-							<field name="final_curtain" />
-							<field name="release_type" readonly="1" />
-							<field name="computed_summary" />
-							<field name="commit_id" readonly="1"/>
+							<group>
+								<field name="release_id" readonly="1" />
+								<field name="name" readonly="1" />
+								<field name="release_type" readonly="1" />
+							</group>
+							<group string="Deadlines">
+								<field name="stop_collecting_at" />
+								<field name="planned_date" />
+								<field name="planned_maximum_finish_date" />
+							</group>
 						</group>
-						<notebook>
-							<page string="Log">
-								<field name="log_release"/>
-							</page>
-							<page string="Branches" name="branches">
+						<group>
+							<group string="Merge Information">
+								<field name="commit_id" readonly="1"/>
+								<field name="item_branch_name" attrs="{'invisible': [('item_branch_id', '!=', False)]}"/>
+								<field name="item_branch_id"  attrs="{'invisible': [('item_branch_id', '=', False)]}"/>
+							</group>
+							<group string="Branches" name="branches">
 								<field name="branch_ids" attrs="{'readonly': [('release_type', '!=', 'hotfix')]}">
 									<tree>
-										<field name="name"/>
-										<field name="state"/>
-										<field name="enduser_summary"/>
-									</tree>
-								</field>
-							</page>
-							<page string="Commits" name="commits">
-								<field name="commit_ids" readonly="1">
-									<tree
-										decoration-danger="approval_state == 'declined' or test_state == 'failed'"
-										decoration-muted="not approval_state and not test_state"
-										decoration-success="force_approved or approval_state == 'approved' or test_state == 'success'"
-									>
+										<field name="branch_id"/>
 										<button name="open_window" string="" icon="fa-external-link" type="object" />
-										<field name="name"/>
-										<field name="test_state"/>
-										<field name="approval_state"/>
-										<field name="force_approved" widget="boolean_toggle"/>
-										<field name="date" />
-										<field name="author"/>
-										<field name="text"/>
+										<field name="commit_id"/>
+										<field name="state"/>
+										<field name="commit_date" />
 										<button name="view_changes" string="" icon="fa-search" type="object" />
 									</tree>
 								</field>
+							</group>
+						</group>
+						<notebook>
+							<page name="summary" string="Summary">
+								<field name="computed_summary" />
+							</page>
+							<page string="Log">
+								<field name="log_release"/>
 							</page>
 						</notebook>
 					</sheet>

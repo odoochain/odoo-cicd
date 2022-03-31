@@ -13,7 +13,7 @@ from odoo.addons.queue_job.exception import (
 )
 import logging
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,13 @@ class NewBranch(Exception):
     pass
 
 
+class MergeConflict(Exception):
+    def __init__(self, conflicts):
+        self.conflicts = conflicts
+
+
 class Repository(models.Model):
+    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
     _name = 'cicd.git.repo'
 
     short = fields.Char(
@@ -62,7 +68,7 @@ class Repository(models.Model):
         "Cleanup after days", default=20, required=True)
     autofetch = fields.Boolean("Autofetch", default=True)
     garbage_collect = fields.Boolean(
-        "Garbage Collect to reduce size", default=True)
+        "Garbage Collect to reduce size", default=False)
     initialize_new_branches = fields.Boolean("Initialize new Branches")
     release_tag_prefix = fields.Char(
         "Release Tag Prefix", default="release-", required=True)
@@ -85,14 +91,16 @@ class Repository(models.Model):
     def _get_repo_path(self, machine):
         from . import MAIN_FOLDER_NAME
         self.ensure_one()
-        path = Path(machine.workspace) / (MAIN_FOLDER_NAME + "_" + self.short)
+        path = Path(machine._unblocked('workspace')) / (
+            MAIN_FOLDER_NAME + "_" + self._unblocked('short'))
         return path
 
     def _get_lockname(self, machine=None, path=None):
         self.ensure_one()
-        machine = machine or self.machine_id
-        path = path or self._get_repo_path(machine)
-        return f"repo_{machine.id}_{path}"
+        with self._extra_env() as x_self:
+            machine = machine or x_self.machine_id
+            path = path or x_self._get_repo_path(machine)
+            return f"repo_{machine.id}_{path}"
 
     @api.constrains("username")
     def _check_username(self):
@@ -124,7 +132,7 @@ class Repository(models.Model):
             else:
                 rec.url = rec.name
 
-    def _get_zipped(self, logsio, commit):
+    def _get_zipped(self, logsio, commit, with_git=False):
         machine = self.machine_id
         with self._temp_repo(machine=machine) as repo_path:
             filename = Path(tempfile.mktemp(suffix='.get_zipped'))
@@ -133,7 +141,10 @@ class Repository(models.Model):
                     try:
                         shell.checkout_commit(commit)
                         shell.X(["git", "clean", "-xdff"])
-                        shell.X(["tar", "cfz", filename, "-C", repo_path, '.'])
+                        zip_cmd = ["tar", "cfz", filename, "-C", repo_path, '.']
+                        if not with_git:
+                            zip_cmd.insert(-1, '--exclude=".git"')
+                        shell.X(zip_cmd)
                         content = shell.get(filename)
                         shell.X(["rm", filename])
                         return content
@@ -151,21 +162,25 @@ class Repository(models.Model):
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
             temppath = tempfile.mktemp(suffix='.clone_repo')
+            try:
 
-            cmd = ["git", "clone"]
-            if branch:
-                cmd += ["--branch", branch]
-            if depth:
-                cmd += ["--depth", str(depth)]
-            cmd += [self.url, temppath]
-            shell.X(cmd)
+                cmd = ["git", "clone"]
+                if branch:
+                    cmd += ["--branch", branch]
+                if depth:
+                    cmd += ["--depth", str(depth)]
+                cmd += [self.url, temppath]
+                shell.X(cmd)
 
-            if shell.exists(path):
-                # clone may happened during that clone
+                if shell.exists(path):
+                    # clone may happened during that clone
+                    shell.remove(temppath)
+                else:
+                    shell.X(["mv", temppath, path])
+                return
+            finally:
+                # if something failed cleanup
                 shell.remove(temppath)
-            else:
-                shell.X(["mv", temppath, path])
-            return
 
     @contextmanager
     def _temp_repo(
@@ -187,7 +202,7 @@ class Repository(models.Model):
             self, destination_folder=False,
             logsio=None, machine=None, limit_branch=None,
             depth=None
-            ):
+        ):
 
         self.ensure_one()
         machine = machine or self.machine_id
@@ -260,11 +275,13 @@ class Repository(models.Model):
             if not self.login_type:
                 raise ValidationError(f"Login-Type missing for {self.name}")
             with LogsIOWriter.GET(self.name, 'fetch') as logsio:
-                breakpoint()
+                self.env.cr.commit()
+
                 repo_path = self._get_main_repo(logsio=logsio)
 
                 with self.machine_id._gitshell(
                         repo=self, cwd=repo_path, logsio=logsio) as shell:
+                    self.env.cr.commit()
                     updated_branches = set()
 
                     for remote in self._get_remotes(shell):
@@ -304,6 +321,7 @@ class Repository(models.Model):
                     for branch in set(updated_branches):
                         self._fetch_branch(branch)
                         del branch
+
 
         except Exception:
             msg = traceback.format_exc()
@@ -373,6 +391,8 @@ class Repository(models.Model):
             ('name', '=', branch),
             ('repo_id', '=', self.id)
         ])
+        if not db_branch:
+            raise ValidationError(f"Branch {branch} does not exist yet.")
         shell.rm(db_branch._get_instance_folder(
             shell.machine))
 
@@ -386,7 +406,7 @@ class Repository(models.Model):
     def _prepare_pulled_branch(self, shell, branch):
         releases = self.env['cicd.release'].search([
             ('repo_id', '=', self.id)])
-        candidate_branch_names = releases.mapped('candidate_branch')
+        candidate_branch_names = releases.item_ids.mapped('item_branch_name')
         try:
             breakpoint()
             logsio = shell.logsio
@@ -414,7 +434,7 @@ class Repository(models.Model):
             raise
 
     def _cron_fetch_update_branches(self, data):
-        repo = self
+        repo = self.sudo()  # may be triggered by queuejob
         # checkout latest / pull latest
         updated_branches = data['updated_branches']
         breakpoint()
@@ -456,6 +476,9 @@ class Repository(models.Model):
                                 'date_registered': date_registered,
                                 'repo_id': repo.id,
                             })
+                            branch.flush()
+                            branch.env.cr.commit()
+
                             branch._checkout_latest(
                                 shell, logsio=logsio, machine=machine)
                             branch._update_git_commits(
@@ -493,9 +516,7 @@ class Repository(models.Model):
             shell, logsio=logsio, machine=machine)
         branch._update_git_commits(shell, logsio)
         branch._compute_latest_commit(shell)
-        branch._compute_state()
-        branch._trigger_rebuild_after_fetch(
-            machine=machine)
+        branch._trigger_rebuild_after_fetch()
         shell.checkout_branch(
             repo.default_branch, cwd=repo_path)
 
@@ -530,6 +551,7 @@ class Repository(models.Model):
                     self._technical_clone_repo(path, machine=machine)
 
     def _merge_commits_on_target(self, shell, target, commits):
+        conflicts = []
         for commit in commits:
             # we use git functions to retrieve deltas, git sorting and
             # so; we want to rely on stand behaviour git.
@@ -539,19 +561,19 @@ class Repository(models.Model):
                 shell.X(["git", "merge", commit.name])
                 history.append(commit.name)
             except Exception as ex:
-                text = (
-                    "Merge-Conflict - "
-                    "try to merge the branches togehter."
-                )
-                raise UserError(text) from ex
+                conflicts.append(commit)
+        return conflicts
 
     def _recreate_branch_from_commits(
-        self, commits, target_branch_name, logsio, make_info_commit_msg
+        self, source_branch, commits,
+        target_branch_name, logsio, make_info_commit_msg,
     ):
         """
-        Iterate all branches and get the latest commit that fall into
-        the countdown criteria.  param make_info_commit_msg": if set, then an
-        empty commit with just a message is made
+        Creates a new branch with given commit ids based on source.
+        Deletes existing target_branch_name.
+
+        If merge conflicts exist, then all not mergable commits are returned.
+
         """
         if not commits:
             return
@@ -570,17 +592,18 @@ class Repository(models.Model):
             ) as shell:
 
                 # clear the current candidate
+                shell.checkout_branch(source_branch)
                 if shell.branch_exists(target_branch_name):
-                    shell.checkout_branch(self.default_branch)
                     shell.X(["git", "branch", "-D", target_branch_name])
                 logsio.info("Making target branch {target_branch.name}")
-                shell.checkout_branch(self.default_branch)
                 shell.X([
                     "git", "checkout", "--no-guess",
                     "-b", target_branch_name])
 
-                self._merge_commits_on_target(
+                conflicts = self._merge_commits_on_target(
                     shell, target_branch_name, commits)
+                if conflicts:
+                    raise MergeConflict(conflicts)
 
                 # pushes to mainrepo locally not to web because its
                 # cloned to temp directory
@@ -593,6 +616,7 @@ class Repository(models.Model):
                         make_info_commit_msg])
                     message_commit_sha = shell.X([
                         "git", "log", "-n1", "--format=%H"])['stdout'].strip()
+
                 shell.X([
                     "git", "push", "--set-upstream", "-f", 'origin',
                     target_branch_name])
@@ -606,7 +630,8 @@ class Repository(models.Model):
                 if not target_branch.active:
                     target_branch.active = True
                 target_branch._update_git_commits(
-                        shell, logsio, force_instance_folder=repo_path)
+                    shell, logsio, force_instance_folder=repo_path)
+                target_branch._compute_latest_commit(shell)
                 if message_commit_sha:
                     message_commit = target_branch.commit_ids.filtered(
                         lambda x: x.name == message_commit_sha)
@@ -625,27 +650,34 @@ class Repository(models.Model):
             with machine._gitshell(
                 self, cwd=repo_path, logsio=logsio
             ) as shell:
-
+                shell.logsio.info(f"Checking out {dest.name}")
                 shell.checkout_branch(dest.name)
                 commitid = shell.X([
                     "git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                shell.logsio.info(f"Commit-ID is {commitid}")
                 if source._name == 'cicd.git.branch':
                     branches = [self._clear_branch_name(x) for x in shell.X([
                         "git", "branch", "--contains", commitid])[
                             'stdout'].strip().split("\n")]
                     if source.name in branches:
                         return False
-                breakpoint()
+                shell.logsio.info(f"Checking out {source.name}")
                 shell.checkout_branch(source.name)
+                shell.logsio.info(f"Checking out {dest.name}")
                 shell.checkout_branch(dest.name)
                 count_lines = len(shell.X(["git", "diff", "-p", source.name])[
                     'stdout'].strip().split("\n"))
-                shell.X(["git", "merge", source.name])
+                shell.logsio.info(f"Count lines: {count_lines}")
+                shell.X(["git", "merge", "--no-edit", source.name])
+                shell.logsio.info(f"Merged {source.name}")
                 for tag in set_tags:
+                    shell.logsio.info(f"Setting tag {tag}")
                     shell.X(["git", "tag", '-f', tag.replace(':', '_').replace(
                         ' ', '_')])
                 shell.X(["git", "remote", "set-url", 'origin', self.url])
+                shell.logsio.info("Pushing tags")
                 shell.X(["git", "push", '--tags'])
+                shell.logsio.info("Pushing ")
                 shell.X(["git", "push"])
                 mergecommitid = shell.X([
                     "git", "log", "-n1", "--format=%H"])['stdout'].strip()
@@ -654,26 +686,24 @@ class Repository(models.Model):
 
     @api.model
     def _cron_cleanup(self):
-        FT = "%Y-%m-%d %H:%M:%S"
         for repo in self.search([
             ('never_cleanup', '=', False),
         ]):
             dt = arrow.get().shift(
-                days=-1 * repo.cleanup_untouched).strftime(FT)
+                days=-1 * repo.cleanup_untouched).strftime(DFT)
 
             # try nicht unbedingt notwendig; bei __exit__
             # wird ein close aufgerufen
-            db_registry = registry(self.env.cr.dbname)
             branches = repo.branch_ids.filtered(
                 lambda x: x.last_access or x.date_registered).filtered(
                 lambda x: (
-                    x.last_access or x.date_registered).strftime(FT) < dt)
+                    x.last_access or x.date_registered).strftime(DFT) < dt)
 
             # keep release branches
             releases = self.env['cicd.release'].search([
                 ('repo_id', '=', repo.id)])
             names = list(releases.mapped('branch_id.name'))
-            names += list(releases.mapped('candidate_branch'))
+            names += list(releases.mapped('item_ids.item_branch_id.name'))
             branches = branches.filtered(lambda x: x.name not in names)
             del names
 
@@ -687,14 +717,16 @@ class Repository(models.Model):
                     return True
                 if not branch.latest_commit_id.date:
                     return True
-                return bool(branch.latest_commit_id.date.strftime(FT) < dt)
+                return bool(branch.latest_commit_id.date.strftime(DFT) < dt)
 
             branches = branches.filtered(outdated_commits)
 
-            with db_registry.cursor() as cr:
-                env = api.Environment(cr, SUPERUSER_ID)
-                for branch in branches.with_env(env):
-                    branch.active = False
+            for branch in branches:
+                branch.with_delay(
+                    identity_key=f"deactivate-branch-{branch.id}"
+                ).write({'active': False})
+            self.env.cr.commit()
+
             del dt
 
     def new_branch(self):

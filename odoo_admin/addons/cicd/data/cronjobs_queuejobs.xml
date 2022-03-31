@@ -1,0 +1,32 @@
+<odoo>
+	<data noupdate='0'>
+		<record id="reschedule_failed_jobs" model="ir.cron">
+			<field name="name">cicd:reschedule_failed_jobs</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="queue_job.model_queue_job" />
+			<field name="state">code</field>
+			<field name="code">
+reasons = [
+	'could not serialize access due to concurrent update',
+	'cannot stat',
+	'server closed the connection unexpectedly',
+	'RetryableJobError',
+	'Failed to put the local file',
+	'psycopg2.errors',
+	'.git/index.lock',
+	'duplicate key value violates unique constraint "cicd_git_commit_name"',
+	# following happened when using bitbucket - was slow on that day and timed out
+	'Could not read from remote repository',
+	'Lock could not be acquired',
+	'LockNotAvailable',
+	'Permission denied',
+	'does not exist yet',
+]
+for reason in reasons:
+	model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]).write({'state': 'pending'})</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+	</data>
+</odoo>

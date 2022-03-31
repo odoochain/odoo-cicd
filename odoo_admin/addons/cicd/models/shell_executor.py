@@ -18,6 +18,10 @@ DEFAULT_ENV = {
 }
 
 
+def duration(d):
+    return (arrow.get() - d).total_seconds()
+
+
 class ShellExecutor(object):
     class TimeoutConnection(Exception):
         pass
@@ -26,16 +30,17 @@ class ShellExecutor(object):
         pass
 
     def __init__(
-        self, ssh_keyfile, machine,
-        cwd, logsio, project_name=None, env=None, user=None
+        self, ssh_keyfile, host,
+        cwd, logsio, project_name=None, env=None, user=None,
+        machine=None
     ):
+
+        self.host = host
         self.machine = machine
         self._cwd = Path(cwd) if cwd else None
         self.logsio = logsio
         self.env = env or {}
         self.project_name = project_name
-        if machine:
-            assert machine._name == 'cicd.machine'
         if logsio:
             assert isinstance(logsio, LogsIOWriter)
         if project_name:
@@ -44,6 +49,8 @@ class ShellExecutor(object):
             assert isinstance(env, dict)
         self.ssh_keyfile = ssh_keyfile
         self.user = user
+        if not user:
+            raise Exception("User required!")
 
     @contextmanager
     def clone(self, cwd=None, env=None, user=None, project_name=None):
@@ -53,8 +60,9 @@ class ShellExecutor(object):
         cwd = cwd or self.cwd
         project_name = project_name or self.project_name
         shell2 = ShellExecutor(
-            self.ssh_keyfile, self.machine, cwd,
-            self.logsio, project_name, env2, user=user
+            self.ssh_keyfile, self.host, cwd,
+            self.logsio, project_name, env2, user=user,
+            machine=self.machine,
         )
         yield shell2
 
@@ -94,10 +102,9 @@ class ShellExecutor(object):
                     self.logsio.info(f"Path {path} did not exist - not erased")
 
     def _get_home_dir(self):
-        with self.machine._shell() as shell:
-            res = shell.X(
-                ['echo', '$HOME'],
-            )['stdout'].strip()
+        res = self._internal_execute(
+            ['echo', '$HOME'], cwd='/', env=self.env,
+            logoutput=False, timeout=10)['stdout'].strip()
         if res.endswith("/~"):
             res = res[:-2]
         return res
@@ -117,36 +124,52 @@ class ShellExecutor(object):
             cmd.insert(1, "-f")
         res = self.X(cmd, allow_error=allow_error, env=env, timeout=timeout)
         if res['exit_code'] and not allow_error or res['exit_code'] is None:
-            if '.FileNotFoundError: [Errno 2] No such file or directory:' in res['stderr']:
-                raise Exception("Seems that a reload of the instance is required.")
+            if '.FileNotFoundError: [Errno 2] No such file or directory:' in \
+                    res['stderr']:
+                raise Exception((
+                    "Seems that a reload of the instance is required."
+                ))
             else:
-                raise Exception(res['stdout'])
+                raise Exception('\n'.join(filter(
+                    bool, res['stdout'], res['stderr'])))
         return res
 
     def checkout_branch(self, branch, cwd=None):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
             if not self.branch_exists(branch):
-                self.logsio and self.logsio.info(f"Tracking remote branch and checking out {branch}")
-                self.X(["git", "checkout", "-b", branch, "--track", "origin/" + branch], allow_error=True)
-            self.logsio and self.logsio.info(f"Checking out {branch} regularly")
-            self.X(["git", "checkout", "-f", "--no-guess", branch], allow_error=False)
+                self.logsio and self.logsio.info(
+                    f"Tracking remote branch and checking out {branch}")
+                self.X([
+                    "git", "checkout", "-b", branch,
+                    "--track", "origin/" + branch], allow_error=True)
+
+            self.logsio and self.logsio.info(
+                f"Checking out {branch} regularly")
+            self.X([
+                "git", "checkout", "-f",
+                "--no-guess", branch], allow_error=False)
             self.logsio and self.logsio.info(f"Checked out {branch}")
             self._after_checkout()
 
     def checkout_commit(self, commit, cwd=None):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
-            self.X(["git", "config", "advice.detachedHead", "false"])  # otherwise checking out a commit brings error message
+            # otherwise checking out a commit brings error message
+            self.X(["git", "config", "advice.detachedHead", "false"])
             self.X(["git", "clean", "-xdff", commit])
             self.X(["git", "checkout", "-f", commit])
-            sha = self.X(["git", "log", "-n1", "--format=%H"])['stdout'].strip()
+            sha = self.X(["git", "log", "-n1", "--format=%H"])[
+                'stdout'].strip()
             if sha != commit:
-                raise Exception(f"Somehow checking out {commit} in {cwd} failed")
+                raise Exception((
+                    "Somehow checking out "
+                    f"{commit} in {cwd} failed"))
             self._after_checkout()
 
     def branch_exists(self, branch, cwd=None):
-        res = self.X(["git", "branch", "--no-color"], cwd=cwd)['stdout'].strip().split("\n")
+        res = self.X(["git", "branch", "--no-color"], cwd=cwd)[
+            'stdout'].strip().split("\n")
 
         def reformat(x):
             x = x.replace("* ", "")
@@ -192,7 +215,9 @@ class ShellExecutor(object):
 
         cmd, host = self._get_ssh_client('scp', split_host=True)
         capt = Capture()
-        p = run(cmd + f" '{host}:{source}' '{filename}'", stdout=capt, stderr=capt)
+        p = run(
+            cmd + f" '{host}:{source}' '{filename}'",
+            stdout=capt, stderr=capt)
         if p.commands[0].returncode:
             raise Exception("Copy failed")
         try:
@@ -209,22 +234,26 @@ class ShellExecutor(object):
         try:
             cmd, host = self._get_ssh_client('scp', split_host=True)
             capt = Capture()
-            p = run(cmd + f" '{filename}' '{host}:{dest}'", stdout=capt, stderr=capt)
+            p = run(
+                cmd + f" '{filename}' '{host}:{dest}'",
+                stdout=capt, stderr=capt)
             if p.commands[0].returncode:
                 raise Exception(f"Transfer failed to {host}:{dest}")
         finally:
             filename.unlink()
 
     def _get_ssh_client(self, cmd='ssh', split_host=False):
-        host = self.machine.effective_host
-        user = self.user or self.machine.ssh_user
+        host = self.host
+        user = self.user
         base = f"{cmd} -T -oStrictHostKeyChecking=no -i {self.ssh_keyfile}"
         user_host = f"{user}@{host}"
         if split_host:
             return base, user_host
         return base + " " + user_host + " "
 
-    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, timeout=None):
+    def _internal_execute(
+        self, cmd, cwd=None, env=None, logoutput=True, timeout=None
+    ):
 
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
@@ -301,8 +330,10 @@ class ShellExecutor(object):
         def on_stop_marker():
             data['stop_marker'] = arrow.get()
 
-        def collect(capture, writer, marker=None, on_marker=None,
-                stop_marker=None, on_stop_marker=None):
+        def collect(
+            capture, writer, marker=None, on_marker=None,
+            stop_marker=None, on_stop_marker=None
+        ):
 
             while not data['stop']:
                 for line in capture:
@@ -311,7 +342,8 @@ class ShellExecutor(object):
                     if marker and marker in line_decoded and on_started:
                         on_marker()
                         is_marker = True
-                    if stop_marker and stop_marker in line_decoded and on_stop_marker:
+                    if stop_marker and stop_marker in line_decoded and \
+                            on_stop_marker:
                         on_stop_marker()
                         is_marker = True
 
@@ -358,7 +390,9 @@ class ShellExecutor(object):
         # endregion
 
         # region: run command
-        p = run(sshcmd, async_=True, stdout=stdout, stderr=stderr, env=effective_env, input=bashcmd)
+        p = run(
+            sshcmd, async_=True, stdout=stdout,
+            stderr=stderr, env=effective_env, input=bashcmd)
         deadline_started = arrow.get().shift(seconds=10)
         while True:
             if p.returncodes and any(x is not None for x in p.returncodes):
@@ -396,11 +430,13 @@ class ShellExecutor(object):
                 time.sleep(0.05)
 
                 if data.get('stop_marker'):
-                    if (arrow.get() - data['stop_marker']).total_seconds() > 10 and not p.returncodes:
+                    if duration(
+                            data['stop_marker']) > 10 and not p.returncodes:
                         break
-                if p.commands[0].returncode is not None and not data.get('stop_marker'):
+                if p.commands[0].returncode is not None and \
+                        not data.get('stop_marker'):
                     data.setdefault("waiting_for_stop", arrow.get())
-                    if (arrow.get() - data['waiting_for_stop']).total_seconds() > 5:
+                    if duration(data['waiting_for_stop']) > 5:
                         break
 
         finally:

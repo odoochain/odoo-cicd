@@ -5,13 +5,19 @@ import tempfile
 import arrow
 from odoo import http
 from odoo.http import content_disposition, request
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 
 class Controller(http.Controller):
 
     @http.route("/last_access/<name>", type="http", auth="public")
     def last_access(self, name):
         branch = request.env['cicd.git.branch'].sudo().search([('project_name', '=', name)])
-        branch.last_access = arrow.utcnow().datetime.strftime("%Y-%m-%d %H:%M:%S")
+        branch.with_delay(
+            identity_key=f"last-access-{branch.id}-{branch.name}",
+            eta=arrow.utcnow().shift(minutes=10).strftime(DTF),
+        ).write({
+            'last_access': arrow.utcnow().datetime.strftime(DTF),
+        })
         return "OK"
 
     @http.route('/start/<name>/mailer/startup')
@@ -90,9 +96,10 @@ class Controller(http.Controller):
         repos = request.env['cicd.git.repo'].sudo().search([
             ('webhook_id', '=', webhook_id),
             ('webhook_secret', '=', webhook_secret),
-        ])
+        ]).with_context(prefetch_fields=False)
         if not repos:
             raise Exception("Invalid webhook")
+        request.env.cr.commit()
         for repo in repos:
             # no identity key, why:
             # 2 quick push events shall trigger a fetch, otherwise in very rare conditions

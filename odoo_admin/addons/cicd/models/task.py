@@ -3,7 +3,7 @@ import traceback
 from . import pg_advisory_lock
 import arrow
 import traceback
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 import logging
 from odoo.addons.queue_job.exception import RetryableJobError
 from odoo import _, api, fields, models, SUPERUSER_ID, registry
@@ -16,6 +16,7 @@ logger = logging.getLogger('cicd_task')
 
 
 class Task(models.Model):
+    _inherit = ['mixin.queuejob.semaphore', 'cicd.mixin.extra_env']
     _name = 'cicd.task'
     _order = 'date desc'
 
@@ -34,34 +35,35 @@ class Task(models.Model):
 
     state = fields.Selection(selection=STATES, string="State")
     log = fields.Text("Log", readonly=True)
-    error = fields.Text("Exception", compute="_compute_state", prefetch=False)
     dump_used = fields.Char("Dump used", readonly=True)
     duration = fields.Integer("Duration [s]", readonly=True)
     commit_id = fields.Many2one(
         "cicd.git.commit", string="Commit", readonly=True)
-    queuejob_uuid = fields.Char("Queuejob UUID")
-    queue_job_id = fields.Many2one(
-        'queue.job', compute="_compute_queuejob", prefetch=False)
     testrun_id = fields.Many2one('cicd.test.run')
 
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
+    started = fields.Datetime("Started")
+    ignore_previous_tasks = fields.Boolean("Ignore previous tasks")
 
     def _compute_state(self):
         for rec in self:
-            if not rec.queuejob_uuid:
-                rec.state = False
-                rec.error = False
-                continue
-
-            qj = self.env['queue.job'].sudo().search([(
-                'uuid', '=', rec.queuejob_uuid)], limit=1)
+            qj = rec._semaphore_get_queuejob()
             if not qj:
                 # keep last state as queuejobs are deleted from time to time
                 pass
             else:
-                rec.state = qj.state
-                rec.error = qj.exc_info
+                if 'done' in qj.mapped('state'):
+                    rec.state = 'done'
+                elif 'failed' in qj.mapped('state'):
+                    rec.state = 'failed'
+                elif qj:
+                    rec.state = 'started'
+                else:
+                    rec.state = False
+                if qj:
+                    qj = qj.sorted(lambda x: x.id, reverse=True)[0]
+                    rec.log = qj.exc_info
 
     @api.depends('state')
     def _compute_is_done(self):
@@ -79,27 +81,22 @@ class Task(models.Model):
             name = name.split("(")[0]
             rec.display_name = name
 
-    def perform(self, now=False):
+    def perform(self, now=False, ignore_previous_tasks=False):
         self.ensure_one()
+        self._exec(now, ignore_previous_tasks=ignore_previous_tasks)
 
-        if not now:
-            job = self.with_delay(
-                identity_key=self._get_identity_key(),
-                eta=arrow.get().shift(seconds=10).strftime(
-                    DEFAULT_SERVER_DATETIME_FORMAT),
-            )._exec(now)
-            self.queuejob_uuid = job.uuid
-        else:
-            self._exec(now)
-
-    def _get_identity_key(self):
+    @property
+    def semaphore_qj_identity_key(self):
         appendix = \
             f"branch:{self.branch_id.repo_id.short}-{self.branch_id.name}:"
 
         if self.identity_key:
             return self.identity_key + " " + appendix
         name = self._get_short_name()
-        return f"{self.branch_id.project_name}_{name} " + appendix
+        with self._extra_env() as self2:
+            project_name = self2.branch_id.project_name
+
+        return f"{project_name}_{name} " + appendix
 
     def _get_short_name(self):
         name = self.name or ''
@@ -107,72 +104,25 @@ class Task(models.Model):
             name = name[1:]
         return name
 
-    @contextmanager
-    def _new_cursor(self, new_cursor):
-        if new_cursor:
-            with self.env.registry.cursor() as cr:
-                env2 = api.Environment(cr, SUPERUSER_ID, {})
-                yield env2
-        else:
-            yield self.env
-
-    def _exec(self, now=False):
-        self = self.sudo()
-        args = {}
-        short_name = self._get_short_name()
-        # TODO make testruns not block reloading
-        self = self.with_context(active_test=False)
+    def _exec(self, now=False, ignore_previous_tasks=False):
         if not self.branch_id:
-            breakpoint()
             raise Exception("Branch not given for task.")
-        detailinfo = (
-            f"taskid: {self.id} - {self.name} at branch {self.branch_id.name}"
-        )
-        with pg_advisory_lock(
-            self.env.cr, f"task-branch-{self.branch_id.id}",
-            detailinfo=detailinfo
-            ):
-            with self._new_cursor(not now) as env2:
-                self = env2[self._name].browse(self.id)
+
+        with self.semaphore_with_delay(not now, ignore_states=['done']):
+            if now:
+                # commits happening
+                self.state = 'failed'
+            else:
                 self.state = 'started'
-                self.env.cr.commit()
+            self.started = fields.Datetime.now()
 
-                self = self.with_env(env2)
-                with self.branch_id.shell(short_name) as shell:
-
-                    started = arrow.get()
-                    try:
-                        self._internal_exec(shell)
-                    except RetryableJobError:
-                        raise
-
-                    except Exception:
-                        self.env.cr.rollback()
-                        msg = traceback.format_exc()
-                        log = msg + '\n' + '\n'.join(shell.logsio.get_lines())
-                        self.state = 'failed'
-                        if self.branch_id:
-                            self.branch_id.message_post(
-                                body=f"Error happened {self.name}\n{msg}")
-                    else:
-                        self.state = 'done'
-                        log = '\n'.join(shell.logsio.get_lines())
-                        if self.branch_id:
-                            self.branch_id.message_post(
-                                body=f"Successfully executed {self.name}")
-                    finally:
-                        self.env.cr.commit()
-
-                    duration = (arrow.get() - started).total_seconds()
-                    if shell.logsio:
-                        shell.logsio.info(
-                            f"Finished after {duration} seconds!")
-
-                    self.duration = duration
-                    self.log = log
-                    if args.get("delete_task"):
-                        if self.state == 'done':
-                            self.unlink()
+            with self.semaphore_with_delay(
+                enabled=not now,
+            ) as self:
+                if self:
+                    self._internal_exec(
+                        now, ignore_previous_tasks=ignore_previous_tasks
+                    )
 
     @api.model
     def _cron_cleanup(self):
@@ -183,28 +133,19 @@ class Task(models.Model):
 
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in ['failed']):
-            rec.queue_job_id.requeue()
+            qj = rec._semaphore_get_queuejob()
+            qj = qj and qj[0]
+            if qj and qj.state in ['done', 'failed']:
+                qj.unlink()
+                rec._exec(now=False)
+            elif qj:
+                if self.state != 'started':
+                    self.state = 'started'
+            else: # if not qj
+                rec._exec(now=False)
 
-    def _compute_queuejob(self):
-        for rec in self:
-            if rec.queuejob_uuid:
-                rec.queue_job_id = self.env['queue.job'].search([
-                    ('uuid', '=', rec.queuejob_uuid)], limit=1)
-            else:
-                rec.queue_job_id = False
-
-    def _set_failed_if_no_queuejob(self):
-        for task in self:
-            if not task.queue_job_id:
-                if not task.state or task.state in ['started']:
-                    task.state = 'failed'
-                continue
-            if task.queue_job_id.state in ['failed', 'done']:
-                if not task.state or task.state == 'started':
-                    task.state = 'failed'
-
-    def _internal_exec(self, shell):
-        # functions called often block the repository access
+    def _get_args(self, shell):
+        self.ensure_one()
         args = {
             'task': self,
             'logsio': shell.logsio,
@@ -218,26 +159,120 @@ class Task(models.Model):
                 machine=self.machine_id,
                 limit_branch=self.branch_id.name,
                 )
-        obj = self.env[self.model].sudo().browse(self.res_id)
-        # mini check if it is a git repository:
-        commit = None
-        if not args.get('no_repo', False):
-            try:
-                shell.X(["git", "status"])
-            except Exception:
-                pass
-            else:
-                sha = shell.X([
-                    "git", "log", "-n1", "--format=%H"])['stdout'].strip()
-                commit = self.branch_id.commit_ids.filtered(
-                    lambda x: x.name == sha)
+        self.env['base'].flush()
+        self.env.cr.commit()
+        return args
+
+    def _internal_exec(
+        self, now=False, delete_after=False, ignore_previous_tasks=False
+    ):
+        # functions called often block the repository access
+        breakpoint()
+        args = {}
+        log = None
+        commit_ids = None
+        logsio = None
+        if not now and not self.ignore_previous_tasks:
+            with self._extra_env(enabled=not now) as check:
+                previous = check.branch_id.task_ids.filtered(
+                    lambda x: x.id < check.id)
+                if any(x in [False, 'started'] for x in previous.mapped('state')):
+                    raise RetryableJobError(
+                        "Previous tasks exist.", ignore_retry=True, seconds=30)
 
         try:
-            exec('obj.' + self.name + "(**args)", {
-                'obj': obj,
-                'args': args
-                })
-        finally:
-            if commit:
-                self.sudo().commit_id = commit
+            self = self.sudo().with_context(active_test=False)
+            short_name = self._get_short_name()
+            with self.branch_id.shell(short_name) as shell:
+                logsio = shell.logsio
+                args = self._get_args(shell)
+                delete_after = args.get('delete_task')
+                obj = self.env[self.model].sudo().browse(self.res_id)
+                if self.res_id and not obj.exists():
+                    raise Exception((
+                        f"Not found: {self.res_id} {self.model}"
+                    ))
+
+                # mini check if it is a git repository:
+                if not args.get('no_repo', False):
+                    try:
+                        shell.X(["git", "status"])
+                    except Exception:
+                        pass
+                    else:
+                        sha = shell.X([
+                            "git", "log", "-n1",
+                            "--format=%H"])['stdout'].strip()
+
+                        commit_ids = self.branch_id.commit_ids.filtered(
+                            lambda x: x.name == sha).ids
                 self.env.cr.commit()
+
+                exec('obj.' + self.name + "(**args)", {
+                    'obj': obj,
+                    'args': args
+                    })
+                if shell.logsio:
+                    shell.logsio.info("Finished!")
+
+        except Exception:
+            self.env.cr.rollback()
+            self.env.clear()
+            logsio_lines = logsio.get_lines() if logsio else ""
+            log = traceback.format_exc() + \
+                '\n' + '\n'.join(logsio_lines)
+            state = 'failed'
+        else:
+            state = 'done'
+            log = ""
+            if logsio:
+                log = '\n'.join(logsio.get_lines())
+
+        duration = 0
+        if self.started:
+            duration = (arrow.utcnow() - arrow.get(self.started)) \
+                .total_seconds()
+
+        with self.semaphore_with_delay(
+            enabled=not now,
+            appendix='finish',
+        ) as self:
+            if self:
+                self._finish_task(
+                    state=state,
+                    duration=duration,
+                    delete_after=delete_after,
+                    log=log,
+                    commit_id=commit_ids and commit_ids[0] or False
+                )
+
+    def _finish_task(self, state, duration, delete_after, log, commit_id):
+
+        if delete_after and state == 'done':
+            self.unlink()
+            return
+
+        self.write({
+            'state': state,
+            'log': log,
+            'duration': duration,
+            'commit_id': commit_id,
+        })
+        if self.branch_id:
+            if state == 'failed':
+                self.branch_id.message_post(
+                    body=f"Error happened {self.name}\n{log[-250:]}")
+            elif state == 'done':
+                self.branch_id.message_post(
+                    body=f"Successfully executed {self.name}")
+        self.env['base'].flush()
+        self.env.cr.commit()
+
+    @api.model
+    def _cron_check_states_vs_queuejobs(self):
+        pass
+        # think what to do; failed job may be requeued
+        # if self.state == 'started':
+        #     jobs = self._semaphore.get_queuejob()
+        #     if jobs and jobs[0].state in ['done']job.state == 'failed':
+        #         job.state = 'done'

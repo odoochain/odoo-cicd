@@ -21,9 +21,13 @@ logger = logging.getLogger(__name__)
 
 
 class GitBranch(models.Model):
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
     _name = 'cicd.git.branch'
 
+    force_prepare_dump = fields.Boolean("Force prepare Dump")
+    is_release_branch = fields.Boolean(
+        compute="_compute_is_release_branch",
+        search="_search_release_branch")
     project_name = fields.Char(
         compute="_compute_project_name", store=False,
         search="_search_project_name")
@@ -36,7 +40,10 @@ class GitBranch(models.Model):
     backup_machine_id = fields.Many2one(
         'cicd.machine', string="Machine for backup/restore")
     backup_filename = fields.Char("Backup Filename")
-    last_access = fields.Datetime("Last Access", readonly=True)
+    last_access = fields.Datetime(
+        "Last Access", readonly=True,
+        compute='_compute_last_access',
+        inverse='_set_last_access')
     cycle_down_after_seconds = fields.Integer(
         "Cycle Down After Seconds", default=3600)
     name = fields.Char("Git Branch", required=True)
@@ -55,7 +62,8 @@ class GitBranch(models.Model):
     database_size = fields.Float("Database Size", compute="_compute_databases")
     database_size_human = fields.Char(
         "Database Size", compute="_compute_databases")
-    ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
+    ticket_system_url = fields.Char(
+        compute="_compute_ticket_system_url", compute_sudo=True)
     ticket_system_ref = fields.Char(
         "Ticketsystem Ref",
         help=(
@@ -64,13 +72,13 @@ class GitBranch(models.Model):
             ))
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
-    docker_state = fields.Char(
-        "Docker State", readonly=True, compute="_compute_docker_state")
     state = fields.Selection(
         STATES, string="State", default="new",
         tracking=True, compute="_compute_state", store=True,
         group_expand="_expand_states")
     dump_id = fields.Many2one("cicd.dump", string="Dump")
+    last_restore_dump_name = fields.Char("Restored Dump Name", readonly=True)
+    last_restore_dump_date = fields.Char("Restored Dump Date", readonly=True)
     remove_web_assets_after_restore = fields.Boolean(
         "Remove Webassets", default=True)
     reload_config = fields.Text("Reload Config", tracking=True)
@@ -86,9 +94,15 @@ class GitBranch(models.Model):
     release_ids = fields.One2many(
         "cicd.release", "branch_id", string="Releases")
 
-    release_item_ids = fields.Many2many('cicd.release.item', string="Releases")
+    release_branch_ids = fields.Many2one(
+        'cicd.release.item.branch', 'branch_id')
+    # Update Fehler: psycopg2.errors.UndefinedColumn: column "id" referenced in foreign key constraint does not exist
+    # release_item_ids = fields.Many2many(
+    #     'cicd.release.item', 'cicd_release_item_branch', 'branch_id',
+    #     'item_id', 'Releases')
     computed_release_item_ids = fields.Many2many(
-        'cicd.release.item', "Releases", compute="_compute_releases")
+        'cicd.release.item', "Releases", compute="_compute_releases",
+        search='_search_release_items')
 
     any_testing = fields.Boolean(compute="_compute_any_testing")
     run_unittests = fields.Boolean(
@@ -105,8 +119,6 @@ class GitBranch(models.Model):
     test_run_ids = fields.One2many(
         'cicd.test.run', string="Test Runs", compute="_compute_test_runs")
     block_release = fields.Boolean("Block Release", tracking=True)
-    container_ids = fields.One2many(
-        'docker.container', 'branch_id', string="Containers")
     block_updates_until = fields.Datetime("Block updates until", tracking=True)
 
     allowed_backup_machine_ids = fields.Many2many(
@@ -119,12 +131,61 @@ class GitBranch(models.Model):
     link_to_instance = fields.Char(
         compute="_compute_link", string="Link To Instance")
 
+    containers = fields.Text(compute="compute_containers_text", store=False)
+
     _sql_constraints = [
         (
             'name_repo_id_unique',
             "unique(name, repo_id)",
             _("Only one unique entry allowed.")),
     ]
+
+    def compute_containers_text(self):
+        for rec in self:
+            with rec._extra_env() as x_rec:
+                containers_json = x_rec.repo_id.machine_id._get_containers()
+                project_name = x_rec.project_name
+            containers = []
+            for k, v in containers_json.items():
+                if project_name + '_' in k:
+                    containers.append((
+                        f"{k}:{v.lower()}"
+                    ))
+
+            def sortorder(x):
+                state = x.split(":")[1]
+                states = {
+                    'running': 1,
+                    'down': 2,
+                    'exited': 2,
+                }
+                return states.get(state)
+
+            rec.containers = '\n'.join(sorted(containers, key=sortorder))
+
+    def _get_last_access_file(self):
+        self.ensure_one()
+        path = Path((
+            "/opt/out_dir/last_access/"
+            f"last_access_{self.id}"
+        ))
+        path.parent.mkdir(exist_ok=True)
+        return path
+
+    def _compute_last_access(self):
+        for rec in self:
+            file = rec._get_last_access_file()
+            if not file.exists():
+                rec.last_access = False
+            else:
+                date = arrow.get(file.read_text())
+                rec.last_access = date.strftime("%Y-%m-%d %H:%M:%S")
+
+    def _set_last_access(self):
+        for rec in self:
+            rec._get_last_access_file().write_text(
+                arrow.get().strftime("%Y-%m-%d %H:%M:%S")
+            )
 
     def _compute_link(self):
         for rec in self:
@@ -175,16 +236,35 @@ class GitBranch(models.Model):
                 res.repo_id.remove_web_assets_after_restore
         return res
 
+    def _search_release_items(self, operator, value):
+        if operator == 'in':
+            branch = self.env['cicd.release.item.branch'].search([
+                ('item_id', 'in', value)]).branch_id
+            return [('id', 'in', branch.ids)]
+        else:
+            raise NotImplementedError()
+
     def _compute_releases(self):
+        """
+        On item branch or master branch restrict releases to show
+        """
         for rec in self:
-            release_items = rec.release_item_ids.ids
             releases = self.env['cicd.release'].search([
                 ('repo_id', '=', rec.repo_id.id)])
-            if rec in releases.branch_id or rec.name in releases.mapped(
-                    'candidate_branch'):
+
+            release_items = self.env['cicd.release.item'].search([
+                ('branch_ids.branch_id', '=', rec.id)]).with_context(
+                    prefetch_fields=False)
+            item_branches = release_items.item_branch_id
+
+            if rec in releases.branch_id:
                 release_items = releases.filtered(
                     lambda x: x.branch_id == rec
-                    or x.candidate_branch == rec.name).item_ids
+                ).item_ids
+            elif rec in item_branches:
+                release_items = releases.item_ids.filtered(
+                    lambda x: x.item_branch_id == rec)
+
             rec.computed_release_item_ids = release_items
 
     def approve(self):
@@ -203,15 +283,6 @@ class GitBranch(models.Model):
         }]]
         self.state = 'rework'
 
-    @api.depends("container_ids", "container_ids.state")
-    def _compute_docker_state(self):
-        for rec in self:
-            count_up = len(rec.container_ids.filtered(
-                lambda x: x.state == 'up'))
-            count_down = len(rec.container_ids.filtered(
-                lambda x: x.state == 'down'))
-            rec.docker_state = f"Up: {count_up} Down: {count_down}"
-
     def set_state(self, state, raise_exception=False):
         self.ensure_one()
         self.state = state
@@ -226,15 +297,21 @@ class GitBranch(models.Model):
         "latest_commit_id.force_approved",
         "latest_commit_id.test_run_ids",
         "latest_commit_id.test_run_ids.state",
-        "release_item_ids.state",
+        "computed_release_item_ids.state",
+        "computed_release_item_ids",
+        "release_branch_ids.state",
+        "release_branch_ids",
         "any_testing",
+        "block_release",
     )
     def _compute_state(self):
         for rec in self:
+            breakpoint()
             tasks = rec.task_ids.with_context(prefetch_fields=False)
             task_names = set(tasks.mapped('name'))
             building_tasks = any(
-                x in task_names for x in ['update', 'reset', 'restore'])
+                x in y for x in ['update', 'reset', 'restore']
+                for y in task_names)
 
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
@@ -251,8 +328,9 @@ class GitBranch(models.Model):
                 state = 'approve'
 
             elif commit.approval_state == 'approved' and \
-                    commit.test_state in [False, 'open', 'running'] and \
-                        rec.any_testing and not commit.force_approved:
+                commit.test_state in [False, 'open', 'running'] and \
+                    rec.any_testing and not commit.force_approved:
+
                 state = 'testable'
 
             elif commit.test_state == 'failed' or \
@@ -268,54 +346,42 @@ class GitBranch(models.Model):
                     or commit.force_approved
                     ) and commit.approval_state == 'approved':
 
-                release_items = rec.release_item_ids.filtered(
-                    lambda ri: ri.state != 'ignore')
+                release_items = rec.computed_release_item_ids
 
-                latest_states = set()
+                # Determine suitable state state
+                state = 'tested'
+                for release in release_items.release_id:
+                    last_item = (release.next_to_finish_item_id | \
+                        release.last_item_id).filtered(
+                            lambda x: rec in x.branch_ids.branch_id).filtered(
+                                lambda x: x.state != 'done')
+                    last_done_item = release.with_context(
+                        prefetch_fields=False).item_ids.filtered(
+                            lambda x: x.is_done and 
+                            rec.latest_commit_id in x.branch_ids.commit_id)
 
-                def keyfunc(ri):
-                    return ri.release_id
+                    merge_conflict = 'conflict' in last_item.branch_ids.filtered(
+                        lambda x: x.commit_id == rec.latest_commit_id).mapped(
+                        'state')
 
-                release_items_by_release = groupby(
-                    release_items.sorted(keyfunc), keyfunc)
-
-                for release, release_items in release_items_by_release:
-                    latest_states.add(next(release_items).state)
-
-                if set(['new', 'failed']) & latest_states:
-                    state = 'candidate'
-                elif list(latest_states) == ['done']:
-                    state = 'done'
-                else:
-                    state = 'tested'
+                    # merge conflicts beats all
+                    # candidate wins over test
+                    # done looses again candidate
+                    if merge_conflict:
+                        # always wins
+                        state = 'merge_conflict'
+                    elif last_done_item:
+                        if state in ['tested']:
+                            state = 'done'
+                    elif last_item:
+                        if state in ['tested', 'done']:
+                            state = 'candidate'
 
             if state != rec.state:
                 rec.state = state
                 rec.with_delay(
                     identity_key=f"report_ticket_system branch:{rec.name}:"
                 )._report_new_state_to_ticketsystem()
-
-    @api.fieldchange('state', 'block_release')
-    def _onchange_state_event(self, changeset):
-        for rec in self:
-
-            def _update():
-                self.env['cicd.release.item'].search([
-                    ('state', 'in', ['new']),
-                    ('release_id.repo_id', '=', rec.repo_id.id)
-                ])._collect_tested_branches(self.repo_id)
-
-            if 'block_release' in changeset:
-                rec._compute_state()
-                _update()
-                continue
-
-            if 'state' in changeset:
-                old_state = changeset['state']['old']
-                new_state = changeset['state']['new']
-                if new_state == 'tested' or old_state == 'tested':
-                    _update()
-                    continue
 
     @api.depends("name", "ticket_system_ref")
     def _compute_ticket_system_url(self):
@@ -329,14 +395,11 @@ class GitBranch(models.Model):
         for rec in self:
             rec.test_run_ids = rec.mapped('commit_ids.test_run_ids')
 
-    @api.depends("db_size")
-    def _compute_human(self):
-        for rec in self:
-            rec.db_size_humanize = humanize.naturalsize(rec.db_size)
-
     def _make_task(
         self, execute, now=False, machine=None, silent=False,
-        identity_key=None, reuse=False, testrun_id=None, **kwargs
+        identity_key=None, reuse=False, testrun_id=None,
+        ignore_previous_tasks=False,
+        **kwargs
     ):
         for rec in self:
             identity_key = identity_key or \
@@ -346,7 +409,8 @@ class GitBranch(models.Model):
             if reuse and tasks and tasks[0].name == execute and \
                     tasks[0].state == 'failed':
                 if now:
-                    tasks[0].perform(now=now)
+                    tasks[0].perform(
+                        now=now, ignore_previous_tasks=ignore_previous_tasks)
                 elif tasks[0].queue_job_id and \
                         tasks[0].queue_job_id.state in ['failed']:
                     tasks[0].queue_job_id.state = 'pending'
@@ -374,30 +438,24 @@ class GitBranch(models.Model):
             })
             task.perform(now=now)
 
-    @api.model
-    def _cron_update_docker_states(self):
-        self.search([])._docker_get_state()
-
     def _cron_execute_task(self):
         self.ensure_one()
-        tasks = self.task_ids.with_context(prefetch_fields=False).filtered(lambda x: x.state == 'new')
+        tasks = self.task_ids.with_context(prefetch_fields=False).filtered(
+            lambda x: x.state == 'new')
         if not tasks:
             return
         tasks = tasks[-1]
         tasks.perform()
 
     def _get_instance_folder(self, machine):
-        if not self.project_name:
+        project_name = self._unblocked('project_name')
+        if not project_name:
             raise ValidationError("Project name not determined.")
-        return machine._get_volume('source') / self.project_name
+        return machine._get_volume('source') / project_name
 
     def make_instance_ready_to_login(self):
         machine = self.machine_id
         timeout = machine.test_timeout_web_login
-
-        if not self.container_ids:
-            raise UserError(
-                "Please make sure that containers exist to start the branch.")
 
         def test_request():
             response = requests.get((
@@ -408,25 +466,27 @@ class GitBranch(models.Model):
                 timeout=timeout)
             return response.status_code == 200
 
-        try:
-            test_request()
-        except Exception as ex:
-            deadline = arrow.get().shift(seconds=30)
-            while True:
-                try:
-                    self._make_task(
-                        "_reload_and_restart", now=True, reuse=True)
-
-                except RetryableJobError:
-                    time.sleep(1)
-
-                if arrow.get() > deadline:
+        deadline = arrow.utcnow().shift(seconds=120)
+        breakpoint()
+        while True:
+            try:
+                test_request()
+            except Exception as ex:
+                if arrow.utcnow() > deadline:
                     raise ValidationError((
                         "Timeout: could start instance within a "
                         "certain amount of time - please check logs "
                         "if there is bug in the source code of the "
                         "instance or contact your developer"
                         )) from ex
+
+                try:
+                    self._make_task(
+                        "_reload_and_restart", now=True, reuse=True)
+                except RetryableJobError:
+                    time.sleep(1)
+            else:
+                break
 
         if test_request():
             return
@@ -443,7 +503,8 @@ class GitBranch(models.Model):
             ))
 
     def _get_odoo_proxy_container_name(self):
-        return f"{self.project_name}_proxy"
+        project_name = self._unblocked('project_name')
+        return f"{project_name}_proxy"
 
     @api.depends_context('testrun')
     @api.depends("repo_id", "repo_id.short", "name")
@@ -469,12 +530,9 @@ class GitBranch(models.Model):
     @contextmanager
     def _get_new_logsio_instance(self, source):
         self.ensure_one()
-        with LogsIOWriter.GET(f"{self.project_name}", source) as logs:
-            trace = '\n'.join(traceback.format_stack())
-            logs.write_text((
-                f"New Logsio-Instance Started: {arrow.get()}: \n"
-                f"{trace}"
-            ))
+        project_name = self._unblocked('project_name')
+
+        with LogsIOWriter.GET(f"{project_name}", source) as logs:
             yield logs
 
     @api.constrains("backup_filename")
@@ -499,10 +557,12 @@ class GitBranch(models.Model):
                     path = machine._get_volume('source')
                 except Exception:
                     continue
+                self.env['base'].flush()
+                self.env.cr.commit()
 
                 # delete instance folder
                 with machine._shell(cwd=path, logsio=logsio) as shell:
-                    project_path = path / self.project_name
+                    project_path = self.project_path
                     if shell.exists(project_path):
                         try:
                             shell.odoo("kill")
@@ -527,13 +587,13 @@ class GitBranch(models.Model):
 
     def delete_db(self):
         for rec in self:
-            machine = rec.repo_id.machine
+            machine = rec.repo_id.machine_id
             if machine.postgres_server_id.ttype != 'dev':
                 continue
-            with machine._shell() as shell:
-                dbs = machine.postgres_server_id.database_ids.filtered(
-                    lambda x: x.name == rec.project_name)
-                dbs.delete_db()
+            project_name = self._unblocked('project_name')
+            dbs = machine.postgres_server_id.database_ids.filtered(
+                lambda x: x.name == project_name)
+            dbs.delete_db()
 
     def toggle_active(self):
         for rec in self:
@@ -543,25 +603,17 @@ class GitBranch(models.Model):
         for rec in self:
             rec.block_release = not rec.block_release
 
+    # env['cicd.git.branch']._cron_make_test_runs()
+    @api.model
     def _cron_make_test_runs(self):
+        breakpoint()
         for branch in self.search([('state', '=', 'testable')]):
             if not branch.test_run_ids.filtered(
                 lambda x: x.state in [False, 'running', 'open'] and
                     x.commit_id == branch.latest_commit_id):
-                branch._make_task(
-                    "_run_tests", silent=True, update_state=True,
-                    testrun_id=None)
-
-        # revive dead test
-        for running in self.env['cicd.test.run'].search([
-                ('state', '=', 'running')]):
-            # check if task exists and has an active queuejob
-            tasks = self.env['cicd.task'].search([
-                ('testrun_id', '=', running.id)])
-            tasks = tasks.filtered(lambda x: x.queue_job_id.state in [
-                'started', 'enqueued', 'pending'])
-            if not tasks:
-                running.state = 'open'
+                branch.with_delay(
+                    identity_key=f"{branch.latest_commit_id.name}-run-tests"
+                    )._run_tests()
 
         def kf(x):
             return x.branch_id
@@ -573,20 +625,21 @@ class GitBranch(models.Model):
             tests = self.env['cicd.test.run'].union(*list(tests))
             if not tests:
                 continue
-            branch._make_task(
-                "_run_tests", silent=True, update_state=True,
-                testrun_id=tests[0].id)
+            branch.with_delay(
+                identity_key=f"{branch.latest_commit_id.name}-run-tests")\
+                ._run_tests(testrun_id=tests[0].id)
             tests[1:].write({'state': 'omitted'})
 
-    def _trigger_rebuild_after_fetch(self, machine):
+    def _trigger_rebuild_after_fetch(self):
         """
         After new source is fetched then the instance is rebuilt.
         """
         for rec in self:
-            if not rec.database_size:
-                if rec.repo_id.initialize_new_branches:
-                    rec._make_task("_prepare_a_new_instance", silent=True)
-            else:
+            if (not rec.database_size and rec.repo_id.initialize_new_branches) or \
+                        rec.force_prepare_dump:
+                rec._make_task("_prepare_a_new_instance", silent=True)
+                rec.force_prepare_dump = False
+            elif rec.database_size:
                 rec._make_task("_update_odoo", silent=True)
 
     def contains_commit(self, commit):
@@ -595,15 +648,14 @@ class GitBranch(models.Model):
     def _compute_tasks(self):
         for rec in self:
             tasks = rec.task_ids.with_context(prefetch_fields=False)
-            # removed from mt again because it is slow - in feature system of rs
-            # tasks = rec.task_ids # added prefetch=False to fields so all
+            # TODO understand prefetch attribute
+            # removed from mt again because it is slow - in feature system of
+            # rs # tasks = rec.task_ids # added prefetch=False to fields so all
             # rec.task_ids everywhere should be optimized
 
             def _filter(x):
                 if x.state in ['failed']:
                     return True
-                if '_docker_get_state' in x.name:
-                    return False
                 return True
 
             rec.task_ids_filtered = [[6, 0, tasks.filtered(_filter).ids]]
@@ -611,7 +663,6 @@ class GitBranch(models.Model):
     @api.depends('commit_ids')
     def _compute_commit_ids(self):
         for rec in self:
-            #rec.commit_ids_ui = rec.commit_ids[:200]
             rec.commit_ids_ui = rec.commit_ids.sorted(
                 lambda x: x.date, reverse=True)
 
@@ -642,9 +693,14 @@ class GitBranch(models.Model):
     @api.model
     def _cron_check_blocking_done(self):
         dt = arrow.get().now().strftime("%Y-%m-%d %H:%M:%S")
-        for branch in self.search([('block_updates_until', '<', dt)]):
-            branch.block_updates_until = False
-            branch.update_all_modules()
+        with self._extra_env() as x_self:
+            branch_ids = x_self.search([('block_updates_until', '<', dt)]).ids
+        for branch_id in branch_ids:
+            with self._extra_env() as x_self:
+                branch = x_self.browse().branch_id
+                branch.block_updates_until = False
+                branch.update_all_modules()
+                branch.env.cr.commit()
 
     def _compute_allowed_machines(self):
         for rec in self:
@@ -662,7 +718,7 @@ class GitBranch(models.Model):
 
     def ticketsystem_set_state(self, state):
         assert state in ['done', 'in progress']
-        #override / implement!
+        # override / implement!
 
     def _report_new_state_to_ticketsystem(self):
         self.ensure_one()
@@ -694,21 +750,51 @@ class GitBranch(models.Model):
 
     @property
     def project_path(self):
-        return self.machine_id._get_volume('source') / self.project_name
+        with self._extra_env() as self:
+            res = self.machine_id._get_volume('source') / self.project_name
+        return res
 
     @contextmanager
-    def shell(self, logs_title):
+    def shell(self, logs_title, prepare=True):
+        project_name = self._unblocked('project_name')
         with self._get_new_logsio_instance(logs_title) as logsio:
             with self.machine_id._shell(
                 cwd=self.project_path,
                 logsio=logsio,
-                project_name=self.project_name
-                ) as shell:
+                project_name=project_name
+            ) as shell:
 
                 try:
+                    if prepare and shell.cwd and shell.exists(shell.cwd) and \
+                            shell.remove(shell.cwd / "/.git"):
+                        shell.checkout_branch(self.name)
+
                     yield shell
+
                 except Exception as ex:
                     msg = traceback.format_exc()
                     logsio.error(ex)
                     logsio.error(msg)
                     raise
+
+    def _compute_is_release_branch(self):
+        for rec in self:
+            rec.is_release_branch = self.env[
+                'cicd.release.item'].search_count([
+                    ('item_branch_name', '=', rec.name),
+                    ('release_id.repo_id', '=', rec.repo_id.id)
+                ])
+
+    def _search_release_branch(self, operator, value):
+        if operator == '=' and not value:
+            names = self.env['cicd.release.item'].sudo().search([]).mapped(
+                'item_branch_name')
+            return [('name', 'not in', names)]
+
+        else:
+            raise NotImplementedError(operator)
+
+    def unlink(self):
+        for rec in self:
+            rec.active = False
+        return True

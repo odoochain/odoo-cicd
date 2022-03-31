@@ -15,6 +15,7 @@ current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.curre
 
 logger = logging.getLogger(__name__)
 
+
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
@@ -25,7 +26,10 @@ class Branch(models.Model):
         else:
             self.backup_machine_id = dump.machine_id
             self.dump_id = dump
-        self._restore_dump(shell, task, logsio, **kwargs)
+        if self.dump_id:
+            self._restore_dump(shell, task, logsio, **kwargs)
+        else:
+            self._reset_db(shell, task, logsio, **kwargs)
         self._update_all_modules(shell, task, logsio, **kwargs)
 
     def _update_odoo(self, shell, task, logsio, **kwargs):
@@ -46,7 +50,8 @@ class Branch(models.Model):
             try:
                 logsio.info("Updating")
                 result = shell.odoo(
-                    "update", "--since-git-sha", commit, "--no-dangling-check")
+                    "update", "--since-git-sha", commit,
+                    "--no-dangling-check", "--i18n")
 
                 if result['exit_code']:
                     raise Exception("Error at update")
@@ -67,7 +72,7 @@ class Branch(models.Model):
         logsio.info("Building")
         shell.odoo('build')
         logsio.info("Updating")
-        shell.odoo('update', "--no-dangling-check")
+        shell.odoo('update', "--no-dangling-check") # , "--i18n")
         logsio.info("Upping")
         shell.odoo("up", "-d")
 
@@ -92,7 +97,13 @@ class Branch(models.Model):
         shell.odoo("up", "-d")
         self._after_build(shell, logsio)
 
-    def _restore_dump(self, shell, task, logsio, **kwargs):
+    def _restore_dump(self, shell, task, logsio, dump, **kwargs):
+        dump = dump or self.dump_id
+        if isinstance(dump, int):
+            dump = self.env['cicd.dump'].browse(dump)
+
+        if not dump:
+            raise ValidationError(_("Dump missing - cannot restore"))
         self._reload(shell, task, logsio)
         task.sudo().write({'dump_used': self.dump_id.name})
         logsio.info("Reloading")
@@ -102,54 +113,27 @@ class Branch(models.Model):
         logsio.info("Downing")
         shell.odoo('kill')
         shell.odoo('rm')
-        logsio.info(f"Restoring {self.dump_id.name}")
+        logsio.info(f"Restoring {dump.name}")
         shell.odoo(
             '-f', 'restore', 'odoo-db', '--no-remove-webassets',
-            self.dump_id.name)
+            dump.name)
         if self.remove_web_assets_after_restore:
             shell.odoo('-f', 'remove-web-assets')
+        self.last_restore_dump_name = dump.name
+        self.last_restore_dump_date = dump.date_modified
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
-        self.repo_id.machine_id._update_docker_containers()
-        self._docker_get_state()
+        self.repo_id.machine_id._fetch_psaux_docker_containers()
 
     def _docker_stop(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
-        self.repo_id.machine_id._update_docker_containers()
-        self._docker_get_state()
+        self.repo_id.machine_id._fetch_psaux_docker_containers()
 
     def _docker_remove(self, shell, task, logsio, **kwargs):
+        shell.odoo('kill')
         shell.odoo('rm')
-        self.repo_id.machine_id._update_docker_containers()
-        self._docker_get_state()
-
-    def _docker_get_state(self, **kwargs):
-        breakpoint()
-        containers = self.mapped('repo_id.machine_id')._get_containers()
-        for rec in self:
-            updated_containers = set()
-            for container_name in containers:
-                if container_name.startswith(rec.project_name):
-                    container_state = containers[container_name]
-                    state = 'up' if container_state == 'running' else 'down'
-
-                    container = rec.container_ids.filtered(
-                        lambda x: x.name == container_name)
-                    if not container:
-                        rec.container_ids = [[0, 0, {
-                            'name': container_name,
-                            'state': state,
-                        }]]
-                    else:
-                        if container.state != state:
-                            container.state = state
-                    updated_containers.add(container_name)
-                del container_name
-
-            for container in rec.container_ids:
-                if container.name not in updated_containers:
-                    container.unlink()
+        self.repo_id.machine_id._fetch_psaux_docker_containers()
 
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
@@ -159,9 +143,10 @@ class Branch(models.Model):
             project_name=None, settings=None, commit=None, **kwargs
             ):
 
-        with shell.clone(
-            cwd=self._make_sure_source_exists(shell, logsio)
-        ) as shell:
+        cwd = self._make_sure_source_exists(shell, logsio)
+
+        breakpoint()
+        with shell.clone(cwd=cwd) as shell:
             self._make_instance_docker_configs(
                 shell, forced_project_name=project_name, settings=settings)
             self._collect_all_files_by_their_checksum(shell)
@@ -173,11 +158,17 @@ class Branch(models.Model):
         self._reload(shell, task, logsio, **kwargs)
         shell.odoo('build')
 
-    def _dump(self, shell, task, logsio, **kwargs):
-        volume = task.machine_id._get_volume('dumps')
+    def _dump(self, shell, task, logsio, volume=None, filename=None, **kwargs):
+        volume = volume or task.machine_id._get_volume('dumps')
+        if isinstance(volume, int):
+            volume = self.env['cicd.machine.volume'].browse(volume)
+            volume = Path(volume.name)
+
         logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
-        filename = task.branch_id.backup_filename or (
+        filename = filename or task.branch_id.backup_filename or (
             self.project_name + ".dump.gz")
+        assert isinstance(filename, str)
+
         if '/' in filename:
             raise ValidationError("Filename mustn't contain slashses!")
         shell.odoo('backup', 'odoo-db', str(volume / filename))
@@ -290,36 +281,33 @@ class Branch(models.Model):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
-    def _create_empty_db(self, shell, task, logsio, **kwargs):
-        logsio.info("Reloading")
-        self._reload(shell, task, logsio)
-        shell.odoo('reload')
-        logsio.info("Building")
-        shell.odoo('build')
-        logsio.info("Downing")
-        shell.odoo('kill')
-        shell.odoo('rm')
-        shell.odoo('-f', 'db', 'reset')
-
-    def _run_tests(self, shell, task, logsio, **kwargs):
+    def _run_tests(
+        self, shell=None, task=None, logsio=None, test_run=None, **kwargs
+    ):
         """
         If update_state is set, then the state is set to 'tested'
         """
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
-        b = task.branch_id
+        breakpoint()
+        b = task and task.branch_id or self
 
-        if kwargs.get('testrun_id'):
-            test_run = self.test_run_ids.browse(kwargs.get('testrun_id'))
-        else:
+        if not test_run and task and task.testrun_id:
+            test_run = task.testrun_id
+        elif not test_run:
             test_run = self.test_run_ids.filtered(
                 lambda x: x.commit_id ==
-                    self.latest_commit_id and x.state == 'open')
+                    self.latest_commit_id and x.state in ('open', 'omitted'))
 
         if not test_run:
-            test_run = self.test_run_ids.filtered(
-                lambda x: x.commit_id == self.latest_commit_id)
+            test_run = b.test_run_ids.filtered(
+                lambda x: x.commit_id == b.latest_commit_id)
+            if test_run:
+                test_run = test_run.filtered(lambda x: x.state == 'failed')
+                if test_run:
+                    test_run[0].state = 'open'
+
             if not test_run:
-                test_run = self.test_run_ids.create({
+                test_run = b.test_run_ids.create({
                     'commit_id': self.latest_commit_id.id,
                     'branch_id': b.id,
                 })
@@ -327,20 +315,27 @@ class Branch(models.Model):
                 # so that it is available in sub cr in testrun execute
                 self.env.cr.commit()
         else:
-            test_run = test_run.filtered(lambda x: x.state == 'open')
+            test_run = test_run.filtered(
+                lambda x: x.state in ('open', 'omitted'))
+            test_run.filtered(
+                lambda x: x.state != 'open').write({'state': 'open'})
 
         if test_run:
-            test_run[0].execute(shell, task, logsio)
+            test_run[0].with_delay().execute(task=task)
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo(
             "remove-settings", '--settings', 'web.base.url,web.base.url.freeze'
             )
+
+        with self._extra_env() as x_self:
+            external_url = x_self.machine_id.external_url
+
         shell.odoo(
-            "update-setting", 'web.base.url', shell.machine.external_url)
+            "update-setting", 'web.base.url', external_url)
         shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
-        self._docker_get_state(shell=shell)
+        shell.odoo('restore-web-icons')
 
     def _build_since_last_gitsha(self, shell, logsio, **kwargs):
         # todo make button
@@ -348,12 +343,18 @@ class Branch(models.Model):
 
     @api.model
     def _cron_garbage_collect(self):
-        for branch in self.search([('garbage_collect', '=', True)]):
+        for branch in self.search([('repo_id.garbage_collect', '=', True)]):
             branch.garbage_collect()
 
     def _gc(self, shell, logsio, **kwargs):
         logsio.write_text("Compressing git")
-        shell.X(["git", "gc", "--aggressive", "--prune=now"])
+        res = shell.X([
+            "git", "gc", "--aggressive",
+            "--prune=now"], allow_error=True)
+        if 'gc is already running' in res['stderr']:
+            pass
+        else:
+            raise Exception(res['stderr'])
 
     def _clone_instance_folder(self, machine, logsio):
         instance_folder = self._get_instance_folder(machine)
@@ -427,33 +428,54 @@ class Branch(models.Model):
 
         return str(commit)
 
-    def inactivity_cycle_down(self):
-        machines = self.mapped('repo_id.machine_id')
-        for machine in machines:
-            for rec in self.filtered(
-                    lambda x: x.repo_id.machine_id == machine):
-                with rec.machine_id._shell(
-                    cwd=rec.project_path,
-                    project_name=rec.project_name
-                ) as shell:
-                    last_access = arrow.get(rec.last_access or '1980-04-04')
-                    uptime = (arrow.get() - last_access).total_seconds()
-                    if uptime > rec.cycle_down_after_seconds:
-                        rec._docker_get_state(shell=shell, now=True)
-                        if rec.docker_state == 'up':
-                            shell.logsio.info((
-                                "Cycling down instance "
-                                f"{rec.name} due to inactivity"
-                            ))
-                            shell.odoo('kill')
-                            shell.odoo('rm', allow_error=True)
+    def _cron_inactivity_cycle_down(self):
+        branches = self.with_context(
+            active_test=False,
+            prefetch_fields=False
+        ).search([])
+        self.env.cr.commit()
+
+        for rec in branches:
+            with rec._extra_env() as x_rec:
+                last_access = arrow.get(x_rec.last_access or '1980-04-04')
+                uptime = (arrow.get() - last_access).total_seconds()
+                if uptime <= x_rec.cycle_down_after_seconds:
+                    continue
+
+                if ":running" in x_rec.containers:
+                    x_rec.with_delay(
+                        identity_key=f"cycle_down:{x_rec.name}"
+                    )._cycle_down_instance()
+                    x_rec.env.cr.commit()
+
+    def _cycle_down_instance(self):
+        self.ensure_one()
+        with self.machine_id._shell(
+            cwd=self.project_path,
+            project_name=self.project_name
+        ) as shell:
+            self.env.cr.commit()
+            with self._extra_env() as x_rec:
+                name = x_rec.name
+            if shell.logsio:
+                shell.logsio.info((
+                    "Cycling down instance "
+                    f"{name} due to inactivity"
+                ))
+            logger.info((
+                "Shutting down instance due to inactivity "
+                f"{name}"
+                ))
+            shell.odoo('kill', allow_error=True)
+            shell.odoo('rm', allow_error=True)
 
     def _make_instance_docker_configs(
             self, shell, forced_project_name=None, settings=None):
+        breakpoint()
 
         home_dir = shell._get_home_dir()
         machine = shell.machine
-        project_name = forced_project_name or self.project_name
+        project_name = forced_project_name or self._unblocked('project_name')
         content = ((
             current_dir.parent
             / 'data'
@@ -473,26 +495,31 @@ class Branch(models.Model):
             / 'template_cicd_instance.settings')).read_text()
         assert machine
 
-        if not machine.postgres_server_id:
-            raise ValidationError(
-                _(f"Please configure a db server for {machine.name}"))
+        with machine._extra_env() as x_machine:
+            if not x_machine.postgres_server_id:
+                raise ValidationError(
+                    _(f"Please configure a db server for {x_machine.name}"))
 
-        content += "\n" + (self.reload_config or '')
+        content += "\n" + (self._unblocked('reload_config') or '')
         if settings:
             content += "\n" + settings
 
-        shell.put(
-            content.format(
-                branch=self,
-                project_name=project_name,
-                machine=machine),
+        with self._extra_env() as x_self:
+            with machine._extra_env() as x_machine:
+                shell.put(
+                    content.format(
+                        branch=x_self,
+                        project_name=project_name,
+                        machine=x_machine),
 
-            home_dir + f'/.odoo/settings.{project_name}'
-            )
+                    home_dir + f'/.odoo/settings.{project_name}'
+                    )
 
     def _cron_autobackup(self):
-        for rec in self:
-            rec._make_task("_dump", machine=rec.backup_machine_id)
+        for rec in self.search([('autobackup', '=', True)]):
+            rec._make_task(
+                "_dump", machine=rec.backup_machine_id,
+                ignore_previous_tasks=True)
 
     def _reset_db(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
@@ -599,9 +626,13 @@ class Branch(models.Model):
                         shell.odoo('down', '-v', force=True, allow_error=True)
 
     def _make_sure_source_exists(self, shell, logsio):
+        breakpoint()
         instance_folder = self._get_instance_folder(shell.machine)
         self.ensure_one()
-        if not self.repo_id._is_healthy_repository(shell, instance_folder):
+        with self._extra_env() as x_self:
+            healthy = x_self.repo_id._is_healthy_repository(shell, instance_folder)
+
+        if not healthy:
             try:
                 self._checkout_latest(shell, logsio=logsio)
             except Exception:
@@ -668,9 +699,19 @@ for path in base.glob("*"):
             machine = rec.repo_id.machine_id
             with machine._shell() as shell:
                 machine.make_login_possible_for_webssh_container()
-
                 test = shell.X([
                     "sudo", "pkill", "-9", "-f",
                     "-u", shell.machine.ssh_user_cicdlogin,
                     f'new-session.*-s.*{rec.project_name}'
                     ], allow_error=True)
+
+    def new_branch(self):
+        self.ensure_one()
+        if not self.env.user.has_group("cicd.group_make_branches"):
+            raise UserError("Missing rights to create branch.")
+        action = self.repo_id.new_branch()
+        action['context'].update({
+            'default_source_branch_id': self.id,
+            'default_dump_id': self.dump_id.id,
+    })
+        return action

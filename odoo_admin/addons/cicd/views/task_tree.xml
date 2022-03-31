@@ -1,0 +1,22 @@
+<odoo>
+	<data noupdate='0'>
+	<record id="view_task_tree" model="ir.ui.view">
+		<field name="model">cicd.task</field>
+		<field name="arch" type="xml">
+			<tree decoration-danger="state == 'failed'" decoration-success="state == 'done'">
+				<button name="perform" string="Perform" type="object" attrs="{'invisible': [('state', '!=', 'new')]}" groups="base.group_no_one"/>
+				<button name="perform" string="Perform" type="object" groups="base.group_no_one"/>
+				<button name="requeue" type="object" icon="fa-repeat" states='failed'/>
+				<button name="unlink" type="object" string="X" confirm="Delete?"/>
+				<field name="id"/>
+				<field name="branch_id"/>
+				<field name="display_name" />
+				<field name="duration"/>
+				<field name="machine_id"/>
+				<field name="date" />
+				<field name="state" />
+			</tree>
+		</field>
+	</record>
+	</data>
+</odoo>

@@ -36,16 +36,33 @@
 				</tr>
 			</t>
 		</table>
-		
 	</template>
 	<template id="cicd.mail_pre_release_info">
 		Pre-Release Information
 	</template>
 	<template id="cicd.mail_release_done">
-		Pre-Release Information
-        	<span t-esc="summary"/>
+		<h1>Deployment <span t-tesc="object.release_id.name"/></h1>
+		<table>
+			<tr>
+				<th>Date</th>
+				<th>Branch</th>
+				<th>Description</th>
+			</tr>
+			<t t-foreach="item.branch_ids" t-as="line">
+				<tr>
+					<td>
+						<t t-esc="line.commit_id.date"/>
+					</td>
+					<td>
+						<t t-esc="line.branch_id.name"/>
+					</td>
+					<td>
+						<t t-esc="line.branch_id.enduser_summary or ''"/>
+					</td>
+				</tr>
+			</t>
+		</table>
 	</template>
-	
 
 	</data>
 </odoo>

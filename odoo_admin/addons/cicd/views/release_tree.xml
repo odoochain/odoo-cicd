@@ -9,10 +9,10 @@
 				<field name="name" />
 				<field name="active" widget="boolean_toggle"/>
 				<field name="branch_id"/>
-				<field name="candidate_branch"/>
 				<field name="sequence_id"/>
 				<field name="countdown_minutes"/>
 				<field name="auto_release"/>
+				<field name="state"/>
 			</tree>
 		</field>
 	</record>

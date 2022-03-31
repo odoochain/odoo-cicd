@@ -1,0 +1,34 @@
+From e8fb4ec2de3c4e96b202200f582fb2143b7e18ba Mon Sep 17 00:00:00 2001
+From: cicd <cicd>
+Date: Mon, 21 Mar 2022 10:28:06 +0100
+Subject: [PATCH] for patch
+
+---
+ odoo/addons/base/models/ir_cron.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/odoo/addons/base/models/ir_cron.py b/odoo/addons/base/models/ir_cron.py
+index 7a7b42d2..7f5f8f10 100644
+--- a/odoo/addons/base/models/ir_cron.py
++++ b/odoo/addons/base/models/ir_cron.py
+@@ -31,6 +31,7 @@ _intervalTypes = {
+     'weeks': lambda interval: relativedelta(days=7*interval),
+     'months': lambda interval: relativedelta(months=interval),
+     'minutes': lambda interval: relativedelta(minutes=interval),
++    'seconds': lambda interval: relativedelta(seconds=interval),
+ }
+ 
+ 
+@@ -54,7 +55,8 @@ class ir_cron(models.Model):
+     user_id = fields.Many2one('res.users', string='Scheduler User', default=lambda self: self.env.user, required=True)
+     active = fields.Boolean(default=True)
+     interval_number = fields.Integer(default=1, help="Repeat every x.")
+-    interval_type = fields.Selection([('minutes', 'Minutes'),
++    interval_type = fields.Selection([('seconds', 'Seconds'),
++                                      ('minutes', 'Minutes'),
+                                       ('hours', 'Hours'),
+                                       ('days', 'Days'),
+                                       ('weeks', 'Weeks'),
+-- 
+2.34.1
+

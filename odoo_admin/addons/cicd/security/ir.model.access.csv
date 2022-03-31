@@ -1,40 +1,46 @@
 model_id:id,group_id:id,id,name,perm_read,perm_write,perm_create,perm_unlink
-model_cicd_git_branch,base.group_user,access_cicd_git_branch_base_group_user,cicd.git.branch_base_group_user,1,1,1,1
-model_cicd_git_repo,base.group_system,cicd_git_repo_base_group_system,cicd.git.repo - base_group_system,1,1,1,1
-model_cicd_git_commit,base.group_user,cicd_git_commit_base_group_user,cicd.git.commit - base_group_user,1,1,1,1
+model_cicd_git_branch,base.group_user,access_cicd_git_branch_base_group_user,n/a,1,1,1,1
+model_cicd_git_repo,base.group_system,cicd_git_repo_base_group_system,n/a,1,1,1,1
+model_cicd_git_commit,base.group_user,cicd_git_commit_base_group_user,n/a,1,1,1,1
 
-model_cicd_machine_volume,base.group_user,cicd_machine_volume_base_group_user,cicd.machine.volume - base_group_user,1,0,0,0
-model_cicd_machine,base.group_user,cicd_machine_base_group_user,cicd.machine - base_group_user,1,0,0,0
+model_cicd_machine_volume,base.group_user,cicd_machine_volume_base_group_user,n/a,1,0,0,0
+model_cicd_machine,base.group_user,cicd_machine_base_group_user,n/a,1,0,0,0
 
-model_cicd_machine_volume,base.group_system,cicd_machine_volume_base_group_system,cicd.machine.volume - base_group_system,1,1,1,1
-model_cicd_machine,base.group_system,cicd_machine_base_group_system,cicd.machine - base_group_system,1,1,1,1
+model_cicd_machine_volume,base.group_system,cicd_machine_volume_base_group_system,n/a,1,1,1,1
+model_cicd_machine,base.group_system,cicd_machine_base_group_system,n/a,1,1,1,1
 
-model_cicd_task,base.group_user,cicd_task_base_group_user,cicd.task - base_group_user,1,1,1,1
-model_cicd_release,base.group_user,cicd_release_base_group_user,cicd.release - base_group_user,1,1,1,1
-model_cicd_release_item,base.group_user,cicd_release_item_base_group_user,cicd.release.item - base_group_user,1,1,1,1
-model_cicd_release_action,base.group_user,cicd_release_action_base_group_user,cicd.release.action - base_group_user,1,1,1,1
+model_cicd_task,base.group_user,cicd_task_base_group_user,n/a,1,1,1,1
+model_cicd_release,base.group_user,cicd_release_base_group_user,n/a,1,1,1,1
+model_cicd_release_item,base.group_user,cicd_release_item_base_group_user,n/a,1,1,1,1
+model_cicd_release_item_branch,base.group_user,cicd_release_item_branch_base_group_user,n/a,1,1,1,1
+model_cicd_release_action,base.group_user,cicd_release_action_base_group_user,n/a,1,1,1,1
 
-model_cicd_registry,base.group_user,cicd_registry_base_group_user,cicd.registry - base_group_user,1,0,0,0
-model_cicd_registry,base.group_system,cicd_registry_base_group_system,cicd.registry - base_group_system,1,1,1,1
+model_cicd_schedule,base.group_user,cicd_schedule_group_user,n/a,1,1,1,1
 
-model_cicd_test_run,base.group_user,cicd_test_run_base_group_user,cicd.test.run - base_group_user,1,0,0,0
-model_cicd_test_run,cicd.group_developer,cicd_test_run_developer,cicd.test.run - developer,1,1,1,1
-model_cicd_test_run_line,base.group_user,cicd_test_run_line_base_group_user,cicd.test.run.line - base_group_user,1,0,0,0
-model_cicd_test_run_line,cicd.group_developer,cicd_test_run_line_developer,cicd.test.run.line - developer,1,1,1,1
-model_docker_container,base.group_user,docker_container_base_group_user,docker.container - base_group_user,1,0,0,0
+model_cicd_registry,base.group_user,cicd_registry_base_group_user,n/a,1,0,0,0
+model_cicd_registry,base.group_system,cicd_registry_base_group_system,n/a,1,1,1,1
 
-model_cicd_database,base.group_user,cicd_database_base_group_user,cicd.database - base_group_user,1,0,0,0
-model_cicd_postgres,base.group_user,cicd_postgres_base_group_user,cicd.postgres - base_group_user,1,1,1,1
+model_cicd_test_run,base.group_user,cicd_test_run_base_group_user,n/a,1,0,0,0
+model_cicd_test_run,cicd.group_developer,cicd_test_run_developer,n/a,1,1,1,1
+model_cicd_test_run_line,base.group_user,cicd_test_run_line_base_group_user,n/a,1,0,0,0
+model_cicd_test_run_line,cicd.group_developer,cicd_test_run_line_developer,n/a,1,1,1,1
 
-model_cicd_dump,cicd.group_developer,cicd_dump_cicd_group_developer,cicd.dump - cicd_group_developer,1,1,1,1
-model_cicd_dump,base.group_user,cicd_dump_base_group_user,cicd.dump - base_group_user,1,0,0,0
+model_cicd_database,base.group_user,cicd_database_base_group_user,n/a,1,0,0,0
+model_cicd_postgres,base.group_user,cicd_postgres_base_group_user,n/a,1,1,1,1
 
-model_cicd_compressor,cicd.group_developer,cicd_compressor_base_group_developer,cicd.compressor - base_group_developer,1,1,1,1
+model_cicd_dump,cicd.group_developer,cicd_dump_cicd_group_developer,n/a,1,1,1,1
+model_cicd_dump,base.group_user,cicd_dump_base_group_user,n/a,1,0,0,0
 
-model_cicd_ticketsystem,base.group_user,cicd_ticketsystem_base_group_user,cicd.ticketsystem - base_group_user,1,0,0,0
-model_cicd_ticketsystem,cicd.group_developer,cicd_ticketsystem_cicd_group_developer,cicd.ticketsystem - cicd_group_developer,1,1,1,1
+model_cicd_compressor,cicd.group_developer,cicd_compressor_base_group_developer,n/a,1,1,1,1
 
-model_cicd_git_branch_new,cicd.group_developer,cicd_git_branch_new_cicd_group_developer,cicd.git.branch.new - cicd_group_developer,1,1,1,1
+model_cicd_ticketsystem,base.group_user,cicd_ticketsystem_base_group_user,n/a,1,0,0,0
+model_cicd_ticketsystem,cicd.group_developer,cicd_ticketsystem_cicd_group_developer,n/a,1,1,1,1
 
-model_cicd_git_repo,cicd.group_developer,cicd_git_repo_cicd_group_developer,cicd.git.repo - cicd_group_developer,1,0,0,0
+model_cicd_git_branch_new,cicd.group_approver,cicd_git_branch_new_cicd_group_approver,n/a,1,1,1,1
 
+model_cicd_git_repo,cicd.group_developer,cicd_git_repo_cicd_group_developer,n/a,1,1,1,1
+model_queue_job,cicd.group_approver,queue_job_cicd_group_approver,n/a,1,1,1,0
+model_queue_job,cicd.group_developer,queue_job_cicd_group_developer,n/a,1,1,1,1
+
+
+model_cicd_wiz_dump,group_approver,cicd_wiz_dump_group_approver,n/a,1,1,1,1

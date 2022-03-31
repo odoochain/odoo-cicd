@@ -33,10 +33,6 @@ class Branch(models.Model):
     def docker_stop(self):
         self._make_task("_docker_stop")
 
-    def docker_get_state(self, now=True):
-        self._docker_get_state()
-        # rec._make_task("_docker_get_state", now=now, no_repo=True, delete_task=True)
-
     def create_empty_db(self):
         self._make_task("_create_empty_db")
 
@@ -60,13 +56,44 @@ class Branch(models.Model):
     def remove_web_assets(self):
         self._make_task("_remove_web_assets")
 
+    def backup(self):
+        return {
+            'view_type': 'form',
+            'res_model': 'cicd.wiz.dump',
+            'context': {
+                'default_ttype': 'backup',
+                'default_branch_id': self.id,
+                'default_machine_id': self.repo_id.machine_id.id,
+            },
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'flags': {'form': {
+            }},
+            'target': 'new',
+        }
+
     def restore_dump(self):
-        self._check_dump_requirements()
+        return {
+            'view_type': 'form',
+            'res_model': 'cicd.wiz.dump',
+            'context': {
+                'default_ttype': 'restore',
+                'default_branch_id': self.id,
+                'default_machine_id': self.repo_id.machine_id.id,
+            },
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'flags': {'form': {
+            }},
+            'target': 'new',
+        }
 
-        self._make_task("_restore_dump", machine=self.backup_machine_id)
-
-    def run_tests(self, update_state=True):
-        self._make_task("_run_tests", update_state=True)
+    def run_tests(self):
+        if not self.latest_commit_id:
+            raise ValidationError("Missing latest commit.")
+        self.with_delay(identity_key=(
+            f"{self.latest_commit_id.name}-run-tests"
+        ))._run_tests()
 
     def start(self):
         breakpoint()

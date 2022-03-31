@@ -4,7 +4,8 @@ import psycopg2
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from pathlib import Path
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
+from odoo import registry
 
 class Database(models.Model):
     _inherit = ['cicd.mixin.size']
@@ -35,7 +36,10 @@ class Database(models.Model):
     @api.model
     def _cron_update(self):
         for machine in self.env['cicd.machine'].sudo().search([]):
-            self._update_dumps(machine)
+            self.env['base'].flush()
+            self.env.cr.commit()
+
+            machine._update_dumps(machine)
 
     def _compute_machine(self):
         for rec in self:

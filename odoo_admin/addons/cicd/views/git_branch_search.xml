@@ -7,6 +7,7 @@
 					<field name="name"/>
 					<filter name="active" string="Active" domain="[('active', '=', True)]" />
 					<filter name="inactive" string="Inactive" domain="[('active', '=', False)]" />
+					<filter name="no_release_branches" string="No Releases" domain="[('is_release_branch', '=', False)]" />
 					<filter name="group_by_repo" string="Repo" domain="[]" context="{'group_by': 'repo_id'}" />
 					<filter name="group_by_state" string="State" domain="[]" context="{'group_by': 'state'}" />
 					<filter name="group_by_last_access" string="Last Access" domain="[]" context="{'group_by': 'last_access:month'}" />
