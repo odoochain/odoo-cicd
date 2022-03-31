@@ -103,6 +103,13 @@
 			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
 		</record>
 		<menuitem parent="config_menu" id="menu_ticketsystems" action="ticketsystems_action"/>
+		
+		<record id='schedule_action' model='ir.actions.act_window'>
+			<field name='name'>Schedules</field>
+			<field name='res_model'>cicd.schedule</field>
+			<field name='view_mode'>tree,form</field>
+		</record>
+		<menuitem parent="config_menu" id="menu_schedule" action="schedule_action"/>
 
 		<record id='tasks_action' model='ir.actions.act_window'>
 			<field name='name'>Tasks</field>
