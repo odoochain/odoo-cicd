@@ -117,24 +117,28 @@ class Release(models.Model):
     @api.model
     def cron_heartbeat(self):
         for rec in self.search([('auto_release', '=', True)]):
-            last_item = rec.last_item_id
-            if last_item.state in [False, 'ready'] or \
-                    last_item.is_failed or \
-                    last_item.is_done:
+            rec._heartbeat()
 
-                planned_date = rec.compute_next_date()
+    def _heartbeat(self):
+        self.ensure_one()
+        last_item = self.last_item_id
+        if last_item.state in [False, 'ready'] or \
+                last_item.is_failed or \
+                last_item.is_done:
 
-                rec.item_ids = [[0, 0, {
-                    'planned_date': planned_date,
-                }]]
-            
-            items = last_item.search([
-                ('release_id', '=', rec.id),
-                ('is_failed', '=', False),
-                ('is_done', '=', False),
-            ])
-            for item in items:
-                item.cron_heartbeat()
+            planned_date = self.compute_next_date()
+
+            self.item_ids = [[0, 0, {
+                'planned_date': planned_date,
+            }]]
+        
+        items = last_item.search([
+            ('release_id', '=', self.id),
+            ('is_failed', '=', False),
+            ('is_done', '=', False),
+        ])
+        for item in items:
+            item.cron_heartbeat()
 
     def make_hotfix(self):
         existing = self.item_ids.filtered(
