@@ -132,7 +132,7 @@ class Repository(models.Model):
             else:
                 rec.url = rec.name
 
-    def _get_zipped(self, logsio, commit):
+    def _get_zipped(self, logsio, commit, without_git=False):
         machine = self.machine_id
         with self._temp_repo(machine=machine) as repo_path:
             filename = Path(tempfile.mktemp(suffix='.get_zipped'))
@@ -141,7 +141,10 @@ class Repository(models.Model):
                     try:
                         shell.checkout_commit(commit)
                         shell.X(["git", "clean", "-xdff"])
-                        shell.X(["tar", "cfz", filename, "-C", repo_path, '.'])
+                        zip_cmd = ["tar", "cfz", filename, "-C", repo_path, '.']
+                        if without_git:
+                            zip_cmd.insert(-1, '--exclude=".git"')
+                        shell.X(zip_cmd)
                         content = shell.get(filename)
                         shell.X(["rm", filename])
                         return content

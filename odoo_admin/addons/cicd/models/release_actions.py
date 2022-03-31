@@ -92,7 +92,7 @@ class CicdReleaseAction(models.Model):
         breakpoint()
         with self._extra_env() as x_self:
             repo = x_self[0].release_id.repo_id
-            zip_content = repo._get_zipped(logsio, merge_commit_id)
+            zip_content = repo._get_zipped(logsio, merge_commit_id, without_git=True)
         temppath = tempfile.mktemp(suffix='.')
 
         for rec in self:
