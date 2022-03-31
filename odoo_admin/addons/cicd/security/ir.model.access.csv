@@ -20,8 +20,8 @@ model_cicd_schedule,base.group_user,cicd_schedule_group_user,n/a,1,1,1,1
 model_cicd_registry,base.group_user,cicd_registry_base_group_user,n/a,1,0,0,0
 model_cicd_registry,base.group_system,cicd_registry_base_group_system,n/a,1,1,1,1
 
-model_cicd_test_run,base.group_user,cicd_test_run_base_group_user,n/a1,0,0,0
-model_cicd_test_run,cicd.group_developer,cicd_test_run_developer,n/a1,1,1,1
+model_cicd_test_run,base.group_user,cicd_test_run_base_group_user,n/a,1,0,0,0
+model_cicd_test_run,cicd.group_developer,cicd_test_run_developer,n/a,1,1,1,1
 model_cicd_test_run_line,base.group_user,cicd_test_run_line_base_group_user,n/a,1,0,0,0
 model_cicd_test_run_line,cicd.group_developer,cicd_test_run_line_developer,n/a,1,1,1,1
 
