@@ -111,7 +111,12 @@ class Repository(models.Model):
 
     def _compute_shortname(self):
         for rec in self:
-            rec.short = rec.name.split("/")[-1]
+            short = rec.name.split("/")[-1]
+            if short.endswith(".git"):
+                short = short.replace(".git", "")
+            for c in ".?()/#@!":
+                short = short.replace(c, "_")
+            rec.short = short
 
     @api.depends('username', 'password', 'name')
     def _compute_url(self):
