@@ -27,6 +27,7 @@ SETTINGS = (
     "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1\n"
     "RUN_ODOO_QUEUEJOBS=0\n"
     "RUN_ODOO_CRONJOBS=0\n"
+    "ODOO_LOG_LEVEL=warn\n"
 )
 
 logger = logging.getLogger(__name__)
