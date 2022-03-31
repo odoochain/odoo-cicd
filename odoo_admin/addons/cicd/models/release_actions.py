@@ -31,9 +31,9 @@ class CicdReleaseAction(models.Model):
                 finally:
                     shell.rm(filepath)
 
-    @api.model
-    def run_action_set(self, release_item, actions, commit_sha):
+    def run_action_set(self, release_item, commit_sha):
         breakpoint()
+        actions = self
         errors = []
 
         with release_item._extra_env() as unblocked_item:
@@ -92,7 +92,11 @@ class CicdReleaseAction(models.Model):
         breakpoint()
         with self._extra_env() as x_self:
             repo = x_self[0].release_id.repo_id
-            zip_content = repo._get_zipped(logsio, merge_commit_id, without_git=True)
+            zip_content = repo._get_zipped(
+                logsio,
+                merge_commit_id,
+                with_git=x_self.release_id.deploy_git
+            )
         temppath = tempfile.mktemp(suffix='.')
 
         for rec in self:

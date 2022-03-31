@@ -41,6 +41,8 @@ class Release(models.Model):
     send_pre_release_information = fields.Boolean(
         "Send Pre-Release Information")
 
+    deploy_git = fields.Boolean('Include .git', help="Include .git directory on deploy", default=False)
+
     @api.constrains("project_name")
     def _check_project_name(self):
         for rec in self:
@@ -120,8 +122,7 @@ class Release(models.Model):
                     last_item.is_failed or \
                     last_item.is_done:
 
-                planned_date = rec.compute_next_date(
-                    last_item.planned_maximum_finish_date)
+                planned_date = rec.compute_next_date()
 
                 rec.item_ids = [[0, 0, {
                     'planned_date': planned_date,
