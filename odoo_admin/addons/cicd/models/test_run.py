@@ -697,7 +697,7 @@ class CicdTestRun(models.Model):
                 'unittest', _unittest,
                 try_count=self.branch_id.retry_unit_tests,
                 name_callback=name_callback,
-                name_prefix=f"({i} / {len(tests_by_module)}) {module} "
+                name_prefix=f"({i} / {len(tests_by_module)}) "
             )
 
     def _get_unit_tests_by_modules(self, files):
