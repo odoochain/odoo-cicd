@@ -5,6 +5,8 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
 import logging
+from odoo.addons.queue_job.exception import RetryableJobError
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +44,7 @@ class Release(models.Model):
         "Send Pre-Release Information")
 
     deploy_git = fields.Boolean('Include .git', help="Include .git directory on deploy", default=False)
-
+    
     @api.constrains("project_name")
     def _check_project_name(self):
         for rec in self:
@@ -113,12 +115,17 @@ class Release(models.Model):
     def _send_pre_release_information(self):
         for rec in self:
             pass
-
+     
     @api.model
     def cron_heartbeat(self):
         for rec in self.search([('auto_release', '=', True)]):
-            rec._heartbeat()
-
+            try:
+                rec._heartbeat()
+                self.env.cr.commit()
+            except RetryableJobError as e:
+                self.env.cr.rollback()
+                pass
+    
     def _heartbeat(self):
         self.ensure_one()
         last_item = self.last_item_id
@@ -131,6 +138,7 @@ class Release(models.Model):
             self.item_ids = [[0, 0, {
                 'planned_date': planned_date,
             }]]
+            self.env.cr.commit()
         
         items = last_item.search([
             ('release_id', '=', self.id),
