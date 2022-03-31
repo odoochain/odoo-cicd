@@ -54,6 +54,7 @@ class PostgresServer(models.Model):
         try:
             try:
                 cr = conn.cursor()
+                cr.execute("SET statement_timeout 30000")
                 yield cr
                 conn.commit()
             except Exception:

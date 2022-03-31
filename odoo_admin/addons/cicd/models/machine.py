@@ -25,6 +25,7 @@ class CicdMachine(models.Model):
     _inherit = ['mail.thread', 'cicd.mixin.extra_env']
     _name = 'cicd.machine'
 
+    active = fields.Boolean("Active", default=True)
     name = fields.Char("Name")
     is_docker_host = fields.Boolean("Is Docker Host", default=True)
     host = fields.Char("Host")
@@ -421,7 +422,7 @@ echo "--------------------------------------------------------------------------
             self.env.cr.commit()
 
     def _cron_update_docker_containers(self):
-        machines = self.search([])
+        machines = self.env['cicd.git.repo'].search([]).mapped('machine_id')
         self.env.cr.commit()
 
         for rec in machines:

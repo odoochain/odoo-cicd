@@ -16,16 +16,16 @@ class Dump(models.Model):
     name = fields.Char("Name", required=True, readonly=True)
     machine_id = fields.Many2one("cicd.machine", string="Machine", required=True, readonly=True)
     date_modified = fields.Datetime("Date Modified", readonly=True)
-    volume_id = fields.Many2one('cid.machine.volume', string="Volume", compute="_compute_volume")
+    # volume_id = fields.Many2one('cid.machine.volume', string="Volume", compute="_compute_volume") compute error at unlink; perhaps of test prefetch fields base override - perhaps
 
-    def _compute_volume(self):
-        for rec in self:
-            name = '/'.join(rec.name.split("/")[:-1])
-            volumes = rec.machine_id.volume_ids.filtered(
-                lambda x: x.name.startswith(name))
-            rec.volume_id = False
-            if volumes:
-                rec.volume_id = volumes[0]
+    @property 
+    def volume_id(self):
+        self.ensure_one()
+        volumes = self.env['cicd.machine.volume'].search([
+            ('machine_id', '=', self.machine_id.id),
+            ('name', '=like', f'{self.name}%')
+        ], limit=1)
+        return volumes
 
     def download(self):
         self.ensure_one()
@@ -38,9 +38,9 @@ class Dump(models.Model):
     def unlink(self):
         if not self.env.context.get('dump_no_file_delete', False):
             for rec in self:
-                volume = self.volume_id
+                volume = rec.volume_id
                 if volume and volume.ttype == 'dumps':
-                    with self.machine_id._shell() as shell:
+                    with rec.machine_id._shell() as shell:
                         shell.rm(rec.name)
 
         return super().unlink()
