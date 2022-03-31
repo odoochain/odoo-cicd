@@ -732,7 +732,7 @@ class CicdTestRun(models.Model):
                 if len_todo > 1:
                     name += f"({i + 1} / {len_todo}) "
 
-                name_suffix = (item or '')
+                name_suffix = item or ''
                 if name_callback:
                     try:
                         name_suffix = name_callback(item)
