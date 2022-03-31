@@ -62,7 +62,8 @@ class GitBranch(models.Model):
     database_size = fields.Float("Database Size", compute="_compute_databases")
     database_size_human = fields.Char(
         "Database Size", compute="_compute_databases")
-    ticket_system_url = fields.Char(compute="_compute_ticket_system_url")
+    ticket_system_url = fields.Char(
+        compute="_compute_ticket_system_url", compute_sudo=True)
     ticket_system_ref = fields.Char(
         "Ticketsystem Ref",
         help=(
