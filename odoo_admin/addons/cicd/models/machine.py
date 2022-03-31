@@ -421,7 +421,7 @@ echo "--------------------------------------------------------------------------
             self.env.cr.commit()
 
     def _cron_update_docker_containers(self):
-        machines = self.search([])
+        machines = self.env['cicd.git.repo'].search([]).mapped('machine_id')
         self.env.cr.commit()
 
         for rec in machines:

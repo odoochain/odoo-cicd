@@ -308,8 +308,8 @@ class Cursor(BaseCursor):
         try:
             params = params or None
             # ALPHA Testing:
-            self._obj.execute("SET statement_timeout 10000")
-            self._obj.execute("SET idle_in_transaction_session_timeout 20000")
+            self._obj.execute("SET statement_timeout = 10000")
+            self._obj.execute("SET idle_in_transaction_session_timeout = 20000")
             res = self._obj.execute(query, params)
         except Exception as e:
             if self._default_log_exceptions if log_exceptions is None else log_exceptions:
