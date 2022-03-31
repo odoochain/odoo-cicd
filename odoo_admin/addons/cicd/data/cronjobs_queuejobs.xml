@@ -14,7 +14,6 @@ reasons = [
 	'RetryableJobError',
 	'Failed to put the local file',
 	'psycopg2.errors',
-	'Timeout',
 	'.git/index.lock',
 	'duplicate key value violates unique constraint "cicd_git_commit_name"',
 	# following happened when using bitbucket - was slow on that day and timed out
