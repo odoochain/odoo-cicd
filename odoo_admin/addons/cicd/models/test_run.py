@@ -664,6 +664,11 @@ class CicdTestRun(models.Model):
 
         tests_by_module = self._get_unit_tests_by_modules(files)
         i = 0
+
+        def name_callback(f):
+            p = Path(f)
+            return str(p.relative_to(p.parent.parent.parent))
+
         for module, tests in tests_by_module.items():
             i += 1
             shell.odoo("snap", "restore", shell.project_name)
@@ -691,6 +696,7 @@ class CicdTestRun(models.Model):
                 shell, logsio, tests,
                 'unittest', _unittest,
                 try_count=self.branch_id.retry_unit_tests,
+                name_callback=name_callback,
                 name_prefix=f"({i} / {len(tests_by_module)}) {module} "
             )
 
@@ -706,7 +712,7 @@ class CicdTestRun(models.Model):
 
     def _generic_run(
         self, shell, logsio, todo, ttype, execute_run,
-        try_count=1, name_prefix=''
+        try_count=1, name_callback=None, name_prefix=''
     ):
         """
         Timeout in seconds.
@@ -726,7 +732,14 @@ class CicdTestRun(models.Model):
                 if len_todo > 1:
                     name += f"({i + 1} / {len_todo}) "
 
-                name += (item or '')
+                name_suffix = (item or '')
+                if name_callback:
+                    try:
+                        name_suffix = name_callback(item)
+                    except:
+                        pass
+                name += name_suffix
+
                 started = arrow.get()
                 data = {
                     'name': name,
