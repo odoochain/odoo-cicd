@@ -152,7 +152,7 @@ class ReleaseItem(models.Model):
                     commit_sha = x_self.item_branch_id.latest_commit_id.name
                 assert commit_sha
                 errors = self.release_id.action_ids.run_action_set(
-                    self, self.release_id.action_ids, commit_sha)
+                    self, commit_sha)
                 if errors:
                     raise Exception(str(';'.join(map(str, errors))))
 

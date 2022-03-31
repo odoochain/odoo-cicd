@@ -50,6 +50,7 @@
                 'views/user_form.xml',
                 'views/volume_form.xml',
                 'views/wiz_new_branch.xml',
+                'views/schedule_views.xml',
                 'views/menu.xml',
                 'security/ir.model.access.csv'],
     'demo': [],

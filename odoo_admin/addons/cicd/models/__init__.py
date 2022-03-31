@@ -81,6 +81,7 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
                 )
 
 from . import mixin_open_window
+from . import schedule
 from . import mixin_schedule
 from . import mixin_size
 from . import mixin_extra_env
