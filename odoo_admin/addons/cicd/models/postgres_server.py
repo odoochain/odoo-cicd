@@ -113,3 +113,5 @@ class PostgresServer(models.Model):
             if db.name not in all_dbs:
                 db.sudo().unlink()
                 self.env.cr.commit()
+        self._compute_size()
+        self.env.cr.commit()
