@@ -33,9 +33,7 @@ class Base(models.AbstractModel):
 
     def _unblocked(self, field):
         self.ensure_one()
-        with self._extra_env() as self:
-            res = self.read([field])[0][field]
-        return res
+        return self._unblocked_read([field])[field]
 
     def read(self, *args, **kwargs):
         self = self.with_context(prefetch_fields=False)
