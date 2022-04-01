@@ -32,7 +32,7 @@ model.search([('identity_key', 'ilike', 'queuejob_fetch'), ('state', '=', 'done'
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
-		<record id="clear_old_mail_messages" model="ir.cron">
+		<!-- <record id="clear_old_mail_messages" model="ir.cron">
 			<field name="name">clear_old_mail_messages</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">minutes</field>
@@ -48,7 +48,7 @@ if ids:
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
-		</record>
+		</record> -->
 		<record id="clear_old_tasks" model="ir.cron">
 			<field name="name">clear_old_tasks</field>
 			<field name="interval_number">1</field>
@@ -58,7 +58,12 @@ if ids:
 			<field name="code">
 days = int(env['ir.config_parameter'].sudo().get_param(key="delete-tasks-older-than-days", default=10))
 dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
-model.search([('create_date', '&lt;', dt)], limit=500).unlink()
+model.search([
+	('create_date', '&lt;', dt),
+	'|',
+	('log', '!=', False)
+	('kwargs', '!=', False)
+	], limit=500).write({'log': False, 'kwargs': False})
 
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
