@@ -16,7 +16,7 @@ logger = logging.getLogger('cicd_task')
 
 
 class Task(models.Model):
-    _inherit = ['mixin.queuejob.semaphore', 'cicd.mixin.extra_env']
+    _inherit = ['mixin.queuejob.semaphore']
     _name = 'cicd.task'
     _order = 'date desc'
 

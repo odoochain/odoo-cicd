@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class GitBranch(models.Model):
-    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
+    _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
     force_prepare_dump = fields.Boolean("Force prepare Dump")
