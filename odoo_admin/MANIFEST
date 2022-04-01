@@ -9,6 +9,7 @@
         "cicd_jira",
         "field_onchange",
         "queue_job",
+	"web_sheet_full_width",
         "robot_utils",
         "visualize_queries",
     ],

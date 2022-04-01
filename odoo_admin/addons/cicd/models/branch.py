@@ -153,6 +153,7 @@ class GitBranch(models.Model):
                     ))
 
             def sortorder(x):
+                x = x or ''
                 state = x.split(":")[1]
                 states = {
                     'running': 1,
@@ -160,8 +161,10 @@ class GitBranch(models.Model):
                     'exited': 2,
                 }
                 return states.get(state)
-
-            rec.containers = '\n'.join(sorted(containers, key=sortorder))
+            if containers:
+                rec.containers = '\n'.join(sorted(containers, key=sortorder))
+            else:
+                rec.containers = ""
 
     def _get_last_access_file(self):
         self.ensure_one()
