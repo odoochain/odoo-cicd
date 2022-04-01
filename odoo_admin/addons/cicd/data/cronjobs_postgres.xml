@@ -6,7 +6,7 @@
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_postgres" />
 			<field name="state">code</field>
-			<field name="code">model.update_databases()</field>
+			<field name="code">model._cron_update_databases()</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
