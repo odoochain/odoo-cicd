@@ -341,21 +341,6 @@ class Branch(models.Model):
         # todo make button
         self._after_build(shell=shell, logsio=logsio, **kwargs)
 
-    @api.model
-    def _cron_garbage_collect(self):
-        for branch in self.search([('repo_id.garbage_collect', '=', True)]):
-            branch.garbage_collect()
-
-    def _gc(self, shell, logsio, **kwargs):
-        logsio.write_text("Compressing git")
-        res = shell.X([
-            "git", "gc", "--aggressive",
-            "--prune=now"], allow_error=True)
-        if 'gc is already running' in res['stderr']:
-            pass
-        else:
-            raise Exception(res['stderr'])
-
     def _clone_instance_folder(self, machine, logsio):
         instance_folder = self._get_instance_folder(machine)
         self.repo_id._get_main_repo(

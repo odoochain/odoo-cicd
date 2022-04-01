@@ -454,6 +454,7 @@ class GitBranch(models.Model):
         return machine._get_volume('source') / project_name
 
     def make_instance_ready_to_login(self):
+        breakpoint()
         machine = self.machine_id
         timeout = machine.test_timeout_web_login
 
