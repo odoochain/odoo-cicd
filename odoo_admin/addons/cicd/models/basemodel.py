@@ -1,0 +1,47 @@
+from odoo import _, api, fields, models, SUPERUSER_ID, tools
+from contextlib import contextmanager, closing
+
+
+class Base(models.AbstractModel):
+    _inherit = 'base'
+
+    @contextmanager
+    def _extra_env(self, obj=None, enabled=True):
+        obj = obj or self
+        if not enabled:
+            yield obj
+        else:
+
+            # avoid long locking
+            with closing(self.env.registry.cursor()) as cr:
+                env = api.Environment(cr, SUPERUSER_ID, self._context)
+                env.reset()
+                obj = obj.with_env(env).with_context(prefetch_fields=False)
+
+                try:
+                    yield obj
+
+                finally:
+                    env.cr.rollback()
+                    env.clear()
+
+    def _unblocked_read(self, fields):
+        self.ensure_one()
+        with self._extra_env() as self:
+            res = self.read(fields)[0]
+        return res
+
+    def _unblocked(self, field):
+        self.ensure_one()
+        with self._extra_env() as self:
+            res = self.read([field])[0][field]
+        return res
+
+    def read(self, *args, **kwargs):
+        self = self.with_context(prefetch_fields=False)
+        return super().read(*args, **kwargs)
+    
+    def browse(self, *args, **kwargs):
+        self = self.with_context(prefetch_fields=False)
+        return super().browse(*args, **kwargs)
+
