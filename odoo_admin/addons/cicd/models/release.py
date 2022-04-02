@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Release(models.Model):
-    _inherit = ['mail.thread', 'mixin.schedule', 'cicd.mixin.extra_env']
+    _inherit = ['mail.thread', 'mixin.schedule']
     _name = 'cicd.release'
 
     active = fields.Boolean("Active", default=True)
@@ -133,7 +133,9 @@ class Release(models.Model):
                 last_item.is_failed or \
                 last_item.is_done:
 
-            planned_date = self.compute_next_date()
+            planned_date = self.compute_next_date(
+                max(r.last_item_id.planned_maximum_finish_date, fields.Datetime.now())
+            )
 
             self.item_ids = [[0, 0, {
                 'planned_date': planned_date,

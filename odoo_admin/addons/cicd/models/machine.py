@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class CicdMachine(models.Model):
-    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
+    _inherit = ['mail.thread']
     _name = 'cicd.machine'
 
     active = fields.Boolean("Active", default=True)

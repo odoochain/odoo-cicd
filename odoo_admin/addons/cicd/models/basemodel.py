@@ -2,8 +2,8 @@ from odoo import _, api, fields, models, SUPERUSER_ID, tools
 from contextlib import contextmanager, closing
 
 
-class MixinExtraEnv(models.AbstractModel):
-    _name = 'cicd.mixin.extra_env'
+class Base(models.AbstractModel):
+    _inherit = 'base'
 
     @contextmanager
     def _extra_env(self, obj=None, enabled=True):
@@ -26,13 +26,20 @@ class MixinExtraEnv(models.AbstractModel):
                     env.clear()
 
     def _unblocked_read(self, fields):
+        self.ensure_one()
         with self._extra_env() as self:
-            res = {}
-            for field in fields:
-                res[field] = self[field]
+            res = self.read(fields)[0]
         return res
 
     def _unblocked(self, field):
-        with self._extra_env() as self:
-            res = self[field]
-        return res
+        self.ensure_one()
+        return self._unblocked_read([field])[field]
+
+    def read(self, *args, **kwargs):
+        self = self.with_context(prefetch_fields=False)
+        return super().read(*args, **kwargs)
+    
+    def browse(self, *args, **kwargs):
+        self = self.with_context(prefetch_fields=False)
+        return super().browse(*args, **kwargs)
+

@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 
 
 class PostgresServer(models.Model):
-    _inherit = ['cicd.mixin.size', 'cicd.mixin.extra_env']
+    _inherit = ['cicd.mixin.size']
     _name = 'cicd.postgres'
 
     name = fields.Char("Name")

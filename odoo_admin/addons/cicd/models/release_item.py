@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ReleaseItem(models.Model):
     _inherit = [
-        'mail.thread', 'cicd.open.window.mixin', 'cicd.mixin.extra_env']
+        'mail.thread', 'cicd.open.window.mixin']
     _name = 'cicd.release.item'
     _order = 'id desc'
     _log_access = False

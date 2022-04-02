@@ -32,7 +32,7 @@ class MergeConflict(Exception):
 
 
 class Repository(models.Model):
-    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
+    _inherit = ['mail.thread']
     _name = 'cicd.git.repo'
 
     short = fields.Char(

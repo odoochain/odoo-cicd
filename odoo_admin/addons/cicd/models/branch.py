@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class GitBranch(models.Model):
-    _inherit = ['mail.thread', 'cicd.mixin.extra_env']
+    _inherit = ['mail.thread']
     _name = 'cicd.git.branch'
 
     force_prepare_dump = fields.Boolean("Force prepare Dump")
@@ -153,6 +153,7 @@ class GitBranch(models.Model):
                     ))
 
             def sortorder(x):
+                x = x or ''
                 state = x.split(":")[1]
                 states = {
                     'running': 1,
@@ -160,8 +161,10 @@ class GitBranch(models.Model):
                     'exited': 2,
                 }
                 return states.get(state)
-
-            rec.containers = '\n'.join(sorted(containers, key=sortorder))
+            if containers:
+                rec.containers = '\n'.join(sorted(containers, key=sortorder))
+            else:
+                rec.containers = ""
 
     def _get_last_access_file(self):
         self.ensure_one()
@@ -454,6 +457,7 @@ class GitBranch(models.Model):
         return machine._get_volume('source') / project_name
 
     def make_instance_ready_to_login(self):
+        breakpoint()
         machine = self.machine_id
         timeout = machine.test_timeout_web_login
 
