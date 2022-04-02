@@ -359,7 +359,7 @@ class GitBranch(models.Model):
                                 lambda x: x.state != 'done')
                     last_done_item = release.with_context(
                         prefetch_fields=False).item_ids.filtered(
-                            lambda x: x.is_done and 
+                            lambda x: x.is_done and
                             rec.latest_commit_id in x.branch_ids.commit_id)
 
                     merge_conflict = 'conflict' in last_item.branch_ids.filtered(
@@ -471,6 +471,7 @@ class GitBranch(models.Model):
 
         deadline = arrow.utcnow().shift(seconds=120)
         breakpoint()
+        virgin = True
         while True:
             try:
                 test_request()
@@ -484,8 +485,13 @@ class GitBranch(models.Model):
                         )) from ex
 
                 try:
-                    self._make_task(
-                        "_reload_and_restart", now=True, reuse=True)
+                    if virgin:
+                        self._make_task(
+                            "_reload_and_restart", now=True, reuse=True)
+                        virgin = False
+                    else:
+                        self._make_task(
+                            "_simple_docker_up", now=True, reuse=True)
                 except RetryableJobError:
                     time.sleep(1)
             else:

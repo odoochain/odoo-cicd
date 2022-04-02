@@ -86,6 +86,9 @@ class Branch(models.Model):
         logsio.info("Upping")
         shell.odoo("up", "-d")
 
+    def _simple_docker_up(self, shell, task, logsio, **kwargs):
+        shell.odoo("up", "-d")
+
     def _reload_and_restart(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
         logsio.info("Building")
