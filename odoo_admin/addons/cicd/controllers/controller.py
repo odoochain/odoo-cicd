@@ -44,7 +44,6 @@ class Controller(http.Controller):
     @http.route(["/start/<name>", "/start/<name>/<action>"])
     def start_instance(self, name, **args):
         logger.info(f"Starting branch {name}")
-        breakpoint()
         action = args.get('action')
         branch = request.env['cicd.git.branch'].sudo().search([
             ('name', '=', name)], limit=1).with_context(prefetch_fields=False)
