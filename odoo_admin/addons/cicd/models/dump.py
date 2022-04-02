@@ -1,11 +1,9 @@
 from odoo import _, api, fields, models
 import arrow
 import logging
-from odoo import SUPERUSER_ID
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
-from contextlib import contextmanager, closing
-from odoo import registry
 logger = logging.getLogger(__name__)
+
 
 class Dump(models.Model):
     _inherit = ['cicd.mixin.size']
@@ -14,11 +12,12 @@ class Dump(models.Model):
 
     active = fields.Boolean("Active", default=True)
     name = fields.Char("Name", required=True, readonly=True)
-    machine_id = fields.Many2one("cicd.machine", string="Machine", required=True, readonly=True)
+    machine_id = fields.Many2one(
+        "cicd.machine", string="Machine", required=True, readonly=True)
     date_modified = fields.Datetime("Date Modified", readonly=True)
     # volume_id = fields.Many2one('cid.machine.volume', string="Volume", compute="_compute_volume") compute error at unlink; perhaps of test prefetch fields base override - perhaps
 
-    @property 
+    @property
     def volume_id(self):
         self.ensure_one()
         volumes = self.env['cicd.machine.volume'].search([

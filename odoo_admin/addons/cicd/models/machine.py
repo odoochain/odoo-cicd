@@ -416,7 +416,7 @@ echo "--------------------------------------------------------------------------
             )._update_sizes()
             self.env.cr.commit()
 
-            self.env['cicd.dump']._with_delay(
+            self.env['cicd.dump'].with_delay(
                 identity_key=f"dump-udpate-{machine.id}"
             )._update_dumps(machine)
             self.env.cr.commit()
