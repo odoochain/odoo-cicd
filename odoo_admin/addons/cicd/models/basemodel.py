@@ -1,6 +1,5 @@
 # !!!!!! ATTENTION IF USED IN NORMAL ODOO PROJECT BELOW !!!!!!!!
-
-from odoo import _, api, fields, models, SUPERUSER_ID, tools
+from odoo import _, api, models, SUPERUSER_ID
 from contextlib import contextmanager, closing
 
 

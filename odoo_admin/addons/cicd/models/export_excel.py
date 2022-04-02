@@ -1,3 +1,5 @@
+import tempfile
+import base64
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
@@ -20,6 +22,19 @@ class CicdExportExcel(models.TransientModel):
 
     def ok(self):
         breakpoint()
+
+        with self.branch_id.shell("Excel Export") as shell:
+            filename = tempfile.mktemp(suffix='.')
+            shell.odoo(
+                "excel",
+                self.sql,
+                "-f", filename
+            )
+            try:
+                content = shell.get(filename)
+                self.filecontent = base64.encode(content)
+            finally:
+                shell.remove(filename)
 
         return {
             'view_type': 'form',
