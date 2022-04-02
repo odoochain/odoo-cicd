@@ -309,7 +309,11 @@ class Branch(models.Model):
 
             if not test_run:
                 if not self.latest_commit_id:
-                    raise ValidationError("Missing latest commit.")
+                    return
+                    raise ValidationError((
+                        "Missing latest commit."
+                        f" {self.name}"
+                    ))
                 test_run = b.test_run_ids.create({
                     'commit_id': self.latest_commit_id.id,
                     'branch_id': b.id,

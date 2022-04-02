@@ -90,7 +90,10 @@ class Branch(models.Model):
 
     def run_tests(self):
         if not self.latest_commit_id:
-            raise ValidationError("Missing latest commit.")
+            raise ValidationError((
+                "Missing latest commit."
+                f" {self.name}"
+            ))
         self.with_delay(identity_key=(
             f"{self.latest_commit_id.name}-run-tests"
         ))._run_tests()
