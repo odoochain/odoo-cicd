@@ -14,8 +14,6 @@ model.search([('name', 'ilike', 'update_dumps'), ('state', '=', 'done')], order=
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
-
-
 		<record id="clear_old_queuejobs" model="ir.cron">
 			<field name="name">clear_old_jobs</field>
 			<field name="interval_number">1</field>
