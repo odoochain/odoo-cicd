@@ -144,6 +144,13 @@ class Task(models.Model):
             else: # if not qj
                 rec._exec(now=False)
 
+    def _ensure_source_code(self, shell):
+
+        self.branch_id.repo_id._checkout_latest(
+            shell, machine=self.machine_id,
+            instance_folder=shell.cwd,
+        )
+
     def _get_args(self, shell):
         self.ensure_one()
         args = {
@@ -153,13 +160,6 @@ class Task(models.Model):
             }
         if self.kwargs and self.kwargs != 'null':
             args.update(json.loads(self.kwargs))
-        if not args.get('no_repo', False):
-            self.branch_id.repo_id._get_main_repo(
-                destination_folder=shell.cwd,
-                machine=self.machine_id,
-                limit_branch=self.branch_id.name,
-                )
-        self.env['base'].flush()
         self.env.cr.commit()
         return args
 
@@ -186,6 +186,8 @@ class Task(models.Model):
             with self.branch_id.shell(short_name) as shell:
                 logsio = shell.logsio
                 args = self._get_args(shell)
+                if not args.get('no_repo', False):
+                    self._ensure_source_code(shell)
                 delete_after = args.get('delete_task')
                 obj = self.env[self.model].sudo().browse(self.res_id)
                 if self.res_id and not obj.exists():

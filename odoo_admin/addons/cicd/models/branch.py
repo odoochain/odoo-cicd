@@ -309,7 +309,6 @@ class GitBranch(models.Model):
     )
     def _compute_state(self):
         for rec in self:
-            breakpoint()
             tasks = rec.task_ids.with_context(prefetch_fields=False)
             task_names = set(tasks.mapped('name'))
             building_tasks = any(

@@ -341,20 +341,28 @@ class Branch(models.Model):
         # todo make button
         self._after_build(shell=shell, logsio=logsio, **kwargs)
 
-    def _clone_instance_folder(self, machine, logsio):
-        instance_folder = self._get_instance_folder(machine)
-        self.repo_id._get_main_repo(
-            logsio=logsio,
-            destination_folder=instance_folder,
-            limit_branch=self.name,
-            machine=machine,
-        )
-        return instance_folder
+    def _checkout_latest(
+        self, shell, logsio=None, machine=None,
+        instance_folder=None, **kwargs
+    ):
+        """
+        Use this for getting source code. It updates also submodules.
 
-    def _checkout_latest(self, shell, logsio, machine=None, **kwargs):
+        """
+
+        def _clone_instance_folder(machine, logsio, instance_folder):
+            self.repo_id._get_main_repo(
+                logsio=logsio,
+                destination_folder=instance_folder,
+                limit_branch=self.name,
+                machine=machine,
+            )
+
         machine = machine or shell.machine
+        instance_folder = instance_folder or self._get_instance_folder(machine)
+        logsio = logsio or shell.logsio
         logsio.write_text(f"Updating instance folder {self.name}")
-        instance_folder = self._clone_instance_folder(machine, logsio)
+        _clone_instance_folder(machine, logsio, instance_folder)
         logsio.write_text(f"Cloning {self.name} to {instance_folder}")
 
         with shell.clone(cwd=instance_folder) as shell:
@@ -375,7 +383,7 @@ class Branch(models.Model):
                     "Error at pulling,"
                     f"cloning path {instance_folder} again:\n{ex}"))
                 shell.rm(instance_folder)
-                instance_folder = self._clone_instance_folder(machine, logsio)
+                _clone_instance_folder(machine, logsio, instance_folder)
 
             # delete all other branches:
             res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
