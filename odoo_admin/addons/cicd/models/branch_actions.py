@@ -148,7 +148,6 @@ class Branch(models.Model):
 
         cwd = self._make_sure_source_exists(shell, logsio)
 
-        breakpoint()
         with shell.clone(cwd=cwd) as shell:
             self._make_instance_docker_configs(
                 shell, forced_project_name=project_name, settings=settings)
@@ -291,7 +290,6 @@ class Branch(models.Model):
         If update_state is set, then the state is set to 'tested'
         """
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
-        breakpoint()
         b = task and task.branch_id or self
 
         if not test_run and task and task.testrun_id:
@@ -467,7 +465,6 @@ class Branch(models.Model):
 
     def _make_instance_docker_configs(
             self, shell, forced_project_name=None, settings=None):
-        breakpoint()
 
         home_dir = shell._get_home_dir()
         machine = shell.machine
@@ -622,11 +619,11 @@ class Branch(models.Model):
                         shell.odoo('down', '-v', force=True, allow_error=True)
 
     def _make_sure_source_exists(self, shell, logsio):
-        breakpoint()
         instance_folder = self._get_instance_folder(shell.machine)
         self.ensure_one()
         with self._extra_env() as x_self:
-            healthy = x_self.repo_id._is_healthy_repository(shell, instance_folder)
+            healthy = x_self.repo_id._is_healthy_repository(
+                shell, instance_folder)
 
         if not healthy:
             try:

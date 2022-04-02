@@ -182,7 +182,6 @@ class Task(models.Model):
         try:
             self = self.sudo().with_context(active_test=False)
             short_name = self._get_short_name()
-            breakpoint()
             with self.branch_id.shell(short_name) as shell:
                 logsio = shell.logsio
                 args = self._get_args(shell)

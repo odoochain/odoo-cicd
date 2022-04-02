@@ -456,7 +456,6 @@ class GitBranch(models.Model):
         return machine._get_volume('source') / project_name
 
     def make_instance_ready_to_login(self):
-        breakpoint()
         machine = self.machine_id
         timeout = machine.test_timeout_web_login
 
@@ -470,7 +469,6 @@ class GitBranch(models.Model):
             return response.status_code == 200
 
         deadline = arrow.utcnow().shift(seconds=120)
-        breakpoint()
         virgin = True
         while True:
             try:
@@ -615,7 +613,6 @@ class GitBranch(models.Model):
     # env['cicd.git.branch']._cron_make_test_runs()
     @api.model
     def _cron_make_test_runs(self):
-        breakpoint()
         for branch in self.search([('state', '=', 'testable')]):
             if not branch.test_run_ids.filtered(
                 lambda x: x.state in [False, 'running', 'open'] and

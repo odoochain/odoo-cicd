@@ -287,11 +287,9 @@ class CicdTestRun(models.Model):
 
         self._report("Prepare run...")
         self.date = fields.Datetime.now()
-        with self._shell() as shell:
-            self.as_job('prepare', False)._prepare_run()
+        self.as_job('prepare', False)._prepare_run()
 
     def execute_now(self):
-        breakpoint()
         self.with_context(
             test_queue_job_no_delay=True,
             DEBUG_TESTRUN=True,
@@ -487,7 +485,6 @@ class CicdTestRun(models.Model):
             self.as_job('prepare-run', False).prepare_run()
 
     def _run_tests(self):
-        breakpoint()
         self = self._with_context()
         self._report("Starting Tests")
         self._switch_to_running_state()
@@ -592,7 +589,6 @@ class CicdTestRun(models.Model):
         )
 
     def _run_robot_tests(self, shell, logsio, **kwargs):
-        breakpoint()
         files = shell.odoo('list-robot-test-files')['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
@@ -631,7 +627,6 @@ class CicdTestRun(models.Model):
             self._wait_for_postgres(shell)
 
             try:
-                breakpoint()
                 shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
                 state = 'success'
             except Exception as ex:

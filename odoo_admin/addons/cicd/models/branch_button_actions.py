@@ -96,7 +96,6 @@ class Branch(models.Model):
         ))._run_tests()
 
     def start(self):
-        breakpoint()
         self.make_instance_ready_to_login()
         return {
             'type': 'ir.actions.act_url',
