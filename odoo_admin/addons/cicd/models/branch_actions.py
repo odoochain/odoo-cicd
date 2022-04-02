@@ -356,26 +356,27 @@ class Branch(models.Model):
         Use this for getting source code. It updates also submodules.
 
         """
+        my_name = self._unblocked('name')
 
         def _clone_instance_folder(machine, logsio, instance_folder):
             self.repo_id._get_main_repo(
                 logsio=logsio,
                 destination_folder=instance_folder,
-                limit_branch=self.name,
+                limit_branch=my_name,
                 machine=machine,
             )
 
         machine = machine or shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
         logsio = logsio or shell.logsio
-        logsio.write_text(f"Updating instance folder {self.name}")
+        logsio.write_text(f"Updating instance folder {my_name}")
         _clone_instance_folder(machine, logsio, instance_folder)
-        logsio.write_text(f"Cloning {self.name} to {instance_folder}")
+        logsio.write_text(f"Cloning {my_name} to {instance_folder}")
 
         with shell.clone(cwd=instance_folder) as shell:
-            logsio.write_text(f"Checking out {self.name}")
+            logsio.write_text(f"Checking out {my_name}")
             try:
-                shell.X(["git", "checkout", "-f", self.name])
+                shell.X(["git", "checkout", "-f", my_name])
             except Exception as ex:
                 logsio.error(ex)
                 shell.rm(instance_folder)
@@ -397,7 +398,7 @@ class Branch(models.Model):
             for branch in list(filter(lambda x: '* ' not in x, res)):
                 branch = self.repo_id._clear_branch_name(branch)
 
-                if branch == self.name:
+                if branch == my_name:
                     continue
 
                 shell.X(["git", "branch", "-D", branch])
@@ -408,12 +409,12 @@ class Branch(models.Model):
             if not current_branch:
                 raise Exception(f"Somehow no current branch found")
             branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
-            if branch_in_dir != self.name:
+            if branch_in_dir != my_name:
                 shell.rm(instance_folder)
 
                 raise Exception((
                     f"Branch could not be checked out!"
-                    f"Was {branch_in_dir} - but should be {self.name}"
+                    f"Was {branch_in_dir} - but should be {my_name}"
                 ))
 
             logsio.write_text(f"Clean git")
