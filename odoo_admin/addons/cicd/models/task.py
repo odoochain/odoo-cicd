@@ -91,7 +91,7 @@ class Task(models.Model):
             appendix = \
                 f"branch:{x_self.branch_id.repo_id.short}-{x_self.branch_id.name}:"
 
-            if self.x_identity_key:
+            if x_self.identity_key:
                 return x_self.identity_key + " " + appendix
 
         name = self._get_short_name()
