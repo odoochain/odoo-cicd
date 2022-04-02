@@ -1,3 +1,5 @@
+# !!!!!! ATTENTION IF USED IN NORMAL ODOO PROJECT BELOW !!!!!!!!
+
 from odoo import _, api, fields, models, SUPERUSER_ID, tools
 from contextlib import contextmanager, closing
 
@@ -35,10 +37,13 @@ class Base(models.AbstractModel):
         self.ensure_one()
         return self._unblocked_read([field])[field]
 
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # CAREFUL! If you integrate this class in your project
+    # then remove following defs!!!!!!!!!!!!!!!!!!!!!!!!!!!
     def read(self, *args, **kwargs):
         self = self.with_context(prefetch_fields=False)
         return super().read(*args, **kwargs)
-    
+
     def browse(self, *args, **kwargs):
         self = self.with_context(prefetch_fields=False)
         return super().browse(*args, **kwargs)
