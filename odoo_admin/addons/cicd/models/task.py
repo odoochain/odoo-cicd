@@ -87,11 +87,13 @@ class Task(models.Model):
 
     @property
     def semaphore_qj_identity_key(self):
-        appendix = \
-            f"branch:{self.branch_id.repo_id.short}-{self.branch_id.name}:"
+        with self._extra_env() as x_self:
+            appendix = \
+                f"branch:{x_self.branch_id.repo_id.short}-{x_self.branch_id.name}:"
 
-        if self.identity_key:
-            return self.identity_key + " " + appendix
+            if self.x_identity_key:
+                return self.x_identity_key + " " + appendix
+
         name = self._get_short_name()
         with self._extra_env() as self2:
             project_name = self2.branch_id.project_name
@@ -99,7 +101,7 @@ class Task(models.Model):
         return f"{project_name}_{name} " + appendix
 
     def _get_short_name(self):
-        name = self.name or ''
+        name = self._unblocked('name') or ''
         if name.startswith("_"):
             name = name[1:]
         return name
@@ -209,7 +211,7 @@ class Task(models.Model):
                             lambda x: x.name == sha).ids
                 self.env.cr.commit()
 
-                exec('obj.' + self.name + "(**args)", {
+                exec('obj.' + self._unblocked('name') + "(**args)", {
                     'obj': obj,
                     'args': args
                     })
