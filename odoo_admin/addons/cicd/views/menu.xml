@@ -16,6 +16,14 @@
 		<record model="ir.ui.menu" id="base.menu_ir_cron_act">
 			<field name="parent_id" ref="config_menu"/>
 		</record>
+
+		<record id='instances_action' model='ir.actions.act_window'>
+			<field name='name'>Instances</field>
+			<field name='res_model'>cicd.instance</field>
+			<field name='view_mode'>kanban,tree,form</field>
+			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
+		</record>
+		<menuitem parent="root_menu" id="menu_instances" action="instances_action"/>
 		<!-- icon="cicd,static/img/logo.png"/> -->
 		<record id='branches_action' model='ir.actions.act_window'>
 			<field name='name'>Branches</field>
