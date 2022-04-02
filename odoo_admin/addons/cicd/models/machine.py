@@ -454,6 +454,8 @@ echo "--------------------------------------------------------------------------
 
     def _get_containers(self):
         with self._extra_env() as x_self:
+            if not x_self.tempfile_containers:
+                return {}
             path = Path(x_self.tempfile_containers)
 
         if not path.exists():
