@@ -359,7 +359,7 @@ class GitBranch(models.Model):
                                 lambda x: x.state != 'done')
                     last_done_item = release.with_context(
                         prefetch_fields=False).item_ids.filtered(
-                            lambda x: x.is_done and 
+                            lambda x: x.is_done and
                             rec.latest_commit_id in x.branch_ids.commit_id)
 
                     merge_conflict = 'conflict' in last_item.branch_ids.filtered(
@@ -439,6 +439,8 @@ class GitBranch(models.Model):
                 'testrun_id': testrun_id or False,
             })
             task.perform(now=now)
+            if len(self) == 1:
+                return task
 
     def _cron_execute_task(self):
         self.ensure_one()
@@ -484,8 +486,12 @@ class GitBranch(models.Model):
                         )) from ex
 
                 try:
-                    self._make_task(
+                    task = self._make_task(
                         "_reload_and_restart", now=True, reuse=True)
+
+                    if task.state == 'success':
+                        break
+
                 except RetryableJobError:
                     time.sleep(1)
             else:
