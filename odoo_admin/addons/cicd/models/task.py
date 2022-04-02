@@ -146,7 +146,7 @@ class Task(models.Model):
 
     def _ensure_source_code(self, shell):
 
-        self.branch_id.repo_id._checkout_latest(
+        self.branch_id._checkout_latest(
             shell, machine=self.machine_id,
             instance_folder=shell.cwd,
         )
