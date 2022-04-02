@@ -2,7 +2,7 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 
-class CicdExportExcel(models.Model):
+class CicdExportExcel(models.TransientModel):
     _name = 'cicd.export.excel'
 
     branch_id = fields.Many2one(
@@ -18,5 +18,14 @@ class CicdExportExcel(models.Model):
                 ".xlsx"
             )
 
-    def _get_content(self):
+    def ok(self):
         breakpoint()
+
+        return {
+            'view_type': 'form',
+            'res_model': self._name,
+            'res_id': self.id,
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }

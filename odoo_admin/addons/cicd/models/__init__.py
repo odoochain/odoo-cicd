@@ -109,6 +109,7 @@ from . import release_actions
 from . import wiz_new_branch
 from . import release_item_branch
 from . import wiz_dump
+from . import export_excel
 
 # remove in near future....
 from odoo import _, api, fields, models, SUPERUSER_ID
