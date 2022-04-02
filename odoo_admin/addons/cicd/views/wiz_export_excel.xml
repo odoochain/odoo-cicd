@@ -1,0 +1,24 @@
+<odoo>
+	<data noupdate='0'>
+		<record id="view_export_excel" model="ir.ui.view">
+			<field name="name">cicd.export_excel</field>
+			<field name="model">cicd.export_excel</field>
+			<field name="arch" type="xml">
+				<form string="">
+					<sheet>
+						<group string="" col="2">
+							<field name="branch_id" readonly="1"/>
+							<field name="filecontent" filename="filename"
+								attrs="{'invisible': [('filecontent', '=', False)]}"/>
+							<field name="filename invisible='1'"/>
+							<field name="sql" />
+					</sheet>
+					<footer>
+						<button string="OK" name="ok" type="object" class="oe_stat_button"/>
+						<button special="cancel" string="Cancel" class="oe_link" />
+					</footer>
+				</form>
+			</field>
+		</record>
+	</data>
+</odoo>
