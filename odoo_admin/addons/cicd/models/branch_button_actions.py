@@ -99,7 +99,6 @@ class Branch(models.Model):
         ))._run_tests()
 
     def start(self):
-        self.make_instance_ready_to_login()
         return {
             'type': 'ir.actions.act_url',
             'url': '/start/' + self.project_name,

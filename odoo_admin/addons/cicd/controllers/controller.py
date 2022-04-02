@@ -6,6 +6,9 @@ import arrow
 from odoo import http
 from odoo.http import content_disposition, request
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Controller(http.Controller):
 
@@ -40,12 +43,26 @@ class Controller(http.Controller):
 
     @http.route(["/start/<name>", "/start/<name>/<action>"])
     def start_instance(self, name, **args):
+        logger.info(f"Starting branch {name}")
+        breakpoint()
         action = args.get('action')
-        branch = request.env['cicd.git.branch'].sudo().search([])
-        branch = branch.filtered(lambda x: x.project_name == name)
+        branch = request.env['cicd.git.branch'].sudo().search([
+            ('name', '=', name)], limit=1).with_context(prefetch_fields=False)
+        request.env.cr.commit()
+        if not branch:
+            return (
+                f"Did not find {name}."
+            )
 
-        # first try to get login page, if this not success then try to start containers
-        branch.make_instance_ready_to_login()
+        # first try to get login page, if this not success then try to start
+        # containers
+        try:
+            branch.make_instance_ready_to_login()
+        except Exception as ex:
+            return (
+                "Unable to login - could not start instance.<br/>"
+                f"{str(ex)}"
+            )
 
         url = "/web/login"
         if request.env.user.debug_mode_in_instances:
@@ -67,7 +84,8 @@ class Controller(http.Controller):
 
         with dump.machine_id._shell(cwd='~', logsio=None) as shell:
             content = shell.get(dump.name)
-            dump.machine_id.sudo().message_post(body="Downloaded dump: " + dump.name)
+            dump.machine_id.sudo().message_post(
+                body="Downloaded dump: " + dump.name)
 
         name = dump.name.split("/")[-1]
 
