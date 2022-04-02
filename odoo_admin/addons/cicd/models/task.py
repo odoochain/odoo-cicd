@@ -83,13 +83,16 @@ class Task(models.Model):
 
     def perform(self, now=False, ignore_previous_tasks=False):
         self.ensure_one()
+        self.env.cr.commit()
         self._exec(now, ignore_previous_tasks=ignore_previous_tasks)
 
     @property
     def semaphore_qj_identity_key(self):
         with self._extra_env() as x_self:
-            appendix = \
-                f"branch:{x_self.branch_id.repo_id.short}-{x_self.branch_id.name}:"
+            appendix = (
+                f"branch:{x_self.branch_id.repo_id.short}"
+                f"-{x_self.branch_id.name}:"
+            )
 
             if x_self.identity_key:
                 return x_self.identity_key + " " + appendix
@@ -107,7 +110,7 @@ class Task(models.Model):
         return name
 
     def _exec(self, now=False, ignore_previous_tasks=False):
-        if not self.branch_id:
+        if not self._unblocked('branch_id'):
             raise Exception("Branch not given for task.")
 
         with self.semaphore_with_delay(not now, ignore_states=['done']):
