@@ -12,6 +12,7 @@
 								attrs="{'invisible': [('filecontent', '=', False)]}"/>
 							<field name="filename invisible='1'"/>
 							<field name="sql" />
+						</group>
 					</sheet>
 					<footer>
 						<button string="OK" name="ok" type="object" class="oe_stat_button"/>
