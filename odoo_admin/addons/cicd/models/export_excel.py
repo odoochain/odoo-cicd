@@ -10,7 +10,7 @@ class CicdExportExcel(models.TransientModel):
     branch_id = fields.Many2one(
         'cicd.git.branch', string="Branch", required=True)
     filecontent = fields.Binary("Filecontent")
-    filename = fields.Char("Filename", compute="_compute_filenanme")
+    filename = fields.Char("Filename", compute="_compute_filename")
     sql = fields.Text("SQL")
 
     def _compute_filename(self):
@@ -21,8 +21,6 @@ class CicdExportExcel(models.TransientModel):
             )
 
     def ok(self):
-        breakpoint()
-
         with self.branch_id.shell("Excel Export") as shell:
             filename = tempfile.mktemp(suffix='.')
             shell.odoo(
@@ -32,7 +30,7 @@ class CicdExportExcel(models.TransientModel):
             )
             try:
                 content = shell.get(filename)
-                self.filecontent = base64.encode(content)
+                self.filecontent = base64.encodestring(content)
             finally:
                 shell.remove(filename)
 

@@ -812,7 +812,7 @@ class GitBranch(models.Model):
         })
         return {
             'view_type': 'form',
-            'res_model': self._name,
+            'res_model': wiz._name,
             'res_id': wiz.id,
             'views': [(False, 'form')],
             'type': 'ir.actions.act_window',

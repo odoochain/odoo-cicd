@@ -12,13 +12,10 @@
 								attrs="{'invisible': [('filecontent', '=', False)]}"
 								placeholder="select id, name from res_partner;"/>
 							<field name="filename" invisible='1'/>
+							<button name="ok" string="Fetch XLSX" type="object" />
 							<field name="sql" />
 						</group>
 					</sheet>
-					<footer>
-						<button string="OK" name="ok" type="object" class="oe_stat_button"/>
-						<button special="cancel" string="Cancel" class="oe_link" />
-					</footer>
 				</form>
 			</field>
 		</record>
