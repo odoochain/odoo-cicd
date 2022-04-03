@@ -27,7 +27,8 @@ class CicdExportExcel(models.TransientModel):
             sql = sql.replace("\n", " ")
             shell.odoo(
                 "excel",
-                f"'{sql}'",
+                base64.encodestring(sql.encode('utf-8')).decode('utf-8'),
+                "--base64",
                 "-f", filename
             )
             try:
