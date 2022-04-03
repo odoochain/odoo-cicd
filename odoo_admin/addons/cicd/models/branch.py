@@ -161,6 +161,7 @@ class GitBranch(models.Model):
                     'exited': 2,
                 }
                 return states.get(state)
+
             if containers:
                 rec.containers = '\n'.join(sorted(containers, key=sortorder))
             else:
@@ -456,7 +457,6 @@ class GitBranch(models.Model):
         return machine._get_volume('source') / project_name
 
     def make_instance_ready_to_login(self):
-        breakpoint()
         machine = self.machine_id
         timeout = machine.test_timeout_web_login
 
@@ -470,7 +470,6 @@ class GitBranch(models.Model):
             return response.status_code == 200
 
         deadline = arrow.utcnow().shift(seconds=120)
-        breakpoint()
         virgin = True
         while True:
             try:
@@ -615,7 +614,6 @@ class GitBranch(models.Model):
     # env['cicd.git.branch']._cron_make_test_runs()
     @api.model
     def _cron_make_test_runs(self):
-        breakpoint()
         for branch in self.search([('state', '=', 'testable')]):
             if not branch.test_run_ids.filtered(
                 lambda x: x.state in [False, 'running', 'open'] and
@@ -807,3 +805,16 @@ class GitBranch(models.Model):
         for rec in self:
             rec.active = False
         return True
+
+    def export_excel(self):
+        wiz = self.env['cicd.export.excel'].create({
+            'branch_id': self.id,
+        })
+        return {
+            'view_type': 'form',
+            'res_model': wiz._name,
+            'res_id': wiz.id,
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }

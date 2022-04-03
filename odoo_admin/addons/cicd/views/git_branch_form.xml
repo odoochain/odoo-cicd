@@ -21,6 +21,7 @@
 						<field name="state" widget="statusbar" options="{'clickable': 0}" />
 						<button name="backup" string="Backup Dump" type="object"/>
 						<button name="restore_dump" string="Restore Dump" type="object" groups="cicd.group_key_user"/>
+						<button name="export_excel" string="Export Excel" type="object" />
 					</header>
 					<sheet>
 						<field name="block_release" invisible='1'/>

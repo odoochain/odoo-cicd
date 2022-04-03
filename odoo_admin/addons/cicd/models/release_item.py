@@ -145,7 +145,6 @@ class ReleaseItem(models.Model):
             rec.computed_summary = '\n'.join(summary)
 
     def _do_release(self):
-        breakpoint()
         try:
             with self.release_id._get_logsio() as logsio:
                 with self._extra_env() as x_self:
@@ -279,7 +278,6 @@ class ReleaseItem(models.Model):
             ), ignore_retry=True, seconds=15) from ex
 
     def cron_heartbeat(self):
-        breakpoint()
         self.ensure_one()
         self._lock()
         now = fields.Datetime.now()
@@ -343,7 +341,6 @@ class ReleaseItem(models.Model):
         """
         Merges
         """
-        breakpoint()
         logsio = None
         self._lock()
 

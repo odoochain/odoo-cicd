@@ -148,7 +148,6 @@ class Branch(models.Model):
 
         cwd = self._make_sure_source_exists(shell, logsio)
 
-        breakpoint()
         with shell.clone(cwd=cwd) as shell:
             self._make_instance_docker_configs(
                 shell, forced_project_name=project_name, settings=settings)
@@ -291,7 +290,6 @@ class Branch(models.Model):
         If update_state is set, then the state is set to 'tested'
         """
         # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
-        breakpoint()
         b = task and task.branch_id or self
 
         if not test_run and task and task.testrun_id:
@@ -310,6 +308,12 @@ class Branch(models.Model):
                     test_run[0].state = 'open'
 
             if not test_run:
+                if not self.latest_commit_id:
+                    return
+                    raise ValidationError((
+                        "Missing latest commit."
+                        f" {self.name}"
+                    ))
                 test_run = b.test_run_ids.create({
                     'commit_id': self.latest_commit_id.id,
                     'branch_id': b.id,
@@ -352,26 +356,27 @@ class Branch(models.Model):
         Use this for getting source code. It updates also submodules.
 
         """
+        my_name = self._unblocked('name')
 
         def _clone_instance_folder(machine, logsio, instance_folder):
             self.repo_id._get_main_repo(
                 logsio=logsio,
                 destination_folder=instance_folder,
-                limit_branch=self.name,
+                limit_branch=my_name,
                 machine=machine,
             )
 
         machine = machine or shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
         logsio = logsio or shell.logsio
-        logsio.write_text(f"Updating instance folder {self.name}")
+        logsio.write_text(f"Updating instance folder {my_name}")
         _clone_instance_folder(machine, logsio, instance_folder)
-        logsio.write_text(f"Cloning {self.name} to {instance_folder}")
+        logsio.write_text(f"Cloning {my_name} to {instance_folder}")
 
         with shell.clone(cwd=instance_folder) as shell:
-            logsio.write_text(f"Checking out {self.name}")
+            logsio.write_text(f"Checking out {my_name}")
             try:
-                shell.X(["git", "checkout", "-f", self.name])
+                shell.X(["git", "checkout", "-f", my_name])
             except Exception as ex:
                 logsio.error(ex)
                 shell.rm(instance_folder)
@@ -393,7 +398,7 @@ class Branch(models.Model):
             for branch in list(filter(lambda x: '* ' not in x, res)):
                 branch = self.repo_id._clear_branch_name(branch)
 
-                if branch == self.name:
+                if branch == my_name:
                     continue
 
                 shell.X(["git", "branch", "-D", branch])
@@ -404,12 +409,12 @@ class Branch(models.Model):
             if not current_branch:
                 raise Exception(f"Somehow no current branch found")
             branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
-            if branch_in_dir != self.name:
+            if branch_in_dir != my_name:
                 shell.rm(instance_folder)
 
                 raise Exception((
                     f"Branch could not be checked out!"
-                    f"Was {branch_in_dir} - but should be {self.name}"
+                    f"Was {branch_in_dir} - but should be {my_name}"
                 ))
 
             logsio.write_text(f"Clean git")
@@ -467,7 +472,6 @@ class Branch(models.Model):
 
     def _make_instance_docker_configs(
             self, shell, forced_project_name=None, settings=None):
-        breakpoint()
 
         home_dir = shell._get_home_dir()
         machine = shell.machine
@@ -622,11 +626,11 @@ class Branch(models.Model):
                         shell.odoo('down', '-v', force=True, allow_error=True)
 
     def _make_sure_source_exists(self, shell, logsio):
-        breakpoint()
         instance_folder = self._get_instance_folder(shell.machine)
         self.ensure_one()
         with self._extra_env() as x_self:
-            healthy = x_self.repo_id._is_healthy_repository(shell, instance_folder)
+            healthy = x_self.repo_id._is_healthy_repository(
+                shell, instance_folder)
 
         if not healthy:
             try:

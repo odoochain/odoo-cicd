@@ -416,7 +416,7 @@ echo "--------------------------------------------------------------------------
             )._update_sizes()
             self.env.cr.commit()
 
-            self.env['cicd.dump']._with_delay(
+            self.env['cicd.dump'].with_delay(
                 identity_key=f"dump-udpate-{machine.id}"
             )._update_dumps(machine)
             self.env.cr.commit()
@@ -454,6 +454,8 @@ echo "--------------------------------------------------------------------------
 
     def _get_containers(self):
         with self._extra_env() as x_self:
+            if not x_self.tempfile_containers:
+                return {}
             path = Path(x_self.tempfile_containers)
 
         if not path.exists():

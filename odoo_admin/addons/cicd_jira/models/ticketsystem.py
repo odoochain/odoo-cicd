@@ -2,6 +2,7 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 import re
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
+
 class TicketSystem(models.Model):
     _inherit = 'cicd.ticketsystem'
 

@@ -265,7 +265,6 @@ class Repository(models.Model):
 
     @api.model
     def _cron_fetch(self):
-        breakpoint()
         repos = self
         if not repos:
             repos = self.search([('autofetch', '=', True)])
@@ -361,7 +360,6 @@ class Repository(models.Model):
         try:
             shell.checkout_branch(branch)
         except Exception as ex:
-            breakpoint()
             shell.logsio.error(ex)
 
             severity = self._exception_meaning(ex)
@@ -413,7 +411,6 @@ class Repository(models.Model):
             ('repo_id', '=', self.id)])
         candidate_branch_names = releases.item_ids.mapped('item_branch_name')
         try:
-            breakpoint()
             logsio = shell.logsio
             logsio.info(f"Pulling {branch}...")
             shell.X(["git", "fetch", "origin", branch])
@@ -442,7 +439,6 @@ class Repository(models.Model):
         repo = self.sudo()  # may be triggered by queuejob
         # checkout latest / pull latest
         updated_branches = data['updated_branches']
-        breakpoint()
 
         with LogsIOWriter.GET(repo.name, 'fetch') as logsio:
             repo_path = repo._get_main_repo(logsio=logsio)

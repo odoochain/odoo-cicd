@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import arrow
 from contextlib import contextmanager, closing
 
+
 class SemaphoreQueuejob(models.AbstractModel):
     _name = 'mixin.queuejob.semaphore'
 
@@ -20,7 +21,6 @@ class SemaphoreQueuejob(models.AbstractModel):
             f"{self._name},"
             f"{self.id}"
         )
-
 
     @contextmanager
     def semaphore_with_delay(self, enabled, appendix=False, ignore_states=None, **params):

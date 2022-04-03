@@ -31,7 +31,6 @@ class CicdReleaseAction(models.Model):
                     shell.rm(filepath)
 
     def run_action_set(self, release_item, commit_sha):
-        breakpoint()
         actions = self
         errors = []
 
@@ -88,7 +87,6 @@ class CicdReleaseAction(models.Model):
                 shell.odoo("kill")
 
     def _update_sourcecode(self, logsio, release_item, merge_commit_id):
-        breakpoint()
         with self._extra_env() as x_self:
             repo = x_self[0].release_id.repo_id
             zip_content = repo._get_zipped(

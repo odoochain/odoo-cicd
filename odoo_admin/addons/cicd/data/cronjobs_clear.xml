@@ -59,8 +59,8 @@ dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%
 model.search([
 	('create_date', '&lt;', dt),
 	'|',
-	('log', '!=', False)
-	('kwargs', '!=', False)
+	('log', '!=', False),
+	('kwargs', '!=', False),
 	], limit=500).write({'log': False, 'kwargs': False})
 
 			</field>
