@@ -58,6 +58,7 @@ class Controller(http.Controller):
         try:
             branch.make_instance_ready_to_login()
         except Exception as ex:
+            logger.error(str(ex))
             return (
                 "Unable to login - could not start instance.<br/>"
                 f"{str(ex)}"
