@@ -9,7 +9,7 @@ class CicdExportExcel(models.TransientModel):
 
     branch_id = fields.Many2one(
         'cicd.git.branch', string="Branch", required=True)
-    filecontent = fields.Binary("Filecontent")
+    filecontent = fields.Binary("Filecontent", attachment=True)
     filename = fields.Char("Filename", compute="_compute_filename")
     sql = fields.Text("SQL")
 
@@ -34,11 +34,15 @@ class CicdExportExcel(models.TransientModel):
             finally:
                 shell.remove(filename)
 
+        attachment = self.env['ir.attachment'].search([
+            ('res_model', '=', self._name),
+            ('res_id', '=', self.id),
+            ('res_field', '=', 'filecontent'),
+        ], limit=1)
+
         return {
-            'view_type': 'form',
-            'res_model': self._name,
-            'res_id': self.id,
-            'views': [(False, 'form')],
-            'type': 'ir.actions.act_window',
-            'target': 'current',
+            'type': 'ir.actions.act_url',
+            'url': '/web/content/{}?download=True'.format(
+                attachment.id),
+            'target': 'self'
         }
