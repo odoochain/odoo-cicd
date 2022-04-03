@@ -160,7 +160,7 @@ class GitBranch(models.Model):
                     'down': 2,
                     'exited': 2,
                 }
-                return states.get(state)
+                return states.get(state) or ''
 
             if containers:
                 rec.containers = '\n'.join(sorted(containers, key=sortorder))
