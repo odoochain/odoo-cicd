@@ -44,3 +44,5 @@ model_queue_job,cicd.group_developer,queue_job_cicd_group_developer,n/a,1,1,1,1
 
 
 model_cicd_wiz_dump,group_approver,cicd_wiz_dump_group_approver,n/a,1,1,1,1
+
+model_cicd_export_excel,group_approver,cicd_export_excel_group_approver,1,1,1,1

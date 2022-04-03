@@ -805,3 +805,16 @@ class GitBranch(models.Model):
         for rec in self:
             rec.active = False
         return True
+
+    def export_excel(self):
+        wiz = self.env['cicd.export.excel'].create({
+            'branch_id': self.id,
+        })
+        return {
+            'view_type': 'form',
+            'res_model': self._name,
+            'res_id': wiz.id,
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }
