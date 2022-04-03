@@ -23,7 +23,7 @@ class CicdExportExcel(models.TransientModel):
     def ok(self):
         with self.branch_id.shell("Excel Export") as shell:
             filename = tempfile.mktemp(suffix='.')
-            sql = self.sql
+            sql = self.sql.strip()
             sql = sql.replace("\n", " ")
             shell.odoo(
                 "excel",
