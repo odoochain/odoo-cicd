@@ -101,9 +101,7 @@ class Branch(models.Model):
     def start(self):
         return {
             'type': 'ir.actions.act_url',
-            #Hotfix
-            #'url': '/start/' + self.project_name,
-            'url': '/start/' + self.name,
+            'url': '/start/' + self.project_name,
             'target': 'self'
         }
 

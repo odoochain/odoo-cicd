@@ -45,13 +45,18 @@ class Controller(http.Controller):
     def start_instance(self, name, **args):
         logger.info(f"Starting branch {name}")
         action = args.get('action')
+        # branch = request.env['cicd.git.branch'].sudo().search([
+        #     ('name', '=', name)], limit=1).with_context(prefetch_fields=False)
+        # TODO improve performance
         branch = request.env['cicd.git.branch'].sudo().search([
-            ('name', '=', name)], limit=1).with_context(prefetch_fields=False)
+        ]).with_context(prefetch_fields=False).filtered(
+            lambda x: x.project_name == name)
         request.env.cr.commit()
         if not branch:
             return (
                 f"Did not find {name}."
             )
+        branch = branch[0]
 
         # first try to get login page, if this not success then try to start
         # containers
