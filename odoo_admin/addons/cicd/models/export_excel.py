@@ -27,7 +27,7 @@ class CicdExportExcel(models.TransientModel):
             sql = sql.replace("\n", " ")
             shell.odoo(
                 "excel",
-                sql,
+                f"'{sql}'",
                 "-f", filename
             )
             try:
