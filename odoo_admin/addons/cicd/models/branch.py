@@ -195,7 +195,7 @@ class GitBranch(models.Model):
         for rec in self:
             url = self.env['ir.config_parameter'].sudo().get_param(
                 key="web.base.url", default=False)
-            url += f'/start/{rec.repo_id.short}/{rec.name}'
+            url += '/start/' + rec.name
             rec.link_to_instance = url
 
     def _expand_states(self, states, domain, order):

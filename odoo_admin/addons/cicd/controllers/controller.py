@@ -41,13 +41,12 @@ class Controller(http.Controller):
         </body>
         """.format(name=name)
 
-    @http.route(["/start/<repo_short>/<name>", "/start/<repo_short>/<name>/<action>"])
-    def start_instance(self, repo_short, name, **args):
+    @http.route(["/start/<name>", "/start/<name>/<action>"])
+    def start_instance(self, name, **args):
         logger.info(f"Starting branch {name}")
         action = args.get('action')
         branch = request.env['cicd.git.branch'].sudo().search([
-            ('name', '=', name)]).with_context(prefetch_fields=False)
-        branch = branch.filtered(lambda x: x.repo_id.short == repo_short)
+            ('name', '=', name)], limit=1).with_context(prefetch_fields=False)
         request.env.cr.commit()
         if not branch:
             return (
