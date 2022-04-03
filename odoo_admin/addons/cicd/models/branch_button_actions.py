@@ -101,9 +101,7 @@ class Branch(models.Model):
     def start(self):
         return {
             'type': 'ir.actions.act_url',
-            #Hotfix
-            #'url': '/start/' + self.project_name,
-            'url': '/start/' + self.name,
+            'url': f'/start/{self.repo_id.short}/{self.name}',
             'target': 'self'
         }
 
@@ -117,7 +115,7 @@ class Branch(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': '/start/' + self.project_name + "/mailer/startup",
+            'url': f"/start/{self.repo_id.short}/{self.name}/mailer/startup",
             'target': 'self'
         }
 
