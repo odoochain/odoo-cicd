@@ -181,15 +181,15 @@ class CicdTestRun(models.Model):
             self._report('db reset started')
             shell.odoo('-f', 'db', 'reset')
             # required for turn-into-dev
-            shell.odoo('update', 'mail')
+            shell.odoo('update', 'base')
 
             self._abort_if_required()
             self._report('db reset done')
 
             self._abort_if_required()
-            self._report(
-                "Turning into dev db (change password, set mailserver)")
-            shell.odoo('turn-into-dev')
+            #self._report(
+            #    "Turning into dev db (change password, set mailserver)")
+            #shell.odoo('turn-into-dev')
 
             self._report("Storing snapshot")
             shell.odoo('snap', 'save', shell.project_name, force=True)
