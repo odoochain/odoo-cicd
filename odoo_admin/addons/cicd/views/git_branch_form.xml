@@ -45,6 +45,7 @@
 							</h1>
 						</div>
 						<group col="4">
+							<field name="technical_branch_name"/>
 							<field name="repo_id" readonly='1' />
 							<field name="link_to_instance" widget="url"/>
 							<field name="ticket_system_url" widget="url"/>
