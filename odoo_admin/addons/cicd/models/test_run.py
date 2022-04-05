@@ -627,7 +627,7 @@ class CicdTestRun(models.Model):
             self._wait_for_postgres(shell)
 
             try:
-                shell.odoo('robot', item, timeout=self.branch_id.timeout_tests)
+                shell.odoo('robot', '-p', 'password=admin', item, timeout=self.branch_id.timeout_tests)
                 state = 'success'
             except Exception as ex:
                 state = 'failed'
