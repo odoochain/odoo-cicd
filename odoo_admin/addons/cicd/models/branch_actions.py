@@ -519,7 +519,7 @@ class Branch(models.Model):
         if settings:
             content += "\n" + settings
 
-        registry = registry or machine.registry_id
+        registry = registry or self.repo_id.registry_id
         if registry:
             content += (
                 "\nHUB_URL={registry.hub_url}"
