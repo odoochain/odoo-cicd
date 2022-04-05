@@ -47,6 +47,7 @@ class GitBranch(models.Model):
     cycle_down_after_seconds = fields.Integer(
         "Cycle Down After Seconds", default=3600)
     name = fields.Char("Git Branch", required=True)
+    technical_branch_name = fields.Char("Technical Instance Name", help="Docker container limit their name.")
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one(
@@ -521,7 +522,7 @@ class GitBranch(models.Model):
             project_name = "_".join([
                 os.environ['CICD_PROJECT_NAME'],
                 rec.repo_id.short,
-                rec.name
+                rec.technical_branch_name or rec.name,
             ])
 
             dbname = project_name.lower().replace("-", "_")

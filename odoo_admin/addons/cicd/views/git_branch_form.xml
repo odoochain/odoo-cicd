@@ -45,6 +45,7 @@
 							</h1>
 						</div>
 						<group col="4">
+							<field name="technical_branch_name"/>
 							<field name="repo_id" readonly='1' />
 							<field name="link_to_instance" widget="url"/>
 							<field name="ticket_system_url" widget="url"/>
@@ -79,7 +80,7 @@
 								</field>
 							</page>
 							<page string="Tasks" name="tasks">
-								<button name="refresh_tasks" string="" type="object" icon="fa-recycle"/>
+								<button name="refresh_tasks" string="" type="object" icon="fa-refresh"/>
 								<button name="show_queuejobs" string="Show Queuejobs" type="object" />
 								<newline/>
 								<field name="task_ids_filtered" nolabel="1" readonly="1">

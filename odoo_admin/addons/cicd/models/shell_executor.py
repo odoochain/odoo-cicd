@@ -109,7 +109,10 @@ class ShellExecutor(object):
             res = res[:-2]
         return res
 
-    def odoo(self, *cmd, allow_error=False, force=False, timeout=None):
+    def odoo(
+        self, *cmd, allow_error=False, force=False, timeout=None,
+        logoutput=True
+    ):
         env = {
             'NO_PROXY': "*",
             'DOCKER_CLIENT_TIMEOUT': "600",
@@ -122,7 +125,9 @@ class ShellExecutor(object):
         cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
         if force:
             cmd.insert(1, "-f")
-        res = self.X(cmd, allow_error=allow_error, env=env, timeout=timeout)
+        res = self.X(
+            cmd, allow_error=allow_error, env=env, timeout=timeout,
+            logoutput=logoutput)
         if res['exit_code'] and not allow_error or res['exit_code'] is None:
             if '.FileNotFoundError: [Errno 2] No such file or directory:' in \
                     res['stderr']:
