@@ -35,6 +35,7 @@ class Repository(models.Model):
     _inherit = ['mail.thread']
     _name = 'cicd.git.repo'
 
+    registry_id = fields.Many2one('cicd.registry', string="Docker Registry")
     short = fields.Char(
         compute="_compute_shortname", string="Name", compute_sudo=True)
     webhook_id = fields.Char("Webhook ID", help="/trigger/repo/<this id>")

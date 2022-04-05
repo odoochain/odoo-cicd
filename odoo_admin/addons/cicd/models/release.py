@@ -44,7 +44,7 @@ class Release(models.Model):
         "Send Pre-Release Information")
 
     deploy_git = fields.Boolean('Include .git', help="Include .git directory on deploy", default=False)
-    
+
     @api.constrains("project_name")
     def _check_project_name(self):
         for rec in self:
