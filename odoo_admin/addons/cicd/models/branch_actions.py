@@ -171,7 +171,7 @@ class Branch(models.Model):
 
     def _build(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio, **kwargs)
-        shell._internal_build(shell)
+        self._internal_build(shell)
 
     def _dump(self, shell, task, logsio, volume=None, filename=None, **kwargs):
         volume = volume or task.machine_id._get_volume('dumps')
@@ -522,7 +522,7 @@ class Branch(models.Model):
         registry = registry or self.repo_id.registry_id
         if registry:
             content += (
-                "\nHUB_URL={registry.hub_url}"
+                f"\nHUB_URL={registry.hub_url}"
             )
 
         with self._extra_env() as x_self:
@@ -532,7 +532,6 @@ class Branch(models.Model):
                         branch=x_self,
                         project_name=project_name,
                         machine=x_machine),
-
                     home_dir + f'/.odoo/settings.{project_name}'
                     )
 
