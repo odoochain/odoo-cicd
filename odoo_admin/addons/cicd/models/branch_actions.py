@@ -162,7 +162,7 @@ class Branch(models.Model):
                 shell.odoo("login")
 
     def _is_hub_configured(self, shell):
-        output = shell.odoo("config", "--full")['stdout']
+        output = shell.odoo("config", "--full", logoutput=False)['stdout']
         lines = [x for x in output.split("\n") if 'HUB_URL=' in x]
         if lines:
             if len(lines[0]) > len("HUB_URL="):
