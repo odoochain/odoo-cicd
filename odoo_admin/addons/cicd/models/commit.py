@@ -87,8 +87,10 @@ class GitCommit(models.Model):
             if rec.force_approved:
                 continue
             if rec.code_reviewer_id and rec.approver_id:
-                if rec.code_reviewer_id  == rec.approver_id:
-                    raise ValidationError("Code Reviewer and approver must be the same.")
+                if rec.code_reviewer_id == rec.approver_id:
+                    raise ValidationError((
+                        "Code Reviewer and approver must be the same."
+                    ))
 
     @api.recordchange('force_approved')
     def _force_approved_changed(self):
