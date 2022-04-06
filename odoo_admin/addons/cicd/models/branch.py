@@ -298,6 +298,7 @@ class GitBranch(models.Model):
         "task_ids.state",
         "latest_commit_id",
         "latest_commit_id.approval_state",
+        "latest_commit_id.code_review_state",
         "latest_commit_id.test_state",
         "latest_commit_id.force_approved",
         "latest_commit_id.test_run_ids",
@@ -332,6 +333,12 @@ class GitBranch(models.Model):
                 state = 'approve'
 
             elif commit.approval_state == 'approved' and \
+                commit.code_review_state in ['check', False] and \
+                    not commit.force_approved:
+                state = 'review_code'
+
+            elif commit.approval_state == 'approved' and \
+                commit.code_review_state == 'approved' and \
                 commit.test_state in [False, 'open', 'running'] and \
                     rec.any_testing and not commit.force_approved:
 
