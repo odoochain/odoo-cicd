@@ -560,11 +560,12 @@ class Repository(models.Model):
             shell.checkout_branch(target)
             history = []
             try:
-                shell.X(["git", "merge", commit.name])
-                history.append(commit.name)
-            except Exception as ex:
+                res = shell.X(["git", "merge", commit.name])
+                already = 'Already up to date' in res['stdout']
+                history.append({'sha': commit.name, 'already': already})
+            except Exception:
                 conflicts.append(commit)
-        return conflicts
+        return conflicts, history
 
     def _recreate_branch_from_commits(
         self, source_branch, commits,
@@ -585,6 +586,7 @@ class Repository(models.Model):
         assert target_branch_name
         assert commits._name == 'cicd.git.commit'
         machine = self.machine_id
+        history = [] # what was done for each commit
 
         with self._temp_repo(machine=self.machine_id) as repo_path:
             self = self.with_context(active_test=False)
@@ -602,7 +604,7 @@ class Repository(models.Model):
                     "git", "checkout", "--no-guess",
                     "-b", target_branch_name])
 
-                conflicts = self._merge_commits_on_target(
+                conflicts, history = self._merge_commits_on_target(
                     shell, target_branch_name, commits)
                 if conflicts:
                     raise MergeConflict(conflicts)
@@ -639,7 +641,7 @@ class Repository(models.Model):
                         lambda x: x.name == message_commit_sha)
                     message_commit.ensure_one()
 
-        return message_commit
+        return message_commit, history
 
     def _merge(self, source, dest, set_tags, logsio=None):
         assert source._name in ['cicd.git.branch', 'cicd.git.commit']

@@ -205,7 +205,7 @@ class ReleaseItem(models.Model):
                 try:
                     commits = self.mapped('branch_ids.commit_id')
                     repo = self.repo_id
-                    message_commit = repo._recreate_branch_from_commits(
+                    message_commit, history = repo._recreate_branch_from_commits(
                         source_branch=self.release_id.branch_id.name,
                         commits=commits,
                         target_branch_name=target_branch_name,
@@ -220,7 +220,14 @@ class ReleaseItem(models.Model):
                         item_branch = message_commit.branch_ids.filtered(
                             lambda x: x.name == self.item_branch_name)
                         self.item_branch_id = item_branch
-                        self.branch_ids.write({'state': 'merged'})
+
+                        for branchitem in self.branch_ids:
+                            history_item = [
+                                x for x in history if x['sha'] ==
+                                branchitem.commit_id.name][0]
+                            branchitem.state = \
+                                'already_merged' if history_item['already'] \
+                                else 'merged'
 
                 except MergeConflict as ex:
                     for commit in ex.conflicts:
@@ -301,7 +308,7 @@ class ReleaseItem(models.Model):
                     states = self.branch_ids.mapped('state')
                     if 'candidate' in states and 'conflict' not in states:
                         self.state = 'failed_too_late'
-                    elif not all(x == 'merged' for x in states):
+                    elif not all(x.is_merged for x in states):
                         self.state = 'failed_merge'
                     else:
                         self.state = 'integrating'
