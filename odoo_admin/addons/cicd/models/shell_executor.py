@@ -1,4 +1,5 @@
 import tempfile
+import base64
 import arrow
 import uuid
 from contextlib import contextmanager
@@ -255,6 +256,20 @@ class ShellExecutor(object):
         if split_host:
             return base, user_host
         return base + " " + user_host + " "
+
+    def sql_excel(self, sql):
+        filename = tempfile.mktemp(suffix='.')
+        self.odoo(
+            "excel",
+            base64.encodestring(sql.encode('utf-8')).decode('utf-8'),
+            "--base64",
+            "-f", filename
+        )
+        try:
+            result = self.get(filename)
+        finally:
+            self.remove(filename)
+        return result
 
     def _internal_execute(
         self, cmd, cwd=None, env=None, logoutput=True, timeout=None

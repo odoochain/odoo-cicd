@@ -73,6 +73,12 @@ class CicdTestRun(models.Model):
     success_rate = fields.Integer("Success Rate [%]", tracking=True)
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     duration = fields.Integer("Duration [s]", tracking=True)
+    queuejob_log = fields.Binary("Queuejob Log")
+    queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
+
+    def _queuejob_log_filename(self):
+        for rec in self:
+            rec.queuejob_log_filename = 'queuejobs.xlsx'
 
     def abort(self):
         for qj in self._get_queuejobs('all'):
@@ -627,14 +633,20 @@ class CicdTestRun(models.Model):
             self._wait_for_postgres(shell)
 
             try:
-                shell.odoo('robot', '-p', 'password=admin', item, timeout=self.branch_id.timeout_tests)
+                shell.odoo(
+                    'robot', '-p', 'password=admin',
+                    item, timeout=self.branch_id.timeout_tests)
                 state = 'success'
             except Exception as ex:
                 state = 'failed'
                 self._report("Robot Test error (but retrying)", exception=ex)
                 raise
             finally:
-                self.env['base'].flush()
+                excel_file = self.sql_excel((
+                    "select id, name, state, exc_info "
+                    "from queue_job"
+                ))
+                self.queuejob_log = base64.b64encode(excel_file)
                 self.env.cr.commit()
 
             robot_results_tar = shell.grab_folder_as_tar(robot_out)
