@@ -59,6 +59,7 @@ class PostgresServer(models.Model):
                 conn.commit()
             except Exception:
                 conn.rollback()
+                raise
         finally:
             conn.close()
 
