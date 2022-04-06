@@ -2,6 +2,7 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import jira as JIRA
 
+
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
@@ -50,3 +51,10 @@ class Branch(models.Model):
         elif new_state == 'failed':
             comment = "Tests failed"
         self._jira_comment(comment)
+
+    def _fetch_enduser_summary(self):
+        for rec in self:
+            if rec.repo_id.ticketsystem_id.ttype == 'jira':
+                ts = rec.repo_id.ticketsystem_id
+                issue = self._get_jira_issue()
+                rec.enduser_summary_ticketsystem = str(issue.raw)

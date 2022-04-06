@@ -85,6 +85,8 @@ class GitBranch(models.Model):
     reload_config = fields.Text("Reload Config", tracking=True)
     autobackup = fields.Boolean("Autobackup", tracking=True)
     enduser_summary = fields.Text("Enduser Summary", tracking=True)
+    enduser_summary_ticketsystem = fields.Text(
+        "Enduser Summary Ticketsystem", tracking=True)
     target_release_ids = fields.Many2many(
         "cicd.release",
         "branch_target_release",
@@ -133,6 +135,15 @@ class GitBranch(models.Model):
         compute="_compute_link", string="Link To Instance")
 
     containers = fields.Text(compute="compute_containers_text", store=False)
+
+    @api.recordchange('state')
+    def enduser_summary_ticketsystem(self):
+        for rec in self:
+            if not rec.enduser_summary_ticketsystem:
+                rec.with_delay()._fetch_enduser_summary()
+
+    def _fetch_enduser_summary(self):
+        pass
 
     _sql_constraints = [
         (
