@@ -30,12 +30,12 @@ class GitCommit(models.Model):
         ('check', "Check"),
         ('approved', 'Approved'),
         ('declined', 'Declined'),
-    ], tracking=True, string="Approval")
+    ], tracking=True, string="User Approval")
     code_review_state = fields.Selection([
         ('check', "Check"),
         ('approved', 'Approved'),
         ('declined', 'Declined'),
-    ], tracking=True, string="Approval")
+    ], tracking=True, string="Code Review Approval")
     approver_id = fields.Many2one('res.users', string="Approver")
     code_reviewer_id = fields.Many2one('res.users', string="Code Reviewer")
     force_approved = fields.Boolean("Force Approved", tracking=True)
