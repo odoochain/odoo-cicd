@@ -53,12 +53,19 @@ class GitCommit(models.Model):
 
     def set_to_check(self):
         self.approval_state = 'check'
+        self.code_review_state = 'check'
 
     def set_approved(self):
-        self.approval_state = 'approved'
+        if self.approval_state in ['approved', 'declined']:
+            self.code_review_state = 'approved'
+        else:
+            self.approval_state = 'approved'
 
     def set_declined(self):
-        self.approval_state = 'declined'
+        if self.approval_state in ['approved', 'declined']:
+            self.code_review_state = 'declined'
+        else:
+            self.approval_state = 'declined'
 
     def set_code_review_to_check(self):
         self.code_review_state = 'check'
