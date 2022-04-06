@@ -33,6 +33,9 @@
 					</group>
 					<group>
 						<field name="approval_state"/>
+						<field name="approver_id" readonly="1"/>
+						<field name="code_review_state"/>
+						<field name="code_reviewer_id" readonly="1"/>
 						<field name="force_approved"/>
 						<field name="test_state"/>
 					</group>

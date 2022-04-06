@@ -10,14 +10,18 @@ class GitCommit(models.Model):
 
     short = fields.Char(compute="_compute_short")
     name = fields.Char("SHA", required=True)
-    branch_ids = fields.Many2many('cicd.git.branch', string="Branches", required=True)
+    branch_ids = fields.Many2many(
+        'cicd.git.branch', string="Branches", required=True)
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     author = fields.Char("Author")
-    author_user_ids = fields.Many2many('res.users', compute="_compute_author_users", store=False)
-    author_user_id = fields.Many2one('res.users', compute="_compute_author_users")
+    author_user_ids = fields.Many2many(
+        'res.users', compute="_compute_author_users", store=False)
+    author_user_id = fields.Many2one(
+        'res.users', compute="_compute_author_users")
     text = fields.Text("Text")
-    test_run_ids = fields.One2many('cicd.test.run', 'commit_id', string="Test Runs")
+    test_run_ids = fields.One2many(
+        'cicd.test.run', 'commit_id', string="Test Runs")
     test_state = fields.Selection([
         ('success', 'Success'),
         ('failed', 'Failed'),
@@ -27,6 +31,13 @@ class GitCommit(models.Model):
         ('approved', 'Approved'),
         ('declined', 'Declined'),
     ], tracking=True, string="Approval")
+    code_review_state = fields.Selection([
+        ('check', "Check"),
+        ('approved', 'Approved'),
+        ('declined', 'Declined'),
+    ], tracking=True, string="Approval")
+    approver_id = fields.Many2one('res.users', string="Approver")
+    code_reviewer_id = fields.Many2one('res.users', string="Code Reviewer")
     force_approved = fields.Boolean("Force Approved", tracking=True)
 
     _sql_constraints = [
@@ -49,18 +60,51 @@ class GitCommit(models.Model):
     def set_declined(self):
         self.approval_state = 'declined'
 
+    def set_code_review_to_check(self):
+        self.code_review_state = 'check'
+
+    def set_code_review_approved(self):
+        self.code_review_state = 'approved'
+
+    def set_code_review_declined(self):
+        self.code_review_state = 'declined'
+
+    @api.recordchange('code_review_state')
+    def _onchange_code_review_state(self):
+        for rec in self:
+            if rec.code_review_state in ['approved', 'declined']:
+                self.code_reviewer_id = self.env.user
+
+    @api.recordchange('approval_state')
+    def _onchange_approval_state(self):
+        for rec in self:
+            if rec.approval_state in ['approved', 'declined']:
+                self.approver_id = self.env.user
+
+    @api.constrains('code_reviewer_id', 'approver_id')
+    def _check_approver_codereviewer(self):
+        for rec in self:
+            if rec.force_approved:
+                continue
+            if rec.code_reviewer_id and rec.approver_id:
+                if rec.code_reviewer_id  == rec.approver_id:
+                    raise ValidationError("Code Reviewer and approver must be the same.")
+
     @api.recordchange('force_approved')
     def _force_approved_changed(self):
         for rec in self:
             if rec.force_approved:
                 if rec.approval_state != 'approved':
                     rec.approval_state = 'approved'
+                if rec.code_review_state != 'approved':
+                    rec.code_review_state = 'approved'
 
     @api.depends('test_run_ids', 'test_run_ids.state')
     def _compute_test_state(self):
         for rec in self:
             testruns = rec.test_run_ids.sorted(lambda x: x.id, reverse=True)
-            if not testruns or testruns[0].state in ('open', 'running', 'omitted'):
+            if not testruns or testruns[0].state in (
+                    'open', 'running', 'omitted'):
                 rec.test_state = False
                 continue
             new_state = testruns[0].state
