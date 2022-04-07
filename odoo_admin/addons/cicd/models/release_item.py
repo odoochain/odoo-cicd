@@ -141,13 +141,12 @@ class ReleaseItem(models.Model):
         for rec in self:
             summary = []
             for branch in rec.branch_ids.branch_id.sorted(lambda x: x.date):
-                summary = (
+                summary.append((
                     f"{branch.name}: \n"
                     f"{branch.enduser_summary or ''}\n"
                     f"{branch.enduser_summary_ticketsystem or ''}\n"
                     "\n"
-                ).strip()
-                summary.append(summary)
+                ).strip())
             rec.computed_summary = '\n'.join(summary)
 
     def _do_release(self):
