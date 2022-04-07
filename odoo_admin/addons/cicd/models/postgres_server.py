@@ -51,6 +51,7 @@ class PostgresServer(models.Model):
             }
 
         conn = psycopg2.connect(**params)
+        conn.autocommit = True
         try:
             try:
                 cr = conn.cursor()

@@ -28,9 +28,25 @@ class Database(models.Model):
 
     def delete_db(self):
         for rec in self:
-            with self.server_id._get_conn() as cr:
-                # requires postgres >= 13
-                cr.execute("drop database %s WITH (FORCE);", (rec.name,))
+            try:
+                raise Exception("be compatible")
+                with self.server_id._get_conn() as cr:
+                    # requires postgres >= 13
+                    cr.execute("drop database %s WITH (FORCE);", (rec.name,))
+
+            except Exception:
+                with self.server_id._get_conn() as cr:
+                    # requires postgres >= 13
+                    cr.execute((
+                        f"UPDATE pg_database SET "
+                        f"datallowconn = 'false' WHERE datname = '{rec.name}'; \n"
+                        f"SELECT pg_terminate_backend(pid) "
+                        f"FROM pg_stat_activity WHERE datname = '{rec.name}'; \n"
+                    ))
+                    cr.connection.autocommit = True
+                    cr.execute((
+                        f"DROP DATABASE IF EXISTS {rec.name}"
+                    ))
             rec.sudo().unlink()
 
     @api.model
