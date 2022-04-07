@@ -112,7 +112,7 @@ class Branch(models.Model):
         logsio.info("Reloading")
         shell.odoo('reload')
         logsio.info("Building")
-        shell._internal_build(shell)
+        self._internal_build(shell)
         logsio.info("Downing")
         shell.odoo('kill')
         shell.odoo('rm')
