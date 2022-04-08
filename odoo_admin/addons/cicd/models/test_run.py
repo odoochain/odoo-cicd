@@ -398,7 +398,7 @@ class CicdTestRun(models.Model):
     def _shell(self, logsio=None):
         with self._logsio(logsio) as logsio:
             self = self._with_context()
-            machine = self.branch_ids.repo_id.machine_id
+            machine = self.branch_ids.machine_id
             root = machine._get_volume('source')
             project_name = self.branch_id.project_name
             with machine._shell(

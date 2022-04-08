@@ -124,6 +124,8 @@ class GitBranch(models.Model):
     block_release = fields.Boolean("Block Release", tracking=True)
     block_updates_until = fields.Datetime("Block updates until", tracking=True)
 
+    machine_id = fields.Many2one('cicd.machine', compute="_compute_machine", compute_sudo=True)
+
     allowed_backup_machine_ids = fields.Many2many(
         'cicd.machine',
         string="Allowed Backup Machines", compute="_compute_allowed_machines")
@@ -155,7 +157,7 @@ class GitBranch(models.Model):
     def compute_containers_text(self):
         for rec in self:
             with rec._extra_env() as x_rec:
-                containers_json = x_rec.repo_id.machine_id._get_containers()
+                containers_json = x_rec.machine_id._get_containers()
                 project_name = x_rec.project_name
             containers = []
             for k, v in containers_json.items():
@@ -608,13 +610,13 @@ class GitBranch(models.Model):
 
     def purge_instance_folder(self):
         for rec in self:
-            with rec.repo_id.machine_id._shell() as shell:
+            with rec.machine_id._shell() as shell:
                 folder = rec._get_instance_folder(shell.machine)
                 shell.remove(folder)
 
     def delete_db(self):
         for rec in self:
-            machine = rec.repo_id.machine_id
+            machine = rec.machine_id
             if machine.postgres_server_id.ttype != 'dev':
                 continue
             project_name = self._unblocked('project_name')
@@ -844,3 +846,8 @@ class GitBranch(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
+
+    @api.depends('repo_id', 'repo_id.machine_id')
+    def _compute_machine(self):
+        for rec in self:
+            rec.machine_id = rec.repo_id.machine_id

@@ -67,7 +67,7 @@ class NewBranch(models.TransientModel):
         }
 
     def _make_branch(self, branch):
-        machine = branch.repo_id.machine_id
+        machine = branch.machine_id
         repo = branch.repo_id
         with LogsIOWriter.GET("cicd", "new_branch") as logsio:
             with repo._temp_repo(machine=machine) as repo_path:

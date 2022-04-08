@@ -128,16 +128,16 @@ class Branch(models.Model):
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
-        self.repo_id.machine_id._fetch_psaux_docker_containers()
+        self.machine_id._fetch_psaux_docker_containers()
 
     def _docker_stop(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
-        self.repo_id.machine_id._fetch_psaux_docker_containers()
+        self.machine_id._fetch_psaux_docker_containers()
 
     def _docker_remove(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
         shell.odoo('rm')
-        self.repo_id.machine_id._fetch_psaux_docker_containers()
+        self.machine_id._fetch_psaux_docker_containers()
 
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
@@ -732,7 +732,7 @@ for path in base.glob("*"):
 
     def _kill_tmux_sessions(self, shell):
         for rec in self:
-            machine = rec.repo_id.machine_id
+            machine = rec.machine_id
             with machine._shell() as shell:
                 machine.make_login_possible_for_webssh_container()
                 test = shell.X([
