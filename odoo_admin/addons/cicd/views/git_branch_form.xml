@@ -133,6 +133,7 @@
 								<div>
 								<pre>
 									Additional configuration like for example:
+									ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1
 
 									RUN_ODOO_QUEUEJOBS=1
 									RUN_ODOO_CRONJOBS=1
