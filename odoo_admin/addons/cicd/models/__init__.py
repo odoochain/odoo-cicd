@@ -99,7 +99,10 @@ from . import task
 from . import release
 from . import release_item
 from . import registry
+from . import test_run_line
 from . import test_run
+from . import test_run_unittest
+from . import test_run_robots
 from . import database
 from . import postgres_server
 from . import user
