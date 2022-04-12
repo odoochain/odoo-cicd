@@ -566,6 +566,7 @@ class Branch(models.Model):
         self._after_build(shell=shell, logsio=logsio, **kwargs)
 
     def _compress(self, shell, task, logsio, compress_job_id):
+        import pudb;pudb.set_trace()
         self.ensure_one()
         compressor = self.env['cicd.compressor'].sudo().browse(
             compress_job_id).sudo()
@@ -622,6 +623,7 @@ class Branch(models.Model):
                     cwd=instance_path,
                     project_name=self.project_name
                 ) as shell:
+                    breakpoint()
 
                     logsio.info("Reloading...")
                     settings = (
@@ -631,7 +633,6 @@ class Branch(models.Model):
                         "RUN_QUEUEJOBS=0\n"
                         "RUN_POSTGRES=1\n"
                         "RUN_ROBOT=0\n"
-                        "RUN_PROXY=0\n"
                         "RUN_PROXY_PUBLISHED=0\n"
                         "DB_HOST=postgres\n"
                         "DB_USER=odoo\n"
@@ -643,6 +644,7 @@ class Branch(models.Model):
                         project_name=self.project_name, settings=settings)
                     logsio.info(f"Restoring {effective_dest_file_path}...")
                     shell.odoo("up", "-d", "postgres")
+                    breakpoint()
                     try:
                         shell.odoo(
                             "-f", "restore", "odoo-db",

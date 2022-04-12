@@ -440,7 +440,7 @@ class GitBranch(models.Model):
                     tasks[0].queue_job_id.state = 'pending'
                     return
 
-            if not now and tasks.filtered(
+            if not now and not ignore_previous_tasks and tasks.filtered(
                 lambda x: x.state in [
                     False, 'pending', 'enqueued', 'started'] and
                     x.identity_key == identity_key):
