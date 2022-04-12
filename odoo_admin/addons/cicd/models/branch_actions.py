@@ -630,6 +630,8 @@ class Branch(models.Model):
                         "RUN_CRONJOBS=0\n"
                         "RUN_QUEUEJOBS=0\n"
                         "RUN_POSTGRES=1\n"
+                        "RUN_ROBOT=0\n"
+                        "RUN_PROXY=0\n"
                         "RUN_PROXY_PUBLISHED=0\n"
                         "DB_HOST=postgres\n"
                         "DB_USER=odoo\n"
