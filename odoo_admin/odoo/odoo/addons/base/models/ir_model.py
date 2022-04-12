@@ -2232,8 +2232,6 @@ class IrModelData(models.Model):
             # try and remove either the xid or the record, so check if the
             # record has a child we've just updated
             keep = False
-            import pudb
-            pudb.set_trace()
             for inheriting in (self.env[m] for m in Model._inherits_children):
                 # ignore mixins
                 if inheriting._abstract:
