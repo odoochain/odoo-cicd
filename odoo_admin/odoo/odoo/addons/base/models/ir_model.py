@@ -2252,9 +2252,6 @@ class IrModelData(models.Model):
                 continue
 
             # if the record has other associated xids, only remove the xid
-            if model == 'ir.cron':
-                import pudb
-                pudb.set_trace()
             if self.search_count([
                 ("model", "=", model),
                 ("res_id", "=", res_id),
