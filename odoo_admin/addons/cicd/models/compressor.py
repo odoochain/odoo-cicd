@@ -5,17 +5,23 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class Compressor(models.Model):
     _name = 'cicd.compressor'
 
-    source_volume_id = fields.Many2one('cicd.machine.volume', string="Source Volume", required=True)
+    source_volume_id = fields.Many2one(
+        'cicd.machine.volume', string="Source Volume", required=True)
     regex = fields.Char("Regex", required=True, default=".*")
     active = fields.Boolean("Active", default=True)
-    cronjob_id = fields.Many2one('ir.cron', string="Cronjob", required=False, ondelete="cascade", readonly=True)
+    cronjob_id = fields.Many2one(
+        'ir.cron', string="Cronjob", required=False, ondelete="cascade",
+        readonly=True)
     repo_id = fields.Many2one('cicd.git.repo', related="branch_id.repo_id")
     repo_short = fields.Char(related="repo_id.short", string="Repo")
     machine_id = fields.Many2one('cicd.machine', related="repo_id.machine_id")
-    volume_id = fields.Many2one('cicd.machine.volume', string="Output Volume", required=True, domain="[('ttype', '=', 'dumps'), ('machine_id', '=', machine_id)]")
+    volume_id = fields.Many2one(
+        'cicd.machine.volume', string="Output Volume", required=True,
+        domain="[('ttype', '=', 'dumps'), ('machine_id', '=', machine_id)]")
     output_filename = fields.Char("Output Filename", required=True)
     anonymize = fields.Boolean("Anonymize", required=True)
-    branch_id = fields.Many2one('cicd.git.branch', string="Use Branch for compression", required=True)
+    branch_id = fields.Many2one(
+        'cicd.git.branch', string="Use Branch for compression", required=True)
     date_last_success = fields.Datetime("Date Last Success")
     last_input_size = fields.Integer("Last Input Size")
     last_input_size_human = fields.Char("Last Input Size")
@@ -26,7 +32,8 @@ class Compressor(models.Model):
     def _ensure_cronjob(self):
         for rec in self:
             if rec.active and not rec.cronjob_id:
-                model = self.env['ir.model'].sudo().search([('model', '=', self._name)])
+                model = self.env['ir.model'].sudo().search([
+                    ('model', '=', self._name)])
                 self.cronjob_id = self.env['ir.cron'].sudo().create({
                     'name': f"compressor {rec.id}",
                     'model_id': model.id,
@@ -56,14 +63,20 @@ class Compressor(models.Model):
     def _compute_numbers(self):
         for rec in self:
             if rec.last_input_size:
-                rec.performance = 100.0 - (float(rec.last_output_size) / float(rec.last_input_size) * 100)
+                rec.performance = 100.0 - (
+                    float(rec.last_output_size) /
+                    float(rec.last_input_size) * 100)
             else:
                 rec.performance = 0
-            rec.last_input_size_human = humanize.naturalsize(rec.last_input_size or 0)
-            rec.last_output_size_human = humanize.naturalsize(rec.last_output_size or 0)
+            rec.last_input_size_human = humanize.naturalsize(
+                rec.last_input_size or 0)
+            rec.last_output_size_human = humanize.naturalsize(
+                rec.last_output_size or 0)
 
     def show_queuejobs(self):
-        jobs = self.branch_id.mapped('task_ids').filtered(lambda x: 'compress' in x.name).mapped('queue_job_id')
+        branch = f"{self.branch_id.repo_id.short}-{self.branch_id.name}"
+        jobs = self.env['queue.job'].search([]).with_context(
+            prefetch_fields=False).filtered(lambda x: x.branch == branch)
 
         return {
             'name': f"Compressor-Jobs of {self.branch_id.name}",
