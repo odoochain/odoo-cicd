@@ -167,7 +167,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self._redirect_to_index(cookies and cookies.get('delegator-path') or None)
                 sent = True
 
-            if self.path == "/_" or self.path.endswith('/web/session/logout')
+            if self.path == "/_" or self.path.endswith('/web/session/logout'):
                 _redirect_to_index()
             else:
 
