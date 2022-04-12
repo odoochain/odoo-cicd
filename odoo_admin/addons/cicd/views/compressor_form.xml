@@ -1,11 +1,16 @@
 <odoo>
 	<data noupdate='0'>
 
-		<record id="view_cicd_compressor_tree" model="ir.ui.view">
-			<field name="model">cicd.compressor</field>
-			<field name="arch" type="xml">
-				<tree>
+	<record id="view_cicd_compressor_form" model="ir.ui.view">
+		<field name="name">cicd.compressor form</field>
+		<field name="model">cicd.compressor</field>
+		<field name="arch" type="xml">
+			<form string="">
+				<header>
 					<button name="show_queuejobs" string="" icon="fa-tasks" type="object" />
+				</header>
+				<sheet>
+					<group string="title" col="4">
 					<field name="active" widget="boolean_toggle"/>
 					<field name="source_volume_id"/>
 					<field name="regex"/>
@@ -21,9 +26,11 @@
 					<field name="last_output_size_human"/>
 					<field name="performance"/>
 					<field name="machine_id" invisible='0'/>
-				</tree>
-			</field>
-		</record>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
 
 	</data>
 </odoo>

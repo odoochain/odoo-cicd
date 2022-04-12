@@ -119,3 +119,16 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class DockerContainer(models.Model):
     _name = 'docker.container'
+
+
+from odoo import _, api, fields, models, SUPERUSER_ID
+from odoo.exceptions import UserError, RedirectWarning, ValidationError
+
+class IrCron(models.Model):
+    _inherit = 'ir.cron'
+
+    def unlink(self):
+        import pudb;pudb.set_trace()
+        res = super().unlink()
+        return res
+

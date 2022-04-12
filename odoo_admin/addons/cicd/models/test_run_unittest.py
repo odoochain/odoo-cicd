@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -11,16 +12,25 @@ class TestrunUnittest(models.Model):
         if self.branch_id.unittest_all:
             cmd += ['--all']
         files = shell.odoo(*cmd)['stdout'].strip()
-        files = list(filter(bool, files.split("!!!")[1].split("\n")))
+        files = list(filter(bool, files.split("!!!")[1].splitlines()))
 
         tests_by_module = self._get_unit_tests_by_modules(files)
         i = 0
 
         def name_callback(f):
             p = Path(f)
+            # TODO checking: 3 mal parent
             return str(p.relative_to(p.parent.parent.parent))
+        breakpoint()
 
         for module, tests in tests_by_module.items():
+
+            hash = self._get_hash_for_module(shell, module)
+            if self.env['cicd.test.run.line']._check_if_test_already_succeeded(
+                self, module, hash,
+            ):
+                continue
+
             i += 1
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
@@ -62,4 +72,7 @@ class TestrunUnittest(models.Model):
         return tests_by_module
 
     @api.model
-    def _get_hash_for_module(self, module_path):
+    def _get_hash_for_module(self, shell, module_path):
+        res = shell.odoo("odoo", "list-deps", module_path)
+        deps = json.loads(res.stdout.split("---", 1)[1])
+        return deps['hash']

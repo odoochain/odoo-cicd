@@ -40,7 +40,7 @@
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="model_cicd_git_branch" />
 			<field name="state">code</field>
-			<field name="code">model._inactivity_cycle_down()</field>
+			<field name="code">model._cron_inactivity_cycle_down()</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>

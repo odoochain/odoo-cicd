@@ -42,6 +42,9 @@ class CicdTestRunLine(models.Model):
         "Started", default=lambda self: fields.Datetime.now())
     try_count = fields.Integer("Try Count")
     robot_output = fields.Binary("Robot Output", attachment=True)
+    unique_name = fields.Char("Unique Name", help=(
+        "For unittests for example their path to the module"
+    ))
     hash = fields.Char("Hash", help="For using")
 
     def toggle_force_success(self):
@@ -59,3 +62,28 @@ class CicdTestRunLine(models.Model):
             'url': f'/robot_output/{self.id}',
             'target': 'new'
         }
+
+    @api.model
+    def _check_if_test_already_succeeded(self, testrun, unique_name, hash):
+        """
+        Compares the hash of the module with an existing
+        previous run with same hash.
+        """
+        res = bool(self.search_count([
+            ('run_id.branch_ids.repo_id', '=', testrun.branch_ids.repo_id.id),
+            ('unique_name', '=', unique_name),
+            ('hash', '=', hash),
+            ('state', '=', 'success'),
+        ]))
+        if not res:
+            return False
+
+        self.create({
+            'force_success': True,
+            'run_id': testrun.id,
+            'state': 'success',
+            'unique_name': unique_name,
+            'hash': hash,
+        })
+
+        return True

@@ -2232,6 +2232,8 @@ class IrModelData(models.Model):
             # try and remove either the xid or the record, so check if the
             # record has a child we've just updated
             keep = False
+            import pudb
+            pudb.set_trace()
             for inheriting in (self.env[m] for m in Model._inherits_children):
                 # ignore mixins
                 if inheriting._abstract:
@@ -2252,6 +2254,9 @@ class IrModelData(models.Model):
                 continue
 
             # if the record has other associated xids, only remove the xid
+            if model == 'ir.cron':
+                import pudb
+                pudb.set_trace()
             if self.search_count([
                 ("model", "=", model),
                 ("res_id", "=", res_id),
