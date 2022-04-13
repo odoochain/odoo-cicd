@@ -326,7 +326,7 @@ class ReleaseItem(models.Model):
                     states = self.branch_ids.mapped('state')
                     if 'candidate' in states and 'conflict' not in states:
                         self.state = 'failed_too_late'
-                    elif not all(x.is_merged for x in states):
+                    elif not all(x.is_merged for x in self.branch_ids):
                         self.state = 'failed_merge'
                     else:
                         self.state = 'integrating'
