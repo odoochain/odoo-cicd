@@ -213,7 +213,6 @@ class ReleaseItem(models.Model):
                         self.state = 'collecting'
                         return
                     repo = self.repo_id
-                    breakpoint()
                     message_commit, history = repo._recreate_branch_from_commits(
                         source_branch=self.release_id.branch_id.name,
                         commits=commits,
@@ -273,7 +272,7 @@ class ReleaseItem(models.Model):
                 logger.error(ex)
             else:
                 if message_commit and commits:
-                    message_commit.approval_state = 'approved'
+                    message_commit.force_approved = True
                     self.commit_id = message_commit
                     candidate_branch = repo.branch_ids.filtered(
                         lambda x: x.name == self.item_branch_name)
