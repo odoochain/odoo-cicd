@@ -85,6 +85,8 @@ class GitBranch(models.Model):
     reload_config = fields.Text("Reload Config", tracking=True)
     autobackup = fields.Boolean("Autobackup", tracking=True)
     enduser_summary = fields.Text("Enduser Summary", tracking=True)
+    enduser_summary_ticketsystem = fields.Text(
+        "Enduser Summary Ticketsystem", tracking=True)
     target_release_ids = fields.Many2many(
         "cicd.release",
         "branch_target_release",
@@ -122,6 +124,8 @@ class GitBranch(models.Model):
     block_release = fields.Boolean("Block Release", tracking=True)
     block_updates_until = fields.Datetime("Block updates until", tracking=True)
 
+    machine_id = fields.Many2one('cicd.machine', compute="_compute_machine", compute_sudo=True)
+
     allowed_backup_machine_ids = fields.Many2many(
         'cicd.machine',
         string="Allowed Backup Machines", compute="_compute_allowed_machines")
@@ -134,6 +138,15 @@ class GitBranch(models.Model):
 
     containers = fields.Text(compute="compute_containers_text", store=False)
 
+    @api.recordchange('state')
+    def _enduser_summary_ticketsystem(self):
+        for rec in self:
+            if not rec.enduser_summary_ticketsystem:
+                rec.with_delay()._fetch_enduser_summary()
+
+    def _fetch_enduser_summary(self):
+        pass
+
     _sql_constraints = [
         (
             'name_repo_id_unique',
@@ -144,7 +157,7 @@ class GitBranch(models.Model):
     def compute_containers_text(self):
         for rec in self:
             with rec._extra_env() as x_rec:
-                containers_json = x_rec.repo_id.machine_id._get_containers()
+                containers_json = x_rec.machine_id._get_containers()
                 project_name = x_rec.project_name
             containers = []
             for k, v in containers_json.items():
@@ -298,8 +311,10 @@ class GitBranch(models.Model):
         "task_ids.state",
         "latest_commit_id",
         "latest_commit_id.approval_state",
+        "latest_commit_id.code_review_state",
         "latest_commit_id.test_state",
         "latest_commit_id.force_approved",
+        "latest_commit_id.no_approvals",
         "latest_commit_id.test_run_ids",
         "latest_commit_id.test_run_ids.state",
         "computed_release_item_ids.state",
@@ -311,11 +326,13 @@ class GitBranch(models.Model):
     )
     def _compute_state(self):
         for rec in self:
+            breakpoint()
             tasks = rec.task_ids.with_context(prefetch_fields=False)
             task_names = set(tasks.mapped('name'))
             building_tasks = any(
                 x in y for x in ['update', 'reset', 'restore']
                 for y in task_names)
+
 
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
@@ -327,29 +344,39 @@ class GitBranch(models.Model):
                 state = 'dev'
 
             commit = rec.latest_commit_id
-
-            if commit.approval_state == 'check':
+            fully_approved = (
+                commit.approval_state == 'approved' and 
+                commit.code_review_state == 'approved'
+            ) or commit.no_approvals
+            success_tested = (
+                commit.test_state == 'success'
+                or not rec.any_testing
+            )
+            
+            if commit.approval_state == 'check' and not commit.force_approved:
                 state = 'approve'
 
             elif commit.approval_state == 'approved' and \
-                commit.test_state in [False, 'open', 'running'] and \
+                commit.code_review_state in ['check', False] and \
+                    not commit.force_approved:
+                state = 'review_code'
+
+            elif fully_approved and commit.test_state in [False, 'open', 'running'] and \
                     rec.any_testing and not commit.force_approved:
 
                 state = 'testable'
 
-            elif commit.test_state == 'failed' or \
-                    commit.approval_state == 'declined':
+            elif (commit.test_state == 'failed' or 
+                    commit.approval_state == 'declined' or \
+                    commit.code_review_state == 'declined') and \
+                        not commit.force_approved and \
+                        not fully_approved:
                 state = 'dev'
 
             elif rec.block_release:
                 state = 'blocked'
 
-            elif (
-                    commit.test_state == 'success'
-                    or not rec.any_testing
-                    or commit.force_approved
-                    ) and commit.approval_state == 'approved':
-
+            elif (success_tested and fully_approved) or commit.force_approved:
                 release_items = rec.computed_release_item_ids
 
                 # Determine suitable state state
@@ -420,7 +447,7 @@ class GitBranch(models.Model):
                     tasks[0].queue_job_id.state = 'pending'
                     return
 
-            if not now and tasks.filtered(
+            if not now and not ignore_previous_tasks and tasks.filtered(
                 lambda x: x.state in [
                     False, 'pending', 'enqueued', 'started'] and
                     x.identity_key == identity_key):
@@ -590,13 +617,13 @@ class GitBranch(models.Model):
 
     def purge_instance_folder(self):
         for rec in self:
-            with rec.repo_id.machine_id._shell() as shell:
+            with rec.machine_id._shell() as shell:
                 folder = rec._get_instance_folder(shell.machine)
                 shell.remove(folder)
 
     def delete_db(self):
         for rec in self:
-            machine = rec.repo_id.machine_id
+            machine = rec.machine_id
             if machine.postgres_server_id.ttype != 'dev':
                 continue
             project_name = self._unblocked('project_name')
@@ -717,12 +744,19 @@ class GitBranch(models.Model):
 
     def set_to_check(self):
         self.latest_commit_id.approval_state = 'check'
+        self.latest_commit_id.code_review_state = 'check'
 
     def set_approved(self):
-        self.latest_commit_id.approval_state = 'approved'
+        if self.latest_commit_id.approval_state not in ['approved', 'declined']:
+            self.latest_commit_id.approval_state = 'approved'
+        else:
+            self.latest_commit_id.code_review_state = 'approved'
 
     def set_declined(self):
-        self.latest_commit_id.approval_state = 'declined'
+        if self.latest_commit_id.approval_state not in ['approved', 'declined']:
+            self.latest_commit_id.approval_state = 'declined'
+        else:
+            self.latest_commit_id.code_review_state = 'declined'
 
     def ticketsystem_set_state(self, state):
         assert state in ['done', 'in progress']
@@ -819,3 +853,8 @@ class GitBranch(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
+
+    @api.depends('repo_id', 'repo_id.machine_id')
+    def _compute_machine(self):
+        for rec in self:
+            rec.machine_id = rec.repo_id.machine_id

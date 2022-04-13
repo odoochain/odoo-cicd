@@ -44,7 +44,7 @@ class Release(models.Model):
         "Send Pre-Release Information")
 
     deploy_git = fields.Boolean('Include .git', help="Include .git directory on deploy", default=False)
-    
+
     @api.constrains("project_name")
     def _check_project_name(self):
         for rec in self:
@@ -115,16 +115,13 @@ class Release(models.Model):
     def _send_pre_release_information(self):
         for rec in self:
             pass
-     
+
     @api.model
     def cron_heartbeat(self):
         for rec in self.search([('auto_release', '=', True)]):
-            try:
-                rec._heartbeat()
-                self.env.cr.commit()
-            except RetryableJobError as e:
-                self.env.cr.rollback()
-                pass
+            rec.with_delay(identity_key=(
+                f"release-heartbeat-{rec.name}#{rec.id}"
+            ))._heartbeat()
     
     def _heartbeat(self):
         self.ensure_one()
@@ -134,7 +131,7 @@ class Release(models.Model):
                 last_item.is_done:
 
             planned_date = self.compute_next_date(
-                max(r.last_item_id.planned_maximum_finish_date, fields.Datetime.now())
+                max(last_item.planned_maximum_finish_date, fields.Datetime.now())
             )
 
             self.item_ids = [[0, 0, {

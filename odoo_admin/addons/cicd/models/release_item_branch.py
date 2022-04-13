@@ -14,9 +14,16 @@ class ItemBranch(models.Model):
     state = fields.Selection([
         ('candidate', 'Candidate'),
         ('merged', 'Merged'),
+        ('already_merged', 'Already Merged'),
         ('conflict', 'Conflict'),
     ], string="State", default="candidate")
     commit_date = fields.Datetime(related="commit_id.date")
+    is_merged = fields.Boolean(compute="_is_merged", store=True)
+
+    @api.depends('state')
+    def _is_merged(self):
+        for rec in self:
+            rec.is_merged = 'merged' in rec.state
 
     @api.constrains("commit_id", "branch_id")
     def _check_branch_commit(self):

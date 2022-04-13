@@ -63,7 +63,7 @@ class Branch(models.Model):
             'context': {
                 'default_ttype': 'backup',
                 'default_branch_id': self.id,
-                'default_machine_id': self.repo_id.machine_id.id,
+                'default_machine_id': self.machine_id.id,
             },
             'views': [(False, 'form')],
             'type': 'ir.actions.act_window',
@@ -79,7 +79,7 @@ class Branch(models.Model):
             'context': {
                 'default_ttype': 'restore',
                 'default_branch_id': self.id,
-                'default_machine_id': self.repo_id.machine_id.id,
+                'default_machine_id': self.machine_id.id,
             },
             'views': [(False, 'form')],
             'type': 'ir.actions.act_window',

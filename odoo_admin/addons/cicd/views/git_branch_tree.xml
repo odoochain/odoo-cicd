@@ -8,9 +8,9 @@
 					<field name="name"/>
 					<field name="date_registered"/>
 					<field name="date"/>
-					<field name="state"/>
-					<field name="dump_id"/>
 					<field name="last_access"/>
+					<field name="database_size_human"/>
+					<field name="state"/>
 				</tree>
 			</field>
 		</record>

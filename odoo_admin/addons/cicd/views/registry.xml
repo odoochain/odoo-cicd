@@ -1,11 +1,14 @@
 <odoo>
 	<data noupdate='0'>
-		<!-- <record id="view_cicd_registry_tree" model="ir.ui.view">
+		<record id="view_cicd_registry_tree" model="ir.ui.view">
 			<field name="model">cicd.registry</field>
 			<field name="arch" type="xml">
 				<tree>
 					<field name="name" />
 					<field name="host" />
+					<field name="port"/>
+					<field name="username"/>
+					<field name="path"/>
 				</tree>
 			</field>
 		</record>
@@ -24,13 +27,15 @@
 						</div>
 						<group string="" col="2">
 							<field name="host" />
+							<field name="port"/>
 							<field name="username" />
 							<field name="password" type="password" />
+							<field name="path"/>
 						</group>
 					</sheet>
 				</form>
 			</field>
-		</record> -->
+		</record>
 
 	</data>
 </odoo>

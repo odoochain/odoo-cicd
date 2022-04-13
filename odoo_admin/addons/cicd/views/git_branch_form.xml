@@ -18,10 +18,10 @@
 						<button name="start_logs" string="Logs" type="object" groups="cicd.group_developer"/>
 						<button name="debug_webcontainer" string="Debug" type="object" groups="cicd.group_developer"/>
 						<button name="new_branch" string="New Branch" type="object" groups="cicd.group_make_branches"/>
-						<field name="state" widget="statusbar" options="{'clickable': 0}" />
 						<button name="backup" string="Backup Dump" type="object"/>
 						<button name="restore_dump" string="Restore Dump" type="object" groups="cicd.group_key_user"/>
 						<button name="export_excel" string="Export Excel" type="object" />
+						<field name="state" widget="statusbar" options="{'clickable': 0}" statusbar_visible="new,approve,review_code,testable,tested,candidate,release,done" />
 					</header>
 					<sheet>
 						<field name="block_release" invisible='1'/>
@@ -80,7 +80,7 @@
 								</field>
 							</page>
 							<page string="Tasks" name="tasks">
-								<button name="refresh_tasks" string="" type="object" icon="fa-recycle"/>
+								<button name="refresh_tasks" string="" type="object" icon="fa-refresh"/>
 								<button name="show_queuejobs" string="Show Queuejobs" type="object" />
 								<newline/>
 								<field name="task_ids_filtered" nolabel="1" readonly="1">
@@ -133,6 +133,7 @@
 								<div>
 								<pre>
 									Additional configuration like for example:
+									ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1
 
 									RUN_ODOO_QUEUEJOBS=1
 									RUN_ODOO_CRONJOBS=1

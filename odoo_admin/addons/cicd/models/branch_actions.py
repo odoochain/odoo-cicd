@@ -70,7 +70,7 @@ class Branch(models.Model):
         logsio.info("Reloading")
         self._reload(shell, task, logsio)
         logsio.info("Building")
-        shell.odoo('build')
+        self._internal_build(shell)
         logsio.info("Updating")
         shell.odoo('update', "--no-dangling-check") # , "--i18n")
         logsio.info("Upping")
@@ -80,7 +80,7 @@ class Branch(models.Model):
         logsio.info("Reloading")
         self._reload(shell, task, logsio)
         logsio.info("Building")
-        shell.odoo('build')
+        self._internal_build(shell)
         logsio.info("Updating")
         shell.odoo('update', "--no-dangling-check", "--installed-modules")
         logsio.info("Upping")
@@ -92,7 +92,7 @@ class Branch(models.Model):
     def _reload_and_restart(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
         logsio.info("Building")
-        shell.odoo('build')
+        self._internal_build(shell)
         logsio.info("Upping")
         shell.odoo("kill")
         self._kill_tmux_sessions(shell)
@@ -112,7 +112,7 @@ class Branch(models.Model):
         logsio.info("Reloading")
         shell.odoo('reload')
         logsio.info("Building")
-        shell.odoo('build')
+        self._internal_build(shell)
         logsio.info("Downing")
         shell.odoo('kill')
         shell.odoo('rm')
@@ -122,43 +122,57 @@ class Branch(models.Model):
             dump.name)
         if self.remove_web_assets_after_restore:
             shell.odoo('-f', 'remove-web-assets')
+        shell.odoo("update")
         self.last_restore_dump_name = dump.name
         self.last_restore_dump_date = dump.date_modified
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
-        self.repo_id.machine_id._fetch_psaux_docker_containers()
+        self.machine_id._fetch_psaux_docker_containers()
 
     def _docker_stop(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
-        self.repo_id.machine_id._fetch_psaux_docker_containers()
+        self.machine_id._fetch_psaux_docker_containers()
 
     def _docker_remove(self, shell, task, logsio, **kwargs):
         shell.odoo('kill')
         shell.odoo('rm')
-        self.repo_id.machine_id._fetch_psaux_docker_containers()
+        self.machine_id._fetch_psaux_docker_containers()
 
     def _turn_into_dev(self, shell, task, logsio, **kwargs):
         shell.odoo('turn-into-dev')
 
     def _reload(
             self, shell, task, logsio,
-            project_name=None, settings=None, commit=None, **kwargs
+            project_name=None, settings=None, commit=None, registry=None,
+            **kwargs
             ):
 
         cwd = self._make_sure_source_exists(shell, logsio)
 
         with shell.clone(cwd=cwd) as shell:
             self._make_instance_docker_configs(
-                shell, forced_project_name=project_name, settings=settings)
+                shell, forced_project_name=project_name, settings=settings,
+                registry=registry
+            )
             self._collect_all_files_by_their_checksum(shell)
             if commit:
                 shell.checkout_commit(commit)
             shell.odoo('reload')
+            if self._is_hub_configured(shell):
+                shell.odoo("login")
+
+    def _is_hub_configured(self, shell):
+        output = shell.odoo("config", "--full", logoutput=False)['stdout']
+        lines = [x for x in output.split("\n") if 'HUB_URL=' in x]
+        if lines:
+            if len(lines[0]) > len("HUB_URL="):
+                return True
+        return False
 
     def _build(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio, **kwargs)
-        shell.odoo('build')
+        self._internal_build(shell)
 
     def _dump(self, shell, task, logsio, volume=None, filename=None, **kwargs):
         volume = volume or task.machine_id._get_volume('dumps')
@@ -471,7 +485,9 @@ class Branch(models.Model):
             shell.odoo('rm', allow_error=True)
 
     def _make_instance_docker_configs(
-            self, shell, forced_project_name=None, settings=None):
+            self, shell, forced_project_name=None, settings=None,
+            registry=None
+        ):
 
         home_dir = shell._get_home_dir()
         machine = shell.machine
@@ -504,6 +520,12 @@ class Branch(models.Model):
         if settings:
             content += "\n" + settings
 
+        registry = registry or self.repo_id.registry_id
+        if registry:
+            content += (
+                f"\nHUB_URL={registry.hub_url}"
+            )
+
         with self._extra_env() as x_self:
             with machine._extra_env() as x_machine:
                 shell.put(
@@ -511,7 +533,6 @@ class Branch(models.Model):
                         branch=x_self,
                         project_name=project_name,
                         machine=x_machine),
-
                     home_dir + f'/.odoo/settings.{project_name}'
                     )
 
@@ -521,15 +542,31 @@ class Branch(models.Model):
                 "_dump", machine=rec.backup_machine_id,
                 ignore_previous_tasks=True)
 
+    def _fetch_from_registry(self, shell):
+        if self._is_hub_configured(shell):
+            shell.odoo('docker-registry', 'login')
+            shell.odoo('docker-registry', 'regpull')
+
+    def _push_to_registry(self, shell):
+        if self._is_hub_configured(shell):
+            shell.odoo('docker-registry', 'login')
+            shell.odoo('docker-registry', 'regpush')
+
+    def _internal_build(self, shell):
+        self._fetch_from_registry(shell)
+        shell.odoo("build")
+        self._push_to_registry(shell)
+
     def _reset_db(self, shell, task, logsio, **kwargs):
         self._reload(shell, task, logsio)
-        shell.odoo('build')
+        self._internal_build(shell)
         shell.odoo('-f', 'db', 'reset')
         shell.odoo('update')
         # shell.odoo('turn-into-dev')
         self._after_build(shell=shell, logsio=logsio, **kwargs)
 
     def _compress(self, shell, task, logsio, compress_job_id):
+        import pudb;pudb.set_trace()
         self.ensure_one()
         compressor = self.env['cicd.compressor'].sudo().browse(
             compress_job_id).sudo()
@@ -586,6 +623,7 @@ class Branch(models.Model):
                     cwd=instance_path,
                     project_name=self.project_name
                 ) as shell:
+                    breakpoint()
 
                     logsio.info("Reloading...")
                     settings = (
@@ -594,6 +632,7 @@ class Branch(models.Model):
                         "RUN_CRONJOBS=0\n"
                         "RUN_QUEUEJOBS=0\n"
                         "RUN_POSTGRES=1\n"
+                        "RUN_ROBOT=0\n"
                         "RUN_PROXY_PUBLISHED=0\n"
                         "DB_HOST=postgres\n"
                         "DB_USER=odoo\n"
@@ -605,6 +644,7 @@ class Branch(models.Model):
                         project_name=self.project_name, settings=settings)
                     logsio.info(f"Restoring {effective_dest_file_path}...")
                     shell.odoo("up", "-d", "postgres")
+                    breakpoint()
                     try:
                         shell.odoo(
                             "-f", "restore", "odoo-db",
@@ -696,7 +736,7 @@ for path in base.glob("*"):
 
     def _kill_tmux_sessions(self, shell):
         for rec in self:
-            machine = rec.repo_id.machine_id
+            machine = rec.machine_id
             with machine._shell() as shell:
                 machine.make_login_possible_for_webssh_container()
                 test = shell.X([

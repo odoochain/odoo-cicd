@@ -141,7 +141,12 @@ class ReleaseItem(models.Model):
         for rec in self:
             summary = []
             for branch in rec.branch_ids.branch_id.sorted(lambda x: x.date):
-                summary.append(f"* {branch.enduser_summary or branch.name}")
+                summary.append((
+                    f"{branch.name}: \n"
+                    f"{branch.enduser_summary or ''}\n"
+                    f"{branch.enduser_summary_ticketsystem or ''}\n"
+                    "\n"
+                ).strip())
             rec.computed_summary = '\n'.join(summary)
 
     def _do_release(self):
@@ -204,8 +209,11 @@ class ReleaseItem(models.Model):
                 branches = ', '.join(self.branch_ids.branch_id.mapped('name'))
                 try:
                     commits = self.mapped('branch_ids.commit_id')
+                    if not commits:
+                        self.state = 'collecting'
+                        return
                     repo = self.repo_id
-                    message_commit = repo._recreate_branch_from_commits(
+                    message_commit, history = repo._recreate_branch_from_commits(
                         source_branch=self.release_id.branch_id.name,
                         commits=commits,
                         target_branch_name=target_branch_name,
@@ -220,7 +228,20 @@ class ReleaseItem(models.Model):
                         item_branch = message_commit.branch_ids.filtered(
                             lambda x: x.name == self.item_branch_name)
                         self.item_branch_id = item_branch
-                        self.branch_ids.write({'state': 'merged'})
+
+                        for branchitem in self.branch_ids:
+                            history_item = [
+                                x for x in history if x['sha'] ==
+                                branchitem.commit_id.name]
+                            if not history_item:
+                                raise Exception((
+                                    "No history item found for "
+                                    f"{x['sha']}"
+                                ))
+                            history_item = history_item[0]
+                            branchitem.state = \
+                                'already_merged' if history_item['already'] \
+                                else 'merged'
 
                 except MergeConflict as ex:
                     for commit in ex.conflicts:
@@ -242,13 +263,16 @@ class ReleaseItem(models.Model):
 
             except Exception as ex:
                 self.state = 'collecting_merge_conflict'
-                self.exc_info = str(ex)
+                self.exc_info = (
+                    f"{ex}"
+                    f"{traceback.format_exc()}"
+                )
                 if logsio:
                     logsio.error(ex)
                 logger.error(ex)
             else:
                 if message_commit and commits:
-                    message_commit.approval_state = 'approved'
+                    message_commit.no_approvals = True
                     self.commit_id = message_commit
                     candidate_branch = repo.branch_ids.filtered(
                         lambda x: x.name == self.item_branch_name)
@@ -274,7 +298,7 @@ class ReleaseItem(models.Model):
         except psycopg2.errors.LockNotAvailable as ex:
             raise RetryableJobError((
                 "Could not work exclusivley "
-                f"on release {self.release_id.id} - retrying in few seconds",
+                f"on release {self.release_id.id} - retrying in few seconds"
             ), ignore_retry=True, seconds=15) from ex
 
     def cron_heartbeat(self):
@@ -282,6 +306,7 @@ class ReleaseItem(models.Model):
         self._lock()
         now = fields.Datetime.now()
         deadline = self.planned_maximum_finish_date
+        breakpoint()
 
         if deadline < now:
             if not self.is_failed and not self.is_done:
@@ -301,7 +326,7 @@ class ReleaseItem(models.Model):
                     states = self.branch_ids.mapped('state')
                     if 'candidate' in states and 'conflict' not in states:
                         self.state = 'failed_too_late'
-                    elif not all(x == 'merged' for x in states):
+                    elif not all(x.is_merged for x in states):
                         self.state = 'failed_merge'
                     else:
                         self.state = 'integrating'

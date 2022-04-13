@@ -1,4 +1,5 @@
 import tempfile
+import base64
 import arrow
 import uuid
 from contextlib import contextmanager
@@ -109,7 +110,10 @@ class ShellExecutor(object):
             res = res[:-2]
         return res
 
-    def odoo(self, *cmd, allow_error=False, force=False, timeout=None):
+    def odoo(
+        self, *cmd, allow_error=False, force=False, timeout=None,
+        logoutput=True
+    ):
         env = {
             'NO_PROXY': "*",
             'DOCKER_CLIENT_TIMEOUT': "600",
@@ -122,7 +126,9 @@ class ShellExecutor(object):
         cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
         if force:
             cmd.insert(1, "-f")
-        res = self.X(cmd, allow_error=allow_error, env=env, timeout=timeout)
+        res = self.X(
+            cmd, allow_error=allow_error, env=env, timeout=timeout,
+            logoutput=logoutput)
         if res['exit_code'] and not allow_error or res['exit_code'] is None:
             if '.FileNotFoundError: [Errno 2] No such file or directory:' in \
                     res['stderr']:
@@ -251,6 +257,20 @@ class ShellExecutor(object):
         if split_host:
             return base, user_host
         return base + " " + user_host + " "
+
+    def sql_excel(self, sql):
+        filename = tempfile.mktemp(suffix='.')
+        self.odoo(
+            "excel",
+            base64.encodestring(sql.encode('utf-8')).decode('utf-8'),
+            "--base64",
+            "-f", filename
+        )
+        try:
+            result = self.get(filename)
+        finally:
+            self.remove(filename)
+        return result
 
     def _internal_execute(
         self, cmd, cwd=None, env=None, logoutput=True, timeout=None
