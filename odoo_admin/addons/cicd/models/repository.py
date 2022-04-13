@@ -553,12 +553,11 @@ class Repository(models.Model):
                     self._technical_clone_repo(path, machine=machine)
 
     def _merge_commits_on_target(self, shell, target, commits):
-        conflicts = []
+        conflicts, history = [], []
         for commit in commits:
             # we use git functions to retrieve deltas, git sorting and
             # so; we want to rely on stand behaviour git.
             shell.checkout_branch(target)
-            history = []
             try:
                 res = shell.X(["git", "merge", commit.name])
                 already = 'Already up to date' in res['stdout']

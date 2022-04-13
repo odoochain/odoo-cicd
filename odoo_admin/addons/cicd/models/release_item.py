@@ -213,6 +213,7 @@ class ReleaseItem(models.Model):
                         self.state = 'collecting'
                         return
                     repo = self.repo_id
+                    breakpoint()
                     message_commit, history = repo._recreate_branch_from_commits(
                         source_branch=self.release_id.branch_id.name,
                         commits=commits,
@@ -232,7 +233,13 @@ class ReleaseItem(models.Model):
                         for branchitem in self.branch_ids:
                             history_item = [
                                 x for x in history if x['sha'] ==
-                                branchitem.commit_id.name][0]
+                                branchitem.commit_id.name]
+                            if not history_item:
+                                raise Exception((
+                                    "No history item found for "
+                                    f"{x['sha']}"
+                                ))
+                            history_item = history_item[0]
                             branchitem.state = \
                                 'already_merged' if history_item['already'] \
                                 else 'merged'
@@ -257,7 +264,10 @@ class ReleaseItem(models.Model):
 
             except Exception as ex:
                 self.state = 'collecting_merge_conflict'
-                self.exc_info = str(ex)
+                self.exc_info = (
+                    f"{ex}"
+                    f"{traceback.format_exc()}"
+                )
                 if logsio:
                     logsio.error(ex)
                 logger.error(ex)
