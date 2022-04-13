@@ -139,7 +139,7 @@ class GitBranch(models.Model):
     containers = fields.Text(compute="compute_containers_text", store=False)
 
     @api.recordchange('state')
-    def enduser_summary_ticketsystem(self):
+    def _enduser_summary_ticketsystem(self):
         for rec in self:
             if not rec.enduser_summary_ticketsystem:
                 rec.with_delay()._fetch_enduser_summary()
