@@ -183,7 +183,9 @@ class Repository(models.Model):
                     shell.remove(temppath)
                 else:
                     shell.X(["mv", temppath, path])
-                return
+                shell.X([
+                    "git", "config", "--global",
+                    "--add", "safe.directory", path])
             finally:
                 # if something failed cleanup
                 shell.remove(temppath)
