@@ -369,7 +369,8 @@ class GitBranch(models.Model):
             elif (commit.test_state == 'failed' or 
                     commit.approval_state == 'declined' or \
                     commit.code_review_state == 'declined') and \
-                        not commit.force_approved:
+                        not commit.force_approved and \
+                        not fully_approved:
                 state = 'dev'
 
             elif rec.block_release:
