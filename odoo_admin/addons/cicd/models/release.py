@@ -119,12 +119,9 @@ class Release(models.Model):
     @api.model
     def cron_heartbeat(self):
         for rec in self.search([('auto_release', '=', True)]):
-            try:
-                rec._heartbeat()
-                self.env.cr.commit()
-            except RetryableJobError as e:
-                self.env.cr.rollback()
-                pass
+            rec.with_delay(identity_key=(
+                f"release-heartbeat-{rec.name}#{rec.id}"
+            ))._heartbeat()
     
     def _heartbeat(self):
         self.ensure_one()

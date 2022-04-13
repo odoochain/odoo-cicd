@@ -297,6 +297,7 @@ class ReleaseItem(models.Model):
         self._lock()
         now = fields.Datetime.now()
         deadline = self.planned_maximum_finish_date
+        breakpoint()
 
         if deadline < now:
             if not self.is_failed and not self.is_done:
