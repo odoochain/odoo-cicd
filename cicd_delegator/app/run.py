@@ -162,30 +162,31 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             req_header, cookies = self.parse_headers()
             url, query_params = self._rewrite_path(req_header, cookies)
             conn_exception = None
-            try:
-                resp = requests.get(
-                    url, headers=req_header, verify=False,
-                    allow_redirects=False, params=query_params,
-                    cookies=cookies,
-                )
-            except Exception as ex:
-                conn_exception = ex
-            finally:
+
+            def _redirect_to_index():
+                self._redirect_to_index(cookies and cookies.get('delegator-path') or None)
                 sent = True
 
-            redirect_to_index = self.path == "/_" or self.path.endswith('/web/session/logout')
-            if conn_exception:
-                redirect_to_index = True
-
-            if redirect_to_index:
-                self._redirect_to_index(cookies and cookies.get('delegator-path') or None)
+            if self.path == "/_" or self.path.endswith('/web/session/logout'):
+                _redirect_to_index()
             else:
-                self.send_response(resp.status_code)
-                self.send_resp_headers(resp, cookies)
-                if body:
-                    self.wfile.write(resp.content)
 
-            return
+                try:
+                    resp = requests.get(
+                        url, headers=req_header, verify=False,
+                        allow_redirects=False, params=query_params,
+                        cookies=cookies,
+                    )
+                except Exception as ex:
+                    conn_exception = ex
+                    _redirect_to_index()
+                else:
+                    self.send_response(resp.status_code)
+                    self.send_resp_headers(resp, cookies)
+                    if body:
+                        self.wfile.write(resp.content)
+                    sent = True
+
         except Exception as ex:
             self._handle_error(ex)
         finally:
