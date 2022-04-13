@@ -289,7 +289,7 @@ class ReleaseItem(models.Model):
         except psycopg2.errors.LockNotAvailable as ex:
             raise RetryableJobError((
                 "Could not work exclusivley "
-                f"on release {self.release_id.id} - retrying in few seconds",
+                f"on release {self.release_id.id} - retrying in few seconds"
             ), ignore_retry=True, seconds=15) from ex
 
     def cron_heartbeat(self):
