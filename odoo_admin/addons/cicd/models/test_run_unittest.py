@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from .test_run import SETTINGS
 
 
 class TestrunUnittest(models.Model):
@@ -16,6 +17,15 @@ class TestrunUnittest(models.Model):
 
         tests_by_module = self._get_unit_tests_by_modules(files)
         i = 0
+
+        # deactivate queuejob module
+        breakpoint()
+        self._reload(
+            shell, SETTINGS + (
+                "SERVER_WIDE_MODULES=base,web\n"
+            ),
+            str(Path(shell.cwd).parent)
+            )
 
         def name_callback(f):
             p = Path(f)
@@ -65,6 +75,7 @@ class TestrunUnittest(models.Model):
         tests_by_module = {}
         for fpath in files:
             f = Path(fpath)
+            # TODO perhaps check for manifest; framework would have that info
             module = str(f.parent.parent.name)
             tests_by_module.setdefault(module, [])
             if fpath not in tests_by_module[module]:
@@ -73,6 +84,7 @@ class TestrunUnittest(models.Model):
 
     @api.model
     def _get_hash_for_module(self, shell, module_path):
-        res = shell.odoo("odoo", "list-deps", module_path)
-        deps = json.loads(res.stdout.split("---", 1)[1])
+        res = shell.odoo("list-deps", module_path)
+        stdout = res['stdout']
+        deps = json.loads(stdout.split("---", 1)[1])
         return deps['hash']

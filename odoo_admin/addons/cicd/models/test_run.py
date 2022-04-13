@@ -427,7 +427,8 @@ class CicdTestRun(models.Model):
                 self.state = 'omitted'
                 self.line_ids = [[6, 0, []]]
                 self.as_job(
-                    "omitted_compute_success_rate", True)._compute_success_rate()
+                    "omitted_compute_success_rate",
+                    True)._compute_success_rate()
                 return
 
             self = self._with_context()
