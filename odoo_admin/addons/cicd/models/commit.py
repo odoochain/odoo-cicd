@@ -8,6 +8,7 @@ class GitCommit(models.Model):
     _name = 'cicd.git.commit'
     _order = 'date desc'
 
+    no_approvals = fields.Boolean("No Approvals")
     short = fields.Char(compute="_compute_short")
     name = fields.Char("SHA", required=True)
     branch_ids = fields.Many2many(

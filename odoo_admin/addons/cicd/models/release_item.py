@@ -272,7 +272,7 @@ class ReleaseItem(models.Model):
                 logger.error(ex)
             else:
                 if message_commit and commits:
-                    message_commit.force_approved = True
+                    message_commit.no_approvals = True
                     self.commit_id = message_commit
                     candidate_branch = repo.branch_ids.filtered(
                         lambda x: x.name == self.item_branch_name)

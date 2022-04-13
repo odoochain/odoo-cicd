@@ -314,6 +314,7 @@ class GitBranch(models.Model):
         "latest_commit_id.code_review_state",
         "latest_commit_id.test_state",
         "latest_commit_id.force_approved",
+        "latest_commit_id.no_approvals",
         "latest_commit_id.test_run_ids",
         "latest_commit_id.test_run_ids.state",
         "computed_release_item_ids.state",
@@ -325,11 +326,13 @@ class GitBranch(models.Model):
     )
     def _compute_state(self):
         for rec in self:
+            breakpoint()
             tasks = rec.task_ids.with_context(prefetch_fields=False)
             task_names = set(tasks.mapped('name'))
             building_tasks = any(
                 x in y for x in ['update', 'reset', 'restore']
                 for y in task_names)
+
 
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
@@ -341,8 +344,16 @@ class GitBranch(models.Model):
                 state = 'dev'
 
             commit = rec.latest_commit_id
-
-            if commit.approval_state == 'check':
+            fully_approved = (
+                commit.approval_state == 'approved' and 
+                commit.code_review_state == 'approved'
+            ) or commit.no_approvals
+            success_tested = (
+                commit.test_state == 'success'
+                or not rec.any_testing
+            )
+            
+            if commit.approval_state == 'check' and not commit.force_approved:
                 state = 'approve'
 
             elif commit.approval_state == 'approved' and \
@@ -350,26 +361,21 @@ class GitBranch(models.Model):
                     not commit.force_approved:
                 state = 'review_code'
 
-            elif commit.approval_state == 'approved' and \
-                commit.code_review_state == 'approved' and \
-                commit.test_state in [False, 'open', 'running'] and \
+            elif fully_approved and commit.test_state in [False, 'open', 'running'] and \
                     rec.any_testing and not commit.force_approved:
 
                 state = 'testable'
 
-            elif commit.test_state == 'failed' or \
-                    commit.approval_state == 'declined':
+            elif (commit.test_state == 'failed' or 
+                    commit.approval_state == 'declined' or \
+                    commit.code_review_state == 'declined') and \
+                        not commit.force_approved:
                 state = 'dev'
 
             elif rec.block_release:
                 state = 'blocked'
 
-            elif (
-                    commit.test_state == 'success'
-                    or not rec.any_testing
-                    or commit.force_approved
-                    ) and commit.approval_state == 'approved':
-
+            elif (success_tested and fully_approved) or commit.force_approved:
                 release_items = rec.computed_release_item_ids
 
                 # Determine suitable state state
