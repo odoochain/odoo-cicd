@@ -33,7 +33,7 @@
 								<field name="item_branch_id"  attrs="{'invisible': [('item_branch_id', '=', False)]}"/>
 							</group>
 							<group string="Branches" name="branches">
-								<field name="branch_ids" attrs="{'readonly': [('release_type', '!=', 'hotfix')]}">
+								<field name="branch_ids" attrs="{'readonly': [('release_type', '!=', 'hotfix')]}" nolabel='1'>
 									<tree>
 										<field name="branch_id"/>
 										<button name="open_window" string="" icon="fa-external-link" type="object" />

@@ -115,7 +115,7 @@ class Release(models.Model):
     def _send_pre_release_information(self):
         for rec in self:
             pass
-     
+
     @api.model
     def cron_heartbeat(self):
         for rec in self.search([('auto_release', '=', True)]):

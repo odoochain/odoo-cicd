@@ -209,6 +209,9 @@ class ReleaseItem(models.Model):
                 branches = ', '.join(self.branch_ids.branch_id.mapped('name'))
                 try:
                     commits = self.mapped('branch_ids.commit_id')
+                    if not commits:
+                        self.state = 'collecting'
+                        return
                     repo = self.repo_id
                     message_commit, history = repo._recreate_branch_from_commits(
                         source_branch=self.release_id.branch_id.name,
