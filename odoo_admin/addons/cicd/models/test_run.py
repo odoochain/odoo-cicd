@@ -167,65 +167,6 @@ class CicdTestRun(models.Model):
 
     def _prepare_run(self):
         self = self._with_context()
-        self._report('prepare run started')
-        self._switch_to_running_state()
-
-        started = arrow.utcnow()
-        with self._shell() as shell:
-            self._checkout_source_code(shell)
-            self._abort_if_required()
-            self._report('building')
-            shell.odoo('build')
-            self._report('killing any existing')
-            shell.odoo('kill', allow_error=True)
-            shell.odoo('rm', allow_error=True)
-            self._report('starting postgres')
-            shell.odoo('up', '-d', 'postgres')
-
-            self._abort_if_required()
-
-            self._wait_for_postgres(shell)
-            self._report('db reset started')
-            shell.odoo('-f', 'db', 'reset')
-            shell.odoo('update', 'base')
-
-            self._abort_if_required()
-            self._report('db reset done')
-
-            self._abort_if_required()
-
-            self._report("Storing snapshot")
-            shell.odoo('snap', 'save', shell.project_name, force=True)
-            self._wait_for_postgres(shell)
-            self._report("Storing snapshot done")
-            self._report(
-                'preparation done',
-                duration=arrow.utcnow() - started
-            )
-
-        self._abort_if_required()
-        self.as_job("_preparedone_run_tests", False)._run_test()
-
-    def _cleanup_testruns(self):
-        self = self._with_context()
-        with self._logsio(None) as logsio:
-            self._report("Cleanup Testing")
-            with self._shell() as shell:
-                if not shell.exists(shell.cwd):
-                    return
-                shell.odoo('kill', allow_error=True)
-                shell.odoo('rm', force=True, allow_error=True)
-                shell.odoo('snap', 'clear')
-                shell.odoo('down', "-v", force=True, allow_error=True)
-                project_dir = shell.cwd
-                with shell.clone(cwd=shell.cwd.parent) as shell:
-                    try:
-                        shell.rm(project_dir)
-                    except Exception:
-                        msg = f"Failed to remove directory {project_dir}"
-                        if logsio:
-                            logsio.error(msg)
-                        logger.error(msg)
 
     def _report(
         self, msg, state='success',
@@ -263,24 +204,6 @@ class CicdTestRun(models.Model):
                 logsio.info(msg)
             else:
                 logsio.error(msg)
-
-    def _checkout_source_code(self, shell):
-        self._report("Checking out source code...")
-        self._reload(
-            shell, SETTINGS,
-            str(Path(shell.cwd).parent)
-            )
-
-        self._report("Checking commit")
-        sha = shell.X(["git", "log", "-n1", "--format=%H"])[
-            'stdout'].strip()
-        if sha != self.commit_id.name:
-            raise WrongShaException((
-                f"checked-out SHA {sha} "
-                f"not matching test sha {self.commit_id.name}"
-                ))
-        self._report("Commit matches")
-        self._report(f"Checked out source code at {shell.cwd}")
 
     def prepare_run(self):
         self = self._with_context()
