@@ -186,16 +186,12 @@ class CicdTestRun(models.Model):
             self._wait_for_postgres(shell)
             self._report('db reset started')
             shell.odoo('-f', 'db', 'reset')
-            # required for turn-into-dev
             shell.odoo('update', 'base')
 
             self._abort_if_required()
             self._report('db reset done')
 
             self._abort_if_required()
-            #self._report(
-            #    "Turning into dev db (change password, set mailserver)")
-            #shell.odoo('turn-into-dev')
 
             self._report("Storing snapshot")
             shell.odoo('snap', 'save', shell.project_name, force=True)
@@ -209,10 +205,10 @@ class CicdTestRun(models.Model):
         self._abort_if_required()
         self.as_job("_preparedone_run_tests", False)._run_tests()
 
-    def _finalize_testruns(self):
+    def _cleanup_testruns(self):
         self = self._with_context()
         with self._logsio(None) as logsio:
-            self._report("Finalizing Testing")
+            self._report("Cleanup Testing")
             with self._shell() as shell:
                 if not shell.exists(shell.cwd):
                     return
@@ -259,7 +255,6 @@ class CicdTestRun(models.Model):
             state = state or 'success'
 
         self.line_ids = [[0, 0, data]]
-        self.env['base'].flush()
         self.env.cr.commit()
 
         with self._logsio(None) as logsio:
@@ -388,7 +383,7 @@ class CicdTestRun(models.Model):
             else:
                 self.duration = 0
 
-        self.as_job("finalize", True)._finalize_testruns()
+        self.as_job("cleanup", True)._cleanup_testruns()
 
         self.as_job("compute_success_rate", True)._compute_success_rate(
             task=task)

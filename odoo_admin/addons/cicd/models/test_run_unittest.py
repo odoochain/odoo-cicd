@@ -34,6 +34,7 @@ class TestrunUnittest(models.Model):
         breakpoint()
 
         for module, tests in tests_by_module.items():
+            self._abort_if_required()
 
             hash = self._get_hash_for_module(shell, module)
             if self.env['cicd.test.run.line']._check_if_test_already_succeeded(

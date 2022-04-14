@@ -307,40 +307,14 @@ class Branch(models.Model):
 
         if not test_run and task and task.testrun_id:
             test_run = task.testrun_id
+
         elif not test_run:
             test_run = self.test_run_ids.filtered(
                 lambda x: x.commit_id ==
-                    self.latest_commit_id and x.state in ('open', 'omitted'))
+                    b.latest_commit_id and x.state in ('open'))
 
-        if not test_run:
-            test_run = b.test_run_ids.filtered(
-                lambda x: x.commit_id == b.latest_commit_id)
-            if test_run:
-                test_run = test_run.filtered(lambda x: x.state == 'failed')
-                if test_run:
-                    test_run[0].state = 'open'
-
-            if not test_run:
-                if not self.latest_commit_id:
-                    return
-                    raise ValidationError((
-                        "Missing latest commit."
-                        f" {self.name}"
-                    ))
-                test_run = b.test_run_ids.create({
-                    'commit_id': self.latest_commit_id.id,
-                    'branch_id': b.id,
-                })
-
-                # so that it is available in sub cr in testrun execute
-                self.env.cr.commit()
-        else:
-            test_run = test_run.filtered(
-                lambda x: x.state in ('open', 'omitted'))
-            test_run.filtered(
-                lambda x: x.state != 'open').write({'state': 'open'})
-
-        if test_run:
+        test_run = test_run and test_run[0]
+        if test_run.state == 'open':
             test_run[0].with_delay().execute(task=task)
 
     def _after_build(self, shell, logsio, **kwargs):

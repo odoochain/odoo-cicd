@@ -10,20 +10,6 @@
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
-		<record id="testruns" model="ir.cron">
-			<!--
-				Creates test runs and executes startable test runs.
-			-->
-			<field name="name">testruns</field>
-			<!-- increase -->
-			<field name="interval_number">30</field>
-			<field name="interval_type">seconds</field>
-			<field name="model_id" ref="model_cicd_git_branch" />
-			<field name="state">code</field>
-			<field name="code">model._cron_make_test_runs()</field>
-			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
-			<field name="numbercall">-1</field>
-		</record>
 		<record id="autobackup" model="ir.cron">
 			<field name="name">autobackup</field>
 			<field name="interval_number">1</field>
