@@ -36,17 +36,24 @@ while True:
         while True:
             uid = login(username, pwd)
             os.system("./cicd kill odoo_queuejobs")
-            exe("cicd.test.run", "rerun", [173])
+            jobs = exe('queue.job', 'search', [])
+            exe('queue.job', 'unlink', jobs)
             os.system("./cicd up -d odoo_queuejobs")
             timeout = arrow.get().shift(seconds=60)
             count_runs += 1
             if exe("queue.job", "search_count", []) > 0:
                 raise Exception("No jobs expected")
 
+            testrun_id = exe('cicd.test.run', 'create', {
+                'branch_id': 3,
+                'commit_id': 825,
+            })
+            print(f"Testrun id: {testrun_id}")
+
             last_print = None
             while True:
                 exe('ir.cron', [49], 'method_direct_trigger')
-                lines = exe("cicd.test.run", "read", [173], ['line_ids'])[0]['line_ids']
+                lines = exe("cicd.test.run", "read", [testrun_id], ['line_ids'])[0]['line_ids']
                 lines = exe("cicd.test.run.line", "read", lines, ['name'])
                 line_names = list(map(lambda x: x['name'], lines))
                 txt = (
