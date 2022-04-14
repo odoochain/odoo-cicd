@@ -51,7 +51,7 @@ class CicdTestRunLine(models.Model):
     def _compute_name_short(self):
         for rec in self:
             MAX = 80
-            if rec.name > MAX:
+            if len(rec.name or '') > MAX:
                 rec.name_short = f"{rec.name[:MAX]}..."
             else:
                 rec.name_short = rec.name
