@@ -50,7 +50,11 @@ class CicdTestRunLine(models.Model):
 
     def _compute_name_short(self):
         for rec in self:
-            rec.name_short = (rec.name or '')[:80]
+            MAX = 80
+            if rec.name > MAX:
+                rec.name_short = f"{rec.name[:MAX]}..."
+            else:
+                rec.name_short = rec.name
 
     def toggle_force_success(self):
         self.sudo().force_success = not self.sudo().force_success
