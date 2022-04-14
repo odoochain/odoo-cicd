@@ -10,6 +10,7 @@ PyPDF2==1.26.0
 Werkzeug==0.16.1
 XlsxWriter==1.1.2
 arrow
+boltons
 bson
 buttervolume>=3.7
 chardet==3.0.4

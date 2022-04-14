@@ -1,4 +1,9 @@
+import traceback
+from boltons import tbutils
+import time
 from curses import wrapper
+import traceback
+
 import arrow
 from contextlib import contextmanager, closing
 import base64
@@ -13,6 +18,8 @@ from odoo.exceptions import ValidationError
 import logging
 from pathlib import Path
 from contextlib import contextmanager
+
+INTERVAL = 1
 
 
 MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
@@ -166,45 +173,19 @@ class CicdTestRun(models.Model):
             raise AbortException("User aborted")
 
     def _prepare_run(self):
+        logger.error("!!!!!!!!!!   ENTERING PREPARE_RUN")
+        logger.error(tbutils.TracebackInfo.from_frame().get_formatted())
+
         self = self._with_context()
         self._report('prepare run started')
         self._switch_to_running_state()
 
-        started = arrow.utcnow()
-        with self._shell() as shell:
-            self._checkout_source_code(shell)
+        for i in range(10):
+            time.sleep(INTERVAL)
             self._abort_if_required()
-            self._report('building')
-            shell.odoo('build')
-            self._report('killing any existing')
-            shell.odoo('kill', allow_error=True)
-            shell.odoo('rm', allow_error=True)
-            self._report('starting postgres')
-            shell.odoo('up', '-d', 'postgres')
-
-            self._abort_if_required()
-
-            self._wait_for_postgres(shell)
-            self._report('db reset started')
-            shell.odoo('-f', 'db', 'reset')
-            shell.odoo('update', 'base')
-
-            self._abort_if_required()
-            self._report('db reset done')
-
-            self._abort_if_required()
-
-            self._report("Storing snapshot")
-            shell.odoo('snap', 'save', shell.project_name, force=True)
-            self._wait_for_postgres(shell)
-            self._report("Storing snapshot done")
-            self._report(
-                'preparation done',
-                duration=arrow.utcnow() - started
-            )
+            self._report(f'in _prepare_run {i}')
 
         self._abort_if_required()
-        self.as_job("_preparedone_run_tests", False)._run_test()
 
     def _cleanup_testruns(self):
         self = self._with_context()
@@ -288,7 +269,8 @@ class CicdTestRun(models.Model):
 
         self._report("Prepare run...")
         self.date = fields.Datetime.now()
-        self.as_job('prepare', False)._prepare_run()
+        marker = self._get_qj_marker('prepare-run', afterrun=False)
+        self.with_delay(identity_key=marker)._prepare_run()
 
     def execute_now(self):
         self.with_context(
@@ -466,24 +448,10 @@ class CicdTestRun(models.Model):
         self = self._with_context()
         self._report("Starting Tests")
         self._switch_to_running_state()
-
-        b = self.branch_id
-
-        with self._shell() as shell:
-            logsio = shell.logsio
-
-            if b.run_unittests:
-                self._execute(
-                    shell, logsio, self._run_unit_tests,
-                    'test-units')
-            if b.run_robottests:
-                self._execute(
-                    shell, logsio, self._run_robot_tests,
-                    'test-robot')
-            if b.simulate_install_id:
-                self._execute(
-                    shell, logsio, self._run_update_db,
-                    'test-migration')
+        for i in range(10):
+            time.sleep(INTERVAL)
+            self._abort_if_required()
+            self._report(f'in _run_test {i}')
 
     def _execute(self, shell, logsio, run, appendix):
         try:

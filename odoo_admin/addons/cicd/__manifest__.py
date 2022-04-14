@@ -61,6 +61,7 @@
     'external_dependencies': {   'python': [   'pudb',
                                                'sarge',
                                                'bson',
+                                               'boltons',
                                                'humanize',
                                                'paramiko',
                                                'arrow',
