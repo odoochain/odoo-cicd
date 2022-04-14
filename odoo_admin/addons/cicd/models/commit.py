@@ -108,7 +108,6 @@ class GitCommit(models.Model):
                 if rec.code_review_state != 'approved':
                     rec.code_review_state = 'approved'
 
-    @api.depends('test_run_ids', 'test_run_ids.state')
     def _compute_test_state(self):
         for rec in self:
             testruns = rec.test_run_ids.sorted(lambda x: x.id, reverse=True)

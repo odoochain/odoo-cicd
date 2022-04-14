@@ -42,14 +42,6 @@
 					<group>
 						<field name="text" nolabel="1" readonly='1'/>
 					</group>
-					<notebook>
-						<page string="Test Runs">
-							<field name="test_run_ids">
-							</field>
-
-						</page>
-
-					</notebook>
 				</sheet>
 				<div class="oe_chatter">
 					<field name="message_follower_ids" widget="mail_followers"/>
