@@ -86,80 +86,9 @@ class CicdTestRun(models.Model):
                 "update queue_job set state = 'failed' "
                 "where id=%s "
             ), (qj['id'],))
+        self.env['queue.job'].search([]).unlink()
         self.do_abort = False
         self.state = 'failed'
-
-    def _wait_for_postgres(self, shell, timeout=300):
-        started = arrow.get()
-        deadline = started.shift(seconds=timeout)
-
-        while True:
-            try:
-                shell.odoo(
-                    "psql",
-                    "--non-interactive",
-                    "--sql",
-                    "select * from information_schema.tables limit 1;",
-                    timeout=timeout)
-            except Exception:
-                diff = arrow.get() - started
-                msg = f"Waiting for postgres {diff.total_seconds()}..."
-                logger.info(msg)
-                if arrow.get() < deadline:
-                    time.sleep(0.5)
-                else:
-                    raise
-            else:
-                break
-
-    def _reload(self, shell, settings, root):
-        def reload():
-            try:
-                self.branch_id._reload(
-                    shell, None, shell.logsio, project_name=shell.project_name,
-                    settings=settings, commit=self.commit_id.name)
-            except Exception as ex:
-                logger.error(ex)
-                self._report("Exception at reload", exception=ex)
-                raise
-            else:
-                self._report("Reloaded")
-        self._report("Reloading for test run")
-        try:
-            try:
-                reload()
-            except RetryableJobError:
-                self._report("Retryable error occurred at reloading")
-                raise
-            except Exception as ex:
-                self._report("Reloading: Exception stage 1 hit")
-                self._report(str(ex))
-                try:
-                    if shell.cwd != root:
-                        shell.rm(shell.cwd)
-                    reload()
-                except RetryableJobError:
-                    self._report(
-                        "Retryable error occurred at reloading stage 2")
-                    raise
-                except Exception as ex:
-                    if 'reference is not a tree' in str(ex):
-                        raise RetryableJobError((
-                            "Missing commit not arrived "
-                            "- retrying later.")) from ex
-                    self._report("Error occurred", exception=ex)
-                    raise
-
-        except RetryableJobError as ex:
-            self._report("Retrying", exception=ex)
-            raise
-
-        except AbortException as ex:
-            pass
-
-        except Exception as ex:
-            self._report("Error", exception=ex)
-            raise
 
     def _abort_if_required(self):
         if self.do_abort:
@@ -167,6 +96,10 @@ class CicdTestRun(models.Model):
 
     def _prepare_run(self):
         self = self._with_context()
+
+        for i in range(10):
+            self._report(f"{i} at _prepare_run")
+            time.sleep(0.5)
 
     def _report(
         self, msg, state='success',
@@ -211,6 +144,9 @@ class CicdTestRun(models.Model):
 
         self._report("Prepare run...")
         self.date = fields.Datetime.now()
+        for i in range(10):
+            self._report(f"{i} at prepare_run")
+            time.sleep(0.5)
         self.as_job('prepare', False)._prepare_run()
 
     def execute_now(self):
@@ -267,7 +203,6 @@ class CicdTestRun(models.Model):
             x for x in queuejobs
             if 'wait_for_finish' not in (x['identity_key'] or '')]
         return queuejobs
-
     @contextmanager
     def _logsio(self, logsio=None):
         if logsio:
@@ -306,11 +241,8 @@ class CicdTestRun(models.Model):
             else:
                 self.duration = 0
 
-        self.as_job("cleanup", True)._cleanup_testruns()
-
         self.as_job("compute_success_rate", True)._compute_success_rate(
             task=task)
-        self.as_job('inform_developer', True)._inform_developer()
 
     @contextmanager
     def _shell(self, logsio=None):
@@ -384,30 +316,6 @@ class CicdTestRun(models.Model):
 
             self.as_job('prepare-run', False).prepare_run()
 
-    def _run_test(self):
-        self.ensure_one()
-        self = self._with_context()
-        self._report("Starting Tests")
-        self._switch_to_running_state()
-
-        b = self.branch_id
-
-        with self._shell() as shell:
-            logsio = shell.logsio
-
-            if b.run_unittests:
-                self._execute(
-                    shell, logsio, self._run_unit_tests,
-                    'test-units')
-            if b.run_robottests:
-                self._execute(
-                    shell, logsio, self._run_robot_tests,
-                    'test-robot')
-            if b.simulate_install_id:
-                self._execute(
-                    shell, logsio, self._run_update_db,
-                    'test-migration')
-
     def _execute(self, shell, logsio, run, appendix):
         try:
             logsio.info("Running " + appendix)
@@ -459,111 +367,8 @@ class CicdTestRun(models.Model):
         if self.branch_id.state not in ['testable', 'tested', 'dev']:
             raise ValidationError(
                 _("State of branch does not allow a repeated test run"))
+        self.abort()
         self = self.sudo()
         self.line_ids.unlink()
         self.state = 'open'
         self.success_rate = 0
-
-    # def _run_create_empty_db(self, shell, task, logsio):
-
-    #     def _emptydb(item):
-    #         self.branch_id._create_empty_db(shell, task, logsio)
-
-    #     self._generic_run(
-    #         shell, logsio, [None],
-    #         'emptydb', _emptydb,
-    #     )
-
-    def _run_update_db(self, shell, logsio, **kwargs):
-
-        def _update(item):
-            logsio.info(f"Restoring {self.branch_id.dump_id.name}")
-
-            shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
-            self._wait_for_postgres(shell)
-            shell.odoo('update', timeout=self.timeout_migration)
-            self._wait_for_postgres(shell)
-
-        self._generic_run(
-            shell, logsio, [None],
-            'migration', _update,
-        )
-
-    def _generic_run(
-        self, shell, logsio, todo, ttype, execute_run,
-        try_count=1, name_callback=None, name_prefix=''
-    ):
-        """
-        Timeout in seconds.
-
-        """
-        success = True
-        len_todo = len(todo)
-        for i, item in enumerate(todo):
-            trycounter = 0
-            while trycounter < try_count:
-                if self.do_abort:
-                    raise AbortException("Aborted by user")
-                trycounter += 1
-                logsio.info(f"Try #{trycounter}")
-
-                name = name_prefix or ''
-                if len_todo > 1:
-                    name += f"({i + 1} / {len_todo}) "
-
-                name_suffix = item or ''
-                if name_callback:
-                    try:
-                        name_suffix = name_callback(item)
-                    except:
-                        pass
-                name += name_suffix
-
-                started = arrow.get()
-                data = {
-                    'name': name,
-                    'ttype': ttype,
-                    'run_id': self.id,
-                    'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
-                    'try_count': trycounter,
-                }
-                try:
-                    logsio.info(f"Running {name}")
-                    result = execute_run(item)
-                    if result:
-                        data.update(result)
-
-                except Exception:
-                    msg = traceback.format_exc()
-                    logsio.error(f"Error happened: {msg}")
-                    data['state'] = 'failed'
-                    data['exc_info'] = msg
-                    success = False
-                else:
-                    # e.g. robottests return state from run
-                    if 'state' not in data:
-                        data['state'] = 'success'
-                end = arrow.get()
-                data['duration'] = (end - started).total_seconds()
-                if data['state'] == 'success':
-                    break
-            self.line_ids = [[0, 0, data]]
-            self.env.cr.commit()  #TODO undo
-        return success
-
-    def _inform_developer(self):
-        for rec in self:
-            partners = (
-                rec.commit_id.author_user_ids.mapped('partner_id')
-                | rec.mapped('message_follower_ids.partner_id')
-                | rec.branch_id.mapped('message_follower_ids.partner_id')
-            )
-
-            rec.message_post_with_view(
-                "cicd.mail_testrun_result",
-                subtype_id=self.env.ref('mail.mt_note').id,
-                partner_ids=partners.ids,
-                values={
-                    "obj": rec,
-                },
-            )
