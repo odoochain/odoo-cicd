@@ -99,7 +99,6 @@ class CicdTestRun(models.Model):
 
         for i in range(10):
             self.with_delay()._report(f"{i} at _prepare_run")
-            time.sleep(0.2)
 
     def _report(
         self, msg, state='success',
@@ -146,7 +145,6 @@ class CicdTestRun(models.Model):
         self.date = fields.Datetime.now()
         for i in range(10):
             self.with_delay()._report(f"{i} at prepare_run")
-            time.sleep(0.2)
         self.as_job('prepare', False)._prepare_run()
 
     def execute_now(self):
@@ -164,6 +162,7 @@ class CicdTestRun(models.Model):
         )
 
     def as_job(self, suffix, afterrun, eta=None):
+        return self
         marker = self._get_qj_marker(suffix, afterrun=afterrun)
         eta = arrow.utcnow().shift(seconds=eta or 0).strftime(DTF)
         return self.with_delay(
