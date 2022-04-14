@@ -420,21 +420,8 @@ class CicdTestRun(models.Model):
         self = self._with_context()
         self._switch_to_running_state()
 
-        with self._logsio(None) as logsio:
-            b = self.branch_id
-
-            if not b.any_testing:
-                logsio.info("No testing - so done")
-                self.success_rate = 100
-                self.state = 'success'
-                return
-
-            self.line_ids = [[6, 0, []]]
-            self._report("Started")
-            self.do_abort = False
-            self.state = 'running'
-
-            self.with_delay(identity_key='prepare-run').prepare_run()
+        self.state = 'running'
+        self.with_delay(identity_key='prepare-run').prepare_run()
 
     def _run_test(self):
         self.ensure_one()
