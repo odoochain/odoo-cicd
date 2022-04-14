@@ -99,7 +99,7 @@ class CicdTestRun(models.Model):
 
         for i in range(10):
             self._report(f"{i} at _prepare_run")
-            time.sleep(0.5)
+            time.sleep(0.2)
 
     def _report(
         self, msg, state='success',
@@ -146,7 +146,7 @@ class CicdTestRun(models.Model):
         self.date = fields.Datetime.now()
         for i in range(10):
             self._report(f"{i} at prepare_run")
-            time.sleep(0.5)
+            time.sleep(0.2)
         self.as_job('prepare', False)._prepare_run()
 
     def execute_now(self):
