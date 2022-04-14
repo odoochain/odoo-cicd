@@ -29,6 +29,7 @@ class CicdTestRunLine(models.Model):
         ('log', "Log-Note"),
     ], string="Category")
     name = fields.Char("Name")
+    name_short = fields.Char(compute="_compute_name_short")
     run_id = fields.Many2one('cicd.test.run', string="Run")
     exc_info = fields.Text("Exception Info")
     duration = fields.Integer("Duration")
@@ -46,6 +47,10 @@ class CicdTestRunLine(models.Model):
         "For unittests for example their path to the module"
     ))
     hash = fields.Char("Hash", help="For using")
+
+    def _compute_name_short(self):
+        for rec in self:
+            rec.name_short = (rec.name or '')[:80]
 
     def toggle_force_success(self):
         self.sudo().force_success = not self.sudo().force_success
