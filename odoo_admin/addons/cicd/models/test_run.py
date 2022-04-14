@@ -173,13 +173,6 @@ class CicdTestRun(models.Model):
             raise AbortException("User aborted")
 
     def _prepare_run(self):
-        logger.error("!!!!!!!!!!   ENTERING PREPARE_RUN")
-        logger.error(tbutils.TracebackInfo.from_frame().get_formatted())
-
-        self = self._with_context()
-        self._report('prepare run started')
-        self._switch_to_running_state()
-
         for i in range(10):
             time.sleep(INTERVAL)
             self._abort_if_required()
@@ -237,7 +230,6 @@ class CicdTestRun(models.Model):
             state = state or 'success'
 
         self.line_ids = [[0, 0, data]]
-        self.env.cr.commit()
 
         with self._logsio(None) as logsio:
             if state == 'success':
@@ -393,7 +385,7 @@ class CicdTestRun(models.Model):
 
         self._switch_to_running_state()
         self.do_abort = False
-        self.as_job('starting_games', False)._let_the_games_begin()
+        self.with_delay()._let_the_games_begin()
 
     def _switch_to_running_state(self):
         """
@@ -424,6 +416,7 @@ class CicdTestRun(models.Model):
         return self
 
     def _let_the_games_begin(self):
+        # CLOSE
         self = self._with_context()
         self._switch_to_running_state()
 
@@ -441,7 +434,7 @@ class CicdTestRun(models.Model):
             self.do_abort = False
             self.state = 'running'
 
-            self.as_job('prepare-run', False).prepare_run()
+            self.with_delay(identity_key='prepare-run').prepare_run()
 
     def _run_test(self):
         self.ensure_one()
@@ -593,7 +586,6 @@ class CicdTestRun(models.Model):
                 if data['state'] == 'success':
                     break
             self.line_ids = [[0, 0, data]]
-            self.env.cr.commit()  #TODO undo
         return success
 
     def _inform_developer(self):
