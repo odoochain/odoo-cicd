@@ -43,15 +43,19 @@ while True:
             if exe("queue.job", "search_count", []) > 0:
                 raise Exception("No jobs expected")
 
+            last_print = None
             while True:
                 exe('ir.cron', [49], 'method_direct_trigger')
                 lines = exe("cicd.test.run", "read", [173], ['line_ids'])[0]['line_ids']
                 lines = exe("cicd.test.run.line", "read", lines, ['name'])
                 line_names = list(map(lambda x: x['name'], lines))
-                print((
+                txt = (
                     f"Count Error: {count_error}, len: {len(lines)}"
                     f", Count Runs: {count_runs}"
-                ))
+                )
+                if txt != last_print:
+                    print(txt)
+                    last_print = txt
                 time.sleep(0.1)
 
                 try:
