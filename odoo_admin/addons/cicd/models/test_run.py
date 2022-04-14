@@ -282,7 +282,6 @@ class CicdTestRun(models.Model):
         self._report("Commit matches")
         self._report(f"Checked out source code at {shell.cwd}")
 
-    @contextmanager
     def prepare_run(self):
         self = self._with_context()
         self._switch_to_running_state()
@@ -410,33 +409,8 @@ class CicdTestRun(models.Model):
     def execute(self, task=None):
         self.ensure_one()
 
-        if not self.env.context.get('test_queue_job_no_delay'):
-            queuejobs = self._get_queuejobs('active')
-            if queuejobs:
-                return
-
-            if self.search_count([
-                ('commit_id', '=', self.commit_id.id),
-                ('id', '!=', self.id),
-                ('state', 'in', ['open', 'running'])
-            ]):
-                self.state = 'omitted'
-                self.line_ids = [[6, 0, []]]
-                self.as_job(
-                    "omitted_compute_success_rate",
-                    True)._compute_success_rate()
-                return
-
-            self = self._with_context()
-
-            # after logsio, so that logs io projectname is unchanged
-            if self.state not in ('open') and not self.env.context.get(
-                    "FORCE_TEST_RUN"):
-                return
-
-        self.state = 'open'
+        self._switch_to_running_state()
         self.do_abort = False
-        self._trigger_wait_for_finish()
         self.as_job('starting_games', False)._let_the_games_begin()
 
     def _switch_to_running_state(self):
