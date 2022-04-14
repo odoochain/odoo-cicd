@@ -29,29 +29,47 @@ def exe(*params):
 
 count_error = 0
 count_runs = 0
+class Duplicate(Exception): pass
 
 while True:
     try:
         while True:
             uid = login(username, pwd)
-            time.sleep(5)
+            os.system("./cicd kill odoo_queuejobs")
             exe("cicd.test.run", "rerun", [173])
-            time.sleep(3)
+            os.system("./cicd up -d odoo_queuejobs")
             timeout = arrow.get().shift(seconds=60)
             count_runs += 1
+            if exe("queue.job", "search_count", []) > 0:
+                raise Exception("No jobs expected")
 
             while True:
-                lines = exe("cicd.test.run", "read", [173], ['line_ids'])[0]['line_ids']
                 exe('ir.cron', [49], 'method_direct_trigger')
+                lines = exe("cicd.test.run", "read", [173], ['line_ids'])[0]['line_ids']
+                lines = exe("cicd.test.run.line", "read", lines, ['name'])
+                line_names = list(map(lambda x: x['name'], lines))
                 print((
                     f"Count Error: {count_error}, len: {len(lines)}"
                     f", Count Runs: {count_runs}"
                 ))
-                time.sleep(0.3)
+                time.sleep(0.1)
 
-                if len(lines) > 12:
-                    count_error += 1
+                try:
+                    for item in list(set(line_names)):
+                        if line_names.count(item) > 1:
+                            count_error += 1
+                            raise Duplicate(item)
+                except Duplicate as ex:
+                    print(f"Duplicate: {ex}")
                     break
+
+                search_result = exe("queue.job", "search", [])
+                if search_result:
+                    search_result = exe("queue.job", "read", search_result, ['state'])
+                    states = list(map(lambda x: x['state'], search_result))
+                    if all(x in ['done', 'failed'] for x in states):
+                        print("All jobs done")
+                        break
 
                 if arrow.get() > timeout:
                     print("Timeout")

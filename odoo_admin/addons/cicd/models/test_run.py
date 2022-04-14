@@ -98,7 +98,7 @@ class CicdTestRun(models.Model):
         self = self._with_context()
 
         for i in range(10):
-            self._report(f"{i} at _prepare_run")
+            self.with_delay()._report(f"{i} at _prepare_run")
             time.sleep(0.2)
 
     def _report(
@@ -145,7 +145,7 @@ class CicdTestRun(models.Model):
         self._report("Prepare run...")
         self.date = fields.Datetime.now()
         for i in range(10):
-            self._report(f"{i} at prepare_run")
+            self.with_delay()._report(f"{i} at prepare_run")
             time.sleep(0.2)
         self.as_job('prepare', False)._prepare_run()
 
@@ -165,7 +165,7 @@ class CicdTestRun(models.Model):
 
     def as_job(self, suffix, afterrun, eta=None):
         marker = self._get_qj_marker(suffix, afterrun=afterrun)
-        eta = arrow.utcnow().shift(seconds=eta or 5).strftime(DTF)
+        eta = arrow.utcnow().shift(seconds=eta or 0).strftime(DTF)
         return self.with_delay(
             identity_key=marker,
             eta=eta
@@ -199,9 +199,6 @@ class CicdTestRun(models.Model):
         if ttype == 'active':
             queuejobs = [x for x in queuejobs if retryable(x)]
 
-        queuejobs = [
-            x for x in queuejobs
-            if 'wait_for_finish' not in (x['identity_key'] or '')]
         return queuejobs
     @contextmanager
     def _logsio(self, logsio=None):
@@ -214,8 +211,9 @@ class CicdTestRun(models.Model):
                 yield logsio
 
     def _trigger_wait_for_finish(self):
-        self.as_job(
-            "wait_for_finish", False, eta=1)._wait_for_finish()
+        return
+        # self.as_job(
+        #     "wait_for_finish", False, eta=1)._wait_for_finish()
 
     def _wait_for_finish(self, task=None):
         self.ensure_one()
@@ -297,24 +295,8 @@ class CicdTestRun(models.Model):
         return self
 
     def _let_the_games_begin(self):
-        self = self._with_context()
-        self._switch_to_running_state()
 
-        with self._logsio(None) as logsio:
-            b = self.branch_id
-
-            if not b.any_testing:
-                logsio.info("No testing - so done")
-                self.success_rate = 100
-                self.state = 'success'
-                return
-
-            self.line_ids = [[6, 0, []]]
-            self._report("Started")
-            self.do_abort = False
-            self.state = 'running'
-
-            self.as_job('prepare-run', False).prepare_run()
+        self.as_job('prepare-run', False).prepare_run()
 
     def _execute(self, shell, logsio, run, appendix):
         try:
