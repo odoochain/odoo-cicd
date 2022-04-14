@@ -296,26 +296,15 @@ class Branch(models.Model):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
-    def _cron_run_open_tests(
-        self, shell=None, task=None, logsio=None, test_run=None, **kwargs
-    ):
-        """
-        If update_state is set, then the state is set to 'tested'
-        """
-        # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
-        b = task and task.branch_id or self
-
-        if not test_run and task and task.testrun_id:
-            test_run = task.testrun_id
-
-        elif not test_run:
-            test_run = self.test_run_ids.filtered(
-                lambda x: x.commit_id ==
-                    b.latest_commit_id and x.state in ('open'))
-
-        test_run = test_run and test_run[0]
-        if test_run.state == 'open':
-            test_run[0].with_delay().execute(task=task)
+    def _cron_run_open_tests(self):
+        for testrun in self.env['cicd.test.run'].search([
+                ('state', '=', 'open')]):
+            testrun.with_delay(identity_key=(
+                "start-open-testrun-"
+                f"{self.name}-"
+                f"{testrun.commit_id.name}-"
+                f"{testrun.id}"
+            )).execute()
 
     def _after_build(self, shell, logsio, **kwargs):
         shell.odoo(
