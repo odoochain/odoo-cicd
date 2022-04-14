@@ -204,7 +204,7 @@ class CicdTestRun(models.Model):
             )
 
         self._abort_if_required()
-        self.as_job("_preparedone_run_tests", False)._run_tests()
+        self.as_job("_preparedone_run_tests", False)._run_test()
 
     def _cleanup_testruns(self):
         self = self._with_context()
@@ -461,7 +461,8 @@ class CicdTestRun(models.Model):
 
             self.as_job('prepare-run', False).prepare_run()
 
-    def _run_tests(self):
+    def _run_test(self):
+        self.ensure_one()
         self = self._with_context()
         self._report("Starting Tests")
         self._switch_to_running_state()
@@ -624,8 +625,7 @@ class CicdTestRun(models.Model):
                 if data['state'] == 'success':
                     break
             self.line_ids = [[0, 0, data]]
-            self.env['base'].flush()
-            self.env.cr.commit()
+            self.env.cr.commit()  #TODO undo
         return success
 
     def _inform_developer(self):

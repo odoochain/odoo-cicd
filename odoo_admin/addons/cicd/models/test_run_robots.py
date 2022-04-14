@@ -29,7 +29,6 @@ class TestrunUnittest(models.Model):
             self._report("Installed all modules from MANIFEST")
         except Exception as ex:
             self._report("Error at preparing robot tests", exception=ex)
-            self.env['base'].flush()
             self.env.cr.commit()
             raise
 
