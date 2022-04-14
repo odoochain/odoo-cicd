@@ -165,7 +165,7 @@ class CicdTestRun(models.Model):
 
     def as_job(self, suffix, afterrun, eta=None):
         marker = self._get_qj_marker(suffix, afterrun=afterrun)
-        eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
+        eta = arrow.utcnow().shift(seconds=eta or 5).strftime(DTF)
         return self.with_delay(
             identity_key=marker,
             eta=eta

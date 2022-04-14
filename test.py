@@ -34,13 +34,13 @@ while True:
     try:
         while True:
             uid = login(username, pwd)
-            time.sleep(20)
+            time.sleep(5)
             exe("cicd.test.run", "rerun", [173])
             time.sleep(3)
-            timeout = arrow.get().shift(seconds=20)
+            timeout = arrow.get().shift(seconds=60)
             count_runs += 1
 
-            while arrow.get() < timeout:
+            while True:
                 lines = exe("cicd.test.run", "read", [173], ['line_ids'])[0]['line_ids']
                 exe('ir.cron', [49], 'method_direct_trigger')
                 print((
@@ -51,6 +51,10 @@ while True:
 
                 if len(lines) > 12:
                     count_error += 1
+                    break
+
+                if arrow.get() > timeout:
+                    print("Timeout")
                     break
 
     except Exception as ex:
