@@ -296,7 +296,7 @@ class Branch(models.Model):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
-    def _run_tests(
+    def _cron_run_open_tests(
         self, shell=None, task=None, logsio=None, test_run=None, **kwargs
     ):
         """
