@@ -641,28 +641,30 @@ class GitBranch(models.Model):
 
     # env['cicd.git.branch']._cron_make_test_runs()
     @api.model
-    def _cron_make_test_runs(self):
+    def _cron_create_test_runs(self):
+        """
+        Task: create open test runs for testable
+        branches
+        """
+
+        def create_test_run(branch):
+            self.env['cicd.test.run'].create({
+                'branch_id': branch.id,
+                'commit_id': branch.latest_commit_id.id,
+            })
+
         for branch in self.search([('state', '=', 'testable')]):
             if not branch.test_run_ids.filtered(
-                lambda x: x.state in [False, 'running', 'open'] and
                     x.commit_id == branch.latest_commit_id):
-                branch.with_delay(
-                    identity_key=f"{branch.latest_commit_id.name}-run-tests"
-                    )._run_tests()
-
-        def kf(x):
-            return x.branch_id
+                create_test_run(branch)
 
         open_tests = self.env['cicd.test.run'].search([
-            ('state', '=', 'open')], order='id desc')
+            ('state', 'in', ['open'])], order='branch_id desc, id desc')
 
-        for branch, tests in groupby(open_tests.sorted(kf), kf):
+        for branch, tests in groupby(open_tests, lambda x: x.branch_id):
             tests = self.env['cicd.test.run'].union(*list(tests))
             if not tests:
                 continue
-            branch.with_delay(
-                identity_key=f"{branch.latest_commit_id.name}-run-tests")\
-                ._run_tests(testrun_id=tests[0].id)
             tests[1:].write({'state': 'omitted'})
 
     def _trigger_rebuild_after_fetch(self):
