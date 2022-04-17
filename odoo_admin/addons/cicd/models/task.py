@@ -114,11 +114,7 @@ class Task(models.Model):
             raise Exception("Branch not given for task.")
 
         with self.semaphore_with_delay(not now, ignore_states=['done']):
-            if now:
-                # commits happening
-                self.state = 'failed'
-            else:
-                self.state = 'started'
+            self.state = 'started'
             self.started = fields.Datetime.now()
 
             with self.semaphore_with_delay(
