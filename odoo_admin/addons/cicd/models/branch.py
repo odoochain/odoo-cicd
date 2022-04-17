@@ -485,6 +485,7 @@ class GitBranch(models.Model):
         return machine._get_volume('source') / project_name
 
     def make_instance_ready_to_login(self):
+        breakpoint()
         machine = self.machine_id
         timeout = machine.test_timeout_web_login
 
@@ -498,7 +499,6 @@ class GitBranch(models.Model):
             return response.status_code == 200
 
         deadline = arrow.utcnow().shift(seconds=120)
-        virgin = True
         while True:
             try:
                 test_request()
@@ -512,13 +512,7 @@ class GitBranch(models.Model):
                         )) from ex
 
                 try:
-                    if virgin:
-                        self._make_task(
-                            "_reload_and_restart", now=True, reuse=True)
-                        virgin = False
-                    else:
-                        self._make_task(
-                            "_simple_docker_up", now=True, reuse=True)
+                    self._make_task("_simple_docker_up", now=True, reuse=True)
                 except RetryableJobError:
                     time.sleep(1)
             else:
