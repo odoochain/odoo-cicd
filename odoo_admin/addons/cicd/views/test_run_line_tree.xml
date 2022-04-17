@@ -16,6 +16,8 @@
 					<field name="force_success" widget="boolean_toggle"/>
 					<field name="try_count"/>
 					<field name="robot_output" invisible='1'/>
+					<field name="unique_name"/>
+					<field name="hash"/>
 				</tree>
 			</field>
 		</record>
