@@ -599,7 +599,7 @@ class CicdTestRun(models.Model):
             trycounter = 0
 
             name = self._get_generic_run_name(item, name_callback)
-            if self.env['cicd.test.run.line']._check_if_test_already_succeeded(
+            if hash and self.env['cicd.test.run.line']._check_if_test_already_succeeded(
                 self, unique_name, hash,
             ):
                 continue
