@@ -171,6 +171,7 @@ class CicdTestRun(models.Model):
         self._switch_to_running_state()
 
         started = arrow.utcnow()
+        breakpoint()
         with self._shell() as shell:
             self._checkout_source_code(shell)
             self._abort_if_required()
@@ -187,6 +188,7 @@ class CicdTestRun(models.Model):
             self._wait_for_postgres(shell)
             self._report('db reset started')
             shell.odoo('-f', 'db', 'reset')
+            shell.odoo('pghba-conf-wide-open', "--no-scram")
             shell.odoo('update', 'base')
 
             self._abort_if_required()
@@ -631,7 +633,7 @@ class CicdTestRun(models.Model):
                 if data['state'] == 'success':
                     break
             self.line_ids = [[0, 0, data]]
-            self.env.cr.commit()  #TODO undo
+            self.env.cr.commit()
         return success
 
     def _inform_developer(self):
