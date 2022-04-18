@@ -91,7 +91,7 @@ class CicdTestRunLine(models.Model):
             'force_success': True,
             'run_id': testrun.id,
             'state': 'success',
-            'unique_name': unique_name,
+            'name': name,
             'hash': hash,
         })
 
