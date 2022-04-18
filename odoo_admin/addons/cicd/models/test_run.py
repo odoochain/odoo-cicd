@@ -571,7 +571,8 @@ class CicdTestRun(models.Model):
 
     def _generic_run(
         self, shell, logsio, todo, ttype, execute_run,
-        try_count=1, name_callback=None, name_prefix=''
+        try_count=1, name_callback=None, name_prefix='',
+        unique_name=False, hash=False,
     ):
         """
         Timeout in seconds.
@@ -606,6 +607,8 @@ class CicdTestRun(models.Model):
                     'run_id': self.id,
                     'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
                     'try_count': trycounter,
+                    'hash': hash,
+                    'unique_name': unique_name,
                 }
                 try:
                     logsio.info(f"Running {name}")
