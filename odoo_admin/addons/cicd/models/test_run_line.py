@@ -28,6 +28,7 @@ class CicdTestRunLine(models.Model):
         ('emptydb', 'Migration'),
         ('log', "Log-Note"),
     ], string="Category")
+    position = fields.Char("Pos")
     name = fields.Char("Name")
     name_short = fields.Char(compute="_compute_name_short")
     run_id = fields.Many2one('cicd.test.run', string="Run")
@@ -43,9 +44,6 @@ class CicdTestRunLine(models.Model):
         "Started", default=lambda self: fields.Datetime.now())
     try_count = fields.Integer("Try Count")
     robot_output = fields.Binary("Robot Output", attachment=True)
-    unique_name = fields.Char("Unique Name", help=(
-        "For unittests for example their path to the module"
-    ))
     hash = fields.Char("Hash", help="For using")
 
     def _compute_name_short(self):
@@ -73,17 +71,19 @@ class CicdTestRunLine(models.Model):
         }
 
     @api.model
-    def _check_if_test_already_succeeded(self, testrun, unique_name, hash):
+    def _check_if_test_already_succeeded(
+        self, testrun, name, hash,
+    ):
         """
         Compares the hash of the module with an existing
         previous run with same hash.
         """
-        res = bool(self.search_count([
+        res = self.search_count([
             ('run_id.branch_ids.repo_id', '=', testrun.branch_ids.repo_id.id),
-            ('unique_name', '=', unique_name),
+            ('name', '=', name),
             ('hash', '=', hash),
             ('state', '=', 'success'),
-        ]))
+        ])
         if not res:
             return False
 

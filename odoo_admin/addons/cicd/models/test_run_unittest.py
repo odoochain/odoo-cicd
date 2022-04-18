@@ -31,17 +31,11 @@ class TestrunUnittest(models.Model):
             p = Path(f)
             # TODO checking: 3 mal parent
             return str(p.relative_to(p.parent.parent.parent))
-        breakpoint()
 
         for module, tests in tests_by_module.items():
             self._abort_if_required()
 
             hash = self._get_hash_for_module(shell, module)
-            if self.env['cicd.test.run.line']._check_if_test_already_succeeded(
-                self, module, hash,
-            ):
-                continue
-
             i += 1
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)

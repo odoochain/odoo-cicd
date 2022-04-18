@@ -571,6 +571,18 @@ class CicdTestRun(models.Model):
             'migration', _update,
         )
 
+    def _get_generic_run_name(
+        self, item, name_callback
+    ):
+        breakpoint()
+        name = item or ''
+        if name_callback:
+            try:
+                name = name_callback(item)
+            except:
+                pass
+        return name
+
     def _generic_run(
         self, shell, logsio, todo, ttype, execute_run,
         try_count=1, name_callback=None, name_prefix='',
@@ -580,37 +592,37 @@ class CicdTestRun(models.Model):
         Timeout in seconds.
 
         """
+        breakpoint()
         success = True
         len_todo = len(todo)
         for i, item in enumerate(todo):
             trycounter = 0
+
+            name = self._get_generic_run_name(item, name_callback)
+            if self.env['cicd.test.run.line']._check_if_test_already_succeeded(
+                self, unique_name, hash,
+            ):
+                continue
+
+            position = name_prefix or ''
+            if len_todo > 1:
+                position += f"({i + 1} / {len_todo})"
+
             while trycounter < try_count:
                 if self.do_abort:
                     raise AbortException("Aborted by user")
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
-                name = name_prefix or ''
-                if len_todo > 1:
-                    name += f"({i + 1} / {len_todo}) "
-
-                name_suffix = item or ''
-                if name_callback:
-                    try:
-                        name_suffix = name_callback(item)
-                    except:
-                        pass
-                name += name_suffix
-
                 started = arrow.get()
                 data = {
+                    'position': position,
                     'name': name,
                     'ttype': ttype,
                     'run_id': self.id,
                     'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
                     'try_count': trycounter,
                     'hash': hash,
-                    'unique_name': unique_name,
                 }
                 try:
                     logsio.info(f"Running {name}")
