@@ -1,3 +1,4 @@
+import base64
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -52,7 +53,7 @@ class TestrunUnittest(models.Model):
                 self._report("Robot Test error (but retrying)", exception=ex)
                 raise
             finally:
-                excel_file = self.sql_excel((
+                excel_file = shell.sql_excel((
                     "select id, name, state, exc_info "
                     "from queue_job"
                 ))
