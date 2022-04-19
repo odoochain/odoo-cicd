@@ -14,7 +14,6 @@ import logging
 from pathlib import Path
 from contextlib import contextmanager
 
-
 MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
 
 SETTINGS = (
@@ -38,6 +37,10 @@ class AbortException(Exception):
 
 
 class WrongShaException(Exception):
+    pass
+
+
+class TestFailedAtInitError(Exception):
     pass
 
 
@@ -171,42 +174,49 @@ class CicdTestRun(models.Model):
         self._switch_to_running_state()
 
         started = arrow.utcnow()
-        breakpoint()
-        with self._shell() as shell:
-            self._checkout_source_code(shell)
-            self._abort_if_required()
-            self._report('building')
-            shell.odoo('build')
-            self._report('killing any existing')
-            shell.odoo('kill', allow_error=True)
-            shell.odoo('rm', allow_error=True)
-            self._report('starting postgres')
-            shell.odoo('up', '-d', 'postgres')
+        try:
+            breakpoint()
+            with self._shell() as shell:
+                self._checkout_source_code(shell)
+                self._abort_if_required()
+                self._report('building')
+                shell.odoo('build')
+                self._report('killing any existing')
+                shell.odoo('kill', allow_error=True)
+                shell.odoo('rm', allow_error=True)
+                self._report('starting postgres')
+                shell.odoo('up', '-d', 'postgres')
+
+                self._abort_if_required()
+
+                self._wait_for_postgres(shell)
+                self._report('db reset started')
+                shell.odoo('-f', 'db', 'reset')
+                shell.odoo('pghba-conf-wide-open', "--no-scram")
+                shell.odoo('update', 'base')
+
+                self._abort_if_required()
+                self._report('db reset done')
+
+                self._abort_if_required()
+
+                self._report("Storing snapshot")
+                shell.odoo('snap', 'save', shell.project_name, force=True)
+                self._wait_for_postgres(shell)
+                self._report("Storing snapshot done")
+                self._report(
+                    'preparation done',
+                    duration=arrow.utcnow() - started
+                )
 
             self._abort_if_required()
 
-            self._wait_for_postgres(shell)
-            self._report('db reset started')
-            shell.odoo('-f', 'db', 'reset')
-            shell.odoo('pghba-conf-wide-open', "--no-scram")
-            shell.odoo('update', 'base')
+        except TestFailedAtInitError as ex:
+            self.state = 'failed'
+            self._report("Failed at preparation", state='failed', exception=ex)
+        else:
+            self.as_job("_preparedone_run_tests", False)._run_test()
 
-            self._abort_if_required()
-            self._report('db reset done')
-
-            self._abort_if_required()
-
-            self._report("Storing snapshot")
-            shell.odoo('snap', 'save', shell.project_name, force=True)
-            self._wait_for_postgres(shell)
-            self._report("Storing snapshot done")
-            self._report(
-                'preparation done',
-                duration=arrow.utcnow() - started
-            )
-
-        self._abort_if_required()
-        self.as_job("_preparedone_run_tests", False)._run_test()
 
     def _cleanup_testruns(self):
         self = self._with_context()
@@ -268,10 +278,14 @@ class CicdTestRun(models.Model):
 
     def _checkout_source_code(self, shell):
         self._report("Checking out source code...")
-        self._reload(
-            shell, SETTINGS,
-            str(Path(shell.cwd).parent)
-            )
+        try:
+            self._reload(
+                shell, SETTINGS,
+                str(Path(shell.cwd).parent)
+                )
+        except Exception as ex:
+            # could be: module not found, error in manifest or so:
+            raise TestFailedAtInitError() from ex
 
         self._report("Checking commit")
         sha = shell.X(["git", "log", "-n1", "--format=%H"])[

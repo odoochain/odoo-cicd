@@ -297,10 +297,13 @@ class Branch(models.Model):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
+    def _run_tests(self):
+        pass # deprecated
+
     def _cron_run_open_tests(self):
         for testrun in self.env['cicd.test.run'].search([
                 ('state', '=', 'open')]):
-            testrun.with_delay(identity_key=(
+            testrun.with_delay(channel="testruns", identity_key=(
                 "start-open-testrun-"
                 f"{self.name}-"
                 f"{testrun.commit_id.name}-"
