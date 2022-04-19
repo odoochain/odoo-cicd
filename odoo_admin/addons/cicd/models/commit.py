@@ -96,9 +96,10 @@ class GitCommit(models.Model):
                 continue
             if rec.code_reviewer_id and rec.approver_id:
                 if rec.code_reviewer_id == rec.approver_id:
-                    raise ValidationError((
-                        "Code Reviewer and approver must be the same."
-                    ))
+                    if not self.env.user.has_group('cicd.group_override_approve'):
+                        raise ValidationError((
+                            "Code Reviewer and approver must not be the same."
+                        ))
 
     @api.recordchange('force_approved')
     def _force_approved_changed(self):

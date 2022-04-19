@@ -29,8 +29,8 @@
 						<div class="oe_button_box" name="button_box">
 							<field name="approval_state" invisible='1'/>
 							<button type="object" class="oe_stat_button" icon="fa-list-ul" name="set_to_check" string="Mark to be checked" attrs="{'invisible': [('approval_state', '!=', False)]}" />
-							<button type="object" class="oe_stat_button" icon="fa-times" name="set_declined" string="Decline" />
-							<button type="object" class="oe_stat_button" icon="fa-check" name="set_approved" string="Approve" />
+							<button type="object" class="oe_stat_button" icon="fa-times" name="set_declined" string="Decline" attrs="{'invisible': [('state', 'in', ['testable', 'done', 'candidate'])]}" />
+							<button type="object" class="oe_stat_button" icon="fa-check" name="set_approved" string="Approve" attrs="{'invisible': [('state', 'in', ['testable', 'done', 'candidate'])]}" />
 							<field name="active" invisible='1'/>
 							<button type="object" class="oe_stat_button" icon="fa-times" name="toggle_active" string="Disable" attrs="{'invisible': [('active', '=', False)]}" confirm="Deletes database and source-code. Continue?"/>
 							<button type="object" class="oe_stat_button" icon="fa-check" name="toggle_active" string="Activate" attrs="{'invisible': [('active', '=', True)]}"/>

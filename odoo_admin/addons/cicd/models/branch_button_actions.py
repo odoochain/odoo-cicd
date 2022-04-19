@@ -89,14 +89,21 @@ class Branch(models.Model):
         }
 
     def run_tests(self):
+        self.ensure_one()
         if not self.latest_commit_id:
             raise ValidationError((
                 "Missing latest commit."
                 f" {self.name}"
             ))
-        self.with_delay(identity_key=(
-            f"{self.latest_commit_id.name}-run-tests"
-        ))._run_tests()
+
+        test_run = self.test_run_ids.filtered(
+            lambda x: x.commit_id == self.latest_commit_id and
+            x.state in ('open', 'running'))
+        if not test_run:
+            self.test_run_ids.create({
+                'commit_id': self.latest_commit_id.id,
+                'branch_id': self.id,
+            })
 
     def start(self):
         return {

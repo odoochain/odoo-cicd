@@ -7,7 +7,8 @@
 				<tree decoration-danger="state == 'failed'" decoration-success="state == 'success'" create="0" delete="0">
 					<button name="open_window" string="" icon="fa-external-link" type="object" />
 					<field name="ttype"/>
-					<field name="name"/>
+					<field name="position"/>
+					<field name="name_short"/>
 					<button name="robot_results" string="" icon="fa-search" type="object" attrs="{'invisible': [('robot_output', '=', False)]}"/>
 					<field name="started"/>
 					<field name="duration"/>
@@ -16,6 +17,7 @@
 					<field name="force_success" widget="boolean_toggle"/>
 					<field name="try_count"/>
 					<field name="robot_output" invisible='1'/>
+					<field name="hash"/>
 				</tree>
 			</field>
 		</record>

@@ -14,7 +14,6 @@ import logging
 from pathlib import Path
 from contextlib import contextmanager
 
-
 MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
 
 SETTINGS = (
@@ -38,6 +37,10 @@ class AbortException(Exception):
 
 
 class WrongShaException(Exception):
+    pass
+
+
+class TestFailedAtInitError(Exception):
     pass
 
 
@@ -167,52 +170,57 @@ class CicdTestRun(models.Model):
 
     def _prepare_run(self):
         self = self._with_context()
+        self._report('prepare run started')
         self._switch_to_running_state()
 
         started = arrow.utcnow()
-        with self._shell() as shell:
-            self._checkout_source_code(shell)
-            self._abort_if_required()
-            self._report('building')
-            shell.odoo('build')
-            self._report('killing any existing')
-            shell.odoo('kill', allow_error=True)
-            shell.odoo('rm', allow_error=True)
-            self._report('starting postgres')
-            shell.odoo('up', '-d', 'postgres')
+        try:
+            with self._shell() as shell:
+                self._checkout_source_code(shell)
+                self._abort_if_required()
+                self._report('building')
+                shell.odoo('build')
+                self._report('killing any existing')
+                shell.odoo('kill', allow_error=True)
+                shell.odoo('rm', allow_error=True)
+                self._report('starting postgres')
+                shell.odoo('up', '-d', 'postgres')
+
+                self._abort_if_required()
+
+                self._wait_for_postgres(shell)
+                self._report('db reset started')
+                shell.odoo('-f', 'db', 'reset')
+                shell.odoo('pghba-conf-wide-open', "--no-scram")
+                shell.odoo('update', 'base')
+
+                self._abort_if_required()
+                self._report('db reset done')
+
+                self._abort_if_required()
+
+                self._report("Storing snapshot")
+                shell.odoo('snap', 'save', shell.project_name, force=True)
+                self._wait_for_postgres(shell)
+                self._report("Storing snapshot done")
+                self._report(
+                    'preparation done',
+                    duration=arrow.utcnow() - started
+                )
 
             self._abort_if_required()
 
-            self._wait_for_postgres(shell)
-            self._report('db reset started')
-            shell.odoo('-f', 'db', 'reset')
-            # required for turn-into-dev
-            shell.odoo('update', 'base')
+        except TestFailedAtInitError as ex:
+            self.state = 'failed'
+            self._report("Failed at preparation", state='failed', exception=ex)
+        else:
+            self.as_job("_preparedone_run_tests", False)._run_test()
 
-            self._abort_if_required()
-            self._report('db reset done')
 
-            self._abort_if_required()
-            #self._report(
-            #    "Turning into dev db (change password, set mailserver)")
-            #shell.odoo('turn-into-dev')
-
-            self._report("Storing snapshot")
-            shell.odoo('snap', 'save', shell.project_name, force=True)
-            self._wait_for_postgres(shell)
-            self._report("Storing snapshot done")
-            self._report(
-                'preparation done',
-                duration=arrow.utcnow() - started
-            )
-
-        self._abort_if_required()
-        self.as_job("_preparedone_run_tests", False)._run_tests()
-
-    def _finalize_testruns(self):
+    def _cleanup_testruns(self):
         self = self._with_context()
         with self._logsio(None) as logsio:
-            self._report("Finalizing Testing")
+            self._report("Cleanup Testing")
             with self._shell() as shell:
                 if not shell.exists(shell.cwd):
                     return
@@ -259,7 +267,6 @@ class CicdTestRun(models.Model):
             state = state or 'success'
 
         self.line_ids = [[0, 0, data]]
-        self.env['base'].flush()
         self.env.cr.commit()
 
         with self._logsio(None) as logsio:
@@ -270,10 +277,14 @@ class CicdTestRun(models.Model):
 
     def _checkout_source_code(self, shell):
         self._report("Checking out source code...")
-        self._reload(
-            shell, SETTINGS,
-            str(Path(shell.cwd).parent)
-            )
+        try:
+            self._reload(
+                shell, SETTINGS,
+                str(Path(shell.cwd).parent)
+                )
+        except Exception as ex:
+            # could be: module not found, error in manifest or so:
+            raise TestFailedAtInitError() from ex
 
         self._report("Checking commit")
         sha = shell.X(["git", "log", "-n1", "--format=%H"])[
@@ -286,7 +297,6 @@ class CicdTestRun(models.Model):
         self._report("Commit matches")
         self._report(f"Checked out source code at {shell.cwd}")
 
-    @contextmanager
     def prepare_run(self):
         self = self._with_context()
         self._switch_to_running_state()
@@ -388,7 +398,7 @@ class CicdTestRun(models.Model):
             else:
                 self.duration = 0
 
-        self.as_job("finalize", True)._finalize_testruns()
+        self.as_job("cleanup", True)._cleanup_testruns()
 
         self.as_job("compute_success_rate", True)._compute_success_rate(
             task=task)
@@ -414,32 +424,8 @@ class CicdTestRun(models.Model):
     def execute(self, task=None):
         self.ensure_one()
 
-        if not self.env.context.get('test_queue_job_no_delay'):
-            queuejobs = self._get_queuejobs('active')
-            if queuejobs:
-                return
-
-            if self.search_count([
-                ('commit_id', '=', self.commit_id.id),
-                ('id', '!=', self.id),
-                ('state', 'in', ['open', 'running'])
-            ]):
-                self.state = 'omitted'
-                self.line_ids = [[6, 0, []]]
-                self.as_job(
-                    "omitted_compute_success_rate", True)._compute_success_rate()
-                return
-
-            self = self._with_context()
-
-            # after logsio, so that logs io projectname is unchanged
-            if self.state not in ('open') and not self.env.context.get(
-                    "FORCE_TEST_RUN"):
-                return
-
-        self.state = 'open'
+        self._switch_to_running_state()
         self.do_abort = False
-        self._trigger_wait_for_finish()
         self.as_job('starting_games', False)._let_the_games_begin()
 
     def _switch_to_running_state(self):
@@ -490,7 +476,8 @@ class CicdTestRun(models.Model):
 
             self.as_job('prepare-run', False).prepare_run()
 
-    def _run_tests(self):
+    def _run_test(self):
+        self.ensure_one()
         self = self._with_context()
         self._report("Starting Tests")
         self._switch_to_running_state()
@@ -594,166 +581,58 @@ class CicdTestRun(models.Model):
             'migration', _update,
         )
 
-    def _run_robot_tests(self, shell, logsio, **kwargs):
-        files = shell.odoo('list-robot-test-files')['stdout'].strip()
-        files = list(filter(bool, files.split("!!!")[1].split("\n")))
-
-        configuration = shell.odoo('config', '--full')['stdout'].splitlines()
-        host_run_dir = [x for x in configuration if 'HOST_RUN_DIR:' in x]
-        host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
-        robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
-
-        try:
-            self._report("Installing all modules from MANIFEST...")
-            SNAP_NAME = "robot_tests"
-            shell.odoo("snap", "restore", shell.project_name)
-            shell.odoo('up', '-d', 'postgres')
-            self._wait_for_postgres(shell)
-            # only base db exists no installed modules
-            shell.odoo("update")
-            shell.odoo("robot", "--all", "--install-required-modules")
-
-            shell.odoo("snap", "save", SNAP_NAME)
-            shell.odoo("kill")
-            self._report("Installed all modules from MANIFEST")
-        except Exception as ex:
-            self._report("Error at preparing robot tests", exception=ex)
-            self.env['base'].flush()
-            self.env.cr.commit()
-            raise
-
-        def _run_robot_run(item):
-
-            shell.odoo("snap", "restore", SNAP_NAME)
-            self._report("Restored snapshot - driving up db.")
-            shell.odoo("kill", allow_error=True)
-            shell.odoo("rm", allow_error=True)
-            shell.odoo('up', '-d', 'postgres')
-            shell.odoo('up', '-d')
-            self._wait_for_postgres(shell)
-
+    def _get_generic_run_name(
+        self, item, name_callback
+    ):
+        breakpoint()
+        name = item or ''
+        if name_callback:
             try:
-                shell.odoo(
-                    'robot', '-p', 'password=admin',
-                    item, timeout=self.branch_id.timeout_tests)
-                state = 'success'
-            except Exception as ex:
-                state = 'failed'
-                self._report("Robot Test error (but retrying)", exception=ex)
-                raise
-            finally:
-                excel_file = self.sql_excel((
-                    "select id, name, state, exc_info "
-                    "from queue_job"
-                ))
-                self.queuejob_log = base64.b64encode(excel_file)
-                self.env.cr.commit()
-
-            robot_results_tar = shell.grab_folder_as_tar(robot_out)
-            robot_results_tar = base64.b64encode(robot_results_tar)
-            return {
-                'robot_output': robot_results_tar,
-                'state': state,
-            }
-
-        self._generic_run(
-            shell, logsio, files,
-            'robottest', _run_robot_run,
-            try_count=self.branch_id.retry_unit_tests,
-        )
-
-    def _run_unit_tests(self, shell, logsio, **kwargs):
-        cmd = ['list-unit-test-files']
-        if self.branch_id.unittest_all:
-            cmd += ['--all']
-        files = shell.odoo(*cmd)['stdout'].strip()
-        files = list(filter(bool, files.split("!!!")[1].split("\n")))
-
-        tests_by_module = self._get_unit_tests_by_modules(files)
-        i = 0
-
-        def name_callback(f):
-            p = Path(f)
-            return str(p.relative_to(p.parent.parent.parent))
-
-        for module, tests in tests_by_module.items():
-            i += 1
-            shell.odoo("snap", "restore", shell.project_name)
-            self._wait_for_postgres(shell)
-
-            def _update(item):
-                shell.odoo('update', item)
-
-            success = self._generic_run(
-                shell, logsio, [module],
-                'unittest', _update,
-                name_prefix='install '
-            )
-            if not success:
-                continue
-
-            self._wait_for_postgres(shell)
-
-            def _unittest(item):
-                shell.odoo(
-                    'unittest', item, "--non-interactive",
-                    timeout=self.branch_id.timeout_tests)
-
-            self._generic_run(
-                shell, logsio, tests,
-                'unittest', _unittest,
-                try_count=self.branch_id.retry_unit_tests,
-                name_callback=name_callback,
-                name_prefix=f"({i} / {len(tests_by_module)}) "
-            )
-
-    def _get_unit_tests_by_modules(self, files):
-        tests_by_module = {}
-        for fpath in files:
-            f = Path(fpath)
-            module = str(f.parent.parent.name)
-            tests_by_module.setdefault(module, [])
-            if fpath not in tests_by_module[module]:
-                tests_by_module[module].append(fpath)
-        return tests_by_module
+                name = name_callback(item)
+            except:
+                pass
+        return name
 
     def _generic_run(
         self, shell, logsio, todo, ttype, execute_run,
-        try_count=1, name_callback=None, name_prefix=''
+        try_count=1, name_callback=None, name_prefix='',
+        unique_name=False, hash=False,
     ):
         """
         Timeout in seconds.
 
         """
+        breakpoint()
         success = True
         len_todo = len(todo)
         for i, item in enumerate(todo):
             trycounter = 0
+
+            name = self._get_generic_run_name(item, name_callback)
+            if hash and self.env['cicd.test.run.line']._check_if_test_already_succeeded(
+                self, unique_name, hash,
+            ):
+                continue
+
+            position = name_prefix or ''
+            if len_todo > 1:
+                position += f"({i + 1} / {len_todo})"
+
             while trycounter < try_count:
                 if self.do_abort:
                     raise AbortException("Aborted by user")
                 trycounter += 1
                 logsio.info(f"Try #{trycounter}")
 
-                name = name_prefix or ''
-                if len_todo > 1:
-                    name += f"({i + 1} / {len_todo}) "
-
-                name_suffix = item or ''
-                if name_callback:
-                    try:
-                        name_suffix = name_callback(item)
-                    except:
-                        pass
-                name += name_suffix
-
                 started = arrow.get()
                 data = {
+                    'position': position,
                     'name': name,
                     'ttype': ttype,
                     'run_id': self.id,
                     'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
                     'try_count': trycounter,
+                    'hash': hash,
                 }
                 try:
                     logsio.info(f"Running {name}")
@@ -776,7 +655,6 @@ class CicdTestRun(models.Model):
                 if data['state'] == 'success':
                     break
             self.line_ids = [[0, 0, data]]
-            self.env['base'].flush()
             self.env.cr.commit()
         return success
 
@@ -796,48 +674,3 @@ class CicdTestRun(models.Model):
                     "obj": rec,
                 },
             )
-
-
-class CicdTestRunLine(models.Model):
-    _inherit = 'cicd.open.window.mixin'
-    _name = 'cicd.test.run.line'
-    _order = 'started desc'
-
-    ttype = fields.Selection([
-        ('preparation', "Preparation"),
-        ('unittest', 'Unit-Test'),
-        ('robottest', 'Robot-Test'),
-        ('migration', 'Migration'),
-        ('emptydb', 'Migration'),
-        ('log', "Log-Note"),
-    ], string="Category")
-    name = fields.Char("Name")
-    run_id = fields.Many2one('cicd.test.run', string="Run")
-    exc_info = fields.Text("Exception Info")
-    duration = fields.Integer("Duration")
-    state = fields.Selection([
-        ('open', 'Open'),
-        ('success', 'Success'),
-        ('failed', 'Failed'),
-    ], default='open', required=True)
-    force_success = fields.Boolean("Force Success")
-    started = fields.Datetime(
-        "Started", default=lambda self: fields.Datetime.now())
-    try_count = fields.Integer("Try Count")
-    robot_output = fields.Binary("Robot Output", attachment=True)
-
-    def toggle_force_success(self):
-        self.sudo().force_success = not self.sudo().force_success
-
-    @api.recordchange('force_success')
-    def _onchange_force(self):
-        for rec in self:
-            if rec.run_id.state not in ['running']:
-                rec.run_id._compute_success_rate()
-
-    def robot_results(self):
-        return {
-            'type': 'ir.actions.act_url',
-            'url': f'/robot_output/{self.id}',
-            'target': 'new'
-        }

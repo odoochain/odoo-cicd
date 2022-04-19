@@ -174,7 +174,7 @@ class GitBranch(models.Model):
                     'down': 2,
                     'exited': 2,
                 }
-                return states.get(state) or ''
+                return states.get(state) or 100
 
             if containers:
                 rec.containers = '\n'.join(sorted(containers, key=sortorder))
@@ -485,6 +485,7 @@ class GitBranch(models.Model):
         return machine._get_volume('source') / project_name
 
     def make_instance_ready_to_login(self):
+        breakpoint()
         machine = self.machine_id
         timeout = machine.test_timeout_web_login
 
@@ -498,7 +499,6 @@ class GitBranch(models.Model):
             return response.status_code == 200
 
         deadline = arrow.utcnow().shift(seconds=120)
-        virgin = True
         while True:
             try:
                 test_request()
@@ -512,13 +512,7 @@ class GitBranch(models.Model):
                         )) from ex
 
                 try:
-                    if virgin:
-                        self._make_task(
-                            "_reload_and_restart", now=True, reuse=True)
-                        virgin = False
-                    else:
-                        self._make_task(
-                            "_simple_docker_up", now=True, reuse=True)
+                    self._make_task("_simple_docker_up", now=True, reuse=True)
                 except RetryableJobError:
                     time.sleep(1)
             else:
@@ -641,28 +635,30 @@ class GitBranch(models.Model):
 
     # env['cicd.git.branch']._cron_make_test_runs()
     @api.model
-    def _cron_make_test_runs(self):
+    def _cron_create_test_runs(self):
+        """
+        Task: create open test runs for testable
+        branches
+        """
+
+        def create_test_run(branch):
+            self.env['cicd.test.run'].create({
+                'branch_id': branch.id,
+                'commit_id': branch.latest_commit_id.id,
+            })
+
         for branch in self.search([('state', '=', 'testable')]):
             if not branch.test_run_ids.filtered(
-                lambda x: x.state in [False, 'running', 'open'] and
-                    x.commit_id == branch.latest_commit_id):
-                branch.with_delay(
-                    identity_key=f"{branch.latest_commit_id.name}-run-tests"
-                    )._run_tests()
-
-        def kf(x):
-            return x.branch_id
+                lambda x: x.commit_id == branch.latest_commit_id):
+                create_test_run(branch)
 
         open_tests = self.env['cicd.test.run'].search([
-            ('state', '=', 'open')], order='id desc')
+            ('state', 'in', ['open'])], order='branch_id desc, id desc')
 
-        for branch, tests in groupby(open_tests.sorted(kf), kf):
+        for branch, tests in groupby(open_tests, lambda x: x.branch_id):
             tests = self.env['cicd.test.run'].union(*list(tests))
             if not tests:
                 continue
-            branch.with_delay(
-                identity_key=f"{branch.latest_commit_id.name}-run-tests")\
-                ._run_tests(testrun_id=tests[0].id)
             tests[1:].write({'state': 'omitted'})
 
     def _trigger_rebuild_after_fetch(self):

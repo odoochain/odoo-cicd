@@ -1,0 +1,24 @@
+<odoo>
+	<data noupdate='0'>
+		<record id="testruns" model="ir.cron">
+			<field name="name">testruns: create open tests</field>
+			<field name="interval_number">30</field>
+			<field name="interval_type">seconds</field>
+			<field name="model_id" ref="model_cicd_git_branch" />
+			<field name="state">code</field>
+			<field name="code">model._cron_create_test_runs()</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="testruns_run_open_tests" model="ir.cron">
+			<field name="name">testruns: start open tests</field>
+			<field name="interval_number">30</field>
+			<field name="interval_type">seconds</field>
+			<field name="model_id" ref="model_cicd_git_branch" />
+			<field name="state">code</field>
+			<field name="code">model._cron_run_open_tests()</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+	</data>
+</odoo>

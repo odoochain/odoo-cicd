@@ -99,7 +99,10 @@ from . import task
 from . import release
 from . import release_item
 from . import registry
+from . import test_run_line
 from . import test_run
+from . import test_run_unittest
+from . import test_run_robots
 from . import database
 from . import postgres_server
 from . import user
@@ -116,3 +119,7 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class DockerContainer(models.Model):
     _name = 'docker.container'
+
+
+from odoo import _, api, fields, models, SUPERUSER_ID
+from odoo.exceptions import UserError, RedirectWarning, ValidationError
