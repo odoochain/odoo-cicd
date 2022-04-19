@@ -611,12 +611,12 @@ class CicdTestRun(models.Model):
 
             name = self._get_generic_run_name(item, name_callback)
             if hash and self.env['cicd.test.run.line']._check_if_test_already_succeeded(
-                self, unique_name, hash,
+                self, name, hash,
             ):
                 continue
 
             position = name_prefix or ''
-            if len_todo > 1:
+            if len_todo > 0:
                 position += f"({i + 1} / {len_todo})"
 
             while trycounter < try_count:
