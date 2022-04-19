@@ -323,6 +323,7 @@ class CicdTestRun(models.Model):
         marker = self._get_qj_marker(suffix, afterrun=afterrun)
         eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
         return self.with_delay(
+            channel="testruns",
             identity_key=marker,
             eta=eta
             )

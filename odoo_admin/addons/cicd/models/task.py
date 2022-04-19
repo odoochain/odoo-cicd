@@ -82,6 +82,8 @@ class Task(models.Model):
             rec.display_name = name
 
     def perform(self, now=False, ignore_previous_tasks=False):
+        if now:
+            breakpoint()
         self.ensure_one()
         self.env.cr.commit()
         self._exec(now, ignore_previous_tasks=ignore_previous_tasks)
