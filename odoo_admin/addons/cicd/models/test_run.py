@@ -175,7 +175,6 @@ class CicdTestRun(models.Model):
 
         started = arrow.utcnow()
         try:
-            breakpoint()
             with self._shell() as shell:
                 self._checkout_source_code(shell)
                 self._abort_if_required()
@@ -323,13 +322,10 @@ class CicdTestRun(models.Model):
     def as_job(self, suffix, afterrun, eta=None):
         marker = self._get_qj_marker(suffix, afterrun=afterrun)
         eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
-        if suffix == 'wait_for_finish':
-            return self.with_delay(
-                identity_key=marker,
-                eta=eta
-                )
-        # TODO activate when queuejob problems solved
-        return self
+        return self.with_delay(
+            identity_key=marker,
+            eta=eta
+            )
 
     def _get_queuejobs(self, ttype):
         assert ttype in ['active', 'all']
