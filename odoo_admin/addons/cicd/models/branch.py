@@ -671,7 +671,11 @@ class GitBranch(models.Model):
                 rec._make_task("_prepare_a_new_instance", silent=True)
                 rec.force_prepare_dump = False
             elif rec.database_size:
-                rec._make_task("_update_odoo", silent=True)
+                if rec.latest_commit_id and ":RESTART:" in (
+                        rec.latest_commit_id.text or ''):
+                    rec._make_task('_restart', silent=True)
+                else:
+                    rec._make_task("_update_odoo", silent=True)
 
     def contains_commit(self, commit):
         return commit in self.mapped('commit_ids')
