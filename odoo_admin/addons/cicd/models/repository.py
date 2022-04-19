@@ -329,7 +329,6 @@ class Repository(models.Model):
                         self._fetch_branch(branch)
                         del branch
 
-
         except Exception:
             msg = traceback.format_exc()
             if logsio:
