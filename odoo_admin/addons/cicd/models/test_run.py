@@ -515,11 +515,11 @@ class CicdTestRun(models.Model):
         lines = self.mapped('line_ids').filtered(
             lambda x: x.ttype != 'log')
         success_lines = len(lines.filtered(
-            lambda x: x.state == 'success' or x.force_success))
+            lambda x: x.state == 'success' or x.force_success or x.reused))
         qj = self._get_queuejobs('all')
         failed_qj = bool([x for x in qj if x['state'] == 'failed'])
         if lines and not failed_qj and all(
-                x.state == 'success' or x.force_success for x in lines):
+                x.state == 'success' or x.force_success or x.reused for x in lines):
             self.state = 'success'
         else:
             self.state = 'failed'
@@ -585,7 +585,6 @@ class CicdTestRun(models.Model):
     def _get_generic_run_name(
         self, item, name_callback
     ):
-        breakpoint()
         name = item or ''
         if name_callback:
             try:

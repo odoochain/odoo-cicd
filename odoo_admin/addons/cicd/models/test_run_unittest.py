@@ -35,6 +35,7 @@ class TestrunUnittest(models.Model):
         for module, tests in tests_by_module.items():
             self._abort_if_required()
 
+            breakpoint()
             hash = self._get_hash_for_module(shell, module)
 
             needs_run = True
@@ -59,7 +60,7 @@ class TestrunUnittest(models.Model):
             success = self._generic_run(
                 shell, logsio, [module],
                 'unittest', _update,
-                name_prefix='install '
+                name_prefix='install ',
             )
             if not success:
                 continue

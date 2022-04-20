@@ -52,7 +52,6 @@ class Dump(models.Model):
 
     def _update_dumps(self, machine):
         with machine._shell() as shell:
-            machine = self.machine_id
             self.env.cr.commit()
 
             for volume in machine.volume_ids.filtered(
@@ -67,7 +66,7 @@ class Dump(models.Model):
                     "find", volname,
                     "-maxdepth", "1",
                     "-printf", f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
-                ])['stdout'].strip().split("\n")
+                ])['stdout'].strip().splitlines()
 
                 Files = {}
                 for line in files:

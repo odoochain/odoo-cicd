@@ -15,6 +15,7 @@
 					<field name="state"/>
 					<!-- <button string="Toggle" name="toggle_force_success" type="object"/> -->
 					<field name="force_success" widget="boolean_toggle"/>
+					<field name="reused"/>
 					<field name="try_count"/>
 					<field name="robot_output" invisible='1'/>
 					<field name="hash"/>

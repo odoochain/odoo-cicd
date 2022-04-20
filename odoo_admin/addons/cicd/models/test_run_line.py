@@ -45,6 +45,7 @@ class CicdTestRunLine(models.Model):
     try_count = fields.Integer("Try Count")
     robot_output = fields.Binary("Robot Output", attachment=True)
     hash = fields.Char("Hash", help="For using")
+    reused = fields.Boolean("Reused", readonly=True)
 
     def _compute_name_short(self):
         for rec in self:
@@ -78,12 +79,12 @@ class CicdTestRunLine(models.Model):
         Compares the hash of the module with an existing
         previous run with same hash.
         """
-        res = self.search_count([
+        res = self.search([
             ('run_id.branch_ids.repo_id', '=', testrun.branch_ids.repo_id.id),
             ('name', '=', name),
             ('hash', '=', hash),
             ('state', '=', 'success'),
-        ])
+        ], limit=1, order='id desc')
         if not res:
             return False
 
@@ -93,6 +94,8 @@ class CicdTestRunLine(models.Model):
             'state': 'success',
             'name': name,
             'hash': hash,
+            'ttype': res.ttype,
+            'reused': True,
         })
 
         return True

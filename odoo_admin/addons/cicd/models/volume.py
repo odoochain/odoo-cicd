@@ -44,6 +44,7 @@ class CicdVolumes(models.Model):
             rec.used_percent = 100 * rec.used_size / rec.total_size if rec.total_size else 0
 
     def _update_sizes(self):
+        breakpoint()
         for machine in self.sudo().mapped('machine_id'):
             with machine._shell() as shell:
                 self.env.cr.commit()
