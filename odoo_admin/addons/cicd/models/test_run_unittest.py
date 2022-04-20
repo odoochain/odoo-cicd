@@ -36,6 +36,19 @@ class TestrunUnittest(models.Model):
             self._abort_if_required()
 
             hash = self._get_hash_for_module(shell, module)
+
+            needs_run = True
+            if hash:
+                needs_run = False
+                for test in tests:
+                    if not self.env['cicd.test.run.line']._check_if_test_already_succeeded(
+                        self, test, hash,
+                    ):
+                        needs_run = True
+
+            if not needs_run:
+                continue
+
             i += 1
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
