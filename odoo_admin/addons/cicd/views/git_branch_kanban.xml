@@ -5,7 +5,9 @@
 	<field name="name">Branches</field>
 	<field name='type'>kanban</field>
 	<field name="arch" type="xml">
-		<kanban default_group_by="state">
+		<!-- <kanban on_create="quick_create"
+                    quick_create_view="project.quick_create_task_form" examples="project" js_class="project_task_kanban" sample="1"> -->
+		<kanban default_group_by="state" class="o_kanban_small_column o_kanban_project_tasks" on_create="quick_create" quick_create_view="cicd.quick_create_branch" >
 			<field name="name"/>
 			<field name="last_access"/>
 			<field name="target_release_ids"/>

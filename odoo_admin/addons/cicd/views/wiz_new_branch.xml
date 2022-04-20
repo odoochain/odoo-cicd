@@ -1,5 +1,17 @@
 <odoo>
 	<data noupdate='0'>
+		<record id="quick_create_branch" model="ir.ui.view">
+			<field name="name">cicd.git.branch.new form</field>
+			<field name="model">cicd.git.branch</field>
+			<field name="arch" type="xml">
+				<form string="">
+					<group string="" col="2">
+						<field name="repo_id" />
+						<field name="name"/>
+					</group>
+				</form>
+			</field>
+		</record>
 		<record id="view_cicd_git_branch_new_form" model="ir.ui.view">
 			<field name="name">cicd.git.branch.new form</field>
 			<field name="model">cicd.git.branch.new</field>
