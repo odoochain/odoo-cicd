@@ -45,6 +45,7 @@ class Repository(models.Model):
         required=True, domain=[('ttype', '=', 'dev')])
     name = fields.Char("URL", required=True)
     login_type = fields.Selection([
+        ('nothing', 'Nothing - just url'),
         ('username', 'Username'),
         ('key', 'Key'),
     ])
@@ -694,14 +695,14 @@ class Repository(models.Model):
             ('never_cleanup', '=', False),
         ]):
             dt = arrow.get().shift(
-                days=-1 * repo.cleanup_untouched).strftime(DFT)
+                days=-1 * repo.cleanup_untouched).strftime(DTF)
 
             # try nicht unbedingt notwendig; bei __exit__
             # wird ein close aufgerufen
             branches = repo.branch_ids.filtered(
                 lambda x: x.last_access or x.date_registered).filtered(
                 lambda x: (
-                    x.last_access or x.date_registered).strftime(DFT) < dt)
+                    x.last_access or x.date_registered).strftime(DTF) < dt)
 
             # keep release branches
             releases = self.env['cicd.release'].search([
