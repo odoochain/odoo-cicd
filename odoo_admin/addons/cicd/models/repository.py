@@ -722,7 +722,7 @@ class Repository(models.Model):
                     return True
                 if not branch.latest_commit_id.date:
                     return True
-                return bool(branch.latest_commit_id.date.strftime(DFT) < dt)
+                return bool(branch.latest_commit_id.date.strftime(DTF) < dt)
 
             branches = branches.filtered(outdated_commits)
 
