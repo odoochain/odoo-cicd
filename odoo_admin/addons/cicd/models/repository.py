@@ -267,6 +267,38 @@ class Repository(models.Model):
     def fetch(self):
         self._cron_fetch()
 
+    def create_all_branches(self):
+        self.ensure_one()
+        with LogsIOWriter.GET(self.name, 'fetch') as logsio:
+            self.env.cr.commit()
+            machine = self.machine_id
+            repo_path = self._get_main_repo(logsio=logsio)
+
+            with pg_advisory_lock(self.env.cr, self._get_lockname(
+                    machine, repo_path),
+                    detailinfo=(
+                        f"create_all_branches"
+                )):
+                    with machine._gitshell(
+                        repo=self, cwd=repo_path, logsio=logsio
+                    ) as shell:
+                        branches = shell.X(["git", "branch", "-a"])[
+                            'stdout'].strip().splitlines()
+                        for branch in branches:
+                            branch = branch.split("/")[-1]  # remotes/origin/isolated_unittests --> isolated_unittests
+
+                            branches = self.env['cicd.git.branch'].with_context(active_test=False).search([
+                                ('name', '=', branch),
+                                ('repo_id', '=', self.id)
+                            ])
+                            if not branches:
+                                branches.create({
+                                    'repo_id': self.id,
+                                    'name': branch,
+                                })
+
+
+
     @api.model
     def _cron_fetch(self):
         repos = self
