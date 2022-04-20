@@ -89,7 +89,6 @@ class CicdTestRunLine(models.Model):
             return False
 
         self.create({
-            'force_success': True,
             'run_id': testrun.id,
             'state': 'success',
             'name': name,
