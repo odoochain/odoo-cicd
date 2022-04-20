@@ -517,8 +517,7 @@ class CicdTestRun(models.Model):
         success_lines = len(lines.filtered(
             lambda x: x.state == 'success' or x.force_success or x.reused))
         qj = self._get_queuejobs('all')
-        failed_qj = bool([x for x in qj if x['state'] == 'failed'])
-        if lines and not failed_qj and all(
+        if lines and all(
                 x.state == 'success' or x.force_success or x.reused for x in lines):
             self.state = 'success'
         else:
