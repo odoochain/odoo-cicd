@@ -110,7 +110,10 @@ class CicdReleaseAction(models.Model):
         self.ensure_one()
         with self._contact_machine(logsio) as shell:
             shell.odoo("reload")
-            shell.odoo("build")
+            if self.release_id.repo_id.registry_id:
+                shell.odoo("regpull")
+            else:
+                shell.odoo("build")
             shell.odoo("update") # , "--i18n")
 
     def _start_odoo(self, logsio):
