@@ -64,7 +64,7 @@ class TestrunUnittest(models.Model):
     def _get_unit_tests_to_run(self, shell):
         self.ensure_one()
         unittests = self._get_unit_tests(shell)
-        unittest_by_module = self._get_unit_tests_by_modules(unittests)
+        unittests_by_module = self._get_unit_tests_by_modules(unittests)
         
         for module, tests in unittests_by_module.items():
             hash = self._get_hash_for_module(shell, module)
@@ -82,7 +82,7 @@ class TestrunUnittest(models.Model):
             if not unittests_by_module[module]:
                 unittests_by_module.pop(module)
              
-        return unittest_by_module
+        return unittests_by_module
 
     def _get_unit_tests(self, shell):
         self.ensure_one()
