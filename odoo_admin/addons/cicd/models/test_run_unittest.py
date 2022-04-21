@@ -14,9 +14,9 @@ class TestrunUnittest(models.Model):
         return str(p.relative_to(p.parent.parent.parent))
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
-        self._report("Hasing Modules / Preparing UnitTests")
+        self._report("Hashing Modules / Preparing UnitTests")
         unittests_to_run = self._get_unit_tests_to_run(shell) 
-        self._report("Hasing Modules / Preparing UnitTests Done")
+        self._report("Hashing Modules / Preparing UnitTests Done")
         if not unittests_to_run:
             return
         
