@@ -59,7 +59,7 @@ class TestrunUnittest(models.Model):
                 'unittest', _unittest,
                 try_count=self.branch_id.retry_unit_tests,
                 name_callback=self._unittest_name_callback,
-                name_prefix=f"({i} / {len(tests_by_module)}) ",
+                name_prefix=f"({i} / {len(unittests_to_run)}) ",
                 unique_name=module,
             )
     
