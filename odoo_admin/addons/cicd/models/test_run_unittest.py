@@ -7,17 +7,17 @@ from .test_run import SETTINGS
 
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
+    
+    def _unittest_name_callback(self, f):
+        p = Path(f)
+        # TODO checking: 3 mal parent
+        return str(p.relative_to(p.parent.parent.parent))
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
-        cmd = ['list-unit-test-files']
-        if self.branch_id.unittest_all:
-            cmd += ['--all']
-        files = shell.odoo(*cmd)['stdout'].strip()
-        files = list(filter(bool, files.split("!!!")[1].splitlines()))
-
-        tests_by_module = self._get_unit_tests_by_modules(files)
-        i = 0
-
+        unittests_to_run = self._get_unit_tests_to_run(shell) 
+        if not unittests_to_run:
+            return
+        
         # deactivate queuejob module
         breakpoint()
         self._reload(
@@ -25,32 +25,11 @@ class TestrunUnittest(models.Model):
                 "SERVER_WIDE_MODULES=base,web\n"
             ),
             str(Path(shell.cwd).parent)
-            )
+        )
 
-        def name_callback(f):
-            p = Path(f)
-            # TODO checking: 3 mal parent
-            return str(p.relative_to(p.parent.parent.parent))
-
-        for module, tests in tests_by_module.items():
+        i = 0
+        for module, tests in unittests_to_run.items():
             self._abort_if_required()
-
-            breakpoint()
-            hash = self._get_hash_for_module(shell, module)
-
-            needs_run = True
-            if hash:
-                needs_run = False
-                for test in tests:
-                    test = self._get_generic_run_name(test, name_callback)
-                    if not self.env['cicd.test.run.line']._check_if_test_already_succeeded(
-                        self, test, hash,
-                    ):
-                        needs_run = True
-
-            if not needs_run:
-                continue
-
             i += 1
             shell.odoo("snap", "restore", shell.project_name)
             self._wait_for_postgres(shell)
@@ -77,10 +56,41 @@ class TestrunUnittest(models.Model):
                 shell, logsio, tests,
                 'unittest', _unittest,
                 try_count=self.branch_id.retry_unit_tests,
-                name_callback=name_callback,
+                name_callback=self._unittest_name_callback,
                 name_prefix=f"({i} / {len(tests_by_module)}) ",
-                hash=hash, unique_name=module,
+                unique_name=module,
             )
+    
+    def _get_unit_tests_to_run(self, shell):
+        self.ensure_one()
+        unittests = self._get_unit_tests(shell)
+        unittest_by_module = self._get_unit_tests_by_modules(unittests)
+        
+        for module, tests in unittests_by_module.items():
+            hash = self._get_hash_for_module(shell, module)
+            if not hash:
+                continue
+            
+            for test in tests:
+                if self.env['cicd.test.run.line']._check_if_test_already_succeeded(
+                    self,
+                    self._get_generic_run_name(test, self._unittest_name_callback)
+                    hash,
+                ):
+                    unittests_by_module[module].remove(test)
+
+            if not unittests_by_module[module]:
+                unittests_by_module.pop(module)
+             
+        return unittest_by_module
+
+    def _get_unit_tests(self, shell):
+        self.ensure_one()
+        cmd = ['list-unit-test-files']
+        if self.branch_id.unittest_all:
+            cmd += ['--all']
+        files = shell.odoo(*cmd)['stdout'].strip()
+        return list(filter(bool, files.split("!!!")[1].splitlines()))
 
     def _get_unit_tests_by_modules(self, files):
         tests_by_module = {}
