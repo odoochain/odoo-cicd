@@ -74,7 +74,7 @@ class TestrunUnittest(models.Model):
             for test in tests:
                 if self.env['cicd.test.run.line']._check_if_test_already_succeeded(
                     self,
-                    self._get_generic_run_name(test, self._unittest_name_callback)
+                    self._get_generic_run_name(test, self._unittest_name_callback),
                     hash,
                 ):
                     unittests_by_module[module].remove(test)
