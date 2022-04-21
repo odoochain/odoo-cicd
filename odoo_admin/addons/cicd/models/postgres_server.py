@@ -28,7 +28,7 @@ class PostgresServer(models.Model):
     @api.depends("database_ids", "database_ids.size")
     def _compute_size(self):
         for rec in self:
-            self.size = sum(rec.mapped('database_ids.size'))
+            rec.size = sum(rec.mapped('database_ids.size'))
 
     @api.model
     def default_get(self, fields):
@@ -83,9 +83,10 @@ class PostgresServer(models.Model):
                 AND datname not in ('postgres');
             """)
             dbs = cr.fetchall()
-
+        
+        changed = False
         all_dbs = set()
-
+        
         for db in dbs:
             dbname = db[0]
             dbsize = db[1]
@@ -94,7 +95,6 @@ class PostgresServer(models.Model):
                 db_db = x_rec.database_ids.sudo().filtered(
                     lambda x: x.name == dbname)
 
-                changed = False
                 if not db_db:
                     db_db = x_rec.database_ids.sudo().create({
                         'server_id': x_rec.id,
@@ -106,15 +106,17 @@ class PostgresServer(models.Model):
                     if db_db.size != dbsize:
                         changed = True
                         db_db.size = dbsize
-
-                if changed:
-                    x_rec._compute_size()
-                    changed = False
+                x_rec.env.remove_to_compute('size', x_rec)
                 x_rec.env.cr.commit()
 
         for db in self.database_ids:
             if db.name not in all_dbs:
                 db.sudo().unlink()
-                changed = True
-                self._compute_size()
+                self.env.remove_to_compute('size', self)
                 self.env.cr.commit()
+                changed = True
+        
+        if changed:
+            with self._extra_env() as x_rec:
+                x_rec._compute_size()
+                x_rec.env.cr.commit()
