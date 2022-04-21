@@ -1,15 +1,27 @@
 <odoo>
 	<data noupdate="0">
+		<record id="view_cicd_machine_search" model="ir.ui.view">
+			<field name="name">cicd.machine search</field>
+			<field name="model">cicd.machine</field>
+			<field name="arch" type="xml">
+				<search>
+					<filter string="Archived" name="inactive" domain="[('active','=',False)]"/>
+				</search>
+			</field>
+		</record>
 		<record id="view_cicd_machine_form" model="ir.ui.view">
 			<field name="name">cicd.machine form</field>
 			<field name="model">cicd.machine</field>
 			<field name="arch" type="xml">
 				<form string="">
 					<header>
+						<field name="active" invisible="1"/>
 						<button name="test_ssh" string="Test SSH Connection" type="object" />
 						<button name="generate_ssh_key" string="Generate SSH Key" type="object" confirm="Old key will be lost. Continue?"/>
 						<button name="update_all_values" string="Update All Values" type="object" />
 						<button name="springclean" string="Spring Clean" type="object" />
+						<button name="toggle_active" string="Activate" attrs="{'invisible': [('active', '=', True)]}"/>
+						<button name="toggle_active" string="Archive" attrs="{'invisible': [('active', '=', False)]}"/>
 					</header>
 					<sheet>
 						<div class="oe_title">

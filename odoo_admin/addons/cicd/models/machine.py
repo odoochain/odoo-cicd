@@ -167,7 +167,6 @@ class CicdMachine(models.Model):
     def update_volumes(self):
         self.mapped('volume_ids')._update_sizes()
 
-
     def update_all_values(self):
         self.update_dumps()
         self.update_volumes()

@@ -24,7 +24,7 @@
                 'views/git_branch_kanban.xml',
                 'views/git_branch_search.xml',
                 'views/git_branch_tree.xml',
-                'views/machine_form.xml',
+                'views/machine_views.xml',
                 'views/new_branch_form.xml',
                 'views/postgres_form.xml',
                 'views/postgres_tree.xml',
