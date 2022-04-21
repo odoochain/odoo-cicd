@@ -67,24 +67,24 @@ class TestrunUnittest(models.Model):
         self.ensure_one()
         unittests = self._get_unit_tests(shell)
         unittests_by_module = self._get_unit_tests_by_modules(unittests)
+        _unittests_by_module = {}
         
         for module, tests in unittests_by_module.items():
             hash = self._get_hash_for_module(shell, module)
             if not hash:
+                _unittests_by_module[module] = tests
                 continue
             
             for test in tests:
-                if self.env['cicd.test.run.line']._check_if_test_already_succeeded(
+                if not self.env['cicd.test.run.line']._check_if_test_already_succeeded(
                     self,
                     self._get_generic_run_name(test, self._unittest_name_callback),
                     hash,
                 ):
-                    unittests_by_module[module].remove(test)
+                    t = _unittests_by_module.setdefault(module, [])
+                    t.append(test)
 
-            if not unittests_by_module[module]:
-                unittests_by_module.pop(module)
-             
-        return unittests_by_module
+        return _unittests_by_module
 
     def _get_unit_tests(self, shell):
         self.ensure_one()
