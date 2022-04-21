@@ -42,6 +42,7 @@ class TestrunUnittest(models.Model):
             if hash:
                 needs_run = False
                 for test in tests:
+                    test = self._get_generic_run_name(test, name_callback)
                     if not self.env['cicd.test.run.line']._check_if_test_already_succeeded(
                         self, test, hash,
                     ):
