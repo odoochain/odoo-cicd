@@ -31,6 +31,9 @@ class TestrunUnittest(models.Model):
 
         i = 0
         for module, tests in unittests_to_run.items():
+            hash = tests['hash']
+            tests = tests['tests']
+
             self._abort_if_required()
             i += 1
             shell.odoo("snap", "restore", shell.project_name)
@@ -61,6 +64,7 @@ class TestrunUnittest(models.Model):
                 name_callback=self._unittest_name_callback,
                 name_prefix=f"({i} / {len(unittests_to_run)}) ",
                 unique_name=module,
+                hash=hash,
             )
     
     def _get_unit_tests_to_run(self, shell):
@@ -69,10 +73,14 @@ class TestrunUnittest(models.Model):
         unittests_by_module = self._get_unit_tests_by_modules(unittests)
         _unittests_by_module = {}
         
+        def _setdefault(d, m):
+            return d.setdefault(m, {'tests': [], 'hash': None})
+
         for module, tests in unittests_by_module.items():
             hash = self._get_hash_for_module(shell, module)
             if not hash:
-                _unittests_by_module[module] = tests
+                t = _setdefault(_unittests_by_module, module)
+                t['tests'] = tests
                 continue
             
             for test in tests:
@@ -81,8 +89,9 @@ class TestrunUnittest(models.Model):
                     self._get_generic_run_name(test, self._unittest_name_callback),
                     hash,
                 ):
-                    t = _unittests_by_module.setdefault(module, [])
-                    t.append(test)
+                    t = _setdefault(_unittests_by_module, module)
+                    t['hash'] = hash
+                    t['tests'].append(test)
 
         return _unittests_by_module
 
