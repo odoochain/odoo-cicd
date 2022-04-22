@@ -163,29 +163,40 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             url, query_params = self._rewrite_path(req_header, cookies)
             conn_exception = None
 
+            delegator_path = cookies and cookies.get('delegator-path') or None
+
             def _redirect_to_index():
-                self._redirect_to_index(cookies and cookies.get('delegator-path') or None)
+                global sent
+                self._redirect_to_index(delegator_path)
                 sent = True
 
-            if self.path == "/_" or self.path.endswith('/web/session/logout'):
-                _redirect_to_index()
-            else:
+            def _get_request():
+                return requests.get(
+                    url, headers=req_header, verify=False,
+                    allow_redirects=False, params=query_params,
+                    cookies=cookies,
+                )
 
-                try:
-                    resp = requests.get(
-                        url, headers=req_header, verify=False,
-                        allow_redirects=False, params=query_params,
-                        cookies=cookies,
-                    )
-                except Exception as ex:
-                    conn_exception = ex
+            if self.path.endswith("/web/session/logout"):
+                if delegator_path:
+                    _redirect_to_index()
+
+            if not sent:
+                if self.path == "/_":
                     _redirect_to_index()
                 else:
-                    self.send_response(resp.status_code)
-                    self.send_resp_headers(resp, cookies)
-                    if body:
-                        self.wfile.write(resp.content)
-                    sent = True
+
+                    try:
+                        resp = _get_request()
+                    except Exception as ex:
+                        conn_exception = ex
+                        _redirect_to_index()
+                    else:
+                        self.send_response(resp.status_code)
+                        self.send_resp_headers(resp, cookies)
+                        if body:
+                            self.wfile.write(resp.content)
+                        sent = True
 
         except Exception as ex:
             self._handle_error(ex)
