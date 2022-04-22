@@ -6,6 +6,8 @@ import jira as JIRA
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
+    jira_epic = fields.Char("JIRA Epic")
+
     def _get_jira_issue(self):
         self.ensure_one()
         jira = self.repo_id.ticketsystem_id._get_jira_connection()
@@ -38,7 +40,8 @@ class Branch(models.Model):
 
     def _jira_comment(self, comment):
         for rec in self:
-            ts = rec.repo_id.ticketsystem_id.filtered(lambda x: x.ttype == 'jira')
+            ts = rec.repo_id.ticketsystem_id.filtered(
+                lambda x: x.ttype == 'jira')
             if not ts:
                 return
             ts._jira_comment(rec.ticket_system_ref or rec.name, comment)
@@ -55,6 +58,14 @@ class Branch(models.Model):
     def _fetch_enduser_summary(self):
         for rec in self:
             if rec.repo_id.ticketsystem_id.ttype == 'jira':
-                ts = rec.repo_id.ticketsystem_id
-                issue = self._get_jira_issue()
-                rec.enduser_summary_ticketsystem = str(issue.raw)
+                rec._fetch_enduser_summary_jira()
+
+    def _fetch_enduser_summary_jira(self):
+        ts = self.repo_id.ticketsystem_id
+        issue = self._get_jira_issue()
+        self.enduser_summary_ticketsystem = str(issue.raw)
+        try:
+            epic = issue.raw['fields']['parent']['fields']['summary']
+        except:
+            epic = False
+        self.jira_epic = epic
