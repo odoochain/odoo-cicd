@@ -100,6 +100,14 @@ class GitCommit(models.Model):
                         raise ValidationError((
                             "Code Reviewer and approver must not be the same."
                         ))
+            for branch in rec.branch_ids:
+                if branch.is_release_branch:
+                    continue
+                if not branch.enduser_summary:
+                    raise ValidationError((
+                        "Code Review approve needs an enduser "
+                        f"summary on branch: {branch.name}"
+                    ))
 
     @api.recordchange('force_approved')
     def _force_approved_changed(self):

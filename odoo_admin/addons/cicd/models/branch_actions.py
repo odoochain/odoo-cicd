@@ -578,56 +578,53 @@ class Branch(models.Model):
                     'stdout'].strip())
 
             assert shell.machine.ttype == 'dev'
+            instance_path = self._get_instance_folder(shell.machine)
+            shell.remove(instance_path)
 
-            with self.repo_id._temp_repo(
-                machine=shell.machine, branch=compressor.branch_id.name,
-                pull=True,
-            ) as instance_path:
-                # change working project/directory
-                with shell.clone(
-                    cwd=instance_path,
-                    project_name=self.project_name
-                ) as shell:
-                    logsio.info("Reloading...")
-                    settings = (
-                        "\n"
-                        f"DBNAME={self.database_project_name}\n"
-                        "RUN_CRONJOBS=0\n"
-                        "RUN_QUEUEJOBS=0\n"
-                        "RUN_POSTGRES=1\n"
-                        "RUN_ROBOT=0\n"
-                        "RUN_PROXY_PUBLISHED=0\n"
-                        "DB_HOST=postgres\n"
-                        "DB_USER=odoo\n"
-                        "DB_PWD=odoo\n"
-                        "DB_PORT=5432\n"
-                    )
-                    shell.remove(instance_path)
-                    self._reload(
-                        shell, task, logsio,
-                        project_name=self.project_name, settings=settings)
-                    logsio.info(f"Restoring {effective_dest_file_path}...")
-                    shell.odoo("up", "-d", "postgres")
+            # change working project/directory
+            with shell.clone(
+                cwd=instance_path,
+                project_name=self.project_name
+            ) as shell:
+                logsio.info("Reloading...")
+                settings = (
+                    "\n"
+                    f"DBNAME={self.database_project_name}\n"
+                    "RUN_CRONJOBS=0\n"
+                    "RUN_QUEUEJOBS=0\n"
+                    "RUN_POSTGRES=1\n"
+                    "RUN_ROBOT=0\n"
+                    "RUN_PROXY_PUBLISHED=0\n"
+                    "DB_HOST=postgres\n"
+                    "DB_USER=odoo\n"
+                    "DB_PWD=odoo\n"
+                    "DB_PORT=5432\n"
+                )
+                self._reload(
+                    shell, task, logsio,
+                    project_name=self.project_name, settings=settings)
+                logsio.info(f"Restoring {effective_dest_file_path}...")
+                shell.odoo("up", "-d", "postgres")
 
-                    try:
-                        shell.odoo(
-                            "-f", "restore", "odoo-db",
-                            effective_dest_file_path)
-                        logsio.info("Clearing DB...")
-                        shell.odoo('-f', 'cleardb')
-                        if compressor.anonymize:
-                            logsio.info("Anonymizing DB...")
-                            shell.odoo('-f', 'anonymize')
-                        logsio.info("Dumping compressed dump")
-                        output_path = compressor.volume_id.name + "/" + \
-                            compressor.output_filename
-                        shell.odoo('backup', 'odoo-db', output_path)
-                        compressor.last_output_size = int(shell.X([
-                            'stat', '-c', '%s', output_path])[
-                                'stdout'].strip())
-                        compressor.date_last_success = fields.Datetime.now()
-                    finally:
-                        shell.odoo('down', '-v', force=True, allow_error=True)
+                try:
+                    shell.odoo(
+                        "-f", "restore", "odoo-db",
+                        effective_dest_file_path)
+                    logsio.info("Clearing DB...")
+                    shell.odoo('-f', 'cleardb')
+                    if compressor.anonymize:
+                        logsio.info("Anonymizing DB...")
+                        shell.odoo('-f', 'anonymize')
+                    logsio.info("Dumping compressed dump")
+                    output_path = compressor.volume_id.name + "/" + \
+                        compressor.output_filename
+                    shell.odoo('backup', 'odoo-db', output_path)
+                    compressor.last_output_size = int(shell.X([
+                        'stat', '-c', '%s', output_path])[
+                            'stdout'].strip())
+                    compressor.date_last_success = fields.Datetime.now()
+                finally:
+                    shell.odoo('down', '-v', force=True, allow_error=True)
 
     def _make_sure_source_exists(self, shell, logsio):
         instance_folder = self._get_instance_folder(shell.machine)
