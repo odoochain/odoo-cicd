@@ -272,7 +272,6 @@ class Task(models.Model):
             elif state == 'done':
                 self.branch_id.message_post(
                     body=f"Successfully executed {self.name}")
-        self.env['base'].flush()
         self.env.cr.commit()
 
     @api.model
