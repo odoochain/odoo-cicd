@@ -5,7 +5,10 @@ from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from .test_run import SETTINGS
+import logging
+_logger = logging.getLogger()
 
+CONCURRENT_HASH_THREADS = 8  # minimum system load observed
 
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
@@ -71,15 +74,20 @@ class TestrunUnittest(models.Model):
 
     def _get_unittest_hashes(self, shell, modules):
         threads = []
+        modules = list(modules)
         result = {}
+        breakpoint()
 
         def _get_hash(module):
-            started = [x for x in threads if x.is_alive()]
-            while len(started) > 4:
+            while len([x for x in threads if x.is_alive()]) > CONCURRENT_HASH_THREADS:
                 time.sleep(0.5)
-            hash = self._get_hash_for_module(shell, module)
-            result[module] = hash
-            modules.remove(module)
+            try:
+                hash = self._get_hash_for_module(shell, module)
+                result[module] = hash
+            except Exception as ex:
+                _logger.error(ex, exc_info=True)
+            finally:
+                modules.remove(module)
 
         for mod in modules:
             t = threading.Thread(target=_get_hash, args=(mod,))
