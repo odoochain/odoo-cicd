@@ -1,4 +1,6 @@
+import time
 import json
+import threading
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -7,7 +9,7 @@ from .test_run import SETTINGS
 
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
-    
+
     def _unittest_name_callback(self, f):
         p = Path(f)
         # TODO checking: 3 mal parent
@@ -15,11 +17,11 @@ class TestrunUnittest(models.Model):
 
     def _run_unit_tests(self, shell, logsio, **kwargs):
         self._report("Hashing Modules / Preparing UnitTests")
-        unittests_to_run = self._get_unit_tests_to_run(shell) 
+        unittests_to_run = self._get_unit_tests_to_run(shell)
         self._report("Hashing Modules / Preparing UnitTests Done")
         if not unittests_to_run:
             return
-        
+
         # deactivate queuejob module
         breakpoint()
         self._reload(
@@ -66,27 +68,53 @@ class TestrunUnittest(models.Model):
                 unique_name=module,
                 hash=hash,
             )
-    
+
+    def _get_unittest_hashes(self, shell, modules):
+        threads = []
+        result = {}
+
+        def _get_hash(module):
+            started = [x for x in threads if x.is_alive()]
+            while len(started) > 4:
+                time.sleep(0.5)
+            hash = self._get_hash_for_module(shell, module)
+            result[module] = hash
+            modules.remove(module)
+
+        for mod in modules:
+            t = threading.Thread(target=_get_hash, args=(mod,))
+            threads.append(t)
+            t.start()
+
+        while modules:
+            time.sleep(0.5)
+
+        return result
+
     def _get_unit_tests_to_run(self, shell):
         self.ensure_one()
         unittests = self._get_unit_tests(shell)
         unittests_by_module = self._get_unit_tests_by_modules(unittests)
         _unittests_by_module = {}
-        
+
         def _setdefault(d, m):
             return d.setdefault(m, {'tests': [], 'hash': None})
 
+        hashes = self._get_unittest_hashes(
+            shell, unittests_by_module.keys())
+
         for module, tests in unittests_by_module.items():
-            hash = self._get_hash_for_module(shell, module)
+            hash = hashes[module]
             if not hash:
                 t = _setdefault(_unittests_by_module, module)
                 t['tests'] = tests
                 continue
-            
+
             for test in tests:
-                if not self.env['cicd.test.run.line']._check_if_test_already_succeeded(
+                if not self.line_ids._check_if_test_already_succeeded(
                     self,
-                    self._get_generic_run_name(test, self._unittest_name_callback),
+                    self._get_generic_run_name(
+                        test, self._unittest_name_callback),
                     hash,
                 ):
                     t = _setdefault(_unittests_by_module, module)
