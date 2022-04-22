@@ -73,30 +73,36 @@ class TestrunUnittest(models.Model):
             )
 
     def _get_unittest_hashes(self, shell, modules):
-        threads = []
-        modules = list(modules)
         result = {}
         breakpoint()
 
-        def _get_hash(module):
-            while len([x for x in threads if x.is_alive()]) > CONCURRENT_HASH_THREADS:
-                time.sleep(0.5)
-            try:
-                hash = self._get_hash_for_module(shell, module)
-                result[module] = hash
-            except Exception as ex:
-                _logger.error(ex, exc_info=True)
-            finally:
-                modules.remove(module)
+        threadLimiter = threading.BoundedSemaphore(CONCURRENT_HASH_THREADS)
 
+        class HashThread(threading.Thread):
+            def run(self):
+                self.threadLimiter.acquire()
+                try:
+                    self.run_me()
+                finally:
+                    self.threadLimiter.release()
+
+            def run_me(self):
+                global result
+                hash = self.testrun._get_hash_for_module(
+                    shell, self.module)
+                self.result[self.module] = hash
+
+        threads = []
         for mod in modules:
-            t = threading.Thread(target=_get_hash, args=(mod,))
+            t = HashThread()
+            t.module = mod
+            t.testrun = self
+            t.result = result
+            t.threadLimiter = threadLimiter
             threads.append(t)
             t.start()
 
-        while modules:
-            time.sleep(0.5)
-
+        [x.join() for x in threads]
         return result
 
     def _get_unit_tests_to_run(self, shell):
