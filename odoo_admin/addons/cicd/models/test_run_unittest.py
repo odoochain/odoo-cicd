@@ -10,6 +10,7 @@ _logger = logging.getLogger()
 
 CONCURRENT_HASH_THREADS = 8  # minimum system load observed
 
+
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 

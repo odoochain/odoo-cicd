@@ -50,6 +50,7 @@
 								<field name="computed_summary" />
 							</page>
 							<page string="Log">
+								<field name="exc_info"/>
 								<field name="log_release"/>
 							</page>
 						</notebook>

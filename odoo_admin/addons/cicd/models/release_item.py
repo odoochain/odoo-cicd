@@ -366,6 +366,7 @@ class ReleaseItem(models.Model):
         """
         Merges
         """
+        breakpoint()
         logsio = None
         self._lock()
 
