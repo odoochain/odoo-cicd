@@ -13,7 +13,7 @@ class Database(models.Model):
     _rec_name = 'display_name'
 
     name = fields.Char("Name", required=True)
-    display_name = fields.Char("Name", compute="_compute_display_name", store=True)
+    display_name = fields.Char("Name", compute="_compute_display_name", store=False)
     server_id = fields.Many2one("cicd.postgres", string="Postgres", required=True)
     machine_id = fields.Many2one('cicd.machine', compute="_compute_machine")
 
