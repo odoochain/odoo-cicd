@@ -66,6 +66,20 @@ class Branch(models.Model):
         self.enduser_summary_ticketsystem = str(issue.raw)
         try:
             epic = issue.raw['fields']['parent']['fields']['summary']
-        except:
+        except Exception:
             epic = False
-        self.jira_epic = epic
+        else:
+            if epic:
+                self.epic_id = self.env['cicd.branch.epic'].ensure_exists(epic)
+            else:
+                self.epic_id = False
+
+        try:
+            ttype = issue.raw['fields']['issuetype']['name']
+        except Exception:
+            ttype = False
+        else:
+            if ttype:
+                self.type_id = self.env['cicd.branch.epic'].ensure_exists(ttype)
+            else:
+                self.type_id = False
