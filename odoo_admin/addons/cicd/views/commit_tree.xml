@@ -1,0 +1,25 @@
+<odoo>
+	<data noupdate='0'>
+
+		<record id="view_cicd_git_commit_tree" model="ir.ui.view">
+			<field name="model">cicd.git.commit</field>
+			<field name="arch" type="xml">
+				<tree default_order="" string="">
+					<field name="name" readonly='1' />
+					<field name="date" readonly='1' />
+					<field name="date_registered" readonly='1'/>
+					<field name="author" readonly='1' />
+					<field name="branch_ids" widget="many2many_tags" readonly='1'/>
+					<field name="approval_state"/>
+					<field name="approver_id" readonly="1"/>
+					<field name="code_review_state"/>
+					<field name="code_reviewer_id" readonly="1"/>
+					<field name="force_approved"/>
+					<field name="test_state"/>
+					<field name="text"/>
+				</tree>
+			</field>
+		</record>
+
+	</data>
+</odoo>

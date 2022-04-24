@@ -154,8 +154,7 @@ class ReleaseItem(models.Model):
                 })
         return data
 
-
-def _compute_failed_jobs(self):
+    def _compute_failed_jobs(self):
         for rec in self:
             jobs = self.env['queue.job'].search([
                 ('identity_key', 'ilike', f'release-item {rec.id}')
