@@ -106,16 +106,11 @@ class PostgresServer(models.Model):
                     if db_db.size != dbsize:
                         changed = True
                         db_db.size = dbsize
-                # question1: in odoo they use self._fields to MT
-                # question2: in tests nothing was removed although size was changed
-                # field_size = self._fields['size']
-                x_rec.env.remove_to_compute('size', x_rec)
                 x_rec.env.cr.commit()
 
         for db in self.database_ids:
             if db.name not in all_dbs:
                 db.sudo().unlink()
-                self.env.remove_to_compute('size', self)
                 self.env.cr.commit()
                 changed = True
         
