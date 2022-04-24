@@ -569,7 +569,7 @@ class Repository(models.Model):
                     if '.git/index.lock' in rc['std_err']:
                         pass
                     else:
-                        raise
+                        raise Exception(rc['stderr'])
                 healthy = True
 
             except Exception:
