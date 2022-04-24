@@ -1,4 +1,5 @@
 import traceback
+from itertools import groupby
 from . import pg_advisory_lock
 import psycopg2
 import arrow
@@ -105,7 +106,7 @@ class ReleaseItem(models.Model):
                     ).strftime(DTF)
                 rec.planned_maximum_finish_date = start_from.shift(
                     minutes=rec.release_id.minutes_to_release).strftime(DTF)
-    
+
     def _on_done(self):
         # if not self.changed_lines:
         #     msg = "Nothing new to deploy"
@@ -117,12 +118,44 @@ class ReleaseItem(models.Model):
         self.release_id.message_post_with_view(
             self.env.ref('cicd.mail_release_done'),
             values={
-                'summary': self.computed_summary.split("\n"),
-                'item': self,
-                }
+                'release_item': self,
+                'release': self.release_id,
+                'patchnotes': self._get_patchnote_data(),
+            }
         )
 
-    def _compute_failed_jobs(self):
+    def _get_patchnote_data(self):
+        """
+        Prepares data for the patch notes.
+        """
+        branches = self.branch_ids.branch_id.sorted(
+            lambda x: x.epic_id.sequence)
+        data = []
+
+        for epic, branches in groupby(branches, lambda x: (
+                x.epic_id.sequence, x.type_id.sequence)):
+            epic_data = {
+                'epic': epic,
+                'types': [],
+            }
+            data.append(epic_data)
+            for ttype, branches in groupby(branches, lambda x: x.type_id):
+                branches2 = []
+                for branch in branches:
+                    commit = self.branch_ids.filtered(
+                        lambda x: x.branch_id == branch).commit_id
+                    branches2.append({
+                        'branch': branch,
+                        'commit': commit,
+                    })
+                epic_data['types'].append({
+                    'type': ttype,
+                    'branches': branches2,
+                })
+        return data
+
+
+def _compute_failed_jobs(self):
         for rec in self:
             jobs = self.env['queue.job'].search([
                 ('identity_key', 'ilike', f'release-item {rec.id}')

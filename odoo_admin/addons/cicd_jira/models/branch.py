@@ -6,8 +6,6 @@ import jira as JIRA
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
-    jira_epic = fields.Char("JIRA Epic")
-
     def _get_jira_issue(self):
         self.ensure_one()
         jira = self.repo_id.ticketsystem_id._get_jira_connection()
@@ -61,12 +59,11 @@ class Branch(models.Model):
                 rec._fetch_enduser_summary_jira()
 
     def _fetch_enduser_summary_jira(self):
-        ts = self.repo_id.ticketsystem_id
         issue = self._get_jira_issue()
         self.enduser_summary_ticketsystem = str(issue.raw)
         try:
             epic = issue.raw['fields']['parent']['fields']['summary']
-        except Exception:
+        except (IndexError, KeyError):
             epic = False
         else:
             if epic:
@@ -76,10 +73,11 @@ class Branch(models.Model):
 
         try:
             ttype = issue.raw['fields']['issuetype']['name']
-        except Exception:
+        except (IndexError, KeyError):
             ttype = False
         else:
             if ttype:
-                self.type_id = self.env['cicd.branch.epic'].ensure_exists(ttype)
+                self.type_id = self.env['cicd.branch.epic'].ensure_exists(
+                    ttype)
             else:
                 self.type_id = False
