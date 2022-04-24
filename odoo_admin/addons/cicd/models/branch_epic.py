@@ -7,5 +7,4 @@ class BranchEpic(models.Model):
     _name = 'cicd.branch.epic'
     _order = 'sequence'
 
-    name = fields.Char("Epic")
     sequence = fields.Integer("Sequence")

@@ -43,19 +43,19 @@
 	<template id="cicd.mail_release_done">
 		<h1>Deployment <span t-tesc="release.name"/></h1>
 		<t t-foreach="patchnotes" t-as="epic">
-			<h2><t t-esc="epic['epic'] and epic['epic'].name"/></h2>
-			<t t-foreach="epic['types']" t-as="ttype">
-				<h3><t t-esc="ttype['type'] and ttype['type'].name"/></h3>
+			<h2><t t-esc="epic['epic'] and epic['epic'].name or ''"/></h2>
+			<t t-foreach="epic['types'] or []" t-as="ttype">
+				<h3><t t-esc="ttype['type'] and ttype['type'].name or ''"/></h3>
 				<table>
 					<tr>
 						<th>Date</th>
 						<th>Branch</th>
 						<th>Description</th>
 					</tr>
-					<t t-foreach="ttype['branches']" t-as="branch">
+					<t t-foreach="ttype['branches'] or []" t-as="line">
 						<tr>
 							<td>
-								<t t-esc="line['commit'].date"/>
+								<t t-esc="line['commit'] and line['commit'].date"/>
 							</td>
 							<td>
 								<a t-att-href="line['branch'].ticket_system_url">
@@ -63,7 +63,7 @@
 								</a>
 							</td>
 							<td>
-								<t t-esc="line['branch_id'].enduser_summary or ''"/>
+								<t t-esc="line['branch'].enduser_summary or ''"/>
 							</td>
 						</tr>
 					</t>
