@@ -103,7 +103,7 @@
 			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
 		</record>
 		<menuitem parent="config_menu" id="menu_ticketsystems" action="ticketsystems_action"/>
-		
+
 		<record id='schedule_action' model='ir.actions.act_window'>
 			<field name='name'>Schedules</field>
 			<field name='res_model'>cicd.schedule</field>
@@ -118,5 +118,20 @@
 			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
 		</record>
 		<menuitem parent="root_menu" id="menu_tasks" action="tasks_action"/>
+
+		<record id='act_epics_action' model='ir.actions.act_window'>
+			<field name='name'>Epics</field>
+			<field name='res_model'>cicd.branch.epic</field>
+			<field name='view_mode'>tree</field>
+			<field name="help"><![CDATA[<p> No  found!  </p>]]></field>
+		</record>
+		<menuitem parent="config_menu" id="menu_act_epics" action="act_epics_action"/>
+
+		<record id='branch_types_action' model='ir.actions.act_window'>
+			<field name='name'>Branch-Types</field>
+			<field name='res_model'>cicd.branch.type</field>
+			<field name='view_mode'>tree</field>
+		</record>
+		<menuitem parent="config_menu" id="menu_branch_types" action="branch_types_action"/>
 	</data>
 </odoo>

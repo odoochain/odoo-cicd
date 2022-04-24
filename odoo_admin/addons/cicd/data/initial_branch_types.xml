@@ -1,0 +1,11 @@
+<odoo>
+	<data noupdate='1'>
+		<record model="cicd.branch.type" id="branch_type_bug">
+			<field name="name">Bug</field>
+		</record>
+		<record model="cicd.branch.type" id="branch_type_feature">
+			<field name="name">feature</field>
+		</record>
+
+	</data>
+</odoo>

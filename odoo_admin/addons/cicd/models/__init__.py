@@ -14,14 +14,14 @@ logger = logging.getLogger("CICD")
 
 MAIN_FOLDER_NAME = "_main"
 
-def is_lock_set(cr, lock):
+def is_lock_set(cr, lock):  # NOQA
     lock = _int_lock(lock)
     if lock > 2147483647 or lock < 0:
         raise Exception("Lock int should be low - somehow written in objid and classid")
     cr.execute("select count(*) from pg_locks where locktype = 'advisory' and objid=%s", (lock,))
     return bool(cr.fetchone()[0])
 
-def _int_lock(lock):
+def _int_lock(lock):  # NOQA
     if isinstance(lock, str):
         hasher = hashlib.sha1(str(lock).encode())
         # pg_lock accepss an int8 so we build an hash composed with
@@ -31,12 +31,12 @@ def _int_lock(lock):
         int_lock = lock
     return int_lock
 
-def pg_try_advisory_lock(cr, lock):
+def pg_try_advisory_lock(cr, lock):  # NOQA
     cr.execute("SELECT pg_try_advisory_xact_lock(%s);", (_int_lock(lock),))
     acquired = cr.fetchone()[0]
     return acquired
 
-def pg_advisory_xact_lock(cr, lock):
+def pg_advisory_xact_lock(cr, lock):  # NOQA
     cr.execute("SELECT pg_advisory_xact_lock(%s);", (_int_lock(lock),))
 
 
@@ -53,7 +53,7 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
             duration = (arrow.get() - started).total_seconds()
             if duration > 20:
                 logger.warning("Holding advisory lock for %s seconds: %s %s",
-                duration, lock, detailinfo )
+                    duration, lock, detailinfo )
 
     lock = _int_lock(lock)
     cr.execute("SELECT pg_try_advisory_lock(%s);", (lock,))
@@ -84,6 +84,7 @@ from . import mixin_open_window
 from . import schedule
 from . import mixin_schedule
 from . import mixin_size
+from . import mixin_simple_many2one
 from . import basemodel
 from . import mixin_queuejob_semaphore
 from . import ticketsystem
@@ -113,12 +114,8 @@ from . import wiz_new_branch
 from . import release_item_branch
 from . import wiz_dump
 from . import export_excel
-
-# remove in near future....
-from odoo import _, api, fields, models, SUPERUSER_ID
-from odoo.exceptions import UserError, RedirectWarning, ValidationError
-class DockerContainer(models.Model):
-    _name = 'docker.container'
+from . import branch_epic
+from . import branch_type
 
 
 from odoo import _, api, fields, models, SUPERUSER_ID

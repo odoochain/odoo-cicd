@@ -41,27 +41,35 @@
 		Pre-Release Information
 	</template>
 	<template id="cicd.mail_release_done">
-		<h1>Deployment <span t-tesc="object.release_id.name"/></h1>
-		<table>
-			<tr>
-				<th>Date</th>
-				<th>Branch</th>
-				<th>Description</th>
-			</tr>
-			<t t-foreach="item.branch_ids" t-as="line">
-				<tr>
-					<td>
-						<t t-esc="line.commit_id.date"/>
-					</td>
-					<td>
-						<t t-esc="line.branch_id.name"/>
-					</td>
-					<td>
-						<t t-esc="line.branch_id.enduser_summary or ''"/>
-					</td>
-				</tr>
+		<h1>Deployment <span t-tesc="release.name"/></h1>
+		<t t-foreach="patchnotes" t-as="epic">
+			<h2><t t-esc="epic['epic'] and epic['epic'].name or ''"/></h2>
+			<t t-foreach="epic['types'] or []" t-as="ttype">
+				<h3><t t-esc="ttype['type'] and ttype['type'].name or ''"/></h3>
+				<table>
+					<tr>
+						<th>Date</th>
+						<th>Branch</th>
+						<th>Description</th>
+					</tr>
+					<t t-foreach="ttype['branches'] or []" t-as="line">
+						<tr>
+							<td>
+								<t t-esc="line['commit'] and line['commit'].date"/>
+							</td>
+							<td>
+								<a t-att-href="line['branch'].ticket_system_url">
+									<t t-esc="line['branch'].name"/>
+								</a>
+							</td>
+							<td>
+								<t t-esc="line['branch'].enduser_summary or ''"/>
+							</td>
+						</tr>
+					</t>
+				</table>
 			</t>
-		</table>
+		</t>
 	</template>
 
 	</data>

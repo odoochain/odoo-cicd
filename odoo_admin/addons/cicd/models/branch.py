@@ -137,6 +137,8 @@ class GitBranch(models.Model):
         compute="_compute_link", string="Link To Instance")
 
     containers = fields.Text(compute="compute_containers_text", store=False)
+    epic_id = fields.Many2one('cicd.branch.epic', string="Epic")
+    type_id = fields.Many2one('cicd.branch.type', string="Type")
 
     @api.recordchange('state')
     def _enduser_summary_ticketsystem(self):

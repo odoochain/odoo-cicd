@@ -32,12 +32,13 @@
 								<field name="item_branch_name" attrs="{'invisible': [('item_branch_id', '!=', False)]}"/>
 								<field name="item_branch_id"  attrs="{'invisible': [('item_branch_id', '=', False)]}"/>
 							</group>
+							<field name="repo_id" invisible='1'/>
 							<group string="Branches" name="branches">
 								<field name="branch_ids" attrs="{'readonly': [('release_type', '!=', 'hotfix')]}" nolabel='1'>
-									<tree>
-										<field name="branch_id"/>
+									<tree editable="bottom">
+										<field name="branch_id" domain="[('repo_id', '=', parent.repo_id)]"/>
 										<button name="open_window" string="" icon="fa-external-link" type="object" />
-										<field name="commit_id"/>
+										<field name="commit_id" domain="[('branch_ids', '=', branch_id)]"/>
 										<field name="state"/>
 										<field name="commit_date" />
 										<button name="view_changes" string="" icon="fa-search" type="object" />
