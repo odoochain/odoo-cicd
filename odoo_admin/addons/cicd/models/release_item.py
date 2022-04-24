@@ -129,11 +129,10 @@ class ReleaseItem(models.Model):
         Prepares data for the patch notes.
         """
         branches = self.branch_ids.branch_id.sorted(
-            lambda x: x.epic_id.sequence)
+            lambda x: (x.epic_id.sequence, x.type_id.sequence))
         data = []
 
-        for epic, branches in groupby(branches, lambda x: (
-                x.epic_id.sequence, x.type_id.sequence)):
+        for epic, branches in groupby(branches, lambda x: x.epic_id):
             epic_data = {
                 'epic': epic,
                 'types': [],

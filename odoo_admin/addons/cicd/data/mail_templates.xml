@@ -43,9 +43,9 @@
 	<template id="cicd.mail_release_done">
 		<h1>Deployment <span t-tesc="release.name"/></h1>
 		<t t-foreach="patchnotes" t-as="epic">
-			<h2><t t-esc="epic['epic'].name"/></h2>
+			<h2><t t-esc="epic['epic'] and epic['epic'].name"/></h2>
 			<t t-foreach="epic['types']" t-as="ttype">
-				<h3><t t-esc="ttype['type'].name"/></h3>
+				<h3><t t-esc="ttype['type'] and ttype['type'].name"/></h3>
 				<table>
 					<tr>
 						<th>Date</th>
