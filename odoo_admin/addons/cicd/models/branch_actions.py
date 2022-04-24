@@ -410,20 +410,30 @@ class Branch(models.Model):
         return str(commit)
 
     def _cron_inactivity_cycle_down(self):
-        branches = self.with_context(
-            active_test=False,
-            prefetch_fields=False
-        ).search([])
-        self.env.cr.commit()
+        for machine in self.env['cicd.machine'].search([
+                ('ttype', '=', 'dev')]):
+            self.env.cr.commit()
+            containers = machine._get_containers()
+            containers = {
+                k: v for k, v in containers.items() if v == 'running'}
+            machine_branches = self.with_context(
+                active_test=False,
+                prefetch_fields=False,
+            ).search([('repo_id.machine_id', '=', machine.id)])
 
-        for rec in branches:
-            with rec._extra_env() as x_rec:
-                last_access = arrow.get(x_rec.last_access or '1980-04-04')
-                uptime = (arrow.get() - last_access).total_seconds()
-                if uptime <= x_rec.cycle_down_after_seconds:
-                    continue
+            to_check = machine_branches.filtered(
+                lambda x: any(
+                    x.project_name + "_" in line for line in containers))
+            self.env.cr.commit()
+            for rec in to_check:
+                with rec._extra_env() as x_rec:
+                    name = rec.name
+                    logger.info(f"Checking {name} for to cycle down.")
+                    last_access = arrow.get(x_rec._unblocked('last_access') or '1980-04-04')
+                    uptime = (arrow.get() - last_access).total_seconds()
+                    if uptime <= x_rec._unblocked('cycle_down_after_seconds'):
+                        continue
 
-                if ":running" in x_rec.containers:
                     x_rec.with_delay(
                         identity_key=f"cycle_down:{x_rec.name}"
                     )._cycle_down_instance()
