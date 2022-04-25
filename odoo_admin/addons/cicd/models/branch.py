@@ -144,9 +144,9 @@ class GitBranch(models.Model):
     def _enduser_summary_ticketsystem(self):
         for rec in self:
             if not rec.enduser_summary_ticketsystem:
-                rec.with_delay()._fetch_enduser_summary()
+                rec.with_delay()._fetch_ts_data()
 
-    def _fetch_enduser_summary(self):
+    def _fetch_ts_data(self):
         pass
 
     _sql_constraints = [

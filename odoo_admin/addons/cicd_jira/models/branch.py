@@ -53,14 +53,16 @@ class Branch(models.Model):
             comment = "Tests failed"
         self._jira_comment(comment)
 
-    def _fetch_enduser_summary(self):
+    def _fetch_ts_data(self):
         for rec in self:
             if rec.repo_id.ticketsystem_id.ttype == 'jira':
-                rec._fetch_enduser_summary_jira()
+                rec._fetch_ts_data_jira()
 
-    def _fetch_enduser_summary_jira(self):
+    def _fetch_ts_data_jira(self):
         issue = self._get_jira_issue()
-        self.enduser_summary_ticketsystem = str(issue.raw)
+        if not issue:
+            return
+        self.enduser_summary_ticketsystem = issue.raw['fields']['description'] or ''
         try:
             epic = issue.raw['fields']['parent']['fields']['summary']
         except (IndexError, KeyError):
@@ -77,7 +79,7 @@ class Branch(models.Model):
             ttype = False
         else:
             if ttype:
-                self.type_id = self.env['cicd.branch.epic'].ensure_exists(
+                self.type_id = self.env['cicd.branch.type'].ensure_exists(
                     ttype)
             else:
                 self.type_id = False
