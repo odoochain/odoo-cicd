@@ -6,6 +6,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class TicketSystem(models.Model):
     _inherit = 'cicd.ticketsystem'
 
+    jira_update_state = fields.Boolean("Update State")
     jira_username = fields.Char("JIRA Username")
     jira_apitoken = fields.Char("JIRA apitoken")
     jira_state_mapping_ids = fields.One2many(

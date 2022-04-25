@@ -29,6 +29,8 @@ class Branch(models.Model):
         for rec in self:
             if rec.repo_id.ticketsystem_id.ttype == 'jira':
                 ts = rec.repo_id.ticketsystem_id
+                if not ts.jira_update_state:
+                    continue
                 issue = self._get_jira_issue()
                 if issue:
                     state = ts.jira_state_mapping_ids.map(ts, rec.state)

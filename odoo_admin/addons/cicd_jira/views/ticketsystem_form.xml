@@ -8,6 +8,7 @@
 					<group attrs="{'invisible': [('ttype', '!=', 'jira')]}">
 						<field name="jira_username" attrs="{'required': [('ttype', '=', 'jira')]}"/>
 						<field name="jira_apitoken" attrs="{'required': [('ttype', '=', 'jira')]}"/>
+						<field name="jira_update_state"/>
 					</group>
 					<group string="States" attrs="{'invisible': [('ttype', '!=', 'jira')]}">
 						<field name="jira_extract_custom_fields"/>
