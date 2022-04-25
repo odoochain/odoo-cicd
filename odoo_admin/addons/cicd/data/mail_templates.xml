@@ -1,72 +1,95 @@
 <odoo>
 	<data noupdate='0'>
 
-	<template id="cicd.mail_testrun_result">
-		<h1>TESTRUN RESULT</h1>
-		<table>
-			<tr>
-				<th>Test</th>
-				<td><t t-esc="obj.name"/></td>
-			</tr>
-			<tr>
-				<th>Success-Rate</th>
-				<td><t t-esc="obj.success_rate"/>%</td>
-			</tr>
-			<tr>
-				<th>Duration</th>
-				<td><t t-esc="obj.duration"/> seconds</td>
-			</tr>
-		</table>
-		<h2>Failed Tests</h2>
-		<table>
-			<tr>
-				<th>Test</th>
-				<th>Tries</th>
-				<th>Type</th>
-				<th>Forced Success</th>
-				<th>Duration [s]</th>
-			</tr>
-			<t t-foreach="obj.line_ids.filtered(lambda x: x.state == 'failed')" t-as="line" border='1'>
+		<template id="cicd.mail_testrun_result">
+			<h1>TESTRUN RESULT</h1>
+			<table>
 				<tr>
-					<td><t t-esc="line.name"/></td>
-					<td><t t-esc="line.try_count"/></td>
-					<td><t t-esc="line.ttype"/></td>
-					<td><t t-esc="line.force_success"/></td>
-					<td><t t-esc="line.duration"/></td>
+					<th>Test</th>
+					<td>
+						<t t-esc="obj.name"/>
+					</td>
 				</tr>
-			</t>
-		</table>
-	</template>
-	<template id="cicd.mail_pre_release_info">
+				<tr>
+					<th>Success-Rate</th>
+					<td>
+						<t t-esc="obj.success_rate"/>
+%</td>
+				</tr>
+				<tr>
+					<th>Duration</th>
+					<td>
+						<t t-esc="obj.duration"/>
+seconds</td>
+				</tr>
+			</table>
+			<h2>Failed Tests</h2>
+			<table>
+				<tr>
+					<th>Test</th>
+					<th>Tries</th>
+					<th>Type</th>
+					<th>Forced Success</th>
+					<th>Duration [s]</th>
+				</tr>
+				<t t-foreach="obj.line_ids.filtered(lambda x: x.state == 'failed')" t-as="line" border='1'>
+					<tr>
+						<td>
+							<t t-esc="line.name"/>
+						</td>
+						<td>
+							<t t-esc="line.try_count"/>
+						</td>
+						<td>
+							<t t-esc="line.ttype"/>
+						</td>
+						<td>
+							<t t-esc="line.force_success"/>
+						</td>
+						<td>
+							<t t-esc="line.duration"/>
+						</td>
+					</tr>
+				</t>
+			</table>
+		</template>
+		<template id="cicd.mail_pre_release_info">
 		Pre-Release Information
-	</template>
-	<template id="cicd.mail_release_done">
-		<h1>Deployment <span t-tesc="release.name"/></h1>
-		<t t-foreach="patchnotes" t-as="epic">
-			<h2><t t-esc="epic['epic'] and epic['epic'].name or ''"/></h2>
-			<t t-foreach="epic['types'] or []" t-as="ttype">
-				<h3><t t-esc="ttype['type'] and ttype['type'].name or ''"/></h3>
-				<ul>
-					<li t-foreach="ttype['branches']" t-as="branch">
-						<strong>
-							<a t-att-href="line['branch'].ticket_system_url">
-							<t t-esc="line['branch'].name"/>
-							</a>
-						</strong>
-						<p>
-							<t t-esc="line['commit'] and line['commit'].date"/>
-						</p>
-						<p t-if="line['branch'].enduser_summary">
-							<t t-esc="line['branch'].enduser_summary"/>
-						</p>
-						<p t-if="line['branch'].enduser_summary_ticketsystem">
-							<t t-esc="line['branch'].enduser_summary_ticketsystem"/>
-						</p>
-					</li>
-				</ul>
+		</template>
+		<template id="cicd.mail_release_done">
+			<h1>Deployment <span t-tesc="release.name"/>
+			</h1>
+			<t t-foreach="patchnotes" t-as="epic">
+				<h2>
+					<t t-esc="epic['epic'] and epic['epic'].name or ''"/>
+				</h2>
+				<t t-foreach="epic['types'] or []" t-as="ttype">
+					<h3>
+						<t t-esc="ttype['type'] and ttype['type'].name or ''"/>
+					</h3>
+					<ul>
+						<li t-foreach="ttype['branches']" t-as="line">
+							<t t-set="branch" t-value="line['branch']" />
+							<t t-set="commit" t-value="line['commit']" />
+							<strong>
+								<a t-att-href="branch.ticket_system_url">
+									<t t-esc="branch.name"/>
+								</a>
+							</strong>
+							<p>
+								<t t-esc="commit and commit.date"/>
+							</p>
+							<p t-if="branch.enduser_summary">
+								<t t-esc="branch.enduser_summary"/>
+							</p>
+							<p t-if="branch.enduser_summary_ticketsystem">
+								<t t-esc="branch.enduser_summary_ticketsystem"/>
+							</p>
+						</li>
+					</ul>
+				</t>
 			</t>
-		</t>
-	</template>
+		</template>
 
 	</data>
 </odoo>
