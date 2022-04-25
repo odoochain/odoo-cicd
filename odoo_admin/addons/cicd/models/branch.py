@@ -47,7 +47,8 @@ class GitBranch(models.Model):
     cycle_down_after_seconds = fields.Integer(
         "Cycle Down After Seconds", default=3600)
     name = fields.Char("Git Branch", required=True)
-    technical_branch_name = fields.Char("Technical Instance Name", help="Docker container limit their name.")
+    technical_branch_name = fields.Char("Technical Instance Name", help=(
+        "Docker container limit their name."))
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one(
@@ -85,6 +86,7 @@ class GitBranch(models.Model):
     reload_config = fields.Text("Reload Config", tracking=True)
     autobackup = fields.Boolean("Autobackup", tracking=True)
     enduser_summary = fields.Text("Enduser Summary", tracking=True)
+    name_ticketsystem = fields.Char("Ticketsystem Name")
     enduser_summary_ticketsystem = fields.Text(
         "Enduser Summary Ticketsystem", tracking=True)
     target_release_ids = fields.Many2many(
@@ -353,7 +355,7 @@ class GitBranch(models.Model):
                 commit.test_state == 'success'
                 or not rec.any_testing
             )
-            
+
             if commit.approval_state == 'check' and not commit.force_approved:
                 state = 'approve'
 
@@ -367,7 +369,7 @@ class GitBranch(models.Model):
 
                 state = 'testable'
 
-            elif (commit.test_state == 'failed' or 
+            elif (commit.test_state == 'failed' or
                     commit.approval_state == 'declined' or \
                     commit.code_review_state == 'declined') and \
                         not commit.force_approved and \

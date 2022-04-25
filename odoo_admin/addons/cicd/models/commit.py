@@ -96,17 +96,19 @@ class GitCommit(models.Model):
                 continue
             if rec.code_reviewer_id and rec.approver_id:
                 if rec.code_reviewer_id == rec.approver_id:
-                    if not self.env.user.has_group('cicd.group_override_approve'):
+                    if not self.env.user.has_group(
+                            'cicd.group_override_approve'):
                         raise ValidationError((
                             "Code Reviewer and approver must not be the same."
                         ))
             for branch in rec.branch_ids:
                 if branch.is_release_branch:
                     continue
-                if not branch.enduser_summary:
+                if not branch.enduser_summary and \
+                        not branch.enduser_summary_ticketsystem:
                     raise ValidationError((
                         "Code Review approve needs an enduser "
-                        f"summary on branch: {branch.name}"
+                        f"summary on branch: {branch.name}!"
                     ))
 
     @api.recordchange('force_approved')

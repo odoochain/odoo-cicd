@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
+import json
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import jira as JIRA
 
@@ -6,11 +7,13 @@ import jira as JIRA
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
-    def _get_jira_issue(self):
+    jira_json = fields.Text("JSON stored to debug")
+
+    def _get_jira_issue(self, name=None):
         self.ensure_one()
         jira = self.repo_id.ticketsystem_id._get_jira_connection()
         try:
-            issue_name = self.repo_id.ticketsystem_id._extract_ts_part(self)
+            issue_name = name or self.repo_id.ticketsystem_id._extract_ts_part(self)
             issue = jira.issue(issue_name)
         except JIRA.exceptions.JIRAError as jira_ex:
             if 'Issue does not exist or you do not have permission to see it' in str(jira_ex):
@@ -62,16 +65,25 @@ class Branch(models.Model):
         issue = self._get_jira_issue()
         if not issue:
             return
-        self.enduser_summary_ticketsystem = issue.raw['fields']['description'] or ''
-        try:
-            epic = issue.raw['fields']['parent']['fields']['summary']
-        except (IndexError, KeyError):
-            epic = False
-        else:
-            if epic:
-                self.epic_id = self.env['cicd.branch.epic'].ensure_exists(epic)
-            else:
-                self.epic_id = False
+        self.jira_json = json.dumps(issue.raw, indent=4)
+        enduser_summary_ticketsystem = \
+            [issue.raw['fields']['description']]
+        self.name_ticketsystem = issue.raw['fields']['summary'] or ''
+
+        it_issue = issue
+        while True:
+            try:
+                if it_issue.raw['fields'].get('parent'):
+                    if it_issue.raw['fields']['parent']['fields']['issuetype']['name'] == 'Epic':
+                        epic = it_issue.raw['fields']['parent']['fields']['summary']
+                        self.epic_id = self.env['cicd.branch.epic'].ensure_exists(epic)
+                        break
+                    else:
+                        it_issue = self._get_jira_issue(it_issue.raw[
+                            'fields']['parent']['key'])
+            except (IndexError, KeyError):
+                epic = False
+                break
 
         try:
             ttype = issue.raw['fields']['issuetype']['name']
@@ -83,3 +95,15 @@ class Branch(models.Model):
                     ttype)
             else:
                 self.type_id = False
+
+        for further_summary_field in (
+            self.repo_id.ticketsystem_id.jira_extract_custom_fields or ''
+        ).split(','):
+            if not further_summary_field:
+                continue
+            further_summary_field = further_summary_field.strip()
+            enduser_summary_ticketsystem.append(
+                issue.raw['fields'][further_summary_field])
+
+        self.enduser_summary_ticketsystem = '\n'.join(
+            filter(bool, enduser_summary_ticketsystem))

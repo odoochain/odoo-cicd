@@ -7,6 +7,17 @@
 		<field name="arch" type="xml">
 			<field name="ticket_system_url" position="after">
 			</field>
+			<notebook position="inside">
+				<page string="JIRA Json" groups="base.group_no_one">
+					<group readonly='1'>
+						<field name="epic_id"/>
+						<field name="type_id"/>
+						<field name="name_ticketsystem"/>
+						<field name="enduser_summary_ticketsystem"/>
+						<field name="jira_json"/>
+					</group>
+				</page>
+			</notebook>
 		</field>
 	</record>
 
