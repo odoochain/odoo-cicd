@@ -27,6 +27,7 @@ model_cicd_ticketsystem,base.group_user,cicd_ticketsystem_base_group_user,n/a,1,
 model_cicd_ticketsystem,cicd.group_developer,cicd_ticketsystem_cicd_group_developer,n/a,1,1,1,1
 model_cicd_git_branch_new,cicd.group_approver,cicd_git_branch_new_cicd_group_approver,n/a,1,1,1,1
 model_cicd_git_repo,cicd.group_developer,cicd_git_repo_cicd_group_developer,n/a,1,1,1,1
+model_cicd_git_repo,base.group_user,cicd_git_repo_base_group_user,n/a,1,0,0,0
 model_queue_job,cicd.group_approver,queue_job_cicd_group_approver,n/a,1,1,1,0
 model_queue_job,cicd.group_developer,queue_job_cicd_group_developer,n/a,1,1,1,1
 model_cicd_wiz_dump,group_approver,cicd_wiz_dump_group_approver,n/a,1,1,1,1
@@ -35,6 +36,3 @@ model_cicd_branch_type,base.group_user,cicd_branch_type_base_group_user,n/a,1,0,
 model_cicd_branch_epic,base.group_user,cicd_branch_epic_base_group_user,n/a,1,0,0,0
 model_cicd_branch_type,cicd.group_manager,cicd_branch_type_cicd_group_manager,n/a,1,1,1,1
 model_cicd_branch_epic,cicd.group_manager,cicd_branch_epic_cicd_group_manager,n/a,1,1,1,1
-
-
-

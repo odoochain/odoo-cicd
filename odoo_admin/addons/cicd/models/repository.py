@@ -844,3 +844,19 @@ class Repository(models.Model):
                 ('active', '=', False)
             ]):
                 branch.with_delay().purge_instance_folder()
+
+    def _has_rights_for_password(self):
+        return self.env.user.has_group("cicd.group_manager") or \
+            self.env.user.has_group('base.group_system')
+
+    def read(self, fields=None, load='_classic_read'):
+        result = super().read(fields=fields, load=load)
+        if not self._has_rights_for_password() and 'password' in (
+                fields or []):
+
+            def remove_password(x):
+                x['password'] = False
+                return x
+
+            result = list(map(remove_password, result))
+        return result
