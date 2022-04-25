@@ -1,65 +1,66 @@
 <odoo>
 	<data noupdate='0'>
-<record model="ir.ui.view" id="view_cicd_git_branch_kanban">
-	<field name="model">cicd.git.branch</field>
-	<field name="name">Branches</field>
-	<field name='type'>kanban</field>
-	<field name="arch" type="xml">
-		<!-- <kanban on_create="quick_create"
-                    quick_create_view="project.quick_create_task_form" examples="project" js_class="project_task_kanban" sample="1"> -->
-		<kanban default_group_by="state" class="o_kanban_small_column o_kanban_project_tasks" on_create="quick_create" quick_create_view="cicd.quick_create_branch" >
-			<field name="name"/>
-			<field name="last_access"/>
-			<field name="target_release_ids"/>
-			<templates>
+		<record model="ir.ui.view" id="view_cicd_git_branch_kanban">
+			<field name="model">cicd.git.branch</field>
+			<field name="name">Branches</field>
+			<field name='type'>kanban</field>
+			<field name="arch" type="xml">
+				<!-- <kanban on_create="quick_create" quick_create_view="project.quick_create_task_form" examples="project" js_class="project_task_kanban" sample="1"> -->
+				<kanban default_group_by="state" class="o_kanban_small_column o_kanban_project_tasks" on_create="quick_create" quick_create_view="cicd.quick_create_branch">
+					<field name="name"/>
+					<field name="last_access"/>
+					<field name="target_release_ids"/>
+					<templates>
 
-				<t t-name="kanban-box">
-					<div t-attf-class="oe_kanban_global_click" style="min-height: 250px;">
-						<div>
-							<i class="fa fa-window-maximize" role="img" aria-label="Enterprise" title="Enterprise"/>
-							<strong><field name="name"/></strong>
-							<div class="kanban-branch-repo">
-								<field name="repo_short"/>
+						<t t-name="kanban-box">
+							<div t-attf-class="oe_kanban_global_click" style="min-height: 250px;">
+								<div>
+									<i class="fa fa-window-maximize" role="img" aria-label="Enterprise" title="Enterprise"/>
+									<strong>
+										<field name="name"/>
+									</strong>
+									<div class="kanban-branch-repo">
+										<field name="repo_short"/>
+									</div>
+								</div>
+								<hr class="mt4 mb4"/>
+								<div>
+									<strong>State:</strong>
+									<field name="state"/>
+								</div>
+								<div>
+									<strong>Epic:</strong>
+									<field name="epic_id"/>
+								</div>
+								<div>
+									<strong>Type:</strong>
+									<field name="type_id"/>
+								</div>
+								<div>
+									<strong>Date Added:</strong>
+									<field name="create_date"/>
+								</div>
+								<div t-if="last_access">
+									<strong>Last Access:</strong>
+									<field name="last_access"/>
+								</div>
+								<div t-if="database_ids">
+									<strong>Database-Size:</strong>
+									<field name="database_size_human"/>
+								</div>
+								<div t-if="target_release_ids">
+									<strong>Releases:</strong>
+									<t t-foreach="target_release_ids" t-as="release">
+										<t t-esc="release.name"></t>
+									</t>
+								</div>
 							</div>
-						</div>
-						<hr class="mt4 mb4"/>
-						<div>
-							<strong>State:</strong>
-							<field name="state"/>
-						</div>
-						<div>
-							<strong>Date Added:</strong>
-							<field name="create_date"/>
-						</div>
-						<div>
-							<strong>DB Size:</strong>
-							<field name="database_size_human"/>
-						</div>
-						<div t-if="last_access">
-							<strong>Last Access:</strong>
-							<field name="last_access"/>
-						</div>
-						<div t-if="database_ids">
-							<strong>Databases:</strong>
-							<t t-foreach="database_ids" t-as="db">
-								<t t-esc="db.name"></t> [<t t-esc="db.size_human"></t>]
-							</t>
-						</div>
-						<div t-if="target_release_ids">
-							<strong>Releases:</strong>
-							<t t-foreach="target_release_ids" t-as="release">
-								<t t-esc="release.name"></t>
-							</t>
-						</div>
-					</div>
-				</t>
+						</t>
 
-			</templates>
-		</kanban>
+					</templates>
+				</kanban>
 
-	</field>
-</record>
-	
-
+			</field>
+		</record>
 	</data>
 </odoo>
