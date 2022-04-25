@@ -95,6 +95,8 @@ class TestrunUnittest(models.Model):
 
         threads = []
         for mod in modules:
+            #ensure mod exists in result
+            result[mod] = False
             t = HashThread()
             t.module = mod
             t.testrun = self
@@ -119,7 +121,7 @@ class TestrunUnittest(models.Model):
             shell, unittests_by_module.keys())
 
         for module, tests in unittests_by_module.items():
-            hash = hashes[module]
+            hash = hashes.get(module)
             if not hash:
                 t = _setdefault(_unittests_by_module, module)
                 t['tests'] = tests
