@@ -47,17 +47,22 @@
 			<t t-foreach="epic['types'] or []" t-as="ttype">
 				<h3><t t-esc="ttype['type'] and ttype['type'].name or ''"/></h3>
 				<ul>
-					<strong>
-						<a t-att-href="line['branch'].ticket_system_url">
-						<t t-esc="line['branch'].name"/>
-						</a>
-					</strong>
-					<p>
-						<t t-esc="line['commit'] and line['commit'].date"/>
-					</p>
-					<p>
-						<t t-esc="line['branch'].enduser_summary or ''"/>
-					</p>
+					<li t-foreach="ttype['branches']" t-as="branch">
+						<strong>
+							<a t-att-href="line['branch'].ticket_system_url">
+							<t t-esc="line['branch'].name"/>
+							</a>
+						</strong>
+						<p>
+							<t t-esc="line['commit'] and line['commit'].date"/>
+						</p>
+						<p t-if="line['branch'].enduser_summary">
+							<t t-esc="line['branch'].enduser_summary"/>
+						</p>
+						<p t-if="line['branch'].enduser_summary_ticketsystem">
+							<t t-esc="line['branch'].enduser_summary_ticketsystem"/>
+						</p>
+					</li>
 				</ul>
 			</t>
 		</t>
