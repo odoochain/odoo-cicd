@@ -72,7 +72,7 @@ seconds</td>
 							<t t-set="branch" t-value="line['branch']" />
 							<t t-set="commit" t-value="line['commit']" />
 							<strong>
-								<a t-att-href="branch.ticket_system_url">
+								<a t-att-href="branch.ticket_system_url" target="_blank">
 									<t t-esc="branch.name"/>
 								</a>
 							</strong>
