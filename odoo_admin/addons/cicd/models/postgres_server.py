@@ -67,7 +67,6 @@ class PostgresServer(models.Model):
     @api.model
     def _cron_update_databases(self):
         for rec in self.search([]):
-            self.env.cr.commit()
             rec.with_delay(
                 identity_key=f"update_databases_{rec.name}-{rec.id}"
             ).update_databases()

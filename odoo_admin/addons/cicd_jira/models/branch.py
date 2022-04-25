@@ -83,6 +83,8 @@ class Branch(models.Model):
                     else:
                         it_issue = self._get_jira_issue(it_issue.raw[
                             'fields']['parent']['key'])
+                else:
+                    break
             except (IndexError, KeyError):
                 epic = False
                 break
