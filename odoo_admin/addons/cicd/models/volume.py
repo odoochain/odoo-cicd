@@ -51,21 +51,27 @@ class CicdVolumes(models.Model):
                 for rec in self.filtered(
                         lambda x: x.machine_id == machine):
                     self.env.cr.commit()
+                    with self._extra_env() as lock_rec:
+                        lock_rec.env.cr.execute((
+                            "select id from cicd_machine_volume "
+                            "where id=%s "
+                            "for update nowait "
+                        ), (lock_rec.id,))
 
-                    try:
-                        stdout = shell.X(["df", rec.name])['stdout'].strip()
-                    except Exception as ex:
-                        logger.error(ex)
-                        continue
+                        try:
+                            stdout = shell.X(["df", rec.name])['stdout'].strip()
+                        except Exception as ex:
+                            logger.error(ex)
+                            continue
 
-                    while "  " in stdout:
-                        stdout = stdout.replace("  ", " ")
-                    stdout = stdout.split("\n")
-                    if len(stdout) > 1:
-                        stdout = stdout[-1]
-                    stdout = stdout.split(" ")
-                    rec.used_percent = stdout[4].replace("%", "")
-                    rec.total_size = int(stdout[1]) / 1024 / 1024
-                    rec.used_size = int(stdout[2]) / 1024 / 1024
-                    rec.free_size = int(stdout[3]) / 1024 / 1024
-                    self.env.cr.commit() 
+                        while "  " in stdout:
+                            stdout = stdout.replace("  ", " ")
+                        stdout = stdout.split("\n")
+                        if len(stdout) > 1:
+                            stdout = stdout[-1]
+                        stdout = stdout.split(" ")
+                        rec.used_percent = stdout[4].replace("%", "")
+                        rec.total_size = int(stdout[1]) / 1024 / 1024
+                        rec.used_size = int(stdout[2]) / 1024 / 1024
+                        rec.free_size = int(stdout[3]) / 1024 / 1024
+                        self.env.cr.commit() 
