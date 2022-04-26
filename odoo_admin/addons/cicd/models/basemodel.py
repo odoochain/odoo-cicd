@@ -1,10 +1,31 @@
 # !!!!!! ATTENTION IF USED IN NORMAL ODOO PROJECT BELOW !!!!!!!!
+import psycopg2
+from odoo.addons.queue_job.exception import RetryableJobError
 from odoo import _, api, models, SUPERUSER_ID
 from contextlib import contextmanager, closing
-
+from . import pg_advisory_xact_lock
+import random
 
 class Base(models.AbstractModel):
     _inherit = 'base'
+
+
+    @contextmanager
+    def _singleton(self, lockname, seconds=None):
+        if seconds is None:
+            seconds = random.randint(10, 40)
+        with self._extra_env() as lock_rec:
+            lock_rec.env.cr.execute("SET LOCAL statement_timeout = 1;")
+            try:
+                pg_advisory_xact_lock(lock_rec.env.cr, lockname)
+
+            except psycopg2.errors.QueryCanceled as ex:
+                raise RetryableJobError(
+                    f"Could not get lock: {lockname}",
+                    ignore_retry=True, seconds=seconds
+                ) from ex
+
+            yield
 
     @contextmanager
     def _extra_env(self, obj=None, enabled=True):

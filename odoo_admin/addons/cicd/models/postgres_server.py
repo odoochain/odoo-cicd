@@ -74,15 +74,7 @@ class PostgresServer(models.Model):
 
     def update_databases(self):
         self.ensure_one()
-        with self._extra_env() as lock_rec:
-            lock_rec.env.cr.execute("SET LOCAL statement_timeout = 1;")
-            pg_advisory_xact_lock(
-                lock_rec.env.cr, 
-                (
-                    f"cicd_postgres_{self.id}_update_databases"
-                )
-            )
-
+        with self._singleton(f"cicd_postgres_{self.id}_update_databases"):
             self.ensure_one()
             self.env.cr.commit()
             with self._get_conn() as cr:

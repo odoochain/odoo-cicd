@@ -52,15 +52,7 @@ class CicdVolumes(models.Model):
                 for rec in self.filtered(
                         lambda x: x.machine_id == machine):
                     self.env.cr.commit()
-                    with rec._extra_env() as lock_rec:
-                        lock_rec.env.cr.execute("SET LOCAL statement_timeout = 1;")
-                        pg_advisory_xact_lock(
-                            lock_rec.env.cr, 
-                            (
-                                f"cicd_machine_volupdate_{rec.id}"
-                            )
-                        )
-
+                    with rec._singleton(f"cicd_machine_volupdate_{rec.id}"):
                         try:
                             stdout = shell.X(["df", rec.name])['stdout'].strip()
                         except Exception as ex:
