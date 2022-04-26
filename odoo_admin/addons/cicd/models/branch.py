@@ -141,6 +141,7 @@ class GitBranch(models.Model):
     containers = fields.Text(compute="compute_containers_text", store=False)
     epic_id = fields.Many2one('cicd.branch.epic', string="Epic")
     type_id = fields.Many2one('cicd.branch.type', string="Type")
+    author_id = fields.Many2one('res.users', string="Author")
 
     @api.recordchange('state')
     def _enduser_summary_ticketsystem(self):
@@ -256,6 +257,7 @@ class GitBranch(models.Model):
         if 'remove_web_assets_after_restore' not in vals:
             res.remove_web_assets_after_restore = \
                 res.repo_id.remove_web_assets_after_restore
+
         return res
 
     def _search_release_items(self, operator, value):
@@ -348,7 +350,7 @@ class GitBranch(models.Model):
 
             commit = rec.latest_commit_id
             fully_approved = (
-                commit.approval_state == 'approved' and 
+                commit.approval_state == 'approved' and
                 commit.code_review_state == 'approved'
             ) or commit.no_approvals
             success_tested = (
@@ -861,3 +863,10 @@ class GitBranch(models.Model):
     def _compute_machine(self):
         for rec in self:
             rec.machine_id = rec.repo_id.machine_id
+
+    @api.recordchange("latest_commit_id")
+    def _onchange_latest_commit_update_author(self):
+        for rec in self:
+            if rec.latest_commit_id.author_user_id:
+                if not rec.author_id:
+                    rec.author_id = rec.latest_commit_id.author_user_id
