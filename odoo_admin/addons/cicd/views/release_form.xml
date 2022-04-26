@@ -30,6 +30,9 @@
 							<field name="deploy_git"/>
 							<field name="schedule_line_ids" widget="many2many_tags"/>
 						</group>
+						<group string="Release Message">
+							<field name="message_to_ticketsystem" nolabel="1" placeholder="This feature/bug was just deployed to {machine}"/>
+						</group>
 						<notebook>
 							<page string="Versions">
 								<field name="item_ids">
