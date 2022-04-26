@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
+from . import pg_advisory_xact_lock
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import threading
 import logging
@@ -52,11 +53,12 @@ class CicdVolumes(models.Model):
                         lambda x: x.machine_id == machine):
                     self.env.cr.commit()
                     with rec._extra_env() as lock_rec:
-                        lock_rec.env.cr.execute((
-                            "select id from cicd_machine_volume "
-                            "where id=%s "
-                            "for update nowait "
-                        ), (lock_rec.id,))
+                        pg_advisory_xact_lock(
+                            lock_rec.env.cr, 
+                            (
+                                f"cicd_machine_volupdate_{rec.id}"
+                            )
+                        )
 
                         try:
                             stdout = shell.X(["df", rec.name])['stdout'].strip()

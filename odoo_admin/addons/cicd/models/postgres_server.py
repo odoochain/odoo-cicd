@@ -1,4 +1,5 @@
 import psycopg2
+from . import pg_advisory_xact_lock
 from odoo import _, api, fields, models
 from odoo import SUPERUSER_ID
 from ..tools.tools import get_host_ip
@@ -74,11 +75,12 @@ class PostgresServer(models.Model):
     def update_databases(self):
         self.ensure_one()
         with self._extra_env() as lock_rec:
-            lock_rec.env.cr.execute((
-                "select id from cicd_postgres "
-                "where id=%s "
-                "for update nowait "
-            ), (lock_rec.id,))
+            pg_advisory_xact_lock(
+                lock_rec.env.cr, 
+                (
+                    f"cicd_postgres_{self.id}_update_databases"
+                )
+            )
 
             self.ensure_one()
             self.env.cr.commit()
