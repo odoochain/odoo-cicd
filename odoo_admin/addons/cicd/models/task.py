@@ -14,6 +14,11 @@ from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 logger = logging.getLogger('cicd_task')
 
+PENDING = "pending"
+ENQUEUED = "enqueued"
+DONE = "done"
+STARTED = "started"
+FAILED = "failed"
 
 class Task(models.Model):
     _inherit = ['mixin.queuejob.semaphore']
@@ -53,12 +58,12 @@ class Task(models.Model):
                 # keep last state as queuejobs are deleted from time to time
                 pass
             else:
-                if 'done' in qj.mapped('state'):
-                    rec.state = 'done'
-                elif 'failed' in qj.mapped('state'):
-                    rec.state = 'failed'
+                if DONE in qj.mapped('state'):
+                    rec.state = DONE
+                elif FAILED in qj.mapped('state'):
+                    rec.state = FAILED
                 elif qj:
-                    rec.state = 'started'
+                    rec.state = STARTED
                 else:
                     rec.state = False
                 if qj:
@@ -68,7 +73,7 @@ class Task(models.Model):
     @api.depends('state')
     def _compute_is_done(self):
         for rec in self:
-            rec.is_done = rec.state in ['done', 'failed'] \
+            rec.is_done = rec.state in [DONE, FAILED] \
                 if rec.state else False
 
     @api.depends('name')
@@ -115,8 +120,8 @@ class Task(models.Model):
         if not self._unblocked('branch_id'):
             raise Exception("Branch not given for task.")
 
-        with self.semaphore_with_delay(not now, ignore_states=['done']):
-            self.state = 'started'
+        with self.semaphore_with_delay(not now, ignore_states=[DONE]):
+            self.state = STARTED
             self.started = fields.Datetime.now()
 
             with self.semaphore_with_delay(
@@ -135,15 +140,15 @@ class Task(models.Model):
             ]).unlink()
 
     def requeue(self):
-        for rec in self.filtered(lambda x: x.state in ['failed']):
+        for rec in self.filtered(lambda x: x.state in [FAILED]):
             qj = rec._semaphore_get_queuejob()
             qj = qj and qj[0]
-            if qj and qj.state in ['done', 'failed']:
+            if qj and qj.state in [DONE, FAILED]:
                 qj.unlink()
                 rec._exec(now=False)
             elif qj:
-                if self.state != 'started':
-                    self.state = 'started'
+                if self.state != STARTED:
+                    self.state = STARTED 
             else: # if not qj
                 rec._exec(now=False)
 
@@ -177,7 +182,8 @@ class Task(models.Model):
         if not now and not self.ignore_previous_tasks:
             with self._extra_env(enabled=not now) as check:
                 previous = check.branch_id.task_ids.filtered(
-                    lambda x: x.id < check.id).filtered(lambda x: x.state in [False, 'started'])
+                    lambda x: x.id < check.id).filtered(
+                        lambda x: x.state in [False, STARTED])
                 
                 if previous:
                     raise RetryableJobError((
@@ -255,7 +261,7 @@ class Task(models.Model):
 
     def _finish_task(self, state, duration, delete_after, log, commit_id):
 
-        if delete_after and state == 'done':
+        if delete_after and state == DONE:
             self.unlink()
             return
 
@@ -266,17 +272,28 @@ class Task(models.Model):
             'commit_id': commit_id,
         })
         if self.branch_id:
-            if state == 'failed':
+            if state == FAILED:
                 self.branch_id.message_post(
                     body=f"Error happened {self.name}\n{log[-250:]}")
-            elif state == 'done':
+            elif state == DONE:
                 self.branch_id.message_post(
                     body=f"Successfully executed {self.name}")
         self.env.cr.commit()
 
     @api.model
     def _cron_check_states_vs_queuejobs(self):
-        pass
+        for task in self.search([('state', '=', 'started')]):
+            task._compute_state()
+            # jobs = self.env['queue.job'].search([
+            #     ('identity_key', '=', task.semaphore_qj_identity_key)
+            # ])
+            # if not jobs:
+            #     task.state = FAILED
+            #     continue
+            # if all(x.state in (FAILED, 'cancel') for x in jobs):
+            #     task.state = FAILED
+            #     continue
+
         # think what to do; failed job may be requeued
         # if self.state == 'started':
         #     jobs = self._semaphore.get_queuejob()
