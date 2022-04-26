@@ -72,6 +72,7 @@ class PostgresServer(models.Model):
             ).update_databases()
 
     def update_databases(self):
+        self.ensure_one()
         with self._extra_env() as lock_rec:
             lock_rec.env.cr.execute((
                 "select id from cicd_postgres "
