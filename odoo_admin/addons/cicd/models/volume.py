@@ -51,7 +51,7 @@ class CicdVolumes(models.Model):
                 for rec in self.filtered(
                         lambda x: x.machine_id == machine):
                     self.env.cr.commit()
-                    with self._extra_env() as lock_rec:
+                    with rec._extra_env() as lock_rec:
                         lock_rec.env.cr.execute((
                             "select id from cicd_machine_volume "
                             "where id=%s "
