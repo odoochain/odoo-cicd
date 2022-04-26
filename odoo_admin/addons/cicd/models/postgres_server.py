@@ -72,48 +72,56 @@ class PostgresServer(models.Model):
             ).update_databases()
 
     def update_databases(self):
-        self.ensure_one()
-        self.env.cr.commit()
-        with self._get_conn() as cr:
-            cr.execute("""
-                SELECT datname, pg_database_size(datname)
-                FROM pg_database
-                WHERE datistemplate = false
-                AND datname not in ('postgres');
-            """)
-            dbs = cr.fetchall()
-        
-        changed = False
-        all_dbs = set()
-        
-        for db in dbs:
-            dbname = db[0]
-            dbsize = db[1]
-            all_dbs.add(dbname)
-            with self._extra_env() as x_rec:
-                db_db = x_rec.database_ids.sudo().filtered(
-                    lambda x: x.name == dbname)
+        with self._extra_env() as lock_rec:
+            lock_rec.env.cr.execute((
+                "select id from cicd_postgres "
+                "where id=%s "
+                "for update nowait "
+            ), (lock_rec.id,))
 
-                if not db_db:
-                    db_db = x_rec.database_ids.sudo().create({
-                        'server_id': x_rec.id,
-                        'name': dbname,
-                        'size': dbsize,
-                    })
-                    changed = True
-                else:
-                    if db_db.size != dbsize:
-                        changed = True
-                        db_db.size = dbsize
-                x_rec.env.cr.commit()
-
-        for db in self.database_ids:
-            if db.name not in all_dbs:
-                db.sudo().unlink()
+            self.ensure_one()
+            self.env.cr.commit()
+            with self._get_conn() as cr:
+                cr.execute("""
+                    SELECT datname, pg_database_size(datname)
+                    FROM pg_database
+                    WHERE datistemplate = false
+                    AND datname not in ('postgres');
+                """)
+                dbs = cr.fetchall()
+            
+            changed = False
+            all_dbs = set()
+            
+            for db in dbs:
+                dbname = db[0]
+                dbsize = db[1]
+                all_dbs.add(dbname)
                 self.env.cr.commit()
-                changed = True
-        
-        if changed:
-            with self._extra_env() as x_rec:
-                x_rec._compute_size()
-                x_rec.env.cr.commit()
+                with self._extra_env() as x_rec:
+                    db_db = x_rec.database_ids.sudo().filtered(
+                        lambda x: x.name == dbname)
+
+                    if not db_db:
+                        db_db = x_rec.database_ids.sudo().create({
+                            'server_id': x_rec.id,
+                            'name': dbname,
+                            'size': dbsize,
+                        })
+                        changed = True
+                    else:
+                        if db_db.size != dbsize:
+                            changed = True
+                            db_db.size = dbsize
+                    x_rec.env.cr.commit()
+
+            for db in self.database_ids:
+                if db.name not in all_dbs:
+                    db.sudo().unlink()
+                    self.env.cr.commit()
+                    changed = True
+            
+            if changed:
+                with self._extra_env() as x_rec:
+                    x_rec._compute_size()
+                    x_rec.env.cr.commit()
