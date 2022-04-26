@@ -27,7 +27,7 @@ class Branch(models.Model):
             self.backup_machine_id = dump.machine_id
             self.dump_id = dump
         if self.dump_id:
-            self._restore_dump(shell, task, logsio, **kwargs)
+            self._restore_dump(shell, task, logsio, dump=dump, **kwargs)
         else:
             self._reset_db(shell, task, logsio, **kwargs)
         self._update_all_modules(shell, task, logsio, **kwargs)
