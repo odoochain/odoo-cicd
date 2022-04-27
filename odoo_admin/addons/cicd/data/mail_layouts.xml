@@ -1,0 +1,9 @@
+<odoo>
+	<data noupdate='0'>
+
+		<template id="mail.mail_notification_light">
+			<t t-out="message.body"/>
+		</template>
+
+	</data>
+</odoo>

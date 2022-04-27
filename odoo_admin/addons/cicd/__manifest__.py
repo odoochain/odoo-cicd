@@ -13,6 +13,7 @@
                 'data/cronjobs_testruns.xml',
                 'data/data.xml',
                 'data/initial_branch_types.xml',
+                'data/mail_layouts.xml',
                 'data/mail_templates.xml',
                 'data/queuejob_functions.xml',
                 'views/backup_dump_form.xml',
