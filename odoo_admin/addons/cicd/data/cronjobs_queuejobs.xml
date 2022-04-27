@@ -23,8 +23,25 @@ reasons = [
 	'Permission denied',
 	'does not exist yet',
 ]
+
+ignore_idkeys = [
+  'docker-containers',
+  'dump-update',
+  'last-access-',
+  'machine-update-vol-sizes-',
+  'update_databases',
+]
+
 for reason in reasons:
-	model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]).write({'state': 'pending'})</field>
+	for job in model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]):
+
+		for ignore in ignore_idkeys:
+		    if ignore in job.identity_key:
+			    break
+		else:
+			job.state = 'pending'
+		
+</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
