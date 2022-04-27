@@ -117,7 +117,7 @@ class ReleaseItem(models.Model):
     def _send_release_mail(self):
         self.release_id.message_post_with_view(
             self.env.ref('cicd.mail_release_done'),
-            subtype_id=self.env.ref('mail.mt_note').id,
+            subtype_id=self.env.ref('mail.mt_comment').id,
             values={
                 'release_item': self,
                 'release': self.release_id,
