@@ -278,7 +278,6 @@ class Task(models.Model):
             elif state == DONE:
                 self.branch_id.message_post(
                     body=f"Successfully executed {self.name}")
-        self.env.cr.commit()
 
     @api.model
     def _cron_check_states_vs_queuejobs(self):

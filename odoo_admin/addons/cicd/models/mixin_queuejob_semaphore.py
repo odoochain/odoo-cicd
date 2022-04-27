@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import arrow
 from contextlib import contextmanager, closing
 
+DELIMITER = "_!_"
 
 class SemaphoreQueuejob(models.AbstractModel):
     _name = 'mixin.queuejob.semaphore'
@@ -11,6 +12,7 @@ class SemaphoreQueuejob(models.AbstractModel):
     def _semaphore_get_queuejob(self, idkey=None, limit=None):
         self.ensure_one()
         idkey = idkey or self.semaphore_qj_identity_key
+        idkey = idkey.split(DELIMITER)[0]
         return self.env['queue.job'].sudo().search([(
                 'identity_key', '=', idkey)
                 ], order='id desc', limit=limit)
@@ -33,7 +35,7 @@ class SemaphoreQueuejob(models.AbstractModel):
             ignore_states = tuple(ignore_states or [])
             params['identity_key'] = self.semaphore_qj_identity_key
             if appendix:
-                params['identity_key'] += appendix
+                params['identity_key'] += DELIMITER + appendix
 
             jobs = self._semaphore_get_queuejob(params['identity_key'])
             if ignore_states:

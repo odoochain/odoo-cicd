@@ -32,3 +32,38 @@ class queuejob(models.Model):
                     b = False
             if b != rec.branch:
                 rec.branch = b
+
+    @api.model
+    def requeue_jobs(self):
+        reasons = [
+            'could not serialize access due to concurrent update',
+            'cannot stat',
+            'server closed the connection unexpectedly',
+            'RetryableJobError',
+            'Failed to put the local file',
+            'psycopg2.errors',
+            '.git/index.lock',
+            'duplicate key value violates unique constraint "cicd_git_commit_name"',
+            # following happened when using bitbucket - was slow on that day and timed out
+            'Could not read from remote repository',
+            'Lock could not be acquired',
+            'LockNotAvailable',
+            'Permission denied',
+            'does not exist yet',
+        ]
+
+        ignore_idkeys = [
+            'docker-containers',
+            'dump-update',
+            'last-access-',
+            'machine-update-vol-sizes-',
+            'update_databases',
+        ]
+
+        for reason in reasons:
+            for job in model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]):
+                for ignore in ignore_idkeys:
+                    if ignore in job.identity_key:
+                        break
+                else:
+                    job.state = 'pending'

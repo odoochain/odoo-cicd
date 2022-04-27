@@ -125,6 +125,7 @@ class Branch(models.Model):
         self.last_restore_dump_name = dump.name
         self.last_restore_dump_date = dump.date_modified
         task.sudo().with_delay().write({'dump_used': self.dump_id.name})
+        shell.machine.sudo().postgres_server_id.with_delay().update_databases()
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
