@@ -81,6 +81,7 @@ class Dump(models.Model):
                     }
                     del path, date, filename, size, line
 
+                dumps = None
                 for filepath, file in Files.items():
 
                     dumps = self.sudo().with_context(
@@ -103,6 +104,8 @@ class Dump(models.Model):
                         dumps.size = file['size']
                     self.env.cr.commit()
 
+                if not dumps:
+                    continue
                 for dump in dumps.search([('name', 'like', volname)]):
                     if dump.name.startswith(volname):
                         if dump.name not in Files:

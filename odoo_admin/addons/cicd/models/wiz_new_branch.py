@@ -2,6 +2,7 @@ from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
 
+
 class NewBranch(models.TransientModel):
     _name = 'cicd.git.branch.new'
 
@@ -55,6 +56,7 @@ class NewBranch(models.TransientModel):
             'dump_id': self.dump_id.id,
             'backup_machine_id': self.repo_id.sudo().machine_id.id,
             'force_prepare_dump': True,
+            'author_id': self.env.user.id,
         })
         self.with_delay()._make_branch(branch.sudo())
         return {

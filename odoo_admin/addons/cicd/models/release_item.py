@@ -72,13 +72,15 @@ class ReleaseItem(models.Model):
         ('hotfix', 'Hotfix'),
     ], default="standard", required=True, readonly=True)
 
-    is_done = fields.Boolean('Is done', compute="_compute_is_state", store=True)
-    is_failed = fields.Boolean('Is done', compute="_compute_is_state", store=True)
+    is_done = fields.Boolean(
+        'Is done', compute="_compute_is_state", store=True)
+    is_failed = fields.Boolean(
+        'Is done', compute="_compute_is_state", store=True)
 
     def _is_done(self):
         self.ensure_one()
         return self.state and self.state.startswith('done')
-    
+
     def _is_failed(self):
         self.ensure_one()
         return self.state and self.state.startswith('failed')
@@ -112,7 +114,8 @@ class ReleaseItem(models.Model):
         #     msg = "Nothing new to deploy"
         self.done_date = fields.Datetime.now()
         self.state = 'done'
-        self._send_release_mail()
+        self.with_delay()._send_release_mail()
+        self.with_delay()._inform_ticketsystem()
 
     def _send_release_mail(self):
         self.release_id.message_post_with_view(
@@ -501,3 +504,13 @@ class ReleaseItem(models.Model):
     def resend_release_mail(self):
         self._send_release_mail()
 
+    def _inform_ticketsystem(self):
+        """
+        There may be some observers that need to be informed.
+        """
+        msg = self.release_id.message_to_ticketsystem
+        machines = self.release_id.action_ids.machine_id
+        s_machines = ','.join(machines.mapped('name'))
+        msg = msg.format(machine=s_machines)
+        for branch in self.branch_ids:
+            branch._report_comment_to_ticketsystem(msg)

@@ -88,22 +88,28 @@ class GitCommit(models.Model):
         for rec in self:
             if rec.approval_state in ['approved', 'declined']:
                 self.approver_id = self.env.user
+                if self.author_user_id and self.approver_id and \
+                        self.approver_id == self.author_user_id:
+                    raise ValidationError(
+                        "Approver mustnt be the same like author.")
 
     @api.constrains('code_reviewer_id', 'approver_id')
     def _check_approver_codereviewer(self):
         for rec in self:
             if rec.force_approved:
                 continue
-            if rec.code_reviewer_id and rec.approver_id:
-                if rec.code_reviewer_id == rec.approver_id:
+            for approver in ['code_reviewer_id', 'approver_id']:
+                if rec[approver] and rec[approver] == rec.author_user_id:
                     if not self.env.user.has_group(
                             'cicd.group_override_approve'):
                         raise ValidationError((
-                            "Code Reviewer and approver must not be the same."
+                            "Code Reviewer and approver must not be "
+                            "the author."
                         ))
             for branch in rec.branch_ids:
                 if branch.is_release_branch:
                     continue
+
                 if not branch.enduser_summary and \
                         not branch.enduser_summary_ticketsystem:
                     raise ValidationError((

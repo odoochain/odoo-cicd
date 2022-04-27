@@ -311,6 +311,7 @@ class Repository(models.Model):
 
     def _queuejob_fetch(self):
         self.ensure_one()
+        logsio = None
         try:
             if not self.login_type:
                 raise ValidationError(f"Login-Type missing for {self.name}")
