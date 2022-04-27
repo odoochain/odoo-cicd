@@ -516,4 +516,4 @@ class ReleaseItem(models.Model):
         s_machines = ','.join(machines.mapped('name'))
         msg = msg.format(machine=s_machines)
         for branch in self.branch_ids:
-            branch._report_comment_to_ticketsystem(msg)
+            branch.branch_id._report_comment_to_ticketsystem(msg)
