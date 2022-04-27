@@ -108,7 +108,6 @@ class Branch(models.Model):
         if not dump:
             raise ValidationError(_("Dump missing - cannot restore"))
         self._reload(shell, task, logsio)
-        task.sudo().write({'dump_used': self.dump_id.name})
         logsio.info("Reloading")
         shell.odoo('reload')
         logsio.info("Building")
@@ -125,6 +124,7 @@ class Branch(models.Model):
         shell.odoo("update")
         self.last_restore_dump_name = dump.name
         self.last_restore_dump_date = dump.date_modified
+        task.sudo().with_delay().write({'dump_used': self.dump_id.name})
 
     def _docker_start(self, shell, task, logsio, **kwargs):
         shell.odoo('up', '-d')
