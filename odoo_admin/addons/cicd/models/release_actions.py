@@ -23,8 +23,10 @@ class CicdReleaseAction(models.Model):
             if hub_url:
                 default_settings.append("HUB_URL=" + hub_url)
             default_settings.append("REGISTRY=" + use_registry)
+
+            default_settings = '\n'.join(default_settings)
             rec.settings = (
-                f"{'\n'.join(default_settings)}"
+                f"{default_settings}"
                 "\n"
                 f"{rec.settings}"
             )
