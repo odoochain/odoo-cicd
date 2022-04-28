@@ -12,6 +12,7 @@ class CicdReleaseAction(models.Model):
     machine_id = fields.Many2one('cicd.machine', string="Machine")
     shell_script_before_update = fields.Text("Shell Script Before Update")
     shell_script_at_end = fields.Text("Shell Script At End (finally)")
+    settings = fields.Text("Settings")
 
     def _exec_shellscripts(self, logsio, pos):
         for rec in self:
@@ -35,14 +36,17 @@ class CicdReleaseAction(models.Model):
         errors = []
 
         with release_item._extra_env() as unblocked_item:
-            branch_name = unblocked_item.release_id.branch_id.name 
+            branch_name = unblocked_item.release_id.branch_id.name
 
         with LogsIOWriter.GET(branch_name, 'release') as logsio:
             try:
                 actions._exec_shellscripts(logsio, "before")
                 actions._stop_odoo(logsio)
 
+                breakpoint()
                 actions._update_sourcecode(
+                    logsio, release_item, commit_sha)
+                actions._update_images(
                     logsio, release_item, commit_sha)
 
                 actions[0]._run_update(logsio)
@@ -94,17 +98,24 @@ class CicdReleaseAction(models.Model):
                 merge_commit_id,
                 with_git=x_self.release_id.deploy_git
             )
-        temppath = tempfile.mktemp(suffix='.')
 
         for rec in self:
             with rec._contact_machine(logsio) as shell:
-                filename = f"/tmp/release_{release_item.id}"
-                shell.put(zip_content, filename)
-                temppath = tempfile.mktemp(suffix='.')
-                shell.X(['mkdir', '-p', temppath])
-                shell.X(["tar", "xfz", filename], cwd=temppath)
-                shell.X(["rsync", str(temppath) + "/", str(shell.cwd) + "/", "-ar", "--delete-after"])
-                shell.rm(temppath)
+                shell.extract_zip(zip_content, shell.cwd)
+
+    def _update_images(self, logsio, release_item):
+        images_path = "~/.odoo/images"
+        with self._extra_env() as x_self:
+            with x_self.machine_id._shell() as shell:
+                images = shell.get_zipped(images_path)
+
+            with x_self._contact_machine(logsio) as shell:
+                shell.extract_zip(images, images_path)
+                # disable any remotes on images so not pulled
+                with shell.clone(cwd=images_path) as gitshell:
+                    for remote in gitshell.X([
+                            "git", "remote"])['stdout'].strip().splitlines():
+                        gitshell.X(["git", "remote", "remove", remote])
 
     def _run_update(self, logsio):
         self.ensure_one()

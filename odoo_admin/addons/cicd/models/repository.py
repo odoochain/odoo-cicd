@@ -148,13 +148,10 @@ class Repository(models.Model):
                     try:
                         shell.checkout_commit(commit)
                         shell.X(["git", "clean", "-xdff"])
-                        zip_cmd = ["tar", "cfz", filename, "-C", repo_path, '.']
+                        excludes = []
                         if not with_git:
-                            zip_cmd.insert(-1, '--exclude=".git"')
-                        shell.X(zip_cmd)
-                        content = shell.get(filename)
-                        shell.X(["rm", filename])
-                        return content
+                            excludes.append('.git')
+                        return shell.get_zipped(repo_path, excludes)
                     finally:
                         shell.rm(repo_path)
 
