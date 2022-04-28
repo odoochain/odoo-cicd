@@ -400,7 +400,8 @@ class ReleaseItem(models.Model):
                     self.state = 'ready'
 
         elif self.state == 'ready':
-            if now > self.planned_date:
+            if (self.planned_date and now > self.planned_date) or \
+                    self.release_type == 'hotfix':
                 if self.release_id.auto_release:
                     self._do_release()
 
