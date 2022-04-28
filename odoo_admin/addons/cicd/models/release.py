@@ -43,7 +43,8 @@ class Release(models.Model):
     send_pre_release_information = fields.Boolean(
         "Send Pre-Release Information")
 
-    deploy_git = fields.Boolean('Include .git', help="Include .git directory on deploy", default=False)
+    deploy_git = fields.Boolean(
+        'Include .git', help="Include .git directory on deploy", default=False)
 
     message_to_ticketsystem = fields.Text("Release Message")
     update_i18n = fields.Boolean("Update I18N")
@@ -125,7 +126,7 @@ class Release(models.Model):
             rec.with_delay(identity_key=(
                 f"release-heartbeat-{rec.name}#{rec.id}"
             ))._heartbeat()
-    
+
     def _heartbeat(self):
         self.ensure_one()
         last_item = self.last_item_id
@@ -141,7 +142,7 @@ class Release(models.Model):
                 'planned_date': planned_date,
             }]]
             self.env.cr.commit()
-        
+
         items = last_item.search([
             ('release_id', '=', self.id),
             ('is_failed', '=', False),
@@ -152,8 +153,8 @@ class Release(models.Model):
 
     def make_hotfix(self):
         existing = self.item_ids.filtered(
-            lambda x: x.release_type == 'hotfix' 
-            and not x.is_done 
+            lambda x: x.release_type == 'hotfix'
+            and not x.is_done
             and not x.is_failed
         )
         if existing:
