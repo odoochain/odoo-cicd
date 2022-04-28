@@ -261,6 +261,7 @@ class Repository(models.Model):
         branch = branch.strip()
 
         if any(x in branch for x in "():?*/\\!\"\'"):
+            breakpoint()
             raise InvalidBranchName(branch)
         return branch
 

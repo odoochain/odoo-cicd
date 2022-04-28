@@ -246,18 +246,13 @@ class Task(models.Model):
             duration = (arrow.utcnow() - arrow.get(self.started)) \
                 .total_seconds()
 
-        with self.semaphore_with_delay(
-            enabled=not now,
-            appendix='finish',
-        ) as self:
-            if self:
-                self._finish_task(
-                    state=state,
-                    duration=duration,
-                    delete_after=delete_after,
-                    log=log,
-                    commit_id=commit_ids and commit_ids[0] or False
-                )
+        self.with_delay()._finish_task(
+            state=state,
+            duration=duration,
+            delete_after=delete_after,
+            log=log,
+            commit_id=commit_ids and commit_ids[0] or False
+        )
 
     def _finish_task(self, state, duration, delete_after, log, commit_id):
 

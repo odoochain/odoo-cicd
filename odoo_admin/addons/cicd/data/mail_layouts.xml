@@ -5,5 +5,9 @@
 			<t t-out="message.body"/>
 		</template>
 
+		<template id="mail.message_notification_email">
+			<t t-out="message.body"/>
+		</template>
+
 	</data>
 </odoo>
