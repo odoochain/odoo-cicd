@@ -20,15 +20,17 @@ class CicdReleaseAction(models.Model):
         for rec in self:
             hub_url = rec.release_id.repo_id.registry_id.hub_url
             use_registry = '1' if hub_url else '0'
+            default_settings = []
             if hub_url:
                 default_settings.append("HUB_URL=" + hub_url)
             default_settings.append("REGISTRY=" + use_registry)
 
             default_settings = '\n'.join(default_settings)
-            rec.settings = (
+            rec.effective_settings = (
                 f"{default_settings}"
                 "\n"
                 f"{rec.settings}"
+                "\n"
             )
 
     def _exec_shellscripts(self, logsio, pos):
@@ -49,6 +51,7 @@ class CicdReleaseAction(models.Model):
                     shell.rm(filepath)
 
     def run_action_set(self, release_item, commit_sha):
+        breakpoint()
         actions = self
         errors = []
 
@@ -60,12 +63,11 @@ class CicdReleaseAction(models.Model):
                 actions._exec_shellscripts(logsio, "before")
                 actions._stop_odoo(logsio)
 
-                breakpoint()
+                actions._upload_settings_file(logsio)
                 actions._load_images_to_registry(logsio, release_item)
                 actions._update_sourcecode(
                     logsio, release_item, commit_sha)
                 actions._update_images(logsio)
-                actions._upload_settings_file(logsio)
 
                 actions[0]._run_update(logsio)
 
@@ -98,7 +100,10 @@ class CicdReleaseAction(models.Model):
             project_name=project_name
         ) as shell:
             if not shell.exists(path):
-                shell.X(["mkdir", "-p", path])
+                raise Exception((
+                    f"Path {path} does not exist. "
+                    "Please setup an odoo before."
+                ))
             yield shell
 
     def _stop_odoo(self, logsio):
@@ -151,26 +156,35 @@ class CicdReleaseAction(models.Model):
         Builds with given configuration and uploads to registry
         """
         with self._extra_env() as x_self:
+            logsio.info("Preparing updating docker registry")
             for rec in x_self:
                 release = rec.release_id
                 if not release.repo_id.registry_id:
                     continue
                 machine = release.repo_id.machine_id
                 branch = release.branch_id.name
+                logsio.info(f"Cloning {branch}...")
                 with rec.release_id.repo_id._temp_repo(
-                    machine, branch=branch) as repo_path:
+                        machine, branch=branch) as repo_path:
                     project_name = f"build_{branch}"
+                    logsio.info(f"Cloning {branch} done.")
                     with machine._shell(
                             cwd=repo_path, project_name=project_name) as shell:
                         settings_file = f"~/.odoo/settings.{project_name}"
-                        shell.put(rec.effective_settings, settings_file)
-                        shell.X(["git", "checkout", release_item.commit_id.name])
+                        # registry=0 so that build tags are kept
+                        shell.put((
+                            f"{rec.effective_settings}\n"
+                            "REGISTRY=0"
+                        ), settings_file)
+                        shell.X([
+                            "git", "checkout", release_item.commit_id.name])
                         shell.odoo("reload")
+                        logsio.info("Building Docker Images")
                         shell.odoo("build")
                         shell.odoo("docker-registry", "login")
+                        logsio.info("Uploading to registry")
                         shell.odoo("docker-registry", "regpush")
-
-
+                        logsio.info("Uploading done.")
 
     @api.constrains("settings")
     def _strip_settings(self):

@@ -136,14 +136,18 @@ class Release(models.Model):
                 last_item.is_failed or \
                 last_item.is_done:
 
-            planned_date = self.compute_next_date(
-                max(last_item.planned_maximum_finish_date, fields.Datetime.now())
-            )
+            if last_item.release_type != 'hotfix':
+                planned_date = self.compute_next_date(
+                    max(
+                        last_item.planned_maximum_finish_date,
+                        fields.Datetime.now()
+                    )
+                )
 
-            self.item_ids = [[0, 0, {
-                'planned_date': planned_date,
-            }]]
-            self.env.cr.commit()
+                self.item_ids = [[0, 0, {
+                    'planned_date': planned_date,
+                }]]
+                self.env.cr.commit()
 
         items = last_item.search([
             ('release_id', '=', self.id),
