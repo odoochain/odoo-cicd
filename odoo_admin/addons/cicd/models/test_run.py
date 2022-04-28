@@ -170,6 +170,7 @@ class CicdTestRun(models.Model):
 
     def _prepare_run(self):
         self = self._with_context()
+        breakpoint()
         self._report('prepare run started')
         self._switch_to_running_state()
 
