@@ -51,7 +51,6 @@ class CicdReleaseAction(models.Model):
                     shell.rm(filepath)
 
     def run_action_set(self, release_item, commit_sha):
-        breakpoint()
         actions = self
         errors = []
 
@@ -65,6 +64,7 @@ class CicdReleaseAction(models.Model):
 
                 actions._upload_settings_file(logsio)
                 actions._load_images_to_registry(logsio, release_item)
+                breakpoint()
                 actions._update_sourcecode(
                     logsio, release_item, commit_sha)
                 actions._update_images(logsio)
