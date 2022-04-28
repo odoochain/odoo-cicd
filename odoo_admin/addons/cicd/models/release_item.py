@@ -76,6 +76,7 @@ class ReleaseItem(models.Model):
         'Is done', compute="_compute_is_state", store=True)
     is_failed = fields.Boolean(
         'Is done', compute="_compute_is_state", store=True)
+    update_i18n = fields.Boolean("Update I18N")
 
     def _is_done(self):
         self.ensure_one()

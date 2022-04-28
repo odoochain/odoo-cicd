@@ -46,8 +46,7 @@ class CicdReleaseAction(models.Model):
                 breakpoint()
                 actions._update_sourcecode(
                     logsio, release_item, commit_sha)
-                actions._update_images(
-                    logsio, release_item, commit_sha)
+                actions._update_images(logsio)
 
                 actions[0]._run_update(logsio)
 
@@ -91,6 +90,7 @@ class CicdReleaseAction(models.Model):
                 shell.odoo("kill")
 
     def _update_sourcecode(self, logsio, release_item, merge_commit_id):
+        logsio.info("Updating source code")
         with self._extra_env() as x_self:
             repo = x_self[0].release_id.repo_id
             zip_content = repo._get_zipped(
@@ -103,7 +103,8 @@ class CicdReleaseAction(models.Model):
             with rec._contact_machine(logsio) as shell:
                 shell.extract_zip(zip_content, shell.cwd)
 
-    def _update_images(self, logsio, release_item):
+    def _update_images(self, logsio):
+        logsio.info("Updating ~/.odoo/images")
         images_path = "~/.odoo/images"
         with self._extra_env() as x_self:
             with x_self.machine_id._shell() as shell:
@@ -117,6 +118,23 @@ class CicdReleaseAction(models.Model):
                             "git", "remote"])['stdout'].strip().splitlines():
                         gitshell.X(["git", "remote", "remove", remote])
 
+    def _upload_settings_file(self, logsio, release_item):
+        logsio.info("Uploading settings file")
+        logsio.info(release_item.settings)
+        with self._extra_env() as x_self:
+            for rec in x_self:
+                if not rec.settings:
+                    continue
+                with rec._contact_machine(logsio) as shell:
+                    shell.put(rec.settings, "~/.odoo/settings")
+
+    @api.constrains("settings")
+    def _strip_settings(self):
+        for rec in self:
+            settings = (rec.settings or '').strip()
+            if settings != (rec.settings or ''):
+                rec.settings = settings
+
     def _run_update(self, logsio):
         self.ensure_one()
         with self._contact_machine(logsio) as shell:
@@ -125,7 +143,10 @@ class CicdReleaseAction(models.Model):
                 shell.odoo("regpull")
             else:
                 shell.odoo("build")
-            shell.odoo("update") # , "--i18n")
+            cmd = ["update"]
+            if self.release_id.update_i18n:
+                cmd += ['--i18n']
+            shell.odoo(*cmd)
 
     def _start_odoo(self, logsio):
         for self in self:
