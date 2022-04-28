@@ -272,9 +272,8 @@ class ShellExecutor(object):
         return result
 
     def extract_zip(self, content, dest_path):
-        breakpoint()
         assert dest_path not in ['/', '/var/']
-        assert len(dest_path.parts) > 2
+        assert len(Path(dest_path).parts) > 2
         filename = str(Path(tempfile._get_default_tempdir()) / \
             next(tempfile._get_candidate_names()))
         self.put(content, filename)
@@ -292,12 +291,14 @@ class ShellExecutor(object):
             self.rm(temppath)
 
     def get_zipped(self, path, excludes=[]):
+        breakpoint()
         filename = str(Path(tempfile._get_default_tempdir()) / \
             next(tempfile._get_candidate_names()))
         zip_cmd = ["tar", "cfz", filename, "-C", path, '.']
         for exclude in excludes:
             zip_cmd.insert(-1, f'--exclude="{exclude}"')
-        self.X(zip_cmd)
+        with self.clone(cwd=path) as self2:  #TODO undo
+            self2.X(zip_cmd)
         try:
             content = self.get(filename)
         finally:

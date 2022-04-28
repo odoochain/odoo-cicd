@@ -64,7 +64,6 @@ class CicdReleaseAction(models.Model):
 
                 actions._upload_settings_file(logsio)
                 actions._load_images_to_registry(logsio, release_item)
-                breakpoint()
                 actions._update_sourcecode(
                     logsio, release_item, commit_sha)
                 actions._update_images(logsio)
@@ -129,12 +128,20 @@ class CicdReleaseAction(models.Model):
 
     def _update_images(self, logsio):
         logsio.info("Updating ~/.odoo/images")
-        images_path = "~/.odoo/images"
         with self._extra_env() as x_self:
-            with x_self.machine_id._shell() as shell:
+            breakpoint()
+            machine = x_self.release_id.repo_id.machine_id
+            with machine._shell() as shell:
+                home_dir = shell._get_home_dir()
+                images_path = f"{home_dir}/.odoo/images"
+
                 images = shell.get_zipped(images_path)
+                del images_path
 
             with x_self._contact_machine(logsio) as shell:
+                home_dir = shell._get_home_dir()
+                images_path = f"{home_dir}/.odoo/images"
+
                 shell.extract_zip(images, images_path)
                 # disable any remotes on images so not pulled
                 with shell.clone(cwd=images_path) as gitshell:
