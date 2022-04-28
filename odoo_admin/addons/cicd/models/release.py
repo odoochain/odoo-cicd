@@ -46,6 +46,7 @@ class Release(models.Model):
     deploy_git = fields.Boolean('Include .git', help="Include .git directory on deploy", default=False)
 
     message_to_ticketsystem = fields.Text("Release Message")
+    update_i18n = fields.Boolean("Update I18N")
 
     @api.constrains("project_name")
     def _check_project_name(self):
