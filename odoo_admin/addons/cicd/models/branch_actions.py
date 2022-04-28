@@ -11,6 +11,7 @@ import inspect
 from pathlib import Path
 from odoo.addons.queue_job.exception import RetryableJobError
 import logging
+from .repository import InvalidBranchName
 current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
 
 logger = logging.getLogger(__name__)
@@ -389,7 +390,11 @@ class Branch(models.Model):
                 "git", "branch"])['stdout'].strip().split("\n")))
             if not current_branch:
                 raise Exception(f"Somehow no current branch found")
-            branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
+            try:
+                branch_in_dir = self.repo_id._clear_branch_name(
+                    current_branch[0])
+            except InvalidBranchName:
+                branch_in_dir = None
             if branch_in_dir != my_name:
                 shell.rm(instance_folder)
 
