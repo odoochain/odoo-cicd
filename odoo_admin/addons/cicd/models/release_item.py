@@ -65,7 +65,8 @@ class ReleaseItem(models.Model):
         help=(
             "After merging all tested commits this is the "
             "commit that holds all merged commits."))
-    needs_merge = fields.Boolean()
+    needs_merge = fields.Char()
+    merged_checksum = fields.Char()
     exc_info = fields.Text("Exception Info")
 
     release_type = fields.Selection([
@@ -248,21 +249,23 @@ class ReleaseItem(models.Model):
                 branches = ', '.join(self.branch_ids.branch_id.mapped('name'))
                 try:
                     commits = self.mapped('branch_ids.commit_id')
+                    commits_checksum = '-'.join(commits.mapped('name'))
                     if not commits:
                         self.state = 'collecting'
                         return
                     repo = self.repo_id
-                    message_commit, history = repo._recreate_branch_from_commits(
-                        source_branch=self.release_id.branch_id.name,
-                        commits=commits,
-                        target_branch_name=target_branch_name,
-                        logsio=logsio,
-                        make_info_commit_msg=(
-                            f"Release Item {self.id}\n"
-                            "Includes latest commits from:\n"
-                            f"{branches}"
+                    message_commit, history = \
+                        repo._recreate_branch_from_commits(
+                            source_branch=self.release_id.branch_id.name,
+                            commits=commits,
+                            target_branch_name=target_branch_name,
+                            logsio=logsio,
+                            make_info_commit_msg=(
+                                f"Release Item {self.id}\n"
+                                "Includes latest commits from:\n"
+                                f"{branches}"
+                            )
                         )
-                    )
                     if message_commit:
                         item_branch = message_commit.branch_ids.filtered(
                             lambda x: x.name == self.item_branch_name)
@@ -293,7 +296,7 @@ class ReleaseItem(models.Model):
                     if self.state == 'collecting_merge_conflict':
                         self.state = 'collecting'
 
-                self.needs_merge = False
+                self.merged_checksum = commits_checksum
                 if self.branch_ids:
                     assert self.item_branch_id
 
@@ -359,8 +362,16 @@ class ReleaseItem(models.Model):
                 if not self.confirmed_hotfix_branches:
                     return
 
-            if self.needs_merge or not self.item_branch_id:
-                self.merge()
+            if (self.needs_merge and self.needs_merge != self.merged_checksum) \
+                    or not self.item_branch_id:
+                """
+                Why with delay: after a longer merge committing the state here
+                raised serialize error
+                """
+                self.with_delay(identity_key=(
+                    f"release-item-{self.id}-merge"
+                )).merge()
+                return
 
             if self.stop_collecting_at and self.stop_collecting_at < now:
                 if not self.branch_ids:
@@ -470,16 +481,16 @@ class ReleaseItem(models.Model):
                     rec.branch_ids = [[0, 0, {
                         'branch_id': branch.id,
                     }]]
-                    rec.needs_merge = True
+                    rec._set_needs_merge()
 
                 elif existing.commit_id != branch.latest_commit_id:
                     existing.commit_id = branch.latest_commit_id
-                    rec.needs_merge = True
+                    rec._set_needs_merge()
 
             for existing in rec.branch_ids:
                 if existing.branch_id not in branches:
                     existing.unlink()
-                    rec.needs_merge = True
+                    rec._set_needs_merge()
 
     def _compute_item_branch_name(self):
         for rec in self:
@@ -488,6 +499,11 @@ class ReleaseItem(models.Model):
                 f"{rec.release_id.branch_id.name}_"
                 f"{rec.id}"
             )
+
+    def _set_needs_merge(self):
+        self.ensure_one()
+        self.needs_merge = '-'.join(
+            sorted(self.branch_ids.commit_id.mapped('name')))
 
     def retry(self):
         for rec in self:
@@ -500,7 +516,7 @@ class ReleaseItem(models.Model):
 
             elif rec.state == 'collecting_merge_conflict':
                 rec.state = 'collecting'
-                rec.needs_merge = True
+                rec._set_needs_merge()
 
             else:
                 raise NotImplementedError(rec.state)
