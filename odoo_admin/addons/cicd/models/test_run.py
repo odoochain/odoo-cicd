@@ -220,7 +220,7 @@ class CicdTestRun(models.Model):
     def _cleanup_testruns(self):
         self = self._with_context()
         with self._logsio(None) as logsio:
-            self._report("Cleanup Testing")
+            self._report("Cleanup Testing started...")
             with self._shell() as shell:
                 if not shell.exists(shell.cwd):
                     return
@@ -237,6 +237,7 @@ class CicdTestRun(models.Model):
                         if logsio:
                             logsio.error(msg)
                         logger.error(msg)
+            self._report("Cleanup Testing done.")
 
     def _report(
         self, msg, state='success',
