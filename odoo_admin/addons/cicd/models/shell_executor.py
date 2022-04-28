@@ -274,22 +274,22 @@ class ShellExecutor(object):
     def extract_zip(self, content, dest_path):
         breakpoint()
         assert dest_path not in ['/', '/var/']
-        assert len(dest_path.split("/")) > 2
+        assert len(dest_path.parts) > 2
         filename = str(Path(tempfile._get_default_tempdir()) / \
             next(tempfile._get_candidate_names()))
-        shell.put(content, filename)
+        self.put(content, filename)
         temppath = str(Path(tempfile._get_default_tempdir()) / \
             next(tempfile._get_candidate_names()))
-        shell.X(['mkdir', '-p', temppath])
-        shell.X(["tar", "xfz", filename], cwd=temppath)
+        self.X(['mkdir', '-p', temppath])
+        self.X(["tar", "xfz", filename], cwd=temppath)
         try:
-            shell.X([
+            self.X([
                 "rsync",
                 str(temppath) + "/",
-                str(shell.cwd) + "/",
+                str(self.cwd) + "/",
                 "-ar", "--delete-after"])
         finally:
-            shell.rm(temppath)
+            self.rm(temppath)
 
     def get_zipped(self, path, excludes=[]):
         filename = str(Path(tempfile._get_default_tempdir()) / \
