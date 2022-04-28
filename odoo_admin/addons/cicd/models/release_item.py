@@ -362,7 +362,7 @@ class ReleaseItem(models.Model):
             if self.needs_merge or not self.item_branch_id:
                 self.merge()
 
-            if self.stop_collecting_at < now:
+            if self.stop_collecting_at and self.stop_collecting_at < now:
                 if not self.branch_ids:
                     self.state = 'done_nothing_todo'
                 else:
