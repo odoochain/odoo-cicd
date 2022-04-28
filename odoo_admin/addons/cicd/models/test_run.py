@@ -216,7 +216,6 @@ class CicdTestRun(models.Model):
         else:
             self.as_job("_preparedone_run_tests", False)._run_test()
 
-
     def _cleanup_testruns(self):
         self = self._with_context()
         with self._logsio(None) as logsio:
@@ -523,7 +522,11 @@ class CicdTestRun(models.Model):
             self.state = 'success'
         else:
             self.state = 'failed'
-        if not lines or not success_lines:
+        if not lines:
+            # perhaps in debugging and quickly testing releasing
+            # or turning off tests
+            self.success_rate = 100
+        elif not success_lines:
             self.success_rate = 0
         else:
             self.success_rate = \
@@ -602,7 +605,6 @@ class CicdTestRun(models.Model):
         Timeout in seconds.
 
         """
-        breakpoint()
         success = True
         len_todo = len(todo)
         for i, item in enumerate(todo):
