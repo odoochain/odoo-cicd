@@ -21,6 +21,7 @@ class ReleaseItem(models.Model):
     _log_access = False
 
     name = fields.Char("Version")
+    confirmed_hotfix_branches = fields.Boolean("Confirmed Branches")
     repo_id = fields.Many2one(
         'cicd.git.repo', related="release_id.repo_id")
     branch_ids = fields.One2many(
@@ -352,7 +353,11 @@ class ReleaseItem(models.Model):
                 return
 
         if self.state in ['collecting', 'collecting_merge_conflict']:
-            self._collect()
+            if self.release_type == 'standard':
+                self._collect()
+            else:
+                if not self.confirmed_hotfix_branches:
+                    return
 
             if self.needs_merge or not self.item_branch_id:
                 self.merge()
@@ -368,6 +373,11 @@ class ReleaseItem(models.Model):
                         self.state = 'failed_merge'
                     else:
                         self.state = 'integrating'
+
+            if self.release_type == 'hotfix':
+                if not self.is_failed:
+                    self.state = 'integrating'
+                    return
 
         elif self.state == 'integrating':
             # check if test done

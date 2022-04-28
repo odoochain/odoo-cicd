@@ -44,6 +44,7 @@
 										<button name="view_changes" string="" icon="fa-search" type="object" />
 									</tree>
 								</field>
+								<field name="confirmed_hotfix_branches" attrs="{'invisible': [('release_type', '!=', 'hotfix')]}"/>
 							</group>
 						</group>
 						<notebook>
