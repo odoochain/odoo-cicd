@@ -535,7 +535,11 @@ class Branch(models.Model):
             shell.odoo('docker-registry', 'regpush')
 
     def _internal_build(self, shell):
-        self._fetch_from_registry(shell)
+        try:
+            self._fetch_from_registry(shell)
+        except Exception as ex:
+            shell.logsio.error("Could not pull from registry. Trying to build.")
+            shell.logsio.error(ex)
         shell.odoo("build")
         self._push_to_registry(shell)
 
