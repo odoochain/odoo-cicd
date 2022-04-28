@@ -527,3 +527,7 @@ class ReleaseItem(models.Model):
         msg = msg.format(machine=s_machines)
         for branch in self.branch_ids:
             branch.branch_id._report_comment_to_ticketsystem(msg)
+
+    def confirm_hotfix(self):
+        self.confirmed_hotfix_branches = True
+        self.cron_heartbeat()
