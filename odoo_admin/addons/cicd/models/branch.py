@@ -524,7 +524,9 @@ class GitBranch(models.Model):
                         )) from ex
 
                 try:
-                    self._make_task("_simple_docker_up", now=True, reuse=True)
+                    self._make_task(
+                        "_simple_docker_up", now=True, reuse=True,
+                        ignore_previous_tasks=True)
                 except RetryableJobError:
                     time.sleep(1)
             else:

@@ -116,6 +116,17 @@ class Task(models.Model):
             name = name[1:]
         return name
 
+    @api.model
+    def _start_pending_tasks(self):
+        for task in self.search([('state', '=', 'pending')], order='id asc'):
+            try:
+                task._check_previous_tasks(now=False)
+            except RetryableJobError as ex:
+                continue
+            else:
+                task.state = 'started'
+                task._exec()
+
     def _check_previous_tasks(self, now):
         with self._extra_env(enabled=not now) as check:
             previous = check.branch_id.task_ids.filtered(
@@ -128,7 +139,6 @@ class Task(models.Model):
                     f"IDs: {previous.ids}"
                 ), ignore_retry=True, seconds=30)
 
-
     def _exec(self, now=False, ignore_previous_tasks=False):
         if not self._unblocked('branch_id'):
             raise Exception("Branch not given for task.")
@@ -140,6 +150,7 @@ class Task(models.Model):
                 if now:
                     raise ValidationError("Previous Task exists.") from ex
                 else:
+                    self.state = 'pending'
                     return
 
         with self.semaphore_with_delay(not now, ignore_states=[DONE]):
