@@ -732,8 +732,9 @@ class Repository(models.Model):
             # wird ein close aufgerufen
             branches = repo.branch_ids.filtered(
                 lambda x: x.last_access or x.date_registered).filtered(
-                lambda x: (
-                    max([x.last_access or x.date_registered, x.date_reactivated]).strftime(DTF) < dt)
+                lambda x: max([
+                    x.last_access or x.date_registered, x.date_reactivated
+                    ]).strftime(DTF) < dt)
 
             # keep release branches
             releases = self.env['cicd.release'].search([
