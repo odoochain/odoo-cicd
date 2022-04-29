@@ -116,7 +116,7 @@ class Task(models.Model):
             name = name[1:]
         return name
 
-    def _check_previous_tasks(self):
+    def _check_previous_tasks(self, now):
         with self._extra_env(enabled=not now) as check:
             previous = check.branch_id.task_ids.filtered(
                 lambda x: x.id < check.id).filtered(
@@ -135,7 +135,7 @@ class Task(models.Model):
 
         if not ignore_previous_tasks:
             try:
-                self._check_previous_tasks()
+                self._check_previous_tasks(now)
             except RetryableJobError as ex:
                 if now:
                     raise ValidationError("Previous Task exists.") from ex
@@ -202,7 +202,7 @@ class Task(models.Model):
         commit_ids = None
         logsio = None
         if not now and not self.ignore_previous_tasks:
-            self._check_previous_tasks()
+            self._check_previous_tasks(now)
 
         try:
             self = self.sudo().with_context(active_test=False)
