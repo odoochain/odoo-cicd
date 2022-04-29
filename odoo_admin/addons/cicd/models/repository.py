@@ -733,7 +733,7 @@ class Repository(models.Model):
             branches = repo.branch_ids.filtered(
                 lambda x: x.last_access or x.date_registered).filtered(
                 lambda x: (
-                    x.last_access or x.date_registered).strftime(DTF) < dt)
+                    max([x.last_access or x.date_registered, x.date_reactivated]).strftime(DTF) < dt)
 
             # keep release branches
             releases = self.env['cicd.release'].search([

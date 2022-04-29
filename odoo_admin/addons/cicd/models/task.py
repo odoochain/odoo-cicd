@@ -154,13 +154,6 @@ class Task(models.Model):
                         now, ignore_previous_tasks=ignore_previous_tasks
                     )
 
-    @api.model
-    def _cron_cleanup(self):
-        dt = arrow.get().shift(days=-20).strftime("%Y-%m-%d %H:%M:%S")
-        self.search([
-            ('create_date', '<', dt)
-            ]).unlink()
-
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in [FAILED]):
             qj = rec._semaphore_get_queuejob()

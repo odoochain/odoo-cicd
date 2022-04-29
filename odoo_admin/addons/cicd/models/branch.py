@@ -142,6 +142,13 @@ class GitBranch(models.Model):
     epic_id = fields.Many2one('cicd.branch.epic', string="Epic")
     type_id = fields.Many2one('cicd.branch.type', string="Type")
     author_id = fields.Many2one('res.users', string="Author")
+    date_reactivated = fields.Datetime("Date reactivated")
+
+    @api.recordchange("active")
+    def _on_active_update_date(self):
+        for rec in self:
+            if rec.active:
+                rec.date_reactivated = fields.Datetime.now()
 
     @api.recordchange('state')
     def _enduser_summary_ticketsystem(self):
