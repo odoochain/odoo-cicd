@@ -1,3 +1,4 @@
+import traceback
 from odoo import _, api, fields, models, SUPERUSER_ID
 import tempfile
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -62,7 +63,7 @@ class CicdReleaseAction(models.Model):
                 actions._exec_shellscripts(logsio, "before")
                 actions._stop_odoo(logsio)
 
-                actions._upload_settings_file(logsio)
+                actions._upload_settings_file(logsio, release_item)
                 actions._load_images_to_registry(logsio, release_item)
                 actions._update_sourcecode(
                     logsio, release_item, commit_sha)
@@ -71,20 +72,20 @@ class CicdReleaseAction(models.Model):
                 actions[0]._run_update(logsio)
 
             except Exception as ex:
-                errors.append(ex)
+                errors.append(traceback.format_exc())
 
             finally:
                 for action in actions:
                     try:
                         action._start_odoo(logsio=logsio)
                     except Exception as ex:
-                        errors.append(ex)
+                        errors.append(traceback.format_exc())
 
                 for action in actions:
                     try:
                         action._exec_shellscripts(logsio, "after")
                     except Exception as ex:
-                        errors.append(ex)
+                        errors.append(traceback.format_exc())
             return errors
 
     @contextmanager
@@ -129,7 +130,6 @@ class CicdReleaseAction(models.Model):
     def _update_images(self, logsio):
         logsio.info("Updating ~/.odoo/images")
         with self._extra_env() as x_self:
-            breakpoint()
             machine = x_self.release_id.repo_id.machine_id
             with machine._shell() as shell:
                 home_dir = shell._get_home_dir()
@@ -149,14 +149,19 @@ class CicdReleaseAction(models.Model):
                             "git", "remote"])['stdout'].strip().splitlines():
                         gitshell.X(["git", "remote", "remove", remote])
 
-    def _upload_settings_file(self, logsio):
+    def _upload_settings_file(self, logsio, release_item):
         logsio.info("Uploading settings file")
         with self._extra_env() as x_self:
             for rec in x_self:
                 if not rec.settings:
                     continue
                 with rec._contact_machine(logsio) as shell:
-                    shell.put(rec.effective_settings, "~/.odoo/settings")
+                    settings = rec.effective_settings
+                    settings = (
+                        f"DOCKER_IMAGE_TAG={release_item.commit_id.name}\n"
+                        f"{settings}"
+                    )
+                    shell.put(settings, "~/.odoo/settings")
 
     def _load_images_to_registry(self, logsio, release_item):
         """
@@ -177,7 +182,10 @@ class CicdReleaseAction(models.Model):
                     logsio.info(f"Cloning {branch} done.")
                     with machine._shell(
                             cwd=repo_path, project_name=project_name) as shell:
-                        settings_file = f"~/.odoo/settings.{project_name}"
+                        homedir = shell._get_home_dir()
+                        settings_file = (
+                            f"{homedir}/.odoo/settings.{project_name}"
+                        )
                         # registry=0 so that build tags are kept
                         shell.put((
                             f"{rec.effective_settings}\n"
@@ -185,7 +193,7 @@ class CicdReleaseAction(models.Model):
                         ), settings_file)
                         shell.X([
                             "git", "checkout", release_item.commit_id.name])
-                        shell.odoo("reload")
+                        shell.odoo("-xs", settings_file, "reload")
                         logsio.info("Building Docker Images")
                         shell.odoo("build")
                         shell.odoo("docker-registry", "login")
