@@ -285,7 +285,7 @@ class ShellExecutor(object):
             self.X([
                 "rsync",
                 str(temppath) + "/",
-                str(self.cwd) + "/",
+                str(dest_path) + "/",
                 "-ar", "--delete-after"])
         finally:
             self.rm(temppath)
