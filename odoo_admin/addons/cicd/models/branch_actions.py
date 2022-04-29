@@ -547,8 +547,11 @@ class Branch(models.Model):
         self._reload(shell, task, logsio)
         self._internal_build(shell)
         shell.odoo('-f', 'db', 'reset')
-        shell.odoo('update')
-        # shell.odoo('turn-into-dev')
+        shell.odoo('update', '--no-dangling-check')
+        try:
+            shell.odoo('turn-into-dev')  # why commented?
+        except:
+            pass
         self._after_build(shell=shell, logsio=logsio, **kwargs)
 
     def _compress(self, shell, task, logsio, compress_job_id):
