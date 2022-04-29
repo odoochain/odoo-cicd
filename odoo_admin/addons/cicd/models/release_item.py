@@ -540,7 +540,7 @@ class ReleaseItem(models.Model):
         msg = self.release_id.message_to_ticketsystem
         machines = self.release_id.action_ids.machine_id
         s_machines = ','.join(machines.mapped('name'))
-        msg = msg.format(machine=s_machines)
+        msg = (msg or 'deployed on {machine}').format(machine=s_machines)
         for branch in self.branch_ids:
             branch.branch_id._report_comment_to_ticketsystem(msg)
 
