@@ -1,4 +1,6 @@
 import psycopg2
+from pathlib import Path
+import json
 from . import pg_advisory_xact_lock
 from odoo import _, api, fields, models
 from odoo import SUPERUSER_ID
@@ -26,10 +28,11 @@ class PostgresServer(models.Model):
         ('dev', 'Dev'),
     ], string="Type", required=True)
 
-    @api.depends("database_ids", "database_ids.size")
     def _compute_size(self):
         for rec in self:
-            rec.size = sum(rec.mapped('database_ids.size'))
+            size = sum(rec.mapped('database_ids.size'))
+            if size != rec.size:
+                rec.size = size
 
     @api.model
     def default_get(self, fields):
@@ -68,56 +71,61 @@ class PostgresServer(models.Model):
     @api.model
     def _cron_update_databases(self):
         for rec in self.search([]):
-            rec.with_delay(
-                identity_key=f"update_databases_{rec.name}-{rec.id}"
-            ).update_databases()
+            rec.with_delay(identity_key=(
+                f"store-db-sizes-in-jsonfile-{rec.id}"
+            ))._store_db_sizes_in_file()
 
-    def update_databases(self):
-        self.ensure_one()
-        with self._singleton(f"cicd_postgres_{self.id}_update_databases"):
-            self.ensure_one()
-            self.env.cr.commit()
-            with self._get_conn() as cr:
+        self.search([]).with_delay(
+            identity_key="update_databases"
+        ).update_databases()
+
+    @property
+    def filedbsizes(self):
+        return Path(f"/opt/out_dir/dbsizes.{self.id}")
+
+    def _store_db_sizes_in_file(self):
+        for rec in self:
+            with rec._get_conn() as cr:
                 cr.execute("""
                     SELECT datname, pg_database_size(datname)
                     FROM pg_database
                     WHERE datistemplate = false
                     AND datname not in ('postgres');
                 """)
-                dbs = cr.fetchall()
-            
-            changed = False
-            all_dbs = set()
-            
-            for db in dbs:
-                dbname = db[0]
-                dbsize = db[1]
-                all_dbs.add(dbname)
-                self.env.cr.commit()
-                with self._extra_env() as x_rec:
-                    db_db = x_rec.database_ids.sudo().filtered(
-                        lambda x: x.name == dbname)
+                dbs = [{'db': x[0], 'size': x[1]} for x in cr.fetchall()]
+                rec.filedbsizes.write_text(json.dumps(dbs, indent=4))
 
-                    if not db_db:
-                        db_db = x_rec.database_ids.sudo().create({
-                            'server_id': x_rec.id,
+    def update_databases(self):
+        self.ensure_one()
+        for rec in self:
+            if not rec.filedbsizes.exists():
+                continue
+            dbs = json.loads(rec.filedbsizes.read_text())
+
+            with rec._singleton("update_databases"):
+                all_dbs = list(map(lambda x: x['db'], dbs))
+                for db in dbs:
+                    dbname, dbsize = db['db'], db['size']
+                    rec.env.cr.commit()
+                    db = self.env['cicd.database'].search([
+                        ('server_id', '=', rec.id),
+                        ('name', '=', dbname)
+                    ])
+                        
+                    if not db:
+                        db = self.sudo().create({
+                            'server_id': rec.id,
                             'name': dbname,
                             'size': dbsize,
                         })
-                        changed = True
                     else:
-                        if db_db.size != dbsize:
-                            changed = True
-                            db_db.size = dbsize
-                    x_rec.env.cr.commit()
+                        if db.size != dbsize:
+                            db.size = dbsize
+                    rec.env.cr.commit()
 
-            for db in self.database_ids:
-                if db.name not in all_dbs:
-                    db.sudo().unlink()
-                    self.env.cr.commit()
-                    changed = True
-            
-            if changed:
-                with self._extra_env() as x_rec:
-                    x_rec._compute_size()
-                    x_rec.env.cr.commit()
+                for db in self.env['cicd.database'].search([('server_id', '=', rec.id)]):
+                    if db.name not in all_dbs:
+                        db.sudo().unlink()
+                        rec.env.cr.commit()
+
+                rec._compute_size()
