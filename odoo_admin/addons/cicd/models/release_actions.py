@@ -32,7 +32,7 @@ class CicdReleaseAction(models.Model):
                 "\n"
                 f"{rec.release_id.common_settings or ''}"
                 "\n"
-                f"{rec.settings}"
+                f"{rec.settings or ''}"
                 "\n"
             )
 
@@ -152,10 +152,11 @@ class CicdReleaseAction(models.Model):
                         gitshell.X(["git", "remote", "remove", remote])
 
     def _upload_settings_file(self, logsio, release_item):
+        breakpoint()
         logsio.info("Uploading settings file")
         with self._extra_env() as x_self:
             for rec in x_self:
-                if not rec.settings:
+                if not rec.settings and not rec.release_id.common_settings:
                     continue
                 with rec._contact_machine(logsio) as shell:
                     settings = rec.effective_settings
@@ -190,7 +191,7 @@ class CicdReleaseAction(models.Model):
                         )
                         # registry=0 so that build tags are kept
                         shell.put((
-                            f"{rec.effective_settings}\n"
+                            f"{rec.effective_settings or ''}\n"
                             "REGISTRY=0"
                         ), settings_file)
                         shell.X([
