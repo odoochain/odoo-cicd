@@ -271,6 +271,40 @@ class ShellExecutor(object):
             self.remove(filename)
         return result
 
+    def extract_zip(self, content, dest_path):
+        assert dest_path not in ['/', '/var/']
+        assert len(Path(dest_path).parts) > 2
+        filename = str(Path(tempfile._get_default_tempdir()) / \
+            next(tempfile._get_candidate_names()))
+        self.put(content, filename)
+        temppath = str(Path(tempfile._get_default_tempdir()) / \
+            next(tempfile._get_candidate_names()))
+        self.X(['mkdir', '-p', temppath])
+        self.X(["tar", "xfz", filename], cwd=temppath)
+        try:
+            self.X([
+                "rsync",
+                str(temppath) + "/",
+                str(dest_path) + "/",
+                "-ar", "--delete-after"])
+        finally:
+            self.rm(temppath)
+
+    def get_zipped(self, path, excludes=[]):
+        breakpoint()
+        filename = str(Path(tempfile._get_default_tempdir()) / \
+            next(tempfile._get_candidate_names()))
+        zip_cmd = ["tar", "cfz", filename, "-C", path, '.']
+        for exclude in excludes:
+            zip_cmd.insert(-1, f'--exclude="{exclude}"')
+        with self.clone(cwd=path) as self2:  #TODO undo
+            self2.X(zip_cmd)
+        try:
+            content = self.get(filename)
+        finally:
+            self.X(["rm", filename])
+        return content
+
     def _internal_execute(
         self, cmd, cwd=None, env=None, logoutput=True, timeout=None
     ):

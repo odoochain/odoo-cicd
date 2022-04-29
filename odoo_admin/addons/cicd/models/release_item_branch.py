@@ -20,6 +20,11 @@ class ItemBranch(models.Model):
     commit_date = fields.Datetime(related="commit_id.date")
     is_merged = fields.Boolean(compute="_is_merged", store=True)
 
+    @api.onchange('branch_id')
+    def _onchange_branch_id(self):
+        for rec in self:
+            rec.commit_id = rec.branch_id.latest_commit_id
+
     @api.depends('state')
     def _is_merged(self):
         for rec in self:

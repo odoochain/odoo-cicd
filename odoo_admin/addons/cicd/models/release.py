@@ -43,9 +43,13 @@ class Release(models.Model):
     send_pre_release_information = fields.Boolean(
         "Send Pre-Release Information")
 
-    deploy_git = fields.Boolean('Include .git', help="Include .git directory on deploy", default=False)
+    deploy_git = fields.Boolean(
+        'Include .git', help="Include .git directory on deploy", default=False)
 
     message_to_ticketsystem = fields.Text("Release Message")
+    update_i18n = fields.Boolean("Update I18N")
+
+    common_settings = fields.Text("Settings for machines (details in action sets)")
 
     @api.constrains("project_name")
     def _check_project_name(self):
@@ -120,11 +124,13 @@ class Release(models.Model):
 
     @api.model
     def cron_heartbeat(self):
-        for rec in self.search([('auto_release', '=', True)]):
+        for rec in self.search([
+            ('auto_release', '=', True)
+        ]):
             rec.with_delay(identity_key=(
                 f"release-heartbeat-{rec.name}#{rec.id}"
             ))._heartbeat()
-    
+
     def _heartbeat(self):
         self.ensure_one()
         last_item = self.last_item_id
@@ -132,15 +138,19 @@ class Release(models.Model):
                 last_item.is_failed or \
                 last_item.is_done:
 
-            planned_date = self.compute_next_date(
-                max(last_item.planned_maximum_finish_date, fields.Datetime.now())
-            )
+            if last_item.release_type != 'hotfix':
+                planned_date = self.compute_next_date(
+                    max(
+                        last_item.planned_maximum_finish_date,
+                        fields.Datetime.now()
+                    )
+                )
 
-            self.item_ids = [[0, 0, {
-                'planned_date': planned_date,
-            }]]
-            self.env.cr.commit()
-        
+                self.item_ids = [[0, 0, {
+                    'planned_date': planned_date,
+                }]]
+                self.env.cr.commit()
+
         items = last_item.search([
             ('release_id', '=', self.id),
             ('is_failed', '=', False),
@@ -151,8 +161,8 @@ class Release(models.Model):
 
     def make_hotfix(self):
         existing = self.item_ids.filtered(
-            lambda x: x.release_type == 'hotfix' 
-            and not x.is_done 
+            lambda x: x.release_type == 'hotfix'
+            and not x.is_done
             and not x.is_failed
         )
         if existing:

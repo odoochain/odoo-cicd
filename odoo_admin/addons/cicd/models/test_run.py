@@ -216,11 +216,10 @@ class CicdTestRun(models.Model):
         else:
             self.as_job("_preparedone_run_tests", False)._run_test()
 
-
     def _cleanup_testruns(self):
         self = self._with_context()
         with self._logsio(None) as logsio:
-            self._report("Cleanup Testing")
+            self._report("Cleanup Testing started...")
             with self._shell() as shell:
                 if not shell.exists(shell.cwd):
                     return
@@ -237,6 +236,7 @@ class CicdTestRun(models.Model):
                         if logsio:
                             logsio.error(msg)
                         logger.error(msg)
+            self._report("Cleanup Testing done.")
 
     def _report(
         self, msg, state='success',
@@ -516,17 +516,26 @@ class CicdTestRun(models.Model):
             lambda x: x.ttype != 'log')
         success_lines = len(lines.filtered(
             lambda x: x.state == 'success' or x.force_success or x.reused))
-        qj = self._get_queuejobs('all')
-        if lines and all(
-                x.state == 'success' or x.force_success or x.reused for x in lines):
+        if not lines:
+            # perhaps in debugging and quickly testing releasing
+            # or turning off tests
             self.state = 'success'
+            self.success_rate = 100
+
         else:
-            self.state = 'failed'
-        if not lines or not success_lines:
-            self.success_rate = 0
-        else:
-            self.success_rate = \
-                int(100 / float(len(lines)) * float(success_lines))
+            if all(
+                x.state == 'success' or
+                x.force_success or x.resed for x in lines
+            ):
+                self.state = 'success'
+            else:
+                self.state = 'failed'
+
+            if not success_lines:
+                self.success_rate = 0
+            else:
+                self.success_rate = int(
+                    100 / float(len(lines)) * float(success_lines))
         self.branch_id._compute_state()
         if task:
             if self.state == 'failed':
@@ -601,7 +610,6 @@ class CicdTestRun(models.Model):
         Timeout in seconds.
 
         """
-        breakpoint()
         success = True
         len_todo = len(todo)
         for i, item in enumerate(todo):

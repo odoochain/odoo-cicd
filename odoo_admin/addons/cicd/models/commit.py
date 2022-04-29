@@ -86,12 +86,14 @@ class GitCommit(models.Model):
     @api.recordchange('approval_state')
     def _onchange_approval_state(self):
         for rec in self:
+            if rec.force_approved:
+                continue
             if rec.approval_state in ['approved', 'declined']:
                 self.approver_id = self.env.user
                 if self.author_user_id and self.approver_id and \
                         self.approver_id == self.author_user_id:
                     raise ValidationError(
-                        "Approver mustnt be the same like author.")
+                        "Approver mustn't be the same like author.")
 
     @api.constrains('code_reviewer_id', 'approver_id')
     def _check_approver_codereviewer(self):

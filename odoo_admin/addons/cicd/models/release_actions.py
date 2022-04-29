@@ -1,3 +1,4 @@
+import traceback
 from odoo import _, api, fields, models, SUPERUSER_ID
 import tempfile
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -8,10 +9,32 @@ from ..tools.logsio_writer import LogsIOWriter
 class CicdReleaseAction(models.Model):
     _name = 'cicd.release.action'
 
-    release_id = fields.Many2one('cicd.release', string="Release", required=True)
+    release_id = fields.Many2one(
+        'cicd.release', string="Release", required=True)
     machine_id = fields.Many2one('cicd.machine', string="Machine")
     shell_script_before_update = fields.Text("Shell Script Before Update")
     shell_script_at_end = fields.Text("Shell Script At End (finally)")
+    settings = fields.Text("Settings")
+    effective_settings = fields.Text(compute="_compute_effective_settings")
+
+    def _compute_effective_settings(self):
+        for rec in self:
+            hub_url = rec.release_id.repo_id.registry_id.hub_url
+            use_registry = '1' if hub_url else '0'
+            default_settings = []
+            if hub_url:
+                default_settings.append("HUB_URL=" + hub_url)
+            default_settings.append("REGISTRY=" + use_registry)
+
+            default_settings = '\n'.join(default_settings)
+            rec.effective_settings = (
+                f"{default_settings}"
+                "\n"
+                f"{rec.release_id.common_settings or ''}"
+                "\n"
+                f"{rec.settings}"
+                "\n"
+            )
 
     def _exec_shellscripts(self, logsio, pos):
         for rec in self:
@@ -35,33 +58,36 @@ class CicdReleaseAction(models.Model):
         errors = []
 
         with release_item._extra_env() as unblocked_item:
-            branch_name = unblocked_item.release_id.branch_id.name 
+            branch_name = unblocked_item.release_id.branch_id.name
 
         with LogsIOWriter.GET(branch_name, 'release') as logsio:
             try:
                 actions._exec_shellscripts(logsio, "before")
                 actions._stop_odoo(logsio)
 
+                actions._upload_settings_file(logsio, release_item)
+                actions._load_images_to_registry(logsio, release_item)
                 actions._update_sourcecode(
                     logsio, release_item, commit_sha)
+                actions._update_images(logsio)
 
                 actions[0]._run_update(logsio)
 
             except Exception as ex:
-                errors.append(ex)
+                errors.append(traceback.format_exc())
 
             finally:
                 for action in actions:
                     try:
                         action._start_odoo(logsio=logsio)
                     except Exception as ex:
-                        errors.append(ex)
+                        errors.append(traceback.format_exc())
 
                 for action in actions:
                     try:
                         action._exec_shellscripts(logsio, "after")
                     except Exception as ex:
-                        errors.append(ex)
+                        errors.append(traceback.format_exc())
             return errors
 
     @contextmanager
@@ -76,7 +102,10 @@ class CicdReleaseAction(models.Model):
             project_name=project_name
         ) as shell:
             if not shell.exists(path):
-                shell.X(["mkdir", "-p", path])
+                raise Exception((
+                    f"Path {path} does not exist. "
+                    "Please setup an odoo before."
+                ))
             yield shell
 
     def _stop_odoo(self, logsio):
@@ -87,6 +116,7 @@ class CicdReleaseAction(models.Model):
                 shell.odoo("kill")
 
     def _update_sourcecode(self, logsio, release_item, merge_commit_id):
+        logsio.info("Updating source code")
         with self._extra_env() as x_self:
             repo = x_self[0].release_id.repo_id
             zip_content = repo._get_zipped(
@@ -94,17 +124,91 @@ class CicdReleaseAction(models.Model):
                 merge_commit_id,
                 with_git=x_self.release_id.deploy_git
             )
-        temppath = tempfile.mktemp(suffix='.')
 
         for rec in self:
             with rec._contact_machine(logsio) as shell:
-                filename = f"/tmp/release_{release_item.id}"
-                shell.put(zip_content, filename)
-                temppath = tempfile.mktemp(suffix='.')
-                shell.X(['mkdir', '-p', temppath])
-                shell.X(["tar", "xfz", filename], cwd=temppath)
-                shell.X(["rsync", str(temppath) + "/", str(shell.cwd) + "/", "-ar", "--delete-after"])
-                shell.rm(temppath)
+                shell.extract_zip(zip_content, shell.cwd)
+
+    def _update_images(self, logsio):
+        logsio.info("Updating ~/.odoo/images")
+        with self._extra_env() as x_self:
+            machine = x_self.release_id.repo_id.machine_id
+            with machine._shell() as shell:
+                home_dir = shell._get_home_dir()
+                images_path = f"{home_dir}/.odoo/images"
+
+                images = shell.get_zipped(images_path)
+                del images_path
+
+            with x_self._contact_machine(logsio) as shell:
+                home_dir = shell._get_home_dir()
+                images_path = f"{home_dir}/.odoo/images"
+
+                shell.extract_zip(images, images_path)
+                # disable any remotes on images so not pulled
+                with shell.clone(cwd=images_path) as gitshell:
+                    for remote in gitshell.X([
+                            "git", "remote"])['stdout'].strip().splitlines():
+                        gitshell.X(["git", "remote", "remove", remote])
+
+    def _upload_settings_file(self, logsio, release_item):
+        logsio.info("Uploading settings file")
+        with self._extra_env() as x_self:
+            for rec in x_self:
+                if not rec.settings:
+                    continue
+                with rec._contact_machine(logsio) as shell:
+                    settings = rec.effective_settings
+                    settings = (
+                        f"DOCKER_IMAGE_TAG={release_item.commit_id.name}\n"
+                        f"{settings}"
+                    )
+                    shell.put(settings, "~/.odoo/settings")
+
+    def _load_images_to_registry(self, logsio, release_item):
+        """
+        Builds with given configuration and uploads to registry
+        """
+        with self._extra_env() as x_self:
+            logsio.info("Preparing updating docker registry")
+            for rec in x_self:
+                release = rec.release_id
+                if not release.repo_id.registry_id:
+                    continue
+                machine = release.repo_id.machine_id
+                branch = release.branch_id.name
+                logsio.info(f"Cloning {branch}...")
+                with rec.release_id.repo_id._temp_repo(
+                        machine, branch=branch) as repo_path:
+                    project_name = f"build_{branch}"
+                    logsio.info(f"Cloning {branch} done.")
+                    with machine._shell(
+                            cwd=repo_path, project_name=project_name) as shell:
+                        homedir = shell._get_home_dir()
+                        settings_file = (
+                            f"{homedir}/.odoo/settings.{project_name}"
+                        )
+                        # registry=0 so that build tags are kept
+                        shell.put((
+                            f"{rec.effective_settings}\n"
+                            "REGISTRY=0"
+                        ), settings_file)
+                        shell.X([
+                            "git", "checkout", release_item.commit_id.name])
+                        shell.odoo("-xs", settings_file, "reload")
+                        logsio.info("Building Docker Images")
+                        shell.odoo("build")
+                        shell.odoo("docker-registry", "login")
+                        logsio.info("Uploading to registry")
+                        shell.odoo("docker-registry", "regpush")
+                        logsio.info("Uploading done.")
+
+    @api.constrains("settings")
+    def _strip_settings(self):
+        for rec in self:
+            settings = (rec.settings or '').strip()
+            if settings != (rec.settings or ''):
+                rec.settings = settings
 
     def _run_update(self, logsio):
         self.ensure_one()
@@ -114,7 +218,10 @@ class CicdReleaseAction(models.Model):
                 shell.odoo("regpull")
             else:
                 shell.odoo("build")
-            shell.odoo("update") # , "--i18n")
+            cmd = ["update"]
+            if self.release_id.update_i18n:
+                cmd += ['--i18n']
+            shell.odoo(*cmd)
 
     def _start_odoo(self, logsio):
         for self in self:

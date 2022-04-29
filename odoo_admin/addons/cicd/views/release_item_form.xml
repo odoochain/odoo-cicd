@@ -9,6 +9,8 @@
 						<field name="state" widget="statusbar" attrs="{'readonly': True}" statusbar_visible="collecting,integrating,ready,done" />
 						<button name="release_now" string="Release Now" type="object" states='collecting,ready,failed_too_late'/>
 						<button name="resend_release_mail" string="Resend Releae Mail" type="object" />
+						<button name="abort" string="Abort" type="object" states="integrating,collecting,collecting_merge_conflict,ready" />
+						<button name="confirm_hotfix" string="Confirm Branches" type="object" attrs="{'invisible': ['|', ('confirmed_hotfix_branches', '=', True), ('release_type', '!=', 'hotfix')]}" confirm="If you proceed then the release process starts: Testing and then deploy. Continue?"/>
 					</header>
 					<sheet>
 						<div class="oe_button_box" name="button_box">
@@ -44,6 +46,7 @@
 										<button name="view_changes" string="" icon="fa-search" type="object" />
 									</tree>
 								</field>
+								<field name="confirmed_hotfix_branches" invisible='1'/>
 							</group>
 						</group>
 						<notebook>
