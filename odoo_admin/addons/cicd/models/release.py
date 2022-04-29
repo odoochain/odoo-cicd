@@ -49,6 +49,8 @@ class Release(models.Model):
     message_to_ticketsystem = fields.Text("Release Message")
     update_i18n = fields.Boolean("Update I18N")
 
+    common_settings = fields.Text("Settings for machines (details in action sets)")
+
     @api.constrains("project_name")
     def _check_project_name(self):
         for rec in self:

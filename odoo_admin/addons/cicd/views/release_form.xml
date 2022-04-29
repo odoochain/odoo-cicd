@@ -48,6 +48,9 @@
 									</tree>
 								</field>
 							</page>
+							<page string="Settings" name="settings">
+								<field name="common_settings" placeholder="ODOO_PYTHON_VERSION=3.8.2" />
+							</page>
 							<page string="Actions" name="actions">
 								<field name="action_ids">
 									<tree>

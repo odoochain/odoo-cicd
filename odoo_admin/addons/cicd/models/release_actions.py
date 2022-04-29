@@ -30,6 +30,8 @@ class CicdReleaseAction(models.Model):
             rec.effective_settings = (
                 f"{default_settings}"
                 "\n"
+                f"{rec.release_id.common_settings or ''}"
+                "\n"
                 f"{rec.settings}"
                 "\n"
             )
