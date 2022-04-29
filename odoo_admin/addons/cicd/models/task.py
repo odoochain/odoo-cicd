@@ -116,9 +116,31 @@ class Task(models.Model):
             name = name[1:]
         return name
 
+    def _check_previous_tasks(self):
+        with self._extra_env(enabled=not now) as check:
+            previous = check.branch_id.task_ids.filtered(
+                lambda x: x.id < check.id).filtered(
+                    lambda x: x.state in [False, STARTED])
+            
+            if previous:
+                raise RetryableJobError((
+                    "Previous tasks exist: "
+                    f"IDs: {previous.ids}"
+                ), ignore_retry=True, seconds=30)
+
+
     def _exec(self, now=False, ignore_previous_tasks=False):
         if not self._unblocked('branch_id'):
             raise Exception("Branch not given for task.")
+
+        if not ignore_previous_tasks:
+            try:
+                self._check_previous_tasks()
+            except RetryableJobError as ex:
+                if now:
+                    raise ValidationError("Previous Task exists.") from ex
+                else:
+                    return
 
         with self.semaphore_with_delay(not now, ignore_states=[DONE]):
             self.state = STARTED
@@ -180,16 +202,7 @@ class Task(models.Model):
         commit_ids = None
         logsio = None
         if not now and not self.ignore_previous_tasks:
-            with self._extra_env(enabled=not now) as check:
-                previous = check.branch_id.task_ids.filtered(
-                    lambda x: x.id < check.id).filtered(
-                        lambda x: x.state in [False, STARTED])
-                
-                if previous:
-                    raise RetryableJobError((
-                        "Previous tasks exist: "
-                        f"IDs: {previous.ids}"
-                    ), ignore_retry=True, seconds=30)
+            self._check_previous_tasks()
 
         try:
             self = self.sudo().with_context(active_test=False)
