@@ -231,7 +231,8 @@ class Cursor(BaseCursor):
     """
     IN_MAX = 1000   # decent limit on size of IN queries - guideline = Oracle limit
 
-    def __init__(self, pool, dbname, dsn, serialized=True):
+    def __init__(self, pool, dbname, dsn, serialized=False):
+        breakpoint()
         super().__init__()
 
         self.sql_from_log = {}
@@ -307,9 +308,6 @@ class Cursor(BaseCursor):
         start = time.time()
         try:
             params = params or None
-            # ALPHA Testing:
-            #self._obj.execute("SET statement_timeout = 10000")
-            #self._obj.execute("SET idle_in_transaction_session_timeout = 20000")
             res = self._obj.execute(query, params)
         except Exception as e:
             if self._default_log_exceptions if log_exceptions is None else log_exceptions:

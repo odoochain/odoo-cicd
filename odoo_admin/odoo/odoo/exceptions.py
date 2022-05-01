@@ -88,9 +88,6 @@ class AccessError(UserError):
 
         When you try to read a record that you are not allowed to.
     """
-    def __init__(self, *args, **kwargs):
-        breakpoint()
-        super().__init__(*args, **kwargs)
 
 
 class CacheMiss(KeyError):
