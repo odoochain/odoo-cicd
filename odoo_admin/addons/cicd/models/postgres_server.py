@@ -113,7 +113,7 @@ class PostgresServer(models.Model):
                     ])
                         
                     if not db:
-                        db = self.sudo().create({
+                        db = db.sudo().create({
                             'server_id': rec.id,
                             'name': dbname,
                             'size': dbsize,
