@@ -16,6 +16,9 @@
 						<field name="shell_script_at_end" />
 					</group>
 					<group string="Settings">
+							<div>
+								<a href="https://github.com/marcwimmer/wodoo" target="_blank">Documentation Github</a>
+							</div>
 						<field name="settings" nolabel='1'/>
 					</group>
 					<group>

@@ -290,14 +290,14 @@ class ShellExecutor(object):
         finally:
             self.rm(temppath)
 
-    def get_zipped(self, path, excludes=[]):
-        breakpoint()
+    def get_zipped(self, path, excludes=None):
+        excludes = excludes or []
         filename = str(Path(tempfile._get_default_tempdir()) / \
             next(tempfile._get_candidate_names()))
         zip_cmd = ["tar", "cfz", filename, "-C", path, '.']
         for exclude in excludes:
             zip_cmd.insert(-1, f'--exclude="{exclude}"')
-        with self.clone(cwd=path) as self2:  #TODO undo
+        with self.clone(cwd=path) as self2:
             self2.X(zip_cmd)
         try:
             content = self.get(filename)
