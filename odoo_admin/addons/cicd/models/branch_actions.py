@@ -1,3 +1,4 @@
+import time
 import re
 import uuid
 import psycopg2
@@ -739,3 +740,17 @@ for path in base.glob("*"):
             'default_dump_id': self.dump_id.id,
     })
         return action
+
+    def _task1(self, shell, task, logsio, **kwargs):
+        i = 0
+        while i < 10:
+            i += 1
+            logsio.info(f"Task1 {i}")
+            time.sleep(3)
+
+    def _task2(self, shell, task, logsio, **kwargs):
+        i = 0
+        while i < 10:
+            i += 1
+            logsio.info(f"Task2 {i}")
+            time.sleep(1)
