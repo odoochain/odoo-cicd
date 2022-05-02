@@ -523,12 +523,8 @@ class GitBranch(models.Model):
                         "instance or contact your developer"
                         )) from ex
 
-                try:
-                    self._make_task(
-                        "_simple_docker_up", now=True, reuse=True,
-                        ignore_previous_tasks=True)
-                except RetryableJobError:
-                    time.sleep(1)
+                with self.shell() as shell:
+                    shell.odoo("up", "-d")
             else:
                 break
 
