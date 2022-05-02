@@ -20,7 +20,7 @@ from decorator import decorator
 import psycopg2
 import psycopg2.extras
 import psycopg2.extensions
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ_COMMITTED, ISOLATION_LEVEL_REPEATABLE_READ
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ_UNCOMMITTED, ISOLATION_LEVEL_READ_COMMITTED, ISOLATION_LEVEL_REPEATABLE_READ
 from psycopg2.pool import PoolError
 from werkzeug import urls
 
@@ -232,6 +232,7 @@ class Cursor(BaseCursor):
     IN_MAX = 1000   # decent limit on size of IN queries - guideline = Oracle limit
 
     def __init__(self, pool, dbname, dsn, serialized=False):
+        breakpoint()
         super().__init__()
 
         self.sql_from_log = {}
@@ -434,7 +435,7 @@ class Cursor(BaseCursor):
             isolation_level = \
                 ISOLATION_LEVEL_REPEATABLE_READ \
                 if self._serialized \
-                else ISOLATION_LEVEL_READ_COMMITTED
+                else ISOLATION_LEVEL_READ_UNCOMMITTED
         self._cnx.set_isolation_level(isolation_level)
 
     @check
