@@ -74,6 +74,7 @@ class Database(models.Model):
                 name = name.replace(repo.short.lower(), '')
                 while name.startswith("_"):
                     name = name[1:]
+                name = name.replace("_", "%")
                 rec.matching_branch_ids = self.env['cicd.git.branch'].search([
                     "|",
                     ('name', 'ilike', name),
