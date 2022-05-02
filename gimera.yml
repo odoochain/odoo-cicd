@@ -29,6 +29,7 @@ repos:
   url: https://github.com/marcwimmer/odoo-robot_utils
 - branch: 15.0
   path: odoo_admin/addons/odoo_visualize_queries
+  sha: 85051fd8ff4fe06b69acd656495d4b5bdfb978e0
   type: integrated
   url: ssh://git@github.com/marcwimmer/odoo-visualize-queries.git
 - branch: 15.0
