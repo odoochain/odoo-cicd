@@ -26,6 +26,7 @@
 											<button name="delete_db" string="Purge" type="object" confirm="Cannot be undone. Continue?" />
 											<field name="name" />
 											<field name="size_human" />
+											<field name="matching_branch_ids" widget="many2many_tags" />
 										</tree>
 									</field>
 								</group>
