@@ -232,7 +232,6 @@ class Cursor(BaseCursor):
     IN_MAX = 1000   # decent limit on size of IN queries - guideline = Oracle limit
 
     def __init__(self, pool, dbname, dsn, serialized=False):
-        breakpoint()
         super().__init__()
 
         self.sql_from_log = {}
