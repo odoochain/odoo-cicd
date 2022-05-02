@@ -725,7 +725,7 @@ class Repository(models.Model):
         for repo in self.search([
             ('never_cleanup', '=', False),
         ]):
-            dt = arrow.get().shift(
+            dt = arrow.utcnow().shift(
                 days=-1 * repo.cleanup_untouched).strftime(DTF)
 
             # try nicht unbedingt notwendig; bei __exit__
@@ -733,7 +733,8 @@ class Repository(models.Model):
             branches = repo.branch_ids.filtered(
                 lambda x: x.last_access or x.date_registered).filtered(
                 lambda x: max([
-                    x.last_access or x.date_registered, x.date_reactivated
+                    arrow.get(x.last_access or x.date_registered).replace(tzinfo=None).datetime,
+                    arrow.get(x.date_reactivated or arrow.get().shift(weeks=-10)).replace(tzinfo=None).datetime
                     ]).strftime(DTF) < dt)
 
             # keep release branches
@@ -743,10 +744,6 @@ class Repository(models.Model):
             names += list(releases.mapped('item_ids.item_branch_id.name'))
             branches = branches.filtered(lambda x: x.name not in names)
             del names
-
-            # keep new, dev and done
-            branches = branches.filtered(lambda x: x.state in [
-                'new', 'dev', 'done'])
 
             # keep branches with recents updates
             def outdated_commits(branch):
