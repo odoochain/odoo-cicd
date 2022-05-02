@@ -20,6 +20,7 @@ repos:
   url: https://github.com/OCA/queue.git
 - branch: 15.0
   path: odoo_admin/addons/web
+  sha: 0b13aaa3c8e66e845dc7750c29aa77d0d54f399a
   type: integrated
   url: https://github.com/OCA/web.git
 - branch: 15.0
