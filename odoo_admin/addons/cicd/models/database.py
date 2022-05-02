@@ -69,7 +69,9 @@ class Database(models.Model):
             breakpoint()
             project_name = os.getenv("PROJECT_NAME", "")
             for repo in self.env['cicd.git.repo'].search([]):
-                name = f"{project_name}_{repo.short}_{rec.name}".lower()
+                name = rec.name.lower()
+                name = name.replace(project_name.lower(), '')
+                name = name.replace(repo.short.lower(), '')
                 rec.matching_branch_ids = self.env['cicd.git.branch'].search([
                     "|",
                     ('name', 'ilike', name),
