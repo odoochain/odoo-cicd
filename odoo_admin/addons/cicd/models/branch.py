@@ -523,7 +523,7 @@ class GitBranch(models.Model):
                         "instance or contact your developer"
                         )) from ex
 
-                with self.shell() as shell:
+                with self.shell(logs_title="simpleup") as shell:
                     shell.odoo("up", "-d")
             else:
                 break

@@ -753,4 +753,5 @@ for path in base.glob("*"):
         while i < 10:
             i += 1
             logsio.info(f"Task2 {i}")
+            raise Exception('fault')
             time.sleep(1)
