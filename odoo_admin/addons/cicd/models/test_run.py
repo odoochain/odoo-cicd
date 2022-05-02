@@ -192,7 +192,7 @@ class CicdTestRun(models.Model):
                 self._report('db reset started')
                 shell.odoo('-f', 'db', 'reset')
                 shell.odoo('pghba-conf-wide-open', "--no-scram")
-                shell.odoo('update', 'base')
+                shell.odoo('update', 'base', '--no-dangling-check')
 
                 self._abort_if_required()
                 self._report('db reset done')

@@ -597,28 +597,8 @@ class GitBranch(models.Model):
         with self._get_new_logsio_instance('set_inactive') as logsio:
             for machine in self.env['cicd.machine'].search([
                     ('ttype', '=', 'dev')]):
-                try:
-                    path = machine._get_volume('source')
-                except Exception:
-                    continue
-                self.env['base'].flush()
-                self.env.cr.commit()
 
-                # delete instance folder
-                with machine._shell(cwd=path, logsio=logsio) as shell:
-                    project_path = self.project_path
-                    if shell.exists(project_path):
-                        try:
-                            shell.odoo("kill")
-                        except Exception as ex:
-                            logsio.error(str(ex))
-
-                        try:
-                            shell.odoo("rm")
-                        except Exception as ex:
-                            logsio.error(str(ex))
-
-                    self.with_delay().purge_instance_folder()
+                self.with_delay().purge_instance_folder()
 
                 # delete db
                 self.with_delay().delete_db()

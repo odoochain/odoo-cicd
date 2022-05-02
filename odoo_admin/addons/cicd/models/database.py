@@ -66,8 +66,8 @@ class Database(models.Model):
 
     def _compute_branches(self):
         for rec in self:
-            breakpoint()
             project_name = os.getenv("PROJECT_NAME", "")
+            rec.matching_branch_ids = self.env['cicd.git.branch']
             for repo in self.env['cicd.git.repo'].search([]):
                 name = rec.name.lower()
                 name = name.replace(project_name.lower(), '')
@@ -75,7 +75,7 @@ class Database(models.Model):
                 while name.startswith("_"):
                     name = name[1:]
                 name = name.replace("_", "%")
-                rec.matching_branch_ids = self.env['cicd.git.branch'].search([
+                rec.matching_branch_ids |= self.env['cicd.git.branch'].search([
                     "|",
                     ('name', 'ilike', name),
                     ('technical_branch_name', 'ilike', name)
