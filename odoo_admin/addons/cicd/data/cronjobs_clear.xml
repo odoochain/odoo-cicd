@@ -26,6 +26,7 @@ dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%
 model.search([('date_created', '&lt;', dt), ('state', '=', 'done')], limit=500).unlink()
 model.search([('identity_key', 'ilike', 'queuejob_fetch'), ('state', '=', 'done')], limit=200, order='id asc').unlink()
 
+
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
@@ -37,8 +38,12 @@ model.search([('identity_key', 'ilike', 'queuejob_fetch'), ('state', '=', 'done'
 			<field name="model_id" ref="queue_job.model_queue_job" />
 			<field name="state">code</field>
 			<field name="code">
-jobs = model.search([('state', '=', 'failed'), ('exc_info', 'ilike', 'MissingError')])
-jobs.unlink()
+model.search([('state', '=', 'failed'), ('exc_info', 'ilike', 'MissingError')]).unlink()
+env.cr.commit()
+model.search([('state', '=', 'failed'), ('identity_key', 'ilike', 'machine-update-vol'), ('exc_info', 'ilike', 'psycopg2.errors.QueryCanceled')]).unlink()
+env.cr.commit()
+model.search([('state', '=', 'failed'), ('identity_key', 'ilike', 'testrun'), ('exc_info', '=', False)]).unlink()
+env.cr.commit()
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
