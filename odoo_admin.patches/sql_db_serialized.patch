@@ -1,26 +1,25 @@
-From 56f3fb233ef442b4ab8e09172063f07efb49d318 Mon Sep 17 00:00:00 2001
+From 279a51d009bc9c2c0be4974d28f7303e72dda35f Mon Sep 17 00:00:00 2001
 From: Marc Wimmer <marc@itewimmer.de>
-Date: Sun, 1 May 2022 20:40:44 +0200
+Date: Tue, 3 May 2022 10:24:02 +0200
 Subject: [PATCH] for patch
 
 ---
- odoo/sql_db.py | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ odoo/sql_db.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/odoo/sql_db.py b/odoo/sql_db.py
-index 4321438e..ce67f0b8 100644
+index 39539612..a546bee0 100644
 --- a/odoo/sql_db.py
 +++ b/odoo/sql_db.py
-@@ -231,7 +231,8 @@ class Cursor(BaseCursor):
-     """
-     IN_MAX = 1000   # decent limit on size of IN queries - guideline = Oracle limit
+@@ -701,7 +701,7 @@ class Connection(object):
+         self.dsn = dsn
+         self.__pool = pool
  
--    def __init__(self, pool, dbname, dsn, serialized=True):
-+    def __init__(self, pool, dbname, dsn, serialized=False):
-+        breakpoint()
-         super().__init__()
- 
-         self.sql_from_log = {}
+-    def cursor(self, serialized=True):
++    def cursor(self, serialized=False):
+         cursor_type = serialized and 'serialized ' or ''
+         _logger.debug('create %scursor to %r', cursor_type, self.dsn)
+         return Cursor(self.__pool, self.dbname, self.dsn, serialized=serialized)
 -- 
 2.34.1
 
