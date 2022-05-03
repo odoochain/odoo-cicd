@@ -552,5 +552,7 @@ class ReleaseItem(models.Model):
             branch.branch_id._report_comment_to_ticketsystem(msg)
 
     def confirm_hotfix(self):
+        if not self.planned_date:
+            raise ValidationError("Please provide a planned date.")
         self.confirmed_hotfix_branches = True
         self.cron_heartbeat()
