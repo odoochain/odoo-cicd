@@ -525,7 +525,7 @@ class CicdTestRun(models.Model):
         else:
             if all(
                 x.state == 'success' or
-                x.force_success or x.resed for x in lines
+                x.force_success or x.reused for x in lines
             ):
                 self.state = 'success'
             else:

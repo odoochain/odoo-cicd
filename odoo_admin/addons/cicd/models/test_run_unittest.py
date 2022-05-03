@@ -46,7 +46,7 @@ class TestrunUnittest(models.Model):
             self._wait_for_postgres(shell)
 
             def _update(item):
-                shell.odoo('update', item)
+                shell.odoo('update', item, '--no-dangling-check')
 
             success = self._generic_run(
                 shell, logsio, [module],
