@@ -67,3 +67,8 @@ class queuejob(models.Model):
                         break
                 else:
                     job.state = 'pending'
+
+
+    def _message_failed_job(self):
+        # deactivate error mails as jobs are requeud
+        return ""
