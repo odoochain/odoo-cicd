@@ -701,7 +701,7 @@ class Connection(object):
         self.dsn = dsn
         self.__pool = pool
 
-    def cursor(self, serialized=True):
+    def cursor(self, serialized=False):
         cursor_type = serialized and 'serialized ' or ''
         _logger.debug('create %scursor to %r', cursor_type, self.dsn)
         return Cursor(self.__pool, self.dbname, self.dsn, serialized=serialized)
