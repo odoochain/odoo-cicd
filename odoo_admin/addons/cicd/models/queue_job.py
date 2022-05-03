@@ -61,13 +61,15 @@ class queuejob(models.Model):
         ]
 
         for reason in reasons:
-            for job in model.search([('state', '=', 'failed'), ('exc_info', 'ilike', reason)]):
+            for job in self.search([
+                ('state', '=', 'failed'),
+                ('exc_info', 'ilike', reason)
+            ]):
                 for ignore in ignore_idkeys:
                     if ignore in job.identity_key:
                         break
                 else:
                     job.state = 'pending'
-
 
     def _message_failed_job(self):
         # deactivate error mails as jobs are requeud
