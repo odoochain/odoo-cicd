@@ -24,10 +24,6 @@
 									</div>
 								</div>
 								<hr class="mt4 mb4"/>
-								<div>
-									<strong>State:</strong>
-									<field name="state"/>
-								</div>
 								<div t-if="record.assignee_id">
 									<strong>Assigned To:</strong>
 									<field name="assignee_id"/>
