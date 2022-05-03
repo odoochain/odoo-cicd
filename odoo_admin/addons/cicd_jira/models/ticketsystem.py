@@ -14,10 +14,18 @@ class TicketSystem(models.Model):
     ttype = fields.Selection(
         selection_add=[('jira', 'JIRA')], ondelete={'jira': 'cascade'})
 
-    jira_extract_custom_fields = fields.Char("Comma separated list of fields to extract")
+    jira_extract_custom_fields = fields.Char(
+        "Comma separated list of fields to extract")
+
+    def _jira_resolve_user(self, displayname):
+        parts = (displayname or '').split(" ")
+        for user in self.env['res.users'].search([]):
+            if all(x in user.name for x in parts):
+                return user
 
     def _map_state(self, odoo_name):
-        mapping = self.jira_state_mapping_ids.filtered(lambda x: x.name == odoo_name)
+        mapping = self.jira_state_mapping_ids.filtered(
+            lambda x: x.name == odoo_name)
         if mapping:
             return mapping[0].jira_state
 

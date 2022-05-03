@@ -28,6 +28,10 @@
 									<strong>State:</strong>
 									<field name="state"/>
 								</div>
+								<div t-if="assignee_id">
+									<strong>Assigned To:</strong>
+									<field name="assignee_id"/>
+								</div>
 								<div>
 									<strong>Epic:</strong>
 									<field name="epic_id"/>

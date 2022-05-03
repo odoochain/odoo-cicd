@@ -143,6 +143,7 @@ class GitBranch(models.Model):
     type_id = fields.Many2one('cicd.branch.type', string="Type")
     author_id = fields.Many2one('res.users', string="Author")
     date_reactivated = fields.Datetime("Date reactivated")
+    assignee_id = fields.Many2one('res.users', string="Asignee")
 
     @api.recordchange("active")
     def _on_active_update_date(self):

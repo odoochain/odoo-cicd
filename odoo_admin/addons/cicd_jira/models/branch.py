@@ -111,3 +111,8 @@ class Branch(models.Model):
 
         self.enduser_summary_ticketsystem = '\n'.join(
             filter(bool, enduser_summary_ticketsystem))
+
+        if assignee := issue.raw['fields'].get('assignee'):
+            user = self.repo_id.ticketsystem_id._jira_resolve_user(assignee)
+            if user:
+                self.assignee_id = user
