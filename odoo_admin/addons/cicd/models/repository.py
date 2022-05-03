@@ -653,6 +653,8 @@ class Repository(models.Model):
                     message_commit_sha = shell.X([
                         "git", "log", "-n1", "--format=%H"])['stdout'].strip()
 
+                # https://stackoverflow.com/questions/6656619/git-and-nasty-error-cannot-lock-existing-info-refs-fatal
+                shell.X(["git", "gc", "--prune=now"])
                 shell.X([
                     "git", "push", "--set-upstream", "-f", 'origin',
                     target_branch_name])
