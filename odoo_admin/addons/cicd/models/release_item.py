@@ -358,7 +358,10 @@ class ReleaseItem(models.Model):
                 self.state = 'failed_too_late'
                 return
 
-        if self.state in ['collecting', 'collecting_merge_conflict']:
+        if self.state in ['collecting_merge_technical']:
+            # wait for solving
+
+        elif self.state in ['collecting', 'collecting_merge_conflict']:
             if self.release_type == 'standard':
                 self._collect()
             else:
