@@ -123,10 +123,14 @@ class Branch(models.Model):
             dump.name)
         if self.remove_web_assets_after_restore:
             shell.odoo('-f', 'remove-web-assets')
-        shell.odoo("update")
         self.last_restore_dump_name = dump.name
         self.last_restore_dump_date = dump.date_modified
         task.sudo().with_delay().write({'dump_used': self.dump_id.name})
+        shell.machine.sudo().postgres_server_id.with_delay().update_databases()
+        self.env.cr.commit()
+        shell.odoo("update")
+        shell.machine.sudo().postgres_server_id.with_delay().update_databases()
+        self._after_build(shell=shell, logsio=logsio)
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
 
     def _docker_start(self, shell, task, logsio, **kwargs):
@@ -724,7 +728,7 @@ for path in base.glob("*"):
             machine = rec.machine_id
             with machine._shell() as shell:
                 machine.make_login_possible_for_webssh_container()
-                test = shell.X([
+                shell.X([
                     "sudo", "pkill", "-9", "-f",
                     "-u", shell.machine.ssh_user_cicdlogin,
                     f'new-session.*-s.*{rec.project_name}'
