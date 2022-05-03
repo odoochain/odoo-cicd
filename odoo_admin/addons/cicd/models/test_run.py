@@ -669,7 +669,7 @@ class CicdTestRun(models.Model):
         for rec in self:
             partners = (
                 rec.commit_id.author_user_id.mapped('partner_id')
-                | rec.mapped('assignee_id.partner_id')
+                | rec.commit_id.branch_ids.mapped('assignee_id.partner_id')
                 | rec.mapped('message_follower_ids.partner_id')
                 | rec.branch_id.mapped('message_follower_ids.partner_id')
             )
