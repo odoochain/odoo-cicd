@@ -360,6 +360,7 @@ class ReleaseItem(models.Model):
 
         if self.state in ['collecting_merge_technical']:
             # wait for solving
+            pass
 
         elif self.state in ['collecting', 'collecting_merge_conflict']:
             if self.release_type == 'standard':
