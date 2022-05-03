@@ -128,7 +128,7 @@ class Controller(http.Controller):
             # 2 quick push events shall trigger a fetch, otherwise in very rare conditions
             # the event could be lost
             repo.with_delay(identity_key=(
-                f"queuejob-fetch-{repo.id}"
+                f"queuejob-fetch-{repo.short}"
             ))._queuejob_fetch()
         return {"result": "ok"}
 
