@@ -418,8 +418,7 @@ class ReleaseItem(models.Model):
                     self.state = 'ready'
 
         elif self.state == 'ready':
-            if (self.planned_date and now > self.planned_date) or \
-                    self.release_type == 'hotfix':
+            if (self.planned_date and now > self.planned_date):
                 if self.release_id.auto_release:
                     self._do_release()
 
@@ -553,5 +552,7 @@ class ReleaseItem(models.Model):
             branch.branch_id._report_comment_to_ticketsystem(msg)
 
     def confirm_hotfix(self):
+        if not self.planned_date:
+            raise ValidationError("Please provide a planned date.")
         self.confirmed_hotfix_branches = True
         self.cron_heartbeat()
