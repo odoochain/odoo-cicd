@@ -44,6 +44,7 @@ class ReleaseItem(models.Model):
     state = fields.Selection([
         ("collecting", "Collecting"),
         ('collecting_merge_conflict', 'Collecting Merge Conflict'),
+        ('collecting_merge_technical', 'Collecting Merge Technical Error'),
         ('integrating', 'Integration'),
         ('failed_merge', 'Failed: Merge Conflict'),
         ('failed_technically', 'Failed technically'),
@@ -240,8 +241,10 @@ class ReleaseItem(models.Model):
         """
         Heavy function - takes longer and does quite some work.
         """
+        breakpoint()
         target_branch_name = self.item_branch_name
         self.ensure_one()
+        commits_checksum = None
 
         with self.release_id._get_logsio() as logsio:
             logsio.info("Commits changed, so creating a new candidate branch")
@@ -291,12 +294,10 @@ class ReleaseItem(models.Model):
                             lambda x: x.commit_id == commit).write({
                                 'state': 'conflict'})
                     self.state = 'collecting_merge_conflict'
-                    return
                 else:
                     if self.state == 'collecting_merge_conflict':
                         self.state = 'collecting'
 
-                self.merged_checksum = commits_checksum
                 if self.branch_ids:
                     assert self.item_branch_id
 
@@ -304,7 +305,7 @@ class ReleaseItem(models.Model):
                 raise
 
             except Exception as ex:
-                self.state = 'collecting_merge_conflict'
+                self.state = 'collecting_merge_technical'
                 self.exc_info = (
                     f"{ex}"
                     f"{traceback.format_exc()}"
@@ -323,6 +324,8 @@ class ReleaseItem(models.Model):
                     candidate_branch._compute_state()
 
                 self.mapped('branch_ids.branch_id')._compute_state()
+        if commits_checksum:
+            self.merged_checksum = commits_checksum
 
     def abort(self):
         for rec in self:
@@ -344,6 +347,7 @@ class ReleaseItem(models.Model):
             ), ignore_retry=True, seconds=15) from ex
 
     def cron_heartbeat(self):
+        breakpoint()
         self.ensure_one()
         self._lock()
         now = fields.Datetime.now()

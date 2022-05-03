@@ -124,6 +124,7 @@ class Release(models.Model):
 
     @api.model
     def cron_heartbeat(self):
+        breakpoint()
         for rec in self.search([
             ('auto_release', '=', True)
         ]):
