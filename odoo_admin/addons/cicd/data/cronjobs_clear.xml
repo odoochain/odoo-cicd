@@ -15,7 +15,7 @@ model.search([('name', 'ilike', 'update_dumps'), ('state', '=', 'done')], order=
 			<field name="numbercall">-1</field>
 		</record>
 		<record id="clear_old_queuejobs" model="ir.cron">
-			<field name="name">clear_old_jobs</field>
+			<field name="name">cicd:clear_old_jobs</field>
 			<field name="interval_number">1</field>
 			<field name="interval_type">minutes</field>
 			<field name="model_id" ref="queue_job.model_queue_job" />
@@ -26,6 +26,19 @@ dt = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%
 model.search([('date_created', '&lt;', dt), ('state', '=', 'done')], limit=500).unlink()
 model.search([('identity_key', 'ilike', 'queuejob_fetch'), ('state', '=', 'done')], limit=200, order='id asc').unlink()
 
+			</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
+		<record id="delete_old_queuejobs" model="ir.cron">
+			<field name="name">cicd:delete_old_jobs</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="queue_job.model_queue_job" />
+			<field name="state">code</field>
+			<field name="code">
+jobs = model.search([('state', '=', 'failed'), ('exc_info', 'ilike', 'MissingError')])
+jobs.unlink()
 			</field>
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
