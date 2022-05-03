@@ -57,6 +57,7 @@
 							<field name="database_size_human"/>
 							<field name="target_release_ids" widget="many2many_tags"/>
 							<field name="latest_commit_id" readonly="1"/>
+							<field name="assignee_id"/>
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>

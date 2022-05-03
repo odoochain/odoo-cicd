@@ -29,6 +29,7 @@ class Base(models.AbstractModel):
 
     @contextmanager
     def _extra_env(self, obj=None, enabled=True):
+        enabled = False # TODO
         obj = obj or self
         if not enabled:
             yield obj

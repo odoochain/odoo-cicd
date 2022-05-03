@@ -24,11 +24,7 @@
 									</div>
 								</div>
 								<hr class="mt4 mb4"/>
-								<div>
-									<strong>State:</strong>
-									<field name="state"/>
-								</div>
-								<div t-if="assignee_id">
+								<div t-if="record.assignee_id">
 									<strong>Assigned To:</strong>
 									<field name="assignee_id"/>
 								</div>
@@ -44,20 +40,20 @@
 									<strong>Date Added:</strong>
 									<field name="create_date"/>
 								</div>
-								<div t-if="last_access">
+								<div t-if="record.last_access">
 									<strong>Last Access:</strong>
 									<field name="last_access"/>
 								</div>
-								<div t-if="database_ids">
+								<div>
 									<strong>Database-Size:</strong>
 									<field name="database_size_human"/>
 								</div>
-								<div t-if="target_release_ids">
+								<!-- <div t-if="record.target_release_ids">
 									<strong>Releases:</strong>
-									<t t-foreach="target_release_ids" t-as="release">
+									<t t-foreach="record.target_release_ids" t-as="release">
 										<t t-esc="release.name"></t>
 									</t>
-								</div>
+								</div> -->
 							</div>
 						</t>
 

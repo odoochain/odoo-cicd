@@ -107,12 +107,12 @@ class Branch(models.Model):
                 continue
             further_summary_field = further_summary_field.strip()
             enduser_summary_ticketsystem.append(
-                issue.raw['fields'][further_summary_field])
+                issue.raw['fields'].get(further_summary_field)) # sometimes they dont exist
 
         self.enduser_summary_ticketsystem = '\n'.join(
             filter(bool, enduser_summary_ticketsystem))
 
         if assignee := issue.raw['fields'].get('assignee'):
-            user = self.repo_id.ticketsystem_id._jira_resolve_user(assignee)
+            user = self.repo_id.ticketsystem_id._jira_resolve_user(assignee['displayName'])
             if user:
                 self.assignee_id = user
