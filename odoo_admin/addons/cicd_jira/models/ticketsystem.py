@@ -18,10 +18,7 @@ class TicketSystem(models.Model):
         "Comma separated list of fields to extract")
 
     def _jira_resolve_user(self, displayname):
-        parts = (displayname or '').split(" ")
-        for user in self.env['res.users'].search([]):
-            if all(x in user.name for x in parts):
-                return user
+        return self.env['res.users'].smart_find(displayname)
 
     def _map_state(self, odoo_name):
         mapping = self.jira_state_mapping_ids.filtered(

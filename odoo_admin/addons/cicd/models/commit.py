@@ -16,8 +16,6 @@ class GitCommit(models.Model):
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     author = fields.Char("Author")
-    author_user_ids = fields.Many2many(
-        'res.users', compute="_compute_author_users", store=False)
     author_user_id = fields.Many2one(
         'res.users', compute="_compute_author_users")
     text = fields.Text("Text")
@@ -190,20 +188,7 @@ class GitCommit(models.Model):
     @api.depends("author")
     def _compute_author_users(self):
         for rec in self:
+            rec.author_user_id = False
             if not rec.author:
-                rec.author_user_ids = [[6, 0, []]]
                 continue
-
-            match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', self.author)
-            email = None
-            if match:
-                email = match.group(0)
-            if email:
-                rec.author_user_ids = self.env['res.users'].search([('login', '=', email)])
-            else:
-                rec.author_user_ids = [[6, 0, []]]
-
-            if rec.author_user_ids:
-                rec.author_user_id = rec.author_user_ids[0]
-            else:
-                rec.author_user_id = self.env.user
+            rec.author_user_id = self.env['res.users'].smart_find(self.author)
