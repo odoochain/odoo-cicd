@@ -69,7 +69,12 @@ class queuejob(models.Model):
                     if ignore in job.identity_key:
                         break
                 else:
-                    job.state = 'pending'
+                    if job.identity_key:
+                        if not self.search_count([
+                            ('state', 'not in', ['cancel', 'failed', 'done']),
+                            ('identity_key', '=', job.identity_key),
+                        ]):
+                            job.state = 'pending'
 
     def _message_failed_job(self):
         # deactivate error mails as jobs are requeud
