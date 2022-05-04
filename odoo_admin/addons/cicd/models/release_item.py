@@ -247,11 +247,16 @@ class ReleaseItem(models.Model):
         commits_checksum = None
 
         with self.release_id._get_logsio() as logsio:
-            logsio.info("Commits changed, so creating a new candidate branch")
+            logsio.info((
+                f"Merging on {target_branch_name} following commits: "
+            ))
             try:
                 branches = ', '.join(self.branch_ids.branch_id.mapped('name'))
                 try:
                     commits = self.mapped('branch_ids.commit_id')
+                    logsio.info((
+                        f"commits: {commits.mapped('name')}"
+                    ))
                     commits_checksum = '-'.join(commits.mapped('name'))
                     if not commits:
                         self.state = 'collecting'
