@@ -51,9 +51,9 @@
 									<strong>Database-Size:</strong>
 									<field name="database_size_human"/>
 								</div>
-								<div t-if="record.target_release_ids">
+								<div>
 									<strong>Releases:</strong>
-									<t t-esc="record.target_release_ids" />
+									<field name="target_release_ids"/>
 								</div>
 							</div>
 						</t>
