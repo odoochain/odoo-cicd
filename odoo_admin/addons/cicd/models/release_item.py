@@ -86,7 +86,10 @@ class ReleaseItem(models.Model):
 
     def _is_failed(self):
         self.ensure_one()
-        return self.state and self.state.startswith('failed')
+        return self.state and self.state.startswith('failed') or \
+            self.state in [
+                'collecting_merge_technical',
+                'collecting_merge_conflict']
 
     @api.depends('state')
     def _compute_is_state(self):
@@ -210,11 +213,6 @@ class ReleaseItem(models.Model):
         except Exception:
             self.state = 'failed_technically'
             msg = traceback.format_exc()
-            self.release_id.message_post(body=(
-                "Deployment of "
-                f"version {self.name} "
-                f"failed: {msg}"))
-
             self.log_release = msg or ''
             if logsio:
                 self.log_release += '\n'.join(logsio.get_lines())
@@ -433,7 +431,6 @@ class ReleaseItem(models.Model):
         """
         Merges
         """
-        breakpoint()
         logsio = None
         self._lock()
 
@@ -560,3 +557,12 @@ class ReleaseItem(models.Model):
             raise ValidationError("Please provide a planned date.")
         self.confirmed_hotfix_branches = True
         self.cron_heartbeat()
+
+    @api.recordchange("state")
+    def _on_state_change_inform(self):
+        for rec in self:
+            if rec.is_failed:
+                rec.release_id.message_post(body=(
+                    "Deployment of "
+                    f"version {rec.name} "
+                    f"failed:\n{rec.log_release}"))
