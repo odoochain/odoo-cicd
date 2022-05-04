@@ -644,7 +644,7 @@ class Repository(models.Model):
 
                 # pushes to mainrepo locally not to web because its
                 # cloned to temp directory
-                shell.X(["git", "remote", "set-url", 'origin', self.url])
+                shell.X(["git", "remote", "remove", "origin"])
 
                 message_commit_sha = None
                 if make_info_commit_msg:
@@ -656,6 +656,7 @@ class Repository(models.Model):
 
                 # https://stackoverflow.com/questions/6656619/git-and-nasty-error-cannot-lock-existing-info-refs-fatal
                 shell.X(["git", "gc", "--prune=now"])
+                shell.X(["git", "remote", "add", "origin", self.url])
                 shell.X([
                     "git", "push", "--set-upstream", "-f", 'origin',
                     target_branch_name])

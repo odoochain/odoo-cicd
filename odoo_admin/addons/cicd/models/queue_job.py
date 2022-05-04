@@ -52,8 +52,8 @@ class queuejob(models.Model):
             'does not exist yet',
             'current transaction is aborted',
             'psycopg2.errors.InFailedSqlTransaction',
+            'Cannot start two jobs for same identity key',
         ]
-        o
 
         ignore_idkeys = [
             'docker-containers',
