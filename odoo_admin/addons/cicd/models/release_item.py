@@ -122,6 +122,7 @@ class ReleaseItem(models.Model):
         self.state = 'done'
         self.with_delay()._send_release_mail()
         self.with_delay()._inform_ticketsystem()
+        self.item_branch_id.with_delay().write({'active': False})
 
     def _send_release_mail(self):
         self.release_id.message_post_with_view(
