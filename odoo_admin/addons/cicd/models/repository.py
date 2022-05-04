@@ -304,8 +304,9 @@ class Repository(models.Model):
             repos = self.search([('autofetch', '=', True)])
 
         for repo in repos:
-            repo.with_delay(
-                identity_key=f"queuejob_fetch_{repo.short}")._queuejob_fetch()
+            repo.with_delay(identity_key=(
+                f"queuejob-fetch-{repo.short}"
+            ))._queuejob_fetch()
 
     def _queuejob_fetch(self):
         self.ensure_one()

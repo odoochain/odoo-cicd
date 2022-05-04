@@ -511,19 +511,21 @@ class CicdTestRun(models.Model):
             self._report(msg, exception=ex)
 
     def _compute_success_rate(self, task=None):
+        breakpoint()
         self.ensure_one()
         lines = self.mapped('line_ids').filtered(
             lambda x: x.ttype != 'log')
         success_lines = len(lines.filtered(
             lambda x: x.state == 'success' or x.force_success or x.reused))
-        if not lines:
+        any_failed_line = bool(self.line_ids.filtered(lambda x: x.state == 'failed'))
+        if not lines and not any_failed_line:
             # perhaps in debugging and quickly testing releasing
             # or turning off tests
             self.state = 'success'
             self.success_rate = 100
 
         else:
-            if all(
+            if lines and all(
                 x.state == 'success' or
                 x.force_success or x.reused for x in lines
             ):
