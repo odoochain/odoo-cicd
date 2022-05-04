@@ -50,7 +50,10 @@ class queuejob(models.Model):
             'LockNotAvailable',
             'Permission denied',
             'does not exist yet',
+            'current transaction is aborted',
+            'psycopg2.errors.InFailedSqlTransaction',
         ]
+        o
 
         ignore_idkeys = [
             'docker-containers',
@@ -75,6 +78,7 @@ class queuejob(models.Model):
                             ('identity_key', '=', job.identity_key),
                         ]):
                             job.state = 'pending'
+                            self.env.cr.commit()
 
     def _message_failed_job(self):
         # deactivate error mails as jobs are requeud
