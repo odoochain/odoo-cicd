@@ -85,6 +85,7 @@ class Repository(models.Model):
     make_dev_dumps = fields.Boolean("Make Dev Dumps")
     ticketsystem_id = fields.Many2one(
         "cicd.ticketsystem", string="Ticket-System")
+    revive_branch_on_push = fields.Boolean("Revive Branch on push")
 
     _sql_constraints = [
         ('name_unique', "unique(name)", _("Only one unique entry allowed.")),
@@ -285,7 +286,8 @@ class Repository(models.Model):
                         for branch in branches:
                             branch = branch.split("/")[-1]  # remotes/origin/isolated_unittests --> isolated_unittests
 
-                            branches = self.env['cicd.git.branch'].with_context(active_test=False).search([
+                            branches = self.env['cicd.git.branch'].with_context(
+                                active_test=False).search([
                                 ('name', '=', branch),
                                 ('repo_id', '=', self.id)
                             ])
@@ -487,7 +489,8 @@ class Repository(models.Model):
                 )):
 
                 with repo.machine_id._gitshell(
-                        repo, cwd=repo_path, logsio=logsio) as shell:
+                    repo, cwd=repo_path, logsio=logsio
+                ) as shell:
 
                     for branch in updated_branches:
                         repo._prepare_pulled_branch(shell, branch)
@@ -506,7 +509,7 @@ class Repository(models.Model):
 
                         date_registered = arrow.utcnow().strftime(DTF)
                         if not (branch := repo.branch_ids.filtered(
-                            lambda x: x.name == name)):
+                                lambda x: x.name == name)):
                             branch = repo.branch_ids.create({
                                 'name': name,
                                 'date_registered': date_registered,
@@ -519,6 +522,9 @@ class Repository(models.Model):
                                 shell, logsio=logsio, machine=machine)
                             branch._update_git_commits(
                                 shell, logsio, force_instance_folder=repo_path)
+
+                        if not branch.active and repo.revive_branch_on_push:
+                            branch.active = True
 
                         shell.checkout_branch(
                             repo.default_branch, cwd=repo_path)
