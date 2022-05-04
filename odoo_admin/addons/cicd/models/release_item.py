@@ -257,7 +257,7 @@ class ReleaseItem(models.Model):
                     logsio.info((
                         f"commits: {commits.mapped('name')}"
                     ))
-                    commits_checksum = '-'.join(commits.mapped('name'))
+                    commits_checksum = self._get_commit_checksum(commits)
                     logsio.info(f"Commits Checksum: {commits_checksum}")
                     if not commits:
                         self.state = 'collecting'
@@ -507,10 +507,13 @@ class ReleaseItem(models.Model):
                 f"{rec.id}"
             )
 
+    def _get_commit_checksum(self, commits):
+        return '-'.join(sorted(commits.mapped('name')))
+
     def _set_needs_merge(self):
         self.ensure_one()
-        self.needs_merge = '-'.join(
-            sorted(self.branch_ids.commit_id.mapped('name')))
+        self.needs_merge = self._get_commit_checksum(
+            self.branch_ids.commit_id)
 
     def retry(self):
         for rec in self:
