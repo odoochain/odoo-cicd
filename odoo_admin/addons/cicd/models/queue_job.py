@@ -50,7 +50,10 @@ class queuejob(models.Model):
             'LockNotAvailable',
             'Permission denied',
             'does not exist yet',
+            'current transaction is aborted',
+            'psycopg2.errors.InFailedSqlTransaction',
         ]
+        o
 
         ignore_idkeys = [
             'docker-containers',
@@ -73,7 +76,8 @@ class queuejob(models.Model):
                     if job.identity_key:
                         if job.identity_key not in idkeys:
                             if not self.search_count([
-                                ('state', 'not in', ['cancel', 'failed', 'done']),
+                                ('state', 'not in', [
+                                    'cancel', 'failed', 'done']),
                                 ('identity_key', '=', job.identity_key),
                             ]):
                                 job.requeue()
