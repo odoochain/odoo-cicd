@@ -639,6 +639,8 @@ class GitBranch(models.Model):
             })
 
         for branch in self.search([('state', '=', 'testable')]):
+            if branch.is_release_branch:
+                continue
             if not branch.test_run_ids.filtered(
                 lambda x: x.commit_id == branch.latest_commit_id):
                 create_test_run(branch)
