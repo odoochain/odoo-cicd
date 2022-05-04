@@ -281,7 +281,7 @@ class ReleaseItem(models.Model):
                             if not history_item:
                                 raise Exception((
                                     "No history item found for "
-                                    f"{x['sha']}"
+                                    f"{branchitem.commit_id.name}"
                                 ))
                             history_item = history_item[0]
                             branchitem.state = \
@@ -295,7 +295,7 @@ class ReleaseItem(models.Model):
                                 'state': 'conflict'})
                     self.state = 'collecting_merge_conflict'
                 else:
-                    if self.state == 'collecting_merge_conflict':
+                    if 'collecting' in self.state and self.is_failed:
                         self.state = 'collecting'
 
                 if self.branch_ids:

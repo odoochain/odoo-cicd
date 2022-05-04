@@ -759,3 +759,8 @@ for path in base.glob("*"):
             logsio.info(f"Task2 {i}")
             raise Exception('fault')
             time.sleep(1)
+
+    def _t1(self):
+        time.sleep(60)
+        # raise Exception('fail')
+        #time.sleep(10)

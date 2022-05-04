@@ -8,11 +8,12 @@
         "cicd",
         "cicd_jira",
         "field_onchange",
-        "queue_job",
-        "web_sheet_full_width",
-        "robot_utils",
         "mail_debrand",
+        "queue_avoid_dupl_idkey_run",
+        "queue_job",
+        "robot_utils",
         "visualize_queries",
+        "web_sheet_full_width"
     ],
     "version": 15.0,
     "addons_paths": [
@@ -23,6 +24,6 @@
         "addons/social",
         "addons/web",
         "addons_robot",
-        "addons/odoo_visualize_queries",
+        "addons/odoo_visualize_queries"
     ]
 }
