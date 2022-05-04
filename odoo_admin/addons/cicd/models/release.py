@@ -134,23 +134,23 @@ class Release(models.Model):
 
     def _heartbeat(self):
         self.ensure_one()
+        breakpoint()
         last_item = self.last_item_id
         if last_item.state in [False, 'ready'] or \
                 last_item.is_failed or \
                 last_item.is_done:
 
-            if last_item.release_type != 'hotfix':
-                planned_date = self.compute_next_date(
-                    max(
-                        last_item.planned_maximum_finish_date,
-                        fields.Datetime.now()
-                    )
+            planned_date = self.compute_next_date(
+                max(
+                    last_item.planned_maximum_finish_date,
+                    fields.Datetime.now()
                 )
+            )
 
-                self.item_ids = [[0, 0, {
-                    'planned_date': planned_date,
-                }]]
-                self.env.cr.commit()
+            self.item_ids = [[0, 0, {
+                'planned_date': planned_date,
+            }]]
+            self.env.cr.commit()
 
         items = last_item.search([
             ('release_id', '=', self.id),
