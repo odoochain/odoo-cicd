@@ -521,7 +521,10 @@ class ReleaseItem(models.Model):
                 rec.state = 'ready'
                 rec.planned_date = fields.Datetime.now()
 
-            elif rec.state in ['collecting_merge_conflict', 'collecting_merge_technical']:
+            elif rec.state in [
+                'collecting_merge_conflict',
+                'collecting_merge_technical'
+            ]:
                 rec.state = 'collecting'
                 rec._set_needs_merge()
 
