@@ -51,12 +51,10 @@
 									<strong>Database-Size:</strong>
 									<field name="database_size_human"/>
 								</div>
-								<!-- <div t-if="record.target_release_ids">
+								<div t-if="record.target_release_ids">
 									<strong>Releases:</strong>
-									<t t-foreach="record.target_release_ids" t-as="release">
-										<t t-esc="release.name"></t>
-									</t>
-								</div> -->
+									<t t-esc="record.target_release_ids" />
+								</div>
 							</div>
 						</t>
 
