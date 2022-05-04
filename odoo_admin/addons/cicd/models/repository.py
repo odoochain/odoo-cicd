@@ -658,8 +658,11 @@ class Repository(models.Model):
                 shell.X(["git", "gc", "--prune=now"])
                 shell.X(["git", "remote", "add", "origin", self.url])
                 shell.X([
-                    "git", "push",
-                    target_branch_name])
+                    "git", "branch",
+                    "--set-upstream-to=origin/" + target_branch_name,
+                    target_branch_name
+                ])
+                shell.X(["git", "push"])
 
                 if not (target_branch := self.branch_ids.filtered(
                         lambda x: x.name == target_branch_name)):
