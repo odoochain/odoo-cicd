@@ -59,6 +59,7 @@ class queuejob(models.Model):
             'machine-update-vol-sizes-',
             'update_databases',
         ]
+        idkeys = set()
 
         for reason in reasons:
             for job in self.search([
@@ -70,11 +71,15 @@ class queuejob(models.Model):
                         break
                 else:
                     if job.identity_key:
-                        if not self.search_count([
-                            ('state', 'not in', ['cancel', 'failed', 'done']),
-                            ('identity_key', '=', job.identity_key),
-                        ]):
-                            job.state = 'pending'
+                        if job.identity_key not in idkeys:
+                            if not self.search_count([
+                                ('state', 'not in', ['cancel', 'failed', 'done']),
+                                ('identity_key', '=', job.identity_key),
+                            ]):
+                                job.requeue()
+                        idkeys.append(job.identity_key)
+                    else:
+                        job.requeue()
 
     def _message_failed_job(self):
         # deactivate error mails as jobs are requeud
