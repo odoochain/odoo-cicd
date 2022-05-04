@@ -258,6 +258,7 @@ class ReleaseItem(models.Model):
                         f"commits: {commits.mapped('name')}"
                     ))
                     commits_checksum = '-'.join(commits.mapped('name'))
+                    logsio.info(f"Commits Checksum: {commits_checksum}")
                     if not commits:
                         self.state = 'collecting'
                         return
@@ -274,6 +275,7 @@ class ReleaseItem(models.Model):
                                 f"{branches}"
                             )
                         )
+                    logsio.info(f"Message commit: {message_commit}")
                     if message_commit:
                         item_branch = message_commit.branch_ids.filtered(
                             lambda x: x.name == self.item_branch_name)
