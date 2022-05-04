@@ -24,6 +24,9 @@
 									</div>
 								</div>
 								<hr class="mt4 mb4"/>
+								<div t-if="record.ticketsystem_name">
+									<field name="ticketsystem_name"/>
+								</div>
 								<div t-if="record.assignee_id">
 									<strong>Assigned To:</strong>
 									<field name="assignee_id"/>
