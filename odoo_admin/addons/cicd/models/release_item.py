@@ -378,13 +378,7 @@ class ReleaseItem(models.Model):
 
             if (self.needs_merge and self.needs_merge != self.merged_checksum) \
                     or not self.item_branch_id:
-                """
-                Why with delay: after a longer merge committing the state here
-                raised serialize error
-                """
-                self.with_delay(identity_key=(
-                    f"release-item-{self.id}-merge"
-                )).merge()
+                self.merge()
                 return
 
             if self.stop_collecting_at and self.stop_collecting_at < now:
