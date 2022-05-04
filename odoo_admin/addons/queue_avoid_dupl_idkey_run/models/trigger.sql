@@ -7,7 +7,7 @@ DECLARE counted int;
 BEGIN
     SELECT id, state, identity_key
 	INTO qj
-	FROM stock_move
+	FROM queue_job
 	WHERE id = NEW.id;
 
 	IF qj.state = 'started' THEN
@@ -34,6 +34,6 @@ $BODY$
 
 DROP TRIGGER IF EXISTS trigger_queuejob_state_check_at_commit ON queue_job;
 
-CREATE CONSTRAINT TRIGGER trigger_stock_move_checks_update_at_commit
+CREATE CONSTRAINT TRIGGER trigger_queuejob_state_check_at_commit
 AFTER UPDATE ON queue_job DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW EXECUTE PROCEDURE func_trigger_queuejob_state_check_at_commit();
