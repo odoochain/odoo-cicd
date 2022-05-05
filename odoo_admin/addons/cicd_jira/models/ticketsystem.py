@@ -54,4 +54,8 @@ class TicketSystem(models.Model):
     def _jira_comment(self, issue_name, comment):
         assert isinstance(issue_name, str)
         jira = self._get_jira_connection()
-        jira.add_comment(issue_name, comment)
+        try:
+            jira.add_comment(issue_name, comment)
+        except JIRA.exceptions.JIRAError as jira_ex:
+            if jira_ex.status_code != 404:
+                raise
