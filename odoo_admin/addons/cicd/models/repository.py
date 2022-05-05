@@ -661,13 +661,19 @@ class Repository(models.Model):
                         "git", "log", "-n1", "--format=%H"])['stdout'].strip()
 
                 # https://stackoverflow.com/questions/6656619/git-and-nasty-error-cannot-lock-existing-info-refs-fatal
+                logsio.info("git gc prunenow")
                 shell.X(["git", "gc", "--prune=now"])
+                logsio.info("git remote add origin")
                 shell.X(["git", "remote", "add", "origin", self.url])
+                logsio.info("git fetch origin")
+                shell.X(["git", "fetch", "origin"])
+                logsio.info("git branch setupstream")
                 shell.X([
                     "git", "branch",
                     "--set-upstream-to=origin/" + target_branch_name,
                     target_branch_name
                 ])
+                logsio.info(f"git push {target_branch_name}")
                 shell.X([
                     "git", "push", "--set-upstream",
                     "origin", target_branch_name])
