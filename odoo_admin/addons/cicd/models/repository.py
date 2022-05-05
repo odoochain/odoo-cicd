@@ -661,7 +661,6 @@ class Repository(models.Model):
                 shell.X(["git", "gc", "--prune=now"])
                 shell.X(["git", "remote", "add", "origin", self.url])
                 shell.X(["git", "fetch", "origin"])
-                logsio.info(f"git push {target_branch_name}")
                 shell.X([
                     "git", "push", "--set-upstream",
                     "origin", target_branch_name])
