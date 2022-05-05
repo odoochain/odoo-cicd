@@ -86,10 +86,7 @@ class ReleaseItem(models.Model):
 
     def _is_failed(self):
         self.ensure_one()
-        return self.state and self.state.startswith('failed') or \
-            self.state in [
-                'collecting_merge_technical',
-                'collecting_merge_conflict']
+        return self.state and self.state.startswith('failed')
 
     @api.depends('state')
     def _compute_is_state(self):
@@ -301,7 +298,7 @@ class ReleaseItem(models.Model):
                                 'state': 'conflict'})
                     self.state = 'collecting_merge_conflict'
                 else:
-                    if 'collecting' in self.state and self.is_failed:
+                    if 'collecting' in self.state and self.state != 'collecting':
                         self.state = 'collecting'
 
                 if self.branch_ids:
@@ -565,7 +562,7 @@ class ReleaseItem(models.Model):
     @api.recordchange("state")
     def _on_state_change_inform(self):
         for rec in self:
-            if rec.is_failed:
+            if rec.is_failed or rec.state == "collecting_merge_technical":
                 rec.release_id.message_post(body=(
                     "Deployment of "
                     f"version {rec.name} "
