@@ -660,7 +660,12 @@ class Repository(models.Model):
                 shell.X(["git", "remote", "remove", "origin"])
                 shell.X(["git", "gc", "--prune=now"])
                 shell.X(["git", "remote", "add", "origin", self.url])
+                shell.X(["git", "config", "push.default", "current"])
                 shell.X(["git", "fetch", "origin"])
+                try:
+                    shell.X(["git", "pull"])
+                except Exception as ex:
+                    logsio.error(str(ex))
                 shell.X([
                     "git", "push", "--set-upstream",
                     "origin", target_branch_name])
