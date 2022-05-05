@@ -11,6 +11,9 @@
 			<header position="inside">
 				<button name="run_now" string="Run Now" type="object" groups="base.group_no_one"/>
 			</header>
+			<field name="channel" position="after">
+				<field name="identity_key"/>
+			</field>
 		</field>
 	</record>
 

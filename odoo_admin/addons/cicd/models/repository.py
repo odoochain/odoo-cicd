@@ -648,10 +648,6 @@ class Repository(models.Model):
                 if conflicts:
                     raise MergeConflict(conflicts)
 
-                # pushes to mainrepo locally not to web because its
-                # cloned to temp directory
-                shell.X(["git", "remote", "remove", "origin"])
-
                 message_commit_sha = None
                 if make_info_commit_msg:
                     shell.X([
@@ -661,14 +657,18 @@ class Repository(models.Model):
                         "git", "log", "-n1", "--format=%H"])['stdout'].strip()
 
                 # https://stackoverflow.com/questions/6656619/git-and-nasty-error-cannot-lock-existing-info-refs-fatal
+                shell.X(["git", "remote", "remove", "origin"])
                 shell.X(["git", "gc", "--prune=now"])
                 shell.X(["git", "remote", "add", "origin", self.url])
+                shell.X(["git", "config", "push.default", "current"])
+                shell.X(["git", "fetch", "origin"])
+                try:
+                    shell.X(["git", "pull"])
+                except Exception as ex:
+                    logsio.error(str(ex))
                 shell.X([
-                    "git", "branch",
-                    "--set-upstream-to=origin/" + target_branch_name,
-                    target_branch_name
-                ])
-                shell.X(["git", "push"])
+                    "git", "push", "--set-upstream",
+                    "origin", target_branch_name])
 
                 if not (target_branch := self.branch_ids.filtered(
                         lambda x: x.name == target_branch_name)):

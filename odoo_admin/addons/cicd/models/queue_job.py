@@ -35,6 +35,17 @@ class queuejob(models.Model):
 
     @api.model
     def requeue_jobs(self):
+
+        delete = [
+            "docker-containers-",
+            "machine-update-vol-sizes",
+        ]
+        for delete in delete:
+            self.search([
+                ('state', '=', 'failed'),
+                ('identity_key', 'ilike', f"%{delete}%")]).unlink()
+
+
         reasons = [
             'could not serialize access due to concurrent update',
             'cannot stat',
@@ -81,7 +92,7 @@ class queuejob(models.Model):
                                 ('identity_key', '=', job.identity_key),
                             ]):
                                 job.requeue()
-                        idkeys.append(job.identity_key)
+                        idkeys.add(job.identity_key)
                     else:
                         job.requeue()
 

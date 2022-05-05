@@ -6,7 +6,7 @@ class ItemBranch(models.Model):
     _name = 'cicd.release.item.branch'
 
     item_id = fields.Many2one(
-        'cicd.release.item', string="Item", required=True)
+        'cicd.release.item', string="Item", required=True, ondelete="cascade")
     branch_id = fields.Many2one(
         'cicd.git.branch', string="Branch", required=True)
     commit_id = fields.Many2one(
