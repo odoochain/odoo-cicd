@@ -722,13 +722,11 @@ class GitBranch(models.Model):
     def _cron_check_blocking_done(self):
         dt = arrow.get().now().strftime("%Y-%m-%d %H:%M:%S")
         with self._extra_env() as x_self:
-            branch_ids = x_self.search([('block_updates_until', '<', dt)]).ids
-        for branch_id in branch_ids:
-            with self._extra_env() as x_self:
-                branch = x_self.browse().branch_id
-                branch.block_updates_until = False
-                branch.update_all_modules()
-                branch.env.cr.commit()
+            branches = x_self.search([('block_updates_until', '<', dt)]).ids
+        for branch in branches:
+            branch.block_updates_until = False
+            branch.with_delay().update_all_modules()
+            branch.env.cr.commit()
 
     def _compute_allowed_machines(self):
         for rec in self:

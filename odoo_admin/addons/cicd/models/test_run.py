@@ -517,7 +517,8 @@ class CicdTestRun(models.Model):
             lambda x: x.ttype != 'log')
         success_lines = len(lines.filtered(
             lambda x: x.state == 'success' or x.force_success or x.reused))
-        any_failed_line = bool(self.line_ids.filtered(lambda x: x.state == 'failed'))
+        any_failed_line = bool(
+            self.line_ids.filtered(lambda x: x.state == 'failed'))
         if not lines and not any_failed_line:
             # perhaps in debugging and quickly testing releasing
             # or turning off tests
