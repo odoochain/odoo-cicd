@@ -21,6 +21,8 @@
 						<button name="backup" string="Backup Dump" type="object"/>
 						<button name="restore_dump" string="Restore Dump" type="object" groups="cicd.group_key_user"/>
 						<button name="export_excel" string="Export Excel" type="object" />
+						<button name="make_snapshot" string="Make Snapshot" type="object"/>
+						<button name="restore_snapshot" string="Restore Snapshot" type="object"/>
 						<field name="state" widget="statusbar" options="{'clickable': 0}" statusbar_visible="new,approve,review_code,testable,tested,candidate,release,done" />
 					</header>
 					<sheet>

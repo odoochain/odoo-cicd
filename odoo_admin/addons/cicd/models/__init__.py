@@ -116,6 +116,8 @@ from . import wiz_dump
 from . import export_excel
 from . import branch_epic
 from . import branch_type
+from . import wiz_makesnapshot
+from . import wiz_restoresnapshot
 
 
 from odoo import _, api, fields, models, SUPERUSER_ID

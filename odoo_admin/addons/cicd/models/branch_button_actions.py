@@ -141,7 +141,6 @@ class Branch(models.Model):
         machine.make_login_possible_for_webssh_container()
         path = machine._get_volume('source')
         path = path / self.project_name
-        breakpoint()
         shell_url = _get_shell_url(
             machine.effective_host,
             machine.ssh_user_cicdlogin,
