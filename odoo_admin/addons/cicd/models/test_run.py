@@ -242,29 +242,20 @@ class CicdTestRun(models.Model):
         self, msg, state='success',
         exception=None, duration=None, ttype='log'
     ):
-        # if not hasattr(report, 'last_report_time'):
-        #     report.last_report_time = arrow.get()
-        # if duration is None:
-        #     duration = (arrow.get() - report.last_report_time)\
-        #         .total_seconds()
-        # elif isinstance(duration, datetime.timedelta):
-        #     duration = duration.total_seconds()
         if duration and isinstance(duration, datetime.timedelta):
             duration = duration.total_seconds()
 
         ttype = ttype or 'log'
         data = {
-            'state': state,
+            'state': state or 'success',
             'name': msg,
             'ttype': ttype,
             'duration': duration
         }
         if exception:
-            state = 'failed'
+            data['state'] = 'failed'
             msg = (msg or '') + '\n' + str(exception)
             data['exc_info'] = str(exception)
-        else:
-            state = state or 'success'
 
         self.line_ids = [[0, 0, data]]
         self.env.cr.commit()
