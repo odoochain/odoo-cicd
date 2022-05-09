@@ -45,6 +45,7 @@ services:
 
   cicd_delegator:
     build: ${CUSTOMS_DIR}/../cicd_delegator
+    restart: 'unless-stopped'
     networks:
         - internal
         - cicd_delegator
@@ -52,7 +53,6 @@ services:
       odoo_framework.apply_env: 0
     environment:
         INDEX_HOST: http://${PROJECT_NAME}_proxy:80
-    restart: "unless-stopped"
     ports:
       - "5555:80"
     volumes:
@@ -73,6 +73,7 @@ services:
     networks:
       - internal
     privileged: true
+    restart: 'unless-stopped'
 
   cicd_postgres:
     image: postgres:${CICD_POSTGRES_VERSION}
