@@ -145,8 +145,12 @@ class GitBranch(models.Model):
     date_reactivated = fields.Datetime("Date reactivated")
     assignee_id = fields.Many2one('res.users', string="Asignee")
 
-    snapshots_possible = fields.Boolean(
-        "Snapshots Possible", compute="_compute_snapshots_possible")
+    enable_snapshots = fields.Boolean("Enable Snapshots")
+
+    @api.recordchange("enable_snapshots")
+    def _on_change_enable_snapshots(self):
+        for rec in self:
+            rec._make_task("_reload_and_restart")
 
     def make_snapshot(self):
         return {
@@ -165,18 +169,6 @@ class GitBranch(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'new',
         }
-
-    @api.depends("reload_config")
-    def _compute_snapshots_possible(self):
-        for rec in self:
-            configlines = (self.reload_config or '').splitlines()
-            possible = False
-            for line in reversed(configlines):
-                if line.startswith("#"):
-                    continue
-                if 'RUN_POSTGRES=1' in line:
-                    possible = True
-            self.snapshots_possible = possible
 
     @api.recordchange("active")
     def _on_active_update_date(self):
@@ -637,6 +629,8 @@ class GitBranch(models.Model):
         for rec in self:
             with rec.machine_id._shell() as shell:
                 folder = rec._get_instance_folder(shell.machine)
+                with shell.clone(cwd=folder) as shell2:
+                    shell2.odoo('down', '-v', allow_error=True)
                 shell.remove(folder)
 
     def delete_db(self):
