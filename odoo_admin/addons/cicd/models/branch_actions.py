@@ -548,7 +548,7 @@ class Branch(models.Model):
     def _fetch_from_registry(self, shell):
         if self._is_hub_configured(shell):
             shell.odoo('docker-registry', 'login')
-            shell.odoo('docker-registry', 'regpull')
+            shell.odoo('docker-registry', 'regpull', allow_error=True)
 
     def _push_to_registry(self, shell):
         if self._is_hub_configured(shell):
