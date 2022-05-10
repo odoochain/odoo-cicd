@@ -202,7 +202,7 @@ class CicdMachine(models.Model):
 
                 command_file = '/tmp/commands.cicd'
                 homedir = '/home/' + rec.ssh_user_cicdlogin
-                test_file_if_required = homedir + '/.setup_login_done.v4'
+                test_file_if_required = homedir + '/.setup_login_done.v5'
                 user_upper = rec.ssh_user_cicdlogin.upper()
                 cicd_user_upper = rec.ssh_user.upper()
 
@@ -305,13 +305,18 @@ echo ""
 echo "------------------------------------------------------------------------------------"
 
                 """.format(**locals())
-                # in this path there ar, the keys that are used by web ssh container /opt/cicd_sshkey
+                # in this path there ar, the keys that are used by
+                # web ssh container /opt/cicd_sshkey
                 if not shell.exists(test_file_if_required):
                     shell.put(commands.strip() + "\n", command_file)
                     cmd = ["sudo", "/bin/bash", command_file]
                     res = shell.X(cmd, allow_error=True)
                     if res['exit_code']:
-                        raise UserError(f"Failed to setup restrict login. Please execute on host:\n{' '.join(cmd)}\n\nException:\n{res['stderr']}")
+                        raise UserError((
+                            "Failed to setup restrict login. "
+                            "Please execute on host:\n"
+                            f"{' '.join(cmd)}\n\n"
+                            f"Exception:\n{res['stderr']}"))
 
     def write(self, vals):
         if vals.get('upload_dump'):
@@ -363,7 +368,6 @@ echo "--------------------------------------------------------------------------
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix='.'))
             try:
-
                 if repo._unblocked('login_type') == 'key':
                     env['GIT_SSH_COMMAND'] += f'   -i {file}  '
                     shell.put(repo._unblocked('key'), file)
