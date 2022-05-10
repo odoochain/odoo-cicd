@@ -248,6 +248,32 @@ ln -sf /usr/bin/sudo "{homedir}/programs/sudo"
 ln -sf /usr/bin/tmux "{homedir}/programs/tmux"
 ln -sf /usr/bin/rbash "{homedir}/programs/rbash"
 ln -sf /usr/bin/pkill "{homedir}/programs/pkill"
+ln -sf /usr/bin/base64 "{homedir}/programs/base64"
+ln -sf /usr/bin/mktemp "{homedir}/programs/mktemp"
+ln -sf /usr/bin/rm "{homedir}/programs/rm"
+ln -sf /usr/bin/reset "{homedir}/programs/reset"
+
+#------------------------------------------------------------------------------
+tee "{homedir}/programs/start_tmux" <<'EOF'
+set -x
+SESSION_NAME=$1
+tempfile="$(mktemp)"
+rm "$tempfile"
+echo "reset" > $tempfile
+
+if [[ -z "$2" ]]; then
+    echo "rbash" >> "$tempfile"
+else
+    echo "$2" | base64 -d >> "$tempfile"
+fi
+tmux has-session -t "$SESSION_NAME" || \\
+    tmux new-session -s "$SESSION_NAME" -d rbash $tempfile
+tmux has-session -t "$SESSION_NAME" && \\
+    tmux attach -t "$SESSION_NAME"
+#rm $tempfile
+EOF
+chmod a+x "{homedir}/programs/start_tmux"
+
 
 #------------------------------------------------------------------------------
 # setting username / password
