@@ -199,6 +199,10 @@ class CicdReleaseAction(models.Model):
                         logsio.info("Building Docker Images")
                         #TODO: 'docker-compose' pull otherwise some images maybe not downloaded like mongo-express which are not builded
                         # do not use docker-compose build --pull it will not pull images which must be not builded
+    
+                        #after wodoo update uncomment this
+                        # shell.odoo("docker", "pull")
+
                         shell.odoo("build")
                         shell.odoo("docker-registry", "login")
                         logsio.info("Uploading to registry")
