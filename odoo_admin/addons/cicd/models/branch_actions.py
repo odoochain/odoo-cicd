@@ -13,7 +13,13 @@ from pathlib import Path
 from odoo.addons.queue_job.exception import RetryableJobError
 import logging
 from .repository import InvalidBranchName
-current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
+current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(
+    inspect.currentframe()))))
+
+def effify(text, values):
+    for line in text.splitlines():
+        line2 = eval('f"' + line + '"', values).strip()
+        yield line2
 
 logger = logging.getLogger(__name__)
 
@@ -520,7 +526,6 @@ class Branch(models.Model):
         if custom_settings:
             content += "\n" + custom_settings
 
-        breakpoint()
         registry = registry or self.repo_id.registry_id
         if registry:
             content += (
@@ -531,13 +536,16 @@ class Branch(models.Model):
             content += (
                 "\nRUN_POSTGRES=1"
                 "\nDB_HOST=postgres"
+                "\nDB_PORT=5432"
+                "\nDB_USER=odoo"
+                "\nDB_PASSWORD=odoo"
                 "\n"
             )
 
-        content.format(
+        content = '\n'.join(effify(content, dict(
             branch=self,
             project_name=project_name,
-            machine=machine)
+            machine=machine))).strip()
         return content
 
     def _cron_autobackup(self):

@@ -723,20 +723,23 @@ class GitBranch(models.Model):
 
     def _get_dbsize_from_shell(self):
         self.ensure_one()
-        with self.shell() as shell:
-            size = int(shell.odoo('db-size')['stdout'].split("---")[1].strip())
+        with self.shell(logs_title='getdbsize') as shell:
+            output = shell.odoo('db-size')['stdout']
+            size = int(output.split("---")[1].strip())
         return size
 
     def _compute_databases(self):
         for rec in self:
             if rec.enable_snapshots:
-                rec.database_size = rec._get_dbsize_from_shell()
+                try:
+                    rec.database_size = rec._get_dbsize_from_shell()
+                except:
+                    rec.database_size = -1
             else:
                 rec.database_ids = self.env['cicd.database'].sudo().search([
                     ('name', '=', rec.database_project_name)])
                 rec.database_size = sum(rec.database_ids.mapped('size'))
-                rec.database_size_human = humanize.naturalsize(
-                    rec.database_size)
+            rec.database_size_human = humanize.naturalsize(rec.database_size)
 
     @api.depends("task_ids", "task_ids.state")
     def _compute_current_task(self):
