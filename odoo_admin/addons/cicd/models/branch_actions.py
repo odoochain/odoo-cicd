@@ -520,6 +520,7 @@ class Branch(models.Model):
         if custom_settings:
             content += "\n" + custom_settings
 
+        breakpoint()
         registry = registry or self.repo_id.registry_id
         if registry:
             content += (
