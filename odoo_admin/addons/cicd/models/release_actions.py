@@ -197,8 +197,8 @@ class CicdReleaseAction(models.Model):
                             "git", "checkout", release_item.commit_id.name])
                         shell.odoo("-xs", settings_file, "reload")
                         logsio.info("Building Docker Images")
-                        #TODO: build with --pull otherwise some images maybe not downloaded like mongo-express which are not builded
-                        #shell.odoo("build", "--pull")
+                        #TODO: 'docker-compose' pull otherwise some images maybe not downloaded like mongo-express which are not builded
+                        # do not use docker-compose build --pull it will not pull images which must be not builded
                         shell.odoo("build")
                         shell.odoo("docker-registry", "login")
                         logsio.info("Uploading to registry")
