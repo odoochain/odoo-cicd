@@ -324,6 +324,7 @@ class Branch(models.Model):
             )).execute()
 
     def _after_build(self, shell, logsio, **kwargs):
+        self.last_access = fields.Datetime.now()  # to avoid cycle down
         shell.odoo(
             "remove-settings", '--settings', 'web.base.url,web.base.url.freeze'
             )
