@@ -631,16 +631,16 @@ class GitBranch(models.Model):
         Task: create open test runs for testable
         branches
         """
-
         def create_test_run(branch):
             self.env['cicd.test.run'].create({
                 'branch_id': branch.id,
                 'commit_id': branch.latest_commit_id.id,
             })
 
-        for branch in self.search([('state', '=', 'testable')]):
-            if branch.is_release_branch:
-                continue
+        for branch in self.search([
+            ('state', '=', 'testable'),
+            ('is_release_branch', '=', False)
+        ]):
             if not branch.test_run_ids.filtered(
                 lambda x: x.commit_id == branch.latest_commit_id):
                 create_test_run(branch)
