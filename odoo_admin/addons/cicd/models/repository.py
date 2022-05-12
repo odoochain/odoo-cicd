@@ -667,7 +667,7 @@ class Repository(models.Model):
                 except Exception as ex:
                     logsio.error(str(ex))
                 shell.X([
-                    "git", "push", "--set-upstream",
+                    "git", "push", "-f", "--set-upstream",
                     "origin", target_branch_name])
 
                 if not (target_branch := self.branch_ids.filtered(

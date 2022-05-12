@@ -520,7 +520,7 @@ class CicdTestRun(models.Model):
             if lines and all(
                 x.state == 'success' or
                 x.force_success or x.reused for x in lines
-            ):
+            ) and not any_failed_line:
                 self.state = 'success'
             else:
                 self.state = 'failed'

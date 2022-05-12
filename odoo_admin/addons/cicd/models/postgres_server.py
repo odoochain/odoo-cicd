@@ -100,7 +100,11 @@ class PostgresServer(models.Model):
         for rec in self:
             if not rec.filedbsizes.exists():
                 continue
-            dbs = json.loads(rec.filedbsizes.read_text())
+            try:
+                dbs = json.loads(rec.filedbsizes.read_text())
+            except json.decoder.JSONDecodeError:
+                # file written in that moment ignore
+                continue
 
             with rec._singleton("update_databases"):
                 all_dbs = list(map(lambda x: x['db'], dbs))

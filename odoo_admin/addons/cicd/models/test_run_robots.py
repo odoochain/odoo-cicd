@@ -40,8 +40,8 @@ class TestrunUnittest(models.Model):
             shell.odoo("kill", allow_error=True)
             shell.odoo("rm", allow_error=True)
             shell.odoo('up', '-d', 'postgres')
-            shell.odoo('up', '-d')
             self._wait_for_postgres(shell)
+            shell.odoo('up', '-d')
 
             try:
                 shell.odoo(

@@ -298,7 +298,8 @@ class ReleaseItem(models.Model):
                                 'state': 'conflict'})
                     self.state = 'collecting_merge_conflict'
                 else:
-                    if 'collecting' in self.state and self.state != 'collecting':
+                    if 'collecting' in self.state and \
+                            self.state != 'collecting':
                         self.state = 'collecting'
 
                 if self.branch_ids:
@@ -524,6 +525,7 @@ class ReleaseItem(models.Model):
                 'collecting_merge_technical'
             ]:
                 rec.state = 'collecting'
+                rec.merged_checksum = False
                 rec._set_needs_merge()
 
             else:
