@@ -481,3 +481,10 @@ echo "--------------------------------------------------------------------------
                 f"{path}/{self.env.cr.dbname}.machine."
                 f"{rec.id}.containers"
             )
+
+    def performance_ssh(self, lines=1000):
+        self.ensure_one()
+        branch = self.env['cicd.git.branch'].search([], limit=1)
+        with branch.shell('test') as shell:
+            output = shell.odoo('produce-test-lines', str(lines))
+            assert(len(output['stdout'].splitlines()) > 999)
