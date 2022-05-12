@@ -18,6 +18,7 @@ DONE = "done"
 STARTED = "started"
 FAILED = "failed"
 
+
 class Task(models.Model):
     _inherit = ['mixin.queuejob.semaphore']
     _name = 'cicd.task'
@@ -36,7 +37,8 @@ class Task(models.Model):
     is_done = fields.Boolean(
         compute="_compute_is_done", store=False, prefetch=False)
 
-    state = fields.Selection(selection=STATES, string="State")
+    state = fields.Selection(
+        selection=STATES, string="State", default=lambda self: PENDING)
     log = fields.Text("Log", readonly=True)
     dump_used = fields.Char("Dump used", readonly=True)
     duration = fields.Integer("Duration [s]", readonly=True)
@@ -52,6 +54,8 @@ class Task(models.Model):
     def _compute_state(self):
         for rec in self:
             if rec.finished:
+                if rec.state not in [DONE, FAILED]:
+                    rec.state = FAILED
                 continue
             qj = rec._semaphore_get_queuejob()
             if not qj:
@@ -117,7 +121,7 @@ class Task(models.Model):
         for task in self.search([('state', '=', PENDING)], order='id asc'):
             try:
                 task._check_previous_tasks()
-            except RetryableJobError as ex:
+            except RetryableJobError:
                 continue
             else:
                 task._exec()
@@ -190,7 +194,7 @@ class Task(models.Model):
         logsio = None
         try:
             self._check_previous_tasks()
-        except RetryableJobError as ex:
+        except RetryableJobError:
             if self.state != PENDING:
                 self.state = PENDING
             return
