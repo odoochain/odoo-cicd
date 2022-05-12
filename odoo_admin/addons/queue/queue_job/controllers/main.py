@@ -104,6 +104,8 @@ class RunJobController(http.Controller):
                 job.store()
             raise
 
+        import sys
+        sys.exit(0)
         return ""
 
     @http.route("/queue_job/create_test_job", type="http", auth="user")
