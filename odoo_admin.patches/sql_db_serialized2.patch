@@ -1,0 +1,25 @@
+From b19c2a1849d3acd21456611c74cca4dfd7d7e592 Mon Sep 17 00:00:00 2001
+From: Marc Wimmer <marc@itewimmer.de>
+Date: Thu, 12 May 2022 15:23:14 +0200
+Subject: [PATCH] for patch
+
+---
+ odoo/sql_db.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/odoo/sql_db.py b/odoo/sql_db.py
+index 2022ad6d..abd96be1 100644
+--- a/odoo/sql_db.py
++++ b/odoo/sql_db.py
+@@ -231,7 +231,7 @@ class Cursor(BaseCursor):
+     """
+     IN_MAX = 1000   # decent limit on size of IN queries - guideline = Oracle limit
+ 
+-    def __init__(self, pool, dbname, dsn, serialized=True):
++    def __init__(self, pool, dbname, dsn, serialized=False):
+         super().__init__()
+ 
+         self.sql_from_log = {}
+-- 
+2.34.1
+

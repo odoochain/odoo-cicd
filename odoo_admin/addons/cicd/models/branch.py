@@ -145,8 +145,12 @@ class GitBranch(models.Model):
     date_reactivated = fields.Datetime("Date reactivated")
     assignee_id = fields.Many2one('res.users', string="Asignee")
 
-    snapshots_possible = fields.Boolean(
-        "Snapshots Possible", compute="_compute_snapshots_possible")
+    enable_snapshots = fields.Boolean("Enable Snapshots")
+
+    @api.recordchange("enable_snapshots")
+    def _on_change_enable_snapshots(self):
+        for rec in self:
+            rec._make_task("_reload_and_restart")
 
     def make_snapshot(self):
         return {
@@ -165,18 +169,6 @@ class GitBranch(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'new',
         }
-
-    @api.depends("reload_config")
-    def _compute_snapshots_possible(self):
-        for rec in self:
-            configlines = (self.reload_config or '').splitlines()
-            possible = False
-            for line in reversed(configlines):
-                if line.startswith("#"):
-                    continue
-                if 'RUN_POSTGRES=1' in line:
-                    possible = True
-            self.snapshots_possible = possible
 
     @api.recordchange("active")
     def _on_active_update_date(self):
@@ -637,6 +629,8 @@ class GitBranch(models.Model):
         for rec in self:
             with rec.machine_id._shell() as shell:
                 folder = rec._get_instance_folder(shell.machine)
+                with shell.clone(cwd=folder) as shell2:
+                    shell2.odoo('down', '-v', allow_error=True)
                 shell.remove(folder)
 
     def delete_db(self):
@@ -727,11 +721,24 @@ class GitBranch(models.Model):
             rec.commit_ids_ui = rec.commit_ids.sorted(
                 lambda x: x.date, reverse=True)
 
+    def _get_dbsize_from_shell(self):
+        self.ensure_one()
+        with self.shell(logs_title='getdbsize') as shell:
+            output = shell.odoo('db-size')['stdout']
+            size = int(output.split("---")[1].strip())
+        return size
+
     def _compute_databases(self):
         for rec in self:
-            rec.database_ids = self.env['cicd.database'].sudo().search([
-                ('name', '=', rec.database_project_name)])
-            rec.database_size = sum(rec.database_ids.mapped('size'))
+            if rec.enable_snapshots:
+                try:
+                    rec.database_size = rec._get_dbsize_from_shell()
+                except:
+                    rec.database_size = -1
+            else:
+                rec.database_ids = self.env['cicd.database'].sudo().search([
+                    ('name', '=', rec.database_project_name)])
+                rec.database_size = sum(rec.database_ids.mapped('size'))
             rec.database_size_human = humanize.naturalsize(rec.database_size)
 
     @api.depends("task_ids", "task_ids.state")

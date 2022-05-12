@@ -21,8 +21,8 @@
 						<button name="backup" string="Backup Dump" type="object"/>
 						<button name="restore_dump" string="Restore Dump" type="object" groups="cicd.group_key_user"/>
 						<button name="export_excel" string="Export Excel" type="object" />
-						<button name="make_snapshot" string="Make Snapshot" type="object"/>
-						<button name="restore_snapshot" string="Restore Snapshot" type="object"/>
+						<button name="make_snapshot" string="Make Snapshot" type="object" attrs="{'invisible': [('enable_snapshots', '=', False)]}"/>
+						<button name="restore_snapshot" string="Restore Snapshot" type="object" attrs="{'invisible': [('enable_snapshots', '=', False)]}"/>
 						<field name="state" widget="statusbar" options="{'clickable': 0}" statusbar_visible="new,approve,review_code,testable,tested,candidate,release,done" />
 					</header>
 					<sheet>
@@ -105,6 +105,10 @@
 								</field>
 							</page>
 							<page name="instance" string="Instance">
+								<group string="Snapshots" col='2'>
+									<field name="enable_snapshots"/>
+									<div>When enabled the database will be empty and you should restore a dump.</div>
+								</group>
 								<group>
 									<button name="fetch" string="Fetch Branch from repository" type="object" />
 									<button name="checkout_latest" string="Update Instance Source-Code" type="object" />

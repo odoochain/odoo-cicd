@@ -1,0 +1,25 @@
+From a5f26581533402c960f3e6d65203144ed31c6550 Mon Sep 17 00:00:00 2001
+From: Marc Wimmer <marc@itewimmer.de>
+Date: Thu, 12 May 2022 15:24:52 +0200
+Subject: [PATCH] for patch
+
+---
+ queue_job/controllers/main.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/queue_job/controllers/main.py b/queue_job/controllers/main.py
+index a68897e7..e8b54930 100644
+--- a/queue_job/controllers/main.py
++++ b/queue_job/controllers/main.py
+@@ -104,6 +104,8 @@ class RunJobController(http.Controller):
+                 job.store()
+             raise
+ 
++        import sys
++        sys.exit(0)
+         return ""
+ 
+     @http.route("/queue_job/create_test_job", type="http", auth="user")
+-- 
+2.34.1
+
