@@ -196,6 +196,8 @@ class CicdReleaseAction(models.Model):
                         shell.X([
                             "git", "checkout", release_item.commit_id.name])
                         shell.odoo("-xs", settings_file, "reload")
+                        logsio.info("Pulling images for only-images services")
+                        shell.odoo('docker', 'pull')
                         logsio.info("Building Docker Images")
                         shell.odoo("build")
                         shell.odoo("docker-registry", "login")
