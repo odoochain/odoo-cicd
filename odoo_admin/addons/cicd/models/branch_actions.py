@@ -553,7 +553,7 @@ class Branch(models.Model):
         for rec in self.search([('autobackup', '=', True)]):
             rec._make_task(
                 "_dump", machine=rec.backup_machine_id,
-                ignore_previous_tasks=True)
+                )
 
     def _fetch_from_registry(self, shell):
         if self._is_hub_configured(shell):

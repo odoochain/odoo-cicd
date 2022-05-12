@@ -465,36 +465,14 @@ class GitBranch(models.Model):
             rec.test_run_ids = rec.mapped('commit_ids.test_run_ids')
 
     def _make_task(
-        self, execute, now=False, machine=None, silent=False,
-        identity_key=None, reuse=False, testrun_id=None,
-        ignore_previous_tasks=False,
+        self, execute, now=False, machine=None,
+        identity_key=None, testrun_id=None,
         **kwargs
     ):
         for rec in self:
             identity_key = identity_key or \
                 f"{rec.repo_id.short}-{rec.name}-{execute}"
             tasks = rec.task_ids.with_context(prefetch_fields=False)
-
-            if reuse and tasks and tasks[0].name == execute and \
-                    tasks[0].state == 'failed':
-                if now:
-                    tasks[0].perform(
-                        now=now, ignore_previous_tasks=ignore_previous_tasks)
-                elif tasks[0].queue_job_id and \
-                        tasks[0].queue_job_id.state in ['failed']:
-                    tasks[0].queue_job_id.state = 'pending'
-                    return
-
-            if not now and not ignore_previous_tasks and tasks.filtered(
-                lambda x: x.state in [
-                    False, 'pending', 'enqueued', 'started'] and
-                    x.identity_key == identity_key):
-                if silent:
-                    return
-                raise ValidationError((
-                    "Task already exists. Not triggered again."
-                    f"Idkey: {identity_key}"))
-
             task = rec.env['cicd.task'].sudo().create({
                 'model': self._name,
                 'res_id': rec.id,
@@ -688,14 +666,14 @@ class GitBranch(models.Model):
         for rec in self:
             if (not rec.database_size and rec.repo_id.initialize_new_branches) or \
                         rec.force_prepare_dump:
-                rec._make_task("_prepare_a_new_instance", silent=True)
+                rec._make_task("_prepare_a_new_instance")
                 rec.force_prepare_dump = False
             elif rec.database_size:
                 if rec.latest_commit_id and ":RESTART:" in (
                         rec.latest_commit_id.text or ''):
-                    rec._make_task('_restart', silent=True)
+                    rec._make_task('_restart')
                 else:
-                    rec._make_task("_update_odoo", silent=True)
+                    rec._make_task("_update_odoo")
 
     def contains_commit(self, commit):
         return commit in self.mapped('commit_ids')

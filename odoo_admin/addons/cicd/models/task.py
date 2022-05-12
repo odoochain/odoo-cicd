@@ -49,7 +49,6 @@ class Task(models.Model):
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
     started = fields.Datetime("Started")
-    ignore_previous_tasks = fields.Boolean("Ignore previous tasks")
 
     def _compute_state(self):
         for rec in self:
@@ -86,12 +85,12 @@ class Task(models.Model):
             name = name.split("(")[0]
             rec.display_name = name
 
-    def perform(self, now=False, ignore_previous_tasks=False):
+    def perform(self, now=False):
         if now:
             breakpoint()
         self.ensure_one()
         self.env.cr.commit()
-        self._exec(now, ignore_previous_tasks=ignore_previous_tasks)
+        self._exec(now)
 
     @property
     def semaphore_qj_identity_key(self):
@@ -132,26 +131,16 @@ class Task(models.Model):
             previous = check.branch_id.task_ids.filtered(
                 lambda x: x.id < check.id).filtered(
                     lambda x: x.state in [False, STARTED])
-            
+
             if previous:
                 raise RetryableJobError((
                     "Previous tasks exist: "
                     f"IDs: {previous.ids}"
                 ), ignore_retry=True, seconds=30)
 
-    def _exec(self, now=False, ignore_previous_tasks=False):
+    def _exec(self, now=False):
         if not self._unblocked('branch_id'):
             raise Exception("Branch not given for task.")
-
-        if not ignore_previous_tasks:
-            try:
-                self._check_previous_tasks(now)
-            except RetryableJobError as ex:
-                if now:
-                    raise ValidationError("Previous Task exists.") from ex
-                else:
-                    self.state = 'pending'
-                    return
 
         with self.semaphore_with_delay(not now, ignore_states=[DONE]):
             self.state = STARTED
@@ -161,9 +150,7 @@ class Task(models.Model):
                 enabled=not now,
             ) as self:
                 if self:
-                    self._internal_exec(
-                        now, ignore_previous_tasks=ignore_previous_tasks
-                    )
+                    self._internal_exec(now)
 
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in [FAILED]):
@@ -174,8 +161,8 @@ class Task(models.Model):
                 rec._exec(now=False)
             elif qj:
                 if self.state != STARTED:
-                    self.state = STARTED 
-            else: # if not qj
+                    self.state = STARTED
+            else:  # if not qj
                 rec._exec(now=False)
 
     def _ensure_source_code(self, shell):
@@ -197,16 +184,21 @@ class Task(models.Model):
         self.env.cr.commit()
         return args
 
-    def _internal_exec(
-        self, now=False, delete_after=False, ignore_previous_tasks=False
-    ):
+    def _internal_exec(self, now=False, delete_after=False):
         # functions called often block the repository access
         args = {}
         log = None
         commit_ids = None
         logsio = None
-        if not now and not self.ignore_previous_tasks:
-            self._check_previous_tasks(now)
+        if not now:
+            try:
+                self._check_previous_tasks(now)
+            except RetryableJobError as ex:
+                if now:
+                    raise ValidationError("Previous Task exists.") from ex
+                else:
+                    self.state = 'pending'
+                    return
 
         try:
             self = self.sudo().with_context(active_test=False)
@@ -310,3 +302,10 @@ class Task(models.Model):
         #     jobs = self._semaphore.get_queuejob()
         #     if jobs and jobs[0].state in ['done']job.state == 'failed':
         #         job.state = 'done'
+
+    def unlink(self):
+        for rec in self:
+            if rec.state in [STARTED, ENQUEUED]:
+                raise ValidationError("Cannot delete running tasks.")
+
+        return super().unlink()
