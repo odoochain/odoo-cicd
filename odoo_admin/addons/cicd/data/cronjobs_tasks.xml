@@ -23,7 +23,7 @@
 		</record>
 		<record id="start_pending_tasks" model="ir.cron">
 			<field name="name">cicd.task:start_pending_tasks()</field>
-			<field name="interval_number">30</field>
+			<field name="interval_number">10</field>
 			<field name="interval_type">seconds</field>
 			<field name="model_id" ref="model_cicd_task" />
 			<field name="state">code</field>
@@ -31,7 +31,6 @@
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
-	
 
 	</data>
 </odoo>

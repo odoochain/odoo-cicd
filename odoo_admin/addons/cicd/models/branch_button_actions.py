@@ -202,7 +202,7 @@ class Branch(models.Model):
         return True
 
     def checkout_latest(self):
-        self._make_task("_checkout_latest", now=False)
+        self._make_task("_checkout_latest")
 
     def garbage_collect(self):
         self._make_task("_gc")

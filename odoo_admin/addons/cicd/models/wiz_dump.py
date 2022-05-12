@@ -40,13 +40,13 @@ class MakeDump(models.TransientModel):
         if self.ttype == 'backup':
             assert self.filename
             self.branch_id._make_task(
-                "_dump", now=False, volume=self.backup_volume_id.id,
+                "_dump", volume=self.backup_volume_id.id,
                 filename=self.filename)
 
         elif self.ttype == 'restore':
             assert self.dump_id
             self.branch_id._make_task(
-                "_restore_dump", now=False, dump=self.dump_id.id,
+                "_restore_dump", dump=self.dump_id.id,
                 )
 
         else:

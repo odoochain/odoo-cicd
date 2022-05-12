@@ -465,14 +465,13 @@ class GitBranch(models.Model):
             rec.test_run_ids = rec.mapped('commit_ids.test_run_ids')
 
     def _make_task(
-        self, execute, now=False, machine=None,
+        self, execute, machine=None,
         identity_key=None, testrun_id=None,
         **kwargs
     ):
         for rec in self:
             identity_key = identity_key or \
                 f"{rec.repo_id.short}-{rec.name}-{execute}"
-            tasks = rec.task_ids.with_context(prefetch_fields=False)
             task = rec.env['cicd.task'].sudo().create({
                 'model': self._name,
                 'res_id': rec.id,
@@ -483,7 +482,7 @@ class GitBranch(models.Model):
                 'kwargs': json.dumps(kwargs),
                 'testrun_id': testrun_id or False,
             })
-            task.perform(now=now)
+            task.perform()
 
     def _cron_execute_task(self):
         self.ensure_one()

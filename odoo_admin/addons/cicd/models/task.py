@@ -10,8 +10,6 @@ from odoo import _, api, fields, models, SUPERUSER_ID, registry
 from odoo import registry
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from odoo.addons.queue_job.models.queue_job import STATES
-from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 logger = logging.getLogger('cicd_task')
 
 PENDING = "pending"
@@ -49,9 +47,12 @@ class Task(models.Model):
     kwargs = fields.Text("KWargs")
     identity_key = fields.Char()
     started = fields.Datetime("Started")
+    finished = fields.Boolean("Finished")
 
     def _compute_state(self):
         for rec in self:
+            if rec.finished:
+                continue
             qj = rec._semaphore_get_queuejob()
             if not qj:
                 # keep last state as queuejobs are deleted from time to time
@@ -64,10 +65,10 @@ class Task(models.Model):
                 elif qj:
                     rec.state = STARTED
                 else:
-                    rec.state = False
+                    rec.state = PENDING
                 if qj:
-                    qj = qj.sorted(lambda x: x.id, reverse=True)[0]
-                    rec.log = qj.exc_info
+                    qj = qj.sorted(lambda x: x.id, reverse=True)
+                    rec.log = '\n\n'.join(filter(bool, qj.mapped('exc_info')))
 
     @api.depends('state')
     def _compute_is_done(self):
@@ -85,12 +86,8 @@ class Task(models.Model):
             name = name.split("(")[0]
             rec.display_name = name
 
-    def perform(self, now=False):
-        if now:
-            breakpoint()
-        self.ensure_one()
-        self.env.cr.commit()
-        self._exec(now)
+    def perform(self):
+        self._exec()
 
     @property
     def semaphore_qj_identity_key(self):
@@ -117,40 +114,39 @@ class Task(models.Model):
 
     @api.model
     def _start_pending_tasks(self):
-        for task in self.search([('state', '=', 'pending')], order='id asc'):
+        for task in self.search([('state', '=', PENDING)], order='id asc'):
             try:
-                task._check_previous_tasks(now=False)
+                task._check_previous_tasks()
             except RetryableJobError as ex:
                 continue
             else:
-                task.state = 'started'
                 task._exec()
 
-    def _check_previous_tasks(self, now):
-        with self._extra_env(enabled=not now) as check:
-            previous = check.branch_id.task_ids.filtered(
-                lambda x: x.id < check.id).filtered(
-                    lambda x: x.state in [False, STARTED])
+    def _check_previous_tasks(self):
+        previous = self.branch_id.task_ids.filtered(
+            lambda x: x.id < self.id).filtered(
+                lambda x: x.state in [False, STARTED])
 
-            if previous:
-                raise RetryableJobError((
-                    "Previous tasks exist: "
-                    f"IDs: {previous.ids}"
-                ), ignore_retry=True, seconds=30)
+        if previous:
+            raise RetryableJobError((
+                "Previous tasks exist: "
+                f"IDs: {previous.ids}"
+            ), ignore_retry=True, seconds=30)
 
-    def _exec(self, now=False):
+    def _exec(self):
+        if not self.exists():
+            return
+        self.ensure_one()
         if not self._unblocked('branch_id'):
             raise Exception("Branch not given for task.")
 
-        with self.semaphore_with_delay(not now, ignore_states=[DONE]):
-            self.state = STARTED
-            self.started = fields.Datetime.now()
-
-            with self.semaphore_with_delay(
-                enabled=not now,
-            ) as self:
-                if self:
-                    self._internal_exec(now)
+        with self.semaphore_with_delay(
+            enabled=True,
+            ignore_states=[DONE]
+        ) as self:
+            if not self:
+                return
+            self._internal_exec()
 
     def requeue(self):
         for rec in self.filtered(lambda x: x.state in [FAILED]):
@@ -158,12 +154,11 @@ class Task(models.Model):
             qj = qj and qj[0]
             if qj and qj.state in [DONE, FAILED]:
                 qj.unlink()
-                rec._exec(now=False)
+                rec._exec()
             elif qj:
-                if self.state != STARTED:
-                    self.state = STARTED
+                self._compute_state()
             else:  # if not qj
-                rec._exec(now=False)
+                rec._exec()
 
     def _ensure_source_code(self, shell):
 
@@ -184,21 +179,24 @@ class Task(models.Model):
         self.env.cr.commit()
         return args
 
-    def _internal_exec(self, now=False, delete_after=False):
+    def _internal_exec(self, delete_after=False):
         # functions called often block the repository access
+        if self.finished:
+            return
+
         args = {}
         log = None
         commit_ids = None
         logsio = None
-        if not now:
-            try:
-                self._check_previous_tasks(now)
-            except RetryableJobError as ex:
-                if now:
-                    raise ValidationError("Previous Task exists.") from ex
-                else:
-                    self.state = 'pending'
-                    return
+        try:
+            self._check_previous_tasks()
+        except RetryableJobError as ex:
+            if self.state != PENDING:
+                self.state = PENDING
+            return
+        else:
+            self.state = STARTED
+            self.started = fields.Datetime.now()
 
         try:
             self = self.sudo().with_context(active_test=False)
@@ -255,7 +253,7 @@ class Task(models.Model):
             duration = (arrow.utcnow() - arrow.get(self.started)) \
                 .total_seconds()
 
-        self.with_delay()._finish_task(
+        self.with_delay(priority=1)._finish_task(
             state=state,
             duration=duration,
             delete_after=delete_after,
@@ -265,16 +263,6 @@ class Task(models.Model):
 
     def _finish_task(self, state, duration, delete_after, log, commit_id):
 
-        if delete_after and state == DONE:
-            self.unlink()
-            return
-
-        self.write({
-            'state': state,
-            'log': log,
-            'duration': duration,
-            'commit_id': commit_id,
-        })
         if self.branch_id:
             if state == FAILED:
                 self.branch_id.message_post(
@@ -283,25 +271,20 @@ class Task(models.Model):
                 self.branch_id.message_post(
                     body=f"Successfully executed {self.name}")
 
+        if delete_after and state == DONE:
+            self.unlink()
+        else:
+            self.write({
+                'state': state,
+                'log': log,
+                'duration': duration,
+                'commit_id': commit_id,
+            })
+
     @api.model
     def _cron_check_states_vs_queuejobs(self):
-        for task in self.search([('state', '=', 'started')]):
+        for task in self.search([('state', '=', STARTED)]):
             task._compute_state()
-            # jobs = self.env['queue.job'].search([
-            #     ('identity_key', '=', task.semaphore_qj_identity_key)
-            # ])
-            # if not jobs:
-            #     task.state = FAILED
-            #     continue
-            # if all(x.state in (FAILED, 'cancel') for x in jobs):
-            #     task.state = FAILED
-            #     continue
-
-        # think what to do; failed job may be requeued
-        # if self.state == 'started':
-        #     jobs = self._semaphore.get_queuejob()
-        #     if jobs and jobs[0].state in ['done']job.state == 'failed':
-        #         job.state = 'done'
 
     def unlink(self):
         for rec in self:
