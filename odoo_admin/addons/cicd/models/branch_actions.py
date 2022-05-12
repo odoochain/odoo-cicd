@@ -13,7 +13,13 @@ from pathlib import Path
 from odoo.addons.queue_job.exception import RetryableJobError
 import logging
 from .repository import InvalidBranchName
-current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
+current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(
+    inspect.currentframe()))))
+
+def effify(text, values):
+    for line in text.splitlines():
+        line2 = eval('f"' + line + '"', values).strip()
+        yield line2
 
 logger = logging.getLogger(__name__)
 
@@ -318,6 +324,7 @@ class Branch(models.Model):
             )).execute()
 
     def _after_build(self, shell, logsio, **kwargs):
+        self.last_access = fields.Datetime.now()  # to avoid cycle down
         shell.odoo(
             "remove-settings", '--settings', 'web.base.url,web.base.url.freeze'
             )
@@ -472,13 +479,31 @@ class Branch(models.Model):
             shell.odoo('rm', allow_error=True)
 
     def _make_instance_docker_configs(
-            self, shell, forced_project_name=None, settings=None,
-            registry=None
-        ):
-
+        self, shell, forced_project_name=None, settings=None,
+        registry=None
+    ):
         home_dir = shell._get_home_dir()
         machine = shell.machine
         project_name = forced_project_name or self._unblocked('project_name')
+
+        shell.put(self._get_docker_compose(project_name), (
+            f"{home_dir}"
+            f"/.odoo/docker-compose.{project_name}.yml"
+            ))
+
+        if not machine.postgres_server_id:
+            raise ValidationError(
+                _(f"Please configure a db server for {machine.name}"))
+
+        shell.put(
+            self._get_settings(
+                project_name, machine, registry,
+                settings
+            ),
+            home_dir + f'/.odoo/settings.{project_name}'
+            )
+
+    def _get_docker_compose(self, project_name):
         content = ((
             current_dir.parent
             / 'data'
@@ -487,10 +512,10 @@ class Branch(models.Model):
         values = os.environ.copy()
         values['PROJECT_NAME'] = project_name
         content = content.format(**values)
-        shell.put(content, (
-            f"{home_dir}"
-            f"/.odoo/docker-compose.{project_name}.yml"
-            ))
+        return content
+
+    def _get_settings(self, project_name, machine, registry, custom_settings):
+        self.ensure_one()
 
         content = ((
             current_dir.parent
@@ -498,14 +523,9 @@ class Branch(models.Model):
             / 'template_cicd_instance.settings')).read_text()
         assert machine
 
-        with machine._extra_env() as x_machine:
-            if not x_machine.postgres_server_id:
-                raise ValidationError(
-                    _(f"Please configure a db server for {x_machine.name}"))
-
         content += "\n" + (self._unblocked('reload_config') or '')
-        if settings:
-            content += "\n" + settings
+        if custom_settings:
+            content += "\n" + custom_settings
 
         registry = registry or self.repo_id.registry_id
         if registry:
@@ -513,15 +533,21 @@ class Branch(models.Model):
                 f"\nHUB_URL={registry.hub_url}"
             )
 
-        with self._extra_env() as x_self:
-            with machine._extra_env() as x_machine:
-                shell.put(
-                    content.format(
-                        branch=x_self,
-                        project_name=project_name,
-                        machine=x_machine),
-                    home_dir + f'/.odoo/settings.{project_name}'
-                    )
+        if self.enable_snapshots:
+            content += (
+                "\nRUN_POSTGRES=1"
+                "\nDB_HOST=postgres"
+                "\nDB_PORT=5432"
+                "\nDB_USER=odoo"
+                "\nDB_PASSWORD=odoo"
+                "\n"
+            )
+
+        content = '\n'.join(effify(content, dict(
+            branch=self,
+            project_name=project_name,
+            machine=machine))).strip()
+        return content
 
     def _cron_autobackup(self):
         for rec in self.search([('autobackup', '=', True)]):
@@ -532,7 +558,7 @@ class Branch(models.Model):
     def _fetch_from_registry(self, shell):
         if self._is_hub_configured(shell):
             shell.odoo('docker-registry', 'login')
-            shell.odoo('docker-registry', 'regpull')
+            shell.odoo('docker-registry', 'regpull', allow_error=True)
 
     def _push_to_registry(self, shell):
         if self._is_hub_configured(shell):
