@@ -1,5 +1,6 @@
 import traceback
-import time
+import random
+import string
 import json
 from contextlib import contextmanager
 import arrow
@@ -18,6 +19,7 @@ from odoo.addons.queue_job.exception import RetryableJobError
 from itertools import groupby
 
 logger = logging.getLogger(__name__)
+LIMIT_PROJECT_NAME = 50
 
 
 class GitBranch(models.Model):
@@ -48,7 +50,9 @@ class GitBranch(models.Model):
         "Cycle Down After Seconds", default=3600)
     name = fields.Char("Git Branch", required=True)
     technical_branch_name = fields.Char("Technical Instance Name", help=(
-        "Docker container limit their name."))
+        "Docker container limit their name."),
+        compute="_compute_project_name"
+        )
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one(
@@ -204,9 +208,9 @@ class GitBranch(models.Model):
                         f"{k}:{v.lower()}"
                     ))
 
-            def sortorder(x):
-                x = x or ''
-                state = x.split(":")[1]
+            def sortorder(container):
+                container = container or ''
+                state = container.split(":")[1]
                 states = {
                     'running': 1,
                     'down': 2,
@@ -370,7 +374,6 @@ class GitBranch(models.Model):
             building_tasks = any(
                 x in y for x in ['update', 'reset', 'restore']
                 for y in task_names)
-
 
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
@@ -553,20 +556,30 @@ class GitBranch(models.Model):
     @api.depends("repo_id", "repo_id.short", "name")
     def _compute_project_name(self):
         for rec in self:
-            project_name = "_".join([
-                os.environ['CICD_PROJECT_NAME'],
-                rec.repo_id.short,
-                rec.technical_branch_name or rec.name,
-            ])
 
-            dbname = project_name.lower().replace("-", "_")
-            if any(dbname.startswith(x) for x in "0123456789"):
-                dbname = 'db' + dbname
-            if self.env.context.get('testrun'):
-                project_name += self.env.context['testrun']
-            # incompatibility to capital letters in
-            # btrfs; constraining to lowercase
-            project_name = project_name.lower()
+            def buildname(name):
+                project_name = "_".join([
+                    os.environ['CICD_PROJECT_NAME'],
+                    rec.repo_id.short,
+                    name,
+                ])
+
+                dbname = project_name.lower().replace("-", "_")
+                if any(dbname.startswith(x) for x in "0123456789"):
+                    dbname = 'db' + dbname
+                if self.env.context.get('testrun'):
+                    project_name += self.env.context['testrun']
+                # incompatibility to capital letters in
+                # btrfs; constraining to lowercase
+                project_name = project_name.lower()
+                return project_name, dbname
+
+            project_name, dbname = buildname(rec.name)
+            if to_reduce := len(project_name) - LIMIT_PROJECT_NAME > 0:
+                rec.technical_branch_name = rec.name[:-to_reduce]
+                project_name, dbname = buildname(
+                    rec.technical_branch_name)
+
             rec.project_name = project_name
             rec.database_project_name = dbname
 
@@ -663,13 +676,15 @@ class GitBranch(models.Model):
         After new source is fetched then the instance is rebuilt.
         """
         for rec in self:
-            if (not rec.database_size and rec.repo_id.initialize_new_branches) or \
-                        rec.force_prepare_dump:
+            if (
+                not rec.database_size and rec.repo_id.initialize_new_branches
+            ) or rec.force_prepare_dump:
                 rec._make_task("_prepare_a_new_instance")
                 rec.force_prepare_dump = False
             elif rec.database_size:
                 if rec.latest_commit_id and ":RESTART:" in (
-                        rec.latest_commit_id.text or ''):
+                    rec.latest_commit_id.text or ''
+                ):
                     rec._make_task('_restart')
                 else:
                     rec._make_task("_update_odoo")
@@ -710,7 +725,7 @@ class GitBranch(models.Model):
             if rec.enable_snapshots:
                 try:
                     rec.database_size = rec._get_dbsize_from_shell()
-                except:
+                except Exception:
                     rec.database_size = -1
             else:
                 rec.database_ids = self.env['cicd.database'].sudo().search([
