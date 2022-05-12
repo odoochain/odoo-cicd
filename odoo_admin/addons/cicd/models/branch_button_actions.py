@@ -1,10 +1,14 @@
-import os
+import base64
+from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.tools import _get_shell_url
 
+
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
+    tmux_session_name = fields.Char(compute="_tmux_session_name", store=False)
+    _tmux_session_prefix = "cicd_tmux_session_"
 
     def update_all_modules(self):
         self._make_task("_update_all_modules")
@@ -126,22 +130,35 @@ class Branch(models.Model):
             'target': 'self'
         }
 
+    def _tmux_session_name(self):
+        for rec in self:
+            invalid_chars = "?/.*@!#~` &()-"
+            tmux_session_name = f"{rec.project_name}_shell"
+            for c in invalid_chars:
+                tmux_session_name = tmux_session_name.replace(c, "_")
+            rec.tmux_session_name = (
+                f"{self._tmux_session_prefix}{tmux_session_name}"
+            )
+
     def _shell_url(self, cmd, machine=None, tmux=None):
         """
         tmux: -A create or append, -s name of session"
         """
-        if tmux:
-            # tmux: -A create or append, -s name of session"
-            cmd = [
-                "tmux", "new-session", "-A",
-                "-s", f"{self.project_name}_shell",
-            ] + cmd
 
         machine = self.machine_id
         machine.make_login_possible_for_webssh_container()
+        if tmux:
+            cmd = ';'.join(cmd)
+            cmd = base64.encodebytes(cmd.encode(
+                'utf-8')).decode('utf-8').strip()
+            if ' ' in cmd:
+                raise Exception("should not contain a space")
+            session_name = self.tmux_session_name
+            if ' ' in session_name:
+                raise Exception("should not contain a space")
+            cmd = [f"start_tmux {session_name} {cmd}"]
         path = machine._get_volume('source')
         path = path / self.project_name
-        breakpoint()
         shell_url = _get_shell_url(
             machine.effective_host,
             machine.ssh_user_cicdlogin,

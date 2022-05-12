@@ -145,6 +145,39 @@ class GitBranch(models.Model):
     date_reactivated = fields.Datetime("Date reactivated")
     assignee_id = fields.Many2one('res.users', string="Asignee")
 
+    snapshots_possible = fields.Boolean(
+        "Snapshots Possible", compute="_compute_snapshots_possible")
+
+    def make_snapshot(self):
+        return {
+            'view_type': 'form',
+            'res_model': 'wiz.make_snapshot',
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+        }
+
+    def restore_snapshot(self):
+        return {
+            'view_type': 'form',
+            'res_model': 'wiz.restore_snapshot',
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+        }
+
+    @api.depends("reload_config")
+    def _compute_snapshots_possible(self):
+        for rec in self:
+            configlines = (self.reload_config or '').splitlines()
+            possible = False
+            for line in reversed(configlines):
+                if line.startswith("#"):
+                    continue
+                if 'RUN_POSTGRES=1' in line:
+                    possible = True
+            self.snapshots_possible = possible
+
     @api.recordchange("active")
     def _on_active_update_date(self):
         for rec in self:

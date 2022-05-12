@@ -36,3 +36,5 @@ model_cicd_branch_type,base.group_user,cicd_branch_type_base_group_user,n/a,1,0,
 model_cicd_branch_epic,base.group_user,cicd_branch_epic_base_group_user,n/a,1,0,0,0
 model_cicd_branch_type,cicd.group_manager,cicd_branch_type_cicd_group_manager,n/a,1,1,1,1
 model_cicd_branch_epic,cicd.group_manager,cicd_branch_epic_cicd_group_manager,n/a,1,1,1,1
+model_cicd_wiz_make_snapshot,base.group_user,cicd_wiz_make_snapshot_cicd_group_user,n/a,1,1,1,1
+model_cicd_wiz_restore_snapshot,base.group_user,cicd_wiz_restore_snapshot,n/a,1,1,1,1
