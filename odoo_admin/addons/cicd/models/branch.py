@@ -1,11 +1,9 @@
 import traceback
-import time
 import json
 from contextlib import contextmanager
 import arrow
 import os
 import requests
-from odoo import registry
 from pathlib import Path
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError, UserError
