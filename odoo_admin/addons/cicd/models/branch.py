@@ -101,7 +101,8 @@ class GitBranch(models.Model):
 
     release_branch_ids = fields.Many2one(
         'cicd.release.item.branch', 'branch_id')
-    # Update Fehler: psycopg2.errors.UndefinedColumn: column "id" referenced in foreign key constraint does not exist
+    # Update Fehler: psycopg2.errors.UndefinedColumn: column "id" referenced 
+    # in foreign key constraint does not exist
     # release_item_ids = fields.Many2many(
     #     'cicd.release.item', 'cicd_release_item_branch', 'branch_id',
     #     'item_id', 'Releases')
@@ -111,7 +112,7 @@ class GitBranch(models.Model):
 
     any_testing = fields.Boolean(compute="_compute_any_testing")
     run_unittests = fields.Boolean(
-        "Run Unittests",default=True, testrun_field=True)
+        "Run Unittests", default=True, testrun_field=True)
     run_robottests = fields.Boolean(
         "Run Robot-Tests", default=True, testrun_field=True)
     simulate_install_id = fields.Many2one(
@@ -126,7 +127,8 @@ class GitBranch(models.Model):
     block_release = fields.Boolean("Block Release", tracking=True)
     block_updates_until = fields.Datetime("Block updates until", tracking=True)
 
-    machine_id = fields.Many2one('cicd.machine', compute="_compute_machine", compute_sudo=True)
+    machine_id = fields.Many2one(
+        'cicd.machine', compute="_compute_machine", compute_sudo=True)
 
     allowed_backup_machine_ids = fields.Many2many(
         'cicd.machine',
@@ -371,7 +373,6 @@ class GitBranch(models.Model):
                 x in y for x in ['update', 'reset', 'restore']
                 for y in task_names)
 
-
             if not rec.commit_ids and not building_tasks:
                 if rec.state != 'new':
                     rec.state = 'new'
@@ -399,16 +400,17 @@ class GitBranch(models.Model):
                     not commit.force_approved:
                 state = 'review_code'
 
-            elif fully_approved and commit.test_state in [False, 'open', 'running'] and \
+            elif fully_approved and commit.test_state in [
+                        False, 'open', 'running'] and \
                     rec.any_testing and not commit.force_approved:
 
                 state = 'testable'
 
-            elif (commit.test_state == 'failed' or
-                    commit.approval_state == 'declined' or \
-                    commit.code_review_state == 'declined') and \
-                        not commit.force_approved and \
-                        not fully_approved:
+            elif (
+                commit.test_state == 'failed' or
+                commit.approval_state == 'declined' or
+                commit.code_review_state == 'declined'
+            ) and not commit.force_approved and not fully_approved:
                 state = 'dev'
 
             elif rec.block_release:
@@ -420,7 +422,8 @@ class GitBranch(models.Model):
                 # Determine suitable state state
                 state = 'tested'
                 for release in release_items.release_id:
-                    last_item = (release.next_to_finish_item_id | \
+                    last_item = (
+                        release.next_to_finish_item_id |
                         release.last_item_id).filtered(
                             lambda x: rec in x.branch_ids.branch_id).filtered(
                                 lambda x: x.state != 'done')
@@ -429,9 +432,10 @@ class GitBranch(models.Model):
                             lambda x: x.is_done and
                             rec.latest_commit_id in x.branch_ids.commit_id)
 
-                    merge_conflict = 'conflict' in last_item.branch_ids.filtered(
-                        lambda x: x.commit_id == rec.latest_commit_id).mapped(
-                        'state')
+                    merge_conflict = 'conflict' in last_item.branch_ids.\
+                        filtered(
+                            lambda x: x.commit_id == rec.latest_commit_id
+                        ).mapped('state')
 
                     # merge conflicts beats all
                     # candidate wins over test
@@ -593,14 +597,10 @@ class GitBranch(models.Model):
                 rec._make_task("_destroy_instance")
 
     def _destroy_instance(self, shell, task, logsio, **kwargs):
-        with self._get_new_logsio_instance('set_inactive') as logsio:
-            for machine in self.env['cicd.machine'].search([
-                    ('ttype', '=', 'dev')]):
+        self.with_delay().purge_instance_folder()
 
-                self.with_delay().purge_instance_folder()
-
-                # delete db
-                self.with_delay().delete_db()
+        # delete db
+        self.with_delay().delete_db()
 
     def purge_instance_folder(self):
         for rec in self:
@@ -646,7 +646,8 @@ class GitBranch(models.Model):
             ('is_release_branch', '=', False)
         ]):
             if not branch.test_run_ids.filtered(
-                lambda x: x.commit_id == branch.latest_commit_id):
+                lambda x: x.commit_id == branch.latest_commit_id
+            ):
                 create_test_run(branch)
 
         open_tests = self.env['cicd.test.run'].search([
@@ -663,8 +664,9 @@ class GitBranch(models.Model):
         After new source is fetched then the instance is rebuilt.
         """
         for rec in self:
-            if (not rec.database_size and rec.repo_id.initialize_new_branches) or \
-                        rec.force_prepare_dump:
+            if (
+                not rec.database_size and rec.repo_id.initialize_new_branches
+            ) or rec.force_prepare_dump:
                 rec._make_task("_prepare_a_new_instance")
                 rec.force_prepare_dump = False
             elif rec.database_size:
@@ -710,7 +712,7 @@ class GitBranch(models.Model):
             if rec.enable_snapshots:
                 try:
                     rec.database_size = rec._get_dbsize_from_shell()
-                except:
+                except Exception:
                     rec.database_size = -1
             else:
                 rec.database_ids = self.env['cicd.database'].sudo().search([
@@ -755,13 +757,15 @@ class GitBranch(models.Model):
         self.latest_commit_id.code_review_state = 'check'
 
     def set_approved(self):
-        if self.latest_commit_id.approval_state not in ['approved', 'declined']:
+        if self.latest_commit_id.approval_state not in [
+                'approved', 'declined']:
             self.latest_commit_id.approval_state = 'approved'
         else:
             self.latest_commit_id.code_review_state = 'approved'
 
     def set_declined(self):
-        if self.latest_commit_id.approval_state not in ['approved', 'declined']:
+        if self.latest_commit_id.approval_state not in [
+                'approved', 'declined']:
             self.latest_commit_id.approval_state = 'declined'
         else:
             self.latest_commit_id.code_review_state = 'declined'
