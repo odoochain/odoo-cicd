@@ -579,10 +579,12 @@ class GitBranch(models.Model):
                 return project_name, dbname
 
             project_name, dbname = buildname(rec.name)
-            if to_reduce := len(project_name) - LIMIT_PROJECT_NAME > 0:
-                rec.technical_branch_name = rec.name[:-to_reduce]
-                project_name, dbname = buildname(
-                    rec.technical_branch_name)
+            breakpoint()
+            if len(project_name) > LIMIT_PROJECT_NAME:
+                ID = str(rec.id)
+                rec.technical_branch_name = project_name[
+                    :LIMIT_PROJECT_NAME][:-len(ID)] + ID
+                assert len(rec.technical_branch_name) <= LIMIT_PROJECT_NAME
 
             rec.project_name = project_name
             rec.database_project_name = dbname
