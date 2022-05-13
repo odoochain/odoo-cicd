@@ -42,8 +42,8 @@ class RestoreSnapshot(models.TransientModel):
                 "snap", "list")['stdout'].strip().splitlines()
             self.snapshot_ids.unlink()
             for shot in snapshots[2:]:
-                snapshot_id = self.snapshot_ids.sudo().create({'name': shot.split(" ")[0]})
-                yield snapshot_id
+                snapshot = self.snapshot_ids.sudo().create({'name': shot.split(" ")[0]})
+                yield snapshot.id
 
 class RestoreSnapshotLine(models.TransientModel):
     _name = 'cicd.wiz.restore_snapshot.snapshot'
