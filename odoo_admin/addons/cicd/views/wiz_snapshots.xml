@@ -30,7 +30,10 @@
 						<button special="cancel" string="Cancel" class="oe_link" />
 					</footer>
 					<sheet>
-						<group string="Restore Snapshot" col="4">
+						<div>
+							All current data will be lost.
+						</div>
+						<group string="Restore Snapshot" col="2">
 							<field name="branch_id" readonly="1" />
 							<field name="snapshot_id" required="1"/>
 						</group>
