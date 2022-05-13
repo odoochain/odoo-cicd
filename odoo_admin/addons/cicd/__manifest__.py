@@ -59,6 +59,7 @@
                 'views/volume_form.xml',
                 'views/wiz_export_excel.xml',
                 'views/wiz_new_branch.xml',
+                'views/wiz_snapshots.xml',
                 'views/menu.xml',
                 'security/ir.model.access.csv'],
     'demo': [],

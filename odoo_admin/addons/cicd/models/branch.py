@@ -160,19 +160,25 @@ class GitBranch(models.Model):
     def make_snapshot(self):
         return {
             'view_type': 'form',
-            'res_model': 'wiz.make_snapshot',
+            'res_model': 'cicd.wiz.make_snapshot',
             'views': [(False, 'form')],
             'type': 'ir.actions.act_window',
             'target': 'new',
+            'context': {
+                'default_branch_id': self.id,
+            },
         }
 
     def restore_snapshot(self):
         return {
             'view_type': 'form',
-            'res_model': 'wiz.restore_snapshot',
+            'res_model': 'cicd.wiz.restore_snapshot',
             'views': [(False, 'form')],
             'type': 'ir.actions.act_window',
             'target': 'new',
+            'context': {
+                'default_branch_id': self.id,
+            },
         }
 
     @api.recordchange("active")
