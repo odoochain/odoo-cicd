@@ -47,7 +47,6 @@ class Task(models.Model):
     testrun_id = fields.Many2one('cicd.test.run')
 
     kwargs = fields.Text("KWargs")
-    identity_key = fields.Char()
     started = fields.Datetime("Started")
     finished = fields.Boolean("Finished")
 
@@ -101,9 +100,6 @@ class Task(models.Model):
                 f"-{x_self.branch_id.name}:"
             )
 
-            if x_self.identity_key:
-                return x_self.identity_key + " " + appendix
-
         name = self._get_short_name()
         with self._extra_env() as self2:
             project_name = self2.branch_id.project_name
@@ -111,9 +107,11 @@ class Task(models.Model):
         return f"{project_name}_{name} " + appendix
 
     def _get_short_name(self):
+        breakpoint()
         name = self._unblocked('name') or ''
         if name.startswith("_"):
             name = name[1:]
+        name = f"{name}#{self.id}"
         return name
 
     @api.model

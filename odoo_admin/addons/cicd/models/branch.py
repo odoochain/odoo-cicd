@@ -482,20 +482,16 @@ class GitBranch(models.Model):
             rec.test_run_ids = rec.mapped('commit_ids.test_run_ids')
 
     def _make_task(
-        self, execute, machine=None,
-        identity_key=None, testrun_id=None,
+        self, execute, machine=None, testrun_id=None,
         **kwargs
     ):
         for rec in self:
-            identity_key = identity_key or \
-                f"{rec.repo_id.short}-{rec.name}-{execute}"
             task = rec.env['cicd.task'].sudo().create({
                 'model': self._name,
                 'res_id': rec.id,
                 'name': execute,
                 'branch_id': rec.id,
                 'machine_id': (machine and machine.id) or rec.machine_id.id,
-                'identity_key': identity_key if identity_key else False,
                 'kwargs': json.dumps(kwargs),
                 'testrun_id': testrun_id or False,
             })
