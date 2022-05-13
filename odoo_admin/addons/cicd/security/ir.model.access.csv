@@ -38,3 +38,4 @@ model_cicd_branch_type,cicd.group_manager,cicd_branch_type_cicd_group_manager,n/
 model_cicd_branch_epic,cicd.group_manager,cicd_branch_epic_cicd_group_manager,n/a,1,1,1,1
 model_cicd_wiz_make_snapshot,base.group_user,cicd_wiz_make_snapshot_cicd_group_user,n/a,1,1,1,1
 model_cicd_wiz_restore_snapshot,base.group_user,cicd_wiz_restore_snapshot,n/a,1,1,1,1
+model_cicd_wiz_restore_snapshot_snapshot,base.group_user,cicd_wiz_restore_snapshot_snapshot_base_group_user,n/a,1,1,1,1

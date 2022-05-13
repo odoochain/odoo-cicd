@@ -18,7 +18,7 @@ from odoo.addons.queue_job.exception import RetryableJobError
 from itertools import groupby
 
 logger = logging.getLogger(__name__)
-LIMIT_PROJECT_NAME = 50
+LIMIT_PROJECT_NAME = 30
 
 
 class GitBranch(models.Model):
@@ -160,19 +160,29 @@ class GitBranch(models.Model):
     def make_snapshot(self):
         return {
             'view_type': 'form',
-            'res_model': 'wiz.make_snapshot',
+            'res_model': 'cicd.wiz.make_snapshot',
             'views': [(False, 'form')],
             'type': 'ir.actions.act_window',
             'target': 'new',
+            'context': {
+                'default_branch_id': self.id,
+            },
         }
 
     def restore_snapshot(self):
+        wiz = self.env['cicd.wiz.restore_snapshot'].with_context(
+            default_branch_id=self.id
+        ).create({})
         return {
             'view_type': 'form',
-            'res_model': 'wiz.restore_snapshot',
+            'res_id': wiz.id,
+            'res_model': wiz._name,
             'views': [(False, 'form')],
             'type': 'ir.actions.act_window',
             'target': 'new',
+            'context': {
+                'default_branch_id': self.id,
+            },
         }
 
     @api.recordchange("active")
@@ -579,10 +589,14 @@ class GitBranch(models.Model):
                 return project_name, dbname
 
             project_name, dbname = buildname(rec.name)
-            if to_reduce := len(project_name) - LIMIT_PROJECT_NAME > 0:
-                rec.technical_branch_name = rec.name[:-to_reduce]
-                project_name, dbname = buildname(
-                    rec.technical_branch_name)
+            breakpoint()
+            if len(project_name) > LIMIT_PROJECT_NAME:
+                ID = str(rec.id)
+                rec.technical_branch_name = project_name[
+                    :LIMIT_PROJECT_NAME][:-len(ID)] + ID
+                assert len(rec.technical_branch_name) <= LIMIT_PROJECT_NAME
+            else:
+                rec.technical_branch_name = ""
 
             rec.project_name = project_name
             rec.database_project_name = dbname
@@ -620,6 +634,7 @@ class GitBranch(models.Model):
             with rec.machine_id._shell() as shell:
                 folder = rec._get_instance_folder(shell.machine)
                 with shell.clone(cwd=folder) as shell2:
+                    shell2.odoo('snap', 'clear', allow_error=True)
                     shell2.odoo('down', '-v', allow_error=True)
                 shell.remove(folder)
 

@@ -47,7 +47,7 @@
 							</h1>
 						</div>
 						<group col="4">
-							<field name="technical_branch_name"/>
+							<field name="technical_branch_name" groups="base.group_no_one"/>
 							<field name="type_id"/>
 							<field name="epic_id"/>
 							<field name="repo_id" readonly='1' />
