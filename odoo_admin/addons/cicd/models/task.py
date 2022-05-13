@@ -61,10 +61,9 @@ class Task(models.Model):
                 # keep last state as queuejobs are deleted from time to time
                 pass
             else:
-                if DONE in qj.mapped('state'):
-                    rec.state = DONE
-                elif FAILED in qj.mapped('state'):
-                    rec.state = FAILED
+                qj = qj.sorted(lambda x: x.id, reverse=True)[0]
+                if qj.state in [DONE, FAILED]:
+                    rec.state = qj.state
                 elif qj:
                     rec.state = STARTED
                 else:
