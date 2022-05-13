@@ -104,13 +104,14 @@ class RunJobController(http.Controller):
                 job.store()
             raise
 
-        import sys
-        sys.exit(0)
+        import sys, os
+        if os.getenv("ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER") != "1":
+            sys.exit(0)
         return ""
 
     @http.route("/queue_job/create_test_job", type="http", auth="user")
     def create_test_job(
-        self, priority=None, max_retries=None, channel="root", description="Test job"
+        self, priority=None, max_retries=None, channel="root",description="Test job"
     ):
         if not http.request.env.user.has_group("base.group_erp_manager"):
             raise Forbidden(_("Access Denied"))

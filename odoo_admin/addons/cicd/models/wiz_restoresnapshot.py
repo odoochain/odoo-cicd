@@ -31,7 +31,7 @@ class RestoreSnapshot(models.TransientModel):
         if not self.snapshot_id:
             raise ValidationError("Please choose a snapshot")
         with self._get_branch().shell(logs_title="restore_snapshot") as shell:
-            shell.odoo("snap", "restore", self.snapshot_id.name)
+            shell.odoo("snap", "restore", self.snapshot_id.sudo().name)
         return {'type': 'ir.actions.act_window_close'}
 
     @api.model
@@ -40,7 +40,7 @@ class RestoreSnapshot(models.TransientModel):
         with self._get_branch().shell(logs_title="list_snapshots") as shell:
             snapshots = shell.odoo(
                 "snap", "list")['stdout'].strip().splitlines()
-            self.snapshot_ids.unlink()
+            self.snapshot_ids.sudo().unlink()
             names = set()
             for shot in snapshots[2:]:
                 names.add(shot.split(" ")[0])
