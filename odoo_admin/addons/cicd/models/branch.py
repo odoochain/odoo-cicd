@@ -18,7 +18,7 @@ from odoo.addons.queue_job.exception import RetryableJobError
 from itertools import groupby
 
 logger = logging.getLogger(__name__)
-LIMIT_PROJECT_NAME = 50
+LIMIT_PROJECT_NAME = 30
 
 
 class GitBranch(models.Model):
@@ -585,6 +585,8 @@ class GitBranch(models.Model):
                 rec.technical_branch_name = project_name[
                     :LIMIT_PROJECT_NAME][:-len(ID)] + ID
                 assert len(rec.technical_branch_name) <= LIMIT_PROJECT_NAME
+            else:
+                rec.technical_branch_name = ""
 
             rec.project_name = project_name
             rec.database_project_name = dbname
