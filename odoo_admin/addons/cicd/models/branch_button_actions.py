@@ -42,7 +42,8 @@ class Branch(models.Model):
 
     def _check_dump_requirements(self):
         if not self.backup_machine_id:
-            raise ValidationError(_("Please choose a machine where dump/restoring happens."))
+            raise ValidationError(_(
+                "Please choose a machine where dump/restoring happens."))
 
     def dump(self):
         self._check_dump_requirements()
