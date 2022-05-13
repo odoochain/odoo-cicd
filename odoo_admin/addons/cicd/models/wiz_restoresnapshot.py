@@ -24,7 +24,7 @@ class RestoreSnapshot(models.TransientModel):
         if not self.exists():
             return self.env['cicd.git.branch'].browse(
                 self.env.context['default_branch_id']
-            )
+            -
         else:
             return self.branch_id
 
@@ -42,7 +42,7 @@ class RestoreSnapshot(models.TransientModel):
                 "snap", "list")['stdout'].strip().splitlines()
             self.snapshot_ids.unlink()
             for shot in snapshots:
-                self.snapshot_ids = [[0, 0, {
+                self.sudo().snapshot_ids = [[0, 0, {
                     'name': shot,
                 }]]
 
