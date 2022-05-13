@@ -634,6 +634,7 @@ class GitBranch(models.Model):
             with rec.machine_id._shell() as shell:
                 folder = rec._get_instance_folder(shell.machine)
                 with shell.clone(cwd=folder) as shell2:
+                    shell2.odoo('snap', 'clear', allow_error=True)
                     shell2.odoo('down', '-v', allow_error=True)
                 shell.remove(folder)
 
