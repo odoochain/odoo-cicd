@@ -41,8 +41,11 @@ class RestoreSnapshot(models.TransientModel):
             snapshots = shell.odoo(
                 "snap", "list")['stdout'].strip().splitlines()
             self.snapshot_ids.unlink()
+            names = set()
             for shot in snapshots[2:]:
-                snapshot = self.snapshot_ids.sudo().create({'name': shot.split(" ")[0]})
+                names.add(shot.split(" ")[0])
+            for name in names:
+                snapshot = self.snapshot_ids.sudo().create({'name': name})
                 yield snapshot.id
 
 class RestoreSnapshotLine(models.TransientModel):
