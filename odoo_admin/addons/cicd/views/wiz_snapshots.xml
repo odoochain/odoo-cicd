@@ -35,7 +35,8 @@
 						</div>
 						<group string="Restore Snapshot" col="2">
 							<field name="branch_id" readonly="1" />
-							<field name="snapshot_id" required="1"/>
+							<field name="snapshot_ids" invisible="1" />
+							<field name="snapshot_id" required="1" />
 						</group>
 					</sheet>
 				</form>

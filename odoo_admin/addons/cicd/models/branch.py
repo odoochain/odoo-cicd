@@ -170,9 +170,13 @@ class GitBranch(models.Model):
         }
 
     def restore_snapshot(self):
+        wiz = self.env['cicd.wiz.restore_snapshot'].with_context(
+            default_branch_id=self.id
+        ).create({})
         return {
             'view_type': 'form',
-            'res_model': 'cicd.wiz.restore_snapshot',
+            'res_id': wiz.id,
+            'res_model': wiz._name,
             'views': [(False, 'form')],
             'type': 'ir.actions.act_window',
             'target': 'new',

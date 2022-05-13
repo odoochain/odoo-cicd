@@ -11,12 +11,14 @@ class RestoreSnapshot(models.TransientModel):
         'wiz_id',
     )
     snapshot_id = fields.Many2one(
-        'cicd.wiz.restore_snapshot.snapshot', string="Snapshot", required=True)
+        'cicd.wiz.restore_snapshot.snapshot', string="Snapshot",
+        required=False, domain="[('wiz_id', '=', id)]"
+    )
 
     @api.model
-    def default_get(self, fields):
-        res = super().default_get(fields)
-        res['snapshot_ids'] = list(self._get_snapshots())
+    def create(self, vals):
+        res = super().create(vals)
+        res._update_snapshots()
         return res
 
     def _get_branch(self):
@@ -31,23 +33,23 @@ class RestoreSnapshot(models.TransientModel):
         if not self.snapshot_id:
             raise ValidationError("Please choose a snapshot")
         with self._get_branch().shell(logs_title="restore_snapshot") as shell:
+            shell.odoo("down")
             shell.odoo("snap", "restore", self.snapshot_id.sudo().name)
+            shell.odoo("up", "-d")
         return {'type': 'ir.actions.act_window_close'}
 
-    @api.model
-    def _get_snapshots(self):
+    def _update_snapshots(self):
         breakpoint()
         with self._get_branch().shell(logs_title="list_snapshots") as shell:
             snapshots = shell.odoo(
                 "snap", "list")['stdout'].strip().splitlines()
-            self.snapshot_ids.unlink()
             names = set()
             for shot in snapshots[2:]:
                 names.add(shot.split(" ")[0])
             for name in names:
-                snapshot = self.snapshot_ids.create({'name': name})
-                yield snapshot.id
-
+                self.snapshot_ids = [[0, 0, {
+                    'name': name,
+                }]]
 
 class RestoreSnapshotLine(models.TransientModel):
     _name = 'cicd.wiz.restore_snapshot.snapshot'
