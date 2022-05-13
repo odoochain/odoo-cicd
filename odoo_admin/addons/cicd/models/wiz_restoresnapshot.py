@@ -48,6 +48,7 @@ class RestoreSnapshot(models.TransientModel):
                 snapshot = self.snapshot_ids.sudo().create({'name': name})
                 yield snapshot.id
 
+
 class RestoreSnapshotLine(models.TransientModel):
     _name = 'cicd.wiz.restore_snapshot.snapshot'
 
