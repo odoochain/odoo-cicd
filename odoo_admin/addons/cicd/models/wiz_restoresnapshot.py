@@ -2,7 +2,6 @@ import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
-from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 
 
 class RestoreSnapshot(models.TransientModel):
@@ -50,8 +49,8 @@ class RestoreSnapshot(models.TransientModel):
             for shot in snapshots[2:]:
                 while "  " in shot:
                     shot = shot.replace("  ", " ")
-                name, date, _ = shot.split(" ", 2)
-                date = arrow.get(date)
+                name, date, time, _ = shot.split(" ", 3)
+                date = arrow.get(date + " " + time[:8])
                 names.add((name, date.strftime(DTF)))
 
             for name in names:
