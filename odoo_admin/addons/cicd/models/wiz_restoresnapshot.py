@@ -40,12 +40,12 @@ class RestoreSnapshot(models.TransientModel):
         with self._get_branch().shell(logs_title="list_snapshots") as shell:
             snapshots = shell.odoo(
                 "snap", "list")['stdout'].strip().splitlines()
-            self.snapshot_ids.sudo().unlink()
+            self.snapshot_ids.unlink()
             names = set()
             for shot in snapshots[2:]:
                 names.add(shot.split(" ")[0])
             for name in names:
-                snapshot = self.snapshot_ids.sudo().create({'name': name})
+                snapshot = self.snapshot_ids.create({'name': name})
                 yield snapshot.id
 
 
