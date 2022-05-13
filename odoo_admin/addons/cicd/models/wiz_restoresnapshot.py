@@ -24,7 +24,7 @@ class RestoreSnapshot(models.TransientModel):
         if not self.exists():
             return self.env['cicd.git.branch'].browse(
                 self.env.context['default_branch_id']
-            -
+            )
         else:
             return self.branch_id
 
