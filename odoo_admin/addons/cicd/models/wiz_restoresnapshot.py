@@ -8,7 +8,7 @@ class RestoreSnapshot(models.TransientModel):
     branch_id = fields.Many2one('cicd.git.branch', required=True)
     snapshot_ids = fields.One2many(
         'cicd.wiz.restore_snapshot.snapshot',
-        'cicd_wiz_restore_snapshot_lines',
+        'wiz_id',
     )
     snapshot_id = fields.Many2one(
         'cicd.wiz.restore_snapshot.snapshot', string="Snapshot", required=True)
@@ -52,4 +52,5 @@ class RestoreSnapshot(models.TransientModel):
 class RestoreSnapshotLine(models.TransientModel):
     _name = 'cicd.wiz.restore_snapshot.snapshot'
 
+    wiz_id = fields.Many2one("cicd.wiz.restore_snapshot", required=True)
     name = fields.Char("Name", required=True)
