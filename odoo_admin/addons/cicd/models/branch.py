@@ -151,6 +151,7 @@ class GitBranch(models.Model):
     assignee_id = fields.Many2one('res.users', string="Asignee")
 
     enable_snapshots = fields.Boolean("Enable Snapshots")
+    last_snapshot = fields.Char("Last Snapshot")
 
     @api.recordchange("enable_snapshots")
     def _on_change_enable_snapshots(self):

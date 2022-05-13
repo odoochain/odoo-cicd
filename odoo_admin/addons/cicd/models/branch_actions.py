@@ -136,6 +136,7 @@ class Branch(models.Model):
         self.env.cr.commit()
         shell.odoo("update")
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
+        self.last_snapshot = False
         self._after_build(shell=shell, logsio=logsio)
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
 
@@ -588,6 +589,7 @@ class Branch(models.Model):
             shell.odoo('turn-into-dev')  # why commented?
         except:
             pass
+        self.last_snapshot = False
         self._after_build(shell=shell, logsio=logsio, **kwargs)
 
     def _compress(self, shell, task, logsio, compress_job_id):

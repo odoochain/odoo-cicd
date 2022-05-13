@@ -36,8 +36,9 @@ class RestoreSnapshot(models.TransientModel):
             raise ValidationError("Please choose a snapshot")
         with self._get_branch().shell(logs_title="restore_snapshot") as shell:
             shell.odoo("down")
-            shell.odoo("snap", "restore", self.snapshot_id.sudo().name)
+            shell.odoo("snap", "restore", self.snapshot_id.name)
             shell.odoo("up", "-d")
+        self.branch_id.last_snapshot = self.snapshot_id.name
         return {'type': 'ir.actions.act_window_close'}
 
     def _update_snapshots(self):
@@ -63,6 +64,7 @@ class RestoreSnapshot(models.TransientModel):
 class RestoreSnapshotLine(models.TransientModel):
     _name = 'cicd.wiz.restore_snapshot.snapshot'
     _rec_name = 'display_name'
+    _order = 'date desc'
 
     wiz_id = fields.Many2one("cicd.wiz.restore_snapshot", required=True)
     display_name = fields.Char(compute="_compute_name")
@@ -71,6 +73,7 @@ class RestoreSnapshotLine(models.TransientModel):
 
     def _compute_name(self):
         for rec in self:
+            date = arrow.get(rec.date).to(self.env.user.tz).strftime(DTF)
             rec.display_name = (
-                f"{rec.name} - {rec.date}"
+                f"{rec.name} - {date}"
             )
