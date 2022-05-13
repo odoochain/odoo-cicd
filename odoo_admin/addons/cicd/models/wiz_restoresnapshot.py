@@ -12,12 +12,11 @@ class RestoreSnapshot(models.TransientModel):
     )
     snapshot_id = fields.Many2one(
         'cicd.wiz.restore_snapshot.snapshot', string="Snapshot", required=True)
-    name = fields.Char("Name", required=True)
 
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)
-        res['snapshot_ids'] = self._get_snapshots()
+        res['snapshot_ids'] = list(self._get_snapshots())
         return res
 
     def _get_branch(self):
@@ -37,15 +36,14 @@ class RestoreSnapshot(models.TransientModel):
 
     @api.model
     def _get_snapshots(self):
+        breakpoint()
         with self._get_branch().shell(logs_title="list_snapshots") as shell:
             snapshots = shell.odoo(
                 "snap", "list")['stdout'].strip().splitlines()
             self.snapshot_ids.unlink()
-            for shot in snapshots:
-                self.sudo().snapshot_ids = [[0, 0, {
-                    'name': shot,
-                }]]
-
+            for shot in snapshots[2:]:
+                snapshot_id = self.snapshot_ids.sudo().create({'name': shot.split(" ")[0]})
+                yield snapshot_id
 
 class RestoreSnapshotLine(models.TransientModel):
     _name = 'cicd.wiz.restore_snapshot.snapshot'
