@@ -444,18 +444,23 @@ class Branch(models.Model):
                     x.project_name + "_" in line for line in containers))
             self.env.cr.commit()
             for rec in to_check:
-                with rec._extra_env() as x_rec:
-                    name = rec.name
-                    logger.info(f"Checking {name} for to cycle down.")
-                    last_access = arrow.get(x_rec._unblocked('last_access') or '1980-04-04')
-                    uptime = (arrow.get() - last_access).total_seconds()
-                    if uptime <= x_rec._unblocked('cycle_down_after_seconds'):
-                        continue
+                name = rec.name
+                logger.info(f"Checking {name} for to cycle down.")
+                last_access = arrow.get(
+                    rec._unblocked('last_access') or '1980-04-04')
+                uptime = (arrow.get() - last_access).total_seconds()
+                if uptime <= rec._unblocked('cycle_down_after_seconds'):
+                    continue
 
-                    x_rec.with_delay(
-                        identity_key=f"cycle_down:{x_rec.name}"
-                    )._cycle_down_instance()
-                    x_rec.env.cr.commit()
+                # dont disturb running tasks
+                if rec.task_ids.filtered(
+                        lambda x: x.state not in ['done', 'failed']):
+                    continue
+
+                rec.with_delay(
+                    identity_key=f"cycle_down:{rec.name}"
+                )._cycle_down_instance()
+                rec.env.cr.commit()
 
     def _cycle_down_instance(self):
         self.ensure_one()

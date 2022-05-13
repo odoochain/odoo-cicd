@@ -186,10 +186,6 @@ class Task(models.Model):
         if self.finished:
             return
 
-        if self.branch_id:
-            self.branch_id.last_access = fields.Datetime.now()
-            self.env.cr.commit()
-
         args = {}
         log = None
         commit_ids = None
