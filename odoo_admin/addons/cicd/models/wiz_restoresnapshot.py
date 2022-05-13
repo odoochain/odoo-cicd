@@ -1,5 +1,8 @@
+import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 
 
 class RestoreSnapshot(models.TransientModel):
@@ -45,14 +48,30 @@ class RestoreSnapshot(models.TransientModel):
                 "snap", "list")['stdout'].strip().splitlines()
             names = set()
             for shot in snapshots[2:]:
-                names.add(shot.split(" ")[0])
+                while "  " in shot:
+                    shot = shot.replace("  ", " ")
+                name, date, _ = shot.split(" ", 2)
+                date = arrow.get(date)
+                names.add((name, date.strftime(DTF)))
+
             for name in names:
                 self.snapshot_ids = [[0, 0, {
-                    'name': name,
+                    'name': name[0],
+                    'date': name[1],
                 }]]
 
 class RestoreSnapshotLine(models.TransientModel):
     _name = 'cicd.wiz.restore_snapshot.snapshot'
+    _rec_name = 'display_name'
 
     wiz_id = fields.Many2one("cicd.wiz.restore_snapshot", required=True)
+    display_name = fields.Char(compute="_compute_name")
     name = fields.Char("Name", required=True)
+    date = fields.Datetime("Date", required=True)
+
+    def _compute_name(self):
+        for rec in self:
+            d = rec.date or ''
+            rec.display_name = (
+                f"{rec.name} - {rec.date}"
+            )
