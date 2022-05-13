@@ -59,6 +59,7 @@ class RestoreSnapshot(models.TransientModel):
                     'date': name[1],
                 }]]
 
+
 class RestoreSnapshotLine(models.TransientModel):
     _name = 'cicd.wiz.restore_snapshot.snapshot'
     _rec_name = 'display_name'
@@ -70,7 +71,6 @@ class RestoreSnapshotLine(models.TransientModel):
 
     def _compute_name(self):
         for rec in self:
-            d = rec.date or ''
             rec.display_name = (
                 f"{rec.name} - {rec.date}"
             )
