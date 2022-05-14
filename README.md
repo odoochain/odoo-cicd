@@ -1,8 +1,13 @@
-# CICD for odoo projects
+# ODOO CICD
 
-- uses https://git.itewimmer.de/odoo/framework
-- makes instances for every branch
+- uses https://github.com/marcwimmer/wodoo
+- every branch testable as feature
+- workflow for deployment
+- ticketsystem (jira.. ) integration
+- notifications about releases, testruns
 
+
+# Setup
 ## M1 cicd postgres compatibilty
 
 If you get a strange SCRAM error message at authentication (https://stackoverflow.com/questions/62807717/how-can-i-solve-postgresql-scram-authentifcation-problem) then change the pg_hba.conf of the cicd_postgres as
@@ -28,37 +33,26 @@ host    replication     all             ::1/128                 trust
 host all all all trust
 ```
 
-## Configuration .env file
+## setup with wodoo, recommended settings
 
-- PASSWD: if not set, then everybody is admin otherwise login with "admin" and the password; create further users.
-
-### Location of input dumps
-
-- use docker-compose.override.yml
-- mount into /input_dumps/subdir1   etc. paths where to find input dumps
-
-## Administration
-
-- Backup
-
-```bash
-cd cicd-app
-docker-compose exec cicd_postgres pg_dumpall -U cicd |gzip > /tmp/dump/cicd.sql
 ```
+~/.cicd/settings
+HUB_URL=.....
+DOCKER_IMAGE_TAG=cicd
+PROJECT_NAME=cicd
+DBNAME=cicdadmin
+RUN_PROXY_PUBLISHED=0
+ODOO_QUEUEJOBS_CHANNELS=testruns:5,others:10
+RUN_ODOO_QUEUEJOBS=1
+RUN_ODOO_CRONJOBS=1
+RESTART_CONTAINERS=1
+ODOO_MAX_CRON_THREADS=10
 
-- Restore
-
-```bash
-docker-compose ps (grab name/id of postgres container)
-gunzip /tmp/dump/cicd.sql | docker exec -i <container postgres name psql -U cicd -d postgres
-```
-
-
-## Minimal Settings
-
-# Recommended configuration for candidate branch
-```bash
-# put sha of git commit into final image
-SHA_IN_DOCKER=1
-
+CICD_NETWORK_NAME=cicd_net
+CICD_BINDING=0.0.0.0:80
+CICD_DB_HOST=172.16.130.156
+CICD_DB_USER=cicd
+CICD_DB_PASSWORD=cicd_is_cool
+CICD_DB_PORT=5454
+CICD_POSTGRES_VERSION=14.0
 ```
