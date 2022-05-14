@@ -45,7 +45,6 @@ class queuejob(models.Model):
                 ('state', '=', 'failed'),
                 ('identity_key', 'ilike', f"%{delete}%")]).unlink()
 
-
         reasons = [
             'could not serialize access due to concurrent update',
             'cannot stat',
@@ -64,6 +63,7 @@ class queuejob(models.Model):
             'current transaction is aborted',
             'psycopg2.errors.InFailedSqlTransaction',
             'Cannot start two jobs for same identity key',
+            'func_trigger_queuejob_state_check_at_commit',
         ]
 
         ignore_idkeys = [
