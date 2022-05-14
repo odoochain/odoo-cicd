@@ -15,6 +15,7 @@ from pathlib import Path
 from contextlib import contextmanager
 
 MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
+BASE_SNAPSHOT_NAME = 'basesnap'
 
 SETTINGS = (
     "RUN_POSTGRES=1\n"
@@ -183,6 +184,37 @@ class CicdTestRun(models.Model):
         self._report(comment, **params)
         self._abort_if_required()
 
+    def _ensure_base_snapshot(self, shell):
+        def lo(*params, comment=None, **kwparams):
+            comment = comment or str(params)
+            self._log(lambda self: shell.odoo(*params, **kwparams))
+
+        if BASE_SNAPSHOT_NAME not in set(shell.get_snapshots()):
+            base_dump = self.branch_id._ensure_base_dump()
+            lo('regpull', 'postgres', allow_error=True)
+            lo('build', 'postgres')
+            lo('up', '-d', 'postgres')
+            self._wait_for_postgres(shell)
+            lo('restore', 'odoo-db', base_dump, force=True)
+            lo('snap', 'save', base_dump)
+
+    def _ensure_source_and_machines(self, shell):
+        self._log(
+            lambda self: self._checkout_source_code(shell),
+            'checkout source'
+        )
+
+        def lo(*params, comment=None, **kwparams):
+            comment = comment or str(params)
+            self._log(lambda self: shell.odoo(*params, **kwparams))
+
+        lo('regpull', allow_error=True)
+        lo('build')
+        lo('kill', allow_error=True)
+        lo('rm', allow_error=True)
+        lo('up', '-d', 'postgres')
+        self._wait_for_postgres(shell)
+
     def _prepare_run(self):
         self = self._with_context()
         self._report('prepare run started')
@@ -195,19 +227,10 @@ class CicdTestRun(models.Model):
                     self._log(lambda self: shell.odoo(*params, **kwparams))
 
                 self._log(
-                    lambda self: self._checkout_source_code(shell),
-                    'checkout source'
+                    lambda self: self._ensure_base_snapshot(shell),
+                    'ensure_base_snapshot'
                 )
-                lo('build')
-                lo('kill', allow_error=True)
-                lo('rm', allow_error=True)
-                lo('up', '-d', 'postgres')
-
-                self._wait_for_postgres(shell)
                 lo('-f', 'db', 'reset')
-                lo(
-                    'pghba-conf-wide-open', "--no-scram",
-                    comment='fix M1 postgres settings')
                 lo('update', 'base', '--no-dangling-check')
 
                 lo('snap', 'save', shell.project_name, force=True)
