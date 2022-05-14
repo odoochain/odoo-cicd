@@ -730,24 +730,26 @@ for path in base.glob("*"):
     })
         return action
 
-    @contextmanager
-    def _tempinstance(self, uniqueappendix):
-        settings = (
+    def _get_settings_isolated_run(self, dbname='odoo'):
+        return (
             "RUN_POSTGRES=1"
             "DB_HOST=postgres"
             "DB_USER=odoo"
             "DB_PASSWORD=odoo"
             "DB_PORT=5432"
-            f"DBNAME={uniqueappendix}\n"
+            f"DBNAME={dbname}\n"
             "RUN_CRONJOBS=0\n"
             "RUN_QUEUEJOBS=0\n"
             "RUN_POSTGRES=1\n"
             "RUN_ROBOT=0\n"
             "RUN_PROXY_PUBLISHED=0\n"
         )
+    @contextmanager
+    def _tempinstance(self, uniqueappendix):
+        settings = self._get_settings_isolated_run()
         machine = self.machine_id
         assert machine.ttype == 'dev'
-        self = self.with_context(testrun="basedump")
+        self = self.with_context(testrun=uniqueappendix)
         with pg_advisory_lock(self.env.cr, self.project_name, 'temporary instance'):
             with self.repo_id._temp_repo(machine=machine) as repo_path:
                 with machine._shell(
@@ -777,6 +779,7 @@ for path in base.glob("*"):
         breakpoint()
         machine = self.machine_id
         instance_folder = self._get_instance_folder(machine)
+        settings = self._get_settings_isolated_run()
         with machine._shell(
             cwd=instance_folder,
             project_name=self.project_name,
@@ -785,7 +788,7 @@ for path in base.glob("*"):
             self._checkout_latest(shell)
             self._reload(
                 shell, project_name=self.project_name,
-                settings=None, force_instance_folder=instance_folder)
+                settings=settings, force_instance_folder=instance_folder)
             path = Path(shell.machine._get_volume('dumps'))
             output = shell.odoo('list-deps', 'base')['stdout'].split(
                 "---", 1)[1]
@@ -796,7 +799,6 @@ for path in base.glob("*"):
 
         if not shell.exists(dest_path):
             with self._tempinstance('ensurebasedump') as shell:
-                breakpoint()
                 shell.odoo('regpull', allow_error=True)
                 shell.odoo('build')
                 shell.odoo('down', '-v', force=True, allow_error=True)
