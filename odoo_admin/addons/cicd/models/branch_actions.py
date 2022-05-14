@@ -1,4 +1,5 @@
 import time
+from . import pg_advisory_lock
 import json
 from contextlib import contextmanager
 import re
@@ -809,7 +810,7 @@ for path in base.glob("*"):
         machine = self.machine_id
         key = f"{self.name}#basedump"
         self = self.with_context(testrun='basedump')
-        with pgadvisory_lock(key):
+        with pg_advisory_lock(key, 'temporary instance'):
             with self.repo_id._temp_repo(machine=machine) as repo_path:
                 with machine._shell(
                     cwd=repo_path,
@@ -819,6 +820,7 @@ for path in base.glob("*"):
                         shell, task=None, logsio=shell.logsio,
                         settings=settings)
                     yield shell
+
                     shell.odoo('down', '-v')
 
     def _ensure_base_dump(self):
@@ -826,14 +828,12 @@ for path in base.glob("*"):
         Makes sure that a dump for installation of base/web module exists.
         """
         self.ensure_one()
-        dump_name = (
-            f"base_dump_"
-        )
         with self._tempinstance('ensurebasedump') as shell:
             path = Path(shell.machine.get_volume('dumps'))
             output = shell.odoo('list-deps', 'base')['stdout'].split(
                 "---", 1)[1]
             deps = json.loads(output)
             hash = deps['hash']
+            dump_name = f"base_dump_{hash}"
             shell.odoo('db', 'reset', force=True)
             shell.odoo('backup', 'odoo-db', str(Path / dump_name))
