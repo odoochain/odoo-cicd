@@ -46,7 +46,7 @@ class TestFailedAtInitError(Exception):
 
 class CicdTestRun(models.Model):
     _log_access = False
-    _inherit = ['mail.thread', 'cicd.open.window.mixin']
+    _inherit = ['mail.thread', 'cicd.open.window.mixin', 'cicd.test.settings']
     _name = 'cicd.test.run'
     _order = 'id desc'
 
