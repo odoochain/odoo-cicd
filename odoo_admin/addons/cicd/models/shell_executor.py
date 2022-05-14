@@ -50,7 +50,7 @@ class ShellExecutor(BaseShellExecutor):
             assert isinstance(logsio, LogsIOWriter)
         self.logsio = logsio
 
-    def _get_logger(self):
+    def get_logger(self):
         return self.logsio
 
     @contextmanager

@@ -518,10 +518,9 @@ class Repository(models.Model):
                             branch.flush()
                             branch.env.cr.commit()
 
-                            branch._checkout_latest(
-                                shell, logsio=logsio, machine=machine)
+                            branch._checkout_latest(shell)
                             branch._update_git_commits(
-                                shell, logsio, force_instance_folder=repo_path)
+                                shell, force_instance_folder=repo_path)
 
                         if not branch.active and repo.revive_branch_on_push:
                             branch.active = True
@@ -536,9 +535,9 @@ class Repository(models.Model):
 
                     for branch_name in updated_branches:
                         self._postprocess_branch_updates(
-                            shell, repo, repo_path, branch_name, logsio=logsio)
+                            shell, repo, repo_path, branch_name)
 
-    def _postprocess_branch_updates(self, shell, repo, repo_path, branch_name, logsio):
+    def _postprocess_branch_updates(self, shell, repo, repo_path, branch_name):
         """
         If a branch was updated, then the
         """
@@ -553,10 +552,8 @@ class Repository(models.Model):
         repo.clear_caches()
         branch = repo.branch_ids.filtered(
             lambda x: x.name == branch_name)
-        machine = repo.machine_id
-        branch._checkout_latest(
-            shell, logsio=logsio, machine=machine)
-        branch._update_git_commits(shell, logsio)
+        branch._checkout_latest(shell)
+        branch._update_git_commits(shell)
         branch._compute_latest_commit(shell)
         branch._trigger_rebuild_after_fetch()
         shell.checkout_branch(
@@ -638,7 +635,7 @@ class Repository(models.Model):
                 shell.checkout_branch(source_branch)
                 if shell.branch_exists(target_branch_name):
                     shell.X(["git", "branch", "-D", target_branch_name])
-                logsio.info("Making target branch {target_branch.name}")
+                shell.logsio.info("Making target branch {target_branch.name}")
                 shell.X([
                     "git", "checkout", "--no-guess",
                     "-b", target_branch_name])
@@ -665,7 +662,7 @@ class Repository(models.Model):
                 try:
                     shell.X(["git", "pull"])
                 except Exception as ex:
-                    logsio.error(str(ex))
+                    shell.logsio.error(str(ex))
                 shell.X([
                     "git", "push", "-f", "--set-upstream",
                     "origin", target_branch_name])
@@ -679,7 +676,7 @@ class Repository(models.Model):
                 if not target_branch.active:
                     target_branch.active = True
                 target_branch._update_git_commits(
-                    shell, logsio, force_instance_folder=repo_path)
+                    shell, force_instance_folder=repo_path)
                 target_branch._compute_latest_commit(shell)
                 if message_commit_sha:
                     message_commit = target_branch.commit_ids.filtered(

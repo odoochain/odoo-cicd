@@ -165,7 +165,7 @@ class Branch(models.Model):
             **kwargs
             ):
 
-        cwd = self._make_sure_source_exists(shell, logsio)
+        cwd = self._make_sure_source_exists(shell)
 
         with shell.clone(cwd=cwd) as shell:
             self._make_instance_docker_configs(
@@ -197,7 +197,7 @@ class Branch(models.Model):
             volume = self.env['cicd.machine.volume'].browse(volume)
             volume = Path(volume.name)
 
-        logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
+        shell.logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
         filename = filename or task.branch_id.backup_filename or (
             self.project_name + ".dump.gz")
         assert isinstance(filename, str)
@@ -209,12 +209,12 @@ class Branch(models.Model):
         task.machine_id.with_delay().update_dumps()
 
     def _update_git_commits(
-            self, shell, logsio,
-            force_instance_folder=None, **kwargs
+            self, shell, force_instance_folder=None,
+            **kwargs
             ):
 
         self.ensure_one()
-        logsio.info(f"Updating commits for {self.project_name}")
+        shell.logsio.info(f"Updating commits for {self.project_name}")
         instance_folder = force_instance_folder or self._get_instance_folder(
             self.machine_id)
 
@@ -267,7 +267,7 @@ class Branch(models.Model):
                     continue
                 date = arrow.get(int(line[0]))
 
-            logsio.info((
+            shell.logsio.info((
                 f"Getting detail information of sha "
                 f"{sha} ({icommit} / {len(commits)})"))
 
@@ -300,11 +300,11 @@ class Branch(models.Model):
             }]]
 
     def _remove_web_assets(self, shell, task, **kwargs):
-        logsio.info("Killing...")
+        shell.logsio.info("Killing...")
         shell.odoo('kill')
-        logsio.info("Calling remove-web-assets")
+        shell.logsio.info("Calling remove-web-assets")
         shell.odoo('-f', 'remove-web-assets')
-        logsio.info("Restarting...")
+        shell.logsio.info("Restarting...")
         shell.odoo('up', '-d')
 
     def _shrink_db(self, shell, task, **kwargs):
@@ -324,7 +324,7 @@ class Branch(models.Model):
                 f"{testrun.id}"
             )).execute()
 
-    def _after_build(self, shell, logsio, **kwargs):
+    def _after_build(self, shell, **kwargs):
         self.last_access = fields.Datetime.now()  # to avoid cycle down
         shell.odoo(
             "remove-settings", '--settings', 'web.base.url,web.base.url.freeze'
@@ -339,41 +339,37 @@ class Branch(models.Model):
         shell.odoo("prolong")
         shell.odoo('restore-web-icons')
 
-    def _build_since_last_gitsha(self, shell, logsio, **kwargs):
+    def _build_since_last_gitsha(self, shell, **kwargs):
         # todo make button
-        self._after_build(shell=shell, logsio=logsio, **kwargs)
+        self._after_build(shell=shell, **kwargs)
 
-    def _checkout_latest(
-        self, shell, logsio=None, machine=None,
-        instance_folder=None, **kwargs
-    ):
+    def _checkout_latest(self, shell, instance_folder=None, **kwargs):
         """
         Use this for getting source code. It updates also submodules.
 
         """
         my_name = self._unblocked('name')
 
-        def _clone_instance_folder(machine, logsio, instance_folder):
+        def _clone_instance_folder(machine, instance_folder):
             self.repo_id._get_main_repo(
-                logsio=logsio,
+                logsio=shell.logsio,
                 destination_folder=instance_folder,
                 limit_branch=my_name,
                 machine=machine,
             )
 
-        machine = machine or shell.machine
+        machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
-        logsio = logsio or shell.logsio
-        logsio.write_text(f"Updating instance folder {my_name}")
-        _clone_instance_folder(machine, logsio, instance_folder)
-        logsio.write_text(f"Cloning {my_name} to {instance_folder}")
+        shell.logsio.write_text(f"Updating instance folder {my_name}")
+        _clone_instance_folder(machine, shell.logsio, instance_folder)
+        shell.logsio.write_text(f"Cloning {my_name} to {instance_folder}")
 
         with shell.clone(cwd=instance_folder) as shell:
-            logsio.write_text(f"Checking out {my_name}")
+            shell.logsio.write_text(f"Checking out {my_name}")
             try:
                 shell.X(["git", "checkout", "-f", my_name])
             except Exception as ex:
-                logsio.error(ex)
+                shell.logsio.error(ex)
                 shell.rm(instance_folder)
                 raise RetryableJobError(
                     "Cleared directory - branch not found - please retry",
@@ -382,11 +378,11 @@ class Branch(models.Model):
             try:
                 shell.X(["git", "pull"])
             except Exception as ex:
-                logsio.error((
+                shell.logsio.error((
                     "Error at pulling,"
                     f"cloning path {instance_folder} again:\n{ex}"))
                 shell.rm(instance_folder)
-                _clone_instance_folder(machine, logsio, instance_folder)
+                _clone_instance_folder(machine, shell.logsio, instance_folder)
 
             # delete all other branches:
             res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
@@ -402,7 +398,7 @@ class Branch(models.Model):
             current_branch = list(filter(lambda x: '* ' in x, shell.X([
                 "git", "branch"])['stdout'].strip().split("\n")))
             if not current_branch:
-                raise Exception(f"Somehow no current branch found")
+                raise Exception("Somehow no current branch found")
             try:
                 branch_in_dir = self.repo_id._clear_branch_name(
                     current_branch[0])
@@ -416,15 +412,15 @@ class Branch(models.Model):
                     f"Was {branch_in_dir} - but should be {my_name}"
                 ))
 
-            logsio.write_text(f"Clean git")
+            shell.logsio.write_text("Clean git")
             shell.X(["git", "clean", "-xdff"])
 
-            logsio.write_text("Updating submodules")
+            shell.logsio.write_text("Updating submodules")
             shell.X(["git", "submodule", "update", "--recursive", "--init"])
 
-            logsio.write_text("Getting current commit")
+            shell.logsio.write_text("Getting current commit")
             commit = shell.X(["git", "rev-parse", "HEAD"])['stdout'].strip()
-            logsio.write_text(commit)
+            shell.logsio.write_text(commit)
 
         return str(commit)
 
@@ -632,7 +628,7 @@ class Branch(models.Model):
                 shell.logsio.info("Clearing DB...")
                 shell.odoo('-f', 'cleardb')
                 if compressor.anonymize:
-                    logsio.info("Anonymizing DB...")
+                    shell.logsio.info("Anonymizing DB...")
                     shell.odoo('-f', 'anonymize')
                 shell.logsio.info("Dumping compressed dump")
                 output_path = compressor.volume_id.name + "/" + \
@@ -759,13 +755,13 @@ for path in base.glob("*"):
                     project_name=self.project_name,
                 ) as shell:
                     self._reload(
-                        shell, task=None, logsio=shell.logsio,
-                        project_name=self.project_name,
+                        shell, task=None, project_name=self.project_name,
                         settings=settings)
                     shell.odoo('up', '-d', 'postgres')
-                    yield shell
-
-                    shell.odoo('down', '-v', allow_error=True, force=True)
+                    try:
+                        yield shell
+                    finally:
+                        shell.odoo('down', '-v', allow_error=True, force=True)
 
     def _ensure_base_dump(self):
         """

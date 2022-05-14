@@ -161,11 +161,7 @@ class Task(models.Model):
                 rec._exec()
 
     def _ensure_source_code(self, shell):
-
-        self.branch_id._checkout_latest(
-            shell, machine=self.machine_id,
-            instance_folder=shell.cwd,
-        )
+        self.branch_id._checkout_latest(shell, instance_folder=shell.cwd)
 
     def _get_args(self, shell):
         self.ensure_one()

@@ -282,5 +282,5 @@ class BaseShellExecutor():
             return base, user_host
         return base + " " + user_host + " "
 
-    def _get_logger(self):
+    def get_logger(self):
         return logger
