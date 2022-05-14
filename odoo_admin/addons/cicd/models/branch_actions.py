@@ -778,6 +778,7 @@ for path in base.glob("*"):
             hash = deps['hash']
             dump_name = f"base_dump_{hash}"
             shell.odoo('up', '-d', 'postgres')
+            shell.odoo('regpull', allow_error=True)
             shell.odoo('db', 'reset', force=True)
             dest_path = path / dump_name
             shell.logsio.info(f"Dumping to {dest_path}")
