@@ -758,7 +758,6 @@ for path in base.glob("*"):
                     self._reload(
                         shell, project_name=self.project_name,
                         settings=settings, force_instance_folder=repo_path)
-                    shell.odoo('up', '-d', 'postgres')
                     try:
                         yield shell
                     finally:
@@ -778,6 +777,7 @@ for path in base.glob("*"):
             deps = json.loads(output)
             hash = deps['hash']
             dump_name = f"base_dump_{hash}"
+            shell.odoo('up', '-d', 'postgres')
             shell.odoo('db', 'reset', force=True)
             dest_path = path / dump_name
             shell.logsio.info(f"Dumping to {dest_path}")
