@@ -599,7 +599,7 @@ class GitBranch(models.Model):
             if not rec.active:
                 rec._make_task("_destroy_instance")
 
-    def _destroy_instance(self, shell, task, logsio, **kwargs):
+    def _destroy_instance(self, shell, task, **kwargs):
         self.with_delay().purge_instance_folder()
 
         # delete db

@@ -171,7 +171,6 @@ class Task(models.Model):
         self.ensure_one()
         args = {
             'task': self,
-            'logsio': shell.logsio,
             'shell': shell,
             }
         if self.kwargs and self.kwargs != 'null':

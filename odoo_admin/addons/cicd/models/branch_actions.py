@@ -30,20 +30,20 @@ logger = logging.getLogger(__name__)
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
-    def _prepare_a_new_instance(self, shell, task, logsio, **kwargs):
+    def _prepare_a_new_instance(self, shell, task, **kwargs):
         dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
         if not dump:
-            self._reset_db(shell, task, logsio, **kwargs)
+            self._reset_db(shell, task, **kwargs)
         else:
             self.backup_machine_id = dump.machine_id
             self.dump_id = dump
         if self.dump_id:
-            self._restore_dump(shell, task, logsio, dump=dump, **kwargs)
+            self._restore_dump(shell, task, dump=dump, **kwargs)
         else:
-            self._reset_db(shell, task, logsio, **kwargs)
-        self._update_all_modules(shell, task, logsio, **kwargs)
+            self._reset_db(shell, task, **kwargs)
+        self._update_all_modules(shell, task, **kwargs)
 
-    def _update_odoo(self, shell, task, logsio, **kwargs):
+    def _update_odoo(self, shell, task, **kwargs):
         if self.block_updates_until and \
                 self.block_updates_until > fields.Datetime.now():
             raise RetryableJobError(
@@ -59,7 +59,7 @@ class Branch(models.Model):
             commit = tasks[0].commit_id.name
         if commit:
             try:
-                logsio.info("Updating")
+                shell.logsio.info("Updating")
                 result = shell.odoo(
                     "update", "--since-git-sha", commit,
                     "--no-dangling-check", "--i18n")
@@ -68,65 +68,65 @@ class Branch(models.Model):
                     raise Exception("Error at update")
             except Exception as ex:
                 logger.error(ex)
-                logsio.error(ex)
-                logsio.info((
+                shell.logsio.error(ex)
+                shell.logsio.info((
                     "Running full update now - "
                     f"update since sha {commit} did not succeed"))
-                self._update_all_modules(shell=shell, task=task, logsio=logsio, **kwargs)
+                self._update_all_modules(shell=shell, task=task, **kwargs)
         else:
             self._update_all_modules(
-                shell=shell, task=task, logsio=logsio, **kwargs)
+                shell=shell, task=task, **kwargs)
 
-    def _update_all_modules(self, shell, task, logsio, **kwargs):
-        logsio.info("Reloading")
-        self._reload(shell, task, logsio)
-        logsio.info("Building")
+    def _update_all_modules(self, shell, task, **kwargs):
+        shell.logsio.info("Reloading")
+        self._reload(shell, task)
+        shell.logsio.info("Building")
         self._internal_build(shell)
-        logsio.info("Updating")
+        shell.logsio.info("Updating")
         shell.odoo('update', "--no-dangling-check") # , "--i18n")
-        logsio.info("Upping")
+        shell.logsio.info("Upping")
         shell.odoo("up", "-d")
 
-    def _update_installed_modules(self, shell, task, logsio, **kwargs):
-        logsio.info("Reloading")
-        self._reload(shell, task, logsio)
-        logsio.info("Building")
+    def _update_installed_modules(self, shell, task, **kwargs):
+        shell.logsio.info("Reloading")
+        self._reload(shell, task)
+        shell.logsio.info("Building")
         self._internal_build(shell)
-        logsio.info("Updating")
+        shell.logsio.info("Updating")
         shell.odoo('update', "--no-dangling-check", "--installed-modules")
-        logsio.info("Upping")
+        shell.logsio.info("Upping")
         shell.odoo("up", "-d")
 
-    def _simple_docker_up(self, shell, task, logsio, **kwargs):
+    def _simple_docker_up(self, shell, task, **kwargs):
         shell.odoo("up", "-d")
 
-    def _reload_and_restart(self, shell, task, logsio, **kwargs):
-        self._reload(shell, task, logsio)
-        logsio.info("Building")
+    def _reload_and_restart(self, shell, task, **kwargs):
+        self._reload(shell, task)
+        shell.logsio.info("Building")
         self._internal_build(shell)
-        logsio.info("Upping")
+        shell.logsio.info("Upping")
         shell.odoo("kill")
         self._kill_tmux_sessions(shell)
         shell.odoo("rm")
         shell.odoo("up", "-d")
-        self._after_build(shell, logsio)
+        self._after_build(shell)
 
-    def _restore_dump(self, shell, task, logsio, dump, **kwargs):
+    def _restore_dump(self, shell, task, dump, **kwargs):
         dump = dump or self.dump_id
         if isinstance(dump, int):
             dump = self.env['cicd.dump'].browse(dump)
 
         if not dump:
             raise ValidationError(_("Dump missing - cannot restore"))
-        self._reload(shell, task, logsio)
-        logsio.info("Reloading")
+        self._reload(shell, task)
+        shell.logsio.info("Reloading")
         shell.odoo('reload')
-        logsio.info("Building")
+        shell.logsio.info("Building")
         self._internal_build(shell)
-        logsio.info("Downing")
+        shell.logsio.info("Downing")
         shell.odoo('kill')
         shell.odoo('rm')
-        logsio.info(f"Restoring {dump.name}")
+        shell.logsio.info(f"Restoring {dump.name}")
         shell.odoo(
             '-f', 'restore', 'odoo-db', '--no-remove-webassets',
             dump.name)
@@ -140,27 +140,27 @@ class Branch(models.Model):
         shell.odoo("update")
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
         self.last_snapshot = False
-        self._after_build(shell=shell, logsio=logsio)
+        self._after_build(shell=shell)
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
 
-    def _docker_start(self, shell, task, logsio, **kwargs):
+    def _docker_start(self, shell, task, **kwargs):
         shell.odoo('up', '-d')
         self.machine_id._fetch_psaux_docker_containers()
 
-    def _docker_stop(self, shell, task, logsio, **kwargs):
+    def _docker_stop(self, shell, task, **kwargs):
         shell.odoo('kill')
         self.machine_id._fetch_psaux_docker_containers()
 
-    def _docker_remove(self, shell, task, logsio, **kwargs):
+    def _docker_remove(self, shell, task, **kwargs):
         shell.odoo('kill')
         shell.odoo('rm')
         self.machine_id._fetch_psaux_docker_containers()
 
-    def _turn_into_dev(self, shell, task, logsio, **kwargs):
+    def _turn_into_dev(self, shell, task, **kwargs):
         shell.odoo('turn-into-dev')
 
     def _reload(
-            self, shell, task, logsio,
+            self, shell, task,
             project_name=None, settings=None, commit=None, registry=None,
             **kwargs
             ):
@@ -187,11 +187,11 @@ class Branch(models.Model):
                 return True
         return False
 
-    def _build(self, shell, task, logsio, **kwargs):
-        self._reload(shell, task, logsio, **kwargs)
+    def _build(self, shell, task, **kwargs):
+        self._reload(shell, task, **kwargs)
         self._internal_build(shell)
 
-    def _dump(self, shell, task, logsio, volume=None, filename=None, **kwargs):
+    def _dump(self, shell, task, volume=None, filename=None, **kwargs):
         volume = volume or task.machine_id._get_volume('dumps')
         if isinstance(volume, int):
             volume = self.env['cicd.machine.volume'].browse(volume)
@@ -299,7 +299,7 @@ class Branch(models.Model):
                 'branch_ids': [[4, self.id]],
             }]]
 
-    def _remove_web_assets(self, shell, task, logsio, **kwargs):
+    def _remove_web_assets(self, shell, task, **kwargs):
         logsio.info("Killing...")
         shell.odoo('kill')
         logsio.info("Calling remove-web-assets")
@@ -307,10 +307,10 @@ class Branch(models.Model):
         logsio.info("Restarting...")
         shell.odoo('up', '-d')
 
-    def _shrink_db(self, shell, task, logsio, **kwargs):
+    def _shrink_db(self, shell, task, **kwargs):
         shell.odoo('cleardb')
 
-    def _anonymize(self, shell, task, logsio, **kwargs):
+    def _anonymize(self, shell, task, **kwargs):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
@@ -580,8 +580,8 @@ class Branch(models.Model):
         shell.odoo("build")
         self._push_to_registry(shell)
 
-    def _reset_db(self, shell, task, logsio, **kwargs):
-        self._reload(shell, task, logsio)
+    def _reset_db(self, shell, task, **kwargs):
+        self._reload(shell, task)
         self._internal_build(shell)
         shell.odoo('-f', 'db', 'reset')
         shell.odoo('update', '--no-dangling-check')
@@ -590,15 +590,15 @@ class Branch(models.Model):
         except:
             pass
         self.last_snapshot = False
-        self._after_build(shell=shell, logsio=logsio, **kwargs)
+        self._after_build(shell=shell, **kwargs)
 
-    def _compress(self, shell, task, logsio, compress_job_id):
+    def _compress(self, shell, task, compress_job_id):
         self.ensure_one()
         compressor = self.env['cicd.compressor'].sudo().browse(
-            compress_job_id).sudo()
+            compress_job_id)
 
         # get list of files
-        filename = compressor._get_latest_dump(logsio=logsio)
+        filename = compressor._get_latest_dump(logsio=shell.logsio)
 
         # if the machines are the same, then just rewrite destination path
         # if machines are different then copy locally and then put it on the
@@ -611,9 +611,10 @@ class Branch(models.Model):
 
         # release db resources:
         self.env.cr.commit()
+        source_machine = compressor.source_volume_id.machine_id
 
-        with compressor.source_volume_id.machine_id._put_temporary_file_on_machine(
-            logsio,
+        with source_machine._put_temporary_file_on_machine(
+            shell.logsio,
             compressor.source_volume_id.name + "/" + filename,
             shell.machine,
             dest_file_path,
@@ -628,12 +629,12 @@ class Branch(models.Model):
             with self._tempinstance(f"{self.name}{appendix}") as shell:
                 shell.odoo(
                     "-f", "restore", "odoo-db", effective_dest_file_path)
-                logsio.info("Clearing DB...")
+                shell.logsio.info("Clearing DB...")
                 shell.odoo('-f', 'cleardb')
                 if compressor.anonymize:
                     logsio.info("Anonymizing DB...")
                     shell.odoo('-f', 'anonymize')
-                logsio.info("Dumping compressed dump")
+                shell.logsio.info("Dumping compressed dump")
                 output_path = compressor.volume_id.name + "/" + \
                     compressor.output_filename
                 shell.odoo('backup', 'odoo-db', output_path)
@@ -642,7 +643,7 @@ class Branch(models.Model):
                         'stdout'].strip())
                 compressor.date_last_success = fields.Datetime.now()
 
-    def _make_sure_source_exists(self, shell, logsio):
+    def _make_sure_source_exists(self, shell):
         instance_folder = self._get_instance_folder(shell.machine)
         self.ensure_one()
         with self._extra_env() as x_self:
@@ -651,10 +652,10 @@ class Branch(models.Model):
 
         if not healthy:
             try:
-                self._checkout_latest(shell, logsio=logsio)
+                self._checkout_latest(shell)
             except Exception:
                 shell.rm(instance_folder)
-                self._checkout_latest(shell, logsio=logsio)
+                self._checkout_latest(shell)
         return instance_folder
 
     def _collect_all_files_by_their_checksum(self, shell):

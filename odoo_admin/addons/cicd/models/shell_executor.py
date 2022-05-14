@@ -21,6 +21,11 @@ DEFAULT_ENV = {
 
 
 class ShellExecutor(BaseShellExecutor):
+    """
+    ShellExecutor
+
+    Execute remote ssh commands using environments, multi line commands
+    """
 
     def __init__(
         self, ssh_keyfile, host,
@@ -30,13 +35,23 @@ class ShellExecutor(BaseShellExecutor):
         env2 = deepcopy(DEFAULT_ENV)
         env2.update(env or {})
 
-        super().__init__(ssh_keyfile, host,
-            cwd, logsio, env=env2, user=user,
-            machine=machine)
+        super().__init__(
+            ssh_keyfile, host, cwd,
+            env=env2, user=user)
 
         self.project_name = project_name
+        self.machine = machine
         if project_name:
             assert isinstance(project_name, str)
+
+        if not logsio:
+            logsio = LogsIOWriter(project_name or 'general', 'general')
+        if logsio:
+            assert isinstance(logsio, LogsIOWriter)
+        self.logsio = logsio
+
+    def _get_logger(self):
+        return self.logsio
 
     @contextmanager
     def clone(self, cwd=None, env=None, user=None, project_name=None):

@@ -10,7 +10,6 @@ from odoo.exceptions import UserError
 import time
 from copy import deepcopy
 from pathlib import Path
-from ..tools.logsio_writer import LogsIOWriter
 import logging
 logger = logging.getLogger(__name__)
 
@@ -22,12 +21,11 @@ def duration(d):
 
 
 class MyWriter():
-    # TODO: relation to logsio to strong, should be independent
-    def __init__(self, ttype, logsio, logoutput):
+    def __init__(self, ttype, logger, logoutput):
         self.text = [""]
         self.ttype = ttype
         self.line = ""
-        self.logsio = logsio
+        self.logger = logger
         self.logoutput = logoutput
         self.filepath = tempfile.mktemp(suffix='shellwriter.log')
         self.file = open(self.filepath, 'a+')
@@ -57,11 +55,11 @@ class MyWriter():
         self.file.write(line)
         if line.endswith("\n"):
             line = line[:-1]
-        if self.logoutput and self.logsio:
+        if self.logoutput and self.logger:
             if self.ttype == 'error':
-                self.logsio.error(line)
+                self.logger.error(line)
             else:
-                self.logsio.info(line)
+                self.logger.info(line)
 
 
 class BaseShellExecutor():
@@ -73,17 +71,12 @@ class BaseShellExecutor():
 
     def __init__(
         self, ssh_keyfile, host,
-        cwd, logsio, env=None, user=None,
-        machine=None
+        cwd, env=None, user=None,
     ):
 
         self.host = host
-        self.machine = machine
         self._cwd = Path(cwd) if cwd else None
-        self.logsio = logsio
         self.env = env or {}
-        if logsio:
-            assert isinstance(logsio, LogsIOWriter)
         if env:
             assert isinstance(env, dict)
         self.ssh_keyfile = ssh_keyfile
@@ -113,8 +106,8 @@ class BaseShellExecutor():
 
         # region: Writer Class
 
-        stdwriter = MyWriter('info', self.logsio, logoutput)
-        errwriter = MyWriter('error', self.logsio, logoutput)
+        stdwriter = MyWriter('info', self.get_logger(), logoutput)
+        errwriter = MyWriter('error', self.get_logger(), logoutput)
 
         # endregion
 
@@ -288,3 +281,6 @@ class BaseShellExecutor():
         if split_host:
             return base, user_host
         return base + " " + user_host + " "
+
+    def _get_logger(self):
+        return logger
