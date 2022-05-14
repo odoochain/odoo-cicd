@@ -22,7 +22,7 @@ LIMIT_PROJECT_NAME = 30
 
 
 class GitBranch(models.Model):
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'cicd.test.settings']
     _name = 'cicd.git.branch'
 
     force_prepare_dump = fields.Boolean("Force prepare Dump")
@@ -112,18 +112,6 @@ class GitBranch(models.Model):
     computed_release_item_ids = fields.Many2many(
         'cicd.release.item', "Releases", compute="_compute_releases",
         search='_search_release_items')
-
-    any_testing = fields.Boolean(compute="_compute_any_testing")
-    run_unittests = fields.Boolean(
-        "Run Unittests", default=True, testrun_field=True)
-    run_robottests = fields.Boolean(
-        "Run Robot-Tests", default=True, testrun_field=True)
-    simulate_install_id = fields.Many2one(
-        "cicd.dump", string="Simulate Install", testrun_field=True)
-    unittest_all = fields.Boolean("All Unittests")
-    retry_unit_tests = fields.Integer("Retry Unittests", default=3)
-    timeout_tests = fields.Integer("Timeout Tests [s]", default=600)
-    timeout_migration = fields.Integer("Timeout Migration [s]", default=1800)
 
     test_run_ids = fields.One2many(
         'cicd.test.run', string="Test Runs", compute="_compute_test_runs")
@@ -286,15 +274,6 @@ class GitBranch(models.Model):
             commit.ensure_one()
             if rec.latest_commit_id != commit:
                 rec.latest_commit_id = commit
-
-    def _compute_any_testing(self):
-        for rec in self:
-            _fields = [
-                k
-                for k, v in rec._fields.items()
-                if getattr(v, 'testrun_field', False)
-                ]
-            rec.any_testing = any(rec[f] for f in _fields)
 
     @api.model
     def create(self, vals):

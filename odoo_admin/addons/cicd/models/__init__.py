@@ -80,6 +80,7 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
                 exc_info=True
                 )
 
+from . import test_settings
 from . import mixin_open_window
 from . import schedule
 from . import mixin_schedule
