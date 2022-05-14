@@ -119,7 +119,7 @@ class CicdTestRun(models.Model):
         def reload():
             try:
                 self.branch_id._reload(
-                    shell, None, shell.logsio, project_name=shell.project_name,
+                    shell, None, project_name=shell.project_name,
                     settings=settings, commit=self.commit_id.name)
             except Exception as ex:
                 logger.error(ex)
@@ -223,7 +223,7 @@ class CicdTestRun(models.Model):
         self = self._with_context()
         with self._logsio(None) as logsio:
             self._report("Cleanup Testing started...")
-            with self._shell() as shell:
+            with self._shell(logsio=logsio) as shell:
                 if not shell.exists(shell.cwd):
                     return
                 shell.odoo('kill', allow_error=True)
@@ -236,8 +236,7 @@ class CicdTestRun(models.Model):
                         shell.rm(project_dir)
                     except Exception:
                         msg = f"Failed to remove directory {project_dir}"
-                        if logsio:
-                            logsio.error(msg)
+                        logsio.error(msg)
                         logger.error(msg)
             self._report("Cleanup Testing done.")
 

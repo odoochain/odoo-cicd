@@ -360,7 +360,7 @@ class Branch(models.Model):
         machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
         shell.logsio.write_text(f"Updating instance folder {my_name}")
-        _clone_instance_folder(machine, shell.logsio, instance_folder)
+        _clone_instance_folder(machine, instance_folder)
         shell.logsio.write_text(f"Cloning {my_name} to {instance_folder}")
 
         with shell.clone(cwd=instance_folder) as shell:
@@ -381,7 +381,7 @@ class Branch(models.Model):
                     "Error at pulling,"
                     f"cloning path {instance_folder} again:\n{ex}"))
                 shell.rm(instance_folder)
-                _clone_instance_folder(machine, shell.logsio, instance_folder)
+                _clone_instance_folder(machine, instance_folder)
 
             # delete all other branches:
             res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
@@ -775,4 +775,6 @@ for path in base.glob("*"):
             hash = deps['hash']
             dump_name = f"base_dump_{hash}"
             shell.odoo('db', 'reset', force=True)
-            shell.odoo('backup', 'odoo-db', str(path / dump_name))
+            dest_path = path / dump_name
+            shell.logsio.info(f"Dumping to {dest_path}")
+            shell.odoo('backup', 'odoo-db', dest_path)
