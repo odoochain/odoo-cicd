@@ -1,4 +1,6 @@
 import time
+import json
+from contextlib import contextmanager
 import re
 import uuid
 import psycopg2
@@ -794,3 +796,44 @@ for path in base.glob("*"):
         time.sleep(60)
         # raise Exception('fail')
         #time.sleep(10)
+
+    @contextmanager
+    def _tempinstance(self, uniqueappendix):
+        settings = (
+            "RUN_POSTGRES=1"
+            "DB_HOST=postgres"
+            "DB_USER=odoo"
+            "DB_PASSWORD=odoo"
+            "DB_PORT=5432"
+        )
+        machine = self.machine_id
+        key = f"{self.name}#basedump"
+        self = self.with_context(testrun='basedump')
+        with pgadvisory_lock(key):
+            with self.repo_id._temp_repo(machine=machine) as repo_path:
+                with machine._shell(
+                    cwd=repo_path,
+                    project_name=self.project_name,
+                ) as shell:
+                    self._reload(
+                        shell, task=None, logsio=shell.logsio,
+                        settings=settings)
+                    yield shell
+                    shell.odoo('down', '-v')
+
+    def _ensure_base_dump(self):
+        """
+        Makes sure that a dump for installation of base/web module exists.
+        """
+        self.ensure_one()
+        dump_name = (
+            f"base_dump_"
+        )
+        with self._tempinstance('ensurebasedump') as shell:
+            path = Path(shell.machine.get_volume('dumps'))
+            output = shell.odoo('list-deps', 'base')['stdout'].split(
+                "---", 1)[1]
+            deps = json.loads(output)
+            hash = deps['hash']
+            shell.odoo('db', 'reset', force=True)
+            shell.odoo('backup', 'odoo-db', str(Path / dump_name))

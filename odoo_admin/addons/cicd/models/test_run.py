@@ -168,51 +168,54 @@ class CicdTestRun(models.Model):
         if self.do_abort:
             raise AbortException("User aborted")
 
+    def _log(self, func, comment=""):
+        started = arrow.utcnow()
+        comment = comment or str(func)
+        self._report(comment)
+        params = {}
+        try:
+            func(self)
+        except Exception as ex:
+            params['exception'] = ex
+
+        finally:
+            params['duration'] = (arrow.utcnow() - started).total_seconds()
+        self._report(comment, **params)
+        self._abort_if_required()
+
     def _prepare_run(self):
         self = self._with_context()
         self._report('prepare run started')
         self._switch_to_running_state()
 
-        started = arrow.utcnow()
         try:
             with self._shell() as shell:
-                self._checkout_source_code(shell)
-                self._abort_if_required()
-                self._report('building')
-                shell.odoo('build')
-                self._report('killing any existing')
-                shell.odoo('kill', allow_error=True)
-                shell.odoo('rm', allow_error=True)
-                self._report('starting postgres')
-                shell.odoo('up', '-d', 'postgres')
+                def lo(*params, comment=None, **kwparams):
+                    comment = comment or str(params)
+                    self._log(lambda self: shell.odoo(*params, **kwparams))
 
-                self._abort_if_required()
-
-                self._wait_for_postgres(shell)
-                self._report('db reset started')
-                shell.odoo('-f', 'db', 'reset')
-                shell.odoo('pghba-conf-wide-open', "--no-scram")
-                shell.odoo('update', 'base', '--no-dangling-check')
-
-                self._abort_if_required()
-                self._report('db reset done')
-
-                self._abort_if_required()
-
-                self._report("Storing snapshot")
-                shell.odoo('snap', 'save', shell.project_name, force=True)
-                self._wait_for_postgres(shell)
-                self._report("Storing snapshot done")
-                self._report(
-                    'preparation done',
-                    duration=arrow.utcnow() - started
+                self._log(
+                    lambda self: self._checkout_source_code(shell),
+                    'checkout source'
                 )
+                lo('build')
+                lo('kill', allow_error=True)
+                lo('rm', allow_error=True)
+                lo('up', '-d', 'postgres')
 
-            self._abort_if_required()
+                self._wait_for_postgres(shell)
+                lo('-f', 'db', 'reset')
+                lo(
+                    'pghba-conf-wide-open', "--no-scram",
+                    comment='fix M1 postgres settings')
+                lo('update', 'base', '--no-dangling-check')
+
+                lo('snap', 'save', shell.project_name, force=True)
+                self._wait_for_postgres(shell)
 
         except TestFailedAtInitError as ex:
             self.state = 'failed'
-            self._report("Failed at preparation", state='failed', exception=ex)
+            self._report("Failed at preparation", exception=ex)
         else:
             self.as_job("_preparedone_run_tests", False)._run_test()
 
@@ -400,7 +403,7 @@ class CicdTestRun(models.Model):
     def _shell(self, logsio=None):
         with self._logsio(logsio) as logsio:
             self = self._with_context()
-            machine = self.branch_ids.machine_id
+            machine = self.branch_id.machine_id
             root = machine._get_volume('source')
             project_name = self.branch_id.project_name
             with machine._shell(
