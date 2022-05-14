@@ -19,19 +19,19 @@
 								<field name="name" colspan="4" class="oe_inline" readonly='1'/>
 							</h1>
 						</div>
+						<group>
+							<field name="create_date"/>
+							<field name="date" />
+							<field name="commit_id"/>
+							<field name="repo_short"/>
+							<field name="branch_id"/>
+							<field name="branch_ids" widget="many2many_tags"/>
+							<field name="duration"/>
+							<field name="success_rate"/>
+							<field name="queuejob_log" filename="queuejob_log_filename"/>
+							<field name="queuejob_log_filename" invisible='1'/>
+						</group>
 						<notebook>
-							<group>
-								<field name="create_date"/>
-								<field name="date" />
-								<field name="commit_id"/>
-								<field name="repo_short"/>
-								<field name="branch_id"/>
-								<field name="branch_ids" widget="many2many_tags"/>
-								<field name="duration"/>
-								<field name="success_rate"/>
-								<field name="queuejob_log" filename="queuejob_log_filename"/>
-								<field name="queuejob_log_filename" invisible='1'/>
-							</group>
 							<page name="details" string="Details">
 								<field name="line_ids" nolabel='1' context="{'form_view_ref': 'cicd.view_cicd_test_run_line_form'}">
 								</field>
