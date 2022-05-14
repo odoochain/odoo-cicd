@@ -46,7 +46,7 @@ class TestrunUnittest(models.Model):
             try:
                 shell.odoo(
                     'robot', '-p', 'password=admin',
-                    item, timeout=self.branch_id.timeout_tests)
+                    item, timeout=self.timeout_tests)
                 state = 'success'
             except Exception as ex:
                 state = 'failed'
@@ -70,5 +70,5 @@ class TestrunUnittest(models.Model):
         self._generic_run(
             shell, logsio, files,
             'robottest', _run_robot_run,
-            try_count=self.branch_id.retry_unit_tests,
+            try_count=self.retry_unit_tests,
         )

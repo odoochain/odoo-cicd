@@ -402,8 +402,8 @@ class ReleaseItem(models.Model):
                 lambda x: x.state not in ['failed', 'success'])
             success = 'success' in runs.mapped('state')
 
-            # TODO make sure quality assurance
             if not success and not open_runs:
+                self.apply_test_settings(self.item_branch_id)
                 self.item_branch_id.with_delay().run_tests()
 
             elif success:

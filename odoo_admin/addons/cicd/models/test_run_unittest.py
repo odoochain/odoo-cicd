@@ -61,12 +61,12 @@ class TestrunUnittest(models.Model):
             def _unittest(item):
                 shell.odoo(
                     'unittest', item, "--non-interactive",
-                    timeout=self.branch_id.timeout_tests)
+                    timeout=self.timeout_tests)
 
             self._generic_run(
                 shell, logsio, tests,
                 'unittest', _unittest,
-                try_count=self.branch_id.retry_unit_tests,
+                try_count=self.retry_unit_tests,
                 name_callback=self._unittest_name_callback,
                 name_prefix=f"({i} / {len(unittests_to_run)}) ",
                 unique_name=module,
@@ -143,7 +143,7 @@ class TestrunUnittest(models.Model):
     def _get_unit_tests(self, shell):
         self.ensure_one()
         cmd = ['list-unit-test-files']
-        if self.branch_id.unittest_all:
+        if self.unittest_all:
             cmd += ['--all']
         files = shell.odoo(*cmd)['stdout'].strip()
         return list(filter(bool, files.split("!!!")[1].splitlines()))

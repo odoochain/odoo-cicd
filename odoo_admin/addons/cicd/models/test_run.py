@@ -474,20 +474,18 @@ class CicdTestRun(models.Model):
         self._report("Starting Tests")
         self._switch_to_running_state()
 
-        b = self.branch_id
-
         with self._shell() as shell:
             logsio = shell.logsio
 
-            if b.run_unittests:
+            if self.run_unittests:
                 self._execute(
                     shell, logsio, self._run_unit_tests,
                     'test-units')
-            if b.run_robottests:
+            if self.run_robottests:
                 self._execute(
                     shell, logsio, self._run_robot_tests,
                     'test-robot')
-            if b.simulate_install_id:
+            if self.simulate_install_id:
                 self._execute(
                     shell, logsio, self._run_update_db,
                     'test-migration')
@@ -598,7 +596,7 @@ class CicdTestRun(models.Model):
     def _generic_run(
         self, shell, logsio, todo, ttype, execute_run,
         try_count=1, name_callback=None, name_prefix='',
-        unique_name=False, hash=False,
+        hash=False,
     ):
         """
         Timeout in seconds.

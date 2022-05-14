@@ -311,9 +311,6 @@ class Branch(models.Model):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
-    def _run_tests(self):
-        pass # deprecated
-
     def _cron_run_open_tests(self):
         for testrun in self.env['cicd.test.run'].search([
                 ('state', '=', 'open')]):
