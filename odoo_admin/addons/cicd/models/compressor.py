@@ -87,3 +87,23 @@ class Compressor(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'current',
         }
+
+    def _get_latest_dump(self, logsio):
+        self.ensure_one()
+
+        logsio.info("Identifying latest dump")
+        with compressor.source_volume_id.machine_id._shell(
+                logsio=logsio, cwd="") as source_shell:
+            output = list(reversed(source_shell.X([
+                "ls", "-trA", compressor.source_volume_id.name])[
+                    'stdout'].strip().split("\n")))
+
+            for line in output:
+                if line == '.' or line == '..':
+                    continue
+                if re.findall(compressor.regex, line):
+                    filename = line.strip()
+                    break
+            else:
+                logsio.info("No files found.")
+                return
