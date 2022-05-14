@@ -771,15 +771,20 @@ for path in base.glob("*"):
         self.ensure_one()
         breakpoint()
         with self._tempinstance('ensurebasedump') as shell:
+            breakpoint()
             path = Path(shell.machine._get_volume('dumps'))
             output = shell.odoo('list-deps', 'base')['stdout'].split(
                 "---", 1)[1]
             deps = json.loads(output)
             hash = deps['hash']
             dump_name = f"base_dump_{hash}"
-            shell.odoo('up', '-d', 'postgres')
-            shell.odoo('regpull', allow_error=True)
-            shell.odoo('db', 'reset', force=True)
             dest_path = path / dump_name
-            shell.logsio.info(f"Dumping to {dest_path}")
-            shell.odoo('backup', 'odoo-db', dest_path)
+            if not shell.exists(dest_path):
+                shell.odoo('regpull', allow_error=True)
+                shell.odoo('build')
+                shell.odoo('down', '-v', force=True, allow_error=True)
+                shell.odoo('up', '-d', 'postgres')
+                shell.odoo('db', 'reset', force=True)
+                shell.logsio.info(f"Dumping to {dest_path}")
+                shell.odoo('backup', 'odoo-db', dest_path)
+            return dest_path
