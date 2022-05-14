@@ -33,6 +33,9 @@ class MyWriter():
         self.file = open(self.filepath, 'a+')
 
     def __del__(self):
+        self.cleanup()
+
+    def cleanup(self):
         try:
             if not self.file.closed:
                 self.file.close()
