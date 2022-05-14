@@ -758,6 +758,11 @@ for path in base.glob("*"):
                     self._reload(
                         shell, project_name=self.project_name,
                         settings=settings, force_instance_folder=repo_path)
+                    shell.odoo('regpull', 'postgres', allow_error=True)
+                    shell.odoo('build', 'postgres')
+                    shell.odoo('up', '-d', 'postgres')
+                    shell.odoo('pghba-conf-wide-open', "--no-scram")
+                    shell.odoo('kill')
                     try:
                         yield shell
                     finally:
@@ -770,8 +775,17 @@ for path in base.glob("*"):
         """
         self.ensure_one()
         breakpoint()
-        with self._tempinstance('ensurebasedump') as shell:
+        machine = self.machine_id
+        instance_folder = self._get_instance_folder(machine)
+        with machine._shell(
+            cwd=instance_folder,
+            project_name=self.project_name,
+        ) as shell:
             breakpoint()
+            self._checkout_latest(shell)
+            self._reload(
+                shell, project_name=self.project_name,
+                settings=None, force_instance_folder=instance_folder)
             path = Path(shell.machine._get_volume('dumps'))
             output = shell.odoo('list-deps', 'base')['stdout'].split(
                 "---", 1)[1]
@@ -779,7 +793,10 @@ for path in base.glob("*"):
             hash = deps['hash']
             dump_name = f"base_dump_{hash}"
             dest_path = path / dump_name
-            if not shell.exists(dest_path):
+
+        if not shell.exists(dest_path):
+            with self._tempinstance('ensurebasedump') as shell:
+                breakpoint()
                 shell.odoo('regpull', allow_error=True)
                 shell.odoo('build')
                 shell.odoo('down', '-v', force=True, allow_error=True)

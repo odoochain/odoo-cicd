@@ -295,3 +295,8 @@ class ShellExecutor(BaseShellExecutor):
         finally:
             self.X(["rm", filename])
         return content
+
+    def get_snapshots(self):
+        snaps = self.odoo('snap', 'list')['stdout'].splitlines()[2:]
+        for snap in snaps:
+            yield snap.split(" ")[0]
