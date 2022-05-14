@@ -99,18 +99,16 @@ class Task(models.Model):
                 f"-{x_self.branch_id.name}:"
             )
 
-        name = self._get_short_name()
+        name = self._get_short_name() + f"#{self.id}"
         with self._extra_env() as self2:
             project_name = self2.branch_id.project_name
 
         return f"{project_name}_{name} " + appendix
 
     def _get_short_name(self):
-        breakpoint()
         name = self._unblocked('name') or ''
         if name.startswith("_"):
             name = name[1:]
-        name = f"{name}#{self.id}"
         return name
 
     @api.model
@@ -199,7 +197,6 @@ class Task(models.Model):
         else:
             self.state = STARTED
             self.started = fields.Datetime.now()
-
 
         try:
             self = self.sudo().with_context(active_test=False)
