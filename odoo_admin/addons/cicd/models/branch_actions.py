@@ -733,26 +733,6 @@ for path in base.glob("*"):
     })
         return action
 
-    def _task1(self, shell, task, logsio, **kwargs):
-        i = 0
-        while i < 10:
-            i += 1
-            logsio.info(f"Task1 {i}")
-            time.sleep(3)
-
-    def _task2(self, shell, task, logsio, **kwargs):
-        i = 0
-        while i < 10:
-            i += 1
-            logsio.info(f"Task2 {i}")
-            raise Exception('fault')
-            time.sleep(1)
-
-    def _t1(self):
-        time.sleep(60)
-        # raise Exception('fail')
-        #time.sleep(10)
-
     @contextmanager
     def _tempinstance(self, uniqueappendix):
         settings = (
@@ -771,7 +751,7 @@ for path in base.glob("*"):
         machine = self.machine_id
         assert machine.ttype == 'dev'
         self = self.with_context(testrun="basedump")
-        with pg_advisory_lock(self.project_name, 'temporary instance'):
+        with pg_advisory_lock(self.env.cr, self.project_name, 'temporary instance'):
             with self.repo_id._temp_repo(machine=machine) as repo_path:
                 with machine._shell(
                     cwd=repo_path,
