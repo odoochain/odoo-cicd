@@ -761,14 +761,16 @@ for path in base.glob("*"):
                         yield shell
                     finally:
                         shell.odoo('down', '-v', allow_error=True, force=True)
+                        shell.rm(repo_path)
 
     def _ensure_base_dump(self):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
         self.ensure_one()
+        breakpoint()
         with self._tempinstance('ensurebasedump') as shell:
-            path = Path(shell.machine.get_volume('dumps'))
+            path = Path(shell.machine._get_volume('dumps'))
             output = shell.odoo('list-deps', 'base')['stdout'].split(
                 "---", 1)[1]
             deps = json.loads(output)
