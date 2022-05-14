@@ -160,10 +160,11 @@ class Branch(models.Model):
     def _reload(
             self, shell,
             project_name=None, settings=None, commit=None, registry=None,
+            force_instance_folder=None,
             **kwargs
             ):
 
-        cwd = self._make_sure_source_exists(shell)
+        cwd = force_instance_folder or self._make_sure_source_exists(shell)
 
         with shell.clone(cwd=cwd) as shell:
             self._make_instance_docker_configs(
@@ -753,15 +754,16 @@ for path in base.glob("*"):
                     cwd=repo_path,
                     project_name=self.project_name,
                 ) as shell:
+                    breakpoint()
                     self._reload(
                         shell, project_name=self.project_name,
-                        settings=settings)
+                        settings=settings, force_instance_folder=repo_path)
                     shell.odoo('up', '-d', 'postgres')
                     try:
                         yield shell
                     finally:
                         shell.odoo('down', '-v', allow_error=True, force=True)
-                        shell.rm(repo_path)
+                        repo_path and len(repo_path) > 8 and shell.rm(repo_path)  # make sure to avoid rm /
 
     def _ensure_base_dump(self):
         """
