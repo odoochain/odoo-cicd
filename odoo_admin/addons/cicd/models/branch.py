@@ -628,7 +628,7 @@ class GitBranch(models.Model):
 
     def purge_instance_folder(self):
         for rec in self:
-            with rec.machine_id._shell() as shell:
+            with rec.shell() as shell:
                 folder = rec._get_instance_folder(shell.machine)
                 with shell.clone(cwd=folder) as shell2:
                     shell2.odoo('snap', 'clear', allow_error=True)
