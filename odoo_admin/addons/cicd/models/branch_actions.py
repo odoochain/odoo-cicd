@@ -1,10 +1,6 @@
-import time
 from . import pg_advisory_lock
 import json
 from contextlib import contextmanager
-import re
-import uuid
-import psycopg2
 from odoo import fields
 from pathlib import Path
 import os
@@ -30,20 +26,20 @@ logger = logging.getLogger(__name__)
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
-    def _prepare_a_new_instance(self, shell, task, **kwargs):
+    def _prepare_a_new_instance(self, shell, **kwargs):
         dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
         if not dump:
-            self._reset_db(shell, task, **kwargs)
+            self._reset_db(shell, **kwargs)
         else:
             self.backup_machine_id = dump.machine_id
             self.dump_id = dump
         if self.dump_id:
-            self._restore_dump(shell, task, dump=dump, **kwargs)
+            self._restore_dump(shell, dump=dump, **kwargs)
         else:
-            self._reset_db(shell, task, **kwargs)
-        self._update_all_modules(shell, task, **kwargs)
+            self._reset_db(shell, **kwargs)
+        self._update_all_modules(shell, **kwargs)
 
-    def _update_odoo(self, shell, task, **kwargs):
+    def _update_odoo(self, shell, **kwargs):
         if self.block_updates_until and \
                 self.block_updates_until > fields.Datetime.now():
             raise RetryableJobError(
@@ -72,14 +68,14 @@ class Branch(models.Model):
                 shell.logsio.info((
                     "Running full update now - "
                     f"update since sha {commit} did not succeed"))
-                self._update_all_modules(shell=shell, task=task, **kwargs)
+                self._update_all_modules(shell=shell, **kwargs)
         else:
             self._update_all_modules(
-                shell=shell, task=task, **kwargs)
+                shell=shell, **kwargs)
 
-    def _update_all_modules(self, shell, task, **kwargs):
+    def _update_all_modules(self, shell, **kwargs):
         shell.logsio.info("Reloading")
-        self._reload(shell, task)
+        self._reload(shell)
         shell.logsio.info("Building")
         self._internal_build(shell)
         shell.logsio.info("Updating")
@@ -87,9 +83,9 @@ class Branch(models.Model):
         shell.logsio.info("Upping")
         shell.odoo("up", "-d")
 
-    def _update_installed_modules(self, shell, task, **kwargs):
+    def _update_installed_modules(self, shell, **kwargs):
         shell.logsio.info("Reloading")
-        self._reload(shell, task)
+        self._reload(shell)
         shell.logsio.info("Building")
         self._internal_build(shell)
         shell.logsio.info("Updating")
@@ -97,11 +93,11 @@ class Branch(models.Model):
         shell.logsio.info("Upping")
         shell.odoo("up", "-d")
 
-    def _simple_docker_up(self, shell, task, **kwargs):
+    def _simple_docker_up(self, shell, **kwargs):
         shell.odoo("up", "-d")
 
-    def _reload_and_restart(self, shell, task, **kwargs):
-        self._reload(shell, task)
+    def _reload_and_restart(self, shell, **kwargs):
+        self._reload(shell)
         shell.logsio.info("Building")
         self._internal_build(shell)
         shell.logsio.info("Upping")
@@ -111,14 +107,14 @@ class Branch(models.Model):
         shell.odoo("up", "-d")
         self._after_build(shell)
 
-    def _restore_dump(self, shell, task, dump, **kwargs):
+    def _restore_dump(self, shell, dump, **kwargs):
         dump = dump or self.dump_id
         if isinstance(dump, int):
             dump = self.env['cicd.dump'].browse(dump)
 
         if not dump:
             raise ValidationError(_("Dump missing - cannot restore"))
-        self._reload(shell, task)
+        self._reload(shell)
         shell.logsio.info("Reloading")
         shell.odoo('reload')
         shell.logsio.info("Building")
@@ -134,7 +130,9 @@ class Branch(models.Model):
             shell.odoo('-f', 'remove-web-assets')
         self.last_restore_dump_name = dump.name
         self.last_restore_dump_date = dump.date_modified
-        task.sudo().with_delay().write({'dump_used': self.dump_id.name})
+        if self.env.context.get('task'):
+            self.env.context['task'].sudo().with_delay().write({
+                'dump_used': self.dump_id.name})
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
         self.env.cr.commit()
         shell.odoo("update")
@@ -143,24 +141,24 @@ class Branch(models.Model):
         self._after_build(shell=shell)
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
 
-    def _docker_start(self, shell, task, **kwargs):
+    def _docker_start(self, shell, **kwargs):
         shell.odoo('up', '-d')
         self.machine_id._fetch_psaux_docker_containers()
 
-    def _docker_stop(self, shell, task, **kwargs):
+    def _docker_stop(self, shell, **kwargs):
         shell.odoo('kill')
         self.machine_id._fetch_psaux_docker_containers()
 
-    def _docker_remove(self, shell, task, **kwargs):
+    def _docker_remove(self, shell, **kwargs):
         shell.odoo('kill')
         shell.odoo('rm')
         self.machine_id._fetch_psaux_docker_containers()
 
-    def _turn_into_dev(self, shell, task, **kwargs):
+    def _turn_into_dev(self, shell, **kwargs):
         shell.odoo('turn-into-dev')
 
     def _reload(
-            self, shell, task,
+            self, shell,
             project_name=None, settings=None, commit=None, registry=None,
             **kwargs
             ):
@@ -187,18 +185,19 @@ class Branch(models.Model):
                 return True
         return False
 
-    def _build(self, shell, task, **kwargs):
-        self._reload(shell, task, **kwargs)
+    def _build(self, shell, **kwargs):
+        self._reload(shell, **kwargs)
         self._internal_build(shell)
 
-    def _dump(self, shell, task, volume=None, filename=None, **kwargs):
-        volume = volume or task.machine_id._get_volume('dumps')
+    def _dump(self, shell, volume=None, filename=None, **kwargs):
+        volume = volume or shell.machine._get_volume('dumps')
+        machine = volume.machine_id
         if isinstance(volume, int):
             volume = self.env['cicd.machine.volume'].browse(volume)
             volume = Path(volume.name)
 
-        shell.logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
-        filename = filename or task.branch_id.backup_filename or (
+        shell.logsio.info(f"Dumping to {machine.name}:{volume}")
+        filename = filename or self.backup_filename or (
             self.project_name + ".dump.gz")
         assert isinstance(filename, str)
 
@@ -206,7 +205,7 @@ class Branch(models.Model):
             raise ValidationError("Filename mustn't contain slashses!")
         shell.odoo('backup', 'odoo-db', str(volume / filename))
         # to avoid serialize access erros which may occur
-        task.machine_id.with_delay().update_dumps()
+        machine.with_delay().update_dumps()
 
     def _update_git_commits(
             self, shell, force_instance_folder=None,
@@ -299,7 +298,7 @@ class Branch(models.Model):
                 'branch_ids': [[4, self.id]],
             }]]
 
-    def _remove_web_assets(self, shell, task, **kwargs):
+    def _remove_web_assets(self, shell, **kwargs):
         shell.logsio.info("Killing...")
         shell.odoo('kill')
         shell.logsio.info("Calling remove-web-assets")
@@ -307,10 +306,10 @@ class Branch(models.Model):
         shell.logsio.info("Restarting...")
         shell.odoo('up', '-d')
 
-    def _shrink_db(self, shell, task, **kwargs):
+    def _shrink_db(self, shell, **kwargs):
         shell.odoo('cleardb')
 
-    def _anonymize(self, shell, task, **kwargs):
+    def _anonymize(self, shell, **kwargs):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
 
@@ -576,8 +575,8 @@ class Branch(models.Model):
         shell.odoo("build")
         self._push_to_registry(shell)
 
-    def _reset_db(self, shell, task, **kwargs):
-        self._reload(shell, task)
+    def _reset_db(self, shell, **kwargs):
+        self._reload(shell)
         self._internal_build(shell)
         shell.odoo('-f', 'db', 'reset')
         shell.odoo('update', '--no-dangling-check')
@@ -588,7 +587,7 @@ class Branch(models.Model):
         self.last_snapshot = False
         self._after_build(shell=shell, **kwargs)
 
-    def _compress(self, shell, task, compress_job_id):
+    def _compress(self, shell, compress_job_id):
         self.ensure_one()
         compressor = self.env['cicd.compressor'].sudo().browse(
             compress_job_id)
@@ -755,7 +754,7 @@ for path in base.glob("*"):
                     project_name=self.project_name,
                 ) as shell:
                     self._reload(
-                        shell, task=None, project_name=self.project_name,
+                        shell, project_name=self.project_name,
                         settings=settings)
                     shell.odoo('up', '-d', 'postgres')
                     try:

@@ -223,6 +223,8 @@ class Task(models.Model):
                             lambda x: x.name == sha).ids
                 self.env.cr.commit()
 
+                obj = obj.with_context(task=self)
+
                 exec('obj.' + self._unblocked('name') + "(**args)", {
                     'obj': obj,
                     'args': args
