@@ -836,4 +836,4 @@ for path in base.glob("*"):
             hash = deps['hash']
             dump_name = f"base_dump_{hash}"
             shell.odoo('db', 'reset', force=True)
-            shell.odoo('backup', 'odoo-db', str(Path / dump_name))
+            shell.odoo('backup', 'odoo-db', str(path / dump_name))
