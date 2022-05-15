@@ -39,19 +39,16 @@ class TestrunUnittest(models.Model):
         breakpoint()
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell() as shell:
-            self._ensure_source_and_machines(shell)
-            self._reload(
-                shell, SETTINGS + (
-                    "\nSERVER_WIDE_MODULES=base,web\n"
-                ),
-                force_instance_folder=self._get_source_path(),
+            dump_path = self.branch_id._ensure_base_dump(shell)
+            settings = SETTINGS + (
+                "\nSERVER_WIDE_MODULES=base,web\n"
             )
-            shell.odoo('up', '-d', 'postgres')
-            shell.odoo('db', 'reset', force=True)
+            self._ensure_source_and_machines(
+                shell, start_postgres=True, settings=settings)
+            shell.odoo('restore', 'odoo-db', dump_path, force=True)
             self._wait_for_postgres(shell)
 
             def _update(item):
-                shell.odoo('update', 'base', '--no-dangling-check')
                 shell.odoo('update', item, '--no-dangling-check')
 
             if not self._generic_run(

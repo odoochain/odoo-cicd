@@ -176,7 +176,7 @@ class Branch(models.Model):
                 shell.checkout_commit(commit)
             params = []
             if no_dirhash:
-                params.append('--no-dirhashes')
+                params.append('--no-dir-hashes')
             shell.odoo('reload', *params)
             if self._is_hub_configured(shell):
                 shell.odoo("login")
@@ -753,7 +753,9 @@ for path in base.glob("*"):
         machine = self.machine_id
         assert machine.ttype == 'dev'
         self = self.with_context(testrun=uniqueappendix)
-        with pg_advisory_lock(self.env.cr, self.project_name, 'temporary instance'):
+        with pg_advisory_lock(
+            self.env.cr, self.project_name, 'temporary instance'
+        ):
             with self.repo_id._temp_repo(machine=machine) as repo_path:
                 with machine._shell(
                     cwd=repo_path,
