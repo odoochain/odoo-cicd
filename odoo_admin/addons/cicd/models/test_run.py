@@ -1,4 +1,5 @@
 from curses import wrapper
+from functools import partial
 import arrow
 from contextlib import contextmanager, closing
 import base64
@@ -79,6 +80,8 @@ class CicdTestRun(models.Model):
     duration = fields.Integer("Duration [s]", tracking=True)
     queuejob_log = fields.Binary("Queuejob Log")
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
+    machine_id = fields.Many2one(
+        'cicd.machine', related="branch_id.repo_id.machine_id", store=False)
 
     def _queuejob_log_filename(self):
         for rec in self:
@@ -116,18 +119,21 @@ class CicdTestRun(models.Model):
             else:
                 break
 
-    def _reload(self, shell, settings, root):
+    def _reload(self, shell, settings, instance_folder):
+        breakpoint()
         def reload():
             try:
                 self.branch_id._reload(
                     shell, None, project_name=shell.project_name,
-                    settings=settings, commit=self.commit_id.name)
+                    settings=settings, commit=self.commit_id.name,
+                    force_instance_folder=instance_folder),
             except Exception as ex:
                 logger.error(ex)
                 self._report("Exception at reload", exception=ex)
                 raise
             else:
                 self._report("Reloaded")
+
         self._report("Reloading for test run")
         try:
             try:
@@ -139,8 +145,7 @@ class CicdTestRun(models.Model):
                 self._report("Reloading: Exception stage 1 hit")
                 self._report(str(ex))
                 try:
-                    if shell.cwd != root:
-                        shell.rm(shell.cwd)
+                    shell.rm(instance_path)
                     reload()
                 except RetryableJobError:
                     self._report(
@@ -184,10 +189,12 @@ class CicdTestRun(models.Model):
         self._report(comment, **params)
         self._abort_if_required()
 
+    def _lo(self, shell, *params, comment=None, **kwparams):
+        comment = comment or str(params)
+        self._log(lambda self: shell.odoo(*params, **kwparams))
+
     def _ensure_base_snapshot(self, shell):
-        def lo(*params, comment=None, **kwparams):
-            comment = comment or str(params)
-            self._log(lambda self: shell.odoo(*params, **kwparams))
+        lo = partial(self.lo, shell=shell)
 
         if BASE_SNAPSHOT_NAME not in set(shell.get_snapshots()):
             base_dump = self.branch_id._ensure_base_dump()
@@ -203,10 +210,8 @@ class CicdTestRun(models.Model):
             lambda self: self._checkout_source_code(shell),
             'checkout source'
         )
-
-        def lo(*params, comment=None, **kwparams):
-            comment = comment or str(params)
-            self._log(lambda self: shell.odoo(*params, **kwparams))
+        assert self.env.context.get('testrun')
+        lo = partial(self.lo, shell=shell)
 
         lo('regpull', allow_error=True)
         lo('build')
@@ -215,52 +220,16 @@ class CicdTestRun(models.Model):
         lo('up', '-d', 'postgres')
         self._wait_for_postgres(shell)
 
-    def _prepare_run(self):
-        self = self._with_context()
-        self._report('prepare run started')
-        self._switch_to_running_state()
-
-        try:
-            with self._shell() as shell:
-                def lo(*params, comment=None, **kwparams):
-                    comment = comment or str(params)
-                    self._log(lambda self: shell.odoo(*params, **kwparams))
-
-                self._log(
-                    lambda self: self._ensure_base_snapshot(shell),
-                    'ensure_base_snapshot'
-                )
-                lo('-f', 'db', 'reset')
-                lo('update', 'base', '--no-dangling-check')
-
-                lo('snap', 'save', shell.project_name, force=True)
-                self._wait_for_postgres(shell)
-
-        except TestFailedAtInitError as ex:
-            self.state = 'failed'
-            self._report("Failed at preparation", exception=ex)
-        else:
-            self.as_job("_preparedone_run_tests", False)._run_test()
-
     def _cleanup_testruns(self):
         self = self._with_context()
         with self._logsio(None) as logsio:
             self._report("Cleanup Testing started...")
-            with self._shell(logsio=logsio) as shell:
-                if not shell.exists(shell.cwd):
-                    return
-                shell.odoo('kill', allow_error=True)
-                shell.odoo('rm', force=True, allow_error=True)
-                shell.odoo('snap', 'clear')
-                shell.odoo('down', "-v", force=True, allow_error=True)
-                project_dir = shell.cwd
-                with shell.clone(cwd=shell.cwd.parent) as shell:
-                    try:
-                        shell.rm(project_dir)
-                    except Exception:
-                        msg = f"Failed to remove directory {project_dir}"
-                        logsio.error(msg)
-                        logger.error(msg)
+            instance_folder = self._get_source_path()
+            with self.machine_id._shell(
+                cwd=instance_folder,
+            ) as shell:
+                shell.remove(instance_folder)
+
             self._report("Cleanup Testing done.")
 
     def _report(
@@ -291,35 +260,34 @@ class CicdTestRun(models.Model):
             else:
                 logsio.error(msg)
 
-    def _checkout_source_code(self, shell):
-        self._report("Checking out source code...")
-        try:
-            self._reload(
-                shell, SETTINGS,
-                str(Path(shell.cwd).parent)
-                )
-        except Exception as ex:
-            # could be: module not found, error in manifest or so:
-            raise TestFailedAtInitError() from ex
+    def _get_source_path(self, machine):
+        path = Path(machine._get_volume('source'))
+        path = path / f"{self.branch_id.project_name}_testrun_{self.id}"
+        return path
 
-        self._report("Checking commit")
-        sha = shell.X(["git", "log", "-n1", "--format=%H"])[
-            'stdout'].strip()
-        if sha != self.commit_id.name:
-            raise WrongShaException((
-                f"checked-out SHA {sha} "
-                f"not matching test sha {self.commit_id.name}"
-                ))
-        self._report("Commit matches")
-        self._report(f"Checked out source code at {shell.cwd}")
+    def _checkout_source_code(self, machine):
+        assert machine._name == 'cicd.machine'
 
-    def prepare_run(self):
-        self = self._with_context()
-        self._switch_to_running_state()
+        with pg_advisory_lock(self.env.cr, f'testrun_{self.id}'):
+            path = self._get_source_path()
 
-        self._report("Prepare run...")
-        self.date = fields.Datetime.now()
-        self.as_job('prepare', False)._prepare_run()
+            with machine.shell(cwd=path.parent) as shell:
+                if not shell.exists(path / '.git'):
+                    shell.remove(path)
+                    self._report("Checking out source code...")
+
+                    self._reload(shell, SETTINGS, str(Path(shell.cwd).parent))
+
+                self._report("Checking commit")
+                sha = shell.X(["git", "log", "-n1", "--format=%H"])[
+                    'stdout'].strip()
+                if sha != self.commit_id.name:
+                    raise WrongShaException((
+                        f"checked-out SHA {sha} "
+                        f"not matching test sha {self.commit_id.name}"
+                        ))
+                self._report("Commit matches")
+                self._report(f"Checked out source code at {shell.cwd}")
 
     def execute_now(self):
         self.with_context(
@@ -335,7 +303,7 @@ class CicdTestRun(models.Model):
             f"{suffix}"
         )
 
-    def as_job(self, suffix, afterrun, eta=None):
+    def as_job(self, suffix, afterrun=False, eta=None):
         marker = self._get_qj_marker(suffix, afterrun=afterrun)
         eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
         return self.with_delay(
@@ -422,28 +390,14 @@ class CicdTestRun(models.Model):
         self.as_job('inform_developer', True)._inform_developer()
 
     @contextmanager
-    def _shell(self, logsio=None):
-        with self._logsio(logsio) as logsio:
-            self = self._with_context()
-            machine = self.branch_id.machine_id
-            root = machine._get_volume('source')
-            project_name = self.branch_id.project_name
-            with machine._shell(
-                cwd=root / project_name, project_name=project_name,
-                logsio=logsio,
-            ) as shell:
-                yield shell
-
-    # ----------------------------------------------
-    # Entrypoint
-    # ----------------------------------------------
-    # env['cicd.test.run'].with_context(DEBUG_TESTRUN=True, FORCE_TEST_RUN=True).browse(nr).execute()
-    def execute(self, task=None):
-        self.ensure_one()
-
-        self._switch_to_running_state()
-        self.do_abort = False
-        self.as_job('starting_games', False)._let_the_games_begin()
+    def _shell(self):
+        assert self.env.context.get('testrun')
+        self._ensure_source_and_machines()
+        with self.machine_id._shell(
+            cwd=self._get_source_path(),
+            project_name=self.branch_id.project_name,
+        ) as shell:
+            yield shell
 
     def _switch_to_running_state(self):
         """
@@ -456,73 +410,35 @@ class CicdTestRun(models.Model):
 
         self._trigger_wait_for_finish()
 
-    def _with_context(self):
-        testrun_context = f"_testrun_{self.id}"
-        self = self.with_context(
-            testrun=testrun_context,
-            prefetch_fields=False
-            )
-
-        # lock test run
-        self.env.cr.execute((
-            "select id "
-            "from cicd_test_run "
-            "where id = %s "
-            "for update nowait "
-        ), (self.id,))
-
-        return self
-
-    def _let_the_games_begin(self):
+    # ----------------------------------------------
+    # Entrypoint
+    # ----------------------------------------------
+    def execute(self, task=None):
+        self.ensure_one()
+        self.do_abort = False
+        self.ensure_one()
         self = self._with_context()
         self._switch_to_running_state()
 
         with self._logsio(None) as logsio:
-            b = self.branch_id
-
-            if not b.any_testing:
+            if not self.any_testing:
                 logsio.info("No testing - so done")
                 self.success_rate = 100
                 self.state = 'success'
                 return
 
-            self.line_ids = [[6, 0, []]]
+            self.line_ids.unlink()
             self._report("Started")
             self.do_abort = False
-            self.state = 'running'
 
-            self.as_job('prepare-run', False).prepare_run()
+        if self.run_unittests:
+            self.as_job('unittests')._run_unit_tests()
 
-    def _run_test(self):
-        self.ensure_one()
-        self = self._with_context()
-        self._report("Starting Tests")
-        self._switch_to_running_state()
+        if self.run_robottests:
+            self.as_job('robots')._run_robot_tests()
 
-        with self._shell() as shell:
-            logsio = shell.logsio
-
-            if self.run_unittests:
-                self._execute(
-                    shell, logsio, self._run_unit_tests,
-                    'test-units')
-            if self.run_robottests:
-                self._execute(
-                    shell, logsio, self._run_robot_tests,
-                    'test-robot')
-            if self.simulate_install_id:
-                self._execute(
-                    shell, logsio, self._run_update_db,
-                    'test-migration')
-
-    def _execute(self, shell, logsio, run, appendix):
-        try:
-            logsio.info("Running " + appendix)
-            run(shell, logsio)
-        except Exception as ex:
-            logger.error(ex, exc_info=True)
-            msg = traceback.format_exc()
-            self._report(msg, exception=ex)
+        if self.simulate_install_id:
+            self.as_job('migration')._run_udpate_db()
 
     def _compute_success_rate(self, task=None):
         breakpoint()
@@ -582,19 +498,10 @@ class CicdTestRun(models.Model):
         self.state = 'open'
         self.success_rate = 0
 
-    # def _run_create_empty_db(self, shell, task, logsio):
-
-    #     def _emptydb(item):
-    #         self.branch_id._create_empty_db(shell, task, logsio)
-
-    #     self._generic_run(
-    #         shell, logsio, [None],
-    #         'emptydb', _emptydb,
-    #     )
 
     def _run_update_db(self, shell, logsio, **kwargs):
 
-        def _update(item):
+        def _update(item):  # NOQA
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
 
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
@@ -614,26 +521,28 @@ class CicdTestRun(models.Model):
         if name_callback:
             try:
                 name = name_callback(item)
-            except:
+            except Exception:  # pylint: disable=broad-except
+                logger.error("Error at name bacllback", exc_info=True)
                 pass
         return name
 
     def _generic_run(
-        self, shell, logsio, todo, ttype, execute_run,
+        self, shell, todo, ttype, execute_run,
         try_count=1, name_callback=None, name_prefix='',
         hash=False,
     ):
         """
-        Timeout in seconds.
 
         """
+        self._switch_to_running_state()
         success = True
         len_todo = len(todo)
         for i, item in enumerate(todo):
             trycounter = 0
 
             name = self._get_generic_run_name(item, name_callback)
-            if hash and self.env['cicd.test.run.line']._check_if_test_already_succeeded(
+            if hash and self.env['cicd.test.run.line'] \
+                    .check_if_test_already_succeeded(
                 self, name, hash,
             ):
                 continue
@@ -646,7 +555,7 @@ class CicdTestRun(models.Model):
                 if self.do_abort:
                     raise AbortException("Aborted by user")
                 trycounter += 1
-                logsio.info(f"Try #{trycounter}")
+                shell.logsio.info(f"Try #{trycounter}")
 
                 started = arrow.get()
                 data = {
@@ -659,14 +568,14 @@ class CicdTestRun(models.Model):
                     'hash': hash,
                 }
                 try:
-                    logsio.info(f"Running {name}")
+                    shell.logsio.info(f"Running {name}")
                     result = execute_run(item)
                     if result:
                         data.update(result)
 
                 except Exception:
                     msg = traceback.format_exc()
-                    logsio.error(f"Error happened: {msg}")
+                    shell.logsio.error(f"Error happened: {msg}")
                     data['state'] = 'failed'
                     data['exc_info'] = msg
                     success = False

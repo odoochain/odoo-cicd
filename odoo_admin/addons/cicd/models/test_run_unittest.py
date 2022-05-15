@@ -14,64 +14,79 @@ CONCURRENT_HASH_THREADS = 8  # minimum system load observed
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
-    def _unittest_name_callback(self, f):
-        p = Path(f)
-        # TODO checking: 3 mal parent
-        return str(p.relative_to(p.parent.parent.parent))
+    def _run_unit_tests(self, **kwargs):
+        self = self.with_context(testrun=f'{self.id}_prepare_unittests')
+        self._checkout_source_code(self.machine_id)
 
-    def _run_unit_tests(self, shell, logsio, **kwargs):
         self._report("Hashing Modules / Preparing UnitTests")
-        unittests_to_run = self._get_unit_tests_to_run(shell)
+        with self._shell() as shell:
+            unittests_to_run = self._get_unit_tests_to_run(shell)
         self._report("Hashing Modules / Preparing UnitTests Done")
         if not unittests_to_run:
             return
 
-        # deactivate queuejob module
-        breakpoint()
-        self._reload(
-            shell, SETTINGS + (
-                "SERVER_WIDE_MODULES=base,web\n"
-            ),
-            str(Path(shell.cwd).parent)
-        )
-
-        i = 0
-        for module, tests in unittests_to_run.items():
+        count = len(list(unittests_to_run.keys()))
+        for index, (module, tests) in enumerate(unittests_to_run.items()):
             hash = tests['hash']
             tests = tests['tests']
 
-            self._abort_if_required()
-            i += 1
-            shell.odoo("snap", "restore", shell.project_name)
+            self.line_ids = [[0, 0, {
+                'ttype': 'unittest',
+                'odoo_module': module,
+                'state': 'open',
+                'hash': hash,
+            }]]
+
+            self.as_job(
+                f"unittest-module-{module}")._run_unit_tests_of_module(
+                    index, count, module)
+
+    def _run_unit_tests_of_module(self, index, count, module):
+        self = self.with_context(testrun=f"testrun_{self.id}_{module}")
+        with self._shell() as shell:
+            self._ensure_source_and_machines(shell)
+            self._reload(
+                shell, SETTINGS + (
+                    "\nSERVER_WIDE_MODULES=base,web\n"
+                ),
+                force_instance_folder=self._get_source_path(),
+            )
+            shell.odoo('up', '-d', 'postgres')
+            shell.odoo('db', 'reset', force=True)
             self._wait_for_postgres(shell)
 
             def _update(item):
+                shell.odoo('update', 'base', '--no-dangling-check')
                 shell.odoo('update', item, '--no-dangling-check')
 
-            success = self._generic_run(
-                shell, logsio, [module],
+            if not self._generic_run(
+                shell, [module],
                 'unittest', _update,
                 name_prefix='install ',
-            )
-            if not success:
-                continue
-
-            self._wait_for_postgres(shell)
+            ):
+                return
 
             def _unittest(item):
                 shell.odoo(
                     'unittest', item, "--non-interactive",
                     timeout=self.timeout_tests)
 
+            tests = self._get_unittests_by_module(module)
             self._generic_run(
-                shell, logsio, tests,
+                shell, tests,
                 'unittest', _unittest,
                 try_count=self.retry_unit_tests,
                 name_callback=self._unittest_name_callback,
-                name_prefix=f"({i} / {len(unittests_to_run)}) ",
+                name_prefix=f"({index + 1} / {count}) ",
                 unique_name=module,
                 hash=hash,
             )
+
+    def _get_unittests_by_module(self, shell, module):
+        # TODO: make faster
+        unittests = self._get_unit_tests(shell)
+        unittests_by_module = self._get_unit_tests_by_modules(unittests)
+        return unittests_by_module.get(module, [])
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
@@ -128,7 +143,7 @@ class TestrunUnittest(models.Model):
                 continue
 
             for test in tests:
-                if not self.line_ids._check_if_test_already_succeeded(
+                if not self.line_ids.check_if_test_already_succeeded(
                     self,
                     self._get_generic_run_name(
                         test, self._unittest_name_callback),
@@ -165,3 +180,8 @@ class TestrunUnittest(models.Model):
         stdout = res['stdout']
         deps = json.loads(stdout.split("---", 1)[1])
         return deps['hash']
+
+    def _unittest_name_callback(self, f):
+        p = Path(f)
+        # TODO checking: 3 mal parent
+        return str(p.relative_to(p.parent.parent.parent))

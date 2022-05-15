@@ -6,7 +6,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
-    def _run_robot_tests(self, shell, logsio, **kwargs):
+    def _run_robot_tests(self, shell, **kwargs):
         files = shell.odoo('list-robot-test-files')['stdout'].strip()
         files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
@@ -68,7 +68,7 @@ class TestrunUnittest(models.Model):
             }
 
         self._generic_run(
-            shell, logsio, files,
+            shell, files,
             'robottest', _run_robot_run,
             try_count=self.retry_unit_tests,
         )
