@@ -206,7 +206,8 @@ class CicdTestRun(models.Model):
             lo('restore', 'odoo-db', base_dump, force=True)
             lo('snap', 'save', base_dump)
 
-    def _ensure_source_and_machines(self, shell, start_postgres=False):
+    def _ensure_source_and_machines(self, shell, start_postgres=False,
+            settings=""):
         self._log(
             lambda self: self._checkout_source_code(shell.machine),
             'checkout source'
@@ -217,7 +218,8 @@ class CicdTestRun(models.Model):
 
         no_dirhash = shell.exists(shell.cwd / '.dirhashes')
 
-        self._reload(shell, "", shell.cwd, no_dirhash=no_dirhash)
+        self._reload(
+            shell, settings, shell.cwd, no_dirhash=no_dirhash)
         lo('regpull', allow_error=True)
         lo('build')
         lo('kill', allow_error=True)
