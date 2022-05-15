@@ -221,7 +221,6 @@ class CicdTestRun(models.Model):
         self._wait_for_postgres(shell)
 
     def _cleanup_testruns(self):
-        self = self._with_context()
         with self._logsio(None) as logsio:
             self._report("Cleanup Testing started...")
             instance_folder = self._get_source_path()
@@ -417,7 +416,6 @@ class CicdTestRun(models.Model):
         self.ensure_one()
         self.do_abort = False
         self.ensure_one()
-        self = self._with_context()
         self._switch_to_running_state()
 
         with self._logsio(None) as logsio:

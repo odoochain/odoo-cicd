@@ -1,6 +1,6 @@
 import traceback
-import random
-import string
+import hashlib
+import base64
 import json
 from contextlib import contextmanager
 import arrow
@@ -18,7 +18,7 @@ from odoo.addons.queue_job.exception import RetryableJobError
 from itertools import groupby
 
 logger = logging.getLogger(__name__)
-LIMIT_PROJECT_NAME = 30
+LIMIT_PROJECT_NAME = 35
 
 
 class GitBranch(models.Model):
@@ -565,11 +565,10 @@ class GitBranch(models.Model):
                 return project_name, dbname
 
             project_name, dbname = buildname(rec.name)
-            breakpoint()
-            if len(project_name) > LIMIT_PROJECT_NAME:
-                ID = str(rec.id)
-                rec.technical_branch_name = project_name[
-                    :LIMIT_PROJECT_NAME][:-len(ID)] + ID
+            if len(project_name) > LIMIT_PROJECT_NAME or True:
+                hexvalue = hashlib.md5(project_name.encode(
+                    "utf-8")).hexdigest()
+                rec.technical_branch_name = f"prj{hexvalue}"
                 assert len(rec.technical_branch_name) <= LIMIT_PROJECT_NAME
             else:
                 rec.technical_branch_name = ""

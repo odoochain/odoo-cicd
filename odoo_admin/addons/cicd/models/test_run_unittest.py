@@ -30,18 +30,13 @@ class TestrunUnittest(models.Model):
             hash = tests['hash']
             tests = tests['tests']
 
-            self.line_ids = [[0, 0, {
-                'ttype': 'unittest',
-                'odoo_module': module,
-                'state': 'open',
-                'hash': hash,
-            }]]
-
             self.as_job(
                 f"unittest-module-{module}")._run_unit_tests_of_module(
-                    index, count, module)
+                    index, count, module, hash, tests)
+            self._report(f"Unittest in module {module}")
 
-    def _run_unit_tests_of_module(self, index, count, module):
+    def _run_unit_tests_of_module(self, index, count, module, hash, tests):
+        breakpoint()
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell() as shell:
             self._ensure_source_and_machines(shell)
@@ -71,7 +66,6 @@ class TestrunUnittest(models.Model):
                     'unittest', item, "--non-interactive",
                     timeout=self.timeout_tests)
 
-            tests = self._get_unittests_by_module(module)
             self._generic_run(
                 shell, tests,
                 'unittest', _unittest,
@@ -81,12 +75,6 @@ class TestrunUnittest(models.Model):
                 unique_name=module,
                 hash=hash,
             )
-
-    def _get_unittests_by_module(self, shell, module):
-        # TODO: make faster
-        unittests = self._get_unit_tests(shell)
-        unittests_by_module = self._get_unit_tests_by_modules(unittests)
-        return unittests_by_module.get(module, [])
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
