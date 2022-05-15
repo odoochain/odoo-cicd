@@ -160,10 +160,9 @@ class Branch(models.Model):
     def _reload(
             self, shell,
             project_name=None, settings=None, commit=None, registry=None,
-            force_instance_folder=None,
+            force_instance_folder=None, no_dirhash=False,
             **kwargs
             ):
-        breakpoint()
 
         cwd = force_instance_folder or self._make_sure_source_exists(shell)
 
@@ -175,7 +174,10 @@ class Branch(models.Model):
             self._collect_all_files_by_their_checksum(shell)
             if commit:
                 shell.checkout_commit(commit)
-            shell.odoo('reload')
+            params = []
+            if no_dirhash:
+                params.append('--no-dirhashes')
+            shell.odoo('reload', *params)
             if self._is_hub_configured(shell):
                 shell.odoo("login")
 

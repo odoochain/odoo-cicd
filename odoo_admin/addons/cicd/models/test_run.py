@@ -119,14 +119,15 @@ class CicdTestRun(models.Model):
             else:
                 break
 
-    def _reload(self, shell, settings, instance_folder):
-        breakpoint()
+    def _reload(self, shell, settings, instance_folder, no_dirhash=False):
         def reload():
             try:
                 self.branch_id._reload(
                     shell, project_name=shell.project_name,
                     settings=settings, commit=self.commit_id.name,
-                    force_instance_folder=instance_folder),
+                    force_instance_folder=instance_folder,
+                    no_dirhash=no_dirhash
+                    ),
             except Exception as ex:
                 logger.error(ex)
                 self._report("Exception at reload", exception=ex)
@@ -194,7 +195,7 @@ class CicdTestRun(models.Model):
         self._log(lambda self: shell.odoo(*params, **kwparams))
 
     def _ensure_base_snapshot(self, shell):
-        lo = partial(self.lo, shell=shell)
+        lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
 
         if BASE_SNAPSHOT_NAME not in set(shell.get_snapshots()):
             base_dump = self.branch_id._ensure_base_dump()
@@ -211,8 +212,12 @@ class CicdTestRun(models.Model):
             'checkout source'
         )
         assert self.env.context.get('testrun')
-        lo = partial(self.lo, shell=shell)
+        lo = partial(self._lo, shell)
+        # lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
 
+        no_dirhash = shell.exists(shell.cwd / '.dirhashes')
+
+        self._reload(shell, "", shell.cwd, no_dirhash=no_dirhash)
         lo('regpull', allow_error=True)
         lo('build')
         lo('kill', allow_error=True)
@@ -225,6 +230,7 @@ class CicdTestRun(models.Model):
             self._report("Cleanup Testing started...")
             instance_folder = self._get_source_path()
             with self.machine_id._shell(
+                logsio=logsio,
                 cwd=instance_folder,
             ) as shell:
                 shell.remove(instance_folder)
@@ -261,7 +267,10 @@ class CicdTestRun(models.Model):
 
     def _get_source_path(self):
         path = Path(self.machine_id._get_volume('source'))
-        path = path / f"{self.branch_id.project_name}_testrun_{self.id}"
+        # one source directory for all tests; to have common .dirhashes
+        # and save disk space
+        project_name = self.branch_id.with_context(testrun="").project_name
+        path = path / f"{project_name}_testrun_{self.id}"
         return path
 
     def _checkout_source_code(self, machine):
@@ -269,7 +278,6 @@ class CicdTestRun(models.Model):
 
         with pg_advisory_lock(self.env.cr, f'testrun_{self.id}'):
             path = self._get_source_path()
-            breakpoint()
 
             with machine._shell(cwd=path.parent) as shell:
                 if not shell.exists(path / '.git'):
@@ -399,11 +407,11 @@ class CicdTestRun(models.Model):
     @contextmanager
     def _shell(self):
         assert self.env.context.get('testrun')
-        self._ensure_source_and_machines()
         with self.machine_id._shell(
             cwd=self._get_source_path(),
             project_name=self.branch_id.project_name,
         ) as shell:
+            self._ensure_source_and_machines(shell)
             yield shell
 
     def _switch_to_running_state(self):
@@ -447,7 +455,6 @@ class CicdTestRun(models.Model):
             self.as_job('migration')._run_udpate_db()
 
     def _compute_success_rate(self, task=None):
-        breakpoint()
         self.ensure_one()
         lines = self.mapped('line_ids').filtered(
             lambda x: x.ttype != 'log')

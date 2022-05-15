@@ -300,3 +300,8 @@ class ShellExecutor(BaseShellExecutor):
         snaps = self.odoo('snap', 'list')['stdout'].splitlines()[2:]
         for snap in snaps:
             yield snap.split(" ")[0]
+
+    def docker_compose_exists(self):
+        import pudb;pudb.set_trace()
+        path = "~/.odoo/run/{self.project_name}/docker-compose.yml"
+        return self.exists(path)
