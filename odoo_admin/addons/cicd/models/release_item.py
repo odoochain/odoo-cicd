@@ -237,7 +237,6 @@ class ReleaseItem(models.Model):
         """
         Heavy function - takes longer and does quite some work.
         """
-        breakpoint()
         target_branch_name = self.item_branch_name
         self.ensure_one()
         commits_checksum = None
@@ -351,7 +350,6 @@ class ReleaseItem(models.Model):
             ), ignore_retry=True, seconds=15) from ex
 
     def cron_heartbeat(self):
-        breakpoint()
         self.ensure_one()
         self._lock()
         now = fields.Datetime.now()

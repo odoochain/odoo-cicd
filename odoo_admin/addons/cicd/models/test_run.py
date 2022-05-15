@@ -177,8 +177,8 @@ class CicdTestRun(models.Model):
 
     def _log(self, func, comment=""):
         started = arrow.utcnow()
-        comment = comment or str(func)
-        self._report(comment)
+        if comment:
+            self._report(comment)
         params = {}
         try:
             func(self)
@@ -208,7 +208,7 @@ class CicdTestRun(models.Model):
 
     def _ensure_source_and_machines(self, shell, start_postgres=False):
         self._log(
-            lambda self: self._checkout_source_code(shell),
+            lambda self: self._checkout_source_code(shell.machine),
             'checkout source'
         )
         assert self.env.context.get('testrun')
@@ -337,8 +337,15 @@ class CicdTestRun(models.Model):
             domain = " 1 = 1 "
 
         # TODO safe
-        marker = self._get_qj_marker("", False)
-        domain += f" AND identity_key ilike '%{marker}%'"
+        marker1 = self._get_qj_marker("", False)
+        marker2 = self._get_qj_marker("", True)
+        domain += (
+            " AND ( "
+            f" identity_key ilike '%{marker1}%' "
+            " OR "
+            f" identity_key ilike '%{marker2}%' "
+            " ) "
+        )
         self.env.cr.execute((
             "select id, state, exc_info, identity_key "
             "from queue_job "
@@ -434,6 +441,7 @@ class CicdTestRun(models.Model):
         self.do_abort = False
         self.ensure_one()
         self._switch_to_running_state()
+        self.line_ids.unlink()
 
         with self._logsio(None) as logsio:
             if not self.any_testing:
@@ -442,9 +450,7 @@ class CicdTestRun(models.Model):
                 self.state = 'success'
                 return
 
-            self.line_ids.unlink()
             self._report("Started")
-            self.do_abort = False
 
         if self.run_unittests:
             self.as_job('unittests')._run_unit_tests()
@@ -507,11 +513,14 @@ class CicdTestRun(models.Model):
         if self.branch_id.state not in ['testable', 'tested', 'dev']:
             raise ValidationError(
                 _("State of branch does not allow a repeated test run"))
+        for qj in self._get_queuejobs('all'):
+            if qj['state'] in ['pending', 'enqueued', 'started']:
+                raise ValidationError(
+                    "There are pending jobs - cannot restart")
         self = self.sudo()
         self.line_ids.unlink()
         self.state = 'open'
         self.success_rate = 0
-
 
     def _run_update_db(self, shell, logsio, **kwargs):
 

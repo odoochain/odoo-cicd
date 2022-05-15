@@ -36,16 +36,17 @@ class TestrunUnittest(models.Model):
             self._report(f"Unittest in module {module}")
 
     def _run_unit_tests_of_module(self, index, count, module, hash, tests):
-        breakpoint()
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell() as shell:
-            dump_path = self.branch_id._ensure_base_dump(shell)
+            dump_path = self.branch_id._ensure_base_dump()
             settings = SETTINGS + (
                 "\nSERVER_WIDE_MODULES=base,web\n"
             )
             self._ensure_source_and_machines(
                 shell, start_postgres=True, settings=settings)
-            shell.odoo('restore', 'odoo-db', dump_path, force=True)
+            shell.odoo(
+                'restore', 'odoo-db', dump_path,
+                '--no-dev-scripts', force=True)
             self._wait_for_postgres(shell)
 
             def _update(item):
@@ -75,7 +76,6 @@ class TestrunUnittest(models.Model):
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
-        breakpoint()
 
         threadLimiter = threading.BoundedSemaphore(CONCURRENT_HASH_THREADS)
 

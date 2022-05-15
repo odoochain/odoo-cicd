@@ -781,7 +781,6 @@ for path in base.glob("*"):
         Makes sure that a dump for installation of base/web module exists.
         """
         self.ensure_one()
-        breakpoint()
         machine = self.machine_id
         instance_folder = self._get_instance_folder(machine)
         settings = self._get_settings_isolated_run()
@@ -789,7 +788,6 @@ for path in base.glob("*"):
             cwd=instance_folder,
             project_name=self.project_name,
         ) as shell:
-            breakpoint()
             self._checkout_latest(shell)
             self._reload(
                 shell, project_name=self.project_name,

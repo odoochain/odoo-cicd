@@ -134,7 +134,6 @@ class Release(models.Model):
 
     def _heartbeat(self):
         self.ensure_one()
-        breakpoint()
         last_item = self.last_item_id
         if last_item.state in [False, 'ready'] or \
                 last_item.is_failed or \
