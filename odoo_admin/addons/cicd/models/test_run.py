@@ -555,7 +555,7 @@ class CicdTestRun(models.Model):
     def _generic_run(
         self, shell, todo, ttype, execute_run,
         try_count=1, name_callback=None, name_prefix='',
-        hash=False,
+        hash=False, odoo_module=None,
     ):
         """
 
@@ -592,6 +592,7 @@ class CicdTestRun(models.Model):
                     'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
                     'try_count': trycounter,
                     'hash': hash,
+                    'odoo_module': odoo_module or False,
                 }
                 try:
                     shell.logsio.info(f"Running {name}")

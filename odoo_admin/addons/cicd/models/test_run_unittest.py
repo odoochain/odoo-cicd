@@ -76,7 +76,7 @@ class TestrunUnittest(models.Model):
                 try_count=self.retry_unit_tests,
                 name_callback=self._unittest_name_callback,
                 name_prefix=f"({index + 1} / {count}) ",
-                unique_name=module,
+                odoo_module=module,
                 hash=hash,
             )
 
