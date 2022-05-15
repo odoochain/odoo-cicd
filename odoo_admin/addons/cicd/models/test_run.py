@@ -415,13 +415,14 @@ class CicdTestRun(models.Model):
         self.as_job('inform_developer', True)._inform_developer()
 
     @contextmanager
-    def _shell(self):
+    def _shell(self, quick=False):
         assert self.env.context.get('testrun')
         with self.machine_id._shell(
             cwd=self._get_source_path(),
             project_name=self.branch_id.project_name,
         ) as shell:
-            self._ensure_source_and_machines(shell)
+            if not quick:
+                self._ensure_source_and_machines(shell)
             yield shell
 
     def _switch_to_running_state(self):

@@ -809,4 +809,4 @@ for path in base.glob("*"):
                 shell.odoo('db', 'reset', force=True)
                 shell.logsio.info(f"Dumping to {dest_path}")
                 shell.odoo('backup', 'odoo-db', dest_path)
-            return dest_path
+        return dest_path

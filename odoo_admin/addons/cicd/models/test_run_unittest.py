@@ -19,8 +19,11 @@ class TestrunUnittest(models.Model):
         self._checkout_source_code(self.machine_id)
 
         self._report("Hashing Modules / Preparing UnitTests")
-        with self._shell() as shell:
+        with self._shell(quick=False) as shell:
             unittests_to_run = self._get_unit_tests_to_run(shell)
+            self._ensure_source_and_machines(
+                shell, start_postgres=False, settings="")
+
         self._report("Hashing Modules / Preparing UnitTests Done")
         if not unittests_to_run:
             return
@@ -36,12 +39,15 @@ class TestrunUnittest(models.Model):
             self._report(f"Unittest in module {module}")
 
     def _run_unit_tests_of_module(self, index, count, module, hash, tests):
+        breakpoint()
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
-        with self._shell() as shell:
+        with self._shell(quick=True) as shell:
+            debug_project_name = self.branch_id.project_name
             dump_path = self.branch_id._ensure_base_dump()
             settings = SETTINGS + (
                 "\nSERVER_WIDE_MODULES=base,web\n"
             )
+            assert dump_path
             self._ensure_source_and_machines(
                 shell, start_postgres=True, settings=settings)
             shell.odoo(
