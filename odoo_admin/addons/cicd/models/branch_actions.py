@@ -163,6 +163,7 @@ class Branch(models.Model):
             force_instance_folder=None,
             **kwargs
             ):
+        breakpoint()
 
         cwd = force_instance_folder or self._make_sure_source_exists(shell)
 

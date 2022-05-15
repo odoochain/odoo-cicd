@@ -124,7 +124,7 @@ class CicdTestRun(models.Model):
         def reload():
             try:
                 self.branch_id._reload(
-                    shell, None, project_name=shell.project_name,
+                    shell, project_name=shell.project_name,
                     settings=settings, commit=self.commit_id.name,
                     force_instance_folder=instance_folder),
             except Exception as ex:
@@ -145,7 +145,7 @@ class CicdTestRun(models.Model):
                 self._report("Reloading: Exception stage 1 hit")
                 self._report(str(ex))
                 try:
-                    shell.rm(instance_path)
+                    shell.rm(instance_folder)
                     reload()
                 except RetryableJobError:
                     self._report(
@@ -259,8 +259,8 @@ class CicdTestRun(models.Model):
             else:
                 logsio.error(msg)
 
-    def _get_source_path(self, machine):
-        path = Path(machine._get_volume('source'))
+    def _get_source_path(self):
+        path = Path(self.machine_id._get_volume('source'))
         path = path / f"{self.branch_id.project_name}_testrun_{self.id}"
         return path
 
@@ -269,13 +269,21 @@ class CicdTestRun(models.Model):
 
         with pg_advisory_lock(self.env.cr, f'testrun_{self.id}'):
             path = self._get_source_path()
+            breakpoint()
 
-            with machine.shell(cwd=path.parent) as shell:
+            with machine._shell(cwd=path.parent) as shell:
                 if not shell.exists(path / '.git'):
                     shell.remove(path)
                     self._report("Checking out source code...")
-
-                    self._reload(shell, SETTINGS, str(Path(shell.cwd).parent))
+                    self.branch_id.repo_id._get_main_repo(
+                        destination_folder=path,
+                        logsio=shell.logsio,
+                        machine=machine,
+                        limit_branch=self.branch_id.name,
+                        depth=1,
+                    )
+            with shell.clone(cwd=path) as shell:
+                shell.X(["git", "checkout", "-f", self.commit_id.name])
 
                 self._report("Checking commit")
                 sha = shell.X(["git", "log", "-n1", "--format=%H"])[
