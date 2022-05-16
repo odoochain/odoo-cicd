@@ -120,7 +120,7 @@ class CicdTestRun(models.Model):
             else:
                 break
 
-    def _reload(self, shell, settings, instance_folder, no_dirhash=False):
+    def _reload(self, shell, settings, instance_folder):
         with pg_advisory_lock(self.env.cr, f"testrun#{self.id}-reload"):
             def reload():
                 try:
@@ -128,7 +128,6 @@ class CicdTestRun(models.Model):
                         shell, project_name=shell.project_name,
                         settings=settings, commit=self.commit_id.name,
                         force_instance_folder=instance_folder,
-                        no_dirhash=no_dirhash
                         ),
                 except Exception as ex:
                     logger.error(ex)
@@ -220,11 +219,8 @@ class CicdTestRun(models.Model):
         lo = partial(self._lo, shell)
         # lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
 
-        no_dirhash = shell.exists(shell.cwd / '.dirhashes')
-        shell.logsio.info("Reloading no_dirhash={no_dirhash}")
-
         self._reload(
-            shell, settings, shell.cwd, no_dirhash=no_dirhash)
+            shell, settings, shell.cwd)
         lo('regpull', allow_error=True)
         lo('build')
         lo('kill', allow_error=True)
