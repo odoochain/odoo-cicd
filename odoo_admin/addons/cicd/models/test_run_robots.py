@@ -5,6 +5,12 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from .test_run import SETTINGS
 
 
+def safe_filename(filename):
+    for x in "/\\;!()*":
+        filename = filename.replace(x, '_')
+    return filename
+
+
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
@@ -23,8 +29,9 @@ class TestrunUnittest(models.Model):
             )
 
     def _run_robot_run(self, index, count, robot_file):
+        safe_robot_file = safe_filename(robot_file)
         self = self.with_context(
-            testrun=f"testrun_{self.id}_robot_{robot_file}")
+            testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
 
         with self._shell(quick=True) as shell:
             dump_path = self.branch_id._ensure_dump('full')
@@ -32,6 +39,7 @@ class TestrunUnittest(models.Model):
                 "\n"
                 "RUN_ODOO_QUEUEJOBS=1\n"
                 "RUN_ODOO_CRONJOBS=1\n"
+                "RUN_ROBOT=1\n"
             )
             assert dump_path
             self._ensure_source_and_machines(

@@ -17,10 +17,12 @@ from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(
     inspect.currentframe()))))
 
+
 def effify(text, values):
     for line in text.splitlines():
         line2 = eval('f"' + line + '"', values).strip()
         yield line2
+
 
 logger = logging.getLogger(__name__)
 
@@ -751,7 +753,7 @@ for path in base.glob("*"):
             "RUN_PROXY_PUBLISHED=0\n"
         )
     @contextmanager
-    def _tempinstance(self, uniqueappendix):
+    def _tempinstance(self, uniqueappendix, commit=None):
         settings = self._get_settings_isolated_run()
         machine = self.machine_id
         assert machine.ttype == 'dev'
@@ -764,10 +766,10 @@ for path in base.glob("*"):
                     cwd=repo_path,
                     project_name=self.project_name,
                 ) as shell:
-                    breakpoint()
                     self._reload(
                         shell, project_name=self.project_name,
-                        settings=settings, force_instance_folder=repo_path)
+                        commit=commit, settings=settings,
+                        force_instance_folder=repo_path)
                     shell.odoo('regpull', 'postgres', allow_error=True)
                     shell.odoo('build', 'postgres')
                     shell.odoo('up', '-d', 'postgres')
@@ -789,6 +791,7 @@ for path in base.glob("*"):
         machine = self.machine_id
         instance_folder = self._get_instance_folder(machine)
         settings = self._get_settings_isolated_run()
+
         with machine._shell(
             cwd=instance_folder,
             project_name=self.project_name,
@@ -799,25 +802,28 @@ for path in base.glob("*"):
                 settings=settings, force_instance_folder=instance_folder)
             path = Path(shell.machine._get_volume('dumps'))
 
+
             def _get_dumpfile_name():
                 if ttype == 'base':
                     output = shell.odoo('list-deps', 'base')['stdout'].split(
                         "---", 1)[1]
                     deps = json.loads(output)
                     hash = deps['hash']
-                    return f"base_dump_{hash}"
+                    return f"base_dump_{hash}", None
 
                 elif ttype == 'full':
-                    return f"all_installed_{self.name}"
+                    return (
+                        f"all_installed_{self.name}",
+                        self.latest_commit_id.name
+                    )
 
-                else:
-                    raise NotImplementedError(ttype)
+                raise NotImplementedError(ttype)
 
-            dump_name = _get_dumpfile_name()
+            dump_name, commit = _get_dumpfile_name()
             dest_path = path / dump_name
 
         if not shell.exists(dest_path):
-            with self._tempinstance('ensurebasedump') as shell:
+            with self._tempinstance('ensurebasedump', commit=commit) as shell:
                 shell.odoo('regpull', allow_error=True)
                 shell.odoo('build')
                 shell.odoo('down', '-v', force=True, allow_error=True)

@@ -29,3 +29,4 @@ def _get_shell_url(host, user, password, command):
     shellurl = f"/console/?hostname={host}&username={user}&password={pwd}&command="
     shellurl += ' '.join(command)
     return shellurl
+
