@@ -122,10 +122,15 @@ class TestrunUnittest(models.Model):
 
         def _setdefault(d, m):
             return d.setdefault(m, {'tests': [], 'hash': None})
-        breakpoint()
 
         hashes = self._get_unittest_hashes(
             shell, unittests_by_module.keys())
+
+        shell.logsio.info("Analyzing following unittests if to run:")
+        for module, tests in unittests_by_module.items():
+            shell.logsio.info(f"Module: {module}")
+            for test in tests:
+                shell.logsio.info(f"  - {test}")
 
         for module, tests in unittests_by_module.items():
             hash = hashes.get(module)
@@ -168,6 +173,7 @@ class TestrunUnittest(models.Model):
 
     @api.model
     def _get_hash_for_module(self, shell, module_path):
+        breakpoint()
         res = shell.odoo("list-deps", module_path)
         stdout = res['stdout']
         deps = json.loads(stdout.split("---", 1)[1])

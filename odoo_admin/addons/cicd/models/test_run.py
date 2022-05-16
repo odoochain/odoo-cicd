@@ -121,56 +121,57 @@ class CicdTestRun(models.Model):
                 break
 
     def _reload(self, shell, settings, instance_folder, no_dirhash=False):
-        def reload():
-            try:
-                self.branch_id._reload(
-                    shell, project_name=shell.project_name,
-                    settings=settings, commit=self.commit_id.name,
-                    force_instance_folder=instance_folder,
-                    no_dirhash=no_dirhash
-                    ),
-            except Exception as ex:
-                logger.error(ex)
-                self._report("Exception at reload", exception=ex)
-                raise
-            else:
-                self._report("Reloaded")
-
-        self._report("Reloading for test run")
-        try:
-            try:
-                reload()
-            except RetryableJobError:
-                self._report("Retryable error occurred at reloading")
-                raise
-            except Exception as ex:
-                self._report("Reloading: Exception stage 1 hit")
-                self._report(str(ex))
+        with pg_advisory_lock(self.env.cr, f"testrun#{self.id}-reload"):
+            def reload():
                 try:
-                    shell.rm(instance_folder)
+                    self.branch_id._reload(
+                        shell, project_name=shell.project_name,
+                        settings=settings, commit=self.commit_id.name,
+                        force_instance_folder=instance_folder,
+                        no_dirhash=no_dirhash
+                        ),
+                except Exception as ex:
+                    logger.error(ex)
+                    self._report("Exception at reload", exception=ex)
+                    raise
+                else:
+                    self._report("Reloaded")
+
+            self._report("Reloading for test run")
+            try:
+                try:
                     reload()
                 except RetryableJobError:
-                    self._report(
-                        "Retryable error occurred at reloading stage 2")
+                    self._report("Retryable error occurred at reloading")
                     raise
-                except Exception as ex:
-                    if 'reference is not a tree' in str(ex):
-                        raise RetryableJobError((
-                            "Missing commit not arrived "
-                            "- retrying later.")) from ex
-                    self._report("Error occurred", exception=ex)
-                    raise
+                except Exception as ex:  # pylint: disable=broad-except
+                    self._report("Reloading: Exception stage 1 hit")
+                    self._report(str(ex))
+                    try:
+                        shell.rm(instance_folder)
+                        reload()
+                    except RetryableJobError:
+                        self._report(
+                            "Retryable error occurred at reloading stage 2")
+                        raise
+                    except Exception as ex:
+                        if 'reference is not a tree' in str(ex):
+                            raise RetryableJobError((
+                                "Missing commit not arrived "
+                                "- retrying later.")) from ex
+                        self._report("Error occurred", exception=ex)
+                        raise
 
-        except RetryableJobError as ex:
-            self._report("Retrying", exception=ex)
-            raise
+            except RetryableJobError as ex:
+                self._report("Retrying", exception=ex)
+                raise
 
-        except AbortException as ex:
-            pass
+            except AbortException as ex:
+                pass
 
-        except Exception as ex:
-            self._report("Error", exception=ex)
-            raise
+            except Exception as ex:
+                self._report("Error", exception=ex)
+                raise
 
     def _abort_if_required(self):
         if self.do_abort:
@@ -183,7 +184,7 @@ class CicdTestRun(models.Model):
         params = {}
         try:
             func(self)
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-except
             params['exception'] = ex
 
         finally:
@@ -192,7 +193,7 @@ class CicdTestRun(models.Model):
         self._abort_if_required()
 
     def _lo(self, shell, *params, comment=None, **kwparams):
-        comment = comment or str(params)
+        comment = comment or ' '.join(map(str, params))
         self._log(
             lambda self: shell.odoo(*params, **kwparams), comment=comment)
 
@@ -208,8 +209,8 @@ class CicdTestRun(models.Model):
             lo('restore', 'odoo-db', base_dump, force=True)
             lo('snap', 'save', base_dump)
 
-    def _ensure_source_and_machines(self, shell, start_postgres=False,
-        settings=""
+    def _ensure_source_and_machines(
+        self, shell, start_postgres=False, settings=""
     ):
         self._log(
             lambda self: self._checkout_source_code(shell.machine),
@@ -220,6 +221,7 @@ class CicdTestRun(models.Model):
         # lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
 
         no_dirhash = shell.exists(shell.cwd / '.dirhashes')
+        shell.logsio.info("Reloading no_dirhash={no_dirhash}")
 
         self._reload(
             shell, settings, shell.cwd, no_dirhash=no_dirhash)
@@ -333,7 +335,7 @@ class CicdTestRun(models.Model):
             eta=eta
             )
 
-    def _get_queuejobs(self, ttype):
+    def _get_queuejobs(self, ttype, include_wait_for_finish=False):
         assert ttype in ['active', 'all']
         self.ensure_one()
         if ttype == 'active':
@@ -368,9 +370,13 @@ class CicdTestRun(models.Model):
         if ttype == 'active':
             queuejobs = [x for x in queuejobs if retryable(x)]
 
-        queuejobs = [
-            x for x in queuejobs
-            if 'wait_for_finish' not in (x['identity_key'] or '')]
+        def _filter(qj):
+            idkey = qj['identity_key'] or ''
+            if not include_wait_for_finish and 'wait_for_finish' not in idkey:
+                return False
+            return True
+
+        queuejobs = list(filter(_filter, queuejobs))
         return queuejobs
 
     @contextmanager
@@ -384,8 +390,10 @@ class CicdTestRun(models.Model):
                 yield logsio
 
     def _trigger_wait_for_finish(self):
+        # observed duplicate starts without eta
+        eta = arrow.get().shift(seconds=30).datetime
         self.as_job(
-            "wait_for_finish", False, eta=1)._wait_for_finish()
+            "wait_for_finish", False, priority=1, eta=eta)._wait_for_finish()
 
     def _wait_for_finish(self, task=None):
         self.ensure_one()
@@ -447,6 +455,7 @@ class CicdTestRun(models.Model):
         self.do_abort = False
         self.ensure_one()
         self._switch_to_running_state()
+        self.env.cr.commit()
         self.line_ids.unlink()
 
         with self._logsio(None) as logsio:
@@ -516,6 +525,7 @@ class CicdTestRun(models.Model):
             yield x[0]
 
     def rerun(self):
+        breakpoint()
         if self.branch_id.state not in ['testable', 'tested', 'dev']:
             raise ValidationError(
                 _("State of branch does not allow a repeated test run"))
@@ -523,6 +533,9 @@ class CicdTestRun(models.Model):
             if qj['state'] in ['pending', 'enqueued', 'started']:
                 raise ValidationError(
                     "There are pending jobs - cannot restart")
+        for qj in self._get_queuejobs('all', include_wait_for_finish=True):
+            self.env.cr.execute("delete from queue_job where id = %s", (
+                qj['id'],))
         self = self.sudo()
         self.line_ids.unlink()
         self.state = 'open'
