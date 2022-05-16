@@ -196,18 +196,6 @@ class CicdTestRun(models.Model):
         self._log(
             lambda self: shell.odoo(*params, **kwparams), comment=comment)
 
-    def _ensure_full_dump(self, shell):
-        lo = partial(self._lo, shell)
-
-        if BASE_SNAPSHOT_NAME not in set(shell.get_snapshots()):
-            base_dump = self.branch_id._ensure_base_dump()
-            lo('regpull', 'postgres', allow_error=True)
-            lo('build', 'postgres')
-            lo('up', '-d', 'postgres')
-            self._wait_for_postgres(shell)
-            lo('restore', 'odoo-db', base_dump, force=True)
-            lo('snap', 'save', base_dump)
-
     def _ensure_source_and_machines(
         self, shell, start_postgres=False, settings=""
     ):
