@@ -12,6 +12,8 @@ from pathlib import Path
 from odoo.addons.queue_job.exception import RetryableJobError
 import logging
 from .repository import InvalidBranchName
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(
     inspect.currentframe()))))
 
@@ -319,7 +321,8 @@ class Branch(models.Model):
         for testrun in self.env['cicd.test.run'].search([
                 ('state', '=', 'open')]):
             # observed duplicate starts without eta
-            eta = arrow.get().shift(seconds=10).datetime
+            eta = arrow.utcnow().shift(
+                seconds=10).replace(tzinfo=None).strftime(DTF)
             testrun.with_delay(eta=eta, channel="testruns", identity_key=(
                 "start-open-testrun-"
                 f"{self.name}-"
