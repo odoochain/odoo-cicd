@@ -99,3 +99,10 @@ class CicdTestRunLine(models.Model):
         })
 
         return True
+
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        if not res.name:
+            raise Exception("Empty names not allowed!")
+        return res

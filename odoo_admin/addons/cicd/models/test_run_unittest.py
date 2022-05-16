@@ -134,12 +134,12 @@ class TestrunUnittest(models.Model):
                 continue
 
             for test in tests:
-                if not self.line_ids.check_if_test_already_succeeded(
+                if self.no_reuse or (not self.no_reuse and not self.line_ids.check_if_test_already_succeeded(
                     self,
                     self._get_generic_run_name(
                         test, self._unittest_name_callback),
                     hash,
-                ):
+                )):
                     t = _setdefault(_unittests_by_module, module)
                     t['hash'] = hash
                     t['tests'].append(test)

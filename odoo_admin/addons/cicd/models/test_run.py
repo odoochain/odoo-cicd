@@ -82,6 +82,7 @@ class CicdTestRun(models.Model):
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
     machine_id = fields.Many2one(
         'cicd.machine', related="branch_id.repo_id.machine_id", store=False)
+    no_reuse = fields.Boolean("No Reuse")
 
     def _queuejob_log_filename(self):
         for rec in self:
