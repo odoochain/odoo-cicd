@@ -9,6 +9,7 @@ class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
     def _run_robot_tests(self):
+        self = self.with_context(testrun=f'{self.id}_prepare_robots')
 
         with self._shell(quick=False) as shell:
             self._ensure_source_and_machines(
