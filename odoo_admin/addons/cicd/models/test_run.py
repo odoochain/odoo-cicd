@@ -83,6 +83,15 @@ class CicdTestRun(models.Model):
     machine_id = fields.Many2one(
         'cicd.machine', related="branch_id.repo_id.machine_id", store=False)
     no_reuse = fields.Boolean("No Reuse")
+    queuejob_ids = fields.Many2many('queue.job', compute="_compute_queuejobs")
+
+    def refresh_jobs(self):
+        pass
+
+    def _compute_queuejobs(self):
+        for rec in self:
+            ids = [x['id'] for x in self._get_queuejobs('all')]
+            rec.queuejob_id = [[6, 0, ids]]
 
     def _queuejob_log_filename(self):
         for rec in self:
