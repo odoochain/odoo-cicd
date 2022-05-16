@@ -23,7 +23,7 @@ class TestrunUnittest(models.Model):
                 index, len(files), robotfile
             )
 
-    def _run_robot_run(self, robot_file):
+    def _run_robot_run(self, index, count, robot_file):
         self = self.with_context(
             testrun=f"testrun_{self.id}_robot_{robot_file}")
 
@@ -78,4 +78,5 @@ class TestrunUnittest(models.Model):
                 shell, [robot_file],
                 'robottest', run,
                 try_count=self.retry_unit_tests,
+                name_prefix=f"({index + 1} / {count}) ",
             )
