@@ -1,3 +1,4 @@
+import re
 from contextlib import contextmanager
 import os
 import psycopg2
@@ -65,6 +66,7 @@ class Database(models.Model):
             rec.machine_id = machines[0] if machines else False
 
     def _compute_branches(self):
+        breakpoint()
         for rec in self:
             project_name = os.getenv("PROJECT_NAME", "")
             rec.matching_branch_ids = self.env['cicd.git.branch']
@@ -74,9 +76,8 @@ class Database(models.Model):
                 name = name.replace(repo.short.lower(), '')
                 while name.startswith("_"):
                     name = name[1:]
-                name = name.replace("_", "%")
-                rec.matching_branch_ids |= self.env['cicd.git.branch'].search([
-                    "|",
-                    ('name', 'ilike', name),
-                    ('technical_branch_name', 'ilike', name)
-                ])
+                name = name.replace("_", ".*")
+                for branch in repo.branch_ids:
+                    for f in ['name', 'technical_branch_name']:
+                        if re.findall(name, branch[f] or ''):
+                            rec.matching_branch_ids += branch
