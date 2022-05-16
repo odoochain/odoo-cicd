@@ -79,5 +79,5 @@ class Database(models.Model):
                 name = name.replace("_", ".*")
                 for branch in repo.branch_ids:
                     for f in ['name', 'technical_branch_name']:
-                        if re.findall(name, branch[f] or ''):
+                        if re.findall(name, (branch[f] or '').lower()):
                             rec.matching_branch_ids += branch
