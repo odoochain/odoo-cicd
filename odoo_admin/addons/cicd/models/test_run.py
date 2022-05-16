@@ -387,7 +387,7 @@ class CicdTestRun(models.Model):
 
     def _trigger_wait_for_finish(self):
         self.as_job(
-            "wait_for_finish", False, priority=1, eta=1)._wait_for_finish()
+            "wait_for_finish", False, eta=1)._wait_for_finish()
 
     def _wait_for_finish(self, task=None):
         self.ensure_one()
