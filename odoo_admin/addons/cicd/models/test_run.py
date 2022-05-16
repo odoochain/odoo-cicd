@@ -368,7 +368,7 @@ class CicdTestRun(models.Model):
 
         def _filter(qj):
             idkey = qj['identity_key'] or ''
-            if not include_wait_for_finish and 'wait_for_finish' not in idkey:
+            if not include_wait_for_finish and 'wait_for_finish' in idkey:
                 return False
             return True
 
