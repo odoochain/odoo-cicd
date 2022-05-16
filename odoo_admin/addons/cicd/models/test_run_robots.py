@@ -72,7 +72,8 @@ class TestrunUnittest(models.Model):
                         "select id, name, state, exc_info "
                         "from queue_job"
                     ))
-                    self.queuejob_log = base64.b64encode(excel_file)
+                    if excel_file:
+                        self.queuejob_log = base64.b64encode(excel_file)
 
                 robot_results_tar = shell.grab_folder_as_tar(robot_out)
                 robot_results_tar = base64.b64encode(robot_results_tar)
