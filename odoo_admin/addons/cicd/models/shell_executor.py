@@ -250,12 +250,17 @@ class ShellExecutor(BaseShellExecutor):
 
     def sql_excel(self, sql):
         filename = tempfile.mktemp(suffix='.')
-        self.odoo(
-            "excel",
-            base64.encodestring(sql.encode('utf-8')).decode('utf-8'),
-            "--base64",
-            "-f", filename
-        )
+        try:
+            self.odoo(
+                "excel",
+                base64.encodestring(sql.encode('utf-8')).decode('utf-8'),
+                "--base64",
+                "-f", filename
+            )
+        except Exception as ex:
+            if 'psycopg2.errors.UndefinedTable' in str(ex):
+                return None
+            raise
         try:
             result = self.get(filename)
         finally:
