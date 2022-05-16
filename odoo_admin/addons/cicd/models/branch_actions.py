@@ -777,12 +777,14 @@ for path in base.glob("*"):
                         yield shell
                     finally:
                         shell.odoo('down', '-v', allow_error=True, force=True)
-                        repo_path and len(repo_path) > 8 and shell.rm(repo_path)  # make sure to avoid rm /
+                        repo_path and len(repo_path) > 8 and shell.rm(
+                            repo_path)  # make sure to avoid rm /
 
-    def _ensure_base_dump(self):
+    def _ensure_dump(self, ttype):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
+        assert ttype in ['full', 'base']
         self.ensure_one()
         machine = self.machine_id
         instance_folder = self._get_instance_folder(machine)
@@ -796,11 +798,22 @@ for path in base.glob("*"):
                 shell, project_name=self.project_name,
                 settings=settings, force_instance_folder=instance_folder)
             path = Path(shell.machine._get_volume('dumps'))
-            output = shell.odoo('list-deps', 'base')['stdout'].split(
-                "---", 1)[1]
-            deps = json.loads(output)
-            hash = deps['hash']
-            dump_name = f"base_dump_{hash}"
+
+            def _get_dumpfile_name():
+                if ttype == 'base':
+                    output = shell.odoo('list-deps', 'base')['stdout'].split(
+                        "---", 1)[1]
+                    deps = json.loads(output)
+                    hash = deps['hash']
+                    return f"base_dump_{hash}"
+
+                elif ttype == 'full':
+                    return f"all_installed_{self.name}"
+
+                else:
+                    raise NotImplementedError(ttype)
+
+            dump_name = _get_dumpfile_name()
             dest_path = path / dump_name
 
         if not shell.exists(dest_path):

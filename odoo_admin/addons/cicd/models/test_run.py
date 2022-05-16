@@ -196,7 +196,7 @@ class CicdTestRun(models.Model):
         self._log(
             lambda self: shell.odoo(*params, **kwparams), comment=comment)
 
-    def _ensure_base_snapshot(self, shell):
+    def _ensure_full_dump(self, shell):
         lo = partial(self._lo, shell)
 
         if BASE_SNAPSHOT_NAME not in set(shell.get_snapshots()):

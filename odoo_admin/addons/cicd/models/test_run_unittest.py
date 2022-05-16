@@ -39,11 +39,9 @@ class TestrunUnittest(models.Model):
             self._report(f"Unittest in module {module}")
 
     def _run_unit_tests_of_module(self, index, count, module, hash, tests):
-        breakpoint()
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell(quick=True) as shell:
-            debug_project_name = self.branch_id.project_name
-            dump_path = self.branch_id._ensure_base_dump()
+            dump_path = self.branch_id._ensure_dump('base')
             settings = SETTINGS + (
                 "\nSERVER_WIDE_MODULES=base,web\n"
             )
