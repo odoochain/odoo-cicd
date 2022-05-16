@@ -18,7 +18,6 @@ class TestrunUnittest(models.Model):
             files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         for index, robotfile in enumerate(files):
-            self._report(f"Robot: {robotfile}")
             self.as_job(f"robottest-{robotfile}")._run_robot_run(
                 index, len(files), robotfile
             )
