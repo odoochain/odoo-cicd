@@ -122,6 +122,7 @@ class TestrunUnittest(models.Model):
 
         def _setdefault(d, m):
             return d.setdefault(m, {'tests': [], 'hash': None})
+        breakpoint()
 
         hashes = self._get_unittest_hashes(
             shell, unittests_by_module.keys())

@@ -193,7 +193,8 @@ class CicdTestRun(models.Model):
 
     def _lo(self, shell, *params, comment=None, **kwparams):
         comment = comment or str(params)
-        self._log(lambda self: shell.odoo(*params, **kwparams))
+        self._log(
+            lambda self: shell.odoo(*params, **kwparams), comment=comment)
 
     def _ensure_base_snapshot(self, shell):
         lo = partial(self._lo, shell)
@@ -208,7 +209,8 @@ class CicdTestRun(models.Model):
             lo('snap', 'save', base_dump)
 
     def _ensure_source_and_machines(self, shell, start_postgres=False,
-            settings=""):
+        settings=""
+    ):
         self._log(
             lambda self: self._checkout_source_code(shell.machine),
             'checkout source'
