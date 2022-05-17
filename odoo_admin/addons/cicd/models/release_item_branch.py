@@ -3,6 +3,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 
 class ItemBranch(models.Model):
+    _inherit = 'cicd.open.window.mixin'
     _name = 'cicd.release.item.branch'
 
     item_id = fields.Many2one(
