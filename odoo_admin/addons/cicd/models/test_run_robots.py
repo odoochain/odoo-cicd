@@ -56,6 +56,7 @@ class TestrunUnittest(models.Model):
                 'restore', 'odoo-db', dump_path,
                 force=True)
             shell.wait_for_postgres()
+            shell.odoo('up', '-d')
 
             configuration = shell.odoo('config', '--full')[
                 'stdout'].splitlines()
@@ -83,8 +84,10 @@ class TestrunUnittest(models.Model):
                     if excel_file:
                         self.queuejob_log = base64.b64encode(excel_file)
 
+                breakpoint()
                 robot_results_tar = shell.grab_folder_as_tar(robot_out)
-                robot_results_tar = base64.b64encode(robot_results_tar)
+                robot_results_tar = robot_results_tar and \
+                    base64.b64encode(robot_results_tar) or False
                 return {
                     'robot_output': robot_results_tar,
                     'state': state,
