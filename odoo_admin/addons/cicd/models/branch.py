@@ -745,7 +745,7 @@ class GitBranch(models.Model):
     def _cron_check_blocking_done(self):
         dt = arrow.get().now().strftime("%Y-%m-%d %H:%M:%S")
         with self._extra_env() as x_self:
-            branches = x_self.search([('block_updates_until', '<', dt)]).ids
+            branches = x_self.search([('block_updates_until', '<', dt)])
         for branch in branches:
             branch.block_updates_until = False
             branch.with_delay().update_all_modules()
