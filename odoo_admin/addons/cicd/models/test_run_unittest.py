@@ -41,7 +41,8 @@ class TestrunUnittest(models.Model):
     def _run_unit_tests_of_module(self, index, count, module, hash, tests):
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell(quick=True) as shell:
-            dump_path = self.branch_id._ensure_dump('base')
+            dump_path = self.branch_id._ensure_dump(
+                'base', commit=self.commit_id.name)
             settings = SETTINGS + (
                 "\nSERVER_WIDE_MODULES=base,web\n"
             )

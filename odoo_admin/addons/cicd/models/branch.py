@@ -140,6 +140,7 @@ class GitBranch(models.Model):
 
     enable_snapshots = fields.Boolean("Enable Snapshots")
     last_snapshot = fields.Char("Last Snapshot")
+    ensure_dump_cache = fields.Text("Ensure Dump Cache for speeding up")
 
     @api.recordchange("enable_snapshots")
     def _on_change_enable_snapshots(self):

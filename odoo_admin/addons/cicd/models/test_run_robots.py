@@ -34,7 +34,8 @@ class TestrunUnittest(models.Model):
             testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
 
         with self._shell(quick=True) as shell:
-            dump_path = self.branch_id._ensure_dump('full')
+            dump_path = self.branch_id._ensure_dump(
+                'full', self.commit_id.name)
             settings = SETTINGS + (
                 "\n"
                 "RUN_ODOO_QUEUEJOBS=1\n"

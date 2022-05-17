@@ -752,6 +752,7 @@ for path in base.glob("*"):
             "RUN_ROBOT=0\n"
             "RUN_PROXY_PUBLISHED=0\n"
         )
+
     @contextmanager
     def _tempinstance(self, uniqueappendix, commit=None):
         settings = self._get_settings_isolated_run()
@@ -759,7 +760,10 @@ for path in base.glob("*"):
         assert machine.ttype == 'dev'
         self = self.with_context(testrun=uniqueappendix)
         with pg_advisory_lock(
-            self.env.cr, self.project_name, 'temporary instance'
+            self.env.cr, self.project_name, (
+                f'project_name: {self.project_name}, '
+                f'temporary instance testrun={uniqueappendix}'
+            )
         ):
             with self.repo_id._temp_repo(machine=machine) as repo_path:
                 with machine._shell(
@@ -782,26 +786,54 @@ for path in base.glob("*"):
                         repo_path and len(repo_path) > 8 and shell.rm(
                             repo_path)  # make sure to avoid rm /
 
-    def _ensure_dump(self, ttype):
+
+    def _ensure_dump(self, ttype, commit):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
         assert ttype in ['full', 'base']
+        assert isinstance(commit, str)
         self.ensure_one()
+        breakpoint()
+
+        cache = json.loads(self.ensure_dump_cache or '{}')
+        dest_path = cache.get(ttype, {}).get(commit)
+
+        if not dest_path:
+            dest_path = self._ensure_dump_get_dest_path(ttype, commit)
+            cache.setdefault(ttype, {})
+            cache[ttype][commit] = dest_path
+            self.ensure_dump_cache = json.dumps(cache)
+            self.env.cr.commit()
+
+        with self.machine_id._shell() as shell:
+            if shell.exists(dest_path):
+                return dest_path
+
+        with self._tempinstance('ensuredump', commit=commit) as shell:
+            shell.logsio.info(f"Creating dump file {dest_path}")
+            shell.odoo('regpull', allow_error=True)
+            shell.odoo('build')
+            shell.odoo('down', '-v', force=True, allow_error=True)
+            shell.odoo('up', '-d', 'postgres')
+            shell.odoo('db', 'reset', force=True)
+            shell.logsio.info(f"Dumping to {dest_path}")
+            shell.odoo('backup', 'odoo-db', dest_path)
+        return dest_path
+
+    def _ensure_dump_get_dest_path(self, ttype, commit):
         machine = self.machine_id
         instance_folder = self._get_instance_folder(machine)
         settings = self._get_settings_isolated_run()
-
         with machine._shell(
             cwd=instance_folder,
             project_name=self.project_name,
         ) as shell:
+            path = Path(shell.machine._get_volume('dumps'))
             self._checkout_latest(shell)
             self._reload(
                 shell, project_name=self.project_name,
                 settings=settings, force_instance_folder=instance_folder)
-            path = Path(shell.machine._get_volume('dumps'))
-
 
             def _get_dumpfile_name():
                 if ttype == 'base':
@@ -809,26 +841,13 @@ for path in base.glob("*"):
                         "---", 1)[1]
                     deps = json.loads(output)
                     hash = deps['hash']
-                    return f"base_dump_{hash}", None
+                    return f"base_dump_{hash}"
 
                 elif ttype == 'full':
-                    return (
-                        f"all_installed_{self.name}",
-                        self.latest_commit_id.name
-                    )
+                    return f"all_installed_{self.name}"
 
                 raise NotImplementedError(ttype)
 
-            dump_name, commit = _get_dumpfile_name()
+            dump_name = _get_dumpfile_name()
             dest_path = path / dump_name
-
-        if not shell.exists(dest_path):
-            with self._tempinstance('ensurebasedump', commit=commit) as shell:
-                shell.odoo('regpull', allow_error=True)
-                shell.odoo('build')
-                shell.odoo('down', '-v', force=True, allow_error=True)
-                shell.odoo('up', '-d', 'postgres')
-                shell.odoo('db', 'reset', force=True)
-                shell.logsio.info(f"Dumping to {dest_path}")
-                shell.odoo('backup', 'odoo-db', dest_path)
-        return dest_path
+            return dest_path
