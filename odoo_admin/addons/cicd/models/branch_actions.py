@@ -802,7 +802,7 @@ for path in base.glob("*"):
         if not dest_path:
             dest_path = self._ensure_dump_get_dest_path(ttype, commit)
             cache.setdefault(ttype, {})
-            cache[ttype][commit] = dest_path
+            cache[ttype][commit] = str(dest_path)
             self.ensure_dump_cache = json.dumps(cache)
             self.env.cr.commit()
 
