@@ -61,7 +61,7 @@
 							<field name="latest_commit_id" readonly="1"/>
 							<field name="author_id"/>
 							<field name="assignee_id"/>
-							<field name="last_snapshot"/>
+							<field name="last_snapshot" attrs="{'invisible': [('enable_snapshots', '=', False)]}"/>
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>
