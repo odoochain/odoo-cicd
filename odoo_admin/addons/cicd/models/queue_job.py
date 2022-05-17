@@ -76,9 +76,13 @@ class queuejob(models.Model):
         idkeys = set()
 
         for reason in reasons:
+            if "Lock could not be acquired" in reason:
+                import pudb;pudb.set_trace()
             for job in self.search([
                 ('state', '=', 'failed'),
+                '|',
                 ('exc_info', 'ilike', reason)
+                ('result', 'ilike', reason)
             ]):
                 for ignore in ignore_idkeys:
                     if ignore in job.identity_key:
