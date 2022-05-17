@@ -794,7 +794,6 @@ for path in base.glob("*"):
         assert ttype in ['full', 'base']
         assert isinstance(commit, str)
         self.ensure_one()
-        breakpoint()
 
         cache = json.loads(self.ensure_dump_cache or '{}')
         dest_path = cache.get(ttype, {}).get(commit)
@@ -815,8 +814,11 @@ for path in base.glob("*"):
             shell.odoo('regpull', allow_error=True)
             shell.odoo('build')
             shell.odoo('down', '-v', force=True, allow_error=True)
+            breakpoint()
             shell.odoo('up', '-d', 'postgres')
+            shell.wait_for_postgres()
             shell.odoo('db', 'reset', force=True)
+            shell.wait_for_postgres()
             shell.logsio.info(f"Dumping to {dest_path}")
             shell.odoo('backup', 'odoo-db', dest_path)
         return dest_path

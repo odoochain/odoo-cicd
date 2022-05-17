@@ -307,6 +307,28 @@ class ShellExecutor(BaseShellExecutor):
             yield snap.split(" ")[0]
 
     def docker_compose_exists(self):
-        import pudb;pudb.set_trace()
         path = "~/.odoo/run/{self.project_name}/docker-compose.yml"
         return self.exists(path)
+
+    def _wait_for_postgres(self, timeout=300):
+        started = arrow.get()
+        deadline = started.shift(seconds=timeout)
+
+        while True:
+            try:
+                self.odoo(
+                    "psql",
+                    "--non-interactive",
+                    "--sql",
+                    "select * from information_schema.tables limit 1;",
+                    timeout=timeout)
+            except Exception:
+                diff = arrow.get() - started
+                msg = f"Waiting for postgres {diff.total_seconds()}..."
+                logger.info(msg)
+                if arrow.get() < deadline:
+                    time.sleep(0.5)
+                else:
+                    raise
+            else:
+                break

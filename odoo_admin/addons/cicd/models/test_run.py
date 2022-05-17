@@ -106,28 +106,6 @@ class CicdTestRun(models.Model):
         self.do_abort = False
         self.state = 'failed'
 
-    def _wait_for_postgres(self, shell, timeout=300):
-        started = arrow.get()
-        deadline = started.shift(seconds=timeout)
-
-        while True:
-            try:
-                shell.odoo(
-                    "psql",
-                    "--non-interactive",
-                    "--sql",
-                    "select * from information_schema.tables limit 1;",
-                    timeout=timeout)
-            except Exception:
-                diff = arrow.get() - started
-                msg = f"Waiting for postgres {diff.total_seconds()}..."
-                logger.info(msg)
-                if arrow.get() < deadline:
-                    time.sleep(0.5)
-                else:
-                    raise
-            else:
-                break
 
     def _reload(self, shell, settings, instance_folder):
         with pg_advisory_lock(self.env.cr, f"testrun#{self.id}-reload"):
@@ -224,7 +202,7 @@ class CicdTestRun(models.Model):
         lo('rm', allow_error=True)
         if start_postgres:
             lo('up', '-d', 'postgres')
-            self._wait_for_postgres(shell)
+            shell._wait_for_postgres()
 
     def _cleanup_testruns(self):
         with self._logsio(None) as logsio:
@@ -542,9 +520,9 @@ class CicdTestRun(models.Model):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
 
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
-            self._wait_for_postgres(shell)
+            shell._wait_for_postgres()
             shell.odoo('update', timeout=self.timeout_migration)
-            self._wait_for_postgres(shell)
+            shell._wait_for_postgres()
 
         self._generic_run(
             shell, logsio, [None],
