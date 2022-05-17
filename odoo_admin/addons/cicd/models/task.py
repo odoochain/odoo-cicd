@@ -161,17 +161,12 @@ class Task(models.Model):
                 rec._exec()
 
     def _ensure_source_code(self, shell):
-
-        self.branch_id._checkout_latest(
-            shell, machine=self.machine_id,
-            instance_folder=shell.cwd,
-        )
+        self.branch_id._checkout_latest(shell, instance_folder=shell.cwd)
 
     def _get_args(self, shell):
         self.ensure_one()
         args = {
             'task': self,
-            'logsio': shell.logsio,
             'shell': shell,
             }
         if self.kwargs and self.kwargs != 'null':
@@ -227,6 +222,8 @@ class Task(models.Model):
                         commit_ids = self.branch_id.commit_ids.filtered(
                             lambda x: x.name == sha).ids
                 self.env.cr.commit()
+
+                obj = obj.with_context(task=self)
 
                 exec('obj.' + self._unblocked('name') + "(**args)", {
                     'obj': obj,

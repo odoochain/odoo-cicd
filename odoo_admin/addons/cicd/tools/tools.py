@@ -11,9 +11,14 @@ logger = logging.getLogger(__name__)
 
 class OdooFrameworkException(Exception): pass
 
+
 def get_host_ip():
-    host_ip = '.'.join(subprocess.check_output(["/bin/hostname", "-I"]).decode('utf-8').strip().split(".")[:3]) + '.1'
+    host_ip = '.'.join(
+        subprocess.check_output([
+            "/bin/hostname", "-I"]).decode(
+                'utf-8').strip().split(".")[:3]) + '.1'
     return host_ip
+
 
 @contextmanager
 def tempdir():
@@ -24,8 +29,13 @@ def tempdir():
     finally:
         shutil.rmtree(dir)
 
+
 def _get_shell_url(host, user, password, command):
     pwd = base64.encodestring(password.encode('utf-8')).decode('utf-8')
-    shellurl = f"/console/?hostname={host}&username={user}&password={pwd}&command="
+    shellurl = (
+        f"/console/?hostname={host}&"
+        f"username={user}&password={pwd}&command="
+    )
     shellurl += ' '.join(command)
     return shellurl
+

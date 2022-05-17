@@ -1,6 +1,6 @@
 import traceback
-import random
-import string
+import hashlib
+import base64
 import json
 from contextlib import contextmanager
 import arrow
@@ -18,11 +18,11 @@ from odoo.addons.queue_job.exception import RetryableJobError
 from itertools import groupby
 
 logger = logging.getLogger(__name__)
-LIMIT_PROJECT_NAME = 30
+LIMIT_PROJECT_NAME = 35
 
 
 class GitBranch(models.Model):
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'cicd.test.settings']
     _name = 'cicd.git.branch'
 
     force_prepare_dump = fields.Boolean("Force prepare Dump")
@@ -112,18 +112,6 @@ class GitBranch(models.Model):
     computed_release_item_ids = fields.Many2many(
         'cicd.release.item', "Releases", compute="_compute_releases",
         search='_search_release_items')
-
-    any_testing = fields.Boolean(compute="_compute_any_testing")
-    run_unittests = fields.Boolean(
-        "Run Unittests", default=True, testrun_field=True)
-    run_robottests = fields.Boolean(
-        "Run Robot-Tests", default=True, testrun_field=True)
-    simulate_install_id = fields.Many2one(
-        "cicd.dump", string="Simulate Install", testrun_field=True)
-    unittest_all = fields.Boolean("All Unittests")
-    retry_unit_tests = fields.Integer("Retry Unittests", default=3)
-    timeout_tests = fields.Integer("Timeout Tests [s]", default=600)
-    timeout_migration = fields.Integer("Timeout Migration [s]", default=1800)
 
     test_run_ids = fields.One2many(
         'cicd.test.run', string="Test Runs", compute="_compute_test_runs")
@@ -286,15 +274,6 @@ class GitBranch(models.Model):
             commit.ensure_one()
             if rec.latest_commit_id != commit:
                 rec.latest_commit_id = commit
-
-    def _compute_any_testing(self):
-        for rec in self:
-            _fields = [
-                k
-                for k, v in rec._fields.items()
-                if getattr(v, 'testrun_field', False)
-                ]
-            rec.any_testing = any(rec[f] for f in _fields)
 
     @api.model
     def create(self, vals):
@@ -586,11 +565,10 @@ class GitBranch(models.Model):
                 return project_name, dbname
 
             project_name, dbname = buildname(rec.name)
-            breakpoint()
-            if len(project_name) > LIMIT_PROJECT_NAME:
-                ID = str(rec.id)
-                rec.technical_branch_name = project_name[
-                    :LIMIT_PROJECT_NAME][:-len(ID)] + ID
+            if len(project_name) > LIMIT_PROJECT_NAME or True:
+                hexvalue = hashlib.md5(project_name.encode(
+                    "utf-8")).hexdigest()
+                rec.technical_branch_name = f"prj{hexvalue}"
                 assert len(rec.technical_branch_name) <= LIMIT_PROJECT_NAME
             else:
                 rec.technical_branch_name = ""
@@ -620,7 +598,7 @@ class GitBranch(models.Model):
             if not rec.active:
                 rec._make_task("_destroy_instance")
 
-    def _destroy_instance(self, shell, task, logsio, **kwargs):
+    def _destroy_instance(self, shell, task, **kwargs):
         self.with_delay().purge_instance_folder()
 
         # delete db

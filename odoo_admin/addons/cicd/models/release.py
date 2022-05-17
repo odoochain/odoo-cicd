@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Release(models.Model):
-    _inherit = ['mail.thread', 'mixin.schedule']
+    _inherit = ['mail.thread', 'mixin.schedule', 'cicd.test.settings']
     _name = 'cicd.release'
 
     active = fields.Boolean("Active", default=True)
@@ -49,7 +49,8 @@ class Release(models.Model):
     message_to_ticketsystem = fields.Text("Release Message")
     update_i18n = fields.Boolean("Update I18N")
 
-    common_settings = fields.Text("Settings for machines (details in action sets)")
+    common_settings = fields.Text(
+        "Settings for machines (details in action sets)")
 
     @api.constrains("project_name")
     def _check_project_name(self):
@@ -133,7 +134,6 @@ class Release(models.Model):
 
     def _heartbeat(self):
         self.ensure_one()
-        breakpoint()
         last_item = self.last_item_id
         if last_item.state in [False, 'ready'] or \
                 last_item.is_failed or \

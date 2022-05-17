@@ -29,6 +29,7 @@ class CicdTestRunLine(models.Model):
         ('log', "Log-Note"),
     ], string="Category")
     position = fields.Char("Pos")
+    odoo_module = fields.Char("Odoo Module")
     name = fields.Char("Name")
     name_short = fields.Char(compute="_compute_name_short")
     run_id = fields.Many2one('cicd.test.run', string="Run")
@@ -72,7 +73,7 @@ class CicdTestRunLine(models.Model):
         }
 
     @api.model
-    def _check_if_test_already_succeeded(
+    def check_if_test_already_succeeded(
         self, testrun, name, hash,
     ):
         """
@@ -98,3 +99,10 @@ class CicdTestRunLine(models.Model):
         })
 
         return True
+
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        if not res.name:
+            raise Exception("Empty names not allowed!")
+        return res

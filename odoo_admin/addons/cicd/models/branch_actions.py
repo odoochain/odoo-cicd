@@ -1,7 +1,6 @@
-import time
-import re
-import uuid
-import psycopg2
+from . import pg_advisory_lock
+import json
+from contextlib import contextmanager
 from odoo import fields
 from pathlib import Path
 import os
@@ -13,13 +12,17 @@ from pathlib import Path
 from odoo.addons.queue_job.exception import RetryableJobError
 import logging
 from .repository import InvalidBranchName
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(
     inspect.currentframe()))))
+
 
 def effify(text, values):
     for line in text.splitlines():
         line2 = eval('f"' + line + '"', values).strip()
         yield line2
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,20 +30,20 @@ logger = logging.getLogger(__name__)
 class Branch(models.Model):
     _inherit = 'cicd.git.branch'
 
-    def _prepare_a_new_instance(self, shell, task, logsio, **kwargs):
+    def _prepare_a_new_instance(self, shell, **kwargs):
         dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
         if not dump:
-            self._reset_db(shell, task, logsio, **kwargs)
+            self._reset_db(shell, **kwargs)
         else:
             self.backup_machine_id = dump.machine_id
             self.dump_id = dump
         if self.dump_id:
-            self._restore_dump(shell, task, logsio, dump=dump, **kwargs)
+            self._restore_dump(shell, dump=dump, **kwargs)
         else:
-            self._reset_db(shell, task, logsio, **kwargs)
-        self._update_all_modules(shell, task, logsio, **kwargs)
+            self._reset_db(shell, **kwargs)
+        self._update_all_modules(shell, **kwargs)
 
-    def _update_odoo(self, shell, task, logsio, **kwargs):
+    def _update_odoo(self, shell, **kwargs):
         if self.block_updates_until and \
                 self.block_updates_until > fields.Datetime.now():
             raise RetryableJobError(
@@ -56,7 +59,7 @@ class Branch(models.Model):
             commit = tasks[0].commit_id.name
         if commit:
             try:
-                logsio.info("Updating")
+                shell.logsio.info("Updating")
                 result = shell.odoo(
                     "update", "--since-git-sha", commit,
                     "--no-dangling-check", "--i18n")
@@ -65,65 +68,65 @@ class Branch(models.Model):
                     raise Exception("Error at update")
             except Exception as ex:
                 logger.error(ex)
-                logsio.error(ex)
-                logsio.info((
+                shell.logsio.error(ex)
+                shell.logsio.info((
                     "Running full update now - "
                     f"update since sha {commit} did not succeed"))
-                self._update_all_modules(shell=shell, task=task, logsio=logsio, **kwargs)
+                self._update_all_modules(shell=shell, **kwargs)
         else:
             self._update_all_modules(
-                shell=shell, task=task, logsio=logsio, **kwargs)
+                shell=shell, **kwargs)
 
-    def _update_all_modules(self, shell, task, logsio, **kwargs):
-        logsio.info("Reloading")
-        self._reload(shell, task, logsio)
-        logsio.info("Building")
+    def _update_all_modules(self, shell, **kwargs):
+        shell.logsio.info("Reloading")
+        self._reload(shell)
+        shell.logsio.info("Building")
         self._internal_build(shell)
-        logsio.info("Updating")
+        shell.logsio.info("Updating")
         shell.odoo('update', "--no-dangling-check") # , "--i18n")
-        logsio.info("Upping")
+        shell.logsio.info("Upping")
         shell.odoo("up", "-d")
 
-    def _update_installed_modules(self, shell, task, logsio, **kwargs):
-        logsio.info("Reloading")
-        self._reload(shell, task, logsio)
-        logsio.info("Building")
+    def _update_installed_modules(self, shell, **kwargs):
+        shell.logsio.info("Reloading")
+        self._reload(shell)
+        shell.logsio.info("Building")
         self._internal_build(shell)
-        logsio.info("Updating")
+        shell.logsio.info("Updating")
         shell.odoo('update', "--no-dangling-check", "--installed-modules")
-        logsio.info("Upping")
+        shell.logsio.info("Upping")
         shell.odoo("up", "-d")
 
-    def _simple_docker_up(self, shell, task, logsio, **kwargs):
+    def _simple_docker_up(self, shell, **kwargs):
         shell.odoo("up", "-d")
 
-    def _reload_and_restart(self, shell, task, logsio, **kwargs):
-        self._reload(shell, task, logsio)
-        logsio.info("Building")
+    def _reload_and_restart(self, shell, **kwargs):
+        self._reload(shell)
+        shell.logsio.info("Building")
         self._internal_build(shell)
-        logsio.info("Upping")
+        shell.logsio.info("Upping")
         shell.odoo("kill")
         self._kill_tmux_sessions(shell)
         shell.odoo("rm")
         shell.odoo("up", "-d")
-        self._after_build(shell, logsio)
+        self._after_build(shell)
 
-    def _restore_dump(self, shell, task, logsio, dump, **kwargs):
+    def _restore_dump(self, shell, dump, **kwargs):
         dump = dump or self.dump_id
         if isinstance(dump, int):
             dump = self.env['cicd.dump'].browse(dump)
 
         if not dump:
             raise ValidationError(_("Dump missing - cannot restore"))
-        self._reload(shell, task, logsio)
-        logsio.info("Reloading")
+        self._reload(shell)
+        shell.logsio.info("Reloading")
         shell.odoo('reload')
-        logsio.info("Building")
+        shell.logsio.info("Building")
         self._internal_build(shell)
-        logsio.info("Downing")
+        shell.logsio.info("Downing")
         shell.odoo('kill')
         shell.odoo('rm')
-        logsio.info(f"Restoring {dump.name}")
+        shell.logsio.info(f"Restoring {dump.name}")
         shell.odoo(
             '-f', 'restore', 'odoo-db', '--no-remove-webassets',
             dump.name)
@@ -131,38 +134,41 @@ class Branch(models.Model):
             shell.odoo('-f', 'remove-web-assets')
         self.last_restore_dump_name = dump.name
         self.last_restore_dump_date = dump.date_modified
-        task.sudo().with_delay().write({'dump_used': self.dump_id.name})
+        if self.env.context.get('task'):
+            self.env.context['task'].sudo().with_delay().write({
+                'dump_used': self.dump_id.name})
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
         self.env.cr.commit()
         shell.odoo("update")
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
         self.last_snapshot = False
-        self._after_build(shell=shell, logsio=logsio)
+        self._after_build(shell=shell)
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
 
-    def _docker_start(self, shell, task, logsio, **kwargs):
+    def _docker_start(self, shell, **kwargs):
         shell.odoo('up', '-d')
         self.machine_id._fetch_psaux_docker_containers()
 
-    def _docker_stop(self, shell, task, logsio, **kwargs):
+    def _docker_stop(self, shell, **kwargs):
         shell.odoo('kill')
         self.machine_id._fetch_psaux_docker_containers()
 
-    def _docker_remove(self, shell, task, logsio, **kwargs):
+    def _docker_remove(self, shell, **kwargs):
         shell.odoo('kill')
         shell.odoo('rm')
         self.machine_id._fetch_psaux_docker_containers()
 
-    def _turn_into_dev(self, shell, task, logsio, **kwargs):
+    def _turn_into_dev(self, shell, **kwargs):
         shell.odoo('turn-into-dev')
 
     def _reload(
-            self, shell, task, logsio,
+            self, shell,
             project_name=None, settings=None, commit=None, registry=None,
+            force_instance_folder=None,
             **kwargs
             ):
 
-        cwd = self._make_sure_source_exists(shell, logsio)
+        cwd = force_instance_folder or self._make_sure_source_exists(shell)
 
         with shell.clone(cwd=cwd) as shell:
             self._make_instance_docker_configs(
@@ -172,7 +178,8 @@ class Branch(models.Model):
             self._collect_all_files_by_their_checksum(shell)
             if commit:
                 shell.checkout_commit(commit)
-            shell.odoo('reload')
+            params = []
+            shell.odoo('reload', *params)
             if self._is_hub_configured(shell):
                 shell.odoo("login")
 
@@ -184,18 +191,19 @@ class Branch(models.Model):
                 return True
         return False
 
-    def _build(self, shell, task, logsio, **kwargs):
-        self._reload(shell, task, logsio, **kwargs)
+    def _build(self, shell, **kwargs):
+        self._reload(shell, **kwargs)
         self._internal_build(shell)
 
-    def _dump(self, shell, task, logsio, volume=None, filename=None, **kwargs):
-        volume = volume or task.machine_id._get_volume('dumps')
+    def _dump(self, shell, volume=None, filename=None, **kwargs):
+        volume = volume or shell.machine._get_volume('dumps')
+        machine = volume.machine_id
         if isinstance(volume, int):
             volume = self.env['cicd.machine.volume'].browse(volume)
             volume = Path(volume.name)
 
-        logsio.info(f"Dumping to {task.machine_id.name}:{volume}")
-        filename = filename or task.branch_id.backup_filename or (
+        shell.logsio.info(f"Dumping to {machine.name}:{volume}")
+        filename = filename or self.backup_filename or (
             self.project_name + ".dump.gz")
         assert isinstance(filename, str)
 
@@ -203,15 +211,15 @@ class Branch(models.Model):
             raise ValidationError("Filename mustn't contain slashses!")
         shell.odoo('backup', 'odoo-db', str(volume / filename))
         # to avoid serialize access erros which may occur
-        task.machine_id.with_delay().update_dumps()
+        machine.with_delay().update_dumps()
 
     def _update_git_commits(
-            self, shell, logsio,
-            force_instance_folder=None, **kwargs
+            self, shell, force_instance_folder=None,
+            **kwargs
             ):
 
         self.ensure_one()
-        logsio.info(f"Updating commits for {self.project_name}")
+        shell.logsio.info(f"Updating commits for {self.project_name}")
         instance_folder = force_instance_folder or self._get_instance_folder(
             self.machine_id)
 
@@ -264,7 +272,7 @@ class Branch(models.Model):
                     continue
                 date = arrow.get(int(line[0]))
 
-            logsio.info((
+            shell.logsio.info((
                 f"Getting detail information of sha "
                 f"{sha} ({icommit} / {len(commits)})"))
 
@@ -296,35 +304,35 @@ class Branch(models.Model):
                 'branch_ids': [[4, self.id]],
             }]]
 
-    def _remove_web_assets(self, shell, task, logsio, **kwargs):
-        logsio.info("Killing...")
+    def _remove_web_assets(self, shell, **kwargs):
+        shell.logsio.info("Killing...")
         shell.odoo('kill')
-        logsio.info("Calling remove-web-assets")
+        shell.logsio.info("Calling remove-web-assets")
         shell.odoo('-f', 'remove-web-assets')
-        logsio.info("Restarting...")
+        shell.logsio.info("Restarting...")
         shell.odoo('up', '-d')
 
-    def _shrink_db(self, shell, task, logsio, **kwargs):
+    def _shrink_db(self, shell, **kwargs):
         shell.odoo('cleardb')
 
-    def _anonymize(self, shell, task, logsio, **kwargs):
+    def _anonymize(self, shell, **kwargs):
         shell.odoo('update', 'anonymize')
         shell.odoo('anonymize')
-
-    def _run_tests(self):
-        pass # deprecated
 
     def _cron_run_open_tests(self):
         for testrun in self.env['cicd.test.run'].search([
                 ('state', '=', 'open')]):
-            testrun.with_delay(channel="testruns", identity_key=(
+            # observed duplicate starts without eta
+            eta = arrow.utcnow().shift(
+                seconds=10).replace(tzinfo=None).strftime(DTF)
+            testrun.with_delay(eta=eta, channel="testruns", identity_key=(
                 "start-open-testrun-"
                 f"{self.name}-"
                 f"{testrun.commit_id.name}-"
                 f"{testrun.id}"
             )).execute()
 
-    def _after_build(self, shell, logsio, **kwargs):
+    def _after_build(self, shell, **kwargs):
         self.last_access = fields.Datetime.now()  # to avoid cycle down
         shell.odoo(
             "remove-settings", '--settings', 'web.base.url,web.base.url.freeze'
@@ -339,41 +347,37 @@ class Branch(models.Model):
         shell.odoo("prolong")
         shell.odoo('restore-web-icons')
 
-    def _build_since_last_gitsha(self, shell, logsio, **kwargs):
+    def _build_since_last_gitsha(self, shell, **kwargs):
         # todo make button
-        self._after_build(shell=shell, logsio=logsio, **kwargs)
+        self._after_build(shell=shell, **kwargs)
 
-    def _checkout_latest(
-        self, shell, logsio=None, machine=None,
-        instance_folder=None, **kwargs
-    ):
+    def _checkout_latest(self, shell, instance_folder=None, **kwargs):
         """
         Use this for getting source code. It updates also submodules.
 
         """
         my_name = self._unblocked('name')
 
-        def _clone_instance_folder(machine, logsio, instance_folder):
+        def _clone_instance_folder(machine, instance_folder):
             self.repo_id._get_main_repo(
-                logsio=logsio,
+                logsio=shell.logsio,
                 destination_folder=instance_folder,
                 limit_branch=my_name,
                 machine=machine,
             )
 
-        machine = machine or shell.machine
+        machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
-        logsio = logsio or shell.logsio
-        logsio.write_text(f"Updating instance folder {my_name}")
-        _clone_instance_folder(machine, logsio, instance_folder)
-        logsio.write_text(f"Cloning {my_name} to {instance_folder}")
+        shell.logsio.write_text(f"Updating instance folder {my_name}")
+        _clone_instance_folder(machine, instance_folder)
+        shell.logsio.write_text(f"Cloning {my_name} to {instance_folder}")
 
         with shell.clone(cwd=instance_folder) as shell:
-            logsio.write_text(f"Checking out {my_name}")
+            shell.logsio.write_text(f"Checking out {my_name}")
             try:
                 shell.X(["git", "checkout", "-f", my_name])
             except Exception as ex:
-                logsio.error(ex)
+                shell.logsio.error(ex)
                 shell.rm(instance_folder)
                 raise RetryableJobError(
                     "Cleared directory - branch not found - please retry",
@@ -382,11 +386,11 @@ class Branch(models.Model):
             try:
                 shell.X(["git", "pull"])
             except Exception as ex:
-                logsio.error((
+                shell.logsio.error((
                     "Error at pulling,"
                     f"cloning path {instance_folder} again:\n{ex}"))
                 shell.rm(instance_folder)
-                _clone_instance_folder(machine, logsio, instance_folder)
+                _clone_instance_folder(machine, instance_folder)
 
             # delete all other branches:
             res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
@@ -402,7 +406,7 @@ class Branch(models.Model):
             current_branch = list(filter(lambda x: '* ' in x, shell.X([
                 "git", "branch"])['stdout'].strip().split("\n")))
             if not current_branch:
-                raise Exception(f"Somehow no current branch found")
+                raise Exception("Somehow no current branch found")
             try:
                 branch_in_dir = self.repo_id._clear_branch_name(
                     current_branch[0])
@@ -416,15 +420,15 @@ class Branch(models.Model):
                     f"Was {branch_in_dir} - but should be {my_name}"
                 ))
 
-            logsio.write_text(f"Clean git")
+            shell.logsio.write_text("Clean git")
             shell.X(["git", "clean", "-xdff"])
 
-            logsio.write_text("Updating submodules")
+            shell.logsio.write_text("Updating submodules")
             shell.X(["git", "submodule", "update", "--recursive", "--init"])
 
-            logsio.write_text("Getting current commit")
+            shell.logsio.write_text("Getting current commit")
             commit = shell.X(["git", "rev-parse", "HEAD"])['stdout'].strip()
-            logsio.write_text(commit)
+            shell.logsio.write_text(commit)
 
         return str(commit)
 
@@ -580,8 +584,8 @@ class Branch(models.Model):
         shell.odoo("build")
         self._push_to_registry(shell)
 
-    def _reset_db(self, shell, task, logsio, **kwargs):
-        self._reload(shell, task, logsio)
+    def _reset_db(self, shell, **kwargs):
+        self._reload(shell)
         self._internal_build(shell)
         shell.odoo('-f', 'db', 'reset')
         shell.odoo('update', '--no-dangling-check')
@@ -590,31 +594,15 @@ class Branch(models.Model):
         except:
             pass
         self.last_snapshot = False
-        self._after_build(shell=shell, logsio=logsio, **kwargs)
+        self._after_build(shell=shell, **kwargs)
 
-    def _compress(self, shell, task, logsio, compress_job_id):
+    def _compress(self, shell, compress_job_id):
         self.ensure_one()
         compressor = self.env['cicd.compressor'].sudo().browse(
-            compress_job_id).sudo()
+            compress_job_id)
 
         # get list of files
-
-        logsio.info("Identifying latest dump")
-        with compressor.source_volume_id.machine_id._shell(
-                logsio=logsio, cwd="") as source_shell:
-            output = list(reversed(source_shell.X([
-                "ls", "-trA", compressor.source_volume_id.name])[
-                    'stdout'].strip().split("\n")))
-
-            for line in output:
-                if line == '.' or line == '..':
-                    continue
-                if re.findall(compressor.regex, line):
-                    filename = line.strip()
-                    break
-            else:
-                logsio.info("No files found.")
-                return
+        filename = compressor._get_latest_dump(logsio=shell.logsio)
 
         # if the machines are the same, then just rewrite destination path
         # if machines are different then copy locally and then put it on the
@@ -627,9 +615,10 @@ class Branch(models.Model):
 
         # release db resources:
         self.env.cr.commit()
+        source_machine = compressor.source_volume_id.machine_id
 
-        with compressor.source_volume_id.machine_id._put_temporary_file_on_machine(
-            logsio,
+        with source_machine._put_temporary_file_on_machine(
+            shell.logsio,
             compressor.source_volume_id.name + "/" + filename,
             shell.machine,
             dest_file_path,
@@ -639,55 +628,26 @@ class Branch(models.Model):
                     'stdout'].strip())
 
             assert shell.machine.ttype == 'dev'
-            instance_path = self._get_instance_folder(shell.machine)
-            shell.remove(instance_path)
 
             # change working project/directory
-            with shell.clone(
-                cwd=instance_path,
-                project_name=self.project_name
-            ) as shell:
-                logsio.info("Reloading...")
-                settings = (
-                    "\n"
-                    f"DBNAME={self.database_project_name}\n"
-                    "RUN_CRONJOBS=0\n"
-                    "RUN_QUEUEJOBS=0\n"
-                    "RUN_POSTGRES=1\n"
-                    "RUN_ROBOT=0\n"
-                    "RUN_PROXY_PUBLISHED=0\n"
-                    "DB_HOST=postgres\n"
-                    "DB_USER=odoo\n"
-                    "DB_PWD=odoo\n"
-                    "DB_PORT=5432\n"
-                )
-                self._reload(
-                    shell, task, logsio,
-                    project_name=self.project_name, settings=settings)
-                logsio.info(f"Restoring {effective_dest_file_path}...")
-                shell.odoo("up", "-d", "postgres")
+            with self._tempinstance(f"{self.name}{appendix}") as shell:
+                shell.odoo(
+                    "-f", "restore", "odoo-db", effective_dest_file_path)
+                shell.logsio.info("Clearing DB...")
+                shell.odoo('-f', 'cleardb')
+                if compressor.anonymize:
+                    shell.logsio.info("Anonymizing DB...")
+                    shell.odoo('-f', 'anonymize')
+                shell.logsio.info("Dumping compressed dump")
+                output_path = compressor.volume_id.name + "/" + \
+                    compressor.output_filename
+                shell.odoo('backup', 'odoo-db', output_path)
+                compressor.last_output_size = int(shell.X([
+                    'stat', '-c', '%s', output_path])[
+                        'stdout'].strip())
+                compressor.date_last_success = fields.Datetime.now()
 
-                try:
-                    shell.odoo(
-                        "-f", "restore", "odoo-db",
-                        effective_dest_file_path)
-                    logsio.info("Clearing DB...")
-                    shell.odoo('-f', 'cleardb')
-                    if compressor.anonymize:
-                        logsio.info("Anonymizing DB...")
-                        shell.odoo('-f', 'anonymize')
-                    logsio.info("Dumping compressed dump")
-                    output_path = compressor.volume_id.name + "/" + \
-                        compressor.output_filename
-                    shell.odoo('backup', 'odoo-db', output_path)
-                    compressor.last_output_size = int(shell.X([
-                        'stat', '-c', '%s', output_path])[
-                            'stdout'].strip())
-                    compressor.date_last_success = fields.Datetime.now()
-                finally:
-                    shell.odoo('down', '-v', force=True, allow_error=True)
-
-    def _make_sure_source_exists(self, shell, logsio):
+    def _make_sure_source_exists(self, shell):
         instance_folder = self._get_instance_folder(shell.machine)
         self.ensure_one()
         with self._extra_env() as x_self:
@@ -696,10 +656,10 @@ class Branch(models.Model):
 
         if not healthy:
             try:
-                self._checkout_latest(shell, logsio=logsio)
+                self._checkout_latest(shell)
             except Exception:
                 shell.rm(instance_folder)
-                self._checkout_latest(shell, logsio=logsio)
+                self._checkout_latest(shell)
         return instance_folder
 
     def _collect_all_files_by_their_checksum(self, shell):
@@ -778,22 +738,97 @@ for path in base.glob("*"):
     })
         return action
 
-    def _task1(self, shell, task, logsio, **kwargs):
-        i = 0
-        while i < 10:
-            i += 1
-            logsio.info(f"Task1 {i}")
-            time.sleep(3)
+    def _get_settings_isolated_run(self, dbname='odoo'):
+        return (
+            "RUN_POSTGRES=1"
+            "DB_HOST=postgres"
+            "DB_USER=odoo"
+            "DB_PASSWORD=odoo"
+            "DB_PORT=5432"
+            f"DBNAME={dbname}\n"
+            "RUN_CRONJOBS=0\n"
+            "RUN_QUEUEJOBS=0\n"
+            "RUN_POSTGRES=1\n"
+            "RUN_ROBOT=0\n"
+            "RUN_PROXY_PUBLISHED=0\n"
+        )
+    @contextmanager
+    def _tempinstance(self, uniqueappendix, commit=None):
+        settings = self._get_settings_isolated_run()
+        machine = self.machine_id
+        assert machine.ttype == 'dev'
+        self = self.with_context(testrun=uniqueappendix)
+        with pg_advisory_lock(
+            self.env.cr, self.project_name, 'temporary instance'
+        ):
+            with self.repo_id._temp_repo(machine=machine) as repo_path:
+                with machine._shell(
+                    cwd=repo_path,
+                    project_name=self.project_name,
+                ) as shell:
+                    self._reload(
+                        shell, project_name=self.project_name,
+                        commit=commit, settings=settings,
+                        force_instance_folder=repo_path)
+                    shell.odoo('regpull', 'postgres', allow_error=True)
+                    shell.odoo('build', 'postgres')
+                    shell.odoo('up', '-d', 'postgres')
+                    shell.odoo('pghba-conf-wide-open', "--no-scram")
+                    shell.odoo('kill')
+                    try:
+                        yield shell
+                    finally:
+                        shell.odoo('down', '-v', allow_error=True, force=True)
+                        repo_path and len(repo_path) > 8 and shell.rm(
+                            repo_path)  # make sure to avoid rm /
 
-    def _task2(self, shell, task, logsio, **kwargs):
-        i = 0
-        while i < 10:
-            i += 1
-            logsio.info(f"Task2 {i}")
-            raise Exception('fault')
-            time.sleep(1)
+    def _ensure_dump(self, ttype):
+        """
+        Makes sure that a dump for installation of base/web module exists.
+        """
+        assert ttype in ['full', 'base']
+        self.ensure_one()
+        machine = self.machine_id
+        instance_folder = self._get_instance_folder(machine)
+        settings = self._get_settings_isolated_run()
 
-    def _t1(self):
-        time.sleep(60)
-        # raise Exception('fail')
-        #time.sleep(10)
+        with machine._shell(
+            cwd=instance_folder,
+            project_name=self.project_name,
+        ) as shell:
+            self._checkout_latest(shell)
+            self._reload(
+                shell, project_name=self.project_name,
+                settings=settings, force_instance_folder=instance_folder)
+            path = Path(shell.machine._get_volume('dumps'))
+
+
+            def _get_dumpfile_name():
+                if ttype == 'base':
+                    output = shell.odoo('list-deps', 'base')['stdout'].split(
+                        "---", 1)[1]
+                    deps = json.loads(output)
+                    hash = deps['hash']
+                    return f"base_dump_{hash}", None
+
+                elif ttype == 'full':
+                    return (
+                        f"all_installed_{self.name}",
+                        self.latest_commit_id.name
+                    )
+
+                raise NotImplementedError(ttype)
+
+            dump_name, commit = _get_dumpfile_name()
+            dest_path = path / dump_name
+
+        if not shell.exists(dest_path):
+            with self._tempinstance('ensurebasedump', commit=commit) as shell:
+                shell.odoo('regpull', allow_error=True)
+                shell.odoo('build')
+                shell.odoo('down', '-v', force=True, allow_error=True)
+                shell.odoo('up', '-d', 'postgres')
+                shell.odoo('db', 'reset', force=True)
+                shell.logsio.info(f"Dumping to {dest_path}")
+                shell.odoo('backup', 'odoo-db', dest_path)
+        return dest_path

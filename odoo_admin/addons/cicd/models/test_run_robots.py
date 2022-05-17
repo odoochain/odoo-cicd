@@ -2,73 +2,89 @@ import base64
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from .test_run import SETTINGS
+
+
+def safe_filename(filename):
+    for x in "/\\;!()*":
+        filename = filename.replace(x, '_')
+    return filename
+
 
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
-    def _run_robot_tests(self, shell, logsio, **kwargs):
-        files = shell.odoo('list-robot-test-files')['stdout'].strip()
-        files = list(filter(bool, files.split("!!!")[1].split("\n")))
+    def _run_robot_tests(self):
+        self = self.with_context(testrun=f'{self.id}_prepare_robots')
 
-        configuration = shell.odoo('config', '--full')['stdout'].splitlines()
-        host_run_dir = [x for x in configuration if 'HOST_RUN_DIR:' in x]
-        host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
-        robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
+        with self._shell(quick=False) as shell:
+            self._ensure_source_and_machines(
+                shell, start_postgres=False, settings="")
+            files = shell.odoo('list-robot-test-files')['stdout'].strip()
+            files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
-        try:
-            self._report("Installing all modules from MANIFEST...")
-            SNAP_NAME = "robot_tests"
-            shell.odoo("snap", "restore", shell.project_name)
-            shell.odoo('up', '-d', 'postgres')
+        for index, robotfile in enumerate(files):
+            self.as_job(f"robottest-{robotfile}")._run_robot_run(
+                index, len(files), robotfile
+            )
+
+    def _run_robot_run(self, index, count, robot_file):
+        safe_robot_file = safe_filename(robot_file)
+        self = self.with_context(
+            testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
+
+        with self._shell(quick=True) as shell:
+            dump_path = self.branch_id._ensure_dump('full')
+            settings = SETTINGS + (
+                "\n"
+                "RUN_ODOO_QUEUEJOBS=1\n"
+                "RUN_ODOO_CRONJOBS=1\n"
+                "RUN_ROBOT=1\n"
+            )
+            assert dump_path
+            self._ensure_source_and_machines(
+                shell, start_postgres=True, settings=settings)
+            shell.odoo(
+                'restore', 'odoo-db', dump_path,
+                '--no-dev-scripts', force=True)
             self._wait_for_postgres(shell)
-            # only base db exists no installed modules
-            shell.odoo("update")
-            shell.odoo("robot", "--all", "--install-required-modules")
 
-            shell.odoo("snap", "save", SNAP_NAME)
-            shell.odoo("kill")
-            self._report("Installed all modules from MANIFEST")
-        except Exception as ex:
-            self._report("Error at preparing robot tests", exception=ex)
-            self.env.cr.commit()
-            raise
+            configuration = shell.odoo('config', '--full')[
+                'stdout'].splitlines()
+            host_run_dir = [x for x in configuration if 'HOST_RUN_DIR:' in x]
+            host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
+            robot_out = host_run_dir / 'odoo_outdir' / 'robot_output'
 
-        def _run_robot_run(item):
+            def run(item):
+                try:
+                    shell.odoo(
+                        'robot', '-p', 'password=admin',
+                        "--install-required-modules",
+                        item, timeout=self.timeout_tests)
+                    state = 'success'
 
-            shell.odoo("snap", "restore", SNAP_NAME)
-            self._report("Restored snapshot - driving up db.")
-            shell.odoo("kill", allow_error=True)
-            shell.odoo("rm", allow_error=True)
-            shell.odoo('up', '-d', 'postgres')
-            self._wait_for_postgres(shell)
-            shell.odoo('up', '-d')
+                except Exception as ex:
+                    state = 'failed'
+                    self._report(
+                        "Robot Test error (but retrying)", exception=ex)
+                finally:
+                    excel_file = shell.sql_excel((
+                        "select id, name, state, exc_info "
+                        "from queue_job"
+                    ))
+                    if excel_file:
+                        self.queuejob_log = base64.b64encode(excel_file)
 
-            try:
-                shell.odoo(
-                    'robot', '-p', 'password=admin',
-                    item, timeout=self.branch_id.timeout_tests)
-                state = 'success'
-            except Exception as ex:
-                state = 'failed'
-                self._report("Robot Test error (but retrying)", exception=ex)
-                raise
-            finally:
-                excel_file = shell.sql_excel((
-                    "select id, name, state, exc_info "
-                    "from queue_job"
-                ))
-                self.queuejob_log = base64.b64encode(excel_file)
-                self.env.cr.commit()
+                robot_results_tar = shell.grab_folder_as_tar(robot_out)
+                robot_results_tar = base64.b64encode(robot_results_tar)
+                return {
+                    'robot_output': robot_results_tar,
+                    'state': state,
+                }
 
-            robot_results_tar = shell.grab_folder_as_tar(robot_out)
-            robot_results_tar = base64.b64encode(robot_results_tar)
-            return {
-                'robot_output': robot_results_tar,
-                'state': state,
-            }
-
-        self._generic_run(
-            shell, logsio, files,
-            'robottest', _run_robot_run,
-            try_count=self.branch_id.retry_unit_tests,
-        )
+            self._generic_run(
+                shell, [robot_file],
+                'robottest', run,
+                try_count=self.retry_unit_tests,
+                name_prefix=f"({index + 1} / {count}) ",
+            )

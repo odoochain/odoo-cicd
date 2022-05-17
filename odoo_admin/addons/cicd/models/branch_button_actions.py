@@ -105,10 +105,11 @@ class Branch(models.Model):
             lambda x: x.commit_id == self.latest_commit_id and
             x.state in ('open', 'running'))
         if not test_run:
-            self.test_run_ids.create({
+            testrun = self.test_run_ids.create({
                 'commit_id': self.latest_commit_id.id,
                 'branch_id': self.id,
             })
+            self.apply_test_settings(testrun)
 
     def start(self):
         return {

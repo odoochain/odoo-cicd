@@ -48,6 +48,17 @@
 									</tree>
 								</field>
 							</page>
+							<page string='Quality' name="quality">
+								<group string="Quality Assurance Settings" col='2'>
+									<field name="run_unittests" widget="boolean_toggle"/>
+									<field name="retry_unit_tests" />
+									<field name="unittest_all"/>
+									<field name="timeout_tests"/>
+									<field name="timeout_migration"/>
+									<field name="run_robottests" widget="boolean_toggle"/>
+									<field name="simulate_install_id"/>
+								</group>
+							</page>
 							<page string="Settings" name="settings">
 								<div>
 									<a href="https://github.com/marcwimmer/wodoo" target="_blank">Documentation Github</a>

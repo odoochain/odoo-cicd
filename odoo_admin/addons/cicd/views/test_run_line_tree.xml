@@ -8,6 +8,7 @@
 					<button name="open_window" string="" icon="fa-external-link" type="object" />
 					<field name="ttype"/>
 					<field name="position"/>
+					<field name="odoo_module"/>
 					<field name="name_short"/>
 					<button name="robot_results" string="" icon="fa-search" type="object" attrs="{'invisible': [('robot_output', '=', False)]}"/>
 					<field name="started"/>
