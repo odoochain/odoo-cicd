@@ -186,13 +186,13 @@ class Branch(models.Model):
         }
 
     def pgcli(self):
-        return self._shell_url(["odoo", "pgcli"], tmux='pgcli')
+        return self._shell_url(["odoo pgcli"], tmux='pgcli')
 
     def open_odoo_shell(self):
-        return self._shell_url(["odoo", "shell"], tmux='odoo_shell')
+        return self._shell_url(["odoo shell"], tmux='odoo_shell')
 
     def debug_webcontainer(self):
-        return self._shell_url(["odoo", "debug", "odoo"], tmux='debug_odoo')
+        return self._shell_url(["odoo debug odoo"], tmux='debug_odoo')
 
     def open_shell(self):
         return self._shell_url([], tmux='_shell')
@@ -207,7 +207,7 @@ class Branch(models.Model):
             containers += ['odoo_queuejobs']
         if cronjobs:
             containers += ['odoo_cronjobs']
-        return self._shell_url(["odoo", "logs", "-f"] + containers)
+        return self._shell_url(["odoo logs -f"] + containers)
 
     def refresh_tasks(self):
         return True
