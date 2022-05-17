@@ -775,19 +775,21 @@ for path in base.glob("*"):
                         shell, project_name=self.project_name,
                         commit=commit, settings=settings,
                         force_instance_folder=repo_path)
-                    config = shell.odoo('config', '--full')['stdout'].splitlines()
+                    config = shell.odoo('config', '--full')[
+                        'stdout'].splitlines()
                     for conf in config:
                         if conf.strip().startswith("DB_HOST:"):
                             assert 'postgres' in conf
                     shell.odoo('regpull', 'postgres', allow_error=True)
                     shell.odoo('build', 'postgres')
+                    shell.odoo('down', '-v', force=True, allow_error=True)
                     shell.odoo('up', '-d', 'postgres')
+                    shell.wait_for_postgres()
                     shell.odoo('pghba-conf-wide-open', "--no-scram")
                     shell.odoo('kill')
                     try:
                         yield shell
                     finally:
-                        breakpoint()
                         shell.odoo('down', '-v', allow_error=True, force=True)
                         repo_path and len(repo_path) > 8 and shell.rm(
                             repo_path)  # make sure to avoid rm /
@@ -816,13 +818,14 @@ for path in base.glob("*"):
 
         with self._tempinstance('ensuredump', commit=commit) as shell:
             shell.logsio.info(f"Creating dump file {dest_path}")
-            shell.odoo('down', '-v', force=True, allow_error=True)
-            breakpoint()
             shell.odoo('up', '-d', 'postgres')
             shell.wait_for_postgres()
             shell.odoo('db', 'reset', force=True)
             shell.wait_for_postgres()
             shell.logsio.info(f"Dumping to {dest_path}")
+            if ttype == 'full':
+                shell.odoo('update')
+                shell.wait_for_postgres()
             shell.odoo('backup', 'odoo-db', dest_path)
         return dest_path
 
