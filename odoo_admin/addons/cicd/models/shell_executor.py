@@ -326,7 +326,7 @@ class ShellExecutor(BaseShellExecutor):
                 diff = arrow.get() - started
                 msg = (
                     f"Waiting for postgres {diff.total_seconds()} in "
-                    "{self.cwd} with project name {self.project_name}"
+                    f"{self.cwd} with project name {self.project_name}"
                     "..."
                     )
                 logger.info(msg)
