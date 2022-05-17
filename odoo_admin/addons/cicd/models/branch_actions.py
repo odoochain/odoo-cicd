@@ -740,11 +740,11 @@ for path in base.glob("*"):
 
     def _get_settings_isolated_run(self, dbname='odoo'):
         return (
-            "RUN_POSTGRES=1"
-            "DB_HOST=postgres"
-            "DB_USER=odoo"
-            "DB_PASSWORD=odoo"
-            "DB_PORT=5432"
+            "RUN_POSTGRES=1\n"
+            "DB_HOST=postgres\n"
+            "DB_USER=odoo\n"
+            "DB_PASSWORD=odoo\n"
+            "DB_PORT=5432\n"
             f"DBNAME={dbname}\n"
             "RUN_CRONJOBS=0\n"
             "RUN_QUEUEJOBS=0\n"
@@ -770,10 +770,15 @@ for path in base.glob("*"):
                     cwd=repo_path,
                     project_name=self.project_name,
                 ) as shell:
+                    breakpoint()
                     self._reload(
                         shell, project_name=self.project_name,
                         commit=commit, settings=settings,
                         force_instance_folder=repo_path)
+                    config = shell.odoo('config', '--full')['stdout'].splitlines()
+                    for conf in config:
+                        if conf.strip().startswith("DB_HOST:"):
+                            assert 'postgres' in conf
                     shell.odoo('regpull', 'postgres', allow_error=True)
                     shell.odoo('build', 'postgres')
                     shell.odoo('up', '-d', 'postgres')
@@ -782,10 +787,10 @@ for path in base.glob("*"):
                     try:
                         yield shell
                     finally:
+                        breakpoint()
                         shell.odoo('down', '-v', allow_error=True, force=True)
                         repo_path and len(repo_path) > 8 and shell.rm(
                             repo_path)  # make sure to avoid rm /
-
 
     def _ensure_dump(self, ttype, commit):
         """

@@ -324,7 +324,11 @@ class ShellExecutor(BaseShellExecutor):
                     timeout=timeout)
             except Exception:
                 diff = arrow.get() - started
-                msg = f"Waiting for postgres {diff.total_seconds()}..."
+                msg = (
+                    f"Waiting for postgres {diff.total_seconds()} in "
+                    "{self.cwd} with project name {self.project_name}"
+                    "..."
+                    )
                 logger.info(msg)
                 if arrow.get() < deadline:
                     time.sleep(0.5)
