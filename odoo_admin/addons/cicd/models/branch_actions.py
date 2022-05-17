@@ -743,7 +743,7 @@ for path in base.glob("*"):
             "RUN_POSTGRES=1\n"
             "DB_HOST=postgres\n"
             "DB_USER=odoo\n"
-            "DB_PASSWORD=odoo\n"
+            "DB_PWD=odoo\n"
             "DB_PORT=5432\n"
             f"DBNAME={dbname}\n"
             "RUN_CRONJOBS=0\n"
@@ -816,8 +816,6 @@ for path in base.glob("*"):
 
         with self._tempinstance('ensuredump', commit=commit) as shell:
             shell.logsio.info(f"Creating dump file {dest_path}")
-            shell.odoo('regpull', allow_error=True)
-            shell.odoo('build')
             shell.odoo('down', '-v', force=True, allow_error=True)
             breakpoint()
             shell.odoo('up', '-d', 'postgres')
