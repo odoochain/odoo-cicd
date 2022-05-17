@@ -202,7 +202,7 @@ class CicdMachine(models.Model):
 
                 command_file = '/tmp/commands.cicd'
                 homedir = '/home/' + rec.ssh_user_cicdlogin
-                test_file_if_required = homedir + '/.setup_login_done.v5'
+                test_file_if_required = homedir + '/.setup_login_done.v6'
                 user_upper = rec.ssh_user_cicdlogin.upper()
                 cicd_user_upper = rec.ssh_user.upper()
 
@@ -252,25 +252,33 @@ ln -sf /usr/bin/base64 "{homedir}/programs/base64"
 ln -sf /usr/bin/mktemp "{homedir}/programs/mktemp"
 ln -sf /usr/bin/rm "{homedir}/programs/rm"
 ln -sf /usr/bin/reset "{homedir}/programs/reset"
+ln -sf /usr/bin/echo "{homedir}/programs/echo"
+ln -sf /usr/bin/sleep "{homedir}/programs/sleep"
 
 #------------------------------------------------------------------------------
 tee "{homedir}/programs/start_tmux" <<'EOF'
-set -x
-SESSION_NAME=$1
-tempfile="$(mktemp)"
-rm "$tempfile"
-echo "reset" > $tempfile
+SESSION_NAME="$1"
+PROJECT_NAME="$2"
+CICD_WORKSPACE="$3"
 
-if [[ -z "$2" ]]; then
-    echo "rbash" >> "$tempfile"
+tmux has-session -t "$SESSION_NAME"
+hasSession=$?
+
+if [[ $hasSession != "0" ]]; then  \\
+    tmux new-session -s "$SESSION_NAME" -d
+    tmux send-keys -t "$SESSION_NAME.0" "reset" ENTER
+    tmux send-keys -t "$SESSION_NAME.0" "echo 'Welcome to CICD Odoo Shell. Type odoo --help to get started.'" ENTER
+    tmux send-keys -t "$SESSION_NAME.0" "export PROJECT_NAME=$PROJECT_NAME" ENTER
+    tmux send-keys -t "$SESSION_NAME.0" "export CICD_WORKSPACE=$CICD_WORKSPACE" ENTER
+    if [[ ! -z "$4" ]]; then
+        CMD="$(echo "$4" | base64 -d )"
+        tmux send-keys -t "$SESSION_NAME.0" "$CMD" ENTER
+    fi
+    tmux a -t "$SESSION_NAME"
 else
-    echo "$2" | base64 -d >> "$tempfile"
+    tmux has-session -t "$SESSION_NAME" && \\
+        tmux attach -t "$SESSION_NAME"
 fi
-tmux has-session -t "$SESSION_NAME" || \\
-    tmux new-session -s "$SESSION_NAME" -d rbash $tempfile
-tmux has-session -t "$SESSION_NAME" && \\
-    tmux attach -t "$SESSION_NAME"
-#rm $tempfile
 EOF
 chmod a+x "{homedir}/programs/start_tmux"
 

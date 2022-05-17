@@ -149,6 +149,7 @@ class Branch(models.Model):
 
         machine = self.machine_id
         machine.make_login_possible_for_webssh_container()
+        cicd_workspace = self.machine_id._get_volume('source')
         if tmux:
             cmd = ';'.join(cmd)
             cmd = base64.encodebytes(cmd.encode(
@@ -158,17 +159,25 @@ class Branch(models.Model):
             session_name = self.tmux_session_name
             if ' ' in session_name:
                 raise Exception("should not contain a space")
-            cmd = [f"start_tmux {session_name} {cmd}"]
+            cmd = [(
+                f"start_tmux '{session_name}' "
+                f"'{self.project_name}' "
+                f"'{cicd_workspace}' "
+                f"'{cmd}'"
+                )]
+        else:
+            cmd = [
+                f"export CICD_WORKSPACE={cicd_workspace};",
+                f"export PROJECT_NAME={self.project_name};",
+            ] + cmd
+
         path = machine._get_volume('source')
         path = path / self.project_name
         shell_url = _get_shell_url(
             machine.effective_host,
             machine.ssh_user_cicdlogin,
             machine.ssh_user_cicdlogin_password,
-            [
-                f"export CICD_WORKSPACE={self.machine_id._get_volume('source')};",
-                f"export PROJECT_NAME={self.project_name};",
-            ] + cmd
+            cmd,
         )
         return {
             'type': 'ir.actions.act_url',
