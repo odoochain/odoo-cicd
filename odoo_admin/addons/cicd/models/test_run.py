@@ -202,7 +202,7 @@ class CicdTestRun(models.Model):
         lo('rm', allow_error=True)
         if start_postgres:
             lo('up', '-d', 'postgres')
-            shell._wait_for_postgres()
+            shell.wait_for_postgres()
 
     def _cleanup_testruns(self):
         with self._logsio(None) as logsio:
@@ -520,9 +520,9 @@ class CicdTestRun(models.Model):
             logsio.info(f"Restoring {self.branch_id.dump_id.name}")
 
             shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
-            shell._wait_for_postgres()
+            shell.wait_for_postgres()
             shell.odoo('update', timeout=self.timeout_migration)
-            shell._wait_for_postgres()
+            shell.wait_for_postgres()
 
         self._generic_run(
             shell, logsio, [None],

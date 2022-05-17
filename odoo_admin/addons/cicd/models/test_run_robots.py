@@ -48,7 +48,7 @@ class TestrunUnittest(models.Model):
             shell.odoo(
                 'restore', 'odoo-db', dump_path,
                 '--no-dev-scripts', force=True)
-            shell._wait_for_postgres()
+            shell.wait_for_postgres()
 
             configuration = shell.odoo('config', '--full')[
                 'stdout'].splitlines()

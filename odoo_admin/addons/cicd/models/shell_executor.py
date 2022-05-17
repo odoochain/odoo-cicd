@@ -310,7 +310,7 @@ class ShellExecutor(BaseShellExecutor):
         path = "~/.odoo/run/{self.project_name}/docker-compose.yml"
         return self.exists(path)
 
-    def _wait_for_postgres(self, timeout=300):
+    def wait_for_postgres(self, timeout=300):
         started = arrow.get()
         deadline = started.shift(seconds=timeout)
 
