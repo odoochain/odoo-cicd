@@ -32,6 +32,9 @@ class TestrunUnittest(models.Model):
             )
 
     def _run_robot_run(self, index, count, robot_file):
+        breakpoint()
+        test = self.branch_id.project_name
+        test = self.branch_id.project_name
         safe_robot_file = safe_filename(robot_file)
         self = self.with_context(
             testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
@@ -48,9 +51,10 @@ class TestrunUnittest(models.Model):
             assert dump_path
             self._ensure_source_and_machines(
                 shell, start_postgres=True, settings=settings)
+            breakpoint()
             shell.odoo(
                 'restore', 'odoo-db', dump_path,
-                '--no-dev-scripts', force=True)
+                force=True)
             shell.wait_for_postgres()
 
             configuration = shell.odoo('config', '--full')[
@@ -62,7 +66,7 @@ class TestrunUnittest(models.Model):
             def run(item):
                 try:
                     shell.odoo(
-                        'robot', '-p', 'password=admin',
+                        'robot', '-p', 'password=1',
                         "--install-required-modules",
                         item, timeout=self.timeout_tests)
                     state = 'success'

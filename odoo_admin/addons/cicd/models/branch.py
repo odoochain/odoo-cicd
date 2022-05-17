@@ -574,7 +574,7 @@ class GitBranch(models.Model):
             else:
                 rec.technical_branch_name = ""
 
-            rec.project_name = project_name
+            rec.project_name = rec.technical_branch_name or project_name
             rec.database_project_name = dbname
 
     @contextmanager
