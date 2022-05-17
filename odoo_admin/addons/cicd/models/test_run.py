@@ -245,6 +245,10 @@ class CicdTestRun(models.Model):
         if duration and isinstance(duration, datetime.timedelta):
             duration = duration.total_seconds()
 
+        if exception:
+            if isinstance(exception, RetryableJobError):
+                return
+
         ttype = ttype or 'log'
         data = {
             'state': state or 'success',

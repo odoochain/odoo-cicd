@@ -76,7 +76,10 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
             cr.execute("SELECT pg_advisory_unlock(%s);", (lock,))
         except Exception:
             logger.warning(
-                "Could not release lock because of connection. Perhaps already closed so ok.",
+                (
+                    "Could not release lock because of connection. "
+                    "Perhaps already closed so ok.",
+                ),
                 exc_info=True
                 )
 
