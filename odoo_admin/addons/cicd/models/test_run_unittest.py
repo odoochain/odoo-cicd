@@ -28,6 +28,9 @@ class TestrunUnittest(models.Model):
         if not unittests_to_run:
             return
 
+        # make sure dump exists for all
+        self.branch_id._ensure_dump('base', commit=self.commit_id.name)
+
         count = len(list(unittests_to_run.keys()))
         for index, (module, tests) in enumerate(unittests_to_run.items()):
             hash = tests['hash']

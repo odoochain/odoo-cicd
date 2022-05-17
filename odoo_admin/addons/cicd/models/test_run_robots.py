@@ -23,6 +23,9 @@ class TestrunUnittest(models.Model):
             files = shell.odoo('list-robot-test-files')['stdout'].strip()
             files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
+        # there could be errors at install all
+        self.branch_id._ensure_dump('full', self.commit_id.name)
+
         for index, robotfile in enumerate(files):
             self.as_job(f"robottest-{robotfile}")._run_robot_run(
                 index, len(files), robotfile
