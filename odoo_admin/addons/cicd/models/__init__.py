@@ -42,18 +42,9 @@ def pg_advisory_xact_lock(cr, lock):  # NOQA
 
 @contextmanager
 def pg_advisory_lock(cr, lock, detailinfo=None):
-    started = arrow.get()
     data = {'break': False}
     detailinfo = detailinfo or ''
     detailinfo = f"{lock}; {detailinfo}"
-
-    def print_warn_info(started, detailinfo):
-        while not data['break']:
-            time.sleep(30)
-            duration = (arrow.get() - started).total_seconds()
-            if duration > 20:
-                logger.warning("Holding advisory lock for %s seconds: %s %s",
-                    duration, lock, detailinfo )
 
     lock = _int_lock(lock)
     cr.execute("SELECT pg_try_advisory_lock(%s);", (lock,))
@@ -61,12 +52,8 @@ def pg_advisory_lock(cr, lock, detailinfo=None):
         trace = '\n'.join(traceback.format_stack())
         raise RetryableJobError(
             f"Lock could not be acquired: {lock} {detailinfo}\n{trace}",
-            ignore_retry=True, seconds=random.randint(1,12),
+            ignore_retry=True, seconds=random.randint(1, 40),
             )
-    logger.info("Acquired advisory lock %s ", lock)
-    t = threading.Thread(target=print_warn_info, args=(started, detailinfo))
-    t.daemon = True
-    t.start()
 
     try:
         yield
