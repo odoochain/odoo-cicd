@@ -148,7 +148,7 @@ class Repository(models.Model):
                 with machine._shell(repo_path, logsio=logsio) as shell:
                     try:
                         shell.checkout_commit(commit)
-                        shell.X(["git", "clean", "-xdff"])
+                        shell.X(["git-cicd", "clean", "-xdff"])
                         excludes = []
                         if not with_git:
                             excludes.append('.git')
@@ -169,7 +169,7 @@ class Repository(models.Model):
             temppath = tempfile.mktemp(suffix='.clone_repo')
             try:
 
-                cmd = ["git", "clone"]
+                cmd = ["git-cicd", "clone"]
                 if branch:
                     cmd += ["--branch", branch]
                 if depth:
@@ -183,7 +183,7 @@ class Repository(models.Model):
                 else:
                     shell.X(["mv", temppath, path])
                 shell.X([
-                    "git", "config", "--global",
+                    "git-cicd", "config", "--global",
                     "--add", "safe.directory", path])
             finally:
                 # if something failed cleanup
@@ -232,7 +232,7 @@ class Repository(models.Model):
                         with shell.clone(cwd=repo_path) as shell2:
                             shell2.checkout_branch(limit_branch)
 
-                    cmd = ["git", "clone"]
+                    cmd = ["git-cicd", "clone"]
                     if limit_branch:
                         cmd += ["--branch", limit_branch]
                     cmd += [repo_path, path]
@@ -240,7 +240,7 @@ class Repository(models.Model):
         return path
 
     def _get_remotes(self, shell):
-        remotes = shell.X(["git", "remote", "-v"])['stdout'].strip().split("\n")
+        remotes = shell.X(["git-cicd", "remote", "-v"])['stdout'].strip().split("\n")
         remotes = list(filter(bool, [x.split("\t")[0] for x in remotes]))
         return list(set(remotes))
 
@@ -281,7 +281,7 @@ class Repository(models.Model):
                     with machine._gitshell(
                         repo=self, cwd=repo_path, logsio=logsio
                     ) as shell:
-                        branches = shell.X(["git", "branch", "-a"])[
+                        branches = shell.X(["git-cicd", "branch", "-a"])[
                             'stdout'].strip().splitlines()
                         for branch in branches:
                             branch = branch.split("/")[-1]  # remotes/origin/isolated_unittests --> isolated_unittests
@@ -329,7 +329,7 @@ class Repository(models.Model):
                     for remote in self._get_remotes(shell):
 
                         fetch_output = shell.X([
-                            "git", "fetch", remote, '--dry-run'])[
+                            "git-cicd", "fetch", remote, '--dry-run'])[
                                 'stderr'].strip().split("\n")
 
                         fetch_info = \
@@ -415,15 +415,15 @@ class Repository(models.Model):
 
         """
         shell.X([
-            "git", "checkout", self.default_branch,
+            "git-cicd", "checkout", self.default_branch,
             "-f"])
         if shell.branch_exists(branch):
             shell.X([
-                "git", "branch", "-D", branch],
+                "git-cicd", "branch", "-D", branch],
                 allow_error=True)
-        shell.X(["git", "checkout", branch])
+        shell.X(["git-cicd", "checkout", branch])
         shell.X([
-            "git", "reset", "--hard",
+            "git-cicd", "reset", "--hard",
             f"origin/{branch}"])
 
         # remove existing instance folder to refetch
@@ -440,8 +440,8 @@ class Repository(models.Model):
         # option P makes .git --> .git/
         shell.X([
             "ls -pA |grep -v \\.git\\/ |xargs rm -Rf"])
-        shell.X(["git", "pull"])
-        shell.X(["git", "checkout", "-f"])
+        shell.X(["git-cicd", "pull"])
+        shell.X(["git-cicd", "checkout", "-f"])
 
     def _prepare_pulled_branch(self, shell, branch):
         releases = self.env['cicd.release'].search([
@@ -450,7 +450,7 @@ class Repository(models.Model):
         try:
             logsio = shell.logsio
             logsio.info(f"Pulling {branch}...")
-            shell.X(["git", "fetch", "origin", branch])
+            shell.X(["git-cicd", "fetch", "origin", branch])
             logsio.info(f"pulled {branch}...")
 
             self._checkout_branch_recreate_repo_on_need(
@@ -461,7 +461,7 @@ class Repository(models.Model):
             else:
                 self._pull(shell, branch)
             shell.X([
-                "git", "submodule", "update",
+                "git-cicd", "submodule", "update",
                 "--init", "--recursive"])
 
         except Exception as ex:
@@ -497,7 +497,7 @@ class Repository(models.Model):
 
                     # if completely new then all branches:
                     if not repo.branch_ids:
-                        for branch in shell.X(["git", "branch"])[
+                        for branch in shell.X(["git-cicd", "branch"])[
                                 'stdout'].strip().split("\n"):
                             branch = self._clear_branch_name(branch)
                             updated_branches.append(branch)
@@ -565,7 +565,7 @@ class Repository(models.Model):
         if shell.exists(path):
             try:
                 rc = shell.X([
-                    "git", "status", "-s"], cwd=path, logoutput=False,
+                    "git-cicd", "status", "-s"], cwd=path, logoutput=False,
                     allow_error=True
                 )
                 if rc['exit_code']:
@@ -596,7 +596,7 @@ class Repository(models.Model):
             # so; we want to rely on stand behaviour git.
             shell.checkout_branch(target)
             try:
-                res = shell.X(["git", "merge", commit.name])
+                res = shell.X(["git-cicd", "merge", commit.name])
                 already = 'Already up to date' in res['stdout']
                 history.append({'sha': commit.name, 'already': already})
             except Exception:
@@ -634,10 +634,10 @@ class Repository(models.Model):
                 # clear the current candidate
                 shell.checkout_branch(source_branch)
                 if shell.branch_exists(target_branch_name):
-                    shell.X(["git", "branch", "-D", target_branch_name])
+                    shell.X(["git-cicd", "branch", "-D", target_branch_name])
                 shell.logsio.info("Making target branch {target_branch.name}")
                 shell.X([
-                    "git", "checkout", "--no-guess",
+                    "git-cicd", "checkout", "--no-guess",
                     "-b", target_branch_name])
 
                 conflicts, history = self._merge_commits_on_target(
@@ -648,23 +648,23 @@ class Repository(models.Model):
                 message_commit_sha = None
                 if make_info_commit_msg:
                     shell.X([
-                        "git", "commit", "--allow-empty", "-m",
+                        "git-cicd", "commit", "--allow-empty", "-m",
                         make_info_commit_msg])
                     message_commit_sha = shell.X([
-                        "git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                        "git-cicd", "log", "-n1", "--format=%H"])['stdout'].strip()
 
                 # https://stackoverflow.com/questions/6656619/git-and-nasty-error-cannot-lock-existing-info-refs-fatal
-                shell.X(["git", "remote", "remove", "origin"])
-                shell.X(["git", "gc", "--prune=now"])
-                shell.X(["git", "remote", "add", "origin", self.url])
-                shell.X(["git", "config", "push.default", "current"])
-                shell.X(["git", "fetch", "origin"])
+                shell.X(["git-cicd", "remote", "remove", "origin"])
+                shell.X(["git-cicd", "gc", "--prune=now"])
+                shell.X(["git-cicd", "remote", "add", "origin", self.url])
+                shell.X(["git-cicd", "config", "push.default", "current"])
+                shell.X(["git-cicd", "fetch", "origin"])
                 try:
-                    shell.X(["git", "pull"])
+                    shell.X(["git-cicd", "pull"])
                 except Exception as ex:
                     shell.logsio.error(str(ex))
                 shell.X([
-                    "git", "push", "-f", "--set-upstream",
+                    "git-cicd", "push", "-f", "--set-upstream",
                     "origin", target_branch_name])
 
                 if not (target_branch := self.branch_ids.filtered(
@@ -699,11 +699,11 @@ class Repository(models.Model):
                 shell.logsio.info(f"Checking out {dest.name}")
                 shell.checkout_branch(dest.name)
                 commitid = shell.X([
-                    "git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                    "git-cicd", "log", "-n1", "--format=%H"])['stdout'].strip()
                 shell.logsio.info(f"Commit-ID is {commitid}")
                 if source._name == 'cicd.git.branch':
                     branches = [self._clear_branch_name(x) for x in shell.X([
-                        "git", "branch", "--contains", commitid])[
+                        "git-cicd", "branch", "--contains", commitid])[
                             'stdout'].strip().split("\n")]
                     if source.name in branches:
                         return False
@@ -711,22 +711,22 @@ class Repository(models.Model):
                 shell.checkout_branch(source.name)
                 shell.logsio.info(f"Checking out {dest.name}")
                 shell.checkout_branch(dest.name)
-                count_lines = len(shell.X(["git", "diff", "-p", source.name])[
+                count_lines = len(shell.X(["git-cicd", "diff", "-p", source.name])[
                     'stdout'].strip().split("\n"))
                 shell.logsio.info(f"Count lines: {count_lines}")
-                shell.X(["git", "merge", "--no-edit", source.name])
+                shell.X(["git-cicd", "merge", "--no-edit", source.name])
                 shell.logsio.info(f"Merged {source.name}")
                 for tag in set_tags:
                     shell.logsio.info(f"Setting tag {tag}")
-                    shell.X(["git", "tag", '-f', tag.replace(':', '_').replace(
+                    shell.X(["git-cicd", "tag", '-f', tag.replace(':', '_').replace(
                         ' ', '_')])
-                shell.X(["git", "remote", "set-url", 'origin', self.url])
+                shell.X(["git-cicd", "remote", "set-url", 'origin', self.url])
                 shell.logsio.info("Pushing tags")
-                shell.X(["git", "push", '--tags'])
+                shell.X(["git-cicd", "push", '--tags'])
                 shell.logsio.info("Pushing ")
-                shell.X(["git", "push"])
+                shell.X(["git-cicd", "push"])
                 mergecommitid = shell.X([
-                    "git", "log", "-n1", "--format=%H"])['stdout'].strip()
+                    "git-cicd", "log", "-n1", "--format=%H"])['stdout'].strip()
 
                 return count_lines, mergecommitid
 

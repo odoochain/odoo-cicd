@@ -264,7 +264,7 @@ class GitBranch(models.Model):
             shell.checkout_branch(rec.name)
 
             latest_commit = shell.X([
-                "git", "log", "-n1", '--pretty=%H'])[
+                "git-cicd", "log", "-n1", '--pretty=%H'])[
                     'stdout'].strip().split('\n')[0]
 
             commit = rec.commit_ids.filtered(lambda x: x.name == latest_commit)

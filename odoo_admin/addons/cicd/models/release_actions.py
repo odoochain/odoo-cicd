@@ -147,8 +147,8 @@ class CicdReleaseAction(models.Model):
                 # disable any remotes on images so not pulled
                 with shell.clone(cwd=images_path) as gitshell:
                     for remote in gitshell.X([
-                            "git", "remote"])['stdout'].strip().splitlines():
-                        gitshell.X(["git", "remote", "remove", remote])
+                            "git-cicd", "remote"])['stdout'].strip().splitlines():
+                        gitshell.X(["git-cicd", "remote", "remove", remote])
 
     def _upload_settings_file(self, logsio, release_item):
         breakpoint()
@@ -194,7 +194,7 @@ class CicdReleaseAction(models.Model):
                             "REGISTRY=0"
                         ), settings_file)
                         shell.X([
-                            "git", "checkout", release_item.commit_id.name])
+                            "git-cicd", "checkout", release_item.commit_id.name])
                         shell.odoo("-xs", settings_file, "reload")
                         logsio.info("Pulling images for only-images services")
                         shell.odoo('docker', 'pull')

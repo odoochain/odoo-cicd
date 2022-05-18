@@ -211,12 +211,12 @@ class Task(models.Model):
                 # mini check if it is a git repository:
                 if not args.get('no_repo', False):
                     try:
-                        shell.X(["git", "status"])
+                        shell.X(["git-cicd", "status"])
                     except Exception:
                         pass
                     else:
                         sha = shell.X([
-                            "git", "log", "-n1",
+                            "git-cicd", "log", "-n1",
                             "--format=%H"])['stdout'].strip()
 
                         commit_ids = self.branch_id.commit_ids.filtered(

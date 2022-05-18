@@ -228,7 +228,7 @@ class Branch(models.Model):
             # old branches get stuck and stuck other branches because
             # latest commit # cannot be found, if that filter is active.
             return list(filter(bool, shell.X([
-                "git",
+                "git-cicd",
                 "log",
                 "--pretty=format:%H___%ct",
                 "-n", str(self.repo_id.analyze_last_n_commits),
@@ -260,7 +260,7 @@ class Branch(models.Model):
             }
             if date is None:
                 line = shell.X([
-                    "git",
+                    "git-cicd",
                     "log",
                     sha,
                     "-n1",
@@ -277,7 +277,7 @@ class Branch(models.Model):
                 f"{sha} ({icommit} / {len(commits)})"))
 
             info = shell.X([
-                "git",
+                "git-cicd",
                 "log",
                 sha,
                 "--date=format:%Y-%m-%d %H:%M:%S",
@@ -376,7 +376,7 @@ class Branch(models.Model):
         with shell.clone(cwd=instance_folder) as shell:
             shell.logsio.write_text(f"Checking out {my_name}")
             try:
-                shell.X(["git", "checkout", "-f", my_name])
+                shell.X(["git-cicd", "checkout", "-f", my_name])
             except Exception as ex:
                 shell.logsio.error(ex)
                 shell.rm(instance_folder)
@@ -385,7 +385,7 @@ class Branch(models.Model):
                     ignore_retry=True) from ex
 
             try:
-                shell.X(["git", "pull"])
+                shell.X(["git-cicd", "pull"])
             except Exception as ex:
                 shell.logsio.error((
                     "Error at pulling,"
@@ -394,18 +394,18 @@ class Branch(models.Model):
                 _clone_instance_folder(machine, instance_folder)
 
             # delete all other branches:
-            res = shell.X(["git", "branch"])['stdout'].strip().split("\n")
+            res = shell.X(["git-cicd", "branch"])['stdout'].strip().split("\n")
             for branch in list(filter(lambda x: '* ' not in x, res)):
                 branch = self.repo_id._clear_branch_name(branch)
 
                 if branch == my_name:
                     continue
 
-                shell.X(["git", "branch", "-D", branch])
+                shell.X(["git-cicd", "branch", "-D", branch])
                 del branch
 
             current_branch = list(filter(lambda x: '* ' in x, shell.X([
-                "git", "branch"])['stdout'].strip().split("\n")))
+                "git-cicd", "branch"])['stdout'].strip().split("\n")))
             if not current_branch:
                 raise Exception("Somehow no current branch found")
             try:
@@ -422,13 +422,13 @@ class Branch(models.Model):
                 ))
 
             shell.logsio.write_text("Clean git")
-            shell.X(["git", "clean", "-xdff"])
+            shell.X(["git-cicd", "clean", "-xdff"])
 
             shell.logsio.write_text("Updating submodules")
-            shell.X(["git", "submodule", "update", "--recursive", "--init"])
+            shell.X(["git-cicd", "submodule", "update", "--recursive", "--init"])
 
             shell.logsio.write_text("Getting current commit")
-            commit = shell.X(["git", "rev-parse", "HEAD"])['stdout'].strip()
+            commit = shell.X(["git-cicd", "rev-parse", "HEAD"])['stdout'].strip()
             shell.logsio.write_text(commit)
 
         return str(commit)
