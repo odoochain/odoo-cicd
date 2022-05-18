@@ -15,10 +15,6 @@ while True:
 			if proc.pid < $PID and proc.status() != 'sleeping':
 				time.sleep(0.1)
 				break
-		if proc.name() == 'git':
-			if proc.status() != 'sleeping':
-				time.sleep(0.1)
-				break
 	else:
 		break
 EOF
@@ -56,6 +52,4 @@ function retry {
 }
 
 retry git "$@"
-wait $!
 sync
-wait

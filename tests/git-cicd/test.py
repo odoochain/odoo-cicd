@@ -74,15 +74,19 @@ def test_conflict():
 
     t1 = threading.Thread(target=git_status, args=(repo_path,))
     t1.start()
-    while True:
-        os.system(f"du -sh {ROOT}")
-        time.sleep(1)
 
-    # for i in range(20):
-    #     repo2 = ROOT / 'repo2'
-    #     print("Trying to clone")
-    #     subprocess.check_call(["git", "clone", repo_path, repo2], cwd=ROOT)
-    #     shutil.rmtree(repo2)
+    for i in range(200):
+        repo2 = ROOT / 'repo2'
+        print("Trying to clone")
+        try:
+            subprocess.check_call([GIT, "clone", repo_path, repo2], cwd=ROOT)
+        except:
+            print("Failed to clone")
+            sys.exit(-1)
+        shutil.rmtree(repo2)
+
+    while True:
+        time.sleep(1)
 
 if __name__ == '__main__':
     test_conflict()
