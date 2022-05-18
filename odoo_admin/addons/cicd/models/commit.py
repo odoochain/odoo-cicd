@@ -172,7 +172,7 @@ class GitCommit(models.Model):
                     repo_path, logsio=logsio) as shell:
 
                 test = shell.X([
-                    'git', 'merge-base', commit.name, self.name],
+                    'git-cicd', 'merge-base', commit.name, self.name],
                     allow_error=True)  # order seems to be irrelevant
                 if test['exit_code']:
                     if 'fatal: Not a valid commit name' in test['stdout']:
@@ -182,7 +182,8 @@ class GitCommit(models.Model):
     def view_changes(self):
         return {
             'type': 'ir.actions.act_url',
-            'url': self.mapped('branch_ids.repo_id')[0].sudo()._get_url('commit', self),
+            'url': self.mapped('branch_ids.repo_id')[0].sudo()._get_url(
+                'commit', self),
             'target': 'new',
         }
 

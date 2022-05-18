@@ -147,13 +147,13 @@ class ShellExecutor(BaseShellExecutor):
                 self.logsio and self.logsio.info(
                     f"Tracking remote branch and checking out {branch}")
                 self.X([
-                    "git", "checkout", "-b", branch,
+                    "git-cicd", "checkout", "-b", branch,
                     "--track", "origin/" + branch], allow_error=True)
 
             self.logsio and self.logsio.info(
                 f"Checking out {branch} regularly")
             self.X([
-                "git", "checkout", "-f",
+                "git-cicd", "checkout", "-f",
                 "--no-guess", branch], allow_error=False)
             self.logsio and self.logsio.info(f"Checked out {branch}")
             self._after_checkout()
@@ -162,10 +162,10 @@ class ShellExecutor(BaseShellExecutor):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
             # otherwise checking out a commit brings error message
-            self.X(["git", "config", "advice.detachedHead", "false"])
-            self.X(["git", "clean", "-xdff", commit])
-            self.X(["git", "checkout", "-f", commit])
-            sha = self.X(["git", "log", "-n1", "--format=%H"])[
+            self.X(["git-cicd", "config", "advice.detachedHead", "false"])
+            self.X(["git-cicd", "clean", "-xdff", commit])
+            self.X(["git-cicd", "checkout", "-f", commit])
+            sha = self.X(["git-cicd", "log", "-n1", "--format=%H"])[
                 'stdout'].strip()
             if sha != commit:
                 raise Exception((
@@ -174,7 +174,7 @@ class ShellExecutor(BaseShellExecutor):
             self._after_checkout()
 
     def branch_exists(self, branch, cwd=None):
-        res = self.X(["git", "branch", "--no-color"], cwd=cwd)[
+        res = self.X(["git-cicd", "branch", "--no-color"], cwd=cwd)[
             'stdout'].strip().split("\n")
 
         def reformat(x):
@@ -187,10 +187,10 @@ class ShellExecutor(BaseShellExecutor):
     def _after_checkout(self):
         self.logsio and self.logsio.info("Cleaning git...")
         self.X([
-            "git", "clean", "-xdff"])
+            "git-cicd", "clean", "-xdff"])
         self.logsio and self.logsio.info("Updating submodules...")
         self.X([
-            "git", "submodule", "update", "--init", "--force", "--recursive"])
+            "git-cicd", "submodule", "update", "--init", "--force", "--recursive"])
         self.logsio and self.logsio.info("_after_checkout finished.")
 
     def X(

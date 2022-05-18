@@ -82,10 +82,10 @@ class NewBranch(models.TransientModel):
                         raise ValidationError(
                             f"Branch {self.new_name} already exists.")
 
-                    shell.X(["git", "checkout", "-b", self.new_name])
+                    shell.X(["git-cicd", "checkout", "-b", self.new_name])
                     shell.X([
-                        "git", "remote", "set-url", 'origin', repo.url])
+                        "git-cicd", "remote", "set-url", 'origin', repo.url])
                     shell.X([
-                        "git", "push", "--set-upstream",
+                        "git-cicd", "push", "--set-upstream",
                         "-f", 'origin', self.new_name])
                     branch.fetch()

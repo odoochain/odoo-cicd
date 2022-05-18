@@ -169,7 +169,18 @@ class BaseShellExecutor():
 
         cwd = cwd or self.cwd
         if cwd:
-            bashcmd += f"cd '{cwd}' || exit 15\n"
+            bashcmd += (
+                'function wait_for_dir {        \n'
+                'while [ 1 == 1 ]; do           \n'
+                f'if [[ -d "{cwd}" ]]; then     \n'
+                '   break                       \n'
+                'fi                             \n'
+                'done                           \n'
+                "}                              \n\n"
+                f"export INITIAL_PWD='{cwd}'\n"
+                "timeout 20 wait_for_dir\n"
+                f"cd '{cwd}' || exit 15\n"
+            )
 
         effective_env = deepcopy(self.env or {})
         if env:

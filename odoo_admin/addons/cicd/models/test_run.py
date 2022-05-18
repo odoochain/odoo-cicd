@@ -274,10 +274,10 @@ class CicdTestRun(models.Model):
                         depth=1,
                     )
             with shell.clone(cwd=path) as shell:
-                shell.X(["git", "checkout", "-f", self.commit_id.name])
+                shell.X(["git-cicd", "checkout", "-f", self.commit_id.name])
 
                 self._report("Checking commit")
-                sha = shell.X(["git", "log", "-n1", "--format=%H"])[
+                sha = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
                     'stdout'].strip()
                 if sha != self.commit_id.name:
                     raise WrongShaException((
@@ -286,7 +286,6 @@ class CicdTestRun(models.Model):
                         ))
                 self._report("Commit matches")
                 self._report(f"Checked out source code at {shell.cwd}")
-
 
     def execute_now(self):
         self.with_context(
