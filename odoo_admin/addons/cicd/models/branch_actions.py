@@ -197,7 +197,7 @@ class Branch(models.Model):
 
     def _dump(self, shell, volume=None, filename=None, **kwargs):
         volume = volume or shell.machine._get_volume('dumps')
-        machine = volume.machine_id
+        machine = shell.machine
         if isinstance(volume, int):
             volume = self.env['cicd.machine.volume'].browse(volume)
             volume = Path(volume.name)
