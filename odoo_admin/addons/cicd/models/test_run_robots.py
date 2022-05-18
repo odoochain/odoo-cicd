@@ -2,8 +2,14 @@ import base64
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
-from .shell_executor_base import RetryOnTimeout
 from .test_run import SETTINGS
+
+settings = SETTINGS + (
+    "\n"
+    "RUN_ODOO_QUEUEJOBS=1\n"
+    "RUN_ODOO_CRONJOBS=1\n"
+    "RUN_ROBOT=1\n"
+)
 
 
 def safe_filename(filename):
@@ -15,13 +21,13 @@ def safe_filename(filename):
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
-    @RetryOnTimeout
     def _run_robot_tests(self):
+        breakpoint()
         self = self.with_context(testrun=f'{self.id}_prepare_robots')
 
         with self._shell(quick=False) as shell:
             self._ensure_source_and_machines(
-                shell, start_postgres=False, settings="")
+                shell, start_postgres=False, settings=settings)
             files = shell.odoo('list-robot-test-files')['stdout'].strip()
             files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
@@ -33,7 +39,6 @@ class TestrunUnittest(models.Model):
                 index, len(files), robotfile
             )
 
-    @RetryOnTimeout
     def _run_robot_run(self, index, count, robot_file):
         breakpoint()
         safe_robot_file = safe_filename(robot_file)
@@ -43,12 +48,6 @@ class TestrunUnittest(models.Model):
         with self._shell(quick=True) as shell:
             dump_path = self.branch_id._ensure_dump(
                 'full', self.commit_id.name)
-            settings = SETTINGS + (
-                "\n"
-                "RUN_ODOO_QUEUEJOBS=1\n"
-                "RUN_ODOO_CRONJOBS=1\n"
-                "RUN_ROBOT=1\n"
-            )
             assert dump_path
             self._ensure_source_and_machines(
                 shell, start_postgres=True, settings=settings)

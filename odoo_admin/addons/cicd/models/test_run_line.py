@@ -1,3 +1,4 @@
+import re
 from curses import wrapper
 import arrow
 from contextlib import contextmanager, closing
@@ -99,3 +100,29 @@ class CicdTestRunLine(models.Model):
         })
 
         return True
+
+    @api.constrains("ttype")
+    def _be_graceful(self):
+        for rec in self:
+            if rec.ttype != 'error':
+                continue
+
+            exc_info = rec.exc_info or ''
+            name = rec.name or ''
+
+            grace = [
+                '.git/index.lock'
+            ]
+            for vol in self.env['cicd.machine.volume'].search([]):
+                grace += [f"{vol.name}.*No such file or directory"]
+                grace += [f"No such file or directory.*{vol.name}"]
+            for grace in grace:
+                for line in (exc_info + name).splitlines():
+                    if re.findall(grace, line):
+                        rec.ttype = 'log'
+                        break
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        res._be_graceful()
+        return res

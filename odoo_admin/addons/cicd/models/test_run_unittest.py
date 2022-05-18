@@ -7,7 +7,6 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from .test_run import SETTINGS
 from .shell_executor import ShellExecutor
 from odoo.addons.queue_job.exception import RetryableJobError
-from .shell_executor_base import RetryOnTimeout
 import logging
 _logger = logging.getLogger()
 
@@ -17,16 +16,14 @@ CONCURRENT_HASH_THREADS = 8  # minimum system load observed
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
-    @RetryOnTimeout
     def _run_unit_tests(self, **kwargs):
         self = self.with_context(testrun=f'{self.id}_prepare_unittests')
-        self._checkout_source_code(self.machine_id)
 
         self._report("Hashing Modules / Preparing UnitTests")
         with self._shell(quick=False) as shell:
-            unittests_to_run = self._get_unit_tests_to_run(shell)
             self._ensure_source_and_machines(
                 shell, start_postgres=False, settings="")
+            unittests_to_run = self._get_unit_tests_to_run(shell)
 
         self._report("Hashing Modules / Preparing UnitTests Done")
         if not unittests_to_run:
@@ -45,7 +42,6 @@ class TestrunUnittest(models.Model):
                     index, count, module, hash, tests)
             self._report(f"Unittest in module {module}")
 
-    @RetryOnTimeout
     def _run_unit_tests_of_module(self, index, count, module, hash, tests):
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell(quick=True) as shell:
@@ -163,8 +159,6 @@ class TestrunUnittest(models.Model):
     def _get_unit_tests(self, shell):
         self.ensure_one()
         cmd = ['list-unit-test-files']
-        if self.unittest_all:
-            cmd += ['--all']
         files = shell.odoo(*cmd)['stdout'].strip()
         return list(filter(bool, files.split("!!!")[1].splitlines()))
 

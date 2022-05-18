@@ -325,22 +325,23 @@ class Branch(models.Model):
             # observed duplicate starts without eta
             eta = arrow.utcnow().shift(
                 seconds=10).replace(tzinfo=None).strftime(DTF)
-            testrun.with_delay(eta=eta, channel="testruns", identity_key=(
+            testrun.as_job((
                 "start-open-testrun-"
-                f"{self.name}-"
+                f"{testrun.branch_id.name}-"
                 f"{testrun.commit_id.name}-"
                 f"{testrun.id}"
-            )).execute()
+            ), eta=1).execute()
 
     def _after_build(self, shell, **kwargs):
         self.last_access = fields.Datetime.now()  # to avoid cycle down
+        res = shell.odoo("db", "db-health", "check", allow_error=True)
+        if res['returncode']:
+            return
         shell.odoo(
             "remove-settings", '--settings', 'web.base.url,web.base.url.freeze'
             )
 
-        with self._extra_env() as x_self:
-            external_url = x_self.machine_id.external_url
-
+        external_url = self.machine_id.external_url
         shell.odoo(
             "update-setting", 'web.base.url', external_url)
         shell.odoo("set-ribbon", self.name)

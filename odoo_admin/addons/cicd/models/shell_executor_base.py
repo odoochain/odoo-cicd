@@ -198,6 +198,9 @@ class BaseShellExecutor():
             if p.returncodes and any(x is not None for x in p.returncodes):
                 break
             if arrow.get() > deadline_started:
+                raise RetryableJobError(
+                    "Timeout starting command on remote machine",
+                    seconds=10, ignore_retry=True)
                 raise BaseShellExecutor.TimeoutConnection()
             if data['started']:
                 break
@@ -285,16 +288,3 @@ class BaseShellExecutor():
 
     def get_logger(self):
         return logger
-
-
-def RetryOnTimeout(method, seconds=20):
-    def wrapper(*args, **kwargs):
-        try:
-            result = method(*args, **kwargs)
-        except BaseShellExecutor.TimeoutConnection:
-            raise RetryableJobError(
-                "SSH Timeout happened - retrying",
-                seconds=seconds, ignore_retry=True)
-
-        return result
-    return wrapper

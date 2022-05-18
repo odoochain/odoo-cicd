@@ -15,7 +15,6 @@ from odoo.exceptions import ValidationError
 import logging
 from pathlib import Path
 from contextlib import contextmanager
-from .shell_executor_base import RetryOnTimeout
 
 MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
 BASE_SNAPSHOT_NAME = 'basesnap'
@@ -240,9 +239,6 @@ class CicdTestRun(models.Model):
             msg = (msg or '') + '\n' + str(exception)
             data['exc_info'] = str(exception)
 
-        # catch typical errors, which are not blockers
-        data = self._be_graceful(data)
-
         self.line_ids = [[0, 0, data]]
         self.env.cr.commit()
 
@@ -260,7 +256,6 @@ class CicdTestRun(models.Model):
         path = path / f"{project_name}_testrun_{self.id}"
         return path
 
-    @RetryOnTimeout
     def _checkout_source_code(self, machine):
         assert machine._name == 'cicd.machine'
 
@@ -446,6 +441,7 @@ class CicdTestRun(models.Model):
 
             self._report("Started")
 
+        breakpoint()
         if self.run_unittests:
             self.as_job('unittests')._run_unit_tests()
 
@@ -630,23 +626,3 @@ class CicdTestRun(models.Model):
                     "obj": rec,
                 },
             )
-
-    @api.model
-    def _be_graceful(self, data):
-        if data.get('ttype') != 'error':
-            return data
-
-        exc_info = data.get('exc_info', '')
-        name = data.get('name', '')
-
-        grace = [
-            '.git/index.lock'
-        ]
-        for vol in self.env['cicd.machine.volume'].search([]):
-            grace += [f"{vol.name}.*No such file or directory"]
-        for grace in grace:
-            for line in (exc_info + name).splitlines():
-                if re.findall(grace, line):
-                    data['ttype'] = 'log'
-                    break
-        return data

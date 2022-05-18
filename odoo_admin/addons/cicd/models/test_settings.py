@@ -13,7 +13,6 @@ class TestSettings(models.AbstractModel):
     simulate_install_id = fields.Many2one(
         "cicd.dump", string="Simulate Install", testrun_field=True,
         testrun_apply=True)
-    unittest_all = fields.Boolean("All Unittests", testrun_apply=True)
     retry_unit_tests = fields.Integer(
         "Retry Unittests", default=3, testrun_apply=True)
     timeout_tests = fields.Integer(

@@ -41,7 +41,6 @@
 								<group col='2'>
 									<field name="run_unittests" widget="boolean_toggle"/>
 									<field name="retry_unit_tests" />
-									<field name="unittest_all"/>
 									<field name="timeout_tests"/>
 									<field name="timeout_migration"/>
 									<field name="run_robottests" widget="boolean_toggle"/>
@@ -49,8 +48,8 @@
 								</group>
 							</page>
 							<page string="Queuejobs">
+								<button name="refresh_jobs" string="" type="object" icon="fa-refresh"/>
 								<field name="queuejob_ids">
-									<button name="refresh_jobs" string="" type="object" icon="fa-refresh"/>
 									<tree default_order='state'>
 										<field name="state"/>
 										<field name="identity_key"/>
