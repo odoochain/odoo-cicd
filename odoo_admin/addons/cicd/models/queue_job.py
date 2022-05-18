@@ -64,6 +64,7 @@ class queuejob(models.Model):
             'psycopg2.errors.InFailedSqlTransaction',
             'Cannot start two jobs for same identity key',
             'func_trigger_queuejob_state_check_at_commit',
+            '-bash: line%No such file or directory',
         ]
 
         ignore_idkeys = [
