@@ -14,6 +14,7 @@ from odoo.exceptions import ValidationError
 import logging
 from pathlib import Path
 from contextlib import contextmanager
+from .shell_executor import ShellExecutor
 
 MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
 BASE_SNAPSHOT_NAME = 'basesnap'
@@ -131,8 +132,7 @@ class CicdTestRun(models.Model):
                     self._report("Retryable error occurred at reloading")
                     raise
                 except Exception as ex:  # pylint: disable=broad-except
-                    self._report("Reloading: Exception stage 1 hit")
-                    self._report(str(ex))
+                    self._report(f"Reloading: Exception stage 1 hit {ex}")
                     try:
                         shell.rm(instance_folder)
                         reload()
@@ -257,35 +257,41 @@ class CicdTestRun(models.Model):
         return path
 
     def _checkout_source_code(self, machine):
-        assert machine._name == 'cicd.machine'
+        try:
+            assert machine._name == 'cicd.machine'
 
-        with pg_advisory_lock(self.env.cr, f'testrun_{self.id}'):
-            path = self._get_source_path()
+            with pg_advisory_lock(self.env.cr, f'testrun_{self.id}'):
+                path = self._get_source_path()
 
-            with machine._shell(cwd=path.parent) as shell:
-                if not shell.exists(path / '.git'):
-                    shell.remove(path)
-                    self._report("Checking out source code...")
-                    self.branch_id.repo_id._get_main_repo(
-                        destination_folder=path,
-                        logsio=shell.logsio,
-                        machine=machine,
-                        limit_branch=self.branch_id.name,
-                        depth=1,
-                    )
-            with shell.clone(cwd=path) as shell:
-                shell.X(["git", "checkout", "-f", self.commit_id.name])
+                with machine._shell(cwd=path.parent) as shell:
+                    if not shell.exists(path / '.git'):
+                        shell.remove(path)
+                        self._report("Checking out source code...")
+                        self.branch_id.repo_id._get_main_repo(
+                            destination_folder=path,
+                            logsio=shell.logsio,
+                            machine=machine,
+                            limit_branch=self.branch_id.name,
+                            depth=1,
+                        )
+                with shell.clone(cwd=path) as shell:
+                    shell.X(["git", "checkout", "-f", self.commit_id.name])
 
-                self._report("Checking commit")
-                sha = shell.X(["git", "log", "-n1", "--format=%H"])[
-                    'stdout'].strip()
-                if sha != self.commit_id.name:
-                    raise WrongShaException((
-                        f"checked-out SHA {sha} "
-                        f"not matching test sha {self.commit_id.name}"
-                        ))
-                self._report("Commit matches")
-                self._report(f"Checked out source code at {shell.cwd}")
+                    self._report("Checking commit")
+                    sha = shell.X(["git", "log", "-n1", "--format=%H"])[
+                        'stdout'].strip()
+                    if sha != self.commit_id.name:
+                        raise WrongShaException((
+                            f"checked-out SHA {sha} "
+                            f"not matching test sha {self.commit_id.name}"
+                            ))
+                    self._report("Commit matches")
+                    self._report(f"Checked out source code at {shell.cwd}")
+        except ShellExecutor.TimeoutConnection:
+            raise RetryableJobError(
+                "SSH Timeout on checkout source",
+                seconds=20, ignore_retry=True)
+
 
     def execute_now(self):
         self.with_context(
