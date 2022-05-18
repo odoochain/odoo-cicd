@@ -16,7 +16,9 @@ class MakeDump(models.TransientModel):
                 if " " in rec.name:
                     raise UserError("No spaces allowed in the name!")
                 if any(x in rec.name for x in "!#$%^&*()=:`~\"'"):
-                    raise UserError("Invalid character detected in name. Please remove.")
+                    raise UserError((
+                        "Invalid character detected in name. Please remove."))
+
 
     def make_snapshot(self):
         for rec in self:
