@@ -1,10 +1,36 @@
 #!/bin/bash
 export LC_MESSAGES=C
 GIT_TIMEOUT="${GIT_TIMEOUT:-600}"
+PID="$$"
+
+function wait_others {
+python3 - <<EOF
+import psutil
+import time
+states = set()
+
+while True:
+	for proc in psutil.process_iter():
+		if proc.name() == 'git-cicd':
+			if proc.pid < $PID and proc.status() != 'sleeping':
+				time.sleep(0.1)
+				break
+		if proc.name() == 'git':
+			if proc.status() != 'sleeping':
+				time.sleep(0.1)
+				break
+	else:
+		break
+EOF
+}
+wait_others
 
 function retry {
+	deadline=$(date --date " + ${GIT_TIMEOUT} seconds" +"%Y%m%d%H%M%S")
 
-    while [ 1 == 1 ]; do
+    while [ "$(date +"%Y%m%d%H%M%S")" -lt "${deadline}" ]; do
+		wait_others
+
 		inodes=$(ls -ial | grep '\s\.$' | awk '{print $1}')
 		if [[ -z "$inodes" ]]; then
 			if [[ -z "${INITIAL_PWD}" ]]; then
@@ -20,10 +46,16 @@ function retry {
 			fi
         elif test -f .git/index.lock; then
             sleep 0.5;
+		elif [[ ! -z "${INITIAL_PWD}" && ! -d "${INITIAL_PWD}" ]]; then
+            sleep 0.5;
         else
             "$@";
             return;
-        fi  
+        fi
     done
 }
-timeout 600 retry git "$@"
+
+retry git "$@"
+wait $!
+sync
+wait

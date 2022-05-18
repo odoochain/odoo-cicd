@@ -8,3 +8,4 @@ __pycache__
 docker-compose.override.yml
 .debug
 robot_output
+tests/git-cicd/log.txt
