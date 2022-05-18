@@ -1,0 +1,29 @@
+#!/bin/bash
+export LC_MESSAGES=C
+GIT_TIMEOUT="${GIT_TIMEOUT:-600}"
+
+function retry {
+
+    while [ 1 == 1 ]; do
+		inodes=$(ls -ial | grep '\s\.$' | awk '{print $1}')
+		if [[ -z "$inodes" ]]; then
+			if [[ -z "${INITIAL_PWD}" ]]; then
+				echo "RETRY:::directory was removed while being inside and env variable INITIAL_PWD is not set"
+			else
+				while [ 2 == 2 ]; do
+					if [[ -d "${INITIAL_PWD}/.git" ]]; then
+						cd "${INITIAL_PWD}"
+						break
+					fi
+					sleep 0.5;
+				done
+			fi
+        elif test -f .git/index.lock; then
+            sleep 0.5;
+        else
+            "$@";
+            return;
+        fi  
+    done
+}
+timeout 600 retry git "$@"
