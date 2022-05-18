@@ -5,6 +5,9 @@ from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from .test_run import SETTINGS
+from .shell_executor import ShellExecutor
+from odoo.addons.queue_job.exception import RetryableJobError
+from .shell_executor_base import RetryOnTimeout
 import logging
 _logger = logging.getLogger()
 
@@ -14,6 +17,7 @@ CONCURRENT_HASH_THREADS = 8  # minimum system load observed
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
+    @RetryOnTimeout
     def _run_unit_tests(self, **kwargs):
         self = self.with_context(testrun=f'{self.id}_prepare_unittests')
         self._checkout_source_code(self.machine_id)
@@ -41,6 +45,7 @@ class TestrunUnittest(models.Model):
                     index, count, module, hash, tests)
             self._report(f"Unittest in module {module}")
 
+    @RetryOnTimeout
     def _run_unit_tests_of_module(self, index, count, module, hash, tests):
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell(quick=True) as shell:
@@ -81,6 +86,7 @@ class TestrunUnittest(models.Model):
                 odoo_module=module,
                 hash=hash,
             )
+
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}

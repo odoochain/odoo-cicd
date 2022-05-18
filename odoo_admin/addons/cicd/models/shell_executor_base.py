@@ -11,6 +11,7 @@ import time
 from copy import deepcopy
 from pathlib import Path
 import logging
+from odoo.addons.queue_job.exception import RetryableJobError
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 6 * 3600
@@ -284,3 +285,16 @@ class BaseShellExecutor():
 
     def get_logger(self):
         return logger
+
+
+def RetryOnTimeout(method, seconds=20):
+    def wrapper(*args, **kwargs):
+        try:
+            result = method(*args, **kwargs)
+        except BaseShellExecutor.TimeoutConnection:
+            raise RetryableJobError(
+                "SSH Timeout happened - retrying",
+                seconds=seconds, ignore_retry=True)
+
+        return result
+    return wrapper

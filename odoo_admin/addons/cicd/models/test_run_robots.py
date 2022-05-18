@@ -2,6 +2,7 @@ import base64
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from .shell_executor_base import RetryOnTimeout
 from .test_run import SETTINGS
 
 
@@ -14,6 +15,7 @@ def safe_filename(filename):
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
+    @RetryOnTimeout
     def _run_robot_tests(self):
         self = self.with_context(testrun=f'{self.id}_prepare_robots')
 
@@ -31,10 +33,9 @@ class TestrunUnittest(models.Model):
                 index, len(files), robotfile
             )
 
+    @RetryOnTimeout
     def _run_robot_run(self, index, count, robot_file):
         breakpoint()
-        test = self.branch_id.project_name
-        test = self.branch_id.project_name
         safe_robot_file = safe_filename(robot_file)
         self = self.with_context(
             testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
