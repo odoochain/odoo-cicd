@@ -192,7 +192,7 @@ class BaseShellExecutor():
         p = run(
             sshcmd, async_=True, stdout=stdout,
             stderr=stderr, env=effective_env, input=bashcmd)
-        deadline_started = arrow.get().shift(seconds=10)
+        deadline_started = arrow.get().shift(seconds=60)
         while True:
             if p.returncodes and any(x is not None for x in p.returncodes):
                 break

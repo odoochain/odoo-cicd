@@ -473,10 +473,14 @@ echo "--------------------------------------------------------------------------
         with self._shell() as shell:
             tempfile_containers = self.tempfile_containers
             self.env.cr.commit()
-            containers = shell.X([
-                "docker", "ps", "-a",
-                "--format", "{{ .Names }}\t{{ .State }}"], timeout=20)[
-                    'stdout'].strip()
+            try:
+                containers = shell.X([
+                    "docker", "ps", "-a",
+                    "--format", "{{ .Names }}\t{{ .State }}"], timeout=20)[
+                        'stdout'].strip()
+            except shell.TimeoutConnection:
+                logger.warn("Timeout ssh.", exc_info=True)
+                return
 
             containers_dict = {}
             for line in containers.split("\n")[1:]:

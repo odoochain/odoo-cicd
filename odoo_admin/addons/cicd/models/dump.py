@@ -62,11 +62,15 @@ class Dump(models.Model):
                 splitter = "_____SPLIT_______"
                 if not volname.endswith("/"):
                     volname += "/"
-                files = shell.X([
-                    "find", volname,
-                    "-maxdepth", "1",
-                    "-printf", f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
-                ])['stdout'].strip().splitlines()
+                try:
+                    files = shell.X([
+                        "find", volname,
+                        "-maxdepth", "1",
+                        "-printf", f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
+                    ])['stdout'].strip().splitlines()
+                except shell.TimeoutConnection:
+                    logger.error("Timeout finding files.", exc_info=True)
+                    continue
 
                 Files = {}
                 for line in files:
