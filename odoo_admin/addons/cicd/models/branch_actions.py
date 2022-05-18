@@ -335,7 +335,7 @@ class Branch(models.Model):
     def _after_build(self, shell, **kwargs):
         self.last_access = fields.Datetime.now()  # to avoid cycle down
         res = shell.odoo("db", "db-health", "check", allow_error=True)
-        if res['returncode']:
+        if res['exit_code']:
             return
         shell.odoo(
             "remove-settings", '--settings', 'web.base.url,web.base.url.freeze'
