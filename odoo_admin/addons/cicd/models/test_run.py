@@ -1,3 +1,4 @@
+import re
 from curses import wrapper
 from functools import partial
 import arrow
@@ -238,6 +239,9 @@ class CicdTestRun(models.Model):
             data['state'] = 'failed'
             msg = (msg or '') + '\n' + str(exception)
             data['exc_info'] = str(exception)
+
+        # catch typical errors, which are not blockers
+        data = self._be_graceful(data)
 
         self.line_ids = [[0, 0, data]]
         self.env.cr.commit()
@@ -626,3 +630,23 @@ class CicdTestRun(models.Model):
                     "obj": rec,
                 },
             )
+
+    @api.model
+    def _be_graceful(self, data):
+        if data.get('ttype') != 'error':
+            return data
+
+        exc_info = data.get('exc_info', '')
+        name = data.get('name', '')
+
+        grace = [
+            '.git/index.lock'
+        ]
+        for vol in self.env['cicd.machine.volume'].search([]):
+            grace += [f"{vol.name}.*No such file or directory"]
+        for grace in grace:
+            for line in (exc_info + name).splitlines():
+                if re.findall(grace, line):
+                    data['ttype'] = 'log'
+                    break
+        return data
