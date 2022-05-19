@@ -171,14 +171,15 @@ class BaseShellExecutor():
         if cwd:
             bashcmd += (
                 'function wait_for_dir {        \n'
-                'while [ 1 == 1 ]; do           \n'
-                f'if [[ -d "{cwd}" ]]; then     \n'
-                '   break                       \n'
-                'fi                             \n'
-                'done                           \n'
+                '  deadline=$(date --date " + 30 seconds" +"%Y%m%d%H%M%S") \n'
+                '  while [ "$(date +"%Y%m%d%H%M%S")" -lt "${deadline}" ]; do \n'
+                f'   if [[ -d "{cwd}" ]]; then  \n'
+                '       break                   \n'
+                '    fi                         \n'
+                '  done                         \n'
                 "}                              \n\n"
                 f"export INITIAL_PWD='{cwd}'\n"
-                "timeout 20 wait_for_dir\n"
+                "wait_for_dir\n"
                 f"cd '{cwd}' || exit 15\n"
             )
 
