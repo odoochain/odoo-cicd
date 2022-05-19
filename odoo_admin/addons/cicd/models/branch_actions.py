@@ -139,7 +139,7 @@ class Branch(models.Model):
                 'dump_used': self.dump_id.name})
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
         self.env.cr.commit()
-        shell.odoo("update")
+        self.update_all_modules()
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
         self.last_snapshot = False
         self._after_build(shell=shell)
