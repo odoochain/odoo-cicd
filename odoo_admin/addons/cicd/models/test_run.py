@@ -176,9 +176,11 @@ class CicdTestRun(models.Model):
         if comment:
             self._report(comment)
         params = {}
+        do_log = False
         try:
             func(self)
         except Exception as ex:  # pylint: disable=broad-except
+            do_log = True
             if allow_error:
                 params['name'] = (
                     f"{params['name'] or ''}"
@@ -190,7 +192,8 @@ class CicdTestRun(models.Model):
 
         finally:
             params['duration'] = (arrow.utcnow() - started).total_seconds()
-        self._report(comment, **params)
+        if do_log:
+            self._report(comment, **params)
         self._abort_if_required()
 
     def _lo(self, shell, *params, comment=None, **kwparams):
