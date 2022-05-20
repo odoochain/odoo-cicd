@@ -115,7 +115,6 @@ class CicdTestRun(models.Model):
         self.do_abort = False
         self.state = 'failed'
 
-
     def _reload(self, shell, settings, instance_folder):
         with pg_advisory_lock(self.env.cr, f"testrun#{self.id}-reload"):
             def reload():
