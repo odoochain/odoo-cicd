@@ -716,7 +716,7 @@ class GitBranch(models.Model):
         for rec in self:
             if rec.enable_snapshots:
                 try:
-                    rec.database_size = rec._get_dbsize_from_shell()
+                    rec.database_size = rec.database_size_from_shell
                 except Exception:
                     rec.database_size = -1
             else:
@@ -724,6 +724,11 @@ class GitBranch(models.Model):
                     ('name', '=', rec.database_project_name)])
                 rec.database_size = sum(rec.database_ids.mapped('size'))
             rec.database_size_human = humanize.naturalsize(rec.database_size)
+
+    @api.model
+    def _cron_get_db_size_from_shell(self):
+        for branch in self.search([('enable_snapshots', '=', True)]):
+            branch.database_size_from_shell = branch._get_dbsize_from_shell()
 
     @api.depends("task_ids", "task_ids.state")
     def _compute_current_task(self):

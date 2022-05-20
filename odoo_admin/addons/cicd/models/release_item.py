@@ -401,7 +401,7 @@ class ReleaseItem(models.Model):
             success = 'success' in runs.mapped('state')
 
             if not success and not open_runs:
-                self.apply_test_settings(self.item_branch_id)
+                self.release_id.apply_test_settings(self.item_branch_id)
                 self.item_branch_id.with_delay().run_tests()
 
             elif success:

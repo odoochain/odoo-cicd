@@ -30,5 +30,15 @@
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
+		<record id="dbsize_from_shell" model="ir.cron">
+			<field name="name">cicd.git.branch:_cron_get_db_size_from_shell()</field>
+			<field name="interval_number">3</field>
+			<field name="interval_type">minutes</field>
+			<field name="model_id" ref="model_cicd_git_branch" />
+			<field name="state">code</field>
+			<field name="code">model._cron_get_db_size_from_shell()</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
 	</data>
 </odoo>
