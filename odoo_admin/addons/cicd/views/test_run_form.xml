@@ -33,6 +33,14 @@
 							<field name="no_reuse"/>
 						</group>
 						<notebook>
+							<page name='unittests'>
+								<field name="line_unittest_ids" nolabel='1' context="{'form_view_ref': 'cicd.view_cicd_test_run_line_form'}">
+								</field>
+							</page>
+							<page name='robottests'>
+								<field name="line_robottest_ids" nolabel='1' context="{'form_view_ref': 'cicd.view_cicd_test_run_line_form'}">
+								</field>
+							</page>
 							<page name="details" string="Details">
 								<field name="line_ids" nolabel='1' context="{'form_view_ref': 'cicd.view_cicd_test_run_line_form'}">
 								</field>

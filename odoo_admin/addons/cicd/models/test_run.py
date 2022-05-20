@@ -82,6 +82,8 @@ class CicdTestRun(models.Model):
     ], string="Result", required=True, default='open', tracking=True)
     success_rate = fields.Integer("Success Rate [%]", tracking=True)
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
+    line_unittest_ids = fields.Many2many('cicd.test.run.line', compute="_compute_lines")
+    line_robottest_ids = fields.Many2many('cicd.test.run.line', compute="_compute_lines")
     duration = fields.Integer("Duration [s]", tracking=True)
     queuejob_log = fields.Binary("Queuejob Log")
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
@@ -89,6 +91,13 @@ class CicdTestRun(models.Model):
         'cicd.machine', related="branch_id.repo_id.machine_id", store=False)
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many('queue.job', compute="_compute_queuejobs")
+
+    @api.depends('line_ids')
+    def _compute_lines(self):
+        for rec in self:
+            lines = rec.line_ids.with_context(prefetch_fields=False)
+            rec.line_unittest_ids = lines.filtered(lambda x: x.ttype == 'unittest')
+            rec.line_robottest_ids = lines.filtered(lambda x: x.ttype == 'robottest')
 
     def init(self):
         super().init()
@@ -175,7 +184,7 @@ class CicdTestRun(models.Model):
         if comment:
             self._report(comment)
         params = {}
-        do_log = False
+        do_log = True
         try:
             func(self)
         except Exception as ex:  # pylint: disable=broad-except
