@@ -171,7 +171,7 @@ class CicdTestRun(models.Model):
         if self.do_abort:
             raise AbortException("User aborted")
 
-    def _log(self, func, comment=""):
+    def _log(self, func, comment="", allow_error=False):
         started = arrow.utcnow()
         if comment:
             self._report(comment)
@@ -179,7 +179,14 @@ class CicdTestRun(models.Model):
         try:
             func(self)
         except Exception as ex:  # pylint: disable=broad-except
-            params['exception'] = ex
+            if allow_error:
+                params['name'] = (
+                    f"{params['name'] or ''}"
+                    " "
+                    f"{ex}"
+                )
+            else:
+                params['exception'] = ex
 
         finally:
             params['duration'] = (arrow.utcnow() - started).total_seconds()
@@ -189,7 +196,10 @@ class CicdTestRun(models.Model):
     def _lo(self, shell, *params, comment=None, **kwparams):
         comment = comment or ' '.join(map(str, params))
         self._log(
-            lambda self: shell.odoo(*params, **kwparams), comment=comment)
+            lambda self: shell.odoo(*params, **kwparams),
+            comment=comment,
+            allow_error=kwparams.get('allow_error'),
+        )
 
     def _ensure_source_and_machines(
         self, shell, start_postgres=False, settings=""
