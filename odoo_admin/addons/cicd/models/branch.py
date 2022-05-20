@@ -6,7 +6,7 @@ from contextlib import contextmanager
 import arrow
 import os
 import requests
-from pathlib import Path
+from pathlib import Path, PosixPath
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError, UserError
 import humanize
@@ -16,9 +16,23 @@ import logging
 from .consts import STATES
 from odoo.addons.queue_job.exception import RetryableJobError
 from itertools import groupby
+from datetime import datetime, date
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT as DT
 
 logger = logging.getLogger(__name__)
 LIMIT_PROJECT_NAME = 35
+
+
+class JobEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, PosixPath):
+            return str(obj)
+        elif isinstance(obj, datetime):
+            return arrow.get(obj).strftime(DTF)
+        elif isinstance(obj, date):
+            return arrow.get(obj).strftime(DT)
+        return json.JSONEncoder.default(self, obj)
 
 
 class GitBranch(models.Model):
@@ -147,9 +161,11 @@ class GitBranch(models.Model):
         for rec in self:
             machine = rec.repo_id.machine_id
             volume = machine._get_volume('dumps')
-            rec._make_task("_dump", volume=volume, filename=rec.name)
+            filename = rec.name
+            path = volume.name + "/" + filename
+            rec._make_task("_dump", volume=volume, filename=filename)
             rec._make_task("_reload_and_restart")
-            rec._make_task("_restore_reload_and_restart")
+            rec._make_task("_restore", dump=path)
 
     def make_snapshot(self):
         return {
@@ -477,7 +493,7 @@ class GitBranch(models.Model):
                 'name': execute,
                 'branch_id': rec.id,
                 'machine_id': (machine and machine.id) or rec.machine_id.id,
-                'kwargs': json.dumps(kwargs),
+                'kwargs': json.dumps(kwargs, cls=JobEncoder),
                 'testrun_id': testrun_id or False,
             })
             task.perform()
