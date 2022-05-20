@@ -15,6 +15,10 @@ from odoo.exceptions import ValidationError
 import logging
 from pathlib import Path
 from contextlib import contextmanager
+import inspect
+import os
+from pathlib import Path
+current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
 
 MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
 BASE_SNAPSHOT_NAME = 'basesnap'
@@ -85,6 +89,10 @@ class CicdTestRun(models.Model):
         'cicd.machine', related="branch_id.repo_id.machine_id", store=False)
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many('queue.job', compute="_compute_queuejobs")
+
+    def init(self):
+        super().init()
+        self.env.cr.execute((current_dir / 'test_run_trigger.sql').read_text())
 
     def refresh_jobs(self):
         pass
