@@ -145,7 +145,11 @@ class GitBranch(models.Model):
     @api.recordchange("enable_snapshots")
     def _on_change_enable_snapshots(self):
         for rec in self:
+            machine = rec.repo_id.machine_id
+            volume = machine._get_volume('dumps')
+            rec._make_task("_dump", volume=volume, filename=rec.name)
             rec._make_task("_reload_and_restart")
+            rec._make_task("_restore_reload_and_restart")
 
     def make_snapshot(self):
         return {

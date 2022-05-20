@@ -19,7 +19,6 @@ class MakeDump(models.TransientModel):
                     raise UserError((
                         "Invalid character detected in name. Please remove."))
 
-
     def make_snapshot(self):
         for rec in self:
             with rec.branch_id.shell(logs_title="make_snapshot") as shell:

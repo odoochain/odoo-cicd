@@ -112,12 +112,20 @@ class Branch(models.Model):
         self._after_build(shell)
 
     def _restore_dump(self, shell, dump, **kwargs):
+        if not dump:
+            raise ValidationError(_("Dump missing - cannot restore"))
         dump = dump or self.dump_id
         if isinstance(dump, int):
             dump = self.env['cicd.dump'].browse(dump)
+        if isinstance(dump, str):
+            dump_name = dump.name
+            dump_date = False
+        else:
+            dump_name = dump.name
+            dump_date = dump.date_modified
 
-        if not dump:
-            raise ValidationError(_("Dump missing - cannot restore"))
+        del dump
+
         self._reload(shell)
         shell.logsio.info("Reloading")
         shell.odoo('reload')
@@ -126,17 +134,17 @@ class Branch(models.Model):
         shell.logsio.info("Downing")
         shell.odoo('kill')
         shell.odoo('rm')
-        shell.logsio.info(f"Restoring {dump.name}")
+        shell.logsio.info(f"Restoring {dump_name}")
         shell.odoo(
             '-f', 'restore', 'odoo-db', '--no-remove-webassets',
-            dump.name)
+            dump_name)
         if self.remove_web_assets_after_restore:
             shell.odoo('-f', 'remove-web-assets')
-        self.last_restore_dump_name = dump.name
-        self.last_restore_dump_date = dump.date_modified
+        self.last_restore_dump_name = dump_name
+        self.last_restore_dump_date = dump_date
         if self.env.context.get('task'):
             self.env.context['task'].sudo().with_delay().write({
-                'dump_used': self.dump_id.name})
+                'dump_used': dump_name})
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
         self.env.cr.commit()
         self.update_all_modules()
