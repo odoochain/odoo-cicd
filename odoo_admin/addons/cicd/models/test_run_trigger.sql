@@ -7,13 +7,13 @@ DECLARE counted int;
 BEGIN
     SELECT id, state, branch_id, commit_id
 	INTO testrun
-	FROM test_run
+	FROM cicd_test_run
 	WHERE id = NEW.id;
 
 	IF test_run.state = 'running' THEN
 		SELECT count(*)
 		INTO counted
-		FROM test_run
+		FROM cicd_test_run
 		WHERE branch_id = test_run.branch_id and commit_id = testrun.commit_id
 		AND state = 'running';
 
@@ -29,8 +29,8 @@ $BODY$
     LANGUAGE 'plpgsql' SECURITY INVOKER
 ;
 
-DROP TRIGGER IF EXISTS trigger_func_trigger_test_runs_at_commit ON test_run;
+DROP TRIGGER IF EXISTS trigger_func_trigger_test_runs_at_commit ON cicd_test_run;
 
 CREATE CONSTRAINT TRIGGER trigger_func_trigger_test_runs_at_commit
-AFTER UPDATE ON test_run DEFERRABLE INITIALLY DEFERRED
+AFTER UPDATE ON cicd_test_run DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW EXECUTE PROCEDURE func_trigger_test_runs_at_commit();
