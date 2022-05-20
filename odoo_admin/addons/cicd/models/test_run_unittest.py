@@ -69,9 +69,14 @@ class TestrunUnittest(models.Model):
                 return
 
             def _unittest(item):
-                shell.odoo(
-                    'unittest', item, "--non-interactive",
-                    timeout=self.timeout_tests)
+                try:
+                    shell.odoo(
+                        'unittest', item, "--non-interactive",
+                        timeout=self.timeout_tests)
+                finally:
+                    shell.odoo("kill", allow_error=True)
+                    shell.odoo("rm", allow_error=True)
+                    shell.odoo("down", "-v", force=True, allow_error=True)
 
             self._generic_run(
                 shell, tests,

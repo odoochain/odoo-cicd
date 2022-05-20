@@ -77,6 +77,9 @@ class TestrunUnittest(models.Model):
                     self._report(
                         "Robot Test error (but retrying)", exception=ex)
                 finally:
+                    shell.odoo("kill", allow_error=True)
+                    shell.odoo("rm", allow_error=True)
+                    shell.odoo("down", "-v", force=True, allow_error=True)
                     excel_file = shell.sql_excel((
                         "select id, name, state, exc_info "
                         "from queue_job"
