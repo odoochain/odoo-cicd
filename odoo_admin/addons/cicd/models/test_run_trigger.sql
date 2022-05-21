@@ -10,11 +10,11 @@ BEGIN
 	FROM cicd_test_run
 	WHERE id = NEW.id;
 
-	IF test_run.state = 'running' THEN
+	IF testrun.state = 'running' THEN
 		SELECT count(*)
 		INTO counted
 		FROM cicd_test_run
-		WHERE branch_id = test_run.branch_id and commit_id = testrun.commit_id
+		WHERE branch_id = cicd_test_run.branch_id and commit_id = cicd_test_run.commit_id
 		AND state = 'running';
 
 		IF counted > 1 THEN
