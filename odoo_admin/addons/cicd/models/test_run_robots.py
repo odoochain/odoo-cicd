@@ -66,10 +66,19 @@ class TestrunUnittest(models.Model):
 
             def run(item):
                 try:
+                    shell.odoo('up', '-d', 'postgres')
+                    shell.wait_for_postgres()
                     shell.odoo(
                         'robot', '-p', 'password=1',
                         "--install-required-modules",
                         item, timeout=self.timeout_tests)
+
+                    excel_file = shell.sql_excel((
+                        "select id, name, state, exc_info "
+                        "from queue_job"
+                    ))
+                    if excel_file:
+                        self.queuejob_log = base64.b64encode(excel_file)
                     state = 'success'
 
                 except Exception as ex:
@@ -80,12 +89,6 @@ class TestrunUnittest(models.Model):
                     shell.odoo("kill", allow_error=True)
                     shell.odoo("rm", allow_error=True)
                     shell.odoo("down", "-v", force=True, allow_error=True)
-                    excel_file = shell.sql_excel((
-                        "select id, name, state, exc_info "
-                        "from queue_job"
-                    ))
-                    if excel_file:
-                        self.queuejob_log = base64.b64encode(excel_file)
 
                 robot_results_tar = shell.grab_folder_as_tar(robot_out)
                 robot_results_tar = robot_results_tar and \
