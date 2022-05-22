@@ -63,6 +63,7 @@ class queuejob(models.Model):
             'current transaction is aborted',
             'psycopg2.errors.InFailedSqlTransaction',
             'Cannot start two jobs for same identity key',
+            'Cannot start two test runs for same commit',
             'func_trigger_queuejob_state_check_at_commit',
             '-bash: line%No such file or directory',
         ]
