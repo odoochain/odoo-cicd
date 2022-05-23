@@ -54,6 +54,8 @@ class TestrunUnittest(models.Model):
             assert dump_path
             self._ensure_source_and_machines(
                 shell, start_postgres=True, settings=settings)
+            shell.odoo("down", "-v", force=True, allow_error=True)
+            shell.odoo("up", "-d", "postgres")
             shell.odoo(
                 'restore', 'odoo-db', dump_path,
                 '--no-dev-scripts', force=True)

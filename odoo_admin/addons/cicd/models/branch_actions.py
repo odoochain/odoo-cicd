@@ -378,10 +378,11 @@ class Branch(models.Model):
                 machine=machine,
             )
             path2 = tempfile.mktemp(suffix='.todelete')
+            breakpoint()
             shell.X([(
                 f"[[ -d '{instance_folder}']] && "
-                f"mv '{instance_folder}' '{path2}'\n"
-                f"mv '{path}' '{instance_folder}' \n"
+                f"mv '{instance_folder}' '{path2};'\n"
+                f"mv '{path}' '{instance_folder}'; \n"
                 f"[[ -d '{path2}']] && rm -Rf '{path2}'\n"
             )])
 
