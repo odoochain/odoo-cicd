@@ -1,6 +1,7 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
+
 class CompressorOutput(models.Model):
     _name = 'cicd.compressor.output'
 
