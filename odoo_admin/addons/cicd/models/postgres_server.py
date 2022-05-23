@@ -127,7 +127,8 @@ class PostgresServer(models.Model):
                             db.size = dbsize
                     rec.env.cr.commit()
 
-                for db in self.env['cicd.database'].search([('server_id', '=', rec.id)]):
+                for db in self.env['cicd.database'].search([(
+                        'server_id', '=', rec.id)]):
                     if db.name not in all_dbs:
                         db.sudo().unlink()
                         rec.env.cr.commit()

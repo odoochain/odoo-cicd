@@ -370,21 +370,18 @@ class Branch(models.Model):
 
         def _clone_instance_folder(machine, instance_folder):
             # be atomic
-            path = tempfile.mktemp(suffix='.clone_instance_folder')
+            path = '/tmp/' + next(tempfile._get_candidate_names())
             self.repo_id._get_main_repo(
                 logsio=shell.logsio,
                 destination_folder=path,
                 limit_branch=my_name,
                 machine=machine,
             )
-            path2 = tempfile.mktemp(suffix='.todelete')
-            breakpoint()
-            shell.X([(
-                f"[[ -d '{instance_folder}']] && "
-                f"mv '{instance_folder}' '{path2};'\n"
-                f"mv '{path}' '{instance_folder}'; \n"
-                f"[[ -d '{path2}']] && rm -Rf '{path2}'\n"
-            )])
+            path2 = '/tmp/' + next(tempfile._get_candidate_names())
+            if shell.exists(instance_folder):
+                shell.X(["mv", instance_folder, path2])
+            shell.X(["mv", path, instance_folder])
+            shell.remove(path2)
 
         machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
