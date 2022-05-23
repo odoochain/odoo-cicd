@@ -615,7 +615,7 @@ class Branch(models.Model):
         self.last_snapshot = False
         self._after_build(shell=shell, **kwargs)
 
-    def _compress(self, shell, compress_job_id):
+    def _compress(self, shell, compress_job_id, **kwargs):
         self.ensure_one()
         compressor = self.env['cicd.compressor'].sudo().browse(
             compress_job_id)
