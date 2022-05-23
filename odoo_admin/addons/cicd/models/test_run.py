@@ -204,7 +204,6 @@ class CicdTestRun(models.Model):
             lambda self: self._checkout_source_code(shell.machine),
             'checkout source'
         )
-        assert self.env.context.get('testrun')
         lo = partial(self._lo, shell)
         # lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
         self._reload(

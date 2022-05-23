@@ -379,7 +379,7 @@ class Branch(models.Model):
             )
             with shell.clone(cwd="/tmp", project_name=None) as shell2:
                 path2 = '/tmp/' + \
-                    next(tempfile._get_candidate_names() + '.replace_main_folder')
+                    next(tempfile._get_candidate_names()) + '.replace_main_folder'
                 if shell2.exists(instance_folder):
                     shell2.X(["mv", instance_folder, path2])
                 shell2.X(["mv", path, instance_folder])
