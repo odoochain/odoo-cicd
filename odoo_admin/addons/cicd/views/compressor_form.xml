@@ -26,8 +26,9 @@
 						<field name="machine_id" invisible='0'/>
 					</group>
 					<group string="Output">
-						<field name="output_ids">
+						<field name="output_ids" nolabel="1">
 							<tree editable="bottom">
+								<field name="machine_id"/>
 								<field name="volume_id"/>
 								<field name="output_filename"/>
 							</tree>

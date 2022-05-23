@@ -8,3 +8,5 @@ class CompressorOutput(models.Model):
     output_filename = fields.Char("Filename", required=True)
     volume_id = fields.Many2one(
         'cicd.machine.volume', string="Volume", required=True)
+    machine_id = fields.Many2one(
+        'cicd.machine', related="volume_id.machine_id")
