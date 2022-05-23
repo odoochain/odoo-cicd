@@ -173,7 +173,7 @@ class Branch(models.Model):
     def _reload(
             self, shell,
             project_name=None, settings=None, commit=None, registry=None,
-            force_instance_folder=None,
+            force_instance_folder=None, no_update_images=False,
             **kwargs
             ):
 
@@ -188,6 +188,8 @@ class Branch(models.Model):
             if commit:
                 shell.checkout_commit(commit)
             params = []
+            if no_update_images:
+                params += ['--no-update-images']
             shell.odoo('reload', *params)
             if self._is_hub_configured(shell):
                 shell.odoo("login")

@@ -135,6 +135,7 @@ class CicdTestRun(models.Model):
                     shell, project_name=shell.project_name,
                     settings=settings, commit=self.commit_id.name,
                     force_instance_folder=instance_folder,
+                    no_update_images=True
                     ),
             except Exception as ex:
                 logger.error(ex)
@@ -224,6 +225,7 @@ class CicdTestRun(models.Model):
             with self.machine_id._shell(
                 logsio=logsio,
                 cwd=instance_folder,
+                project_name=instance_folder.name,
             ) as shell:
                 self._ensure_source_and_machines(shell)
                 for project_name in set(self.mapped('line_ids.project_name')):
