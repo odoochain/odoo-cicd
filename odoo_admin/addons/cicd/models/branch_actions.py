@@ -661,15 +661,15 @@ class Branch(models.Model):
                     shell.odoo('-f', 'anonymize')
                 shell.logsio.info("Dumping compressed dump")
                 dump_path = \
-                    shell.machine._get_volume("dumps").name + "/" + \
-                        self.project_name
+                    shell.machine._get_volume("dumps") / self.project_name
                 shell.odoo('backup', 'odoo-db', dump_path)
+                breakpoint()
                 compressor.last_output_size = int(shell.X([
-                    'stat', '-c', '%s', output_path])[
+                    'stat', '-c', '%s', dump_path])[
                         'stdout'].strip())
 
                 dump = shell.get(dump_path)
-                for output in self.output_ids:
+                for output in compressor.output_ids:
                     with output.volume_id.machine_id._shell() as shell_dest:
                         dest_path = output.volume_id.name
                         dest_path = dest_path + "/" + output.output_filename
