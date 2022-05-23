@@ -1,3 +1,4 @@
+import re
 from odoo import _, api, fields, models
 import humanize
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -92,17 +93,17 @@ class Compressor(models.Model):
         self.ensure_one()
 
         logsio.info("Identifying latest dump")
-        with compressor.source_volume_id.machine_id._shell(
+        with self.source_volume_id.machine_id._shell(
                 logsio=logsio, cwd="") as source_shell:
             output = list(reversed(source_shell.X([
-                "ls", "-trA", compressor.source_volume_id.name])[
+                "ls", "-trA", self.source_volume_id.name])[
                     'stdout'].strip().split("\n")))
 
             for line in output:
                 if line == '.' or line == '..':
                     continue
-                if re.findall(compressor.regex, line):
-                    filename = line.strip()
+                if re.findall(self.regex, line):
+                    return line.strip()
                     break
             else:
                 logsio.info("No files found.")
