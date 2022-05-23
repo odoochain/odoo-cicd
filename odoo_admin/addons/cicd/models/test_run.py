@@ -207,7 +207,6 @@ class CicdTestRun(models.Model):
         assert self.env.context.get('testrun')
         lo = partial(self._lo, shell)
         # lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
-
         self._reload(
             shell, settings, shell.cwd)
         lo('regpull', allow_error=True)
@@ -222,17 +221,24 @@ class CicdTestRun(models.Model):
         with self._logsio(None) as logsio:
             self._report("Cleanup Testing started...")
             instance_folder = self._get_source_path()
+
             with self.machine_id._shell(
                 logsio=logsio,
                 cwd=instance_folder,
             ) as shell:
+                self._ensure_source_and_machines(shell)
+                for project_name in set(self.mapped('line_ids.project_name')):
+                    with shell.clone(project_name=project_name) as shell2:
+                        shell2.odoo('down', '-v', force=True, allow_error=True)
+                        shell2.odoo('rm', force=True, allow_error=True)
+
                 shell.remove(instance_folder)
 
             self._report("Cleanup Testing done.")
 
     def _report(
         self, msg, state='success',
-        exception=None, duration=None, ttype='log'
+        exception=None, duration=None, ttype='log',
     ):
         if duration and isinstance(duration, datetime.timedelta):
             duration = duration.total_seconds()
@@ -246,7 +252,8 @@ class CicdTestRun(models.Model):
             'state': state or 'success',
             'name': msg,
             'ttype': ttype,
-            'duration': duration
+            'duration': duration,
+            'project_name': self.branch_id.project_name,
         }
         if exception:
             data['state'] = 'failed'

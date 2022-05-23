@@ -48,6 +48,7 @@ class CicdTestRunLine(models.Model):
     robot_output = fields.Binary("Robot Output", attachment=True)
     hash = fields.Char("Hash", help="For using")
     reused = fields.Boolean("Reused", readonly=True)
+    project_name = fields.Char("Project Name Used (for cleaning)")
 
     def _compute_name_short(self):
         for rec in self:
