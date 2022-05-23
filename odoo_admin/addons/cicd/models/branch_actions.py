@@ -377,11 +377,13 @@ class Branch(models.Model):
                 limit_branch=my_name,
                 machine=machine,
             )
-            path2 = '/tmp/' + next(tempfile._get_candidate_names())
-            if shell.exists(instance_folder):
-                shell.X(["mv", instance_folder, path2])
-            shell.X(["mv", path, instance_folder])
-            shell.remove(path2)
+            with shell.clone(cwd="/tmp", project_name=None) as shell2:
+                path2 = '/tmp/' + \
+                    next(tempfile._get_candidate_names() + '.replace_main_folder')
+                if shell2.exists(instance_folder):
+                    shell2.X(["mv", instance_folder, path2])
+                shell2.X(["mv", path, instance_folder])
+                shell2.remove(path2)
 
         machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
