@@ -11,21 +11,29 @@
 				</header>
 				<sheet>
 					<group string="title" col="4">
-					<field name="active" widget="boolean_toggle"/>
-					<field name="source_volume_id"/>
-					<field name="regex"/>
-					<field name="branch_id"/>
-					<field name="repo_id" invisible='1'/>
-					<field name="repo_short" />
-					<field name="cronjob_id" required="0"/>
-					<field name="volume_id"/>
-					<field name="output_filename"/>
-					<field name="anonymize" widget="boolean_toggle"/>
-					<field name="date_last_success"/>
-					<field name="last_input_size_human"/>
-					<field name="last_output_size_human"/>
-					<field name="performance"/>
-					<field name="machine_id" invisible='0'/>
+						<field name="active" widget="boolean_toggle"/>
+						<field name="source_volume_id"/>
+						<field name="regex"/>
+						<field name="branch_id"/>
+						<field name="repo_id" invisible='1'/>
+						<field name="repo_short" />
+						<field name="cronjob_id" required="0"/>
+						<field name="anonymize" widget="boolean_toggle"/>
+						<field name="date_last_success"/>
+						<field name="last_input_size_human"/>
+						<field name="last_output_size_human"/>
+						<field name="performance"/>
+						<field name="machine_id" invisible='0'/>
+					</group>
+					<group string="Output">
+						<field name="output_ids">
+							<tree editable="bottom">
+								<field name="volume_id"/>
+								<field name="output_filename"/>
+							</tree>
+
+						</field>
+
 					</group>
 				</sheet>
 			</form>

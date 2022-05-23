@@ -658,12 +658,21 @@ class Branch(models.Model):
                     shell.logsio.info("Anonymizing DB...")
                     shell.odoo('-f', 'anonymize')
                 shell.logsio.info("Dumping compressed dump")
-                output_path = compressor.volume_id.name + "/" + \
-                    compressor.output_filename
-                shell.odoo('backup', 'odoo-db', output_path)
+                dump_path = \
+                    shell.machine._get_volume("dumps").name + "/" + \
+                        self.project_name
+                shell.odoo('backup', 'odoo-db', dump_path)
                 compressor.last_output_size = int(shell.X([
                     'stat', '-c', '%s', output_path])[
                         'stdout'].strip())
+
+                dump = shell.get(dump_path)
+                for output in self.output_ids:
+                    with output.volume_id.machine_id._shell() as shell_dest:
+                        dest_path = output.volume_id.name
+                        dest_path = dest_path + "/" + output.output_filename
+                        shell_dest.put(dump, dest_path)
+
                 compressor.date_last_success = fields.Datetime.now()
 
     def _make_sure_source_exists(self, shell):

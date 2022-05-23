@@ -13,8 +13,6 @@
 					<field name="repo_id" invisible='1'/>
 					<field name="repo_short" />
 					<field name="cronjob_id" required="0"/>
-					<field name="volume_id"/>
-					<field name="output_filename"/>
 					<field name="anonymize" widget="boolean_toggle"/>
 					<field name="date_last_success"/>
 					<field name="last_input_size_human"/>
