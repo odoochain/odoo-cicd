@@ -43,6 +43,7 @@ class TestrunUnittest(models.Model):
             self._report(f"Unittest in module {module}")
 
     def _run_unit_tests_of_module(self, index, count, module, hash, tests):
+        breakpoint()
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell(quick=True) as shell:
             dump_path = self.branch_id._ensure_dump(
@@ -88,7 +89,6 @@ class TestrunUnittest(models.Model):
                 hash=hash,
             )
 
-
     def _get_unittest_hashes(self, shell, modules):
         result = {}
 
@@ -110,7 +110,7 @@ class TestrunUnittest(models.Model):
 
         threads = []
         for mod in modules:
-            #ensure mod exists in result
+            # ensure mod exists in result
             result[mod] = False
             t = HashThread()
             t.module = mod
@@ -149,12 +149,18 @@ class TestrunUnittest(models.Model):
                 continue
 
             for test in tests:
-                if self.no_reuse or (not self.no_reuse and not self.line_ids.check_if_test_already_succeeded(
-                    self,
-                    self._get_generic_run_name(
-                        test, self._unittest_name_callback),
-                    hash,
-                )):
+                generic_run_name = self._get_generic_run_name(
+                    test, self._unittest_name_callback)
+
+                test_already_succeeded = \
+                    self.line_ids.check_if_test_already_succeeded(
+                        self, generic_run_name, hash,
+                )
+
+                if self.no_reuse or (
+                    not self.no_reuse and
+                    not test_already_succeeded
+                ):
                     t = _setdefault(_unittests_by_module, module)
                     t['hash'] = hash
                     t['tests'].append(test)

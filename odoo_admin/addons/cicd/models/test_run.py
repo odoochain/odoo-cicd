@@ -129,46 +129,36 @@ class CicdTestRun(models.Model):
         self.state = 'failed'
 
     def _reload(self, shell, settings, instance_folder):
-        with pg_advisory_lock(self.env.cr, f"testrun#{self.id}-reload"):
-            def reload():
-                try:
-                    self.branch_id._reload(
-                        shell, project_name=shell.project_name,
-                        settings=settings, commit=self.commit_id.name,
-                        force_instance_folder=instance_folder,
-                        ),
-                except Exception as ex:
-                    logger.error(ex)
-                    self._report("Exception at reload", exception=ex)
-                    raise
-                else:
-                    self._report("Reloaded")
-
-            self._report("Reloading for test run")
+        def reload():
             try:
-                try:
-                    reload()
-                except RetryableJobError:
-                    self._report("Retryable error occurred at reloading")
-                    raise
-                except Exception as ex:  # pylint: disable=broad-except
-                    if 'reference is not a tree' in str(ex):
-                        raise RetryableJobError((
-                            "Missing commit not arrived "
-                            "- retrying later.")) from ex
-                    self._report("Error occurred", exception=ex)
-                    raise
-
-            except RetryableJobError as ex:
-                self._report("Retrying", exception=ex)
-                raise
-
-            except AbortException:
-                pass
-
+                self.branch_id._reload(
+                    shell, project_name=shell.project_name,
+                    settings=settings, commit=self.commit_id.name,
+                    force_instance_folder=instance_folder,
+                    ),
             except Exception as ex:
-                self._report("Error", exception=ex)
+                logger.error(ex)
+                self._report("Exception at reload", exception=ex)
                 raise
+            else:
+                self._report("Reloaded")
+
+        self._report("Reloading for test run")
+        try:
+            reload()
+        except RetryableJobError:
+            raise
+
+        except AbortException:
+            pass
+
+        except Exception as ex:  # pylint: disable=broad-except
+            if 'reference is not a tree' in str(ex):
+                raise RetryableJobError((
+                    "Missing commit not arrived "
+                    "- retrying later.")) from ex
+            self._report("Error occurred", exception=ex)
+            raise
 
     def _abort_if_required(self):
         if self.do_abort:

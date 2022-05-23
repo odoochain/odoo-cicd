@@ -190,7 +190,8 @@ class ShellExecutor(BaseShellExecutor):
             "git-cicd", "clean", "-xdff"])
         self.logsio and self.logsio.info("Updating submodules...")
         self.X([
-            "git-cicd", "submodule", "update", "--init", "--force", "--recursive"])
+            "git-cicd", "submodule", "update", "--init",
+            "--force", "--recursive"])
         self.logsio and self.logsio.info("_after_checkout finished.")
 
     def X(
