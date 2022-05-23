@@ -45,6 +45,16 @@ class queuejob(models.Model):
                 ('state', '=', 'failed'),
                 ('identity_key', 'ilike', f"%{delete}%")]).unlink()
 
+        # delete unimported missed jobs
+        for delete_excinfo in [
+            "Cannot start two jobs for same identity key",
+            "Cannot start two test runs for same commit",
+        ]:
+            self.search([
+                ('state', 'in', ['failed']),
+                ('exc_info', 'ilike', delete_excinfo)
+            ]).unlink()
+
         reasons = [
             'could not serialize access due to concurrent update',
             'cannot stat',
@@ -62,7 +72,6 @@ class queuejob(models.Model):
             'does not exist yet',
             'current transaction is aborted',
             'psycopg2.errors.InFailedSqlTransaction',
-            'Cannot start two jobs for same identity key',
             'func_trigger_queuejob_state_check_at_commit',
             '-bash: line%No such file or directory',
         ]
@@ -84,7 +93,7 @@ class queuejob(models.Model):
                 ('result', 'ilike', reason),
             ]):
                 for ignore in ignore_idkeys:
-                    if ignore in job.identity_key:
+                    if ignore in (job.identity_key or ''):
                         break
                 else:
                     if job.identity_key:

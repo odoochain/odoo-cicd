@@ -111,7 +111,9 @@ class CicdTestRunLine(models.Model):
             name = rec.name or ''
 
             grace = [
-                '.git/index.lock'
+                '.git/index.lock',
+                'the database system is starting up',
+
             ]
             for vol in self.env['cicd.machine.volume'].search([]):
                 grace += [f"{vol.name}.*No such file or directory"]

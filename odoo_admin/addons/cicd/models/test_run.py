@@ -152,27 +152,18 @@ class CicdTestRun(models.Model):
                     self._report("Retryable error occurred at reloading")
                     raise
                 except Exception as ex:  # pylint: disable=broad-except
-                    self._report(f"Reloading: Exception stage 1 hit {ex}")
-                    try:
-                        shell.rm(instance_folder)
-                        reload()
-                    except RetryableJobError:
-                        self._report(
-                            "Retryable error occurred at reloading stage 2")
-                        raise
-                    except Exception as ex:
-                        if 'reference is not a tree' in str(ex):
-                            raise RetryableJobError((
-                                "Missing commit not arrived "
-                                "- retrying later.")) from ex
-                        self._report("Error occurred", exception=ex)
-                        raise
+                    if 'reference is not a tree' in str(ex):
+                        raise RetryableJobError((
+                            "Missing commit not arrived "
+                            "- retrying later.")) from ex
+                    self._report("Error occurred", exception=ex)
+                    raise
 
             except RetryableJobError as ex:
                 self._report("Retrying", exception=ex)
                 raise
 
-            except AbortException as ex:
+            except AbortException:
                 pass
 
             except Exception as ex:
