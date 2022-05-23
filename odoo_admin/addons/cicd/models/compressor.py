@@ -29,6 +29,8 @@ class Compressor(models.Model):
     last_output_size = fields.Integer("Last Input Size")
     last_output_size_human = fields.Char("Last Output Size")
     performance = fields.Integer("Performance", compute="_compute_numbers")
+    output_ids = fields.One2many(
+        "cicd.compressor.output", "compressor_id", string="Output")
 
     def _ensure_cronjob(self):
         for rec in self:

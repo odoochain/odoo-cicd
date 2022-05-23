@@ -100,6 +100,7 @@ from . import postgres_server
 from . import user
 from . import queue_job
 from . import compressor
+from . import compressor_output
 from . import release_actions
 from . import wiz_new_branch
 from . import release_item_branch

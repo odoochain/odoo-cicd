@@ -23,6 +23,7 @@ model_cicd_postgres,base.group_user,cicd_postgres_base_group_user,n/a,1,1,1,1
 model_cicd_dump,cicd.group_developer,cicd_dump_cicd_group_developer,n/a,1,1,1,1
 model_cicd_dump,base.group_user,cicd_dump_base_group_user,n/a,1,0,0,0
 model_cicd_compressor,cicd.group_developer,cicd_compressor_base_group_developer,n/a,1,1,1,1
+model_cicd_compressor_output,cicd.group_developer,cicd_compressor_base_group_developer,n/a,1,1,1,1
 model_cicd_ticketsystem,base.group_user,cicd_ticketsystem_base_group_user,n/a,1,0,0,0
 model_cicd_ticketsystem,cicd.group_developer,cicd_ticketsystem_cicd_group_developer,n/a,1,1,1,1
 model_cicd_git_branch_new,cicd.group_approver,cicd_git_branch_new_cicd_group_approver,n/a,1,1,1,1
