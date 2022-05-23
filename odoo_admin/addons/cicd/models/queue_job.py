@@ -74,6 +74,7 @@ class queuejob(models.Model):
             'psycopg2.errors.InFailedSqlTransaction',
             'func_trigger_queuejob_state_check_at_commit',
             '-bash: line%No such file or directory',
+            'could not lock config file',  # changing with git config
         ]
 
         ignore_idkeys = [
