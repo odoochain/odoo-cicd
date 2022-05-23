@@ -735,10 +735,7 @@ class GitBranch(models.Model):
     def _compute_databases(self):
         for rec in self:
             if rec.enable_snapshots:
-                try:
-                    rec.database_size = rec.database_size_from_shell
-                except Exception:
-                    rec.database_size = -1
+                rec.database_size = rec.database_size_from_shell
             else:
                 rec.database_ids = self.env['cicd.database'].sudo().search([
                     ('name', '=', rec.database_project_name)])

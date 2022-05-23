@@ -1,4 +1,5 @@
 from . import pg_advisory_lock
+import tempfile
 import json
 from contextlib import contextmanager
 from odoo import fields
@@ -368,12 +369,21 @@ class Branch(models.Model):
         my_name = self._unblocked('name')
 
         def _clone_instance_folder(machine, instance_folder):
+            # be atomic
+            path = tempfile.mktemp(suffix='.clone_instance_folder')
             self.repo_id._get_main_repo(
                 logsio=shell.logsio,
-                destination_folder=instance_folder,
+                destination_folder=path,
                 limit_branch=my_name,
                 machine=machine,
             )
+            path2 = tempfile.mktemp(suffix='.todelete')
+            shell.X([(
+                f"[[ -d '{instance_folder}']] && "
+                f"mv '{instance_folder}' '{path2}'\n"
+                f"mv '{path}' '{instance_folder}' \n"
+                f"[[ -d '{path2}']] && rm -Rf '{path2}'\n"
+            )])
 
         machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
