@@ -50,7 +50,8 @@ class Compressor(models.Model):
         self.ensure_one()
         if not self.active:
             return
-        self.branch_id._make_task("_compress", compress_job_id=self.id)
+        self.branch_id._make_task(
+            "_compress", compress_job_id=self.id)
 
     @api.model
     def create(self, vals):
