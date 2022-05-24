@@ -3,6 +3,7 @@ import re
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 import jira as JIRA
 
+
 class TicketSystem(models.Model):
     _inherit = 'cicd.ticketsystem'
 

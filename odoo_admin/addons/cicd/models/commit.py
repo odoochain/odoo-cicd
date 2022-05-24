@@ -139,11 +139,6 @@ class GitCommit(models.Model):
                 rec.test_state = new_state
                 rec._event_new_test_state(new_state)
 
-    def run_tests(self, filtered=None):
-        for ttype in self.env['cicd.test.run']._get_types(filtered):
-            # run tests on machine
-            raise NotImplementedError("Need machine to run")
-
     @api.model
     def create(self, vals):
         res = super().create(vals)

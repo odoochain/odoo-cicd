@@ -3,6 +3,7 @@ from odoo import _, api, fields, models
 import humanize
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
+
 class Compressor(models.Model):
     _name = 'cicd.compressor'
 

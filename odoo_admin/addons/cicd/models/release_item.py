@@ -407,7 +407,7 @@ class ReleaseItem(models.Model):
             elif success:
                 try:
                     self._merge_on_master()
-                except Exception as ex:
+                except Exception as ex:  # pylint: disable=broad-except
                     self.exc_info = str(ex)
                     self.state = 'failed_merge_master'
                 else:
@@ -501,7 +501,8 @@ class ReleaseItem(models.Model):
                 f"{rec.id}"
             )
 
-    def _get_commit_checksum(self, commits):
+    @staticmethod
+    def _get_commit_checksum(commits):
         return '-'.join(sorted(commits.mapped('name')))
 
     def _set_needs_merge(self):
