@@ -9,7 +9,9 @@ class TicketSystem(models.Model):
     name = fields.Char("Name", required=True)
     ttype = fields.Selection([], string="Type", required=True)
     url = fields.Char("Ticket System Base URL", required=True)
-    regex = fields.Char("Regex", default=".*", required=True, help="Parsing branch to match ticket in ticketsystem")
+    regex = fields.Char(
+        "Regex", default=".*", required=True,
+        help="Parsing branch to match ticket in ticketsystem")
 
     def _extract_ts_part(self, branch):
         name_orig = branch.ticket_system_ref or branch.name or ''

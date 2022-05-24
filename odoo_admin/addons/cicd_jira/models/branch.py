@@ -47,7 +47,7 @@ class Branch(models.Model):
                 lambda x: x.ttype == 'jira')
             if not ts:
                 return
-            ts._jira_comment(rec.ticket_system_ref or rec.name, comment)
+            ts._jira_comment(rec.ticket_system_ref_effective, comment)
 
     def _event_new_test_state(self, new_state):
         super()._event_new_test_state(new_state)

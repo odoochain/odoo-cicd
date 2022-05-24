@@ -89,6 +89,8 @@ class GitBranch(models.Model):
             "If branch name differs from ticketsystem "
             "then add the name in the ticketsystem here."
             ))
+    ticket_system_ref_effective = fields.Char(
+        compute="_compute_ticket_system_ref_effective")
     task_ids = fields.One2many('cicd.task', 'branch_id', string="Tasks")
     task_ids_filtered = fields.Many2many('cicd.task', compute="_compute_tasks")
     state = fields.Selection(
@@ -808,6 +810,7 @@ class GitBranch(models.Model):
             return
 
     def _report_comment_to_ticketsystem(self, comment):
+        breakpoint()
         self.ensure_one()
         if not self.ticket_system_url:
             return
@@ -905,3 +908,11 @@ class GitBranch(models.Model):
             if rec.latest_commit_id.author_user_id:
                 if not rec.author_id:
                     rec.author_id = rec.latest_commit_id.author_user_id
+
+    def _compute_ticket_system_ref_effective(self):
+        for rec in self:
+            if rec.repo_id.ticketsystem_id:
+                rec.ticket_system_ref_effective = \
+                    rec.repo_id.ticketsystem_id._extract_ts_part(rec)
+            else:
+                rec.ticket_system_ref_effective = rec.ticket_sytem_ref

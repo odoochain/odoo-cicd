@@ -612,7 +612,7 @@ class Branch(models.Model):
         shell.odoo('update', '--no-dangling-check')
         try:
             shell.odoo('turn-into-dev')  # why commented?
-        except:
+        except Exception:  # pylint: disable=broad-except
             pass
         self.last_snapshot = False
         self._after_build(shell=shell, **kwargs)
