@@ -569,6 +569,7 @@ class GitBranch(models.Model):
     @api.depends_context('testrun')
     @api.depends("repo_id", "repo_id.short", "name")
     def _compute_project_name(self):
+        breakpoint()
         for rec in self:
 
             def buildname(name):
@@ -594,6 +595,7 @@ class GitBranch(models.Model):
                     "utf-8")).hexdigest()
                 rec.technical_branch_name = f"prj{hexvalue}"
                 assert len(rec.technical_branch_name) <= LIMIT_PROJECT_NAME
+                dbname = rec.technical_branch_name
             else:
                 rec.technical_branch_name = ""
 
@@ -736,6 +738,7 @@ class GitBranch(models.Model):
         return size
 
     def _compute_databases(self):
+        breakpoint()
         for rec in self:
             if rec.enable_snapshots:
                 rec.database_size = rec.database_size_from_shell
