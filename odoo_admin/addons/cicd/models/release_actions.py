@@ -72,20 +72,20 @@ class CicdReleaseAction(models.Model):
                 actions._stop_odoo(logsio)
                 actions[0]._run_update(logsio)
 
-            except Exception as ex:
+            except Exception:  # pylint: disable=broad-except
                 errors.append(traceback.format_exc())
 
             finally:
                 for action in actions:
                     try:
                         action._start_odoo(logsio=logsio)
-                    except Exception as ex:
+                    except Exception:  # pylint: disable=broad-except
                         errors.append(traceback.format_exc())
 
                 for action in actions:
                     try:
                         action._exec_shellscripts(logsio, "after")
-                    except Exception as ex:
+                    except Exception:  # pylint: disable=broad-except
                         errors.append(traceback.format_exc())
             return errors
 
