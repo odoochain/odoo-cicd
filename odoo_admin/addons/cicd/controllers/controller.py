@@ -41,17 +41,18 @@ class Controller(http.Controller):
     def start_instance(self, name, **args):
         logger.info(f"Starting branch {name}")
         action = args.get('action')
-        # branch = request.env['cicd.git.branch'].sudo().search([
-        #     ('name', '=', name)], limit=1).with_context(prefetch_fields=False)
-        # TODO improve performance
+
         branch = request.env['cicd.git.branch'].sudo().search([
         ]).with_context(prefetch_fields=False).filtered(
             lambda x: x.project_name == name)
-        request.env.cr.commit()
         if not branch:
-            return (
-                f"Did not find {name}."
-            )
+            branch = request.env['cicd.git.branch'].sudo().search([
+            ]).with_context(prefetch_fields=False).filtered(
+                lambda x: x.name.lower() == name.lower())
+            if not branch:
+                return (
+                    f"Did not find {name}."
+                )
         branch = branch[0]
 
         # first try to get login page, if this not success then try to start
@@ -98,13 +99,20 @@ class Controller(http.Controller):
     @http.route('/redirect_from_instance')
     def _redirect_from_instance(self, instance, **kwargs):
         """
-        On logout of the instance this url is called and user is redirect to branch.
+        On logout of the instance this url is called and user is
+        redirect to branch.
         """
         branch = request.env['cicd.git.branch'].sudo().search([])
-        branch = branch.filtered(lambda x: x.project_name.lower() == instance.lower())
+        branch = branch.filtered(
+            lambda x: x.project_name.lower() == instance.lower())
         if branch:
             menu_id = request.env.ref("cicd.root_menu").id
-            url = f"/web#menu_id={menu_id}&model=cicd.git.branch&id={branch and branch.id or 0}&view_type=form"
+            url = (
+                f"/web#menu_id={menu_id}&"
+                "model=cicd.git.branch&"
+                f"id={branch and branch.id or 0}&"
+                "view_type=form"
+            )
         else:
             url = '/web'
         redirect = request.redirect(url)

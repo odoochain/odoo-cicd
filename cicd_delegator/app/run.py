@@ -113,7 +113,8 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
         if delegator_path:
             # set touched date:
-            resp = requests.get(cicd_index_url + "/last_access/" + delegator_path)
+            resp = requests.get(
+                cicd_index_url + "/last_access/" + delegator_path)
             resp.raise_for_status()
 
         path = (self.path or '').split("?")[0]
@@ -136,15 +137,17 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         query_params = dict(parse.parse_qsl(parse.urlsplit(self.path).query))
         return url, query_params
 
-    def _redirect_to_index(self, branch=None):
+    def _redirect_to_cicdapp(self, branch=None, next_url=None):
         # do logout to odoo to be clean; but redirect to index
 
-        content = """
-        Redirecting to cicd application...
-        <script>
-        window.location = "/redirect_from_instance?instance={branch}";
-        </script>
-        """.format(branch=branch).encode('utf-8')
+        next_url = next_url or f"/redirect_from_instance?instance={branch}"
+
+        content = (
+            "Redirecting to cicd application...\n"
+            "<script>\n"
+            f'window.location = "{next_url}";\n'
+            "</script>\n"
+        ).encode('utf-8')
 
         self.send_response(200)
         null = "deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
@@ -161,13 +164,14 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             req_header, cookies = self.parse_headers()
             url, query_params = self._rewrite_path(req_header, cookies)
-            conn_exception = None
 
             delegator_path = cookies and cookies.get('delegator-path') or None
 
-            def _redirect_to_index():
+            def _redirect_to_cicdapp(branch=None, next_url=None):
                 global sent
-                self._redirect_to_index(delegator_path)
+                self._redirect_to_cicdapp(
+                    branch or delegator_path, next_url=next_url
+                )
                 sent = True
 
             def _get_request():
@@ -177,20 +181,27 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     cookies=cookies,
                 )
 
+            if self.path.startswith("/start/"):
+                branch = self.path.split("/")[2]
+                if delegator_path:
+                    _redirect_to_cicdapp(
+                        branch=branch,
+                        next_url=f"/start/{branch}"
+                    )
+
             if self.path.endswith("/web/session/logout"):
                 if delegator_path:
-                    _redirect_to_index()
+                    _redirect_to_cicdapp()
 
             if not sent:
                 if self.path == "/_":
-                    _redirect_to_index()
+                    _redirect_to_cicdapp()
                 else:
 
                     try:
                         resp = _get_request()
-                    except Exception as ex:
-                        conn_exception = ex
-                        _redirect_to_index()
+                    except Exception:  # pylint: disable=broad-except
+                        _redirect_to_cicdapp()
                     else:
                         self.send_response(resp.status_code)
                         self.send_resp_headers(resp, cookies)
@@ -198,7 +209,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                             self.wfile.write(resp.content)
                         sent = True
 
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-except
             self._handle_error(ex)
         finally:
             self.finish()
