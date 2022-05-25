@@ -271,21 +271,26 @@ class ShellExecutor(BaseShellExecutor):
     def extract_zip(self, content, dest_path):
         assert dest_path not in ['/', '/var/']
         assert len(Path(dest_path).parts) > 2
-        filename = str(Path(tempfile._get_default_tempdir()) / \
+        filename = str(
+            Path(tempfile._get_default_tempdir()) /
             next(tempfile._get_candidate_names()))
         self.put(content, filename)
-        temppath = str(Path(tempfile._get_default_tempdir()) / \
-            next(tempfile._get_candidate_names()))
-        self.X(['mkdir', '-p', temppath])
-        self.X(["tar", "xfz", filename], cwd=temppath)
         try:
-            self.X([
-                "rsync",
-                str(temppath) + "/",
-                str(dest_path) + "/",
-                "-ar", "--delete-after"])
+            temppath = str(
+                Path(tempfile._get_default_tempdir()) /
+                next(tempfile._get_candidate_names()))
+            self.X(['mkdir', '-p', temppath])
+            self.X(["tar", "xfz", filename], cwd=temppath)
+            try:
+                self.X([
+                    "rsync",
+                    str(temppath) + "/",
+                    str(dest_path) + "/",
+                    "-ar", "--delete-after"])
+            finally:
+                self.rm(temppath)
         finally:
-            self.rm(temppath)
+            self.rm(filename)
 
     def get_zipped(self, path, excludes=None):
         excludes = excludes or []
