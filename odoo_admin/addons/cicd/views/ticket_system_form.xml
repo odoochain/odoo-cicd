@@ -13,6 +13,15 @@
 							<field name="regex"/>
 							<field name="ttype"/>
 						</group>
+						<group string="Test Settings" col='2'>
+							<field name="test_branch_id"/>
+							<field name="link_to_test_branch" widget="url"/>
+							<button name="test_ticketsystem" string="Test Connection" type="object" />
+							<div>
+								This test writes a comment to the branch.
+
+							</div>
+						</group>
 					</sheet>
 				</form>
 			</field>
