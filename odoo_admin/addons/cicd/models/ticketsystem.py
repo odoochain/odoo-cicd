@@ -18,6 +18,7 @@ class TicketSystem(models.Model):
 
     def _extract_ts_part(self, branch):
         name_orig = branch.ticket_system_ref or branch.name or ''
+        name = None
         if self.regex and name_orig:
             m = re.match(self.regex, name_orig)
             if m and m.group():

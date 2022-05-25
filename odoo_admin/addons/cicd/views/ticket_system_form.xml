@@ -19,7 +19,6 @@
 							<button name="test_ticketsystem" string="Test Connection" type="object" />
 							<div>
 								This test writes a comment to the branch.
-
 							</div>
 						</group>
 					</sheet>
