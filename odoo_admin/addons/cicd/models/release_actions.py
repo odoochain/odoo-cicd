@@ -19,7 +19,7 @@ class CicdReleaseAction(models.Model):
 
     def _compute_effective_settings(self):
         for rec in self:
-            hub_url = rec.release_id.repo_id.registry_id.hub_url
+            hub_url = rec.release_id.repo_id.registry_id.hub_url_readonly
             use_registry = '1' if hub_url else '0'
             default_settings = []
             if hub_url:

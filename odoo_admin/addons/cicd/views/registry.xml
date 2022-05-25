@@ -30,6 +30,8 @@
 							<field name="port"/>
 							<field name="username" />
 							<field name="password" password="True" />
+							<field name="username_readonly" />
+							<field name="password_readonly" password="True" />
 							<field name="path"/>
 						</group>
 					</sheet>
