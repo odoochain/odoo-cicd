@@ -53,7 +53,7 @@ class Registry(models.Model):
 
             rec.hub_url = (
                 f"{username}:{pwd}@{rec.host}:{rec.port}{rec.path}"
+            )
             rec.hub_url_readonly = (
                 f"{username_ro}:{pwd_ro}@{rec.host}:{rec.port}{rec.path}"
-            )
             )
