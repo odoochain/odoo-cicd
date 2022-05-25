@@ -357,16 +357,6 @@ class CicdTestRun(models.Model):
         ))
         queuejobs = self.env.cr.dictfetchall()
 
-        def retryable(job):
-            if job['state'] != 'failed':
-                return True
-            if 'could not serialize' in (job['exc_info'] or '').lower():
-                return True
-            return False
-
-        if ttype == 'active':
-            queuejobs = [x for x in queuejobs if retryable(x)]
-
         def _filter(qj):
             idkey = qj['identity_key'] or ''
             if not include_wait_for_finish and 'wait_for_finish' in idkey:
