@@ -33,10 +33,13 @@ class TicketSystem(models.Model):
         return url
 
     def test_ticketsystem(self):
+        breakpoint()
         self.ensure_one()
         if not self.test_branch_id:
             raise ValidationError("Please choose a branch")
-        self.test_branch_id._report_comment_to_ticketsystem("test")
+        self.test_branch_id.with_context(
+            allow_jira_exception=True
+            )._report_comment_to_ticketsystem("test")
 
     @api.depends("test_branch_id")
     def _compute_link(self):

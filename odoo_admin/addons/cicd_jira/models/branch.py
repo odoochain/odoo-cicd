@@ -13,9 +13,12 @@ class Branch(models.Model):
         self.ensure_one()
         jira = self.repo_id.ticketsystem_id._get_jira_connection()
         try:
-            issue_name = name or self.repo_id.ticketsystem_id._extract_ts_part(self)
+            issue_name = name or self.repo_id.ticketsystem_id._extract_ts_part(
+                self)
             issue = jira.issue(issue_name)
         except JIRA.exceptions.JIRAError as jira_ex:
+            if self.env.context.get('allow_jira_exception'):
+                raise
             if jira_ex.status_code == 404:
                 return None
             raise

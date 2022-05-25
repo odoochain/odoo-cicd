@@ -569,7 +569,6 @@ class GitBranch(models.Model):
     @api.depends_context('testrun')
     @api.depends("repo_id", "repo_id.short", "name")
     def _compute_project_name(self):
-        breakpoint()
         for rec in self:
 
             def buildname(name):
@@ -813,7 +812,6 @@ class GitBranch(models.Model):
             return
 
     def _report_comment_to_ticketsystem(self, comment):
-        breakpoint()
         self.ensure_one()
         if not self.ticket_system_url:
             return

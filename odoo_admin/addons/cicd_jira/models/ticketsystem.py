@@ -58,5 +58,7 @@ class TicketSystem(models.Model):
         try:
             jira.add_comment(issue_name, comment)
         except JIRA.exceptions.JIRAError as jira_ex:
+            if self.env.context.get("allow_jira_exception"):
+                raise
             if jira_ex.status_code != 404:
                 raise
