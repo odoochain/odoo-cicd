@@ -57,6 +57,7 @@ class Controller(http.Controller):
 
         # first try to get login page, if this not success then try to start
         # containers
+        breakpoint()
         try:
             branch.make_instance_ready_to_login()
         except Exception as ex:

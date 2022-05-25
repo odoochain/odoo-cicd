@@ -528,12 +528,16 @@ class GitBranch(models.Model):
                 "/web/login"
                 ),
                 timeout=timeout)
-            return response.status_code == 200
+            return (
+                response.status_code == 200,
+                response.raw
+            )
 
         deadline = arrow.utcnow().shift(seconds=120)
         while True:
             try:
-                test_request()
+                if not test_request()[0]:
+                    raise Exception("Not ok")
             except Exception as ex:
                 if arrow.utcnow() > deadline:
                     raise ValidationError((
@@ -548,7 +552,8 @@ class GitBranch(models.Model):
             else:
                 break
 
-        if test_request():
+        ok, msg = test_request()
+        if ok:
             return
 
         if self.task_ids.filtered(lambda x: not x.is_done and x.state):
@@ -559,7 +564,8 @@ class GitBranch(models.Model):
 
         raise ValidationError((
             "Instance did not respond. It was tried to start the"
-            "application but this did not succeed. Please check task logs."
+            "application but this did not succeed. Please check task logs.<br/><br/>"
+            f"{msg}"
             ))
 
     def _get_odoo_proxy_container_name(self):
