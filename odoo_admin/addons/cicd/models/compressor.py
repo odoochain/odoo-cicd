@@ -17,10 +17,6 @@ class Compressor(models.Model):
     repo_id = fields.Many2one('cicd.git.repo', related="branch_id.repo_id")
     repo_short = fields.Char(related="repo_id.short", string="Repo")
     machine_id = fields.Many2one('cicd.machine', related="repo_id.machine_id")
-    volume_id = fields.Many2one(
-        'cicd.machine.volume', string="Output Volume", required=True,
-        domain="[('ttype', '=', 'dumps'), ('machine_id', '=', machine_id)]")
-    output_filename = fields.Char("Output Filename", required=True)
     anonymize = fields.Boolean("Anonymize", required=True)
     branch_id = fields.Many2one(
         'cicd.git.branch', string="Use Branch for compression", required=True)
