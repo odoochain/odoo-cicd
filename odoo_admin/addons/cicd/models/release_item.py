@@ -357,7 +357,10 @@ class ReleaseItem(models.Model):
 
         if deadline and deadline < now:
             if not self.is_failed and not self.is_done:
-                self.state = 'failed_too_late'
+                if self.branch_ids:
+                    self.state = 'failed_too_late'
+                else:
+                    self.state = 'done_nothing_todo'
                 return
 
         if self.state in ['collecting_merge_technical']:
