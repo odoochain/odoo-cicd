@@ -189,9 +189,13 @@ class CicdReleaseAction(models.Model):
                             f"{homedir}/.odoo/settings.{project_name}"
                         )
                         # registry=0 so that build tags are kept
+                        # and use not readonly registry access
+                        writable_hub = \
+                            rec.release_id.repo_id.registry_id.hub_url
                         shell.put((
                             f"{rec.effective_settings or ''}\n"
-                            "REGISTRY=0"
+                            "REGISTRY=0\n"
+                            "HUB_URL={writable_hub}\n"
                         ), settings_file)
                         shell.X([
                             "git-cicd", "checkout",
