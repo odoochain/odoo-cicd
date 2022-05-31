@@ -7,6 +7,7 @@
 				<form string="">
 					<header>
 						<button string="Make Hotfix" name="make_hotfix" type="object"/>
+						<button string="Build and Deploy" name="make_build_and_deploy" type="object"/>
 						<field name="state" widget="statusbar"  states='failed_technically,collecting_merge_conflict'/>
 					</header>
 					<sheet>

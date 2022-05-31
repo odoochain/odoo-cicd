@@ -173,6 +173,21 @@ class Release(models.Model):
             'release_type': 'hotfix',
         }]]
 
+    def make_build_and_deploy(self):
+        # TODO: remove clone with make_hotfix
+        existing = self.item_ids.filtered(
+            lambda x: x.release_type == 'build_and_deploy'
+            and not x.is_done
+            and not x.is_failed
+        )
+        if existing:
+            raise ValidationError((
+                "Build and Deploy already exists. "
+                "Please finish it before"))
+        self.item_ids = [[0, 0, {
+            'release_type': 'build_and_deploy',
+        }]]
+
     def toggle_active(self):
         for rec in self:
             rec.active = not rec.active

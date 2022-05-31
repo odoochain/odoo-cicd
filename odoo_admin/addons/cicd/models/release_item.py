@@ -73,6 +73,7 @@ class ReleaseItem(models.Model):
     release_type = fields.Selection([
         ('standard', 'Standard'),
         ('hotfix', 'Hotfix'),
+        ('build_and_deploy', 'Build and Deploy'),
     ], default="standard", required=True, readonly=True)
 
     is_done = fields.Boolean(
@@ -361,6 +362,11 @@ class ReleaseItem(models.Model):
                     self.state = 'failed_too_late'
                 else:
                     self.state = 'done_nothing_todo'
+                return
+
+        if self.release_type == 'build_and_deploy':
+            if not self.is_done and not self.is_failed:
+                self.state = 'ready'
                 return
 
         if self.state in ['collecting_merge_technical']:
