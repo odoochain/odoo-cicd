@@ -160,33 +160,23 @@ class Release(models.Model):
             item.cron_heartbeat()
 
     def make_hotfix(self):
-        existing = self.item_ids.filtered(
-            lambda x: x.release_type == 'hotfix'
-            and not x.is_done
-            and not x.is_failed
-        )
-        if existing:
-            raise ValidationError((
-                "Hotfix already exists. "
-                "Please finish it before"))
-        self.item_ids = [[0, 0, {
-            'release_type': 'hotfix',
-        }]]
+        self._make_unordinary_release('hotfix')
 
     def make_build_and_deploy(self):
-        # TODO: remove clone with make_hotfix
+        self._make_unordinary_release('build_and_deploy')
+
+    def _make_unordinary_release(self, ttype):
         existing = self.item_ids.filtered(
-            lambda x: x.release_type == 'build_and_deploy'
+            lambda x: x.release_type == ttype
             and not x.is_done
             and not x.is_failed
         )
         if existing:
             raise ValidationError((
-                "Build and Deploy already exists. "
+                f"{ttype} already exists. "
                 "Please finish it before"))
         self.item_ids = [[0, 0, {
-            'release_type': 'build_and_deploy',
-            'planned_date': arrow.utcnow().shift(hours=1).strftime(DTF),
+            'release_type': ttype,
         }]]
 
     def toggle_active(self):
