@@ -1,11 +1,10 @@
 from contextlib import contextmanager
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 import arrow
-from odoo import _, api, fields, models, SUPERUSER_ID
-from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
 import logging
-from odoo.addons.queue_job.exception import RetryableJobError
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +185,7 @@ class Release(models.Model):
                 "Please finish it before"))
         self.item_ids = [[0, 0, {
             'release_type': 'build_and_deploy',
+            'planned_date': arrow.utcnow().shift(hours=1).strftime(DTF),
         }]]
 
     def toggle_active(self):
