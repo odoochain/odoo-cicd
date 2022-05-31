@@ -426,27 +426,22 @@ class Repository(models.Model):
             "git-cicd", "reset", "--hard",
             f"origin/{branch}"])
 
-        # remove existing instance folder to refetch
-        db_branch = self.env['cicd.git.branch'].search([
-            ('name', '=', branch),
-            ('repo_id', '=', self.id)
-        ])
-        if not db_branch:
-            raise ValidationError(f"Branch {branch} does not exist yet.")
-        shell.rm(db_branch._get_instance_folder(
-            shell.machine))
+        # # remove existing instance folder to refetch
+        # not needed; the branch tries to pull - on an error
+        # it is rebuilt then
 
     def _pull(self, shell, branch):
         # option P makes .git --> .git/
         shell.X([
             "ls -pA |grep -v \\.git\\/ |xargs rm -Rf"])
         shell.X(["git-cicd", "pull"])
-        shell.X(["git-cicd", "checkout", "-f"])
+        shell.X(["git-cicd", "checkout", "-f", branch])
 
     def _prepare_pulled_branch(self, shell, branch):
-        releases = self.env['cicd.release'].search([
-            ('repo_id', '=', self.id)])
-        candidate_branch_names = releases.item_ids.mapped('item_branch_name')
+        #releases = self.env['cicd.release'].search([
+        #    ('repo_id', '=', self.id)])
+        # candidate_branch_names = releases.item_ids.mapped('item_branch_name')
+        breakpoint()
         try:
             logsio = shell.logsio
             logsio.info(f"Pulling {branch}...")
@@ -456,10 +451,10 @@ class Repository(models.Model):
             self._checkout_branch_recreate_repo_on_need(
                 shell, branch)
 
-            if branch in candidate_branch_names:
-                self._pull_hard_reset(shell, branch)
-            else:
-                self._pull(shell, branch)
+            # if branch in candidate_branch_names:
+            self._pull_hard_reset(shell, branch)
+            # else:
+            #     self._pull(shell, branch)
             shell.X([
                 "git-cicd", "submodule", "update",
                 "--init", "--recursive"])

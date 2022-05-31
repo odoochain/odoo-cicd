@@ -406,7 +406,7 @@ class Branch(models.Model):
 
             try:
                 shell.X(["git-cicd", "pull"])
-            except Exception as ex:
+            except Exception as ex:  # pylint: disable=broad-except
                 shell.logsio.error((
                     "Error at pulling,"
                     f"cloning path {instance_folder} again:\n{ex}"))
@@ -445,10 +445,12 @@ class Branch(models.Model):
             shell.X(["git-cicd", "clean", "-xdff"])
 
             shell.logsio.write_text("Updating submodules")
-            shell.X(["git-cicd", "submodule", "update", "--recursive", "--init"])
+            shell.X([
+                "git-cicd", "submodule", "update", "--recursive", "--init"])
 
             shell.logsio.write_text("Getting current commit")
-            commit = shell.X(["git-cicd", "rev-parse", "HEAD"])['stdout'].strip()
+            commit = shell.X([
+                "git-cicd", "rev-parse", "HEAD"])['stdout'].strip()
             shell.logsio.write_text(commit)
 
         return str(commit)
@@ -599,8 +601,9 @@ class Branch(models.Model):
     def _internal_build(self, shell):
         try:
             self._fetch_from_registry(shell)
-        except Exception as ex:
-            shell.logsio.error("Could not pull from registry. Trying to build.")
+        except Exception as ex: # pylint: disable=broad-except
+            shell.logsio.error(
+                "Could not pull from registry. Trying to build.")
             shell.logsio.error(ex)
         shell.odoo("build")
         self._push_to_registry(shell)
