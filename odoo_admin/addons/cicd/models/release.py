@@ -71,7 +71,8 @@ class Release(models.Model):
         """
         for rec in self:
             items = rec.item_ids.with_context(prefetch_fields=False).sorted(
-                lambda x: x.id, reverse=True)
+                lambda x: x.id, reverse=True).filtered(
+                    lambda x: x.release_type not in ['build_and_deploy'])
             if not items:
                 rec.last_item_id = False
                 rec.next_to_finish_item_id = False

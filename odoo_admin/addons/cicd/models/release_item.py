@@ -367,7 +367,6 @@ class ReleaseItem(models.Model):
         if self.release_type == 'build_and_deploy':
             if not self.is_done and not self.is_failed:
                 self.state = 'ready'
-                return
 
         if self.state in ['collecting_merge_technical']:
             # wait for solving
