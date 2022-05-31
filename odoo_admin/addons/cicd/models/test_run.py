@@ -105,7 +105,7 @@ class CicdTestRun(models.Model):
             rec.line_robottest_ids = lines.filtered(
                 lambda x: x.ttype == 'robottest')
             rec.failed_line_ids = lines.filtered(
-                lambda x: x.state == 'failed')
+                lambda x: x.state == 'failed' and not x.force_success)
 
     def init(self):
         super().init()
@@ -465,15 +465,6 @@ class CicdTestRun(models.Model):
 
         if self.simulate_install_id:
             self.as_job('migration')._run_udpate_db()
-
-    @api.constrains("success_rate", "state")
-    def _check_success_rate_and_state(self):
-        for rec in self:
-            if rec.state == 'failed' and rec.success_rate >= 100:
-                breakpoint()
-                raise ValidationError((
-                    "Success-Rate 100 and state failed do not match."
-                ))
 
     def _compute_success_rate(self, task=None):
         self.ensure_one()
