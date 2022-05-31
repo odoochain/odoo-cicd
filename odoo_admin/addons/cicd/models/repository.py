@@ -441,12 +441,13 @@ class Repository(models.Model):
         shell.X([
             "ls -pA |grep -v \\.git\\/ |xargs rm -Rf"])
         shell.X(["git-cicd", "pull"])
-        shell.X(["git-cicd", "checkout", "-f"])
+        shell.X(["git-cicd", "checkout", "-f", branch])
 
     def _prepare_pulled_branch(self, shell, branch):
-        releases = self.env['cicd.release'].search([
-            ('repo_id', '=', self.id)])
-        candidate_branch_names = releases.item_ids.mapped('item_branch_name')
+        #releases = self.env['cicd.release'].search([
+        #    ('repo_id', '=', self.id)])
+        # candidate_branch_names = releases.item_ids.mapped('item_branch_name')
+        breakpoint()
         try:
             logsio = shell.logsio
             logsio.info(f"Pulling {branch}...")
@@ -456,10 +457,10 @@ class Repository(models.Model):
             self._checkout_branch_recreate_repo_on_need(
                 shell, branch)
 
-            if branch in candidate_branch_names:
-                self._pull_hard_reset(shell, branch)
-            else:
-                self._pull(shell, branch)
+            # if branch in candidate_branch_names:
+            self._pull_hard_reset(shell, branch)
+            # else:
+            #     self._pull(shell, branch)
             shell.X([
                 "git-cicd", "submodule", "update",
                 "--init", "--recursive"])
