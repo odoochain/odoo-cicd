@@ -426,15 +426,9 @@ class Repository(models.Model):
             "git-cicd", "reset", "--hard",
             f"origin/{branch}"])
 
-        # remove existing instance folder to refetch
-        db_branch = self.env['cicd.git.branch'].search([
-            ('name', '=', branch),
-            ('repo_id', '=', self.id)
-        ])
-        if not db_branch:
-            raise ValidationError(f"Branch {branch} does not exist yet.")
-        shell.rm(db_branch._get_instance_folder(
-            shell.machine))
+        # # remove existing instance folder to refetch
+        # not needed; the branch tries to pull - on an error
+        # it is rebuilt then
 
     def _pull(self, shell, branch):
         # option P makes .git --> .git/
