@@ -34,6 +34,8 @@ class CicdReleaseAction(models.Model):
                 "\n"
                 f"{rec.settings or ''}"
                 "\n"
+                f"PROJECT_NAME={rec.release_id.project_name}"
+                "\n"
             )
 
     def _exec_shellscripts(self, logsio, pos):
@@ -181,6 +183,7 @@ class CicdReleaseAction(models.Model):
         settings = self._remove_setting(settings, "RESTART_CONTAINERS")
         settings = self._remove_setting(settings, "DUMPS_PATH")
         settings = self._remove_setting(settings, "HUB_URL")
+        settings = self._remove_setting(settings, "PROJECT_NAME")
         return settings
 
     def _load_images_to_registry(self, logsio, release_item, commit_sha):
@@ -216,6 +219,7 @@ class CicdReleaseAction(models.Model):
                             f"{settings or ''}\n"
                             "REGISTRY=0\n"
                             f"HUB_URL={writable_hub}\n"
+                            f"PROJECT_NAME={project_name}"
                         ), settings_file)
                         shell.X([
                             "git-cicd", "checkout", commit_sha])

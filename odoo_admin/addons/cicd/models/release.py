@@ -51,6 +51,16 @@ class Release(models.Model):
     common_settings = fields.Text(
         "Settings for machines (details in action sets)")
 
+    @api.constrains("common_settings")
+    def _check_settings(self):
+        for rec in self:
+            if rec.common_settings:
+                if "PROJECT_NAME=" in rec.common_settings:
+                    raise ValidationError((
+                        "May not contain projectname!"
+                        "Project name is defined in settings of release"
+                    ))
+
     @api.constrains("project_name")
     def _check_project_name(self):
         for rec in self:
