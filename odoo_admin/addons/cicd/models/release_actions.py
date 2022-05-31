@@ -65,7 +65,8 @@ class CicdReleaseAction(models.Model):
                 actions._exec_shellscripts(logsio, "before")
 
                 actions._upload_settings_file(logsio, release_item)
-                actions._load_images_to_registry(logsio, release_item)
+                actions._load_images_to_registry(
+                    logsio, release_item, commit_sha)
                 actions._update_sourcecode(
                     logsio, release_item, commit_sha)
                 actions._update_images(logsio)
@@ -112,7 +113,7 @@ class CicdReleaseAction(models.Model):
             with self._contact_machine(logsio) as shell:
                 if not shell:
                     return
-                shell.odoo("kill")
+                shell.odoo("kill", allow_error=True)
 
     def _update_sourcecode(self, logsio, release_item, merge_commit_id):
         logsio.info("Updating source code")
@@ -165,10 +166,28 @@ class CicdReleaseAction(models.Model):
                     )
                     shell.put(settings, "~/.odoo/settings")
 
-    def _load_images_to_registry(self, logsio, release_item):
+    def _remove_setting(self, settings, key):
+        def _do():
+            for line in settings.splitlines():
+                if line.startswith(f"{key}="):
+                    continue
+                yield line
+        return '\n'.join(_do())
+
+    def _get_virginal_settings(self):
+        self.ensure_one()
+        settings = self.effective_settings
+        settings = self._remove_setting(settings, "OWNER_UID")
+        settings = self._remove_setting(settings, "RESTART_CONTAINERS")
+        settings = self._remove_setting(settings, "DUMPS_PATH")
+        settings = self._remove_setting(settings, "HUB_URL")
+        return settings
+
+    def _load_images_to_registry(self, logsio, release_item, commit_sha):
         """
         Builds with given configuration and uploads to registry
         """
+        breakpoint()
         with self._extra_env() as x_self:
             logsio.info("Preparing updating docker registry")
             for rec in x_self:
@@ -192,14 +211,14 @@ class CicdReleaseAction(models.Model):
                         # and use not readonly registry access
                         writable_hub = \
                             rec.release_id.repo_id.registry_id.hub_url
+                        settings = self._get_virginal_settings()
                         shell.put((
-                            f"{rec.effective_settings or ''}\n"
+                            f"{settings or ''}\n"
                             "REGISTRY=0\n"
-                            "HUB_URL={writable_hub}\n"
+                            f"HUB_URL={writable_hub}\n"
                         ), settings_file)
                         shell.X([
-                            "git-cicd", "checkout",
-                            release_item.commit_id.name])
+                            "git-cicd", "checkout", commit_sha])
                         shell.odoo("-xs", settings_file, "reload")
                         logsio.info("Pulling images for only-images services")
                         shell.odoo('docker', 'pull')
