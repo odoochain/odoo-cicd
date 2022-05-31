@@ -45,6 +45,10 @@
 								<field name="line_ids" nolabel='1' context="{'form_view_ref': 'cicd.view_cicd_test_run_line_form'}">
 								</field>
 							</page>
+							<page name='failed_lines' string="Failed Lines">
+								<field name="failed_line_ids" nolabel='1' context="{'form_view_ref': 'cicd.view_cicd_test_run_line_form'}">
+								</field>
+							</page>
 							<page string="Settings" name="settings" col="2">
 								<group col='2'>
 									<field name="run_unittests" widget="boolean_toggle"/>

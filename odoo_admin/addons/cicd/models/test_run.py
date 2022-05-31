@@ -86,6 +86,8 @@ class CicdTestRun(models.Model):
         'cicd.test.run.line', compute="_compute_lines")
     line_robottest_ids = fields.Many2many(
         'cicd.test.run.line', compute="_compute_lines")
+    failed_line_ids = fields.Many2many(
+        'cicd.test.run.line', compute="_compute_lines")
     duration = fields.Integer("Duration [s]", tracking=True)
     queuejob_log = fields.Binary("Queuejob Log")
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
@@ -102,6 +104,8 @@ class CicdTestRun(models.Model):
                 lambda x: x.ttype == 'unittest')
             rec.line_robottest_ids = lines.filtered(
                 lambda x: x.ttype == 'robottest')
+            rec.failed_line_ids = lines.filtered(
+                lambda x: x.state == 'failed')
 
     def init(self):
         super().init()
@@ -462,6 +466,15 @@ class CicdTestRun(models.Model):
         if self.simulate_install_id:
             self.as_job('migration')._run_udpate_db()
 
+    @api.constrains("success_rate", "state")
+    def _check_success_rate_and_state(self):
+        for rec in self:
+            if rec.state == 'failed' and rec.success_rate >= 100:
+                breakpoint()
+                raise ValidationError((
+                    "Success-Rate 100 and state failed do not match."
+                ))
+
     def _compute_success_rate(self, task=None):
         self.ensure_one()
         lines = self.mapped('line_ids').filtered(
@@ -469,7 +482,8 @@ class CicdTestRun(models.Model):
         success_lines = len(lines.filtered(
             lambda x: x.state == 'success' or x.force_success or x.reused))
         any_failed_line = bool(
-            self.line_ids.filtered(lambda x: x.state == 'failed'))
+            self.line_ids.filtered(
+                lambda x: x.state == 'failed' and not x.force_success))
         if not lines and not any_failed_line:
             # perhaps in debugging and quickly testing releasing
             # or turning off tests

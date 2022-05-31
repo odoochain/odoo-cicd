@@ -13,6 +13,7 @@
 						<group colspan="4" col="4">
 							<field name="ttype"/>
 							<field name="started"/>
+							<field name="force_success"/>
 						</group>
 						<group string="" colspan="4">
 							<field name="name"/>
