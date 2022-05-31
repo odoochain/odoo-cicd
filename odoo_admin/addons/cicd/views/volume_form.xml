@@ -15,9 +15,9 @@
 						<field name="used_size_human"/>
 						<field name="free_size_human"/>
 						<field name="total_size_human"/>
-						<field name="used_size"/>
-						<field name="free_size"/>
-						<field name="total_size"/>
+						<field name="used_size" invisible='1'/>
+						<field name="free_size" invisible='1'/>
+						<field name="total_size" invisible='1'/>
 						<field name="used_percent"/>
 					</group>
 				</sheet>

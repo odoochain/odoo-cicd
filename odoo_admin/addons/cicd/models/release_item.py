@@ -195,8 +195,12 @@ class ReleaseItem(models.Model):
     def _do_release(self):
         try:
             with self.release_id._get_logsio() as logsio:
-                with self._extra_env() as x_self:
-                    commit_sha = x_self.item_branch_id.latest_commit_id.name
+                if self.release_type == 'build_and_deploy':
+                    commit_sha = \
+                        self.release_id.branch_id.latest_commit_id.name
+                    # take
+                else:
+                    commit_sha = self.item_branch_id.latest_commit_id.name
                 assert commit_sha
                 errors = self.release_id.action_ids.run_action_set(
                     self, commit_sha)
