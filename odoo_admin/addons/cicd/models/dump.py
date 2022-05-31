@@ -110,7 +110,10 @@ class Dump(models.Model):
 
                 if not dumps:
                     continue
-                for dump in dumps.search([('name', 'like', volname)]):
+                for dump in dumps.search([
+                    ('name', 'like', volname),
+                    ('machine_id', '=', machine.id),
+                ]):
                     if dump.name.startswith(volname):
                         if dump.name not in Files:
                             dump.with_context(
