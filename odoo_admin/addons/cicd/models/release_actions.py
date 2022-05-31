@@ -66,7 +66,8 @@ class CicdReleaseAction(models.Model):
             try:
                 actions._exec_shellscripts(logsio, "before")
 
-                actions._upload_settings_file(logsio, release_item)
+                actions._upload_settings_file(
+                    logsio, release_item, commit_sha)
                 actions._load_images_to_registry(
                     logsio, release_item, commit_sha)
                 actions._update_sourcecode(
@@ -153,7 +154,7 @@ class CicdReleaseAction(models.Model):
                             "git-cicd", "remote"])['stdout'].strip().splitlines():
                         gitshell.X(["git-cicd", "remote", "remove", remote])
 
-    def _upload_settings_file(self, logsio, release_item):
+    def _upload_settings_file(self, logsio, release_item, commit_sha):
         breakpoint()
         logsio.info("Uploading settings file")
         with self._extra_env() as x_self:
@@ -163,7 +164,7 @@ class CicdReleaseAction(models.Model):
                 with rec._contact_machine(logsio) as shell:
                     settings = rec.effective_settings
                     settings = (
-                        f"DOCKER_IMAGE_TAG={release_item.commit_id.name}\n"
+                        f"DOCKER_IMAGE_TAG={commit_sha}\n"
                         f"{settings}"
                     )
                     shell.put(settings, "~/.odoo/settings")
