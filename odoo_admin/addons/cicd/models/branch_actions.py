@@ -179,20 +179,30 @@ class Branch(models.Model):
 
         cwd = force_instance_folder or self._make_sure_source_exists(shell)
 
-        with shell.clone(cwd=cwd) as shell:
-            self._make_instance_docker_configs(
-                shell, forced_project_name=project_name, settings=settings,
-                registry=registry
-            )
-            self._collect_all_files_by_their_checksum(shell)
-            if commit:
-                shell.checkout_commit(commit)
-            params = []
-            if no_update_images:
-                params += ['--no-update-images']
-            shell.odoo('reload', *params)
-            if self._is_hub_configured(shell):
-                shell.odoo("login")
+        try:
+            with shell.clone(cwd=cwd) as shell:
+                self._make_instance_docker_configs(
+                    shell, forced_project_name=project_name, settings=settings,
+                    registry=registry
+                )
+                self._collect_all_files_by_their_checksum(shell)
+                if commit:
+                    shell.checkout_commit(commit)
+                params = []
+                if no_update_images:
+                    params += ['--no-update-images']
+                shell.odoo('reload', *params)
+                if self._is_hub_configured(shell):
+                    shell.odoo("login")
+        except Exception as ex:
+            msg = str(ex)
+            if "Warning: Permanently added 'github.com" in msg and \
+                    "Command '['git', 'pull']' returned non-zero exit status 1" in msg:
+                raise RetryableJobError((
+                        "Could not pull from github.com - "
+                        f"check network please: {msg}"
+                ), seconds=10, ignore_retry=True)
+
 
     def _is_hub_configured(self, shell):
         output = shell.odoo("config", "--full", logoutput=False)['stdout']
