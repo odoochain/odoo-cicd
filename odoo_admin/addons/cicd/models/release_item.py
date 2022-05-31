@@ -118,9 +118,10 @@ class ReleaseItem(models.Model):
         #     msg = "Nothing new to deploy"
         self.done_date = fields.Datetime.now()
         self.state = 'done'
-        self.with_delay()._send_release_mail()
-        self.with_delay()._inform_ticketsystem()
-        self.item_branch_id.with_delay().write({'active': False})
+        if self.release_type not in ['build_and_deploy']:
+            self.with_delay()._send_release_mail()
+            self.with_delay()._inform_ticketsystem()
+            self.item_branch_id.with_delay().write({'active': False})
 
     def _send_release_mail(self):
         self.release_id.message_post_with_view(
