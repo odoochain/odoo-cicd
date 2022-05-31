@@ -124,8 +124,12 @@ class CicdTestRunLine(models.Model):
                     if re.findall(grace, line):
                         rec.ttype = 'log'
                         break
+
     @api.model
     def create(self, vals):
         res = super().create(vals)
         res._be_graceful()
         return res
+
+    def ok(self):
+        return {'type': 'ir.actions.act_window_close'}

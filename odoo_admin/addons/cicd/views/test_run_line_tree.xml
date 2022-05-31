@@ -5,7 +5,7 @@
 			<field name="model">cicd.test.run.line</field>
 			<field name="arch" type="xml">
 				<tree decoration-danger="state == 'failed'" decoration-success="state == 'success'" create="0" delete="0">
-					<button name="open_window" string="" icon="fa-external-link" type="object" />
+					<!-- <button name="open_window" string="" icon="fa-external-link" type="object" /> -->
 					<field name="ttype"/>
 					<field name="position"/>
 					<field name="odoo_module"/>
@@ -15,7 +15,7 @@
 					<field name="duration"/>
 					<field name="state"/>
 					<!-- <button string="Toggle" name="toggle_force_success" type="object"/> -->
-					<field name="force_success" widget="boolean_toggle"/>
+					<field name="force_success" />
 					<field name="reused"/>
 					<field name="try_count"/>
 					<field name="robot_output" invisible='1'/>
