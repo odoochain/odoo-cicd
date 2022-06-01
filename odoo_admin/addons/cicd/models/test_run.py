@@ -65,6 +65,7 @@ class CicdTestRun(models.Model):
     date = fields.Datetime(
         "Date Started", default=lambda self: fields.Datetime.now(),
         required=True, tracking=True)
+    date_started = fields.Datetime("Date Started")
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
     commit_id_short = fields.Char(related="commit_id.short", store=True)
     branch_id = fields.Many2one(
@@ -124,12 +125,12 @@ class CicdTestRun(models.Model):
             rec.queuejob_log_filename = 'queuejobs.xlsx'
 
     def abort(self):
-        for qj in self._get_queuejobs('all'):
+        for qj in self._get_queuejobs('active'):
             self.env.cr.execute((
-                "update queue_job set state = 'failed' "
+                "update queue_job set state = 'done' "
                 "where id=%s "
             ), (qj['id'],))
-        self.do_abort = False
+        self.do_abort = True
         self.state = 'failed'
 
     def _reload(self, shell, settings, instance_folder):
@@ -336,6 +337,20 @@ class CicdTestRun(models.Model):
             eta=eta
             )
 
+    def _get_failed_queuejobs_which_wont_be_requeued(self):
+        queuejobs = list(filter(
+            lambda x: x['state'] == 'failed',
+            self._get_queuejobs('active')))
+
+        timeout_minutes = int(
+            self.env.ref("cicd.test_timeout_queuejobs_testruns").value)
+        queuejobs = list(filter(
+            lambda x: arrow.get(x['date_created']).shift(
+                minutes=timeout_minutes) < arrow.utcnow()), queuejobs)
+
+        # these queuejobs are considered as fully dead
+        return queuejobs
+
     def _get_queuejobs(self, ttype, include_wait_for_finish=False):
         assert ttype in ['active', 'all']
         self.ensure_one()
@@ -355,7 +370,7 @@ class CicdTestRun(models.Model):
             " ) "
         )
         self.env.cr.execute((
-            "select id, state, exc_info, identity_key "
+            "select id, state, exc_info, identity_key, date_created "
             "from queue_job "
             "where " + domain
         ))
@@ -392,22 +407,18 @@ class CicdTestRun(models.Model):
             return
 
         qj = self._get_queuejobs('active')
+        qjobs_failed_dead = self._get_failed_queuejobs_which_wont_be_requeued()
+
+        if qjobs_failed_dead:
+            self.abort()
+
         if qj:
             raise RetryableJobError(
                 "Waiting for test finish", seconds=30,
                 ignore_retry=True)
 
-        with self._logsio(None) as logsio:
-            logsio.info(f"Duration was {self.duration}")
-
-            qj = sorted(qj, key=lambda x: x['date_created'])
-            if qj:
-                self.duration = \
-                        (arrow.utcnow() - arrow.get(qj[0]['date_created']))\
-                    .total_seconds()
-            else:
-                self.duration = 0
-
+        self.duration = (
+            arrow.utcnow() - arrow.get(self.date_started)).total_seconds()
         self.as_job("cleanup", True)._cleanup_testruns()
 
         self.as_job("compute_success_rate", True)._compute_success_rate(
@@ -442,6 +453,7 @@ class CicdTestRun(models.Model):
     def execute(self, task=None):
         self.ensure_one()
         self.do_abort = False
+        self.date_started = fields.Datetime.now()
         self.ensure_one()
         self._switch_to_running_state()
         self.env.cr.commit()

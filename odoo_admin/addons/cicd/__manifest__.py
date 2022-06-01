@@ -66,6 +66,7 @@
     'depends': ['field_onchange', 'mail', 'queue_job', 'visualize_queries'],
     'external_dependencies': {   'python': [   'pudb',
                                                'sarge',
+                                               "cron_descriptor",
                                                'bson',
                                                'humanize',
                                                'paramiko',
