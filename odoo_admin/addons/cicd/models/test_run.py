@@ -482,10 +482,16 @@ class CicdTestRun(models.Model):
 
     def _compute_success_rate(self, task=None):
         self.ensure_one()
-        lines = self.mapped('line_ids').filtered(
-            lambda x: x.ttype != 'log')
+        breakpoint()
+        lines = self.mapped('line_ids').filtered_domain(
+            [('ttype', 'not in', ('preparation', 'log'))])
         success_lines = len(lines.filtered(
             lambda x: x.state == 'success' or x.force_success or x.reused))
+
+        unittests_missing = self.run_unittests \
+            and not self.line_ids.filtered_domain([('ttype', '=', 'unittest')])
+        robottests_missing = self.run_robottests \
+            and not self.line_ids.filtered_domain([('ttype', '=', 'robottest')])
 
         # ignore logs although there are errors:
         # if a queuejob fails in a log and is brain dead, then the hole test
@@ -497,7 +503,8 @@ class CicdTestRun(models.Model):
                 ('ttype', '!=', 'log'),
                 ('force_success', '=', False)
             ]))
-        if not lines and not any_failed_line:
+        if not lines and not any_failed_line and not unittests_missing and \
+                not robottests_missing:
             # perhaps in debugging and quickly testing releasing
             # or turning off tests
             self.state = 'success'
@@ -507,7 +514,8 @@ class CicdTestRun(models.Model):
             if lines and all(
                 x.state == 'success' or
                 x.force_success or x.reused for x in lines
-            ) and not any_failed_line:
+            ) and not any_failed_line and not unittests_missing and \
+                    not robottests_missing:
                 self.state = 'success'
             else:
                 self.state = 'failed'
