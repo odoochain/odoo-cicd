@@ -484,9 +484,17 @@ class CicdTestRun(models.Model):
             lambda x: x.ttype != 'log')
         success_lines = len(lines.filtered(
             lambda x: x.state == 'success' or x.force_success or x.reused))
+
+        # ignore logs although there are errors:
+        # if a queuejob fails in a log and is brain dead, then the hole test
+        # fails. do_abort is called there. so intermediate fails in logs may
+        # be ignored
         any_failed_line = bool(
-            self.line_ids.filtered(
-                lambda x: x.state == 'failed' and not x.force_success))
+            self.line_ids.filtered_domain([
+                ('state', '=', 'failed'),
+                ('ttype', '!=', 'log')
+                ('force_success', '=', False)
+            ]))
         if not lines and not any_failed_line:
             # perhaps in debugging and quickly testing releasing
             # or turning off tests
