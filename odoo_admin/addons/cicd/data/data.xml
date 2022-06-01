@@ -11,5 +11,16 @@
 		<field name='value'>10</field>
 	</record>
 
+	<record model='ir.config_parameter' id='test_timeout_queuejobs_testruns'>
+		<!--
+			Meaning: if failed queuejobs exist older than 30 minutes
+			they are probably not rescheduled and so they are considered as
+			failed
+
+		-->
+		<field name='key'>test.timeout.failed.queuejobs.minutes</field>
+		<field name='value'>30</field>
+	</record>
+
 	</data>
 </odoo>
