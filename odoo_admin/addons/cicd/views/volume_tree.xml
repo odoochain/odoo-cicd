@@ -1,0 +1,15 @@
+<odoo>
+	<data noupdate='0'>
+
+		<record id="view_cicd_machine_volume_tree" model="ir.ui.view">
+			<field name="model">cicd.machine.volume</field>
+			<field name="arch" type="xml">
+				<tree default_order="" string="" >
+					<field name="name" />
+					<field name="machine_id"/>
+				</tree>
+			</field>
+		</record>	
+
+	</data>
+</odoo>

@@ -167,7 +167,7 @@ class CicdTestRun(models.Model):
             raise
 
     def _abort_if_required(self):
-        if self.do_abort:
+        if self.do_abort and not self.env.context.get("testrun_cleanup"):
             raise AbortException("User aborted")
 
     def _log(self, func, comment="", allow_error=False):
@@ -232,7 +232,9 @@ class CicdTestRun(models.Model):
                 cwd=instance_folder,
                 project_name=instance_folder.name,
             ) as shell:
-                self._ensure_source_and_machines(shell)
+                self.with_context(
+                    testrun_cleanup=True
+                )._ensure_source_and_machines(shell)
                 for project_name in set(self.mapped('line_ids.project_name')):
                     with shell.clone(project_name=project_name) as shell2:
                         shell2.odoo('down', '-v', force=True, allow_error=True)
@@ -346,7 +348,7 @@ class CicdTestRun(models.Model):
             self.env.ref("cicd.test_timeout_queuejobs_testruns").value)
         queuejobs = list(filter(
             lambda x: arrow.get(x['date_created']).shift(
-                minutes=timeout_minutes) < arrow.utcnow()), queuejobs)
+                minutes=timeout_minutes) < arrow.utcnow(), queuejobs))
 
         # these queuejobs are considered as fully dead
         return queuejobs
@@ -405,14 +407,14 @@ class CicdTestRun(models.Model):
             return
         if self.env.context.get('test_queue_job_no_delay'):
             return
+        breakpoint()
 
         qj = self._get_queuejobs('active')
         qjobs_failed_dead = self._get_failed_queuejobs_which_wont_be_requeued()
 
         if qjobs_failed_dead:
             self.abort()
-
-        if qj:
+        elif qj:
             raise RetryableJobError(
                 "Waiting for test finish", seconds=30,
                 ignore_retry=True)
@@ -492,7 +494,7 @@ class CicdTestRun(models.Model):
         any_failed_line = bool(
             self.line_ids.filtered_domain([
                 ('state', '=', 'failed'),
-                ('ttype', '!=', 'log')
+                ('ttype', '!=', 'log'),
                 ('force_success', '=', False)
             ]))
         if not lines and not any_failed_line:
