@@ -431,7 +431,7 @@ class CicdTestRun(models.Model):
         except RetryableJobError:
             raise
 
-        except Exception as ex: # pylint: disable=broad-except
+        except Exception as ex:  # pylint: disable=broad-except
             raise RetryableJobError(str(ex), ignore_retry=True) from ex
 
     @contextmanager
