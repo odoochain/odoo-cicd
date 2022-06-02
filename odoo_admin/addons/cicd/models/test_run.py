@@ -415,6 +415,13 @@ class CicdTestRun(models.Model):
 
             if qjobs_failed_dead:
                 self.abort()
+                exceptions = '\n'.join(
+                    filter(bool, [x['exc_info'] for x in qjobs_failed_dead]))
+                self.message_post(body=(
+                    "Brain-Dead Queuejobs detected - aborting testrun.\n"
+                    "Exceptions there: \n"
+                    f"{exceptions}"
+                ))
             elif qj:
                 raise RetryableJobError(
                     "Waiting for test finish", seconds=30,
@@ -432,6 +439,10 @@ class CicdTestRun(models.Model):
             raise
 
         except Exception as ex:  # pylint: disable=broad-except
+            self.message_post(body=(
+                f"Error occurred at wait for finish: {ex}"
+            ))
+            self.env.cr.commit()
             raise RetryableJobError(str(ex), ignore_retry=True) from ex
 
     @contextmanager

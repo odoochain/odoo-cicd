@@ -6,19 +6,21 @@ class TestSettings(models.AbstractModel):
     _name = 'cicd.test.settings'
 
     run_unittests = fields.Boolean(
-        "Run Unittests", default=True, testrun_field=True, testrun_apply=True)
+        "Run Unittests", default=True, testrun_field=True, testrun_apply=True,
+        tracking=True)
     run_robottests = fields.Boolean(
         "Run Robot-Tests", default=True, testrun_field=True,
-        testrun_apply=True)
+        testrun_apply=True, tracking=True)
     simulate_install_id = fields.Many2one(
         "cicd.dump", string="Simulate Install", testrun_field=True,
-        testrun_apply=True)
+        testrun_apply=True, tracking=True)
     retry_unit_tests = fields.Integer(
-        "Retry Unittests", default=3, testrun_apply=True)
+        "Retry Unittests", default=3, testrun_apply=True, tracking=True)
     timeout_tests = fields.Integer(
-        "Timeout Tests [s]", default=600, testrun_apply=True)
+        "Timeout Tests [s]", default=600, testrun_apply=True, tracking=True)
     timeout_migration = fields.Integer(
-        "Timeout Migration [s]", default=1800, testrun_apply=True)
+        "Timeout Migration [s]", default=1800, testrun_apply=True,
+        tracking=True)
     any_testing = fields.Boolean(compute="_compute_any_testing")
 
     def apply_test_settings(self, victim):
