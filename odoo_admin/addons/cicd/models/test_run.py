@@ -403,29 +403,36 @@ class CicdTestRun(models.Model):
 
     def _wait_for_finish(self, task=None):
         self.ensure_one()
-        if not self.exists():
-            return
         if self.env.context.get('test_queue_job_no_delay'):
             return
-        breakpoint()
+        try:
+            if not self.exists():
+                return
 
-        qj = self._get_queuejobs('active')
-        qjobs_failed_dead = self._get_failed_queuejobs_which_wont_be_requeued()
+            qj = self._get_queuejobs('active')
+            qjobs_failed_dead = \
+                self._get_failed_queuejobs_which_wont_be_requeued()
 
-        if qjobs_failed_dead:
-            self.abort()
-        elif qj:
-            raise RetryableJobError(
-                "Waiting for test finish", seconds=30,
-                ignore_retry=True)
+            if qjobs_failed_dead:
+                self.abort()
+            elif qj:
+                raise RetryableJobError(
+                    "Waiting for test finish", seconds=30,
+                    ignore_retry=True)
 
-        self.duration = (
-            arrow.utcnow() - arrow.get(self.date_started)).total_seconds()
-        self.as_job("cleanup", True)._cleanup_testruns()
+            self.duration = (
+                arrow.utcnow() - arrow.get(self.date_started)).total_seconds()
+            self.as_job("cleanup", True)._cleanup_testruns()
 
-        self.as_job("compute_success_rate", True)._compute_success_rate(
-            task=task)
-        self.as_job('inform_developer', True)._inform_developer()
+            self.as_job("compute_success_rate", True)._compute_success_rate(
+                task=task)
+            self.as_job('inform_developer', True)._inform_developer()
+
+        except RetryableJobError:
+            raise
+
+        except Exception as ex: # pylint: disable=broad-except
+            raise RetryableJobError(str(ex), ignore_retry=True) from ex
 
     @contextmanager
     def _shell(self, quick=False):
