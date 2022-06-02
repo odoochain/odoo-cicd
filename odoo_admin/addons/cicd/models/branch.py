@@ -159,6 +159,13 @@ class GitBranch(models.Model):
     ensure_dump_cache = fields.Text("Ensure Dump Cache for speeding up")
     database_size_from_shell = fields.Integer("db size from shell")
 
+    unittest_ids = fields.One2many(
+        "cicd.test.settings.unittest", "branch_id", testrun_field=True)
+    robottest_ids = fields.One2many(
+        "cicd.test.settings.unittest", "branch_id", testrun_field=True)
+    migration_ids = fields.One2many(
+        "cicd.test.settings.migrations", "branch_id", testrun_field=True)
+
     @api.recordchange("enable_snapshots")
     def _on_change_enable_snapshots(self):
         for rec in self:

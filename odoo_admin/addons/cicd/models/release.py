@@ -51,6 +51,13 @@ class Release(models.Model):
     common_settings = fields.Text(
         "Settings for machines (details in action sets)")
 
+    unittest_ids = fields.One2many(
+        "cicd.test.settings.unittest", "release_id", testrun_field=True)
+    robottest_ids = fields.One2many(
+        "cicd.test.settings.unittest", "release_id", testrun_field=True)
+    migration_ids = fields.One2many(
+        "cicd.test.settings.migrations", "release_id", testrun_field=True)
+
     @api.constrains("common_settings")
     def _check_settings(self):
         for rec in self:

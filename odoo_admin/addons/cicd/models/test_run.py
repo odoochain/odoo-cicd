@@ -97,6 +97,13 @@ class CicdTestRun(models.Model):
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many('queue.job', compute="_compute_queuejobs")
 
+    unittest_ids = fields.One2many(
+        "cicd.test.settings.unittest", "test_run_id", testrun_field=True)
+    robottest_ids = fields.One2many(
+        "cicd.test.settings.unittest", "test_run_id", testrun_field=True)
+    migration_ids = fields.One2many(
+        "cicd.test.settings.migrations", "test_run_id", testrun_field=True)
+
     @api.depends('line_ids')
     def _compute_lines(self):
         for rec in self:

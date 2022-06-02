@@ -51,12 +51,9 @@
 							</page>
 							<page string='Quality' name="quality">
 								<group string="Quality Assurance Settings" col='2'>
-									<field name="run_unittests" widget="boolean_toggle"/>
-									<field name="retry_unit_tests" />
-									<field name="timeout_tests"/>
-									<field name="timeout_migration"/>
-									<field name="run_robottests" widget="boolean_toggle"/>
-									<field name="simulate_install_id"/>
+									<field name="unittest_ids" context="{'tree_view_ref': 'cicd.unittest_settings_tree'}"/>
+									<field name="robottest_ids" context="{'tree_view_ref': 'cicd.robottest_settings_tree'}"/>
+									<field name="migration_ids" context="{'tree_view_ref': 'cicd.migrationtest_settings_tree'}"/>
 								</group>
 							</page>
 							<page string="Settings" name="settings">
