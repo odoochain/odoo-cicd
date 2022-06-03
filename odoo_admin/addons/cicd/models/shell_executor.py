@@ -174,7 +174,7 @@ class ShellExecutor(BaseShellExecutor):
             self._after_checkout()
 
     def branch_exists(self, branch, cwd=None):
-        res = self.X(["git-cicd", "branch", "--no-color"], cwd=cwd)[
+        res = self.X(["git-cicd", "branch", "--contains"], cwd=cwd)[
             'stdout'].strip().split("\n")
 
         def reformat(x):
@@ -183,6 +183,19 @@ class ShellExecutor(BaseShellExecutor):
             return x
         res = [reformat(x) for x in res]
         return branch in res
+
+    def current_branch_contains_commit(self, commit, cwd=None):
+        assert isinstance(commit, str)
+        try:
+            self.X([
+                "git-cicd", "branch", "--contains",
+                commit,
+            ], cwd=cwd)
+
+            return True
+
+        except Exception:  # # pylint: disable=broad-except
+            return False
 
     def _after_checkout(self):
         self.logsio and self.logsio.info("Cleaning git...")

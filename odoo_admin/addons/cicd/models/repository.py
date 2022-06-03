@@ -656,7 +656,7 @@ class Repository(models.Model):
                 shell.X(["git-cicd", "fetch", "origin"])
                 try:
                     shell.X(["git-cicd", "pull"])
-                except Exception as ex:
+                except Exception as ex:  # pylint: disable=broad-except
                     shell.logsio.error(str(ex))
                 shell.X([
                     "git-cicd", "push", "-f", "--set-upstream",

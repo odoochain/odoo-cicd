@@ -247,6 +247,14 @@ class ReleaseItem(models.Model):
         self.ensure_one()
         commits_checksum = None
 
+        self.message_post(body=(
+            "Merging following commits: \n"
+            f"{','.join(self.branch_ids.commit_id.mapped('name'))}"
+            "\nMerging following branches: "
+            f"{','.join(self.branch_ids.branch_id.mapped('name'))}"
+        ))
+        self.env.cr.commit()
+
         with self.release_id._get_logsio() as logsio:
             logsio.info((
                 f"Merging on {target_branch_name} following commits: "
@@ -302,6 +310,10 @@ class ReleaseItem(models.Model):
                             lambda x: x.commit_id == commit).write({
                                 'state': 'conflict'})
                     self.state = 'collecting_merge_conflict'
+                    self.message_post(body=(
+                        "Merge conflict happend: {ex.conflicts}"
+                    ))
+                    self.env.cr.commit()
                 else:
                     if 'collecting' in self.state and \
                             self.state != 'collecting':
@@ -313,7 +325,7 @@ class ReleaseItem(models.Model):
             except RetryableJobError:
                 raise
 
-            except Exception as ex:
+            except Exception as ex:  # pylint: disable=broad-except
                 self.state = 'collecting_merge_technical'
                 self.exc_info = (
                     f"{ex}"
@@ -333,8 +345,14 @@ class ReleaseItem(models.Model):
                     candidate_branch._compute_state()
 
                 self.mapped('branch_ids.branch_id')._compute_state()
+
         if commits_checksum:
             self.merged_checksum = commits_checksum
+
+        self.message_post(body=(
+            "Successfully merged"
+        ))
+        self.env.cr.commit()
 
     def abort(self):
         for rec in self:
@@ -456,6 +474,8 @@ class ReleaseItem(models.Model):
                     "Candidate branch "
                     f"'{self.item_branch_id.name}'"
                     "is not active!"))
+
+            self.check_if_item_branch_contains_all_commits(logsio)
 
             tag = (
                 f'{repo.release_tag_prefix}{self.name}-'
@@ -581,3 +601,15 @@ class ReleaseItem(models.Model):
                     "Deployment of "
                     f"version {rec.name} "
                     f"failed:\n{rec.log_release}"))
+
+    def check_if_item_branch_contains_all_commits(self, logsio):
+        machine = self.repo_id.machine_id
+        with self.repo_id._temp_repo(machine=machine) as repo_path:
+            with machine._shell(repo_path, logsio=logsio) as shell:
+                shell.checkout_branch(self.item_branch_id.name)
+                for commit in self.branch_ids.commit_id:
+                    if not shell.current_branch_contains_commit(commit.name):
+                        raise ValidationError((
+                            f"Missing commit {commit.name} on "
+                            f"{self.item_branch_id.name}"
+                        ))
