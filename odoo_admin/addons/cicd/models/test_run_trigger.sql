@@ -3,6 +3,7 @@ RETURNS trigger AS
 $BODY$
 DECLARE testrun record;
 DECLARE counted int;
+DECLARE var_commit_id int;
 
 BEGIN
     SELECT id, state, branch_id, commit_id
@@ -10,14 +11,22 @@ BEGIN
 	FROM cicd_test_run
 	WHERE id = NEW.id;
 
-	IF testrun.state = 'running' THEN
-		SELECT count(*)
-		INTO counted
-		FROM cicd_test_run
-		WHERE branch_id = cicd_test_run.branch_id and commit_id = cicd_test_run.commit_id
-		AND state = 'running';
 
-		IF counted > 1 THEN
+	IF testrun.state = 'running' THEN
+		SELECT
+			count(*)
+		INTO
+			counted
+		FROM
+			cicd_test_run
+		WHERE
+			cicd_test_run.commit_id = testrun.commit_id
+		AND
+			id <> testrun.id
+		AND
+			state = 'running';
+
+		IF counted > 0 THEN
 			RAISE EXCEPTION 'Cannot start two test runs for same commit';
 		END IF;
 

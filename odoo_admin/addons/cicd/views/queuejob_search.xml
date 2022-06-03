@@ -6,6 +6,7 @@
 			<field name="arch" type="xml">
 				<field name="channel" position="after">
 					<field name="identity_key"/>
+					<field name="exc_info"/>
 				</field>
 			</field>
 		</record>

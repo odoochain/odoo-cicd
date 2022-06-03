@@ -170,7 +170,7 @@ class CicdTestRun(models.Model):
             raise
 
     def _abort_if_required(self):
-        if self.do_abort:
+        if self.do_abort and not self.env.context.get("testrun_cleanup"):
             raise AbortException("User aborted")
 
     def _log(self, func, comment="", allow_error=False):
@@ -235,7 +235,9 @@ class CicdTestRun(models.Model):
                 cwd=instance_folder,
                 project_name=instance_folder.name,
             ) as shell:
-                self._ensure_source_and_machines(shell)
+                self.with_context(
+                    testrun_cleanup=True
+                )._ensure_source_and_machines(shell)
                 for project_name in set(self.mapped('line_ids.project_name')):
                     with shell.clone(project_name=project_name) as shell2:
                         shell2.odoo('down', '-v', force=True, allow_error=True)
@@ -349,7 +351,7 @@ class CicdTestRun(models.Model):
             self.env.ref("cicd.test_timeout_queuejobs_testruns").value)
         queuejobs = list(filter(
             lambda x: arrow.get(x['date_created']).shift(
-                minutes=timeout_minutes) < arrow.utcnow()), queuejobs)
+                minutes=timeout_minutes) < arrow.utcnow(), queuejobs))
 
         # these queuejobs are considered as fully dead
         return queuejobs
@@ -404,29 +406,47 @@ class CicdTestRun(models.Model):
 
     def _wait_for_finish(self, task=None):
         self.ensure_one()
-        if not self.exists():
-            return
         if self.env.context.get('test_queue_job_no_delay'):
             return
+        try:
+            if not self.exists():
+                return
 
-        qj = self._get_queuejobs('active')
-        qjobs_failed_dead = self._get_failed_queuejobs_which_wont_be_requeued()
+            qj = self._get_queuejobs('active')
+            qjobs_failed_dead = \
+                self._get_failed_queuejobs_which_wont_be_requeued()
 
-        if qjobs_failed_dead:
-            self.abort()
+            if qjobs_failed_dead:
+                self.abort()
+                exceptions = '\n'.join(
+                    filter(bool, [x['exc_info'] for x in qjobs_failed_dead]))
+                self.message_post(body=(
+                    "Brain-Dead Queuejobs detected - aborting testrun.\n"
+                    "Exceptions there: \n"
+                    f"{exceptions}"
+                ))
+            elif qj:
+                raise RetryableJobError(
+                    "Waiting for test finish", seconds=30,
+                    ignore_retry=True)
 
-        if qj:
-            raise RetryableJobError(
-                "Waiting for test finish", seconds=30,
-                ignore_retry=True)
+            self.duration = (
+                arrow.utcnow() - arrow.get(self.date_started)).total_seconds()
+            self.as_job("cleanup", True)._cleanup_testruns()
 
-        self.duration = (
-            arrow.utcnow() - arrow.get(self.date_started)).total_seconds()
-        self.as_job("cleanup", True)._cleanup_testruns()
+            self.as_job("compute_success_rate", True)._compute_success_rate(
+                task=task)
+            self.as_job('inform_developer', True)._inform_developer()
 
-        self.as_job("compute_success_rate", True)._compute_success_rate(
-            task=task)
-        self.as_job('inform_developer', True)._inform_developer()
+        except RetryableJobError:
+            raise
+
+        except Exception as ex:  # pylint: disable=broad-except
+            self.message_post(body=(
+                f"Error occurred at wait for finish: {ex}"
+            ))
+            self.env.cr.commit()
+            raise RetryableJobError(str(ex), ignore_retry=True) from ex
 
     @contextmanager
     def _shell(self, quick=False):
@@ -483,14 +503,29 @@ class CicdTestRun(models.Model):
 
     def _compute_success_rate(self, task=None):
         self.ensure_one()
-        lines = self.mapped('line_ids').filtered(
-            lambda x: x.ttype != 'log')
+        breakpoint()
+        lines = self.mapped('line_ids').filtered_domain(
+            [('ttype', 'not in', ('preparation', 'log'))])
         success_lines = len(lines.filtered(
             lambda x: x.state == 'success' or x.force_success or x.reused))
+
+        unittests_missing = self.run_unittests \
+            and not self.line_ids.filtered_domain([('ttype', '=', 'unittest')])
+        robottests_missing = self.run_robottests \
+            and not self.line_ids.filtered_domain([('ttype', '=', 'robottest')])
+
+        # ignore logs although there are errors:
+        # if a queuejob fails in a log and is brain dead, then the hole test
+        # fails. do_abort is called there. so intermediate fails in logs may
+        # be ignored
         any_failed_line = bool(
-            self.line_ids.filtered(
-                lambda x: x.state == 'failed' and not x.force_success))
-        if not lines and not any_failed_line:
+            self.line_ids.filtered_domain([
+                ('state', '=', 'failed'),
+                ('ttype', '!=', 'log'),
+                ('force_success', '=', False)
+            ]))
+        if not lines and not any_failed_line and not unittests_missing and \
+                not robottests_missing:
             # perhaps in debugging and quickly testing releasing
             # or turning off tests
             self.state = 'success'
@@ -500,7 +535,8 @@ class CicdTestRun(models.Model):
             if lines and all(
                 x.state == 'success' or
                 x.force_success or x.reused for x in lines
-            ) and not any_failed_line:
+            ) and not any_failed_line and not unittests_missing and \
+                    not robottests_missing:
                 self.state = 'success'
             else:
                 self.state = 'failed'
