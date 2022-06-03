@@ -13,10 +13,23 @@ _logger = logging.getLogger()
 CONCURRENT_HASH_THREADS = 8  # minimum system load observed
 
 
+class TestSettingsUnittest(models.Model):
+    _inherit = "cicd.test.settings.base"
+    _name = 'cicd.test.settings.unittest'
+
+    tags = fields.Char("Filter to tags (comma separated, may be empty)")
+
+    def get_name(self):
+        return f"{self.id} - {self.tags}"
+
+    def prepare(self, testrun):
+        test_run_lines = testrun._run_unit_tests()
+
+
 class TestrunUnittest(models.Model):
     _inherit = 'cicd.test.run'
 
-    def _run_unit_tests(self, **kwargs):
+    def _run_unit_tests(self):
         self = self.with_context(testrun=f'{self.id}_prepare_unittests')
 
         self._report("Hashing Modules / Preparing UnitTests")

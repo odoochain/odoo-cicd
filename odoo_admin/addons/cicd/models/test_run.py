@@ -84,7 +84,6 @@ class CicdTestRun(models.Model):
         ('omitted', 'Omitted'),
         ('failed', 'Failed'),
     ], string="Result", required=True, default='open', tracking=True)
-    success_rate = fields.Integer("Success Rate [%]", tracking=True)
     line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
     line_unittest_ids = fields.Many2many(
         'cicd.test.run.line', compute="_compute_lines")
@@ -135,6 +134,9 @@ class CicdTestRun(models.Model):
             ), (qj['id'],))
         self.do_abort = True
         self.state = 'failed'
+        for field in self._get_test_run_fields():
+            for test_setup in self[field]:
+                test_setup.reset_at_testrun()
 
     def _reload(self, shell, settings, instance_folder):
         def reload():
@@ -404,7 +406,7 @@ class CicdTestRun(models.Model):
         self.as_job(
             "wait_for_finish", False, eta=1)._wait_for_finish()
 
-    def _wait_for_finish(self, task=None):
+    def _wait_for_finish(self):
         self.ensure_one()
         if self.env.context.get('test_queue_job_no_delay'):
             return
@@ -434,8 +436,7 @@ class CicdTestRun(models.Model):
                 arrow.utcnow() - arrow.get(self.date_started)).total_seconds()
             self.as_job("cleanup", True)._cleanup_testruns()
 
-            self.as_job("compute_success_rate", True)._compute_success_rate(
-                task=task)
+            self.as_job("compute_success_state", True)._compute_success_state()
             self.as_job('inform_developer', True)._inform_developer()
 
         except RetryableJobError:
@@ -473,7 +474,7 @@ class CicdTestRun(models.Model):
     # ----------------------------------------------
     # Entrypoint
     # ----------------------------------------------
-    def execute(self, task=None):
+    def execute(self):
         self.ensure_one()
         self.do_abort = False
         self.date_started = fields.Datetime.now()
@@ -492,66 +493,17 @@ class CicdTestRun(models.Model):
             self._report("Started")
 
         breakpoint()
-        if self.run_unittests:
-            self.as_job('unittests')._run_unit_tests()
+        for test_setup in self.iterate_all_test_settings():
+            test_setup.as_job(test_setup.name).prepare(self)
 
-        if self.run_robottests:
-            self.as_job('robots')._run_robot_tests()
-
-        if self.simulate_install_id:
-            self.as_job('migration')._run_udpate_db()
-
-    def _compute_success_rate(self, task=None):
+    def _compute_success_state(self):
         self.ensure_one()
         breakpoint()
-        lines = self.mapped('line_ids').filtered_domain(
-            [('ttype', 'not in', ('preparation', 'log'))])
-        success_lines = len(lines.filtered(
-            lambda x: x.state == 'success' or x.force_success or x.reused))
-
-        unittests_missing = self.run_unittests \
-            and not self.line_ids.filtered_domain([('ttype', '=', 'unittest')])
-        robottests_missing = self.run_robottests \
-            and not self.line_ids.filtered_domain([('ttype', '=', 'robottest')])
-
-        # ignore logs although there are errors:
-        # if a queuejob fails in a log and is brain dead, then the hole test
-        # fails. do_abort is called there. so intermediate fails in logs may
-        # be ignored
-        any_failed_line = bool(
-            self.line_ids.filtered_domain([
-                ('state', '=', 'failed'),
-                ('ttype', '!=', 'log'),
-                ('force_success', '=', False)
-            ]))
-        if not lines and not any_failed_line and not unittests_missing and \
-                not robottests_missing:
-            # perhaps in debugging and quickly testing releasing
-            # or turning off tests
+        if self._is_success:
             self.state = 'success'
-            self.success_rate = 100
-
         else:
-            if lines and all(
-                x.state == 'success' or
-                x.force_success or x.reused for x in lines
-            ) and not any_failed_line and not unittests_missing and \
-                    not robottests_missing:
-                self.state = 'success'
-            else:
-                self.state = 'failed'
-
-            if not success_lines:
-                self.success_rate = 0
-            else:
-                self.success_rate = int(
-                    100 / float(len(lines)) * float(success_lines))
+            self.state = 'failed'
         self.branch_id._compute_state()
-        if task:
-            if self.state == 'failed':
-                task.state = 'failed'
-            elif self.state == 'success':
-                task.state = 'success'
 
     def _compute_name(self):
         for rec in self:
@@ -568,9 +520,6 @@ class CicdTestRun(models.Model):
 
     def rerun(self):
         breakpoint()
-        if self.branch_id.state not in ['testable', 'tested', 'dev']:
-            raise ValidationError(
-                _("State of branch does not allow a repeated test run"))
         for qj in self._get_queuejobs('all'):
             if qj['state'] in ['pending', 'enqueued', 'started']:
                 raise ValidationError(
@@ -581,7 +530,8 @@ class CicdTestRun(models.Model):
         self = self.sudo()
         self.line_ids.unlink()
         self.state = 'open'
-        self.success_rate = 0
+        for line in self.iterate_all_test_settings():
+            line.reset()
 
     def _run_update_db(self, shell, logsio, **kwargs):
 
@@ -658,7 +608,7 @@ class CicdTestRun(models.Model):
                     if result:
                         data.update(result)
 
-                except Exception:
+                except Exception:  # pylint: disable=broad-except
                     msg = traceback.format_exc()
                     shell.logsio.error(f"Error happened: {msg}")
                     data['state'] = 'failed'
