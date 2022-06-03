@@ -40,3 +40,6 @@ model_cicd_branch_epic,cicd.group_manager,cicd_branch_epic_cicd_group_manager,n/
 model_cicd_wiz_make_snapshot,base.group_user,cicd_wiz_make_snapshot_cicd_group_user,n/a,1,1,1,1
 model_cicd_wiz_restore_snapshot,base.group_user,cicd_wiz_restore_snapshot,n/a,1,1,1,1
 model_cicd_wiz_restore_snapshot_snapshot,base.group_user,cicd_wiz_restore_snapshot_snapshot_base_group_user,n/a,1,1,1,1
+model_cicd_test_settings_unittest,base.group_user,cicd_test_settings_unittest_base_group_user,n/a,1,1,1,1
+model_cicd_test_settings_robottest,base.group_user,cicd_test_settings_robottest_base_group_user,n/a,1,1,1,1
+model_cicd_test_settings_migrations,base.group_user,cicd_test_settings_migrations_base_group_user,n/a,1,1,1,1

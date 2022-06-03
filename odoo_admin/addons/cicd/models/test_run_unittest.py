@@ -18,32 +18,27 @@ class TestSettingsUnittest(models.Model):
     _name = 'cicd.test.settings.unittest'
 
     tags = fields.Char("Filter to tags (comma separated, may be empty)")
+    regex = fields.Char("Regex", default=".*")
 
     def get_name(self):
         return f"{self.id} - {self.tags}"
 
-    def prepare(self, testrun):
-        test_run_lines = testrun._run_unit_tests()
+    def produce_test_run_lines(self, testrun):
+        testrun = testrun.with_context(
+            testrun=f'{testrun.id}_prepare_unittests')
 
-
-class TestrunUnittest(models.Model):
-    _inherit = 'cicd.test.run'
-
-    def _run_unit_tests(self):
-        self = self.with_context(testrun=f'{self.id}_prepare_unittests')
-
-        self._report("Hashing Modules / Preparing UnitTests")
-        with self._shell(quick=False) as shell:
-            self._ensure_source_and_machines(
+        testrun._report("Hashing Modules / Preparing UnitTests")
+        with testrun._shell(quick=False) as shell:
+            testrun._ensure_source_and_machines(
                 shell, start_postgres=False, settings="")
-            unittests_to_run = self._get_unit_tests_to_run(shell)
+            unittests_to_run = testrun._get_unit_tests_to_run(shell)
 
-        self._report("Hashing Modules / Preparing UnitTests Done")
+        testrun._report("Hashing Modules / Preparing UnitTests Done")
         if not unittests_to_run:
             return
 
         # make sure dump exists for all
-        self.branch_id._ensure_dump('base', commit=self.commit_id.name)
+        testrun.branch_id._ensure_dump('base', commit=testrun.commit_id.name)
 
         count = len(list(unittests_to_run.keys()))
         for index, (module, tests) in enumerate(unittests_to_run.items()):

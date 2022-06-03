@@ -50,6 +50,22 @@ class CicdTestRunLine(models.Model):
     reused = fields.Boolean("Reused", readonly=True)
     project_name = fields.Char("Project Name Used (for cleaning)")
     parallel = fields.Char("In Parallel")
+    test_setting_id = fields.Reference([
+        ("cicd.test.settings.unittest", "Unit Test"),
+        ("cicd.test.settings.robottest", "Robot Test"),
+        ("cicd.test.settings.migration", "Migration Test"),
+    ], string="Initiating Testsetting")
+    queuejob_id = fields.Many2one("queue.job", string="Queuejob")
+
+    def open_queuejob(self):
+        return {
+            'view_type': 'form',
+            'res_model': self.queuejob_id._name,
+            'res_id': self.queuejob_id.id,
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }
 
     def _compute_name_short(self):
         for rec in self:

@@ -4,6 +4,10 @@ from odoo.addons.queue_job.exception import RetryableJobError
 
 
 class TestSettingAbstract(models.AbstractModel):
+    """
+    This is used for specific settings for example timeout, glob on tests
+    for robot tests, unittests.
+    """
     _name = "cicd.test.settings.base"
 
     timeout = fields.Integer("Timeout Seconds", default=600)
@@ -12,9 +16,19 @@ class TestSettingAbstract(models.AbstractModel):
         'cicd.test.settings', string="Test", required=True, ondelete="cascade")
     preparation_done = fields.Boolean((
         "Set at testruns when the preparation of test run lines succeeded"))
-    test_run_line_ids = fields.Many2many("cicd.test.run.line")
+    test_run_line_ids = fields.Many2many(
+        "cicd.test.run.line", compute="_compute_test_run_lines",
+        store=False, copy=False)
     success_rate = fields.Float(compute="_compute_success_rate", store=False)
     name = fields.Char(compute="_compute_name", store=False)
+
+    def _compute_test_run_lines(self):
+        for rec in self:
+            ref = f"{self._name},{rec.id}"
+            self.test_run_line_ids = \
+                self.env['cicd.test.run.line'].search([
+                    ('test_setting_id', '=', ref)
+                ])
 
     def _compute_name(self):
         for rec in self:
@@ -29,57 +43,38 @@ class TestSettingAbstract(models.AbstractModel):
     def _compute_success_rate(self):
         breakpoint()
         for rec in self:
-            if not rec.preparation_done or rec.test_setting_id._name != 'cicd.test.run':
+            if not rec.preparation_done or \
+                    rec.test_setting_id._name != 'cicd.test.run':
                 rec.success_rate = 0
             else:
                 success_lines = float(len(
-                    x for x in rec.test_setting_id.test_run_line_ids.filtered_domain([(
-                        'state', '=', 'success')]))
-                count_lines = float(len(
-                    x for x in rec.test_run_line_ids))
+                    x for x
+                    in rec.test_setting_id.test_run_line_ids.filtered_domain([(
+                        'state', '=', 'success')])))
+                count_lines = float(len(rec.test_run_line_ids))
                 if not count_lines:
                     rec.success_rate = 0
                 else:
-                    rec.success_rate = 100 * succes_lines / count_lines
+                    rec.success_rate = 100 * success_lines / count_lines
 
     def _is_success(self):
         for line in self.test_run_line_ids:
-            if line.preparation_done:
+            if not line.preparation_done or not line.state:
+                raise RetryableJobError(
+                    "Not all lines done", ignore_retry=True)
             if line.ttype not in ('preparation', 'log'):
                 if line.state == 'failed':
                     return False
-                elif:
-                    if line.state != 'success':
-                        raise RetryableJobError(
-                            "Not all lines done", ignore_retry=True)
 
-    def prepare(self, testrun):
+    def produce_test_run_lines(self, testrun):
         raise NotImplementedError()
 
 
-class TestSettingsRobotTests(models.Model):
-    _inherit = "cicd.test.settings.base"
-    _name = 'cicd.test.settings.robottest'
-
-    tags = fields.Char(
-        "Filter to tags (comma separated, may be empty)", default="load-test")
-    parallel = fields.Char(
-        "In Parallel", required=True, default="1,2,5,10,20,50")
-    glob = fields.Char("Glob", default="**/*.robot", required=True)
-
-    def get_name(self):
-        return f"{self.id} - {self.tags}"
-
-class TestSettingsMigrations(models.Model):
-    _inherit = "cicd.test.settings.base"
-    _name = 'cicd.test.settings.migrations'
-
-    dump_id = fields.Many2one('cicd.dump', string="Dump"),
-
-    def get_name(self):
-        return f"{self.id} - {self.dump_id.name}"
-
 class TestSettings(models.Model):
+    """
+    This is the container of test settings so you can configure
+    a robot run with a glob, a unittest with a glob and then another robot run
+    """
     _name = 'cicd.test.settings'
 
     unittest_ids = fields.One2many(

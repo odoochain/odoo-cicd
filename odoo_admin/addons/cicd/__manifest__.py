@@ -53,6 +53,7 @@
                 'views/test_run_line_tree.xml',
                 'views/test_run_search.xml',
                 'views/test_run_tree.xml',
+                'views/test_settings_views.xml',
                 'views/ticket_system_form.xml',
                 'views/ticket_system_tree.xml',
                 'views/user_form.xml',

@@ -18,8 +18,18 @@ def safe_filename(filename):
     return filename
 
 
-class TestrunUnittest(models.Model):
-    _inherit = 'cicd.test.run'
+class TestSettingsRobotTests(models.Model):
+    _inherit = "cicd.test.settings.base"
+    _name = 'cicd.test.settings.robottest'
+
+    tags = fields.Char(
+        "Filter to tags (comma separated, may be empty)", default="load-test")
+    parallel = fields.Char(
+        "In Parallel", required=True, default="1,2,5,10,20,50")
+    regex = fields.Char("Regex", default=".*")
+
+    def get_name(self):
+        return f"{self.id} - {self.tags}"
 
     def _run_robot_tests(self):
         breakpoint()

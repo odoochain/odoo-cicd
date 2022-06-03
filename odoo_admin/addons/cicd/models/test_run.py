@@ -53,7 +53,7 @@ class TestFailedAtInitError(Exception):
 
 class CicdTestRun(models.Model):
     _inherits = {
-        'cicd.test.settings': 'test_setting_ids',
+        'cicd.test.settings': 'test_setting_ids1',
     }
     _log_access = False
     _inherit = ['mail.thread', 'cicd.open.window.mixin', 'cicd.test.settings']
@@ -494,7 +494,7 @@ class CicdTestRun(models.Model):
 
         breakpoint()
         for test_setup in self.iterate_all_test_settings():
-            test_setup.as_job(test_setup.name).prepare(self)
+            test_setup.as_job(test_setup.name).produce_test_run_lines(self)
 
     def _compute_success_state(self):
         self.ensure_one()
@@ -532,21 +532,6 @@ class CicdTestRun(models.Model):
         self.state = 'open'
         for line in self.iterate_all_test_settings():
             line.reset()
-
-    def _run_update_db(self, shell, logsio, **kwargs):
-
-        def _update(item):  # NOQA
-            logsio.info(f"Restoring {self.branch_id.dump_id.name}")
-
-            shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
-            shell.wait_for_postgres()
-            shell.odoo('update', timeout=self.timeout_migration)
-            shell.wait_for_postgres()
-
-        self._generic_run(
-            shell, logsio, [None],
-            'migration', _update,
-        )
 
     def _get_generic_run_name(
         self, item, name_callback
