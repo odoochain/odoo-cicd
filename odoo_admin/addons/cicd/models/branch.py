@@ -36,9 +36,6 @@ class JobEncoder(json.JSONEncoder):
 
 
 class GitBranch(models.Model):
-    _inherits = {
-        'cicd.test.settings': 'test_setting_ids',
-    }
     _inherit = ['mail.thread', 'cicd.test.settings']
     _name = 'cicd.git.branch'
 

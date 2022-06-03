@@ -1,30 +1,30 @@
 <odoo>
 	<data noupdate='0'>
 
-		<record id="view_cicd_test_settings_unittest_tree" model="ir.ui.view">
+		<record id="unittest_settings_tree" model="ir.ui.view">
 			<field name="model">cicd.test.settings.unittest</field>
 			<field name="arch" type="xml">
-				<tree default_order="" string="" editable="bottom">
+				<tree editable="bottom">
 					<field name="name" />
 					<field name="tags"/>
 					<field name="regex"/>
 				</tree>
 			</field>
 		</record>
-		<record id="view_cicd_test_settings_robottest_tree" model="ir.ui.view">
+		<record id="robottest_settings_tree" model="ir.ui.view">
 			<field name="model">cicd.test.settings.robottest</field>
 			<field name="arch" type="xml">
-				<tree default_order="" string="" editable="bottom">
+				<tree editable="bottom">
 					<field name="name" />
 					<field name="parallel"/>
 					<field name="tags"/>
 				</tree>
 			</field>
 		</record>
-		<record id="view_cicd_test_settings_migrations_tree" model="ir.ui.view">
+		<record id="migrationtest_settings_tree" model="ir.ui.view">
 			<field name="model">cicd.test.settings.migrations</field>
 			<field name="arch" type="xml">
-				<tree default_order="" string="" editable="bottom">
+				<tree editable="bottom">
 					<field name="name" />
 					<field name="dump_id"/>
 				</tree>

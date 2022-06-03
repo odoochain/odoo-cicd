@@ -13,7 +13,7 @@ class Release(models.Model):
     _inherits = {
         'cicd.test.settings': 'test_setting_ids',
     }
-    _inherit = ['mail.thread', 'mixin.schedule', 'cicd.test.settings']
+    _inherit = ['mail.thread', 'mixin.schedule']
     _name = 'cicd.release'
 
     active = fields.Boolean("Active", default=True)

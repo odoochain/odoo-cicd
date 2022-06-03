@@ -12,8 +12,11 @@ class TestSettingAbstract(models.AbstractModel):
 
     timeout = fields.Integer("Timeout Seconds", default=600)
     retry_count = fields.Integer("Retries", default=3)
-    test_setting_id = fields.Many2one(
-        'cicd.test.settings', string="Test", required=True, ondelete="cascade")
+    parent_id = fields.Selection([
+        ('cicd.test.run', 'Test-Run'),
+        ('cicd.git.branch', 'Branch'),
+        ('cicd.release', 'Release'),
+    ], string="Test", required=True)
     preparation_done = fields.Boolean((
         "Set at testruns when the preparation of test run lines succeeded"))
     test_run_line_ids = fields.Many2many(
@@ -77,16 +80,32 @@ class TestSettings(models.Model):
     """
     _name = 'cicd.test.settings'
 
-    unittest_ids = fields.One2many(
-        "cicd.test.settings.unittest", "test_setting_id", testrun_field=True)
-    robottest_ids = fields.One2many(
-        "cicd.test.settings.unittest", "test_setting_id", testrun_field=True)
-    migration_ids = fields.One2many(
-        "cicd.test.settings.migrations", "test_setting_id", testrun_field=True)
+    unittest_ids = fields.Many2many(
+        "cicd.test.settings.unittest", testrun_field=True,
+        compute="_compute_testsetting_ids",
+        inverse="_set_testsetting_ids")
+    robottest_ids = fields.Many2many(
+        "cicd.test.settings.unittest", testrun_field=True,
+        compute="_compute_testsetting_ids",
+        inverse="_set_testsetting_ids")
+    migration_ids = fields.Many2many(
+        "cicd.test.settings.migrations", testrun_field=True,
+        compute="_compute_testsetting_ids",
+        inverse="_set_testsetting_ids")
 
     any_testing = fields.Boolean(compute="_compute_any_testing")
     success_rate = fields.Float(
         "Success Rate", compute="_compute_success_rate_factor", tracking=True)
+    state = fields.Selection([])
+
+    def _compute_testsetting_ids(self):
+        for rec in self:
+            breakpoint()
+
+    def _set_testsetting_ids(self):
+        for rec in self:
+            breakpoint()
+
 
     def _compute_success_rate_factor(self):
         for rec in self:
