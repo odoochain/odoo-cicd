@@ -52,6 +52,9 @@ class TestFailedAtInitError(Exception):
 
 
 class CicdTestRun(models.Model):
+    _inherits = {
+        'cicd.test.settings': 'test_setting_ids',
+    }
     _log_access = False
     _inherit = ['mail.thread', 'cicd.open.window.mixin', 'cicd.test.settings']
     _name = 'cicd.test.run'
@@ -96,13 +99,6 @@ class CicdTestRun(models.Model):
         'cicd.machine', related="branch_id.repo_id.machine_id", store=False)
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many('queue.job', compute="_compute_queuejobs")
-
-    unittest_ids = fields.One2many(
-        "cicd.test.settings.unittest", "test_run_id", testrun_field=True)
-    robottest_ids = fields.One2many(
-        "cicd.test.settings.unittest", "test_run_id", testrun_field=True)
-    migration_ids = fields.One2many(
-        "cicd.test.settings.migrations", "test_run_id", testrun_field=True)
 
     @api.depends('line_ids')
     def _compute_lines(self):

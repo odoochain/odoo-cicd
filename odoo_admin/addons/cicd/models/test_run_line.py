@@ -49,6 +49,7 @@ class CicdTestRunLine(models.Model):
     hash = fields.Char("Hash", help="For using")
     reused = fields.Boolean("Reused", readonly=True)
     project_name = fields.Char("Project Name Used (for cleaning)")
+    parallel = fields.Char("In Parallel")
 
     def _compute_name_short(self):
         for rec in self:

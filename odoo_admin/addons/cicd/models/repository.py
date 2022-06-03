@@ -594,7 +594,7 @@ class Repository(models.Model):
                 res = shell.X(["git-cicd", "merge", commit.name])
                 already = 'Already up to date' in res['stdout']
                 history.append({'sha': commit.name, 'already': already})
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 conflicts.append(commit)
         return conflicts, history
 
@@ -646,7 +646,8 @@ class Repository(models.Model):
                         "git-cicd", "commit", "--allow-empty", "-m",
                         make_info_commit_msg])
                     message_commit_sha = shell.X([
-                        "git-cicd", "log", "-n1", "--format=%H"])['stdout'].strip()
+                        "git-cicd", "log", "-n1", "--format=%H"])[
+                            'stdout'].strip()
 
                 # https://stackoverflow.com/questions/6656619/git-and-nasty-error-cannot-lock-existing-info-refs-fatal
                 shell.X(["git-cicd", "remote", "remove", "origin"])
@@ -656,7 +657,7 @@ class Repository(models.Model):
                 shell.X(["git-cicd", "fetch", "origin"])
                 try:
                     shell.X(["git-cicd", "pull"])
-                except Exception as ex:
+                except Exception as ex:  # pylint: disable=broad-except
                     shell.logsio.error(str(ex))
                 shell.X([
                     "git-cicd", "push", "-f", "--set-upstream",

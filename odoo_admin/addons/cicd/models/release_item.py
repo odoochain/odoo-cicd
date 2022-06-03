@@ -313,7 +313,7 @@ class ReleaseItem(models.Model):
             except RetryableJobError:
                 raise
 
-            except Exception as ex:
+            except Exception as ex:  # pylint: disable=broad-except
                 self.state = 'collecting_merge_technical'
                 self.exc_info = (
                     f"{ex}"
@@ -333,6 +333,7 @@ class ReleaseItem(models.Model):
                     candidate_branch._compute_state()
 
                 self.mapped('branch_ids.branch_id')._compute_state()
+
         if commits_checksum:
             self.merged_checksum = commits_checksum
 

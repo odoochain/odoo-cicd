@@ -5,9 +5,10 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 class TestSettingAbstract(models.AbstractModel):
     _name = "cicd.test.settings.base"
 
-    release_id = fields.Many2one("cicd.release")
-    branch_id = fields.Many2one("cicd.git.branch")
-    test_run_id = fields.Many2one("cicd.test.run")
+    timeout = fields.Integer("Timeout Seconds", default=600)
+    retry_count = fields.Integer("Retries", default=3)
+    test_setting_id = fields.Many2one(
+        'cicd.test.settings', string="Test", required=True, ondelete="cascade")
 
 
 class TestSettingsUnittest(models.Model):
@@ -15,8 +16,6 @@ class TestSettingsUnittest(models.Model):
     _name = 'cicd.test.settings.unittest'
 
     tags = fields.Char("Filter to tags (comma separated, may be empty)")
-    timeout = fields.Integer("Timeout Seconds", default=60)
-    retry_count = fields.Integer("Retries", default=3)
 
 
 class TestSettingsRobotTests(models.Model):
@@ -25,8 +24,6 @@ class TestSettingsRobotTests(models.Model):
 
     tags = fields.Char(
         "Filter to tags (comma separated, may be empty)", default="load-test")
-    timeout = fields.Integer("Timeout Seconds", default=600)
-    retry_count = fields.Integer("Retries", default=3)
     parallel = fields.Char(
         "In Parallel", required=True, default="1,2,5,10,20,50")
     glob = fields.Char("Glob", default="**/*.robot", required=True)
@@ -37,22 +34,17 @@ class TestSettingsMigrations(models.Model):
     _name = 'cicd.test.settings.migrations'
 
     dump_id = fields.Many2one('cicd.dump', string="Dump"),
-    timeout = fields.Integer("Timeout Seconds", default=600)
-    retry_count = fields.Integer("Retries", default=3)
-    parallel = fields.Char(
-        "In Parallel", required=True, default="1,2,5,10,20,50")
-    glob = fields.Char("Glob", default="**/*.robot", required=True)
 
 
-class TestSettings(models.AbstractModel):
+class TestSettings(models.Model):
     _name = 'cicd.test.settings'
 
-    # unittest_ids = fields.One2many(
-    #     "cicd.test.settings.unittest", "test_id", testrun_field=True)
-    # robottest_ids = fields.One2many(
-    #     "cicd.test.settings.unittest", "test_id", testrun_field=True)
-    # migration_ids = fields.One2many(
-    #     "cicd.test.settings.migrations", "test_id", testrun_field=True)
+    unittest_ids = fields.One2many(
+        "cicd.test.settings.unittest", "test_setting_id", testrun_field=True)
+    robottest_ids = fields.One2many(
+        "cicd.test.settings.unittest", "test_setting_id", testrun_field=True)
+    migration_ids = fields.One2many(
+        "cicd.test.settings.migrations", "test_setting_id", testrun_field=True)
 
     any_testing = fields.Boolean(compute="_compute_any_testing")
 
