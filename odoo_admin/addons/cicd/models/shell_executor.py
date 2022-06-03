@@ -174,7 +174,7 @@ class ShellExecutor(BaseShellExecutor):
             self._after_checkout()
 
     def branch_exists(self, branch, cwd=None):
-        res = self.X(["git-cicd", "branch", "--contains"], cwd=cwd)[
+        res = self.X(["git-cicd", "branch", "--no-color"], cwd=cwd)[
             'stdout'].strip().split("\n")
 
         def reformat(x):

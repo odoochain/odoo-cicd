@@ -311,7 +311,7 @@ class ReleaseItem(models.Model):
                                 'state': 'conflict'})
                     self.state = 'collecting_merge_conflict'
                     self.message_post(body=(
-                        "Merge conflict happend: {ex.conflicts}"
+                        f"Merge conflict happend: {ex.conflicts}"
                     ))
                     self.env.cr.commit()
                 else:
