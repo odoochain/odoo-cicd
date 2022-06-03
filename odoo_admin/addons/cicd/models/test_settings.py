@@ -1,6 +1,7 @@
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from odoo.addons.queue_job.exception import RetryableJobError
+from odoo.models import NewId
 
 
 class TestSettingAbstract(models.AbstractModel):
@@ -12,7 +13,7 @@ class TestSettingAbstract(models.AbstractModel):
 
     timeout = fields.Integer("Timeout Seconds", default=600)
     retry_count = fields.Integer("Retries", default=3)
-    parent_id = fields.Selection([
+    parent_id = fields.Reference([
         ('cicd.test.run', 'Test-Run'),
         ('cicd.git.branch', 'Branch'),
         ('cicd.release', 'Release'),
@@ -80,15 +81,15 @@ class TestSettings(models.Model):
     """
     _name = 'cicd.test.settings'
 
-    unittest_ids = fields.Many2many(
+    unittest_ids = fields.One2many(
         "cicd.test.settings.unittest", testrun_field=True,
         compute="_compute_testsetting_ids",
         inverse="_set_testsetting_ids")
-    robottest_ids = fields.Many2many(
-        "cicd.test.settings.unittest", testrun_field=True,
+    robottest_ids = fields.One2many(
+        "cicd.test.settings.robottest", testrun_field=True,
         compute="_compute_testsetting_ids",
         inverse="_set_testsetting_ids")
-    migration_ids = fields.Many2many(
+    migration_ids = fields.One2many(
         "cicd.test.settings.migrations", testrun_field=True,
         compute="_compute_testsetting_ids",
         inverse="_set_testsetting_ids")
@@ -100,12 +101,33 @@ class TestSettings(models.Model):
 
     def _compute_testsetting_ids(self):
         for rec in self:
-            breakpoint()
+            rec.unittest_ids = self.env['cicd.test.settings.unittest'].search([
+                ('parent_id', '=', f"{rec._name},{rec.id}")
+            ])
+            rec.robottest_ids = self.env['cicd.test.settings.robottest'].search([
+                ('parent_id', '=', f"{rec._name},{rec.id}")
+            ])
+            rec.migration_ids = self.env['cicd.test.settings.migrations'].search([
+                ('parent_id', '=', f"{rec._name},{rec.id}")
+            ])
 
     def _set_testsetting_ids(self):
         for rec in self:
             breakpoint()
-
+            for line in rec.iterate_all_test_settings():
+                def ok(field):
+                    # TODO function in models?
+                    if field in ['id', 'create_uid', 'create_date', 'write_uid', 'write_date', '__last_update']:
+                        return False
+                    if field in ['display_name']:
+                        return False
+                    return True
+                values = {x: line[x] for x in line._fields.keys() if ok(x)}
+                values['parent_id'] = f"{rec._name},{rec.id}"
+                if isinstance(line.id, NewId):
+                    self.env[line._name].create(values)
+                else:
+                    self.env[line._name].browse(line.id).write(values)
 
     def _compute_success_rate_factor(self):
         for rec in self:
