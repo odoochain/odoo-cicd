@@ -90,8 +90,8 @@ class TestSettings(models.Model):
 
     def _compute_success_rate_factor(self):
         for rec in self:
-            success_rates = map(
-                lambda x: x.success_rate, self.iterate_all_test_settings())
+            success_rates = list(map(
+                lambda x: x.success_rate, self.iterate_all_test_settings()))
             if not success_rates:
                 rec.success_rate = 0
             else:

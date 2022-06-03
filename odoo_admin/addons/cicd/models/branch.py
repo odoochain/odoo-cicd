@@ -746,7 +746,6 @@ class GitBranch(models.Model):
         return size
 
     def _compute_databases(self):
-        breakpoint()
         for rec in self:
             if rec.enable_snapshots:
                 rec.database_size = rec.database_size_from_shell
