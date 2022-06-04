@@ -91,8 +91,6 @@ class CicdTestRun(models.Model):
     duration = fields.Integer("Duration [s]", tracking=True)
     queuejob_log = fields.Binary("Queuejob Log")
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
-    machine_id = fields.Many2one(
-        'cicd.machine', related="branch_id.repo_id.machine_id", store=False)
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many('queue.job', compute="_compute_queuejobs")
 
@@ -446,17 +444,6 @@ class CicdTestRun(models.Model):
             self.env.cr.commit()
             raise RetryableJobError(str(ex), ignore_retry=True) from ex
 
-    @contextmanager
-    def _shell(self, quick=False):
-        assert self.env.context.get('testrun')
-        with self.machine_id._shell(
-            cwd=self._get_source_path(),
-            project_name=self.branch_id.project_name,
-        ) as shell:
-            if not quick:
-                self._ensure_source_and_machines(shell)
-            yield shell
-
     def _switch_to_running_state(self):
         """
         Should be called by methods that to work on test runs.
@@ -557,55 +544,6 @@ class CicdTestRun(models.Model):
             trycounter = 0
 
             name = self._get_generic_run_name(item, name_callback)
-            if hash and self.env['cicd.test.run.line'] \
-                    .check_if_test_already_succeeded(
-                self, name, hash,
-            ):
-                continue
-
-            position = name_prefix or ''
-            if len_todo > 0:
-                position += f"({i + 1} / {len_todo})"
-
-            while trycounter < try_count:
-                if self.do_abort:
-                    raise AbortException("Aborted by user")
-                trycounter += 1
-                shell.logsio.info(f"Try #{trycounter}")
-
-                started = arrow.get()
-                data = {
-                    'position': position,
-                    'name': name,
-                    'ttype': ttype,
-                    'run_id': self.id,
-                    'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
-                    'try_count': trycounter,
-                    'hash': hash,
-                    'odoo_module': odoo_module or False,
-                }
-                try:
-                    shell.logsio.info(f"Running {name}")
-                    result = execute_run(item)
-                    if result:
-                        data.update(result)
-
-                except Exception:  # pylint: disable=broad-except
-                    msg = traceback.format_exc()
-                    shell.logsio.error(f"Error happened: {msg}")
-                    data['state'] = 'failed'
-                    data['exc_info'] = msg
-                    success = False
-                else:
-                    # e.g. robottests return state from run
-                    if 'state' not in data:
-                        data['state'] = 'success'
-                end = arrow.get()
-                data['duration'] = (end - started).total_seconds()
-                if data['state'] == 'success':
-                    break
-            self.line_ids = [[0, 0, data]]
-            self.env.cr.commit()
         return success
 
     def _inform_developer(self):

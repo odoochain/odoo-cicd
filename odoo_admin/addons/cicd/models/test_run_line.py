@@ -14,27 +14,19 @@ from odoo.exceptions import ValidationError
 import logging
 from pathlib import Path
 from contextlib import contextmanager
+from .test_run import AbortException
 
 
-class CicdTestRunLine(models.Model):
+class CicdTestRunLine(models.AbstractModel):
     _inherit = 'cicd.open.window.mixin'
     _name = 'cicd.test.run.line'
     _order = 'started desc'
 
-    ttype = fields.Selection([
-        ('preparation', "Preparation"),
-        ('unittest', 'Unit-Test'),
-        ('robottest', 'Robot-Test'),
-        ('migration', 'Migration'),
-        ('emptydb', 'Migration'),
-        ('log', "Log-Note"),
-    ], string="Category")
-    position = fields.Char("Pos")
-    odoo_module = fields.Char("Odoo Module")
-    name = fields.Char("Name")
-    name_short = fields.Char(compute="_compute_name_short")
     run_id = fields.Many2one('cicd.test.run', string="Run")
     exc_info = fields.Text("Exception Info")
+    queuejob_id = fields.Many2one("queue.job", string="Queuejob")
+    machine_id = fields.Many2one(
+        'cicd.machine', string="Machine", required=True)
     duration = fields.Integer("Duration")
     state = fields.Selection([
         ('open', 'Open'),
@@ -42,20 +34,38 @@ class CicdTestRunLine(models.Model):
         ('failed', 'Failed'),
     ], default='open', required=True)
     force_success = fields.Boolean("Force Success")
-    started = fields.Datetime(
-        "Started", default=lambda self: fields.Datetime.now())
     try_count = fields.Integer("Try Count")
-    robot_output = fields.Binary("Robot Output", attachment=True)
-    hash = fields.Char("Hash", help="For using")
-    reused = fields.Boolean("Reused", readonly=True)
-    project_name = fields.Char("Project Name Used (for cleaning)")
-    parallel = fields.Char("In Parallel")
+    name = fields.Char("Name")
+    name_short = fields.Char(compute="_compute_name_short")
     test_setting_id = fields.Reference([
         ("cicd.test.settings.unittest", "Unit Test"),
         ("cicd.test.settings.robottest", "Robot Test"),
         ("cicd.test.settings.migration", "Migration Test"),
     ], string="Initiating Testsetting")
-    queuejob_id = fields.Many2one("queue.job", string="Queuejob")
+    hash = fields.Char("Hash", help="For using")
+    reused = fields.Boolean("Reused", readonly=True)
+    started = fields.Datetime(
+        "Started", default=lambda self: fields.Datetime.now())
+    project_name = fields.Char("Project Name Used (for cleaning)")
+    effective_machine = fields.Many2one(
+        "cicd.machine", compute="_compute_machine")
+
+    def _compute_machine(self):
+        for rec in self:
+            rec.effective_machine_id = \
+                rec.machine_id or rec.run_id.branch_id.repo_id.machine_id
+
+    @contextmanager
+    def _shell(self, quick=False):
+        assert self.env.context.get('testrun')
+        with self.effective_machine_id._shell(
+            cwd=self._get_source_path(),
+            project_name=self.branch_id.project_name,
+        ) as shell:
+            if not quick:
+                self._ensure_source_and_machines(shell)
+            yield shell
+
 
     def open_queuejob(self):
         return {
@@ -91,14 +101,12 @@ class CicdTestRunLine(models.Model):
             'target': 'new'
         }
 
-    @api.model
-    def check_if_test_already_succeeded(
-        self, testrun, name, hash,
-    ):
+    def check_if_test_already_succeeded(self):
         """
         Compares the hash of the module with an existing
         previous run with same hash.
         """
+        import pudb;pudb.set_trace()
         res = self.search([
             ('run_id.branch_ids.repo_id', '=', testrun.branch_ids.repo_id.id),
             ('name', '=', name),
@@ -150,3 +158,47 @@ class CicdTestRunLine(models.Model):
 
     def ok(self):
         return {'type': 'ir.actions.act_window_close'}
+
+    def execute(self):
+        breakpoint()  #Fix params:
+        if self.check_if_test_already_succeeded(self):
+            trycounter = 0
+            while trycounter < self.try_count:
+                if self.run_id.do_abort:
+                    raise AbortException("Aborted by user")
+                trycounter += 1
+
+                shell.logsio.info(f"Try #{trycounter}")
+
+                self.started = arrow.get()
+                # data = {
+                #     'position': position,
+                #     'name': name,
+                #     'ttype': ttype,
+                #     'run_id': self.id,
+                #     'started': started.datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                #     'try_count': trycounter,
+                #     'hash': hash,
+                #     'odoo_module': odoo_module or False,
+                # }
+                try:
+                    shell.logsio.info(f"Running {name}")
+                    result = execute_run(item)
+                    if result:
+                        data.update(result)
+
+                except Exception:  # pylint: disable=broad-except
+                    msg = traceback.format_exc()
+                    shell.logsio.error(f"Error happened: {msg}")
+                    data['state'] = 'failed'
+                    data['exc_info'] = msg
+                    success = False
+                else:
+                    # e.g. robottests return state from run
+                    if 'state' not in data:
+                        data['state'] = 'success'
+                end = arrow.get()
+                data['duration'] = (end - started).total_seconds()
+                if data['state'] == 'success':
+                    break
+            self.env.cr.commit()

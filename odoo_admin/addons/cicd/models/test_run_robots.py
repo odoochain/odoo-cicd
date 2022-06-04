@@ -18,39 +18,19 @@ def safe_filename(filename):
     return filename
 
 
-class TestSettingsRobotTests(models.Model):
-    _inherit = "cicd.test.settings.base"
-    _name = 'cicd.test.settings.robottest'
+class RobotTest(models.Model):
+    _inherit = "cicd.test.run.line"
+    _name = "cicd.test.run.line.robottest"
 
-    tags = fields.Char(
-        "Filter to tags (comma separated, may be empty)", default="load-test")
-    parallel = fields.Char(
-        "In Parallel", required=True, default="1,2,5,10,20,50")
-    regex = fields.Char("Regex", default=".*")
+    filepath = fields.Char("Filepath")
+    robot_output = fields.Binary("Robot Output", attachment=True)
+    parallel = fields.Char("In Parallel")
 
-    def get_name(self):
-        return f"{self.id} - {self.tags}"
-
-    def _run_robot_tests(self):
+    def execute(self):
         breakpoint()
-        self = self.with_context(testrun=f'{self.id}_prepare_robots')
-
-        with self._shell(quick=False) as shell:
-            self._ensure_source_and_machines(
-                shell, start_postgres=False, settings=settings)
-            files = shell.odoo('list-robot-test-files')['stdout'].strip()
-            files = list(filter(bool, files.split("!!!")[1].split("\n")))
-
         # there could be errors at install all
         self.branch_id._ensure_dump('full', self.commit_id.name)
 
-        for index, robotfile in enumerate(files):
-            self.as_job(f"robottest-{robotfile}")._run_robot_run(
-                index, len(files), robotfile
-            )
-
-    def _run_robot_run(self, index, count, robot_file):
-        breakpoint()
         safe_robot_file = safe_filename(robot_file)
         self = self.with_context(
             testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
@@ -91,7 +71,7 @@ class TestSettingsRobotTests(models.Model):
                         self.queuejob_log = base64.b64encode(excel_file)
                     state = 'success'
 
-                except Exception as ex:
+                except Exception as ex:  # pylint: disable=broad-except
                     state = 'failed'
                     self._report(
                         "Robot Test error (but retrying)", exception=ex)
@@ -114,3 +94,31 @@ class TestSettingsRobotTests(models.Model):
                 try_count=self.retry_unit_tests,
                 name_prefix=f"({index + 1} / {count}) ",
             )
+
+
+class TestSettingsRobotTests(models.Model):
+    _inherit = "cicd.test.settings.base"
+    _name = 'cicd.test.settings.robottest'
+
+    tags = fields.Char(
+        "Filter to tags (comma separated, may be empty)", default="load-test")
+    parallel = fields.Char(
+        "In Parallel", required=True, default="1,2,5,10,20,50")
+    regex = fields.Char("Regex", default=".*")
+
+    def get_name(self):
+        return f"{self.id} - {self.tags}"
+
+    def produce_test_run_lines(self, testrun):
+        breakpoint()
+        with self._shell(quick=False) as shell:
+            self._ensure_source_and_machines(
+                shell, start_postgres=False, settings=settings)
+            files = shell.odoo('list-robot-test-files')['stdout'].strip()
+            files = list(filter(bool, files.split("!!!")[1].split("\n")))
+
+        for robotfile in sorted(files):
+            self.env['cicd.test.run.line.robottest'].create({
+                'run_id': testrun.id,
+                'filepath': robotfile,
+            })

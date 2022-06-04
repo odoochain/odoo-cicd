@@ -13,45 +13,15 @@ _logger = logging.getLogger()
 CONCURRENT_HASH_THREADS = 8  # minimum system load observed
 
 
-class TestSettingsUnittest(models.Model):
-    _inherit = "cicd.test.settings.base"
-    _name = 'cicd.test.settings.unittest'
+class UnitTest(models.Model):
+    _inherit = "cicd.test.run.line"
+    _name = "cicd.test.run.line.unittest"
 
-    tags = fields.Char("Filter to tags (comma separated, may be empty)")
-    regex = fields.Char("Regex", default=".*")
+    odoo_module = fields.Char("Odoo Module")
+    filepath = fields.Char("Filepath")
 
-    def get_name(self):
-        return f"{self.id} - {self.tags}"
-
-    def produce_test_run_lines(self, testrun):
-        testrun = testrun.with_context(
-            testrun=f'{testrun.id}_prepare_unittests')
-
-        testrun._report("Hashing Modules / Preparing UnitTests")
-        with testrun._shell(quick=False) as shell:
-            testrun._ensure_source_and_machines(
-                shell, start_postgres=False, settings="")
-            unittests_to_run = testrun._get_unit_tests_to_run(shell)
-
-        testrun._report("Hashing Modules / Preparing UnitTests Done")
-        if not unittests_to_run:
-            return
-
-        # make sure dump exists for all
-        testrun.branch_id._ensure_dump('base', commit=testrun.commit_id.name)
-
-        count = len(list(unittests_to_run.keys()))
-        for index, (module, tests) in enumerate(unittests_to_run.items()):
-            hash = tests['hash']
-            tests = tests['tests']
-
-            self.as_job(
-                f"unittest-module-{module}")._run_unit_tests_of_module(
-                    index, count, module, hash, tests)
-            self._report(f"Unittest in module {module}")
-
-    def _run_unit_tests_of_module(self, index, count, module, hash, tests):
-        breakpoint()
+    def execute(self):
+        import pudb;pudb.set_trace()
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell(quick=True) as shell:
             dump_path = self.branch_id._ensure_dump(
@@ -98,6 +68,42 @@ class TestSettingsUnittest(models.Model):
                 odoo_module=module,
                 hash=hash,
             )
+
+class TestSettingsUnittest(models.Model):
+    _inherit = "cicd.test.settings.base"
+    _name = 'cicd.test.settings.unittest'
+
+    tags = fields.Char("Filter to tags (comma separated, may be empty)")
+    regex = fields.Char("Regex", default=".*")
+
+    def get_name(self):
+        return f"{self.id} - {self.tags}"
+
+    def produce_test_run_lines(self, testrun):
+        testrun._report("Hashing Modules / Preparing UnitTests")
+        with testrun._shell(quick=False) as shell:
+            testrun._ensure_source_and_machines(
+                shell, start_postgres=False, settings="")
+            unittests_to_run = testrun._get_unit_tests_to_run(shell)
+
+        testrun._report("Hashing Modules / Preparing UnitTests Done")
+        if not unittests_to_run:
+            return
+
+        # make sure dump exists for all
+        testrun.branch_id._ensure_dump('base', commit=testrun.commit_id.name)
+
+        count = len(list(unittests_to_run.keys()))
+        for index, (module, tests) in enumerate(unittests_to_run.items()):
+            hash = tests['hash']
+            tests = tests['tests']
+
+            for test in tests:
+                self.env['cicd.test.run.line.unittest'].create({
+                    'run_id': testrun.id,
+                    'odoo_module': module,
+                    'filepath': test,
+                })
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
