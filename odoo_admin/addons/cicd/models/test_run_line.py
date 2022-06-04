@@ -49,6 +49,13 @@ class CicdTestRunLine(models.AbstractModel):
     project_name = fields.Char("Project Name Used (for cleaning)")
     effective_machine = fields.Many2one(
         "cicd.machine", compute="_compute_machine")
+    logfile_path = fields.Char("Logfilepath", compute="_compute_logfilepath")
+
+    def _compute_logfilepath(self):
+        for rec in self:
+            rec.logfile_path = \
+                "/opt/out_dir/testrunline_logs/testrunline_log_{rec.id}"
+            Path(rec.logfile_path).parent.mkdir(exists_ok=True, parents=True)
 
     def _compute_machine(self):
         for rec in self:
@@ -202,3 +209,21 @@ class CicdTestRunLine(models.AbstractModel):
                 if data['state'] == 'success':
                     break
             self.env.cr.commit()
+
+    def _report(self, msg, exception=None):
+        if exception:
+            if isinstance(exception, RetryableJobError):
+                return
+
+        if exception:
+            msg = (msg or '') + '\n' + str(exception)
+
+        if not msg:
+            return
+
+        with open(self.logfile_path, 'a') as file:
+            file.write(msg)
+            file.write("\n")
+
+        with self._logsio(None) as logsio:
+            logsio.info(msg)

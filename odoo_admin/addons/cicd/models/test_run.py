@@ -244,39 +244,6 @@ class CicdTestRun(models.Model):
 
             self._report("Cleanup Testing done.")
 
-    def _report(
-        self, msg, state='success',
-        exception=None, duration=None, ttype='log',
-    ):
-        if duration and isinstance(duration, datetime.timedelta):
-            duration = duration.total_seconds()
-
-        if exception:
-            if isinstance(exception, RetryableJobError):
-                return
-
-        ttype = ttype or 'log'
-        data = {
-            'state': state or 'success',
-            'name': msg,
-            'ttype': ttype,
-            'duration': duration,
-            'project_name': self.branch_id.project_name,
-        }
-        if exception:
-            data['state'] = 'failed'
-            msg = (msg or '') + '\n' + str(exception)
-            data['exc_info'] = str(exception)
-
-        self.line_ids = [[0, 0, data]]
-        self.env.cr.commit()
-
-        with self._logsio(None) as logsio:
-            if state == 'success':
-                logsio.info(msg)
-            else:
-                logsio.error(msg)
-
     def _get_source_path(self):
         path = Path(self.machine_id._get_volume('source'))
         # one source directory for all tests; to have common .dirhashes
