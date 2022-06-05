@@ -1,7 +1,11 @@
+import arrow
+from contextlib import contextmanager
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.models import NewId
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 
 
 class TestSettingAbstract(models.AbstractModel):
@@ -25,6 +29,15 @@ class TestSettingAbstract(models.AbstractModel):
         store=False, copy=False)
     success_rate = fields.Float(compute="_compute_success_rate", store=False)
     name = fields.Char(compute="_compute_name", store=False)
+
+    def as_job(self, suffix, afterrun=False, eta=None):
+        marker = self.parent_id._get_qj_marker(suffix, afterrun=afterrun)
+        eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
+        return self.with_delay(
+            channel="testruns",
+            identity_key=marker,
+            eta=eta
+            )
 
     def _compute_test_run_lines(self):
         for rec in self:
@@ -172,3 +185,14 @@ class TestSettings(models.Model):
             if not line._is_success():
                 return False
         return True
+
+    @contextmanager
+    def _get_source_for_analysis(self):
+        repo = self.branch_ids.repo_id
+        machine = repo.machine_id
+        with repo._temp_repo(machine, self.branch_id) as folder:
+            with machine._shell(
+                cwd=folder,
+                project_name=self.branch_id.project_name,
+            ) as shell:
+                yield shell

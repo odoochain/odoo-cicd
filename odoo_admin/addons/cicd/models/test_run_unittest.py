@@ -22,7 +22,9 @@ class UnitTest(models.Model):
 
     def _execute(self):
         import pudb;pudb.set_trace()
-        self = self.with_context(testrun=f"testrun_{self.id}_{module}")
+        self = self.with_context(testrun=(
+            f"testrun_{self.id}_{self.odoo_module}"
+        ))
         with self._shell(quick=True) as shell:
             dump_path = self.branch_id._ensure_dump(
                 'base', commit=self.commit_id.name)
@@ -39,35 +41,19 @@ class UnitTest(models.Model):
                 '--no-dev-scripts', force=True)
             shell.wait_for_postgres()
 
-            def _update(item):
-                shell.odoo('update', item, '--no-dangling-check')
+            try:
+                self._report(f"Installing module {self.odoo_module}")
+                shell.odoo('update', self.odoo_module, '--no-dangling-check')
 
-            if not self._generic_run(
-                shell, [module],
-                'unittest', _update,
-                name_prefix='install ',
-            ):
-                return
-
-            def _unittest(item):
-                try:
-                    shell.odoo(
-                        'unittest', item, "--non-interactive",
-                        timeout=self.timeout_tests)
-                finally:
-                    shell.odoo("kill", allow_error=True)
-                    shell.odoo("rm", allow_error=True)
-                    shell.odoo("down", "-v", force=True, allow_error=True)
-
-            self._generic_run(
-                shell, tests,
-                'unittest', _unittest,
-                try_count=self.retry_unit_tests,
-                name_callback=self._unittest_name_callback,
-                name_prefix=f"({index + 1} / {count}) ",
-                odoo_module=module,
-                hash=hash,
-            )
+                self._report(f"Starting Unittest {self.filepath}")
+                shell.odoo(
+                    'unittest', self.filepath, "--non-interactive",
+                    timeout=self.timeout_tests)
+            finally:
+                self._report("Unittest finished")
+                shell.odoo("kill", allow_error=True)
+                shell.odoo("rm", allow_error=True)
+                shell.odoo("down", "-v", force=True, allow_error=True)
 
 
 class TestSettingsUnittest(models.Model):
@@ -82,33 +68,33 @@ class TestSettingsUnittest(models.Model):
 
     def produce_test_run_lines(self, testrun):
         breakpoint()
-        testrun._report("Hashing Modules / Preparing UnitTests")
-        with testrun._shell(quick=False) as shell:
-            testrun._ensure_source_and_machines(
-                shell, start_postgres=False, settings="")
-            unittests_to_run = testrun._get_unit_tests_to_run(shell)
+        with self.parent_id._logsio() as logsio:
+            logsio.info("Hashing Modules / Preparing UnitTests")
+            with self.parent_id._get_source_for_analysis() as shell:
+                unittests_to_run = self._get_unit_tests_to_run(shell)
 
-        testrun._report("Hashing Modules / Preparing UnitTests Done")
-        if not unittests_to_run:
-            return
+            logsio.info("Hashing Modules / Preparing UnitTests Done")
+            if not unittests_to_run:
+                return
 
-        # make sure dump exists for all
-        testrun.branch_id._ensure_dump('base', commit=testrun.commit_id.name)
+            # make sure dump exists for all
+            testrun.branch_id._ensure_dump(
+                'base', commit=testrun.commit_id.name)
 
-        for module, tests in unittests_to_run.items():
-            hash = tests['hash']
-            tests = tests['tests']
+            for module, tests in unittests_to_run.items():
+                hash = tests['hash']
+                tests = tests['tests']
 
-            for test in tests:
-                if self.regrex:
-                    if not re.findall(self.regex, test):
-                        continue
-                self.env['cicd.test.run.line.unittest'].create({
-                    'run_id': testrun.id,
-                    'odoo_module': module,
-                    'filepath': test,
-                    'hash': hash,
-                })
+                for test in tests:
+                    if self.regrex:
+                        if not re.findall(self.regex, test):
+                            continue
+                    self.env['cicd.test.run.line.unittest'].create({
+                        'run_id': testrun.id,
+                        'odoo_module': module,
+                        'filepath': test,
+                        'hash': hash,
+                    })
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
@@ -175,8 +161,8 @@ class TestSettingsUnittest(models.Model):
 
                 test_already_succeeded = \
                     self.line_ids.check_if_test_already_succeeded(
-                        self, generic_run_name, hash,
-                )
+                        self, generic_run_name, hash
+                        )
 
                 if self.no_reuse or (
                     not self.no_reuse and

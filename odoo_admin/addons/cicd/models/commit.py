@@ -161,8 +161,7 @@ class GitCommit(models.Model):
         repo = self.mapped('branch_ids.repo_id')
 
         with LogsIOWriter.GET("contains_commit", "Check") as logsio:
-            repo_path = repo._get_main_repo(
-                logsio=logsio, machine=repo.machine_id)
+            repo_path = repo._get_main_repo(logsio=logsio, machine=repo.machine_id)
             with repo.machine_id._shell(
                     repo_path, logsio=logsio) as shell:
 

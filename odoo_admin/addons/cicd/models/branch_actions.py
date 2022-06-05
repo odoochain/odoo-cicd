@@ -383,13 +383,12 @@ class Branch(models.Model):
         def _clone_instance_folder(machine, instance_folder):
             # be atomic
             path = '/tmp/' + next(tempfile._get_candidate_names())
-            self.repo_id._get_main_repo(
-                logsio=shell.logsio,
-                destination_folder=path,
-                limit_branch=my_name,
-                machine=machine,
+            self.repo_id._technical_clone_repo(
+                path=path, branch=my_name, machine=machine,
             )
             with shell.clone(cwd="/tmp", project_name=None) as shell2:
+                # if work in progress happening in instance_folder
+                # TODO delete .replace_main_folder
                 path2 = '/tmp/' + \
                     next(tempfile._get_candidate_names()) + '.replace_main_folder'
                 if shell2.exists(instance_folder):

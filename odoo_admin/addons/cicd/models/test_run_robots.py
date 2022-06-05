@@ -89,19 +89,13 @@ class RobotTest(models.Model):
                     'state': state,
                 }
 
-            self._generic_run(
-                shell, [robot_file],
-                'robottest', run,
-                try_count=self.retry_unit_tests,
-                name_prefix=f"({index + 1} / {count}) ",
-            )
-
     def robot_results(self):
         return {
             'type': 'ir.actions.act_url',
             'url': f'/robot_output/{self.id}',
             'target': 'new'
         }
+
 
 class TestSettingsRobotTests(models.Model):
     _inherit = "cicd.test.settings.base"
@@ -118,9 +112,7 @@ class TestSettingsRobotTests(models.Model):
 
     def produce_test_run_lines(self, testrun):
         breakpoint()
-        with self._shell(quick=False) as shell:
-            self._ensure_source_and_machines(
-                shell, start_postgres=False, settings=settings)
+        with self.parent_id._get_source_for_analysis() as shell:
             files = shell.odoo('list-robot-test-files')['stdout'].strip()
             files = list(filter(bool, files.split("!!!")[1].split("\n")))
 

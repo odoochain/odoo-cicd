@@ -169,19 +169,29 @@ class Repository(models.Model):
             temppath = tempfile.mktemp(suffix='.clone_repo')
             try:
 
+                # try to clone from main branch on error fetch from
+                # web
+                main_repo_path = self._get_main_repo(machine=machine)
                 cmd = ["git-cicd", "clone"]
-                if branch:
-                    cmd += ["--branch", branch]
-                if depth:
-                    cmd += ["--depth", str(depth)]
-                cmd += [self.url, temppath]
-                shell.X(cmd)
+                del cmd
+
+                shell.X(["git-cicd", "clone", main_repo_path, temppath])
+                with shell.clone(cwd=temppath) as shell2:
+                    shell2.X(["git-cicd", "remote", "remove", "origin"])
+                    shell2.X(["git-cicd", "remote", "add", "origin", self.url])
+                    if branch:
+                        shell2.X(["git-cicd", "checkout", "-f", branch])
+                        shell2.X([
+                            "git-cicd", "branch",
+                            f"--set-upstream-to=origin/{branch}", branch])
+                        shell2.X([
+                            "git-cicd", "reset", "--hard", f"origin/{branch}"
+                        ])
 
                 if shell.exists(path):
                     # clone may happened during that clone
                     shell.remove(temppath)
-                else:
-                    shell.X(["mv", temppath, path])
+                shell.X(["mv", temppath, path])
                 shell.X([
                     "git-cicd", "config", "--global",
                     "--add", "safe.directory", path])
@@ -205,38 +215,23 @@ class Repository(models.Model):
             with machine._shell() as shell:
                 shell.remove(path)
 
-    def _get_main_repo(
-            self, destination_folder=False,
-            logsio=None, machine=None, limit_branch=None,
-            depth=None
-        ):
+    def _get_main_repo(self, logsio=None, machine=None):
+        """
+        Returns path to _main folder
+        """
 
         self.ensure_one()
         machine = machine or self.machine_id
         if not machine.workspace:
             raise ValidationError(_("Please configure a workspace!"))
-        path = None
+        path = self._get_repo_path(machine)
 
-        repo_path = self._get_repo_path(machine)
-        self.clone_repo(machine, repo_path, logsio)
+        with machine._shell(
+                cwd=self.machine_id.workspace, logsio=logsio) as shell:
+            if not self._is_healthy_repository(shell, path):
+                shell.rm(path)
 
-        path = destination_folder or repo_path
-        if path != repo_path:
-            with machine._shell(
-                    cwd=self.machine_id.workspace, logsio=logsio) as shell:
-                if not self._is_healthy_repository(shell, path):
-                    shell.rm(path)
-
-                    if limit_branch:
-                        # make sure branch exists in source repo
-                        with shell.clone(cwd=repo_path) as shell2:
-                            shell2.checkout_branch(limit_branch)
-
-                    cmd = ["git-cicd", "clone"]
-                    if limit_branch:
-                        cmd += ["--branch", limit_branch]
-                    cmd += [repo_path, path]
-                    shell.X(cmd)
+                shell.X(["git-cicd", "clone", self.url, path])
         return path
 
     def _get_remotes(self, shell):
@@ -574,7 +569,7 @@ class Repository(models.Model):
                 healthy = False
         return healthy
 
-    def clone_repo(self, machine, path, logsio):
+    def clone_repo(self, machine, path, logsio=None, branch=None):
         with machine._gitshell(self, cwd="", logsio=logsio) as shell:
             if not self._is_healthy_repository(shell, path):
                 with pg_advisory_lock(
@@ -582,7 +577,8 @@ class Repository(models.Model):
                         self._get_lockname(machine, path), 'clone_repo'
                 ):
                     shell.rm(path)
-                    self._technical_clone_repo(path, machine=machine)
+                    self._technical_clone_repo(
+                        path, machine=machine, branch=branch)
 
     def _merge_commits_on_target(self, shell, target, commits):
         conflicts, history = [], []

@@ -13,6 +13,10 @@ from contextlib import contextmanager
 from .test_run import AbortException
 
 
+
+class WrongShaException(Exception):
+    pass
+
 class CicdTestRunLine(models.AbstractModel):
     _inherit = 'cicd.open.window.mixin'
     _name = 'cicd.test.run.line'
@@ -275,7 +279,7 @@ class CicdTestRunLine(models.AbstractModel):
             shell.wait_for_postgres()
 
     def _get_source_path(self):
-        path = Path(self.machine_id._get_volume('source'))
+        path = Path(self.effective_machine_id._get_volume('source'))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
         project_name = self.branch_id.with_context(testrun="").project_name
@@ -284,6 +288,7 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _checkout_source_code(self, machine):
         assert machine._name == 'cicd.machine'
+        breakpoint()
 
         with pg_advisory_lock(self.env.cr, f'testrun_{self.id}'):
             path = self._get_source_path()
@@ -292,12 +297,10 @@ class CicdTestRunLine(models.AbstractModel):
                 if not shell.exists(path / '.git'):
                     shell.remove(path)
                     self._report("Checking out source code...")
-                    self.branch_id.repo_id._get_main_repo(
-                        destination_folder=path,
-                        logsio=shell.logsio,
+                    self.branch_id.repo_id._technical_clone_repo(
+                        path=path,
                         machine=machine,
-                        limit_branch=self.branch_id.name,
-                        depth=1,
+                        branch=self.branch_id.name,
                     )
             with shell.clone(cwd=path) as shell:
                 shell.X(["git-cicd", "checkout", "-f", self.commit_id.name])
@@ -312,3 +315,29 @@ class CicdTestRunLine(models.AbstractModel):
                         ))
                 self._report("Commit matches")
                 self._report(f"Checked out source code at {shell.cwd}")
+
+    def cleanup(self):
+        instance_folder = self._get_source_path()
+
+        with self.effective_machine_id._shell(
+            cwd=instance_folder,
+            project_name=self.project_name,
+        ) as shell:
+            self.with_context(
+                testrun_cleanup=True
+            )._ensure_source_and_machines(shell)
+            if shell.exists(instance_folder):
+                shell.odoo('down', '-v', force=True, allow_error=True)
+                shell.odoo('rm', force=True, allow_error=True)
+
+            shell.remove(instance_folder)
+
+    def as_job(self, suffix, afterrun=False, eta=None):
+        breakpoint()
+        marker = self.run_id._get_qj_marker(suffix, afterrun=afterrun)
+        eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
+        return self.with_delay(
+            channel="testruns",
+            identity_key=marker,
+            eta=eta
+            )

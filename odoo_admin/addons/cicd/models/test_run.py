@@ -12,7 +12,8 @@ from contextlib import contextmanager
 import inspect
 import os
 from pathlib import Path
-current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
+current_dir = Path(os.path.dirname(os.path.abspath(
+    inspect.getfile(inspect.currentframe()))))
 
 MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
 BASE_SNAPSHOT_NAME = 'basesnap'
@@ -37,10 +38,6 @@ class AbortException(Exception):
     pass
 
 
-class WrongShaException(Exception):
-    pass
-
-
 class TestFailedAtInitError(Exception):
     pass
 
@@ -57,7 +54,7 @@ class CicdTestRun(models.Model):
         default=lambda self: fields.Datetime.now(), required=True,
         readonly=True)
     date = fields.Datetime(
-        "Date Started", default=lambda self: fields.Datetime.now(),
+        "Date Created", default=lambda self: fields.Datetime.now(),
         required=True, tracking=True)
     date_started = fields.Datetime("Date Started")
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
@@ -167,23 +164,8 @@ class CicdTestRun(models.Model):
     def _cleanup_testruns(self):
         with self._logsio(None) as logsio:
             logsio.info("Cleanup Testing started...")
-            instance_folder = self._get_source_path()
-
-            with self.machine_id._shell(
-                logsio=logsio,
-                cwd=instance_folder,
-                project_name=instance_folder.name,
-            ) as shell:
-                self.with_context(
-                    testrun_cleanup=True
-                )._ensure_source_and_machines(shell)
-                for project_name in set(self.mapped('line_ids.project_name')):
-                    with shell.clone(project_name=project_name) as shell2:
-                        shell2.odoo('down', '-v', force=True, allow_error=True)
-                        shell2.odoo('rm', force=True, allow_error=True)
-
-                shell.remove(instance_folder)
-
+            for line in self.line_ids:
+                line.cleanup()
             logsio.info("Cleanup Testing done.")
 
     def execute_now(self):
@@ -193,70 +175,6 @@ class CicdTestRun(models.Model):
             FORCE_TEST_RUN=True).execute()
         return True
 
-    def _get_qj_marker(self, suffix, afterrun):
-        runtype = '__after_run__' if afterrun else '__run__'
-        return (
-            f"testrun-{self.id}-{runtype}"
-            f"{suffix}"
-        )
-
-    def as_job(self, suffix, afterrun=False, eta=None):
-        marker = self._get_qj_marker(suffix, afterrun=afterrun)
-        eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
-        return self.with_delay(
-            channel="testruns",
-            identity_key=marker,
-            eta=eta
-            )
-
-    def _get_failed_queuejobs_which_wont_be_requeued(self):
-        queuejobs = list(filter(
-            lambda x: x['state'] == 'failed',
-            self._get_queuejobs('active')))
-
-        timeout_minutes = int(
-            self.env.ref("cicd.test_timeout_queuejobs_testruns").value)
-        queuejobs = list(filter(
-            lambda x: arrow.get(x['date_created']).shift(
-                minutes=timeout_minutes) < arrow.utcnow(), queuejobs))
-
-        # these queuejobs are considered as fully dead
-        return queuejobs
-
-    def _get_queuejobs(self, ttype, include_wait_for_finish=False):
-        assert ttype in ['active', 'all']
-        self.ensure_one()
-        if ttype == 'active':
-            domain = " state not in ('done') "
-        else:
-            domain = " 1 = 1 "
-
-        # TODO safe
-        marker1 = self._get_qj_marker("", False)
-        marker2 = self._get_qj_marker("", True)
-        domain += (
-            " AND ( "
-            f" identity_key ilike '%{marker1}%' "
-            " OR "
-            f" identity_key ilike '%{marker2}%' "
-            " ) "
-        )
-        self.env.cr.execute((
-            "select id, state, exc_info, identity_key, date_created "
-            "from queue_job "
-            "where " + domain
-        ))
-        queuejobs = self.env.cr.dictfetchall()
-
-        def _filter(qj):
-            idkey = qj['identity_key'] or ''
-            if not include_wait_for_finish and 'wait_for_finish' in idkey:
-                return False
-            return True
-
-        queuejobs = list(filter(_filter, queuejobs))
-        return queuejobs
-
     @contextmanager
     def _logsio(self, logsio=None):
         if logsio:
@@ -264,8 +182,8 @@ class CicdTestRun(models.Model):
         else:
             with self.branch_id.with_context(
                 testrun="")._get_new_logsio_instance(
-                    'test-run-execute') as logsio:
-                yield logsio
+                    'test-run-execute') as _logsio:
+                yield _logsio
 
     def _trigger_wait_for_finish(self):
         self.as_job(
@@ -332,10 +250,9 @@ class CicdTestRun(models.Model):
         self.ensure_one()
         self.do_abort = False
         self.date_started = fields.Datetime.now()
-        self.ensure_one()
+        self.line_ids.unlink()
         self._switch_to_running_state()
         self.env.cr.commit()
-        self.line_ids.unlink()
 
         with self._logsio(None) as logsio:
             if not self.any_testing:
@@ -348,7 +265,8 @@ class CicdTestRun(models.Model):
 
         breakpoint()
         for test_setup in self.iterate_all_test_settings():
-            test_setup.as_job(test_setup.name).produce_test_run_lines(self)
+            test_setup.as_job(test_setup.name).produce_test_run_lines(
+                self)
 
     def _compute_success_state(self):
         self.ensure_one()
@@ -387,6 +305,13 @@ class CicdTestRun(models.Model):
         for line in self.iterate_all_test_settings():
             line.reset_at_testrun()
 
+    @api.recordchange("state")
+    def _on_state_change(self):
+        for rec in self:
+            if rec.state == 'open':
+                rec.duration = False
+                rec.date_started = False
+
     def _inform_developer(self):
         for rec in self:
             partners = (
@@ -404,3 +329,67 @@ class CicdTestRun(models.Model):
                     "obj": rec,
                 },
             )
+
+    def _get_qj_marker(self, suffix, afterrun):
+        runtype = '__after_run__' if afterrun else '__run__'
+        return (
+            f"testrun-{self.id}-{runtype}"
+            f"{suffix}"
+        )
+
+    def as_job(self, suffix, afterrun=False, eta=None):
+        marker = self._get_qj_marker(suffix, afterrun=afterrun)
+        eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
+        return self.with_delay(
+            channel="testruns",
+            identity_key=marker,
+            eta=eta
+            )
+
+    def _get_failed_queuejobs_which_wont_be_requeued(self):
+        queuejobs = list(filter(
+            lambda x: x['state'] == 'failed',
+            self._get_queuejobs('active')))
+
+        timeout_minutes = int(
+            self.env.ref("cicd.test_timeout_queuejobs_testruns").value)
+        queuejobs = list(filter(
+            lambda x: arrow.get(x['date_created']).shift(
+                minutes=timeout_minutes) < arrow.utcnow(), queuejobs))
+
+        # these queuejobs are considered as fully dead
+        return queuejobs
+
+    def _get_queuejobs(self, ttype, include_wait_for_finish=False):
+        assert ttype in ['active', 'all']
+        self.ensure_one()
+        if ttype == 'active':
+            domain = " state not in ('done') "
+        else:
+            domain = " 1 = 1 "
+
+        # TODO safe
+        marker1 = self._get_qj_marker("", False)
+        marker2 = self._get_qj_marker("", True)
+        domain += (
+            " AND ( "
+            f" identity_key ilike '%{marker1}%' "
+            " OR "
+            f" identity_key ilike '%{marker2}%' "
+            " ) "
+        )
+        self.env.cr.execute((
+            "select id, state, exc_info, identity_key, date_created "
+            "from queue_job "
+            "where " + domain
+        ))
+        queuejobs = self.env.cr.dictfetchall()
+
+        def _filter(qj):
+            idkey = qj['identity_key'] or ''
+            if not include_wait_for_finish and 'wait_for_finish' in idkey:
+                return False
+            return True
+
+        queuejobs = list(filter(_filter, queuejobs))
+        return queuejobs
