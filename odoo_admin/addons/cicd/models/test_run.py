@@ -80,6 +80,24 @@ class CicdTestRun(models.Model):
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many('queue.job', compute="_compute_queuejobs")
+    line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
+    line_unittest_ids = fields.Many2many(
+        'cicd.test.run.line', compute="_compute_lines")
+    line_robottest_ids = fields.Many2many(
+        'cicd.test.run.line', compute="_compute_lines")
+    failed_line_ids = fields.Many2many(
+        'cicd.test.run.line', compute="_compute_lines")
+
+    @api.depends('line_ids')
+    def _compute_lines(self):
+        for rec in self:
+            lines = rec.line_ids.with_context(prefetch_fields=False)
+            rec.line_unittest_ids = lines.filtered(
+                lambda x: x.ttype == 'unittest')
+            rec.line_robottest_ids = lines.filtered(
+                lambda x: x.ttype == 'robottest')
+            rec.failed_line_ids = lines.filtered(
+                lambda x: x.state == 'failed' and not x.force_success)
 
     def init(self):
         super().init()

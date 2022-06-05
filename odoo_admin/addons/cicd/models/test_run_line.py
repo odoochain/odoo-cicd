@@ -195,9 +195,10 @@ class CicdTestRunLine(models.AbstractModel):
                     self.log = logfile.read_text()
                     logfile.unlink()
 
-        except Exception as ex:
+        except Exception:  # pylint: disable=broad-except
             if logfile.exists():
                 logfile.unlink()
+            raise
 
         self.env.cr.commit()
 
