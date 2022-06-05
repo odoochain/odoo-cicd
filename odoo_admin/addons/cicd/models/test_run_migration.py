@@ -11,9 +11,9 @@ class MigrationTest(models.Model):
 
     dump_id = fields.Many2one('cicd.dump', string="Dump")
 
-    def execute(self):
+    def _execute(self):
         import pudb;pudb.set_trace()
-        logsio.info(f"Restoring {self.branch_id.dump_id.name}")
+        self._report(f"Restoring {self.branch_id.dump_id.name}")
 
         shell.odoo('-f', 'restore', 'odoo-db', self.branch_id.dump_id.name)
         shell.wait_for_postgres()

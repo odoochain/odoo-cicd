@@ -1,4 +1,4 @@
-import time
+import re
 import json
 import threading
 from pathlib import Path
@@ -20,7 +20,7 @@ class UnitTest(models.Model):
     odoo_module = fields.Char("Odoo Module")
     filepath = fields.Char("Filepath")
 
-    def execute(self):
+    def _execute(self):
         import pudb;pudb.set_trace()
         self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell(quick=True) as shell:
@@ -95,16 +95,19 @@ class TestSettingsUnittest(models.Model):
         # make sure dump exists for all
         testrun.branch_id._ensure_dump('base', commit=testrun.commit_id.name)
 
-        count = len(list(unittests_to_run.keys()))
-        for index, (module, tests) in enumerate(unittests_to_run.items()):
+        for module, tests in unittests_to_run.items():
             hash = tests['hash']
             tests = tests['tests']
 
             for test in tests:
+                if self.regrex:
+                    if not re.findall(self.regex, test):
+                        continue
                 self.env['cicd.test.run.line.unittest'].create({
                     'run_id': testrun.id,
                     'odoo_module': module,
                     'filepath': test,
+                    'hash': hash,
                 })
 
     def _get_unittest_hashes(self, shell, modules):

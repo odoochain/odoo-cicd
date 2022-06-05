@@ -103,8 +103,6 @@ class RobotTest(models.Model):
             'target': 'new'
         }
 
-
-
 class TestSettingsRobotTests(models.Model):
     _inherit = "cicd.test.settings.base"
     _name = 'cicd.test.settings.robottest'
@@ -127,6 +125,9 @@ class TestSettingsRobotTests(models.Model):
             files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         for robotfile in sorted(files):
+            if self.regrex:
+                if not re.findall(self.regex, robotfile):
+                    continue
             self.env['cicd.test.run.line.robottest'].create({
                 'run_id': testrun.id,
                 'filepath': robotfile,
