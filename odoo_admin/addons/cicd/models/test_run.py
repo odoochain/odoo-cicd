@@ -164,10 +164,9 @@ class CicdTestRun(models.Model):
         if self.do_abort and not self.env.context.get("testrun_cleanup"):
             raise AbortException("User aborted")
 
-
     def _cleanup_testruns(self):
         with self._logsio(None) as logsio:
-            self._report("Cleanup Testing started...")
+            logsio.info("Cleanup Testing started...")
             instance_folder = self._get_source_path()
 
             with self.machine_id._shell(
@@ -185,7 +184,7 @@ class CicdTestRun(models.Model):
 
                 shell.remove(instance_folder)
 
-            self._report("Cleanup Testing done.")
+            logsio.info("Cleanup Testing done.")
 
     def execute_now(self):
         self.with_context(
@@ -345,7 +344,7 @@ class CicdTestRun(models.Model):
                 self.state = 'success'
                 return
 
-            self._report("Started")
+            logsio.info(f"Started Testrun {self.name}")
 
         breakpoint()
         for test_setup in self.iterate_all_test_settings():
@@ -353,7 +352,6 @@ class CicdTestRun(models.Model):
 
     def _compute_success_state(self):
         self.ensure_one()
-        breakpoint()
         if self._is_success:
             self.state = 'success'
         else:
@@ -374,14 +372,15 @@ class CicdTestRun(models.Model):
             yield x[0]
 
     def rerun(self):
-        breakpoint()
-        for qj in self._get_queuejobs('all'):
-            if qj['state'] in ['pending', 'enqueued', 'started']:
+        for qj in self._get_queuejobs('all', include_wait_for_finish=True):
+            if qj['state'] not in ['done']:
                 raise ValidationError(
                     "There are pending jobs - cannot restart")
+
         for qj in self._get_queuejobs('all', include_wait_for_finish=True):
             self.env.cr.execute("delete from queue_job where id = %s", (
                 qj['id'],))
+
         self = self.sudo()
         self.line_ids.unlink()
         self.state = 'open'
