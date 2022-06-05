@@ -5,7 +5,6 @@
 			<field name="model">cicd.test.settings.unittest</field>
 			<field name="arch" type="xml">
 				<tree editable="bottom">
-					<field name="name" />
 					<field name="tags"/>
 					<field name="regex"/>
 				</tree>
@@ -15,7 +14,6 @@
 			<field name="model">cicd.test.settings.robottest</field>
 			<field name="arch" type="xml">
 				<tree editable="bottom">
-					<field name="name" />
 					<field name="parallel"/>
 					<field name="tags"/>
 				</tree>
@@ -25,7 +23,6 @@
 			<field name="model">cicd.test.settings.migrations</field>
 			<field name="arch" type="xml">
 				<tree editable="bottom">
-					<field name="name" />
 					<field name="dump_id"/>
 				</tree>
 			</field>

@@ -197,6 +197,7 @@ class BaseShellExecutor():
             f"{cmd} | cat -\n"
             f"echo\n"
             f"echo 1>&2\n"
+            f"sync\n"
             f"echo '{stop_marker}' \n"
         )
         # endregion
@@ -213,7 +214,6 @@ class BaseShellExecutor():
                 raise RetryableJobError(
                     "Timeout starting command on remote machine",
                     seconds=10, ignore_retry=True)
-                raise BaseShellExecutor.TimeoutConnection()
             if data['started']:
                 break
             if p.commands:

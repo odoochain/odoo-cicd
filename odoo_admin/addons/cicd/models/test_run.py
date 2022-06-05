@@ -1,13 +1,7 @@
-import re
 from curses import wrapper
-from functools import partial
 import arrow
 from contextlib import contextmanager, closing
-import base64
-import datetime
 from . import pg_advisory_lock
-import traceback
-import time
 from odoo import _, api, fields, models
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 from odoo.addons.queue_job.exception import RetryableJobError
@@ -81,29 +75,11 @@ class CicdTestRun(models.Model):
         ('omitted', 'Omitted'),
         ('failed', 'Failed'),
     ], string="Result", required=True, default='open', tracking=True)
-    line_ids = fields.One2many('cicd.test.run.line', 'run_id', string="Lines")
-    line_unittest_ids = fields.Many2many(
-        'cicd.test.run.line', compute="_compute_lines")
-    line_robottest_ids = fields.Many2many(
-        'cicd.test.run.line', compute="_compute_lines")
-    failed_line_ids = fields.Many2many(
-        'cicd.test.run.line', compute="_compute_lines")
     duration = fields.Integer("Duration [s]", tracking=True)
     queuejob_log = fields.Binary("Queuejob Log")
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many('queue.job', compute="_compute_queuejobs")
-
-    @api.depends('line_ids')
-    def _compute_lines(self):
-        for rec in self:
-            lines = rec.line_ids.with_context(prefetch_fields=False)
-            rec.line_unittest_ids = lines.filtered(
-                lambda x: x.ttype == 'unittest')
-            rec.line_robottest_ids = lines.filtered(
-                lambda x: x.ttype == 'robottest')
-            rec.failed_line_ids = lines.filtered(
-                lambda x: x.state == 'failed' and not x.force_success)
 
     def init(self):
         super().init()
@@ -170,57 +146,6 @@ class CicdTestRun(models.Model):
         if self.do_abort and not self.env.context.get("testrun_cleanup"):
             raise AbortException("User aborted")
 
-    def _log(self, func, comment="", allow_error=False):
-        started = arrow.utcnow()
-        if comment:
-            self._report(comment)
-        params = {}
-        do_log = True
-        try:
-            func(self)
-        except Exception as ex:  # pylint: disable=broad-except
-            do_log = True
-            if allow_error:
-                params['name'] = (
-                    f"{params['name'] or ''}"
-                    " "
-                    f"{ex}"
-                )
-            else:
-                params['exception'] = ex
-
-        finally:
-            params['duration'] = (arrow.utcnow() - started).total_seconds()
-        if do_log:
-            self._report(comment, **params)
-        self._abort_if_required()
-
-    def _lo(self, shell, *params, comment=None, **kwparams):
-        comment = comment or ' '.join(map(str, params))
-        self._log(
-            lambda self: shell.odoo(*params, **kwparams),
-            comment=comment,
-            allow_error=kwparams.get('allow_error'),
-        )
-
-    def _ensure_source_and_machines(
-        self, shell, start_postgres=False, settings=""
-    ):
-        self._log(
-            lambda self: self._checkout_source_code(shell.machine),
-            'checkout source'
-        )
-        lo = partial(self._lo, shell)
-        # lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
-        self._reload(
-            shell, settings, shell.cwd)
-        lo('regpull', allow_error=True)
-        lo('build')
-        lo('kill', allow_error=True)
-        lo('rm', allow_error=True)
-        if start_postgres:
-            lo('up', '-d', 'postgres')
-            shell.wait_for_postgres()
 
     def _cleanup_testruns(self):
         with self._logsio(None) as logsio:
@@ -243,45 +168,6 @@ class CicdTestRun(models.Model):
                 shell.remove(instance_folder)
 
             self._report("Cleanup Testing done.")
-
-    def _get_source_path(self):
-        path = Path(self.machine_id._get_volume('source'))
-        # one source directory for all tests; to have common .dirhashes
-        # and save disk space
-        project_name = self.branch_id.with_context(testrun="").project_name
-        path = path / f"{project_name}_testrun_{self.id}"
-        return path
-
-    def _checkout_source_code(self, machine):
-        assert machine._name == 'cicd.machine'
-
-        with pg_advisory_lock(self.env.cr, f'testrun_{self.id}'):
-            path = self._get_source_path()
-
-            with machine._shell(cwd=path.parent) as shell:
-                if not shell.exists(path / '.git'):
-                    shell.remove(path)
-                    self._report("Checking out source code...")
-                    self.branch_id.repo_id._get_main_repo(
-                        destination_folder=path,
-                        logsio=shell.logsio,
-                        machine=machine,
-                        limit_branch=self.branch_id.name,
-                        depth=1,
-                    )
-            with shell.clone(cwd=path) as shell:
-                shell.X(["git-cicd", "checkout", "-f", self.commit_id.name])
-
-                self._report("Checking commit")
-                sha = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
-                    'stdout'].strip()
-                if sha != self.commit_id.name:
-                    raise WrongShaException((
-                        f"checked-out SHA {sha} "
-                        f"not matching test sha {self.commit_id.name}"
-                        ))
-                self._report("Commit matches")
-                self._report(f"Checked out source code at {shell.cwd}")
 
     def execute_now(self):
         self.with_context(
@@ -482,36 +368,7 @@ class CicdTestRun(models.Model):
         self.line_ids.unlink()
         self.state = 'open'
         for line in self.iterate_all_test_settings():
-            line.reset()
-
-    def _get_generic_run_name(
-        self, item, name_callback
-    ):
-        name = item or ''
-        if name_callback:
-            try:
-                name = name_callback(item)
-            except Exception:  # pylint: disable=broad-except
-                logger.error("Error at name bacllback", exc_info=True)
-                pass
-        return name
-
-    def _generic_run(
-        self, shell, todo, ttype, execute_run,
-        try_count=1, name_callback=None, name_prefix='',
-        hash=False, odoo_module=None,
-    ):
-        """
-
-        """
-        self._switch_to_running_state()
-        success = True
-        len_todo = len(todo)
-        for i, item in enumerate(todo):
-            trycounter = 0
-
-            name = self._get_generic_run_name(item, name_callback)
-        return success
+            line.reset_at_testrun()
 
     def _inform_developer(self):
         for rec in self:

@@ -1,3 +1,4 @@
+import re
 import base64
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -26,12 +27,12 @@ class RobotTest(models.Model):
     robot_output = fields.Binary("Robot Output", attachment=True)
     parallel = fields.Char("In Parallel")
 
-    def execute(self):
+    def _execute(self):
         breakpoint()
         # there could be errors at install all
         self.branch_id._ensure_dump('full', self.commit_id.name)
 
-        safe_robot_file = safe_filename(robot_file)
+        safe_robot_file = safe_filename(self.filepath)
         self = self.with_context(
             testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
 
@@ -94,6 +95,14 @@ class RobotTest(models.Model):
                 try_count=self.retry_unit_tests,
                 name_prefix=f"({index + 1} / {count}) ",
             )
+
+    def robot_results(self):
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/robot_output/{self.id}',
+            'target': 'new'
+        }
+
 
 
 class TestSettingsRobotTests(models.Model):

@@ -69,6 +69,7 @@ class UnitTest(models.Model):
                 hash=hash,
             )
 
+
 class TestSettingsUnittest(models.Model):
     _inherit = "cicd.test.settings.base"
     _name = 'cicd.test.settings.unittest'
@@ -80,6 +81,7 @@ class TestSettingsUnittest(models.Model):
         return f"{self.id} - {self.tags}"
 
     def produce_test_run_lines(self, testrun):
+        breakpoint()
         testrun._report("Hashing Modules / Preparing UnitTests")
         with testrun._shell(quick=False) as shell:
             testrun._ensure_source_and_machines(

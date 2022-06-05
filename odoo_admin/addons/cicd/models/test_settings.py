@@ -45,7 +45,6 @@ class TestSettingAbstract(models.AbstractModel):
         self.preparation_done = False
 
     def _compute_success_rate(self):
-        breakpoint()
         for rec in self:
             if not rec.preparation_done or \
                     rec.test_setting_id._name != 'cicd.test.run':
