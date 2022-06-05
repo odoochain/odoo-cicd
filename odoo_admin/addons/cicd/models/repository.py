@@ -162,6 +162,7 @@ class Repository(models.Model):
 
     def _technical_clone_repo(
             self, path, machine, logsio=None, branch=None, depth=None):
+        breakpoint()
 
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
@@ -190,7 +191,7 @@ class Repository(models.Model):
 
                 if shell.exists(path):
                     # clone may happened during that clone
-                    shell.remove(temppath)
+                    shell.remove(path)
                 shell.X(["mv", temppath, path])
                 shell.X([
                     "git-cicd", "config", "--global",
