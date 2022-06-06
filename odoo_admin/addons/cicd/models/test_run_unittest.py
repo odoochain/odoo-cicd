@@ -156,12 +156,9 @@ class TestSettingsUnittest(models.Model):
                 continue
 
             for test in tests:
-                generic_run_name = self._get_generic_run_name(
-                    test, self._unittest_name_callback)
-
                 test_already_succeeded = \
-                    self.line_ids.check_if_test_already_succeeded(
-                        self, generic_run_name, hash
+                    self.run_id.line_ids.check_if_test_already_succeeded(
+                        self, test, hash
                         )
 
                 if self.no_reuse or (
