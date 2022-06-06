@@ -21,7 +21,6 @@ class UnitTest(models.Model):
     filepath = fields.Char("Filepath")
 
     def _execute(self):
-        import pudb;pudb.set_trace()
         self = self.with_context(testrun=(
             f"testrun_{self.id}_{self.odoo_module}"
         ))
@@ -86,7 +85,7 @@ class TestSettingsUnittest(models.Model):
                 tests = tests['tests']
 
                 for test in tests:
-                    if self.regrex:
+                    if self.regex:
                         if not re.findall(self.regex, test):
                             continue
                     self.env['cicd.test.run.line.unittest'].create({
@@ -157,12 +156,11 @@ class TestSettingsUnittest(models.Model):
 
             for test in tests:
                 test_already_succeeded = \
-                    self.run_id.line_ids.check_if_test_already_succeeded(
-                        self, test, hash
-                        )
+                    self.parent_id.line_ids.check_if_test_already_succeeded(
+                        hash)
 
-                if self.no_reuse or (
-                    not self.no_reuse and
+                if self.parent_id.no_reuse or (
+                    not self.parent_id.no_reuse and
                     not test_already_succeeded
                 ):
                     t = _setdefault(_unittests_by_module, module)
@@ -190,7 +188,6 @@ class TestSettingsUnittest(models.Model):
 
     @api.model
     def _get_hash_for_module(self, shell, module_path):
-        breakpoint()
         res = shell.odoo("list-deps", module_path)
         stdout = res['stdout']
         deps = json.loads(stdout.split("---", 1)[1])

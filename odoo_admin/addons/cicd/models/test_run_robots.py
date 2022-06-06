@@ -117,7 +117,7 @@ class TestSettingsRobotTests(models.Model):
             files = list(filter(bool, files.split("!!!")[1].split("\n")))
 
         for robotfile in sorted(files):
-            if self.regrex:
+            if self.regex:
                 if not re.findall(self.regex, robotfile):
                     continue
             self.env['cicd.test.run.line.robottest'].create({

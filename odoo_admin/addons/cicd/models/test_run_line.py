@@ -17,6 +17,7 @@ from .test_run import AbortException
 class WrongShaException(Exception):
     pass
 
+
 class CicdTestRunLine(models.AbstractModel):
     _inherit = 'cicd.open.window.mixin'
     _name = 'cicd.test.run.line'
@@ -105,48 +106,26 @@ class CicdTestRunLine(models.AbstractModel):
             if rec.run_id.state not in ['running']:
                 rec.run_id._compute_success_rate()
 
-    def check_if_test_already_succeeded(self):
+    def check_if_test_already_succeeded(self, hash):
         """
         Compares the hash of the module with an existing
         previous run with same hash.
         """
-        import pudb;pudb.set_trace()
-        res = self.search([
+        res = self.search_count([
             ('run_id.branch_ids.repo_id',
                 '=', self.run_id.branch_ids.repo_id.id),
             ('name', '=', self.name),
             ('hash', '=', hash),
             ('state', '=', 'success'),
-        ], limit=1, order='id desc')
+        ])
         return bool(res)
-
-    @api.constrains("ttype")
-    def _be_graceful(self):
-        for rec in self:
-            if rec.ttype != 'error':
-                continue
-
-            exc_info = rec.exc_info or ''
-            name = rec.name or ''
-
-            grace = [
-                '.git/index.lock',
-                'the database system is starting up',
-
-            ]
-            for vol in self.env['cicd.machine.volume'].search([]):
-                grace += [f"{vol.name}.*No such file or directory"]
-                grace += [f"No such file or directory.*{vol.name}"]
-            for grace in grace:
-                for line in (exc_info + name).splitlines():
-                    if re.findall(grace, line):
-                        rec.ttype = 'log'
-                        break
 
     @api.model
     def create(self, vals):
+        if not vals.get('machine_id'):
+            testrun = self.env['cicd.test.run'].browse(vals['run_id'])
+            vals['machine_id'] = testrun.branch_id.repo_id.machine_id.id
         res = super().create(vals)
-        res._be_graceful()
         return res
 
     def ok(self):
