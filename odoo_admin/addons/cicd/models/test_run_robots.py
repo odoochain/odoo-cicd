@@ -123,4 +123,5 @@ class TestSettingsRobotTests(models.Model):
             self.env['cicd.test.run.line.robottest'].create({
                 'run_id': testrun.id,
                 'filepath': robotfile,
+                'run_id': testrun.id,
             })

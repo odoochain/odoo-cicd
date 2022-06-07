@@ -23,7 +23,7 @@ class CicdTestRunLine(models.AbstractModel):
     _name = 'cicd.test.run.line'
     _order = 'started desc'
 
-    run_id = fields.Many2one('cicd.test.run', string="Run")
+    run_id = fields.Many2one('cicd.test.run', string="Run", required=True)
     exc_info = fields.Text("Exception Info")
     queuejob_id = fields.Many2one("queue.job", string="Queuejob")
     machine_id = fields.Many2one(

@@ -93,6 +93,7 @@ class TestSettingsUnittest(models.Model):
                         'odoo_module': module,
                         'filepath': test,
                         'hash': hash,
+                        'run_id': testrun.id,
                     })
 
     def _get_unittest_hashes(self, shell, modules):
