@@ -178,8 +178,10 @@ class Repository(models.Model):
 
                 shell.X(["git-cicd", "clone", main_repo_path, temppath])
                 with shell.clone(cwd=temppath) as shell2:
+                    breakpoint()
                     shell2.X(["git-cicd", "remote", "remove", "origin"])
                     shell2.X(["git-cicd", "remote", "add", "origin", self.url])
+                    shell2.X(["git-cicd", "fetch"])
                     if branch:
                         shell2.X(["git-cicd", "checkout", "-f", branch])
                         shell2.X([
@@ -437,7 +439,6 @@ class Repository(models.Model):
         #releases = self.env['cicd.release'].search([
         #    ('repo_id', '=', self.id)])
         # candidate_branch_names = releases.item_ids.mapped('item_branch_name')
-        breakpoint()
         try:
             logsio = shell.logsio
             logsio.info(f"Pulling {branch}...")

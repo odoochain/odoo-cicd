@@ -401,6 +401,7 @@ class Branch(models.Model):
         shell.logsio.write_text(f"Updating instance folder {my_name}")
         _clone_instance_folder(machine, instance_folder)
         shell.logsio.write_text(f"Cloning {my_name} to {instance_folder}")
+        breakpoint()  # debug error in 448
 
         with shell.clone(cwd=instance_folder) as shell:
             shell.logsio.write_text(f"Checking out {my_name}")
