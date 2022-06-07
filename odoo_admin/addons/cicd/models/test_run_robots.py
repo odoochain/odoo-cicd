@@ -104,7 +104,12 @@ class TestSettingsRobotTests(models.Model):
     tags = fields.Char(
         "Filter to tags (comma separated, may be empty)", default="load-test")
     parallel = fields.Char(
-        "In Parallel", required=True, default="1,2,5,10,20,50")
+        "In Parallel", required=True, default="1,2,5,10,20,50", help=(
+            "Executes the robot tests in parallel. List may be comma "
+            "separated and the number is the number of the parallel threads. "
+            "Is useful for load-testing. For each number an own testrun is "
+            "started."
+        ))
     regex = fields.Char("Regex", default=".*")
 
     def get_name(self):
