@@ -237,7 +237,9 @@ class CicdTestRunLine(models.AbstractModel):
             allow_error=kwparams.get("allow_error"),
         )
 
-    def _ensure_source_and_machines(self, shell, start_postgres=False, settings=""):
+    def _ensure_source_and_machines(
+        self, shell, start_postgres=False, settings="", reload_only_on_need=False
+    ):
         self._log(
             lambda self: self._checkout_source_code(shell.machine), "checkout source"
         )
@@ -300,12 +302,22 @@ class CicdTestRunLine(models.AbstractModel):
             cwd=instance_folder,
             project_name=self.project_name,
         ) as shell:
-            self.with_context(testrun_cleanup=True)._ensure_source_and_machines(shell)
+            self.with_context(testrun_cleanup=True)._ensure_source_and_machines(
+                shell, reload_only_on_need=True
+            )
             if shell.exists(instance_folder):
                 shell.odoo("down", "-v", force=True, allow_error=True)
                 shell.odoo("rm", force=True, allow_error=True)
 
-            shell.remove(instance_folder)
+            eta = arrow.utcnow().shift(hours=2).strftime(DTF)
+            self.with_delay(
+                identity_key=(f"testrun_{self.id}_cleanup_folder"), eta=eta
+            )._remove_instance_folder(instance_folder)
+
+    @api.model
+    def _remove_instance_folder(self, machine, folder):
+        with machine._shell() as shell:
+            shell.remove(folder)
 
     def as_job(self, suffix, afterrun=False, eta=None):
         breakpoint()

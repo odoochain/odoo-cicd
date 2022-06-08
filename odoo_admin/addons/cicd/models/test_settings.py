@@ -13,39 +13,40 @@ class TestSettingAbstract(models.AbstractModel):
     This is used for specific settings for example timeout, glob on tests
     for robot tests, unittests.
     """
+
     _name = "cicd.test.settings.base"
 
     timeout = fields.Integer("Timeout Seconds", default=600)
     retry_count = fields.Integer("Retries", default=3)
-    parent_id = fields.Reference([
-        ('cicd.test.run', 'Test-Run'),
-        ('cicd.git.branch', 'Branch'),
-        ('cicd.release', 'Release'),
-    ], string="Test", required=True)
-    preparation_done = fields.Boolean((
-        "Set at testruns when the preparation of test run lines succeeded"))
+    parent_id = fields.Reference(
+        [
+            ("cicd.test.run", "Test-Run"),
+            ("cicd.git.branch", "Branch"),
+            ("cicd.release", "Release"),
+        ],
+        string="Test",
+        required=True,
+    )
+    preparation_done = fields.Boolean(
+        ("Set at testruns when the preparation of test run lines succeeded")
+    )
     test_run_line_ids = fields.Many2many(
-        "cicd.test.run.line", compute="_compute_test_run_lines",
-        store=False, copy=False)
+        "cicd.test.run.line", compute="_compute_test_run_lines", store=False, copy=False
+    )
     success_rate = fields.Float(compute="_compute_success_rate", store=False)
     name = fields.Char(compute="_compute_name", store=False)
 
     def as_job(self, suffix, afterrun=False, eta=None):
         marker = self.parent_id._get_qj_marker(suffix, afterrun=afterrun)
         eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
-        return self.with_delay(
-            channel="testruns",
-            identity_key=marker,
-            eta=eta
-            )
+        return self.with_delay(channel="testruns", identity_key=marker, eta=eta)
 
     def _compute_test_run_lines(self):
         for rec in self:
             ref = f"{self._name},{rec.id}"
-            self.test_run_line_ids = \
-                self.env['cicd.test.run.line'].search([
-                    ('test_setting_id', '=', ref)
-                ])
+            self.test_run_line_ids = self.env["cicd.test.run.line"].search(
+                [("test_setting_id", "=", ref)]
+            )
 
     def _compute_name(self):
         for rec in self:
@@ -59,14 +60,17 @@ class TestSettingAbstract(models.AbstractModel):
 
     def _compute_success_rate(self):
         for rec in self:
-            if not rec.preparation_done or \
-                    rec.test_setting_id._name != 'cicd.test.run':
+            if not rec.preparation_done or rec.test_setting_id._name != "cicd.test.run":
                 rec.success_rate = 0
             else:
-                success_lines = float(len(
-                    x for x
-                    in rec.test_setting_id.test_run_line_ids.filtered_domain([(
-                        'state', '=', 'success')])))
+                success_lines = float(
+                    len(
+                        x
+                        for x in rec.test_setting_id.test_run_line_ids.filtered_domain(
+                            [("state", "=", "success")]
+                        )
+                    )
+                )
                 count_lines = float(len(rec.test_run_line_ids))
                 if not count_lines:
                     rec.success_rate = 0
@@ -76,10 +80,9 @@ class TestSettingAbstract(models.AbstractModel):
     def _is_success(self):
         for line in self.test_run_line_ids:
             if not line.preparation_done or not line.state:
-                raise RetryableJobError(
-                    "Not all lines done", ignore_retry=True)
-            if line.ttype not in ('preparation', 'log'):
-                if line.state == 'failed':
+                raise RetryableJobError("Not all lines done", ignore_retry=True)
+            if line.ttype not in ("preparation", "log"):
+                if line.state == "failed":
                     return False
 
     def produce_test_run_lines(self, testrun):
@@ -91,51 +94,68 @@ class TestSettings(models.Model):
     This is the container of test settings so you can configure
     a robot run with a glob, a unittest with a glob and then another robot run
     """
-    _name = 'cicd.test.settings'
+
+    _name = "cicd.test.settings"
 
     unittest_ids = fields.One2many(
-        "cicd.test.settings.unittest", testrun_field=True,
+        "cicd.test.settings.unittest",
+        testrun_field=True,
         compute="_compute_testsetting_ids",
-        inverse="_set_testsetting_ids")
+        inverse="_set_testsetting_ids",
+    )
     robottest_ids = fields.One2many(
-        "cicd.test.settings.robottest", testrun_field=True,
+        "cicd.test.settings.robottest",
+        testrun_field=True,
         compute="_compute_testsetting_ids",
-        inverse="_set_testsetting_ids")
+        inverse="_set_testsetting_ids",
+    )
     migration_ids = fields.One2many(
-        "cicd.test.settings.migrations", testrun_field=True,
+        "cicd.test.settings.migrations",
+        testrun_field=True,
         compute="_compute_testsetting_ids",
-        inverse="_set_testsetting_ids")
+        inverse="_set_testsetting_ids",
+    )
 
     any_testing = fields.Boolean(compute="_compute_any_testing")
     success_rate = fields.Float(
-        "Success Rate", compute="_compute_success_rate_factor", tracking=True)
+        "Success Rate", compute="_compute_success_rate_factor", tracking=True
+    )
     state = fields.Selection([])
 
     def _compute_testsetting_ids(self):
         for rec in self:
-            rec.unittest_ids = self.env['cicd.test.settings.unittest'].search([
-                ('parent_id', '=', f"{rec._name},{rec.id}")
-            ])
-            rec.robottest_ids = self.env['cicd.test.settings.robottest'].search([
-                ('parent_id', '=', f"{rec._name},{rec.id}")
-            ])
-            rec.migration_ids = self.env['cicd.test.settings.migrations'].search([
-                ('parent_id', '=', f"{rec._name},{rec.id}")
-            ])
+            rec.unittest_ids = self.env["cicd.test.settings.unittest"].search(
+                [("parent_id", "=", f"{rec._name},{rec.id}")]
+            )
+            rec.robottest_ids = self.env["cicd.test.settings.robottest"].search(
+                [("parent_id", "=", f"{rec._name},{rec.id}")]
+            )
+            rec.migration_ids = self.env["cicd.test.settings.migrations"].search(
+                [("parent_id", "=", f"{rec._name},{rec.id}")]
+            )
 
     def _set_testsetting_ids(self):
         for rec in self:
             breakpoint()
             for line in rec.iterate_all_test_settings():
+
                 def ok(field):
                     # TODO function in models?
-                    if field in ['id', 'create_uid', 'create_date', 'write_uid', 'write_date', '__last_update']:
+                    if field in [
+                        "id",
+                        "create_uid",
+                        "create_date",
+                        "write_uid",
+                        "write_date",
+                        "__last_update",
+                    ]:
                         return False
-                    if field in ['display_name']:
+                    if field in ["display_name"]:
                         return False
                     return True
+
                 values = {x: line[x] for x in line._fields.keys() if ok(x)}
-                values['parent_id'] = f"{rec._name},{rec.id}"
+                values["parent_id"] = f"{rec._name},{rec.id}"
                 if isinstance(line.id, NewId):
                     self.env[line._name].create(values)
                 else:
@@ -143,13 +163,13 @@ class TestSettings(models.Model):
 
     def _compute_success_rate_factor(self):
         for rec in self:
-            success_rates = list(map(
-                lambda x: x.success_rate, self.iterate_all_test_settings()))
+            success_rates = list(
+                map(lambda x: x.success_rate, self.iterate_all_test_settings())
+            )
             if not success_rates:
                 rec.success_rate = 0
             else:
-                rec.success_rate = \
-                    float(sum(success_rates)) / float(len(success_rates))
+                rec.success_rate = float(sum(success_rates)) / float(len(success_rates))
 
     def iterate_all_test_settings(self):
         for field in self._get_test_run_fields():
@@ -159,25 +179,23 @@ class TestSettings(models.Model):
     @api.model
     def _get_test_run_fields(self):
         for fieldname, field in self._fields.items():
-            if not getattr(field, 'testrun_field', False):
+            if not getattr(field, "testrun_field", False):
                 continue
             yield fieldname
 
     def apply_test_settings(self, victim):
         for fieldname, field in self._fields.items():
-            if not getattr(field, 'testrun_field', False):
+            if not getattr(field, "testrun_field", False):
                 continue
             victim[fieldname].unlink()
             for line in self[fieldname]:
-                line.copy({'test_id': self.id})
+                line.copy({"test_id": self.id})
 
     def _compute_any_testing(self):
         for rec in self:
             _fields = [
-                k
-                for k, v in rec._fields.items()
-                if getattr(v, 'testrun_field', False)
-                ]
+                k for k, v in rec._fields.items() if getattr(v, "testrun_field", False)
+            ]
             rec.any_testing = any(rec[f] for f in _fields)
 
     def _is_success(self):

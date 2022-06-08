@@ -169,7 +169,8 @@ class CicdTestRun(models.Model):
     def _cleanup_testruns(self):
         with self._logsio(None) as logsio:
             logsio.info("Cleanup Testing started...")
-            for line in self.line_ids:
+
+            for line in self.iterate_all_test_settings():
                 line.cleanup()
             logsio.info("Cleanup Testing done.")
 
@@ -300,10 +301,10 @@ class CicdTestRun(models.Model):
             self.env.cr.execute("delete from queue_job where id = %s", (qj["id"],))
 
         self = self.sudo()
-        self.line_ids.unlink()
         self.state = "open"
         for line in self.iterate_all_test_settings():
             line.reset_at_testrun()
+        self.reset_test_lines()
 
     @api.recordchange("state")
     def _on_state_change(self):
