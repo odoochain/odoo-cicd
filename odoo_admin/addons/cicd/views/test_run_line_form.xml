@@ -1,20 +1,18 @@
 <odoo>
 	<data noupdate='0'>
-		<record id="view_cicd_test_run_line_unittest_form" model="ir.ui.view">
+		<record id="view_cicd_test_run_line_form" model="ir.ui.view">
 			<field name="name">cicd.test.run.line form</field>
-			<field name="model">cicd.test.run.line.unittest</field>
+			<field name="model">cicd.test.run.line</field>
 			<field name="arch" type="xml">
 				<form string="">
+					<widget name="web_ribbon" title="Success" bg_color="bg-success" attrs="{'invisible': [('state', '!=', 'success')]}"/>
+					<widget name="web_ribbon" title="Failed" bg_color="bg-danger" attrs="{'invisible': [('state', '!=', 'failed')]}"/>
 					<sheet>
 						<group colspan="4" col="4">
 							<field name="state"/>
 							<field name="started"/>
 							<field name="duration"/>
 							<field name="force_success" attrs="{'invisible': [('state', '=', 'success')]}"/>
-						</group>
-						<group string="" colspan="4">
-							<field name="odoo_module"/>
-							<field name="filepath"/>
 						</group>
 						<separator string="Exception Info" colspan="4"/>
 						<field name="exc_info" nolabel="1" colspan="4"/>
@@ -26,33 +24,29 @@
 				</form>
 			</field>
 		</record>
+		<record id="view_cicd_test_run_line_unittest_form" model="ir.ui.view">
+			<field name="name">cicd.test.run.line form</field>
+			<field name="inherit_id" ref="view_cicd_test_run_line_form"></field>
+			<field name="mode">primary</field>
+			<field name="model">cicd.test.run.line.unittest</field>
+			<field name="arch" type="xml">
+				<xpath expr="//group" position="after">
+					<group string="" colspan="4">
+						<field name="odoo_module"/>
+						<field name="filepath"/>
+					</group>
+				</xpath>
+			</field>
+		</record>
 		<record id="view_cicd_test_run_line_robottest_form" model="ir.ui.view">
 			<field name="name">cicd.test.run.line form</field>
 			<field name="model">cicd.test.run.line.robottest</field>
 			<field name="arch" type="xml">
-				<form string="">
-					<field name="robot_output" invisible="1"/>
-					<header>
-						<button name="robot_results" string="Robot Results" type="object" attrs="{'invisible': [('robot_output', '=', False)]}"/>
-					</header>
-					<sheet>
-						<group colspan="4" col="4">
-							<field name="state"/>
-							<field name="started"/>
-							<field name="duration"/>
-							<field name="force_success" attrs="{'invisible': [('state', '=', 'success')]}"/>
-						</group>
-						<group string="" colspan="4">
-							<field name="filepath"/>
-						</group>
-						<separator string="Exception Info" colspan="4"/>
-						<field name="exc_info" nolabel="1" colspan="4"/>
-					</sheet>
-					<footer>
-						<button name="ok" string="Save" type="object" />
-						<button special="cancel" string="Cancel" class="oe_link" />
-					</footer>
-				</form>
+				<xpath expr="//group" position="after">
+					<group string="" colspan="4">
+						<field name="filepath"/>
+					</group>
+				</xpath>
 			</field>
 		</record>
 	</data>
