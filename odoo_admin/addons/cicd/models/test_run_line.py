@@ -183,7 +183,7 @@ class CicdTestRunLine(models.AbstractModel):
             file.write(msg)
             file.write("\n")
 
-        with self._logsio(None) as logsio:
+        with self.run_id._logsio(None) as logsio:
             logsio.info(msg)
 
     def _log(self, func, comment="", allow_error=False):
@@ -238,7 +238,7 @@ class CicdTestRunLine(models.AbstractModel):
         path = Path(self.effective_machine_id._get_volume("source"))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
-        project_name = self.branch_id.with_context(testrun="").project_name
+        project_name = self.run_id.branch_id.with_context(testrun="").project_name
         path = path / f"{project_name}_testrun_{self.id}"
         return path
 
