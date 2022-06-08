@@ -52,7 +52,7 @@ class CicdTestRunLine(models.AbstractModel):
     reused = fields.Boolean("Reused", readonly=True)
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
     project_name = fields.Char("Project Name Used (for cleaning)")
-    effective_machine = fields.Many2one("cicd.machine", compute="_compute_machine")
+    effective_machine_id = fields.Many2one("cicd.machine", compute="_compute_machine")
     logfile_path = fields.Char("Logfilepath", compute="_compute_logfilepath")
     log = fields.Text("Log")
 

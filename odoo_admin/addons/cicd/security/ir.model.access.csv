@@ -43,3 +43,8 @@ model_cicd_wiz_restore_snapshot_snapshot,base.group_user,cicd_wiz_restore_snapsh
 model_cicd_test_settings_unittest,base.group_user,cicd_test_settings_unittest_base_group_user,n/a,1,1,1,1
 model_cicd_test_settings_robottest,base.group_user,cicd_test_settings_robottest_base_group_user,n/a,1,1,1,1
 model_cicd_test_settings_migrations,base.group_user,cicd_test_settings_migrations_base_group_user,n/a,1,1,1,1
+
+model_cicd_test_run_line_unittest,base.group_user,cicd_test_run_line_unittest_base_group_user,n/a,1,1,1,0
+model_cicd_test_run_line_robottest,base.group_user,cicd_test_run_line_robottest_base_group_user,n/a,1,1,1,0
+model_cicd_test_run_line_migration,base.group_user,cicd_test_run_line_migration_base_group_user,n/a,1,1,1,0
+
