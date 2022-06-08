@@ -56,7 +56,6 @@ class RobotTest(models.Model):
                         "robot",
                         "-p",
                         "password=1",
-                        "--install-required-modules",
                         item,
                         timeout=self.timeout_tests,
                     )
