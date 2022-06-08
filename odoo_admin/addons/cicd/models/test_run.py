@@ -91,14 +91,29 @@ class CicdTestRun(models.Model):
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many("queue.job", compute="_compute_queuejobs")
     line_unittest_ids = fields.One2many(
-        "cicd.test.run.line.unittest", "run_id", string="Unit-Tests"
+        "cicd.test.run.line.unittest",
+        "run_id",
+        string="Unit-Tests",
+        istestline=True,
     )
     line_robottest_ids = fields.One2many(
-        "cicd.test.run.line.robottest", "run_id", string="Robot Tests"
+        "cicd.test.run.line.robottest",
+        "run_id",
+        string="Robot Tests",
+        istestline=True,
     )
     line_migration_ids = fields.One2many(
-        "cicd.test.run.line.migration", "run_id", string="Migration Tests"
+        "cicd.test.run.line.migration",
+        "run_id",
+        string="Migration Tests",
+        istestline=True,
     )
+
+    def iterate_testlines(self):
+        for field in self._fields.keys():
+            if getattr(self._fields[field], "istestline", False):
+                for line in self[field]:
+                    yield line
 
     def init(self):
         super().init()
@@ -170,7 +185,7 @@ class CicdTestRun(models.Model):
         with self._logsio(None) as logsio:
             logsio.info("Cleanup Testing started...")
 
-            for line in self.iterate_all_test_settings():
+            for line in self.iterate_testlines():
                 line.cleanup()
             logsio.info("Cleanup Testing done.")
 

@@ -32,24 +32,26 @@ seconds</td>
 					<th>Forced Success</th>
 					<th>Duration [s]</th>
 				</tr>
-				<t t-foreach="obj.line_ids.filtered(lambda x: x.state == 'failed')" t-as="line" border='1'>
-					<tr>
-						<td>
-							<t t-esc="line.name"/>
-						</td>
-						<td>
-							<t t-esc="line.try_count"/>
-						</td>
-						<td>
-							<t t-esc="line.ttype"/>
-						</td>
-						<td>
-							<t t-esc="line.force_success"/>
-						</td>
-						<td>
-							<t t-esc="line.duration"/>
-						</td>
-					</tr>
+				<t t-foreach="obj.iterate_testlines" t-as="line" border='1'>
+					<t t-if="line.state == 'failed'">
+						<tr>
+							<td>
+								<t t-esc="line.name"/>
+							</td>
+							<td>
+								<t t-esc="line.try_count"/>
+							</td>
+							<td>
+								<t t-esc="line.ttype"/>
+							</td>
+							<td>
+								<t t-esc="line.force_success"/>
+							</td>
+							<td>
+								<t t-esc="line.duration"/>
+							</td>
+						</tr>
+					</t>
 				</t>
 			</table>
 		</template>
