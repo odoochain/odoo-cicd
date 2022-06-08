@@ -70,7 +70,6 @@ class TestrunUnittest(models.Model):
                     shell.wait_for_postgres()
                     shell.odoo(
                         'robot', '-p', 'password=1',
-                        "--install-required-modules",
                         item, timeout=self.timeout_tests)
 
                     excel_file = shell.sql_excel((
