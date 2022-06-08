@@ -108,21 +108,6 @@ class CicdTestRunLine(models.AbstractModel):
             if rec.run_id.state not in ["running"]:
                 rec.run_id._compute_success_rate()
 
-    def check_if_test_already_succeeded(self, hash):
-        """
-        Compares the hash of the module with an existing
-        previous run with same hash.
-        """
-        res = self.search_count(
-            [
-                ("run_id.branch_ids.repo_id", "=", self.run_id.branch_ids.repo_id.id),
-                ("name", "=", self.name),
-                ("hash", "=", hash),
-                ("state", "=", "success"),
-            ]
-        )
-        return bool(res)
-
     @api.model
     def create(self, vals):
         if not vals.get("machine_id"):
@@ -137,11 +122,6 @@ class CicdTestRunLine(models.AbstractModel):
     def execute(self):
         breakpoint()
         self.run_id._switch_to_running_state()
-        if not self.run_id.no_reuse and self.check_if_test_already_succeeded(self):
-            self.state = "success"
-            self.reused = True
-            return
-
         logfile = Path(self.logfile_path)
 
         try:

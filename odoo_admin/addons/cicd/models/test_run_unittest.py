@@ -36,16 +36,24 @@ class UnitTest(models.Model):
             shell.wait_for_postgres()
 
             try:
-                self._report(f"Installing module {self.odoo_module}")
-                shell.odoo("update", self.odoo_module, "--no-dangling-check")
+                breakpoint()
 
-                self._report(f"Starting Unittest {self.filepath}")
-                shell.odoo(
-                    "unittest",
-                    self.filepath,
-                    "--non-interactive",
-                    timeout=self.timeout_tests,
-                )
+                if self.run_id.no_reuse or (
+                    not self.run_id.no_resuse
+                    and not self.check_if_test_already_succeeded(
+                        self.run_id, filepath=self.filepath, hash=self.hash
+                    )
+                ):
+                    self._report(f"Installing module {self.odoo_module}")
+                    shell.odoo("update", self.odoo_module, "--no-dangling-check")
+
+                    self._report(f"Starting Unittest {self.filepath}")
+                    shell.odoo(
+                        "unittest",
+                        self.filepath,
+                        "--non-interactive",
+                        timeout=self.timeout_tests,
+                    )
             finally:
                 self._report("Unittest finished")
                 shell.odoo("kill", allow_error=True)
@@ -152,8 +160,8 @@ class TestSettingsUnittest(models.Model):
                 continue
 
             for test in tests:
-                test_already_succeeded = (
-                    self.parent_id.line_ids.check_if_test_already_succeeded(hash)
+                test_already_succeeded = self.check_if_test_already_succeeded(
+                    self.run_id, filepath=test, hash=hash
                 )
 
                 if self.parent_id.no_reuse or (
@@ -193,3 +201,20 @@ class TestSettingsUnittest(models.Model):
         p = Path(f)
         # TODO checking: 3 mal parent
         return str(p.relative_to(p.parent.parent.parent))
+
+    @api.model
+    def check_if_test_already_succeeded(self, testrun, filepath, hash):
+        """
+        Compares the hash of the module with an existing
+        previous run with same hash.
+        """
+        hash = hash or self.hash
+        res = self.search_count(
+            [
+                ("run_id.branch_ids.repo_id", "=", testrun.branch_ids.repo_id.id),
+                ("filepath", "=", filepath),
+                ("hash", "=", hash),
+                ("state", "=", "success"),
+            ]
+        )
+        return bool(res)

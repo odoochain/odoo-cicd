@@ -25,7 +25,6 @@ class RobotTest(models.Model):
     parallel = fields.Char("In Parallel")
 
     def _execute(self):
-        breakpoint()
         # there could be errors at install all
         self.branch_id._ensure_dump("full", self.commit_id.name)
 

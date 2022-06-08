@@ -255,7 +255,6 @@ class CicdTestRun(models.Model):
         self.ensure_one()
         self.do_abort = False
         self.date_started = fields.Datetime.now()
-        self.line_ids.unlink()
         self._switch_to_running_state()
         self.env.cr.commit()
 
@@ -304,7 +303,6 @@ class CicdTestRun(models.Model):
         self.state = "open"
         for line in self.iterate_all_test_settings():
             line.reset_at_testrun()
-        self.reset_test_lines()
 
     @api.recordchange("state")
     def _on_state_change(self):
