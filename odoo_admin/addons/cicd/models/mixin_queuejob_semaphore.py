@@ -6,26 +6,28 @@ from contextlib import contextmanager, closing
 
 DELIMITER = "_!_"
 
+
 class SemaphoreQueuejob(models.AbstractModel):
-    _name = 'mixin.queuejob.semaphore'
+    _name = "mixin.queuejob.semaphore"
 
     def _semaphore_get_queuejob(self, idkey=None, limit=None):
         self.ensure_one()
         idkey = idkey or self.semaphore_qj_identity_key
         idkey = idkey.split(DELIMITER)[0]
-        return self.env['queue.job'].sudo().search([(
-                'identity_key', '=', idkey)
-                ], order='id desc', limit=limit)
+        return (
+            self.env["queue.job"]
+            .sudo()
+            .search([("identity_key", "=", idkey)], order="id desc", limit=limit)
+        )
 
     @property
     def semaphore_qj_identity_key(self):
-        return (
-            f"{self._name},"
-            f"{self.id}"
-        )
+        return f"{self._name}," f"{self.id}"
 
     @contextmanager
-    def semaphore_with_delay(self, enabled, appendix=False, ignore_states=None, **params):
+    def semaphore_with_delay(
+        self, enabled, appendix=False, ignore_states=None, **params
+    ):
         _params = {}
         _params.update(params)
 
@@ -33,15 +35,15 @@ class SemaphoreQueuejob(models.AbstractModel):
             yield self
         else:
             ignore_states = tuple(ignore_states or [])
-            params['identity_key'] = self.semaphore_qj_identity_key
+            params["identity_key"] = self.semaphore_qj_identity_key
             if appendix:
-                params['identity_key'] += DELIMITER + appendix
+                params["identity_key"] += DELIMITER + appendix
 
-            jobs = self._semaphore_get_queuejob(params['identity_key'])
+            jobs = self._semaphore_get_queuejob(params["identity_key"])
             if ignore_states:
                 jobs = jobs.filtered(lambda x: x.state not in ignore_states)
 
-            if not jobs or all(x.state in ['done'] for x in jobs):
+            if not jobs or all(x.state in ["done"] for x in jobs):
                 new_self = self.with_delay(**params)
                 yield new_self
             else:

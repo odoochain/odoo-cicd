@@ -3,8 +3,8 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 
 class BranchEpic(models.Model):
-    _inherit = ['cicd.mixin.simple.many2one']
-    _name = 'cicd.branch.epic'
-    _order = 'sequence'
+    _inherit = ["cicd.mixin.simple.many2one"]
+    _name = "cicd.branch.epic"
+    _order = "sequence"
 
     sequence = fields.Integer("Sequence")

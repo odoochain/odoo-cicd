@@ -11,58 +11,56 @@ logger = logging.getLogger(__name__)
 
 class Release(models.Model):
     _inherits = {
-        'cicd.test.settings': 'test_setting_ids',
+        "cicd.test.settings": "test_setting_ids",
     }
-    _inherit = ['mail.thread', 'mixin.schedule']
-    _name = 'cicd.release'
+    _inherit = ["mail.thread", "mixin.schedule"]
+    _name = "cicd.release"
 
     active = fields.Boolean("Active", default=True)
     name = fields.Char("Name", required=True)
     project_name = fields.Char(
-        "Project Name", required=True,
-        help="techincal name - no special characters")
-    repo_id = fields.Many2one(
-        "cicd.git.repo", 'Repo', required=True
+        "Project Name", required=True, help="techincal name - no special characters"
     )
+    repo_id = fields.Many2one("cicd.git.repo", "Repo", required=True)
     repo_short = fields.Char(related="repo_id.short")
-    branch_id = fields.Many2one(
-        'cicd.git.branch', string="Branch", required=True)
-    item_ids = fields.One2many(
-        'cicd.release.item', 'release_id', string="Release")
+    branch_id = fields.Many2one("cicd.git.branch", string="Branch", required=True)
+    item_ids = fields.One2many("cicd.release.item", "release_id", string="Release")
     auto_release = fields.Boolean("Auto Release")
     sequence_id = fields.Many2one(
-        'ir.sequence', string="Version Sequence", required=True)
+        "ir.sequence", string="Version Sequence", required=True
+    )
     countdown_minutes = fields.Integer("Countdown Minutes")
-    minutes_to_release = fields.Integer(
-        "Max Minutes for release.", default=120)
-    last_item_id = fields.Many2one(
-        'cicd.release.item', compute="_compute_last")
+    minutes_to_release = fields.Integer("Max Minutes for release.", default=120)
+    last_item_id = fields.Many2one("cicd.release.item", compute="_compute_last")
     next_to_finish_item_id = fields.Many2one(
-        'cicd.release.item', compute="_compute_last")
-    state = fields.Selection(related='item_ids.state')
+        "cicd.release.item", compute="_compute_last"
+    )
+    state = fields.Selection(related="item_ids.state")
     action_ids = fields.One2many(
-        'cicd.release.action', 'release_id', string="Release Actions")
-    send_pre_release_information = fields.Boolean(
-        "Send Pre-Release Information")
+        "cicd.release.action", "release_id", string="Release Actions"
+    )
+    send_pre_release_information = fields.Boolean("Send Pre-Release Information")
 
     deploy_git = fields.Boolean(
-        'Include .git', help="Include .git directory on deploy", default=False)
+        "Include .git", help="Include .git directory on deploy", default=False
+    )
 
     message_to_ticketsystem = fields.Text("Release Message")
     update_i18n = fields.Boolean("Update I18N")
 
-    common_settings = fields.Text(
-        "Settings for machines (details in action sets)")
+    common_settings = fields.Text("Settings for machines (details in action sets)")
 
     @api.constrains("common_settings")
     def _check_settings(self):
         for rec in self:
             if rec.common_settings:
                 if "PROJECT_NAME=" in rec.common_settings:
-                    raise ValidationError((
-                        "May not contain projectname!"
-                        "Project name is defined in settings of release"
-                    ))
+                    raise ValidationError(
+                        (
+                            "May not contain projectname!"
+                            "Project name is defined in settings of release"
+                        )
+                    )
 
     @api.constrains("project_name")
     def _check_project_name(self):
@@ -83,9 +81,11 @@ class Release(models.Model):
         Needed for calculating branch state.
         """
         for rec in self:
-            items = rec.item_ids.with_context(prefetch_fields=False).sorted(
-                lambda x: x.id, reverse=True).filtered(
-                    lambda x: x.release_type not in ['build_and_deploy'])
+            items = (
+                rec.item_ids.with_context(prefetch_fields=False)
+                .sorted(lambda x: x.id, reverse=True)
+                .filtered(lambda x: x.release_type not in ["build_and_deploy"])
+            )
             if not items:
                 rec.last_item_id = False
                 rec.next_to_finish_item_id = False
@@ -93,25 +93,31 @@ class Release(models.Model):
                 rec.last_item_id = items[0]
                 rec.next_to_finish_item_id = items[0]
                 if len(items) > 1:
-                    if items[1].state == 'ready':
+                    if items[1].state == "ready":
                         rec.next_to_finish_item_id = items[1]
 
     @api.constrains("branch_id")
     def _check_branches(self):
         for rec in self:
             for field in [
-                'branch_id',
+                "branch_id",
             ]:
                 if not self[field]:
                     continue
-                if self.search_count([
-                    ('id', '!=', rec.id),
-                    ('repo_id', '=', rec.repo_id.id),
-                    (field, '=', rec[field] if isinstance(rec[field], (
-                        bool, str)) else rec[field].id),
-                ]):
-                    raise ValidationError(
-                        "Branches must be unique per release!")
+                if self.search_count(
+                    [
+                        ("id", "!=", rec.id),
+                        ("repo_id", "=", rec.repo_id.id),
+                        (
+                            field,
+                            "=",
+                            rec[field]
+                            if isinstance(rec[field], (bool, str))
+                            else rec[field].id,
+                        ),
+                    ]
+                ):
+                    raise ValidationError("Branches must be unique per release!")
 
     @contextmanager
     def _get_logsio(self):
@@ -120,17 +126,17 @@ class Release(models.Model):
         with LogsIOWriter.GET(short, "Release") as logsio:
             yield logsio
 
-#    def _ensure_item(self):
-#        items = self.with_context(prefetch_fields=False).item_ids.sorted(
-#            lambda x: x.id, reverse=True).filtered(
-#                lambda x: x. release_type == 'standard')
-#        if not items or items[0].state in ['done', 'failed']:
-#            items = self.item_ids.create({
-#                'release_id': self.id,
-#            })
-#        else:
-#            items = items[0]
-#        return items
+    #    def _ensure_item(self):
+    #        items = self.with_context(prefetch_fields=False).item_ids.sorted(
+    #            lambda x: x.id, reverse=True).filtered(
+    #                lambda x: x. release_type == 'standard')
+    #        if not items or items[0].state in ['done', 'failed']:
+    #            items = self.item_ids.create({
+    #                'release_id': self.id,
+    #            })
+    #        else:
+    #            items = items[0]
+    #        return items
 
     def _send_pre_release_information(self):
         for rec in self:
@@ -138,59 +144,68 @@ class Release(models.Model):
 
     @api.model
     def cron_heartbeat(self):
-        for rec in self.search([
-            ('auto_release', '=', True)
-        ]):
-            rec.with_delay(identity_key=(
-                f"release-heartbeat-{rec.name}#{rec.id}"
-            ))._heartbeat()
+        for rec in self.search([("auto_release", "=", True)]):
+            rec.with_delay(
+                identity_key=(f"release-heartbeat-{rec.name}#{rec.id}")
+            )._heartbeat()
 
     def _heartbeat(self):
         self.ensure_one()
         last_item = self.last_item_id
-        if last_item.state in [False, 'ready'] or \
-                last_item.is_failed or \
-                last_item.is_done:
+        if (
+            last_item.state in [False, "ready"]
+            or last_item.is_failed
+            or last_item.is_done
+        ):
 
             planned_date = self.compute_next_date(
-                max(
-                    last_item.planned_maximum_finish_date,
-                    fields.Datetime.now()
-                )
+                max(last_item.planned_maximum_finish_date, fields.Datetime.now())
             )
 
-            self.item_ids = [[0, 0, {
-                'planned_date': planned_date,
-            }]]
+            self.item_ids = [
+                [
+                    0,
+                    0,
+                    {
+                        "planned_date": planned_date,
+                    },
+                ]
+            ]
             self.env.cr.commit()
 
-        items = last_item.search([
-            ('release_id', '=', self.id),
-            ('is_failed', '=', False),
-            ('is_done', '=', False),
-        ])
+        items = last_item.search(
+            [
+                ("release_id", "=", self.id),
+                ("is_failed", "=", False),
+                ("is_done", "=", False),
+            ]
+        )
         for item in items:
             item.cron_heartbeat()
 
     def make_hotfix(self):
-        self._make_unordinary_release('hotfix')
+        self._make_unordinary_release("hotfix")
 
     def make_build_and_deploy(self):
-        self._make_unordinary_release('build_and_deploy')
+        self._make_unordinary_release("build_and_deploy")
 
     def _make_unordinary_release(self, ttype):
         existing = self.item_ids.filtered(
-            lambda x: x.release_type == ttype
-            and not x.is_done
-            and not x.is_failed
+            lambda x: x.release_type == ttype and not x.is_done and not x.is_failed
         )
         if existing:
-            raise ValidationError((
-                f"{ttype} already exists. "
-                "Please finish it before"))
-        self.item_ids = [[0, 0, {
-            'release_type': ttype,
-        }]]
+            raise ValidationError(
+                (f"{ttype} already exists. " "Please finish it before")
+            )
+        self.item_ids = [
+            [
+                0,
+                0,
+                {
+                    "release_type": ttype,
+                },
+            ]
+        ]
 
     def toggle_active(self):
         for rec in self:

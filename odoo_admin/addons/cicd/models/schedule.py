@@ -4,19 +4,21 @@ from cron_descriptor import get_description
 
 
 class CicdSchedule(models.Model):
-    _name = 'cicd.schedule'
+    _name = "cicd.schedule"
 
-    name = fields.Char('Name', required=True)
+    name = fields.Char("Name", required=True)
     schedule = fields.Char(
-        'Schedule', required=True,
+        "Schedule",
+        required=True,
         help=(
-            'Crontab based schedule:\n'
-            '*/5 * * * * => every 5 minutes\n'
-            '* * * * * */10 => every 10 seconds')
+            "Crontab based schedule:\n"
+            "*/5 * * * * => every 5 minutes\n"
+            "* * * * * */10 => every 10 seconds"
+        ),
     )
     human_name = fields.Char(compute="_compute_human")
 
-    @api.depends('schedule')
+    @api.depends("schedule")
     def _compute_human(self):
         for rec in self:
             text = False

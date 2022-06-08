@@ -3,11 +3,9 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 
 class CompressorOutput(models.Model):
-    _name = 'cicd.compressor.output'
+    _name = "cicd.compressor.output"
 
     compressor_id = fields.Many2one("cicd.compressor", required=True)
     output_filename = fields.Char("Filename", required=True)
-    volume_id = fields.Many2one(
-        'cicd.machine.volume', string="Volume", required=True)
-    machine_id = fields.Many2one(
-        'cicd.machine', related="volume_id.machine_id")
+    volume_id = fields.Many2one("cicd.machine.volume", string="Volume", required=True)
+    machine_id = fields.Many2one("cicd.machine", related="volume_id.machine_id")

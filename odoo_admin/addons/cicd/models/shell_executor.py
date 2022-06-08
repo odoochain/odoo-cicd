@@ -12,11 +12,12 @@ from pathlib import Path
 from ..tools.logsio_writer import LogsIOWriter
 import logging
 from .shell_executor_base import BaseShellExecutor
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 6 * 3600
 DEFAULT_ENV = {
-    'BUILDKIT_PROGRESS': 'plain',
+    "BUILDKIT_PROGRESS": "plain",
 }
 
 
@@ -28,16 +29,20 @@ class ShellExecutor(BaseShellExecutor):
     """
 
     def __init__(
-        self, ssh_keyfile, host,
-        cwd, logsio, project_name=None, env=None, user=None,
-        machine=None
+        self,
+        ssh_keyfile,
+        host,
+        cwd,
+        logsio,
+        project_name=None,
+        env=None,
+        user=None,
+        machine=None,
     ):
         env2 = deepcopy(DEFAULT_ENV)
         env2.update(env or {})
 
-        super().__init__(
-            ssh_keyfile, host, cwd,
-            env=env2, user=user)
+        super().__init__(ssh_keyfile, host, cwd, env=env2, user=user)
 
         self.project_name = project_name
         self.machine = machine
@@ -45,7 +50,7 @@ class ShellExecutor(BaseShellExecutor):
             assert isinstance(project_name, str)
 
         if not logsio:
-            logsio = LogsIOWriter(project_name or 'general', 'general')
+            logsio = LogsIOWriter(project_name or "general", "general")
         if logsio:
             assert isinstance(logsio, LogsIOWriter)
         self.logsio = logsio
@@ -61,8 +66,13 @@ class ShellExecutor(BaseShellExecutor):
         cwd = cwd or self.cwd
         project_name = project_name or self.project_name
         shell2 = ShellExecutor(
-            self.ssh_keyfile, self.host, cwd,
-            self.logsio, project_name, env2, user=user,
+            self.ssh_keyfile,
+            self.host,
+            cwd,
+            self.logsio,
+            project_name,
+            env2,
+            user=user,
             machine=self.machine,
         )
         yield shell2
@@ -76,7 +86,7 @@ class ShellExecutor(BaseShellExecutor):
             res = self._internal_execute(["stat", path], logoutput=False)
         except Exception:
             res = self._internal_execute(["stat", path], logoutput=False)
-        return res['exit_code'] == 0
+        return res["exit_code"] == 0
 
     def rm(self, path):
         return self.remove(path)
@@ -85,7 +95,7 @@ class ShellExecutor(BaseShellExecutor):
         if not self.exists(path):
             return None
         filename = Path(tempfile.mktemp())
-        self._internal_execute(["tar", "cfz", filename, '.'], cwd=path)
+        self._internal_execute(["tar", "cfz", filename, "."], cwd=path)
         content = self.get(filename)
         self.remove(filename)
         return content
@@ -104,21 +114,18 @@ class ShellExecutor(BaseShellExecutor):
 
     def _get_home_dir(self):
         res = self._internal_execute(
-            ['echo', '$HOME'], cwd='/', env=self.env,
-            logoutput=False, timeout=10)['stdout'].strip()
+            ["echo", "$HOME"], cwd="/", env=self.env, logoutput=False, timeout=10
+        )["stdout"].strip()
         if res.endswith("/~"):
             res = res[:-2]
         return res
 
-    def odoo(
-        self, *cmd, allow_error=False, force=False, timeout=None,
-        logoutput=True
-    ):
+    def odoo(self, *cmd, allow_error=False, force=False, timeout=None, logoutput=True):
         env = {
-            'NO_PROXY': "*",
-            'DOCKER_CLIENT_TIMEOUT': "600",
-            'COMPOSE_HTTP_TIMEOUT': "600",
-            'PSYCOPG_TIMEOUT': "120",
+            "NO_PROXY": "*",
+            "DOCKER_CLIENT_TIMEOUT": "600",
+            "COMPOSE_HTTP_TIMEOUT": "600",
+            "PSYCOPG_TIMEOUT": "120",
         }
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
@@ -127,17 +134,16 @@ class ShellExecutor(BaseShellExecutor):
         if force:
             cmd.insert(1, "-f")
         res = self.X(
-            cmd, allow_error=allow_error, env=env, timeout=timeout,
-            logoutput=logoutput)
-        if res['exit_code'] and not allow_error or res['exit_code'] is None:
-            if '.FileNotFoundError: [Errno 2] No such file or directory:' in \
-                    res['stderr']:
-                raise Exception((
-                    "Seems that a reload of the instance is required."
-                ))
+            cmd, allow_error=allow_error, env=env, timeout=timeout, logoutput=logoutput
+        )
+        if res["exit_code"] and not allow_error or res["exit_code"] is None:
+            if (
+                ".FileNotFoundError: [Errno 2] No such file or directory:"
+                in res["stderr"]
+            ):
+                raise Exception(("Seems that a reload of the instance is required."))
             else:
-                raise Exception('\n'.join(filter(
-                    bool, res['stdout'], res['stderr'])))
+                raise Exception("\n".join(filter(bool, res["stdout"], res["stderr"])))
         return res
 
     def checkout_branch(self, branch, cwd=None):
@@ -145,16 +151,24 @@ class ShellExecutor(BaseShellExecutor):
         with self.clone(cwd=cwd) as self:
             if not self.branch_exists(branch):
                 self.logsio and self.logsio.info(
-                    f"Tracking remote branch and checking out {branch}")
-                self.X([
-                    "git-cicd", "checkout", "-b", branch,
-                    "--track", "origin/" + branch], allow_error=True)
+                    f"Tracking remote branch and checking out {branch}"
+                )
+                self.X(
+                    [
+                        "git-cicd",
+                        "checkout",
+                        "-b",
+                        branch,
+                        "--track",
+                        "origin/" + branch,
+                    ],
+                    allow_error=True,
+                )
 
-            self.logsio and self.logsio.info(
-                f"Checking out {branch} regularly")
-            self.X([
-                "git-cicd", "checkout", "-f",
-                "--no-guess", branch], allow_error=False)
+            self.logsio and self.logsio.info(f"Checking out {branch} regularly")
+            self.X(
+                ["git-cicd", "checkout", "-f", "--no-guess", branch], allow_error=False
+            )
             self.logsio and self.logsio.info(f"Checked out {branch}")
             self._after_checkout()
 
@@ -165,32 +179,38 @@ class ShellExecutor(BaseShellExecutor):
             self.X(["git-cicd", "config", "advice.detachedHead", "false"])
             self.X(["git-cicd", "clean", "-xdff", commit])
             self.X(["git-cicd", "checkout", "-f", commit])
-            sha = self.X(["git-cicd", "log", "-n1", "--format=%H"])[
-                'stdout'].strip()
+            sha = self.X(["git-cicd", "log", "-n1", "--format=%H"])["stdout"].strip()
             if sha != commit:
-                raise Exception((
-                    "Somehow checking out "
-                    f"{commit} in {cwd} failed"))
+                raise Exception(("Somehow checking out " f"{commit} in {cwd} failed"))
             self._after_checkout()
 
     def branch_exists(self, branch, cwd=None):
-        res = self.X(["git-cicd", "branch", "--contains"], cwd=cwd)[
-            'stdout'].strip().split("\n")
+        res = (
+            self.X(["git-cicd", "branch", "--contains"], cwd=cwd)["stdout"]
+            .strip()
+            .split("\n")
+        )
 
         def reformat(x):
             x = x.replace("* ", "")
             x = x.strip()
             return x
+
         res = [reformat(x) for x in res]
         return branch in res
 
     def current_branch_contains_commit(self, commit, cwd=None):
         assert isinstance(commit, str)
         try:
-            self.X([
-                "git-cicd", "branch", "--contains",
-                commit,
-            ], cwd=cwd)
+            self.X(
+                [
+                    "git-cicd",
+                    "branch",
+                    "--contains",
+                    commit,
+                ],
+                cwd=cwd,
+            )
 
             return True
 
@@ -199,45 +219,39 @@ class ShellExecutor(BaseShellExecutor):
 
     def _after_checkout(self):
         self.logsio and self.logsio.info("Cleaning git...")
-        self.X([
-            "git-cicd", "clean", "-xdff"])
+        self.X(["git-cicd", "clean", "-xdff"])
         self.logsio and self.logsio.info("Updating submodules...")
-        self.X([
-            "git-cicd", "submodule", "update", "--init",
-            "--force", "--recursive"])
+        self.X(["git-cicd", "submodule", "update", "--init", "--force", "--recursive"])
         self.logsio and self.logsio.info("_after_checkout finished.")
 
     def X(
-        self, cmd, allow_error=False, env=None,
-        cwd=None, logoutput=True, timeout=None
+        self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, timeout=None
     ):
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
         res = self._internal_execute(
-            cmd, cwd=cwd, env=env,
-            logoutput=logoutput, timeout=timeout)
+            cmd, cwd=cwd, env=env, logoutput=logoutput, timeout=timeout
+        )
         if not allow_error:
-            if res['exit_code'] is None:
+            if res["exit_code"] is None:
                 raise Exception("Timeout happend: {cmd}")
-            if res['exit_code']:
+            if res["exit_code"]:
                 raise Exception(
                     f"Error happened: {res['exit_code']}:\n"
                     f"{res['stderr']}\n"
                     f"{res['stdout']}"
-                    )
+                )
 
         return res
 
     def get(self, source):
         # not tested yet
-        filename = Path(tempfile.mktemp(suffix='.'))
+        filename = Path(tempfile.mktemp(suffix="."))
 
-        cmd, host = self._get_ssh_client('scp', split_host=True)
+        cmd, host = self._get_ssh_client("scp", split_host=True)
         capt = Capture()
-        p = run(
-            cmd + f" '{host}:{source}' '{filename}'",
-            stdout=capt, stderr=capt)
+        p = run(cmd + f" '{host}:{source}' '{filename}'", stdout=capt, stderr=capt)
         if p.commands[0].returncode:
             raise Exception("Copy failed")
         try:
@@ -247,32 +261,31 @@ class ShellExecutor(BaseShellExecutor):
                 filename.unlink()
 
     def put(self, content, dest):
-        filename = Path(tempfile.mktemp(suffix='.'))
+        filename = Path(tempfile.mktemp(suffix="."))
         if isinstance(content, str):
-            content = content.encode('utf-8')
+            content = content.encode("utf-8")
         filename.write_bytes(content)
         try:
-            cmd, host = self._get_ssh_client('scp', split_host=True)
+            cmd, host = self._get_ssh_client("scp", split_host=True)
             capt = Capture()
-            p = run(
-                cmd + f" '{filename}' '{host}:{dest}'",
-                stdout=capt, stderr=capt)
+            p = run(cmd + f" '{filename}' '{host}:{dest}'", stdout=capt, stderr=capt)
             if p.commands[0].returncode:
                 raise Exception(f"Transfer failed to {host}:{dest}")
         finally:
             filename.unlink()
 
     def sql_excel(self, sql):
-        filename = tempfile.mktemp(suffix='.')
+        filename = tempfile.mktemp(suffix=".")
         try:
             self.odoo(
                 "excel",
-                base64.encodestring(sql.encode('utf-8')).decode('utf-8'),
+                base64.encodestring(sql.encode("utf-8")).decode("utf-8"),
                 "--base64",
-                "-f", filename
+                "-f",
+                filename,
             )
         except Exception as ex:
-            if 'psycopg2.errors.UndefinedTable' in str(ex):
+            if "psycopg2.errors.UndefinedTable" in str(ex):
                 return None
             raise
         try:
@@ -282,24 +295,30 @@ class ShellExecutor(BaseShellExecutor):
         return result
 
     def extract_zip(self, content, dest_path):
-        assert dest_path not in ['/', '/var/']
+        assert dest_path not in ["/", "/var/"]
         assert len(Path(dest_path).parts) > 2
         filename = str(
-            Path(tempfile._get_default_tempdir()) /
-            next(tempfile._get_candidate_names()))
+            Path(tempfile._get_default_tempdir())
+            / next(tempfile._get_candidate_names())
+        )
         self.put(content, filename)
         try:
             temppath = str(
-                Path(tempfile._get_default_tempdir()) /
-                next(tempfile._get_candidate_names()))
-            self.X(['mkdir', '-p', temppath])
+                Path(tempfile._get_default_tempdir())
+                / next(tempfile._get_candidate_names())
+            )
+            self.X(["mkdir", "-p", temppath])
             self.X(["tar", "xfz", filename], cwd=temppath)
             try:
-                self.X([
-                    "rsync",
-                    str(temppath) + "/",
-                    str(dest_path) + "/",
-                    "-ar", "--delete-after"])
+                self.X(
+                    [
+                        "rsync",
+                        str(temppath) + "/",
+                        str(dest_path) + "/",
+                        "-ar",
+                        "--delete-after",
+                    ]
+                )
             finally:
                 self.rm(temppath)
         finally:
@@ -307,9 +326,11 @@ class ShellExecutor(BaseShellExecutor):
 
     def get_zipped(self, path, excludes=None):
         excludes = excludes or []
-        filename = str(Path(tempfile._get_default_tempdir()) / \
-            next(tempfile._get_candidate_names()))
-        zip_cmd = ["tar", "cfz", filename, "-C", path, '.']
+        filename = str(
+            Path(tempfile._get_default_tempdir())
+            / next(tempfile._get_candidate_names())
+        )
+        zip_cmd = ["tar", "cfz", filename, "-C", path, "."]
         for exclude in excludes:
             zip_cmd.insert(-1, f'--exclude="{exclude}"')
         with self.clone(cwd=path) as self2:
@@ -321,7 +342,7 @@ class ShellExecutor(BaseShellExecutor):
         return content
 
     def get_snapshots(self):
-        snaps = self.odoo('snap', 'list')['stdout'].splitlines()[2:]
+        snaps = self.odoo("snap", "list")["stdout"].splitlines()[2:]
         for snap in snaps:
             yield snap.split(" ")[0]
 
@@ -340,14 +361,15 @@ class ShellExecutor(BaseShellExecutor):
                     "--non-interactive",
                     "--sql",
                     "select * from information_schema.tables limit 1;",
-                    timeout=timeout)
+                    timeout=timeout,
+                )
             except Exception:
                 diff = arrow.get() - started
                 msg = (
                     f"Waiting for postgres {diff.total_seconds()} in "
                     f"{self.cwd} with project name {self.project_name}"
                     "..."
-                    )
+                )
                 logger.info(msg)
                 if arrow.get() < deadline:
                     time.sleep(0.5)
