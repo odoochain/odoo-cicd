@@ -61,8 +61,8 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _compute_logfilepath(self):
         for rec in self:
-            rec.logfile_path = "/opt/out_dir/testrunline_logs/testrunline_log_{rec.id}"
-            Path(rec.logfile_path).parent.mkdir(exists_ok=True, parents=True)
+            rec.logfile_path = f"/opt/out_dir/testrunline_logs/testrunline_log_{rec.id}"
+            Path(rec.logfile_path).parent.mkdir(exist_ok=True, parents=True)
 
     def _compute_machine(self):
         for rec in self:
