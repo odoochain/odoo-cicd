@@ -161,7 +161,7 @@ class TestSettingsUnittest(models.Model):
 
             for test in tests:
                 test_already_succeeded = self.check_if_test_already_succeeded(
-                    self.run_id, filepath=test, hash=hash
+                    self.parent_id, filepath=test, hash=hash
                 )
 
                 if self.parent_id.no_reuse or (
@@ -209,7 +209,7 @@ class TestSettingsUnittest(models.Model):
         previous run with same hash.
         """
         hash = hash or self.hash
-        res = self.search_count(
+        res = self.env["cicd.test.run.line.unittest"].search_count(
             [
                 ("run_id.branch_ids.repo_id", "=", testrun.branch_ids.repo_id.id),
                 ("filepath", "=", filepath),
