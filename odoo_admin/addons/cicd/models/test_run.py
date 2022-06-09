@@ -155,7 +155,10 @@ class CicdTestRun(models.Model):
                 ),
             except Exception as ex:
                 logger.error(ex)
+                shell.logsio.error(f"Exception at reload: {ex}")
                 raise
+            else:
+                shell.logsio.info("Reloaded")
 
         try:
             reload()
