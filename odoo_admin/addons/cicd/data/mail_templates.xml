@@ -32,7 +32,7 @@ seconds</td>
 					<th>Forced Success</th>
 					<th>Duration [s]</th>
 				</tr>
-				<t t-foreach="obj.iterate_testlines" t-as="line" border='1'>
+				<t t-foreach="obj.iterate_testlines()" t-as="line" border='1'>
 					<t t-if="line.state == 'failed'">
 						<tr>
 							<td>

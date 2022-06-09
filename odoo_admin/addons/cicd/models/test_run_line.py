@@ -187,7 +187,6 @@ class CicdTestRunLine(models.AbstractModel):
             logsio.info(msg)
 
     def _log(self, func, comment="", allow_error=False):
-        breakpoint()
         started = arrow.utcnow()
         if comment:
             self._report(comment)
@@ -203,10 +202,11 @@ class CicdTestRunLine(models.AbstractModel):
                 params["exception"] = ex
 
         finally:
-            params["duration"] = (arrow.utcnow() - started).total_seconds()
+            duration = (arrow.utcnow() - started).total_seconds()
+            comment = f"Duration: {duration}s; {comment}"
         if do_log:
             self._report(comment, **params)
-        self._abort_if_required()
+        self.run_id._abort_if_required()
 
     def _lo(self, shell, *params, comment=None, **kwparams):
         breakpoint()
@@ -225,7 +225,7 @@ class CicdTestRunLine(models.AbstractModel):
         )
         lo = partial(self._lo, shell)
         # lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
-        self._reload(shell, settings, shell.cwd)
+        self.run_id._reload(shell, settings, shell.cwd)
         lo("regpull", allow_error=True)
         lo("build")
         lo("kill", allow_error=True)
@@ -279,25 +279,13 @@ class CicdTestRunLine(models.AbstractModel):
         instance_folder = self._get_source_path()
 
         with self.effective_machine_id._shell(
-            cwd=instance_folder,
             project_name=self.project_name,
         ) as shell:
-            self.with_context(testrun_cleanup=True)._ensure_source_and_machines(
-                shell, reload_only_on_need=True
-            )
             if shell.exists(instance_folder):
                 shell.odoo("down", "-v", force=True, allow_error=True)
                 shell.odoo("rm", force=True, allow_error=True)
 
-            eta = arrow.utcnow().shift(hours=2).strftime(DTF)
-            self.with_delay(
-                identity_key=(f"testrun_{self.id}_cleanup_folder"), eta=eta
-            )._remove_instance_folder(instance_folder)
-
-    @api.model
-    def _remove_instance_folder(self, machine, folder):
-        with machine._shell() as shell:
-            shell.remove(folder)
+            shell.remove(instance_folder)
 
     def as_job(self, suffix, afterrun=False, eta=None):
         breakpoint()
