@@ -24,7 +24,9 @@ class UnitTest(models.Model):
     def _execute(self):
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
         with self._shell(quick=True) as shell:
-            dump_path = self.branch_id._ensure_dump("base", commit=self.commit_id.name)
+            dump_path = self.run_id.branch_id._ensure_dump(
+                "base", commit=self.run_id.commit_id.name
+            )
             settings = SETTINGS + ("\nSERVER_WIDE_MODULES=base,web\n")
             assert dump_path
             self._ensure_source_and_machines(

@@ -160,7 +160,6 @@ class CicdTestRun(models.Model):
             else:
                 self._report("Reloaded")
 
-        self._report("Reloading for test run")
         try:
             reload()
         except RetryableJobError:
@@ -174,7 +173,6 @@ class CicdTestRun(models.Model):
                 raise RetryableJobError(
                     ("Missing commit not arrived " "- retrying later.")
                 ) from ex
-            self._report("Error occurred", exception=ex)
             raise
 
     def _abort_if_required(self):
