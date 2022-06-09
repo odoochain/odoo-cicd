@@ -155,10 +155,7 @@ class CicdTestRun(models.Model):
                 ),
             except Exception as ex:
                 logger.error(ex)
-                self._report("Exception at reload", exception=ex)
                 raise
-            else:
-                self._report("Reloaded")
 
         try:
             reload()
