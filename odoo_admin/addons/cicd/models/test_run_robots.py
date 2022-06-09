@@ -26,13 +26,16 @@ class RobotTest(models.Model):
 
     def _execute(self):
         # there could be errors at install all
-        self.branch_id._ensure_dump("full", self.commit_id.name)
+        breakpoint()
+        self.run_id.branch_id._ensure_dump("full", self.run_id.commit_id.name)
 
         safe_robot_file = safe_filename(self.filepath)
         self = self.with_context(testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
 
         with self._shell(quick=True) as shell:
-            dump_path = self.branch_id._ensure_dump("full", self.commit_id.name)
+            dump_path = self.run_id.branch_id._ensure_dump(
+                "full", self.run_id.commit_id.name
+            )
             assert dump_path
             self._ensure_source_and_machines(
                 shell, start_postgres=True, settings=settings

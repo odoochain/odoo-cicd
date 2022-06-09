@@ -25,7 +25,7 @@ class CicdTestRunLine(models.AbstractModel):
     run_id = fields.Many2one("cicd.test.run", string="Run", required=True)
     exc_info = fields.Text("Exception Info")
     queuejob_id = fields.Many2one("queue.job", string="Queuejob")
-    machine_id = fields.Many2one("cicd.machine", string="Machine", required=True)
+    machine_id = fields.Many2one("cicd.machine", string="Machine")
     duration = fields.Integer("Duration")
     state = fields.Selection(
         [
@@ -75,7 +75,7 @@ class CicdTestRunLine(models.AbstractModel):
         assert self.env.context.get("testrun")
         with self.effective_machine_id._shell(
             cwd=self._get_source_path(),
-            project_name=self.branch_id.project_name,
+            project_name=self.run_id.branch_id.project_name,
         ) as shell:
             if not quick:
                 self._ensure_source_and_machines(shell)
@@ -129,7 +129,7 @@ class CicdTestRunLine(models.AbstractModel):
         try:
 
             trycounter = 0
-            while trycounter < self.try_count:
+            while trycounter < (self.try_count or 1):
                 self.log = False
                 if self.run_id.do_abort:
                     raise AbortException("Aborted by user")
@@ -138,7 +138,7 @@ class CicdTestRunLine(models.AbstractModel):
                 with self.run_id._logsio() as logsio:
                     logsio.info(f"Try #{trycounter}")
 
-                    self.started = arrow.get()
+                    self.started = fields.Datetime.now()
                     self.env.cr.commit()
                     try:
                         logsio.info(f"Running {self.name}")
@@ -154,7 +154,9 @@ class CicdTestRunLine(models.AbstractModel):
                         self.state = "success"
                         self.exc_info = False
                 end = arrow.get()
-                self.duration = (end - self.started).total_seconds()
+                self.duration = (
+                    end - arrow.get(self.started or arrow.utcnow())
+                ).total_seconds()
                 if self.state == "success":
                     break
 
