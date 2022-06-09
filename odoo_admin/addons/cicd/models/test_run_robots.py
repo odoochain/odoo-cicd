@@ -112,7 +112,7 @@ class TestSettingsRobotTests(models.Model):
     regex = fields.Char("Regex", default=".*")
 
     def get_name(self):
-        return f"{self.id} - {self.tags}"
+        return f"{self.id} - {self.tags or 'no tags'}"
 
     def produce_test_run_lines(self, testrun):
         breakpoint()

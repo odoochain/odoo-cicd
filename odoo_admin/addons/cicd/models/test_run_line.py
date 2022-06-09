@@ -114,6 +114,8 @@ class CicdTestRunLine(models.AbstractModel):
             testrun = self.env["cicd.test.run"].browse(vals["run_id"])
             vals["machine_id"] = testrun.branch_id.repo_id.machine_id.id
         res = super().create(vals)
+
+        res._create_worker_queuejob()
         return res
 
     def ok(self):
@@ -288,7 +290,14 @@ class CicdTestRunLine(models.AbstractModel):
             shell.remove(instance_folder)
 
     def as_job(self, suffix, afterrun=False, eta=None):
-        breakpoint()
         marker = self.run_id._get_qj_marker(suffix, afterrun=afterrun)
         eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
         return self.with_delay(channel="testruns", identity_key=marker, eta=eta)
+
+    def _create_worker_queuejob(self):
+        idkey = f"testrunline-{self.id}"
+        job = self.as_job(suffix=idkey).execute()
+        jobs = self.env["queue.job"].search([("uuid", "=", job.uuid)])
+        if not jobs:
+            raise Exception("Could not create queuejob")
+        self.queuejob_id = jobs[0]

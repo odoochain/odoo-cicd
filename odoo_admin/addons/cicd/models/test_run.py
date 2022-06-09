@@ -318,6 +318,8 @@ class CicdTestRun(models.Model):
         self.state = "open"
         for line in self.iterate_all_test_settings():
             line.reset_at_testrun()
+        for line in self.iterate_testlines():
+            line.unlink()
 
     @api.recordchange("state")
     def _on_state_change(self):
