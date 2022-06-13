@@ -1,5 +1,4 @@
 from . import pg_advisory_lock
-import tempfile
 import json
 from contextlib import contextmanager
 from odoo import fields
@@ -427,19 +426,19 @@ class Branch(models.Model):
 
         def _clone_instance_folder(machine, instance_folder):
             # be atomic
-            path = "/tmp/" + next(tempfile._get_candidate_names())
+            path = shell.machine._tempdir(usage="clone_repo")
             self.repo_id._technical_clone_repo(
                 path=path,
                 branch=my_name,
                 machine=machine,
             )
-            with shell.clone(cwd="/tmp", project_name=None) as shell2:
-                # if work in progress happening in instance_folder
-                # TODO delete .replace_main_folder
-                path2 = (
-                    "/tmp/"
-                    + next(tempfile._get_candidate_names())
-                    + ".replace_main_folder"
+            with shell.clone(cwd=path.parent, project_name=None) as shell2:
+                # if work in progress happening in instance_folder;
+                # unlink does not delete the folder, just unlinks, so running processes
+                # still work
+                # path2 will be deleted within two hours by cronjob
+                path2 = shell.machine._tempdir(
+                    usage="replace_main_folder", maxage=dict(hours=2)
                 )
                 if shell2.exists(instance_folder):
                     shell2.X(["mv", instance_folder, path2])

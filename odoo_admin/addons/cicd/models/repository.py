@@ -3,7 +3,6 @@ from . import pg_advisory_lock
 from odoo import registry
 import arrow
 from pathlib import Path
-import tempfile
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from ..tools.logsio_writer import LogsIOWriter
@@ -141,22 +140,16 @@ class Repository(models.Model):
     def _get_zipped(self, logsio, commit, with_git=False):
         machine = self.machine_id
         with self._temp_repo(machine=machine) as repo_path:
-            filename = Path(tempfile.mktemp(suffix=".get_zipped"))
-            try:
-                with machine._shell(repo_path, logsio=logsio) as shell:
-                    try:
-                        shell.checkout_commit(commit)
-                        shell.X(["git-cicd", "clean", "-xdff"])
-                        excludes = []
-                        if not with_git:
-                            excludes.append(".git")
-                        return shell.get_zipped(repo_path, excludes)
-                    finally:
-                        shell.rm(repo_path)
-
-            finally:
-                if filename.exists():
-                    filename.unlink()
+            with machine._shell(repo_path, logsio=logsio) as shell:
+                try:
+                    shell.checkout_commit(commit)
+                    shell.X(["git-cicd", "clean", "-xdff"])
+                    excludes = []
+                    if not with_git:
+                        excludes.append(".git")
+                    return shell.get_zipped(repo_path, excludes)
+                finally:
+                    shell.rm(repo_path)
 
     def _technical_clone_repo(
         self, path, machine, logsio=None, branch=None, depth=None
@@ -165,7 +158,7 @@ class Repository(models.Model):
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
-            temppath = tempfile.mktemp(suffix=".clone_repo")
+            temppath = shell.machine._tempdir(usage="clone_repo")
             try:
 
                 # try to clone from main branch on error fetch from
@@ -205,7 +198,7 @@ class Repository(models.Model):
     @contextmanager
     def _temp_repo(self, machine, logsio=None, branch=None, depth=None, pull=False):
 
-        path = tempfile.mktemp(suffix=".temporary_repo")
+        path = machine._tempfile(usage="temporary_repo")
 
         self._technical_clone_repo(path, machine, branch=branch, depth=depth)
         try:

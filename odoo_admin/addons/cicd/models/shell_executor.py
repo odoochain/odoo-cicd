@@ -94,7 +94,7 @@ class ShellExecutor(BaseShellExecutor):
     def grab_folder_as_tar(self, path):
         if not self.exists(path):
             return None
-        filename = Path(tempfile.mktemp())
+        filename = self.machine._tempdir()
         self._internal_execute(["tar", "cfz", filename, "."], cwd=path)
         content = self.get(filename)
         self.remove(filename)
@@ -326,10 +326,7 @@ class ShellExecutor(BaseShellExecutor):
 
     def get_zipped(self, path, excludes=None):
         excludes = excludes or []
-        filename = str(
-            Path(tempfile._get_default_tempdir())
-            / next(tempfile._get_candidate_names())
-        )
+        filename = self.machine._tempdir(usage="get_zipped")
         zip_cmd = ["tar", "cfz", filename, "-C", path, "."]
         for exclude in excludes:
             zip_cmd.insert(-1, f'--exclude="{exclude}"')

@@ -19,6 +19,7 @@ class CicdVolumes(models.Model):
             ("dumps", "Dumps"),
             ("dumps_in", "Dumps (just to import)"),
             ("source", "Source"),
+            ("temp", "Tempdir"),
             ("other", "Other"),
         ],
         string="Type",
