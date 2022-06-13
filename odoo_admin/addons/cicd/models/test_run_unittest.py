@@ -220,3 +220,8 @@ class TestSettingsUnittest(models.Model):
             ]
         )
         return bool(res)
+
+    def _compute_name(self):
+        for rec in self:
+            filename = (rec.path or "").split("/")[-1]
+            rec.name = f"{rec.odoo_module}:{filename}"

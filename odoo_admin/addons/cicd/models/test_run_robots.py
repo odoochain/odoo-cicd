@@ -24,6 +24,11 @@ class RobotTest(models.Model):
     robot_output = fields.Binary("Robot Output", attachment=True)
     parallel = fields.Char("In Parallel")
 
+    def _compute_name(self):
+        for rec in self:
+            filename = (rec.path or "").split("/")[-1]
+            rec.name = f"{filename}"
+
     def _execute(self):
         # there could be errors at install all
         breakpoint()

@@ -38,8 +38,7 @@ class CicdTestRunLine(models.AbstractModel):
     )
     force_success = fields.Boolean("Force Success")
     try_count = fields.Integer("Try Count")
-    name = fields.Char("Name")
-    name_short = fields.Char(compute="_compute_name_short")
+    name = fields.Char("Name", compute="_compute_name", store=False)
     test_setting_id = fields.Reference(
         [
             ("cicd.test.settings.unittest", "Unit Test"),
@@ -91,13 +90,9 @@ class CicdTestRunLine(models.AbstractModel):
             "target": "current",
         }
 
-    def _compute_name_short(self):
+    def _compute_name(self):
         for rec in self:
-            MAX = 80
-            if len(rec.name or "") > MAX:
-                rec.name_short = f"{rec.name[:MAX]}..."
-            else:
-                rec.name_short = rec.name
+            rec.name = "missing"
 
     def toggle_force_success(self):
         self.sudo().force_success = not self.sudo().force_success

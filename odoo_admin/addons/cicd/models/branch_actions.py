@@ -490,7 +490,7 @@ class Branch(models.Model):
             if not current_branch:
                 raise Exception("Somehow no current branch found")
             try:
-                branch_in_dir = self.repo_id._clear_branch_name(current_branch[0])
+                branch_in_dir = self.repo_id._clear_branch_name(current_branch)
             except InvalidBranchName:
                 branch_in_dir = None
             if branch_in_dir != my_name:

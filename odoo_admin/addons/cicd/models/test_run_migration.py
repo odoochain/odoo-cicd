@@ -11,6 +11,11 @@ class MigrationTest(models.Model):
 
     dump_id = fields.Many2one("cicd.dump", string="Dump")
 
+    def _compute_name(self):
+        for rec in self:
+            filepath = (rec.path or "").split("/")[-1]
+            rec.name = filepath
+
     def _execute(self):
         import pudb
 
