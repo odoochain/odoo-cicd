@@ -42,7 +42,7 @@ seconds</td>
 								<t t-esc="line.try_count"/>
 							</td>
 							<td>
-								<t t-esc="line.ttype"/>
+								<t t-esc="line._name.split('.')[-1]"/>
 							</td>
 							<td>
 								<t t-esc="line.force_success"/>

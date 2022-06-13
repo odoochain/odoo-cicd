@@ -485,12 +485,9 @@ class Branch(models.Model):
                 shell.X(["git-cicd", "branch", "-D", branch])
                 del branch
 
-            current_branch = list(
-                filter(
-                    lambda x: "* " in x,
-                    shell.X(["git-cicd", "branch"])["stdout"].strip().split("\n"),
-                )
-            )
+            current_branch = shell.X(["git-cicd", "branch", "--show-current"])[
+                "stdout"
+            ].strip()
             if not current_branch:
                 raise Exception("Somehow no current branch found")
             try:
