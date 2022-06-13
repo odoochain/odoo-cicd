@@ -210,7 +210,7 @@ class CicdMachine(models.Model):
                 raise ValidationError(_("Could not find: {}").format(ttype))
             return Path(res[0].name)
 
-    def _tempdir(self, maxage={"hours": 1}, usage="common"):
+    def _temppath(self, maxage={"hours": 1}, usage="common"):
         guid = str(uuid.uuid4())
         date = arrow.utcnow().shift(**maxage).strftime(DTF)
         name = f"{guid}.{usage}.cleanme.{date}"
@@ -219,9 +219,9 @@ class CicdMachine(models.Model):
     @api.model
     def _clean_tempdirs(self):
         for machine in self.search([]):
-            machine.with_delay()._clean_tempdir()
+            machine.with_delay()._clean_temppath()
 
-    def _clean_tempdir(self):
+    def _clean_temppath(self):
         self.ensure_one()
         with self._shell() as shell:
             for vol in self.volume_ids.filtered(lambda x: x.ttype == "temp"):

@@ -158,7 +158,7 @@ class Repository(models.Model):
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
-            temppath = shell.machine._tempdir(usage="clone_repo")
+            temppath = shell.machine._temppath(usage="clone_repo")
             try:
 
                 # try to clone from main branch on error fetch from
@@ -198,7 +198,7 @@ class Repository(models.Model):
     @contextmanager
     def _temp_repo(self, machine, logsio=None, branch=None, depth=None, pull=False):
 
-        path = machine._tempfile(usage="temporary_repo")
+        path = machine._temppath(usage="temporary_repo")
 
         self._technical_clone_repo(path, machine, branch=branch, depth=depth)
         try:

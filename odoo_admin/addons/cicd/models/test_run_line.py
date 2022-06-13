@@ -297,7 +297,7 @@ class CicdTestRunLine(models.AbstractModel):
         return self.with_delay(channel="testruns", identity_key=marker, eta=eta)
 
     def _create_worker_queuejob(self):
-        idkey = f"testrunline-{self.id}"
+        idkey = f"testrunline-{self.id}-{self.get_name()}"
         job = self.as_job(suffix=idkey).execute()
         jobs = self.env["queue.job"].search([("uuid", "=", job.uuid)])
         if not jobs:

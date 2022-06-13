@@ -426,7 +426,7 @@ class Branch(models.Model):
 
         def _clone_instance_folder(machine, instance_folder):
             # be atomic
-            path = shell.machine._tempdir(usage="clone_repo")
+            path = shell.machine._temppath(usage="clone_repo")
             self.repo_id._technical_clone_repo(
                 path=path,
                 branch=my_name,
@@ -437,7 +437,7 @@ class Branch(models.Model):
                 # unlink does not delete the folder, just unlinks, so running processes
                 # still work
                 # path2 will be deleted within two hours by cronjob
-                path2 = shell.machine._tempdir(
+                path2 = shell.machine._temppath(
                     usage="replace_main_folder", maxage=dict(hours=2)
                 )
                 if shell2.exists(instance_folder):
