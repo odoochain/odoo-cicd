@@ -26,7 +26,7 @@ class RobotTest(models.Model):
 
     def _compute_name(self):
         for rec in self:
-            filename = (rec.path or "").split("/")[-1]
+            filename = (rec.filepath or "").split("/")[-1]
             rec.name = f"{filename}"
 
     def _execute(self):

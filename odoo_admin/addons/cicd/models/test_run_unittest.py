@@ -62,6 +62,11 @@ class UnitTest(models.Model):
                 shell.odoo("rm", allow_error=True)
                 shell.odoo("down", "-v", force=True, allow_error=True)
 
+    def _compute_name(self):
+        for rec in self:
+            filename = (rec.filepath or "").split("/")[-1]
+            rec.name = f"{rec.odoo_module}:{filename}"
+
 
 class TestSettingsUnittest(models.Model):
     _inherit = "cicd.test.settings.base"
@@ -220,8 +225,3 @@ class TestSettingsUnittest(models.Model):
             ]
         )
         return bool(res)
-
-    def _compute_name(self):
-        for rec in self:
-            filename = (rec.path or "").split("/")[-1]
-            rec.name = f"{rec.odoo_module}:{filename}"
