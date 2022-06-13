@@ -154,7 +154,6 @@ class Repository(models.Model):
     def _technical_clone_repo(
         self, path, machine, logsio=None, branch=None, depth=None
     ):
-
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:

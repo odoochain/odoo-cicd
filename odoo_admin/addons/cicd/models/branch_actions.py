@@ -426,7 +426,7 @@ class Branch(models.Model):
 
         def _clone_instance_folder(machine, instance_folder):
             # be atomic
-            path = shell.machine._temppath(usage="clone_repo")
+            path = shell.machine._temppath(usage="clone_repo_at_checkout_latest")
             self.repo_id._technical_clone_repo(
                 path=path,
                 branch=my_name,

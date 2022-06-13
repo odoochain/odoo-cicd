@@ -206,6 +206,7 @@ class TestSettings(models.Model):
 
     @contextmanager
     def _get_source_for_analysis(self):
+        breakpoint()
         repo = self.branch_ids.repo_id
         machine = repo.machine_id
         with repo._temp_repo(machine, self.branch_id) as folder:
@@ -213,4 +214,5 @@ class TestSettings(models.Model):
                 cwd=folder,
                 project_name=self.branch_id.project_name,
             ) as shell:
+                shell.checkout_commit(self.commit_id.name)
                 yield shell

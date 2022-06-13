@@ -212,7 +212,7 @@ class CicdMachine(models.Model):
 
     def _temppath(self, maxage={"hours": 1}, usage="common"):
         guid = str(uuid.uuid4())
-        date = arrow.utcnow().shift(**maxage).strftime(DTF)
+        date = arrow.utcnow().shift(**maxage).strftime("%Y%m%d_%H%M%S")
         name = f"{guid}.{usage}.cleanme.{date}"
         return self._get_volume("temp") / name
 
