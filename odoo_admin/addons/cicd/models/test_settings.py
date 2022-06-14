@@ -66,7 +66,7 @@ class TestSettingAbstract(models.AbstractModel):
                 success_lines = float(
                     len(
                         x
-                        for x in rec.parent_id.test_run_line_ids.filtered_domain(
+                        for x in rec.test_run_line_ids.filtered_domain(
                             [("state", "=", "success")]
                         )
                     )
