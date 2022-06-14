@@ -123,15 +123,15 @@ class CicdTestRunLine(models.AbstractModel):
 
         try:
 
-            trycounter = 0
-            while trycounter < (self.try_count or 1):
+            self.try_count = 0
+            while self.try_count < (self.test_setting_id.retry_count or 1):
                 self.log = False
                 if self.run_id.do_abort:
                     raise AbortException("Aborted by user")
-                trycounter += 1
+                self.try_count += 1
 
                 with self.run_id._logsio() as logsio:
-                    logsio.info(f"Try #{trycounter}")
+                    logsio.info(f"Try #{self.try_count}")
 
                     self.started = fields.Datetime.now()
                     self.env.cr.commit()

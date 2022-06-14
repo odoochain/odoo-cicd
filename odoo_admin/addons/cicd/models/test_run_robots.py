@@ -23,6 +23,9 @@ class RobotTest(models.Model):
     filepath = fields.Char("Filepath")
     robot_output = fields.Binary("Robot Output", attachment=True)
     parallel = fields.Char("In Parallel")
+    avg_duration = fields.Float("Avg Duration [s]")
+    min_duration = fields.Float("Min Duration [s]")
+    max_duration = fields.Float("Max Duration [s]")
 
     def _compute_name(self):
         for rec in self:
@@ -57,15 +60,17 @@ class RobotTest(models.Model):
 
                 shell.odoo("up", "-d", "postgres")
                 shell.wait_for_postgres()
-                shell.odoo(
+                output = shell.odoo(
                     "robot",
                     "--parallel",
                     self.parallel,
+                    "--output-json",
                     "-p",
                     "password=1",
                     self.filepath,
                     timeout=self.timeout_tests,
-                )
+                )["stdout"]
+                breakpoint()
 
                 excel_file = shell.sql_excel(
                     ("select id, name, state, exc_info " "from queue_job")
