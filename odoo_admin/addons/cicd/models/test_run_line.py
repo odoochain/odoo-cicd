@@ -117,7 +117,6 @@ class CicdTestRunLine(models.AbstractModel):
         return {"type": "ir.actions.act_window_close"}
 
     def execute(self):
-        breakpoint()
         self.run_id._switch_to_running_state()
         logfile = Path(self.logfile_path)
 
@@ -190,25 +189,18 @@ class CicdTestRunLine(models.AbstractModel):
         if comment:
             self._report(comment)
         params = {}
-        do_log = True
         try:
             func(self)
         except Exception as ex:  # pylint: disable=broad-except
-            do_log = True
-            if allow_error:
-                params["name"] = f"{params['name'] or ''}" " " f"{ex}"
-            else:
-                params["exception"] = ex
-
+            self._report(exception=ex)
+            if not allow_error:
+                raise
         finally:
             duration = (arrow.utcnow() - started).total_seconds()
-            comment = f"Duration: {duration}s; {comment}"
-        if do_log:
-            self._report(comment, **params)
+            self._report(f"Duration: {duration}s; {comment}", **params)
         self.run_id._abort_if_required()
 
     def _lo(self, shell, *params, comment=None, **kwparams):
-        breakpoint()
         comment = comment or " ".join(map(str, params))
         self._log(
             lambda self: shell.odoo(*params, **kwparams),
@@ -238,12 +230,11 @@ class CicdTestRunLine(models.AbstractModel):
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
         project_name = self.run_id.branch_id.with_context(testrun="").project_name
-        path = path / f"{project_name}_testrun_{self.id}"
+        path = path / f"{project_name}_testrun_{self.run_id.id}"
         return path
 
     def _checkout_source_code(self, machine):
         assert machine._name == "cicd.machine"
-        breakpoint()
 
         with pg_advisory_lock(self.env.cr, f"testrun_{self.id}"):
             path = self._get_source_path()
@@ -252,23 +243,23 @@ class CicdTestRunLine(models.AbstractModel):
                 if not shell.exists(path / ".git"):
                     shell.remove(path)
                     self._report("Checking out source code...")
-                    self.branch_id.repo_id._technical_clone_repo(
+                    self.run_id.branch_id.repo_id._technical_clone_repo(
                         path=path,
                         machine=machine,
-                        branch=self.branch_id.name,
+                        branch=self.run_id.branch_id.name,
                     )
             with shell.clone(cwd=path) as shell:
-                shell.X(["git-cicd", "checkout", "-f", self.commit_id.name])
+                shell.X(["git-cicd", "checkout", "-f", self.run_id.commit_id.name])
 
                 self._report("Checking commit")
                 sha = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
                     "stdout"
                 ].strip()
-                if sha != self.commit_id.name:
+                if sha != self.run_id.commit_id.name:
                     raise WrongShaException(
                         (
                             f"checked-out SHA {sha} "
-                            f"not matching test sha {self.commit_id.name}"
+                            f"not matching test sha {self.run_id.commit_id.name}"
                         )
                     )
                 self._report("Commit matches")
