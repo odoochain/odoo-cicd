@@ -75,7 +75,7 @@ class CicdTestRunLine(models.AbstractModel):
         assert self.env.context.get("testrun")
         with self.effective_machine_id._shell(
             cwd=self._get_source_path(),
-            project_name=self.run_id.project_name,
+            project_name=self.project_name,
         ) as shell:
             if not quick:
                 self._ensure_source_and_machines(shell)
@@ -230,7 +230,7 @@ class CicdTestRunLine(models.AbstractModel):
         path = Path(self.effective_machine_id._get_volume("source"))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
-        project_name = self.run_id.project_name
+        project_name = self.project_name
         path = path / f"{project_name}_testrun_{self.run_id.id}"
         return path
 
@@ -271,7 +271,7 @@ class CicdTestRunLine(models.AbstractModel):
         breakpoint()
 
         with self.effective_machine_id._shell(
-            project_name=self.run_id.project_name,
+            project_name=self.project_name,
         ) as shell:
             if shell.exists(instance_folder):
                 shell.odoo("down", "-v", force=True, allow_error=True)
