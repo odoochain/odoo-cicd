@@ -101,6 +101,7 @@ class RobotTest(models.Model):
 class TestSettingsRobotTests(models.Model):
     _inherit = "cicd.test.settings.base"
     _name = "cicd.test.settings.robottest"
+    _line_model = "cicd.test.run.line.robottest"
 
     tags = fields.Char(
         "Filter to tags (comma separated, may be empty)", default="load-test"
@@ -132,9 +133,10 @@ class TestSettingsRobotTests(models.Model):
                 if not re.findall(self.regex, robotfile):
                     continue
             self.env["cicd.test.run.line.robottest"].create(
-                {
-                    "run_id": testrun.id,
-                    "filepath": robotfile,
-                    "run_id": testrun.id,
-                }
+                self.get_testrun_values(
+                    testrun,
+                    {
+                        "filepath": robotfile,
+                    },
+                )
             )

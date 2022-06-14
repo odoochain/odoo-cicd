@@ -31,6 +31,7 @@ class MigrationTest(models.Model):
 class TestSettingsMigrations(models.Model):
     _inherit = "cicd.test.settings.base"
     _name = "cicd.test.settings.migrations"
+    _line_model = "cicd.test.run.line.migration"
 
     dump_id = fields.Many2one("cicd.dump", string="Dump")
 
@@ -38,9 +39,11 @@ class TestSettingsMigrations(models.Model):
         return f"{self.id} - {self.dump_id.name}"
 
     def produce_test_run_lines(self, testrun):
-        self.env["cicd.test.run.line.migration"].create(
-            {
-                "run_id": testrun.id,
-                "dump_id": self.dump_id.id,
-            }
+        self.env[self._line_model].create(
+            self.get_testrun_values(
+                testrun,
+                {
+                    "dump_id": self.dump_id.id,
+                },
+            )
         )

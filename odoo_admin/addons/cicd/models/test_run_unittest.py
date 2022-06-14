@@ -23,6 +23,7 @@ class UnitTest(models.Model):
 
     def _execute(self):
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
+        breakpoint()
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
                 "base", commit=self.run_id.commit_id.name
@@ -52,7 +53,7 @@ class UnitTest(models.Model):
                         "unittest",
                         self.filepath,
                         "--non-interactive",
-                        timeout=self.timeout_tests,
+                        timeout=self.test_setting_id.timeout,
                     )
             finally:
                 self._report("Unittest finished")
@@ -98,13 +99,14 @@ class TestSettingsUnittest(models.Model):
                         if not re.findall(self.regex, test):
                             continue
                     self.env["cicd.test.run.line.unittest"].create(
-                        {
-                            "run_id": testrun.id,
-                            "odoo_module": module,
-                            "filepath": test,
-                            "hash": hash,
-                            "run_id": testrun.id,
-                        }
+                        self.get_testrun_values(
+                            testrun,
+                            {
+                                "odoo_module": module,
+                                "filepath": test,
+                                "hash": hash,
+                            },
+                        )
                     )
 
     def _get_unittest_hashes(self, shell, modules):

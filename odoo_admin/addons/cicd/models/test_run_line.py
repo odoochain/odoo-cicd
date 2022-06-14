@@ -46,6 +46,7 @@ class CicdTestRunLine(models.AbstractModel):
             ("cicd.test.settings.migration", "Migration Test"),
         ],
         string="Initiating Testsetting",
+        required=True,
     )
     hash = fields.Char("Hash", help="For using")
     reused = fields.Boolean("Reused", readonly=True)

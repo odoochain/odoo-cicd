@@ -85,6 +85,13 @@ class TestSettingAbstract(models.AbstractModel):
                 if line.state == "failed":
                     return False
 
+    def get_testrun_values(self, testrun, defaults=None):
+        vals = defaults or {}
+        vals.update(
+            {"test_setting_id": f"{self._name},{self.id}", "run_id": testrun.id}
+        )
+        return vals
+
     def produce_test_run_lines(self, testrun):
         raise NotImplementedError()
 
