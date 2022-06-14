@@ -31,7 +31,6 @@ class RobotTest(models.Model):
 
     def _execute(self):
         # there could be errors at install all
-        breakpoint()
         self.run_id.branch_id._ensure_dump("full", self.run_id.commit_id.name)
 
         safe_robot_file = safe_filename(self.filepath)
