@@ -216,15 +216,13 @@ class TestSettings(models.Model):
         breakpoint()
         repo = self.branch_ids.repo_id
         machine = repo.machine_id
-        if not self.parent_id:
-            raise ValidationError("Parent ID required")
-        if self.parent_id._name != "cicd.test.run":
+        if self._name != "cicd.test.run":
             raise ValidationError("Parent must be a test-run")
 
         with repo._temp_repo(machine, self.branch_id) as folder:
             with machine._shell(
                 cwd=folder,
-                project_name=self.parent_id.project_name,
+                project_name=self.project_name,
             ) as shell:
                 shell.checkout_commit(self.commit_id.name)
                 yield shell
