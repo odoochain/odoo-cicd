@@ -78,6 +78,7 @@ class TestSettingsUnittest(models.Model):
         return f"{self.id} - {self.tags}"
 
     def produce_test_run_lines(self, testrun):
+        super().produce_test_run_lines(testrun)
         with self.parent_id._logsio() as logsio:
             logsio.info("Hashing Modules / Preparing UnitTests")
             with self.parent_id._get_source_for_analysis() as shell:

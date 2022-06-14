@@ -119,6 +119,7 @@ class TestSettingsRobotTests(models.Model):
         return f"{self.id} - {self.tags or 'no tags'}"
 
     def produce_test_run_lines(self, testrun):
+        super().produce_test_run_lines(testrun)
         with self.parent_id._get_source_for_analysis() as shell:
             files = shell.odoo("list-robot-test-files")["stdout"].strip()
             files = list(filter(bool, files.split("!!!")[1].split("\n")))

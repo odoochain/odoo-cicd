@@ -7,6 +7,8 @@
 				<tree editable="bottom">
 					<field name="tags"/>
 					<field name="regex"/>
+					<field name="retry_count"/>
+					<field name="timeout"/>
 				</tree>
 			</field>
 		</record>
@@ -16,6 +18,8 @@
 				<tree editable="bottom">
 					<field name="parallel"/>
 					<field name="tags"/>
+					<field name="retry_count"/>
+					<field name="timeout"/>
 				</tree>
 			</field>
 		</record>
@@ -24,6 +28,8 @@
 			<field name="arch" type="xml">
 				<tree editable="bottom">
 					<field name="dump_id"/>
+					<field name="retry_count"/>
+					<field name="timeout"/>
 				</tree>
 			</field>
 		</record>

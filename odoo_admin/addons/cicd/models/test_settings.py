@@ -60,7 +60,7 @@ class TestSettingAbstract(models.AbstractModel):
 
     def _compute_success_rate(self):
         for rec in self:
-            if not rec.preparation_done or rec.test_setting_id._name != "cicd.test.run":
+            if not rec.preparation_done or rec.parent_id._name != "cicd.test.run":
                 rec.success_rate = 0
             else:
                 success_lines = float(
@@ -78,8 +78,9 @@ class TestSettingAbstract(models.AbstractModel):
                     rec.success_rate = 100 * success_lines / count_lines
 
     def _is_success(self):
+        self.ensure_one()
         for line in self.test_run_line_ids:
-            if not line.preparation_done or not line.state:
+            if not self.preparation_done or not line.state:
                 raise RetryableJobError("Not all lines done", ignore_retry=True)
             if line.ttype not in ("preparation", "log"):
                 if line.state == "failed":
@@ -93,7 +94,7 @@ class TestSettingAbstract(models.AbstractModel):
         return vals
 
     def produce_test_run_lines(self, testrun):
-        raise NotImplementedError()
+        self.preparation_done = True
 
 
 class TestSettings(models.Model):
@@ -219,10 +220,14 @@ class TestSettings(models.Model):
         if self._name != "cicd.test.run":
             raise ValidationError("Parent must be a test-run")
 
+        project_name = self.with_context(
+            testrun="_analyze_source"
+        ).branch_id.project_name
+
         with repo._temp_repo(machine, self.branch_id) as folder:
             with machine._shell(
                 cwd=folder,
-                project_name=self.project_name,
+                project_name=project_name,
             ) as shell:
                 shell.checkout_commit(self.commit_id.name)
                 yield shell

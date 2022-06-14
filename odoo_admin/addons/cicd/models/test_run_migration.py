@@ -39,6 +39,7 @@ class TestSettingsMigrations(models.Model):
         return f"{self.id} - {self.dump_id.name}"
 
     def produce_test_run_lines(self, testrun):
+        super().produce_test_run_lines(testrun)
         self.env[self._line_model].create(
             self.get_testrun_values(
                 testrun,
