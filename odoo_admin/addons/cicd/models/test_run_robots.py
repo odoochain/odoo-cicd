@@ -68,7 +68,7 @@ class RobotTest(models.Model):
                     "-p",
                     "password=1",
                     self.filepath,
-                    timeout=self.timeout_tests,
+                    timeout=self.test_setting_id.timeout,
                 )["stdout"]
                 breakpoint()
 
