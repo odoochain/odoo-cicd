@@ -51,6 +51,7 @@ class CicdTestRun(models.Model):
     _order = "id desc"
 
     name = fields.Char(compute="_compute_name")
+    project_name = fields.Char(compute="_compute_project_name")
     do_abort = fields.Boolean("Abort when possible", tracking=True)
     create_date = fields.Datetime(
         default=lambda self: fields.Datetime.now(), required=True, readonly=True
@@ -409,3 +410,9 @@ class CicdTestRun(models.Model):
 
         queuejobs = list(filter(_filter, queuejobs))
         return queuejobs
+
+    def _compute_project_name(self):
+        for rec in self:
+            rec.project_name = self.with_context(
+                testrun=f"testrun_{rec.id}"
+            ).branch_id.project_name

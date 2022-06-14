@@ -219,7 +219,7 @@ class TestSettings(models.Model):
         with repo._temp_repo(machine, self.branch_id) as folder:
             with machine._shell(
                 cwd=folder,
-                project_name=self.branch_id.project_name,
+                project_name=self.project_name,
             ) as shell:
                 shell.checkout_commit(self.commit_id.name)
                 yield shell

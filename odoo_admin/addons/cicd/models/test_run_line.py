@@ -51,7 +51,6 @@ class CicdTestRunLine(models.AbstractModel):
     hash = fields.Char("Hash", help="For using")
     reused = fields.Boolean("Reused", readonly=True)
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
-    project_name = fields.Char("Project Name Used (for cleaning)")
     effective_machine_id = fields.Many2one("cicd.machine", compute="_compute_machine")
     logfile_path = fields.Char("Logfilepath", compute="_compute_logfilepath")
     log = fields.Text("Log")
@@ -75,7 +74,7 @@ class CicdTestRunLine(models.AbstractModel):
         assert self.env.context.get("testrun")
         with self.effective_machine_id._shell(
             cwd=self._get_source_path(),
-            project_name=self.run_id.branch_id.project_name,
+            project_name=self.run_id.project_name,
         ) as shell:
             if not quick:
                 self._ensure_source_and_machines(shell)
@@ -167,7 +166,7 @@ class CicdTestRunLine(models.AbstractModel):
 
         self.env.cr.commit()
 
-    def _report(self, msg, exception=None):
+    def _report(self, msg=None, exception=None):
         if exception:
             if isinstance(exception, RetryableJobError):
                 return
@@ -230,7 +229,7 @@ class CicdTestRunLine(models.AbstractModel):
         path = Path(self.effective_machine_id._get_volume("source"))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
-        project_name = self.run_id.branch_id.with_context(testrun="").project_name
+        project_name = self.run_id.project_name
         path = path / f"{project_name}_testrun_{self.run_id.id}"
         return path
 
@@ -268,9 +267,10 @@ class CicdTestRunLine(models.AbstractModel):
 
     def cleanup(self):
         instance_folder = self._get_source_path()
+        breakpoint()
 
         with self.effective_machine_id._shell(
-            project_name=self.project_name,
+            project_name=self.run_id.project_name,
         ) as shell:
             if shell.exists(instance_folder):
                 shell.odoo("down", "-v", force=True, allow_error=True)
