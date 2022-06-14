@@ -45,6 +45,7 @@
 				<xpath expr="//group" position="after">
 					<group string="" colspan="4">
 						<field name="filepath"/>
+						<field name="parallel"/>
 					</group>
 				</xpath>
 			</field>

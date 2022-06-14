@@ -23,6 +23,7 @@ class CicdTestRunLine(models.AbstractModel):
     _order = "started desc"
 
     run_id = fields.Many2one("cicd.test.run", string="Run", required=True)
+    project_name = fields.Char(compute="_compute_project_name")
     exc_info = fields.Text("Exception Info")
     queuejob_id = fields.Many2one("queue.job", string="Queuejob")
     machine_id = fields.Many2one("cicd.machine", string="Machine")
@@ -290,3 +291,9 @@ class CicdTestRunLine(models.AbstractModel):
         if not jobs:
             raise Exception("Could not create queuejob")
         self.queuejob_id = jobs[0]
+
+    def _compute_project_name(self):
+        for rec in self:
+            rec.project_name = self.with_context(
+                testrun=f"testrun_{rec.id}"
+            ).run_id.branch_id.project_name

@@ -41,54 +41,50 @@ class RobotTest(models.Model):
                 "full", self.run_id.commit_id.name
             )
             assert dump_path
-            self._ensure_source_and_machines(
-                shell, start_postgres=True, settings=settings
-            )
-            breakpoint()
-            shell.odoo("restore", "odoo-db", dump_path, force=True)
-            shell.wait_for_postgres()
-            shell.odoo("up", "-d")
-
-            configuration = shell.odoo("config", "--full")["stdout"].splitlines()
-            host_run_dir = [x for x in configuration if "HOST_RUN_DIR:" in x]
-            host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
-            robot_out = host_run_dir / "odoo_outdir" / "robot_output"
-
-            def run(item):
-                try:
-                    shell.odoo("up", "-d", "postgres")
-                    shell.wait_for_postgres()
-                    shell.odoo(
-                        "robot",
-                        "-p",
-                        "password=1",
-                        item,
-                        timeout=self.timeout_tests,
-                    )
-
-                    excel_file = shell.sql_excel(
-                        ("select id, name, state, exc_info " "from queue_job")
-                    )
-                    if excel_file:
-                        self.queuejob_log = base64.b64encode(excel_file)
-                    state = "success"
-
-                except Exception as ex:  # pylint: disable=broad-except
-                    state = "failed"
-                    self._report("Robot Test error (but retrying)", exception=ex)
-                finally:
-                    shell.odoo("kill", allow_error=True)
-                    shell.odoo("rm", allow_error=True)
-                    shell.odoo("down", "-v", force=True, allow_error=True)
-
-                robot_results_tar = shell.grab_folder_as_tar(robot_out)
-                robot_results_tar = (
-                    robot_results_tar and base64.b64encode(robot_results_tar) or False
+            try:
+                self._ensure_source_and_machines(
+                    shell, start_postgres=True, settings=settings
                 )
-                return {
-                    "robot_output": robot_results_tar,
-                    "state": state,
-                }
+                breakpoint()
+                shell.odoo("restore", "odoo-db", dump_path, force=True)
+                shell.wait_for_postgres()
+                shell.odoo("up", "-d")
+
+                configuration = shell.odoo("config", "--full")["stdout"].splitlines()
+                host_run_dir = [x for x in configuration if "HOST_RUN_DIR:" in x]
+                host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
+                robot_out = host_run_dir / "odoo_outdir" / "robot_output"
+
+                shell.odoo("up", "-d", "postgres")
+                shell.wait_for_postgres()
+                shell.odoo(
+                    "robot",
+                    "--parallel",
+                    self.parallel,
+                    "-p",
+                    "password=1",
+                    self.filepath,
+                    timeout=self.timeout_tests,
+                )
+
+                excel_file = shell.sql_excel(
+                    ("select id, name, state, exc_info " "from queue_job")
+                )
+                if excel_file:
+                    self.queuejob_log = base64.b64encode(excel_file)
+
+            except Exception as ex:  # pylint: disable=broad-except
+                self._report("Robot Test error (but retrying)", exception=ex)
+            finally:
+                shell.odoo("kill", allow_error=True)
+                shell.odoo("rm", allow_error=True)
+                shell.odoo("down", "-v", force=True, allow_error=True)
+
+        robot_results_tar = shell.grab_folder_as_tar(robot_out)
+        robot_results_tar = (
+            robot_results_tar and base64.b64encode(robot_results_tar) or False
+        )
+        self.robot_output = robot_results_tar
 
     def robot_results(self):
         return {
@@ -123,7 +119,6 @@ class TestSettingsRobotTests(models.Model):
         return f"{self.id} - {self.tags or 'no tags'}"
 
     def produce_test_run_lines(self, testrun):
-        breakpoint()
         with self.parent_id._get_source_for_analysis() as shell:
             files = shell.odoo("list-robot-test-files")["stdout"].strip()
             files = list(filter(bool, files.split("!!!")[1].split("\n")))
@@ -132,11 +127,14 @@ class TestSettingsRobotTests(models.Model):
             if self.regex:
                 if not re.findall(self.regex, robotfile):
                     continue
-            self.env["cicd.test.run.line.robottest"].create(
-                self.get_testrun_values(
-                    testrun,
-                    {
-                        "filepath": robotfile,
-                    },
+            parallel = self.parallel or "1"
+            for parallel in parallel.split(","):
+                self.env["cicd.test.run.line.robottest"].create(
+                    self.get_testrun_values(
+                        testrun,
+                        {
+                            "parallel": int(parallel),
+                            "filepath": robotfile,
+                        },
+                    )
                 )
-            )

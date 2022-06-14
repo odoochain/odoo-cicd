@@ -20,8 +20,9 @@
 			<field name="model">cicd.test.run.line.robottest</field>
 			<field name="arch" type="xml">
 				<tree decoration-danger="state == 'failed'" decoration-success="state == 'success'" create="0" delete="0">
-					<field name="filepath"/>
 					<button name="robot_results" string="" icon="fa-search" type="object" attrs="{'invisible': [('robot_output', '=', False)]}"/>
+					<field name="filepath"/>
+					<field name="parallel"/>
 					<field name="started"/>
 					<field name="duration"/>
 					<field name="state"/>
