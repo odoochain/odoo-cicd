@@ -65,10 +65,12 @@ class TestSettingAbstract(models.AbstractModel):
             else:
                 success_lines = float(
                     len(
-                        x
-                        for x in rec.test_run_line_ids.filtered_domain(
-                            [("state", "=", "success")]
-                        )
+                        [
+                            x
+                            for x in rec.test_run_line_ids.filtered_domain(
+                                [("state", "=", "success")]
+                            )
+                        ]
                     )
                 )
                 count_lines = float(len(rec.test_run_line_ids))
