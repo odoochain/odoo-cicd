@@ -1,4 +1,5 @@
 import re
+import json
 import base64
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -48,7 +49,6 @@ class RobotTest(models.Model):
                 self._ensure_source_and_machines(
                     shell, start_postgres=True, settings=settings
                 )
-                breakpoint()
                 shell.odoo("restore", "odoo-db", dump_path, force=True)
                 shell.wait_for_postgres()
                 shell.odoo("up", "-d")
@@ -69,17 +69,25 @@ class RobotTest(models.Model):
                     "password=1",
                     self.filepath,
                     timeout=self.test_setting_id.timeout,
-                )["stdout"]
-                breakpoint()
+                )["stdout"].split("---!!!---###---")
+                if len(output) == 1:
+                    raise ValidationError(
+                        "Did not find marker to get json result from console output"
+                    )
+                testdata = json.loads(output[1])
+                self.avg_duration = testdata[0].get("avg_duration", False)
+                self.max_duration = testdata[0].get("max_duration", False)
+                self.min_duration = testdata[0].get("min_duration", False)
 
                 excel_file = shell.sql_excel(
                     ("select id, name, state, exc_info " "from queue_job")
                 )
                 if excel_file:
                     self.queuejob_log = base64.b64encode(excel_file)
+                self.env.cr.commit()
+                if not testdata[0].get("ok"):
+                    raise Exception("Tests failed - not ok from console call")
 
-            except Exception as ex:  # pylint: disable=broad-except
-                self._report("Robot Test error (but retrying)", exception=ex)
             finally:
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
