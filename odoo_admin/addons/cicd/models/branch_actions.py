@@ -876,7 +876,7 @@ for path in base.glob("*"):
                         yield shell
                     finally:
                         shell.odoo("down", "-v", allow_error=True, force=True)
-                        repo_path and len(repo_path) > 8 and shell.rm(
+                        repo_path and len(repo_path.parts) > 2 and shell.rm(
                             repo_path
                         )  # make sure to avoid rm /
 
@@ -903,6 +903,7 @@ for path in base.glob("*"):
                 return dest_path
 
         with self._tempinstance("ensuredump", commit=commit) as shell:
+            breakpoint()
             shell.logsio.info(f"Creating dump file {dest_path}")
             shell.odoo("up", "-d", "postgres")
             shell.wait_for_postgres()
@@ -939,10 +940,10 @@ for path in base.glob("*"):
                     ]
                     deps = json.loads(output)
                     hash = deps["hash"]
-                    return f"base_dump_{hash}"
+                    return f"base_dump_{self.repo_id.short}_{hash}"
 
                 elif ttype == "full":
-                    return f"all_installed_{self.name}"
+                    return f"all_installed_{self.repo_id.short}_{self.name}"
 
                 raise NotImplementedError(ttype)
 

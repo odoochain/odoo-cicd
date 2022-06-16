@@ -35,7 +35,11 @@ class RobotTest(models.Model):
 
     def _execute(self):
         # there could be errors at install all
-        self.run_id.branch_id._ensure_dump("full", self.run_id.commit_id.name)
+        breakpoint()
+        try:
+            self.run_id.branch_id._ensure_dump("full", self.run_id.commit_id.name)
+        except Exception as ex:
+            raise Exception("Failed to install all modules.") from ex
 
         safe_robot_file = safe_filename(self.filepath)
         self = self.with_context(testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
@@ -86,7 +90,12 @@ class RobotTest(models.Model):
                     self.queuejob_log = base64.b64encode(excel_file)
                 self.env.cr.commit()
                 if not testdata[0].get("ok"):
-                    raise Exception("Tests failed - not ok from console call")
+                    raise Exception(
+                        (
+                            "Tests failed - not ok from console call\n"
+                            f"Data:\n{json.dumps(testdata, indent=4)}"
+                        )
+                    )
 
             finally:
                 shell.odoo("kill", allow_error=True)

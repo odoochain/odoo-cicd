@@ -124,7 +124,10 @@ class CicdTestRun(models.Model):
 
     def _compute_queuejobs(self):
         for rec in self:
-            ids = [x["id"] for x in self._get_queuejobs("all")]
+            ids = [
+                x["id"]
+                for x in self._get_queuejobs("all", include_wait_for_finish=True)
+            ]
             rec.queuejob_ids = [[6, 0, ids]]
 
     def _queuejob_log_filename(self):
