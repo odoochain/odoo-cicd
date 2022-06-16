@@ -279,7 +279,7 @@ class ShellExecutor(BaseShellExecutor):
         try:
             self.odoo(
                 "excel",
-                base64.encodestring(sql.encode("utf-8")).decode("utf-8"),
+                base64.encodestring(sql.encode("utf-8")).decode("utf-8").strip(),
                 "--base64",
                 "-f",
                 filename,
