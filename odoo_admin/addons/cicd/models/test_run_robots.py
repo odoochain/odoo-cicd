@@ -89,7 +89,7 @@ class RobotTest(models.Model):
                 if excel_file:
                     self.queuejob_log = base64.b64encode(excel_file)
                 self.env.cr.commit()
-                if not testdata[0].get("ok"):
+                if not testdata[0].get("all_ok"):
                     raise Exception(
                         (
                             "Tests failed - not ok from console call\n"
