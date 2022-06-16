@@ -33,9 +33,14 @@ class RobotTest(models.Model):
             filename = (rec.filepath or "").split("/")[-1]
             rec.name = f"{filename}"
 
+    def _reset_fields(self):
+        self.robot_output = False
+        self.avg_duration = 0
+        self.min_duration = 0
+        self.max_duration = 0
+
     def _execute(self):
         # there could be errors at install all
-        breakpoint()
         try:
             self.run_id.branch_id._ensure_dump("full", self.run_id.commit_id.name)
         except Exception as ex:
@@ -43,6 +48,8 @@ class RobotTest(models.Model):
 
         safe_robot_file = safe_filename(self.filepath)
         self = self.with_context(testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
+
+        self._reset_fields()
 
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
@@ -57,13 +64,9 @@ class RobotTest(models.Model):
                 shell.wait_for_postgres()
                 shell.odoo("up", "-d")
 
-                configuration = shell.odoo("config", "--full")["stdout"].splitlines()
-                host_run_dir = [x for x in configuration if "HOST_RUN_DIR:" in x]
-                host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
-                robot_out = host_run_dir / "odoo_outdir" / "robot_output"
-
                 shell.odoo("up", "-d", "postgres")
                 shell.wait_for_postgres()
+                breakpoint()
                 output = shell.odoo(
                     "robot",
                     "--parallel",
@@ -73,22 +76,23 @@ class RobotTest(models.Model):
                     "password=1",
                     self.filepath,
                     timeout=self.test_setting_id.timeout,
+                    allow_error=True,
                 )["stdout"].split("---!!!---###---")
+
+                self._grab_robot_output()
+
                 if len(output) == 1:
                     raise ValidationError(
                         "Did not find marker to get json result from console output"
                     )
-                testdata = json.loads(output[1])
-                self.avg_duration = testdata[0].get("avg_duration", False)
-                self.max_duration = testdata[0].get("max_duration", False)
-                self.min_duration = testdata[0].get("min_duration", False)
+                testdata = self._eval_test_output(output[1])
 
                 excel_file = shell.sql_excel(
                     ("select id, name, state, exc_info " "from queue_job")
                 )
                 if excel_file:
                     self.queuejob_log = base64.b64encode(excel_file)
-                self.env.cr.commit()
+
                 if not testdata[0].get("all_ok"):
                     raise Exception(
                         (
@@ -98,10 +102,27 @@ class RobotTest(models.Model):
                     )
 
             finally:
+                self.env.cr.commit()
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
                 shell.odoo("down", "-v", force=True, allow_error=True)
 
+    def _eval_test_output(self, output):
+        """
+        Wodoo outputs the test results of each test in a json table
+        """
+        testdata = json.loads(output)
+        self.avg_duration = testdata[0].get("avg_duration", False)
+        self.max_duration = testdata[0].get("max_duration", False)
+        self.min_duration = testdata[0].get("min_duration", False)
+        return testdata
+
+    def _grab_robot_output(self, shell):
+        configuration = shell.odoo("config", "--full")["stdout"].splitlines()
+        host_run_dir = [x for x in configuration if "HOST_RUN_DIR:" in x]
+        host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
+
+        robot_out = host_run_dir / "odoo_outdir" / "robot_output"
         robot_results_tar = shell.grab_folder_as_tar(robot_out)
         robot_results_tar = (
             robot_results_tar and base64.b64encode(robot_results_tar) or False
