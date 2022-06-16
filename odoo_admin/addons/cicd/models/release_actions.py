@@ -7,11 +7,10 @@ from ..tools.logsio_writer import LogsIOWriter
 
 
 class CicdReleaseAction(models.Model):
-    _name = 'cicd.release.action'
+    _name = "cicd.release.action"
 
-    release_id = fields.Many2one(
-        'cicd.release', string="Release", required=True)
-    machine_id = fields.Many2one('cicd.machine', string="Machine")
+    release_id = fields.Many2one("cicd.release", string="Release", required=True)
+    machine_id = fields.Many2one("cicd.machine", string="Machine")
     shell_script_before_update = fields.Text("Shell Script Before Update")
     shell_script_at_end = fields.Text("Shell Script At End (finally)")
     settings = fields.Text("Settings")
@@ -20,13 +19,13 @@ class CicdReleaseAction(models.Model):
     def _compute_effective_settings(self):
         for rec in self:
             hub_url = rec.release_id.repo_id.registry_id.hub_url_readonly
-            use_registry = '1' if hub_url else '0'
+            use_registry = "1" if hub_url else "0"
             default_settings = []
             if hub_url:
                 default_settings.append("HUB_URL=" + hub_url)
             default_settings.append("REGISTRY=" + use_registry)
 
-            default_settings = '\n'.join(default_settings)
+            default_settings = "\n".join(default_settings)
             rec.effective_settings = (
                 f"{default_settings}"
                 "\n"
@@ -40,13 +39,16 @@ class CicdReleaseAction(models.Model):
 
     def _exec_shellscripts(self, logsio, pos):
         for rec in self:
-            script = rec.shell_script_before_update \
-                if pos == 'before' else rec.shell_script_at_end
+            script = (
+                rec.shell_script_before_update
+                if pos == "before"
+                else rec.shell_script_at_end
+            )
 
             if not script:
                 return
 
-            filepath = tempfile.mktemp(suffix='.')
+            filepath = tempfile.mktemp(suffix=".")
 
             with rec._contact_machine(logsio) as shell:
                 shell.put(script, filepath)
@@ -62,16 +64,13 @@ class CicdReleaseAction(models.Model):
         with release_item._extra_env() as unblocked_item:
             branch_name = unblocked_item.release_id.branch_id.name
 
-        with LogsIOWriter.GET(branch_name, 'release') as logsio:
+        with LogsIOWriter.GET(branch_name, "release") as logsio:
             try:
                 actions._exec_shellscripts(logsio, "before")
 
-                actions._upload_settings_file(
-                    logsio, release_item, commit_sha)
-                actions._load_images_to_registry(
-                    logsio, release_item, commit_sha)
-                actions._update_sourcecode(
-                    logsio, release_item, commit_sha)
+                actions._upload_settings_file(logsio, release_item, commit_sha)
+                actions._load_images_to_registry(logsio, release_item, commit_sha)
+                actions._update_sourcecode(logsio, release_item, commit_sha)
                 actions._update_images(logsio)
                 actions._stop_odoo(logsio)
                 actions[0]._run_update(logsio)
@@ -96,19 +95,17 @@ class CicdReleaseAction(models.Model):
     @contextmanager
     def _contact_machine(self, logsio):
         self.ensure_one()
-        project_name = self.release_id._unblocked('project_name')
+        project_name = self.release_id._unblocked("project_name")
         path = self.machine_id._get_volume("source")
 
         # make sure directory exists
         with self.machine_id._shell(
-            cwd=path, logsio=logsio,
-            project_name=project_name
+            cwd=path, logsio=logsio, project_name=project_name
         ) as shell:
             if not shell.exists(path):
-                raise Exception((
-                    f"Path {path} does not exist. "
-                    "Please setup an odoo before."
-                ))
+                raise Exception(
+                    (f"Path {path} does not exist. " "Please setup an odoo before.")
+                )
             yield shell
 
     def _stop_odoo(self, logsio):
@@ -123,9 +120,7 @@ class CicdReleaseAction(models.Model):
         with self._extra_env() as x_self:
             repo = x_self[0].release_id.repo_id
             zip_content = repo._get_zipped(
-                logsio,
-                merge_commit_id,
-                with_git=x_self.release_id.deploy_git
+                logsio, merge_commit_id, with_git=x_self.release_id.deploy_git
             )
 
         for rec in self:
@@ -150,8 +145,11 @@ class CicdReleaseAction(models.Model):
                 shell.extract_zip(images, images_path)
                 # disable any remotes on images so not pulled
                 with shell.clone(cwd=images_path) as gitshell:
-                    for remote in gitshell.X([
-                            "git-cicd", "remote"])['stdout'].strip().splitlines():
+                    for remote in (
+                        gitshell.X(["git-cicd", "remote"])["stdout"]
+                        .strip()
+                        .splitlines()
+                    ):
                         gitshell.X(["git-cicd", "remote", "remove", remote])
 
     def _upload_settings_file(self, logsio, release_item, commit_sha):
@@ -163,10 +161,7 @@ class CicdReleaseAction(models.Model):
                     continue
                 with rec._contact_machine(logsio) as shell:
                     settings = rec.effective_settings
-                    settings = (
-                        f"DOCKER_IMAGE_TAG={commit_sha}\n"
-                        f"{settings}"
-                    )
+                    settings = f"DOCKER_IMAGE_TAG={commit_sha}\n" f"{settings}"
                     shell.put(settings, "~/.odoo/settings")
 
     def _remove_setting(self, settings, key):
@@ -175,7 +170,8 @@ class CicdReleaseAction(models.Model):
                 if line.startswith(f"{key}="):
                     continue
                 yield line
-        return '\n'.join(_do())
+
+        return "\n".join(_do())
 
     def _get_virginal_settings(self):
         self.ensure_one()
@@ -202,31 +198,32 @@ class CicdReleaseAction(models.Model):
                 branch = release.branch_id.name
                 logsio.info(f"Cloning {branch}...")
                 with rec.release_id.repo_id._temp_repo(
-                        machine, branch=branch) as repo_path:
+                    machine, branch=branch
+                ) as repo_path:
                     project_name = f"build_{branch}"
                     logsio.info(f"Cloning {branch} done.")
                     with machine._shell(
-                            cwd=repo_path, project_name=project_name) as shell:
+                        cwd=repo_path, project_name=project_name
+                    ) as shell:
                         homedir = shell._get_home_dir()
-                        settings_file = (
-                            f"{homedir}/.odoo/settings.{project_name}"
-                        )
+                        settings_file = f"{homedir}/.odoo/settings.{project_name}"
                         # registry=0 so that build tags are kept
                         # and use not readonly registry access
-                        writable_hub = \
-                            rec.release_id.repo_id.registry_id.hub_url
+                        writable_hub = rec.release_id.repo_id.registry_id.hub_url
                         settings = self._get_virginal_settings()
-                        shell.put((
-                            f"{settings or ''}\n"
-                            "REGISTRY=0\n"
-                            f"HUB_URL={writable_hub}\n"
-                            f"PROJECT_NAME={project_name}"
-                        ), settings_file)
-                        shell.X([
-                            "git-cicd", "checkout", commit_sha])
+                        shell.put(
+                            (
+                                f"{settings or ''}\n"
+                                "REGISTRY=0\n"
+                                f"HUB_URL={writable_hub}\n"
+                                f"PROJECT_NAME={project_name}"
+                            ),
+                            settings_file,
+                        )
+                        shell.X(["git-cicd", "checkout", commit_sha])
                         shell.odoo("-xs", settings_file, "reload")
                         logsio.info("Pulling images for only-images services")
-                        shell.odoo('docker', 'pull')
+                        shell.odoo("docker", "pull")
                         logsio.info("Building Docker Images")
                         shell.odoo("build")
                         shell.odoo("docker-registry", "login")
@@ -237,8 +234,8 @@ class CicdReleaseAction(models.Model):
     @api.constrains("settings")
     def _strip_settings(self):
         for rec in self:
-            settings = (rec.settings or '').strip()
-            if settings != (rec.settings or ''):
+            settings = (rec.settings or "").strip()
+            if settings != (rec.settings or ""):
                 rec.settings = settings
 
     def _run_update(self, logsio):
@@ -251,7 +248,7 @@ class CicdReleaseAction(models.Model):
                 shell.odoo("build")
             cmd = ["update"]
             if self.release_id.update_i18n:
-                cmd += ['--i18n']
+                cmd += ["--i18n"]
             shell.odoo(*cmd)
 
     def _start_odoo(self, logsio):

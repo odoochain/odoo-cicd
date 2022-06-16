@@ -3,7 +3,7 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 
 class Registry(models.Model):
-    _name = 'cicd.registry'
+    _name = "cicd.registry"
 
     name = fields.Char("Name")
     host = fields.Char("Host", required=True)
@@ -13,7 +13,8 @@ class Registry(models.Model):
     path = fields.Char("Path", default="/myspace1", required=True)
     hub_url = fields.Char("HUB Url", compute="_compute_hub_url")
     hub_url_readonly = fields.Char(
-        "HUB Url (readonly access)", compute="_compute_hub_url")
+        "HUB Url (readonly access)", compute="_compute_hub_url"
+    )
     username_readonly = fields.Char("Username Readonly Access")
     password_readonly = fields.Char("Password Readonly Access")
 
@@ -32,10 +33,8 @@ class Registry(models.Model):
     def _check_passwordusername(self):
         for rec in self:
             for c in ":@":
-                if c in (rec.password or '') + (rec.username or ''):
-                    raise ValidationError((
-                        f"Invalid Char: {c}"
-                    ))
+                if c in (rec.password or "") + (rec.username or ""):
+                    raise ValidationError((f"Invalid Char: {c}"))
 
     @api.depends(
         "username",
@@ -51,9 +50,7 @@ class Registry(models.Model):
             username_ro = rec.username_readonly or username
             pwd_ro = rec.password_readonly or pwd
 
-            rec.hub_url = (
-                f"{username}:{pwd}@{rec.host}:{rec.port}{rec.path}"
-            )
+            rec.hub_url = f"{username}:{pwd}@{rec.host}:{rec.port}{rec.path}"
             rec.hub_url_readonly = (
                 f"{username_ro}:{pwd_ro}@{rec.host}:{rec.port}{rec.path}"
             )

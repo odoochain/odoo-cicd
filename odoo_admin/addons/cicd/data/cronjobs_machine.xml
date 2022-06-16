@@ -20,5 +20,15 @@
 			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
 			<field name="numbercall">-1</field>
 		</record>
+		<record id="clean_temp_dirs" model="ir.cron">
+			<field name="name">clean_temp_dirs</field>
+			<field name="interval_number">1</field>
+			<field name="interval_type">hours</field>
+			<field name="model_id" ref="model_cicd_machine" />
+			<field name="state">code</field>
+			<field name="code">model._clean_tempdirs()</field>
+			<field name="nextcall" eval="'2022-01-01 20:15:00'" />
+			<field name="numbercall">-1</field>
+		</record>
 	</data>
 </odoo>

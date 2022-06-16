@@ -6,9 +6,9 @@ from contextlib import contextmanager, closing
 from . import pg_advisory_xact_lock
 import random
 
-class Base(models.AbstractModel):
-    _inherit = 'base'
 
+class Base(models.AbstractModel):
+    _inherit = "base"
 
     @contextmanager
     def _singleton(self, lockname, seconds=None):
@@ -22,14 +22,15 @@ class Base(models.AbstractModel):
             except psycopg2.errors.QueryCanceled as ex:
                 raise RetryableJobError(
                     f"Could not get lock: {lockname}",
-                    ignore_retry=True, seconds=seconds
+                    ignore_retry=True,
+                    seconds=seconds,
                 ) from ex
 
             yield
 
     @contextmanager
     def _extra_env(self, obj=None, enabled=True):
-        enabled = False # TODO
+        enabled = False  # TODO
         obj = obj or self
         if not enabled:
             yield obj
@@ -68,4 +69,3 @@ class Base(models.AbstractModel):
     def browse(self, *args, **kwargs):
         self = self.with_context(prefetch_fields=False)
         return super().browse(*args, **kwargs)
-

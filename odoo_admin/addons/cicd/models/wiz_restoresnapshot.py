@@ -5,16 +5,18 @@ from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 
 
 class RestoreSnapshot(models.TransientModel):
-    _name = 'cicd.wiz.restore_snapshot'
+    _name = "cicd.wiz.restore_snapshot"
 
-    branch_id = fields.Many2one('cicd.git.branch', required=True)
+    branch_id = fields.Many2one("cicd.git.branch", required=True)
     snapshot_ids = fields.One2many(
-        'cicd.wiz.restore_snapshot.snapshot',
-        'wiz_id',
+        "cicd.wiz.restore_snapshot.snapshot",
+        "wiz_id",
     )
     snapshot_id = fields.Many2one(
-        'cicd.wiz.restore_snapshot.snapshot', string="Snapshot",
-        required=False, domain="[('wiz_id', '=', id)]"
+        "cicd.wiz.restore_snapshot.snapshot",
+        string="Snapshot",
+        required=False,
+        domain="[('wiz_id', '=', id)]",
     )
 
     @api.model
@@ -25,8 +27,8 @@ class RestoreSnapshot(models.TransientModel):
 
     def _get_branch(self):
         if not self.exists():
-            return self.env['cicd.git.branch'].browse(
-                self.env.context['default_branch_id']
+            return self.env["cicd.git.branch"].browse(
+                self.env.context["default_branch_id"]
             )
         else:
             return self.branch_id
@@ -39,13 +41,12 @@ class RestoreSnapshot(models.TransientModel):
             shell.odoo("snap", "restore", self.snapshot_id.name)
             shell.odoo("up", "-d")
         self.branch_id.last_snapshot = self.snapshot_id.name
-        return {'type': 'ir.actions.act_window_close'}
+        return {"type": "ir.actions.act_window_close"}
 
     def _update_snapshots(self):
         breakpoint()
         with self._get_branch().shell(logs_title="list_snapshots") as shell:
-            snapshots = shell.odoo(
-                "snap", "list")['stdout'].strip().splitlines()
+            snapshots = shell.odoo("snap", "list")["stdout"].strip().splitlines()
             names = set()
             for shot in snapshots[2:]:
                 while "  " in shot:
@@ -55,16 +56,22 @@ class RestoreSnapshot(models.TransientModel):
                 names.add((name, date.strftime(DTF)))
 
             for name in names:
-                self.snapshot_ids = [[0, 0, {
-                    'name': name[0],
-                    'date': name[1],
-                }]]
+                self.snapshot_ids = [
+                    [
+                        0,
+                        0,
+                        {
+                            "name": name[0],
+                            "date": name[1],
+                        },
+                    ]
+                ]
 
 
 class RestoreSnapshotLine(models.TransientModel):
-    _name = 'cicd.wiz.restore_snapshot.snapshot'
-    _rec_name = 'display_name'
-    _order = 'date desc'
+    _name = "cicd.wiz.restore_snapshot.snapshot"
+    _rec_name = "display_name"
+    _order = "date desc"
 
     wiz_id = fields.Many2one("cicd.wiz.restore_snapshot", required=True)
     display_name = fields.Char(compute="_compute_name")
@@ -74,6 +81,4 @@ class RestoreSnapshotLine(models.TransientModel):
     def _compute_name(self):
         for rec in self:
             date = arrow.get(rec.date).to(self.env.user.tz).strftime(DTF)
-            rec.display_name = (
-                f"{rec.name} - {date}"
-            )
+            rec.display_name = f"{rec.name} - {date}"

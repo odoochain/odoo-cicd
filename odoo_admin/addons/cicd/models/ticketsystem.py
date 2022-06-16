@@ -4,20 +4,23 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 
 class TicketSystem(models.Model):
-    _name = 'cicd.ticketsystem'
+    _name = "cicd.ticketsystem"
 
     name = fields.Char("Name", required=True)
     ttype = fields.Selection([], string="Type", required=True)
     url = fields.Char("Ticket System Base URL", required=True)
     regex = fields.Char(
-        "Regex", default=".*", required=True,
-        help="Parsing branch to match ticket in ticketsystem")
+        "Regex",
+        default=".*",
+        required=True,
+        help="Parsing branch to match ticket in ticketsystem",
+    )
 
-    test_branch_id = fields.Many2one('cicd.git.branch', string="Test Branch")
+    test_branch_id = fields.Many2one("cicd.git.branch", string="Test Branch")
     link_to_test_branch = fields.Char("Link to branch", compute="_compute_link")
 
     def _extract_ts_part(self, branch):
-        name_orig = branch.ticket_system_ref or branch.name or ''
+        name_orig = branch.ticket_system_ref or branch.name or ""
         name = None
         if self.regex and name_orig:
             m = re.match(self.regex, name_orig)
@@ -29,7 +32,7 @@ class TicketSystem(models.Model):
 
     def _compute_url(self, branch):
         name = self._extract_ts_part(branch)
-        url = (self.url or '') + 'browse/' + (name or "???????")
+        url = (self.url or "") + "browse/" + (name or "???????")
         return url
 
     def test_ticketsystem(self):
@@ -39,7 +42,7 @@ class TicketSystem(models.Model):
             raise ValidationError("Please choose a branch")
         self.test_branch_id.with_context(
             allow_jira_exception=True
-            )._report_comment_to_ticketsystem("test")
+        )._report_comment_to_ticketsystem("test")
 
     @api.depends("test_branch_id")
     def _compute_link(self):

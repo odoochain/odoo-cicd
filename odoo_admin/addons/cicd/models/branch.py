@@ -302,9 +302,6 @@ class GitBranch(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
-        if not res.simulate_install_id:
-            res.simulate_install_id = \
-                res.repo_id.default_simulate_install_id_dump_id
 
         if 'remove_web_assets_after_restore' not in vals:
             res.remove_web_assets_after_restore = \
@@ -743,7 +740,6 @@ class GitBranch(models.Model):
         return size
 
     def _compute_databases(self):
-        breakpoint()
         for rec in self:
             if rec.enable_snapshots:
                 rec.database_size = rec.database_size_from_shell

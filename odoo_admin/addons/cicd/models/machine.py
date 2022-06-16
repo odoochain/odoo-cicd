@@ -1,4 +1,5 @@
 import base64
+import uuid
 import json
 import subprocess
 import tempfile
@@ -18,54 +19,73 @@ from ..tools.tools import tempdir
 from ..tools.tools import get_host_ip
 from .shell_executor import ShellExecutor
 import logging
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+
 logger = logging.getLogger(__name__)
 
 
 class CicdMachine(models.Model):
-    _inherit = ['mail.thread']
-    _name = 'cicd.machine'
+    _inherit = ["mail.thread"]
+    _name = "cicd.machine"
 
     active = fields.Boolean("Active", default=True)
     name = fields.Char("Name")
     is_docker_host = fields.Boolean("Is Docker Host", default=True)
     host = fields.Char("Host")
-    volume_ids = fields.One2many("cicd.machine.volume", 'machine_id', string="Volumes")
+    volume_ids = fields.One2many("cicd.machine.volume", "machine_id", string="Volumes")
     ssh_user = fields.Char("SSH User")
     ssh_pubkey = fields.Text("SSH Pubkey", readonly=True)
     ssh_key = fields.Text("SSH Key")
-    dump_ids = fields.One2many('cicd.dump', 'machine_id', string="Dumps")
+    dump_ids = fields.One2many("cicd.dump", "machine_id", string="Dumps")
     effective_host = fields.Char(compute="_compute_effective_host", store=False)
     workspace = fields.Char("Workspace", compute="_compute_workspace")
-    ttype = fields.Selection([
-        ('dev', 'Development-Machine'),
-        ('prod', 'Production System'),
-    ], required=True)
+    ttype = fields.Selection(
+        [
+            ("dev", "Development-Machine"),
+            ("prod", "Production System"),
+        ],
+        required=True,
+    )
     reload_config = fields.Text("Settings")
     external_url = fields.Char("External http-Address")
 
     ssh_user_cicdlogin = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
-    ssh_user_cicdlogin_password_salt = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
-    ssh_user_cicdlogin_password = fields.Char(compute="_compute_ssh_user_cicd_login", store=True)
-    postgres_server_id = fields.Many2one('cicd.postgres', string="Postgres Server", required=False)
+    ssh_user_cicdlogin_password_salt = fields.Char(
+        compute="_compute_ssh_user_cicd_login", store=True
+    )
+    ssh_user_cicdlogin_password = fields.Char(
+        compute="_compute_ssh_user_cicd_login", store=True
+    )
+    postgres_server_id = fields.Many2one(
+        "cicd.postgres", string="Postgres Server", required=False
+    )
     upload_dump = fields.Binary("Upload Dump")
     upload_dump_filename = fields.Char("Filename")
     upload_overwrite = fields.Boolean("Overwrite existing")
-    upload_volume_id = fields.Many2one('cicd.machine.volume', "Upload Volume", domain=[('ttype', '=', 'dumps')])
-    test_timeout_web_login = fields.Integer("Timeout Test Weblogin", default=10, required=True)
+    upload_volume_id = fields.Many2one(
+        "cicd.machine.volume", "Upload Volume", domain=[("ttype", "=", "dumps")]
+    )
+    test_timeout_web_login = fields.Integer(
+        "Timeout Test Weblogin", default=10, required=True
+    )
     tempfile_containers = fields.Char(compute="compute_tempfile_containers")
 
-    @api.depends('ssh_user')
+    @api.depends("ssh_user")
     def _compute_ssh_user_cicd_login(self):
         for rec in self:
-            rec.ssh_user_cicdlogin = (rec.ssh_user or '') + "_restricted_cicdlogin"
+            rec.ssh_user_cicdlogin = (rec.ssh_user or "") + "_restricted_cicdlogin"
             if not rec.ssh_user_cicdlogin_password_salt:
                 rec.ssh_user_cicdlogin_password_salt = str(arrow.get())
-            ho = hashlib.md5((rec.ssh_user_cicdlogin + rec.ssh_user_cicdlogin_password_salt).encode('utf-8'))
+            ho = hashlib.md5(
+                (rec.ssh_user_cicdlogin + rec.ssh_user_cicdlogin_password_salt).encode(
+                    "utf-8"
+                )
+            )
             rec.ssh_user_cicdlogin_password = ho.hexdigest()
 
     def _compute_workspace(self):
         for rec in self:
-            rec.workspace = rec.volume_ids.filtered(lambda x: x.ttype == 'source').name
+            rec.workspace = rec.volume_ids.filtered(lambda x: x.ttype == "source").name
 
     @api.model
     def default_get(self, fields):
@@ -82,22 +102,23 @@ class CicdMachine(models.Model):
     def _place_ssh_credentials(self):
         self.ensure_one()
         with self._extra_env() as machine:
-            data = machine.read(['effective_host', 'ssh_key', 'ssh_pubkey'])[0]
-            effective_host = data['effective_host']
-            ssh_key = data['ssh_key']
-            ssh_pubkey = data['ssh_pubkey']
+            data = machine.read(["effective_host", "ssh_key", "ssh_pubkey"])[0]
+            effective_host = data["effective_host"]
+            ssh_key = data["ssh_key"]
+            ssh_pubkey = data["ssh_pubkey"]
 
         # place private keyfile
         ssh_dir = Path(os.path.expanduser("~/.ssh"))
         ssh_dir.mkdir(exist_ok=True)
-        os.chown(ssh_dir, pwd.getpwnam('odoo').pw_uid, grp.getgrnam('odoo').gr_gid)
+        os.chown(ssh_dir, pwd.getpwnam("odoo").pw_uid, grp.getgrnam("odoo").gr_gid)
         os.chmod(ssh_dir, 0o700)
 
         ssh_keyfile = ssh_dir / effective_host
-        ssh_pubkeyfile = ssh_dir / (effective_host + '.pub')
+        ssh_pubkeyfile = ssh_dir / (effective_host + ".pub")
         rights_keyfile = 0o600
         for file in [
-            ssh_keyfile, ssh_pubkeyfile,
+            ssh_keyfile,
+            ssh_pubkeyfile,
         ]:
             if file.exists():
                 os.chmod(file, rights_keyfile)
@@ -136,21 +157,25 @@ class CicdMachine(models.Model):
             host = machine.effective_host
 
         shell = ShellExecutor(
-            ssh_keyfile=ssh_keyfile, host=host, cwd=cwd,
-            logsio=logsio, project_name=project_name, env=env,
-            user=user, machine=self,
+            ssh_keyfile=ssh_keyfile,
+            host=host,
+            cwd=cwd,
+            logsio=logsio,
+            project_name=project_name,
+            env=env,
+            user=user,
+            machine=self,
         )
         yield shell
 
     def generate_ssh_key(self):
         self.ensure_one()
         with tempdir() as dir:
-            subprocess.check_call([
-                '/usr/bin/ssh-keygen', '-f', 'temp',
-                '-P', ''
-            ], cwd=dir)
-            keyfile = dir / 'temp'
-            pubkeyfile = dir / 'temp.pub'
+            subprocess.check_call(
+                ["/usr/bin/ssh-keygen", "-f", "temp", "-P", ""], cwd=dir
+            )
+            keyfile = dir / "temp"
+            pubkeyfile = dir / "temp.pub"
             self.ssh_key = keyfile.read_text()
             self.ssh_pubkey = pubkeyfile.read_text()
 
@@ -161,11 +186,11 @@ class CicdMachine(models.Model):
 
     def update_dumps(self):
         for rec in self:
-            rec.env['cicd.dump']._update_dumps(rec)
+            rec.env["cicd.dump"]._update_dumps(rec)
             self.env.cr.commit()
 
     def update_volumes(self):
-        self.mapped('volume_ids')._update_sizes()
+        self.mapped("volume_ids")._update_sizes()
 
     def update_all_values(self):
         self.update_dumps()
@@ -174,8 +199,8 @@ class CicdMachine(models.Model):
     def _get_sshuser_id(self):
         user_name = self.ssh_user
         with self._shell() as shell:
-            res = shell.X(["/usr/bin/id", '-u', user_name])
-        user_id = res['stdout'].strip()
+            res = shell.X(["/usr/bin/id", "-u", user_name])
+        user_id = res["stdout"].strip()
         return user_id
 
     def _get_volume(self, ttype):
@@ -185,12 +210,37 @@ class CicdMachine(models.Model):
                 raise ValidationError(_("Could not find: {}").format(ttype))
             return Path(res[0].name)
 
+    def _temppath(self, maxage={"hours": 1}, usage="common"):
+        guid = str(uuid.uuid4())
+        date = arrow.utcnow().shift(**maxage).strftime("%Y%m%d_%H%M%S")
+        name = f"{guid}.{usage}.cleanme.{date}"
+        return self._get_volume("temp") / name
+
+    @api.model
+    def _clean_tempdirs(self):
+        for machine in self.search([]):
+            machine.with_delay()._clean_temppath()
+
+    def _clean_temppath(self):
+        self.ensure_one()
+        with self._shell() as shell:
+            for vol in self.volume_ids.filtered(lambda x: x.ttype == "temp"):
+                for dirname in shell.X(["ls", "-l", vol.name])["stdout"].splitlines():
+                    if ".cleanme." in dirname:
+                        try:
+                            date = arrow.get(dirname.split(".")[-1])
+                        except Exception:
+                            date = arrow.utcnow().shift(years=-1)
+
+                        if date < arrow.utcnow():
+                            shell.remove(vol.name + "/" + dirname)
+
     def springclean(self, **args):
         """
         Removes all unused source directories, databases
         and does a docker system prune.
         """
-        with LogsIOWriter.GET(self.name, 'spring_clean') as logsio:
+        with LogsIOWriter.GET(self.name, "spring_clean") as logsio:
             with self._shell(cwd="~", logsio=logsio) as shell:
                 shell.X(["/usr/bin/docker", "system", "prune", "-f"])
 
@@ -200,9 +250,9 @@ class CicdMachine(models.Model):
         for rec in self:
             with rec._shell() as shell:
 
-                command_file = '/tmp/commands.cicd'
-                homedir = '/home/' + rec.ssh_user_cicdlogin
-                test_file_if_required = homedir + '/.setup_login_done.v6'
+                command_file = "/tmp/commands.cicd"
+                homedir = "/home/" + rec.ssh_user_cicdlogin
+                test_file_if_required = homedir + "/.setup_login_done.v6"
                 user_upper = rec.ssh_user_cicdlogin.upper()
                 cicd_user_upper = rec.ssh_user.upper()
 
@@ -312,22 +362,27 @@ echo "Care is taken, that system cannot be compromised."
 echo ""
 echo "------------------------------------------------------------------------------------"
 
-                """.format(**locals())
+                """.format(
+                    **locals()
+                )
                 # in this path there ar, the keys that are used by
                 # web ssh container /opt/cicd_sshkey
                 if not shell.exists(test_file_if_required):
                     shell.put(commands.strip() + "\n", command_file)
                     cmd = ["sudo", "/bin/bash", command_file]
                     res = shell.X(cmd, allow_error=True)
-                    if res['exit_code']:
-                        raise UserError((
-                            "Failed to setup restrict login. "
-                            "Please execute on host:\n"
-                            f"{' '.join(cmd)}\n\n"
-                            f"Exception:\n{res['stderr']}"))
+                    if res["exit_code"]:
+                        raise UserError(
+                            (
+                                "Failed to setup restrict login. "
+                                "Please execute on host:\n"
+                                f"{' '.join(cmd)}\n\n"
+                                f"Exception:\n{res['stderr']}"
+                            )
+                        )
 
     def write(self, vals):
-        if vals.get('upload_dump'):
+        if vals.get("upload_dump"):
             self._upload(vals)
         res = super().write(vals)
 
@@ -341,45 +396,47 @@ echo "--------------------------------------------------------------------------
         pass
 
     def _upload(self, vals):
-        content = vals.pop('upload_dump')
-        filename = vals.pop('upload_dump_filename')
+        content = vals.pop("upload_dump")
+        filename = vals.pop("upload_dump_filename")
 
-        if not vals.get('upload_volume_id'):
-            vols = self.volume_ids.filtered(lambda x: x.ttype == 'dumps')
+        if not vals.get("upload_volume_id"):
+            vols = self.volume_ids.filtered(lambda x: x.ttype == "dumps")
             if len(vols) > 1:
                 raise ValidationError("Please choose a volume!")
             vol = vols[0]
             del vols
         else:
-            vol = self.volume_ids.browse(vals['upload_volume_id'])
+            vol = self.volume_ids.browse(vals["upload_volume_id"])
 
-        with self._shell(cwd='~', logsio=None) as shell:
+        with self._shell(cwd="~", logsio=None) as shell:
             path = Path(vol.name) / filename
             content = base64.b64decode(content)
             shell.put(content, path)
         self.message_post(body="New dump uploaded: " + filename)
 
-        for f in ['upload_volume_id', 'upload_overwrite']:
+        for f in ["upload_volume_id", "upload_overwrite"]:
             if f in vals:
                 vals.pop(f)
 
     @contextmanager
     def _gitshell(self, repo, cwd, logsio, env=None, **kwargs):
         self.ensure_one()
-        assert repo._name == 'cicd.git.repo'
+        assert repo._name == "cicd.git.repo"
         env = env or {}
-        env.update({
-            "GIT_ASK_YESNO": "false",
-            "GIT_TERMINAL_PROMPT": "0",
-            "GIT_SSH_COMMAND": 'ssh -o Batchmode=yes -o StrictHostKeyChecking=no',
-        })
+        env.update(
+            {
+                "GIT_ASK_YESNO": "false",
+                "GIT_TERMINAL_PROMPT": "0",
+                "GIT_SSH_COMMAND": "ssh -o Batchmode=yes -o StrictHostKeyChecking=no",
+            }
+        )
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
-            file = Path(tempfile.mktemp(suffix='.'))
+            file = Path(tempfile.mktemp(suffix="."))
             try:
-                if repo._unblocked('login_type') == 'key':
-                    env['GIT_SSH_COMMAND'] += f'   -i {file}  '
-                    shell.put(repo._unblocked('key'), file)
-                    shell.X(["chmod", '400', str(file)])
+                if repo._unblocked("login_type") == "key":
+                    env["GIT_SSH_COMMAND"] += f"   -i {file}  "
+                    shell.put(repo._unblocked("key"), file)
+                    shell.X(["chmod", "400", str(file)])
                 else:
                     pass
 
@@ -389,36 +446,46 @@ echo "--------------------------------------------------------------------------
                 shell.remove(file)
 
     @contextmanager
-    def _put_temporary_file_on_machine(self, logsio, source_path, dest_machine, dest_path, delete_copied_file=True):
+    def _put_temporary_file_on_machine(
+        self, logsio, source_path, dest_machine, dest_path, delete_copied_file=True
+    ):
         """
         Copies a file from machine1 to machine2; optimized if same machine;
         you should not delete the file
         """
         self.ensure_one()
-        if self == dest_machine: # TODO undo
+        if self == dest_machine:  # TODO undo
             yield source_path
         else:
-            filename = tempfile.mktemp(suffix='.')
+            filename = tempfile.mktemp(suffix=".")
             ssh_keyfile = self._place_ssh_credentials()
             ssh_cmd_base = f"ssh -o Batchmode=yes -o StrictHostKeyChecking=no -i"
-            subprocess.run([
-                "rsync",
-                '-e',
-                ssh_cmd_base + str(ssh_keyfile),
-                "-ar",
-                self.ssh_user + "@" + self.effective_host + ":" + source_path,
-                filename,
-            ])
-            try:
-                ssh_keyfile = dest_machine._place_ssh_credentials()
-                subprocess.run([
+            subprocess.run(
+                [
                     "rsync",
-                    '-e',
+                    "-e",
                     ssh_cmd_base + str(ssh_keyfile),
                     "-ar",
+                    self.ssh_user + "@" + self.effective_host + ":" + source_path,
                     filename,
-                    dest_machine.ssh_user + "@" + dest_machine.effective_host + ":" + str(dest_path),
-                ])
+                ]
+            )
+            try:
+                ssh_keyfile = dest_machine._place_ssh_credentials()
+                subprocess.run(
+                    [
+                        "rsync",
+                        "-e",
+                        ssh_cmd_base + str(ssh_keyfile),
+                        "-ar",
+                        filename,
+                        dest_machine.ssh_user
+                        + "@"
+                        + dest_machine.effective_host
+                        + ":"
+                        + str(dest_path),
+                    ]
+                )
                 try:
                     yield dest_path
 
@@ -437,13 +504,13 @@ echo "--------------------------------------------------------------------------
                 value = shell.exists("/tmp/hansi")
                 print(i, value)
                 if not value:
-                    raise Exception('should exist')
+                    raise Exception("should exist")
             shell.rm("/tmp/hansi")
             for i in range(tests):
                 value = shell.exists("/tmp/hansi")
                 print(i, value)
                 if value:
-                    raise Exception('should exist')
+                    raise Exception("should exist")
 
     def _cron_update_dumps(self):
         for machine in self.search([]):
@@ -453,13 +520,13 @@ echo "--------------------------------------------------------------------------
             )._update_sizes()
             self.env.cr.commit()
 
-            self.env['cicd.dump'].with_delay(
+            self.env["cicd.dump"].with_delay(
                 identity_key=f"dump-udpate-{machine.id}"
             )._update_dumps(machine)
             self.env.cr.commit()
 
     def _cron_update_docker_containers(self):
-        machines = self.env['cicd.git.repo'].search([]).mapped('machine_id')
+        machines = self.env["cicd.git.repo"].search([]).mapped("machine_id")
         self.env.cr.commit()
 
         for rec in machines:
@@ -474,10 +541,10 @@ echo "--------------------------------------------------------------------------
             tempfile_containers = self.tempfile_containers
             self.env.cr.commit()
             try:
-                containers = shell.X([
-                    "docker", "ps", "-a",
-                    "--format", "{{ .Names }}\t{{ .State }}"], timeout=20)[
-                        'stdout'].strip()
+                containers = shell.X(
+                    ["docker", "ps", "-a", "--format", "{{ .Names }}\t{{ .State }}"],
+                    timeout=20,
+                )["stdout"].strip()
             except shell.TimeoutConnection:
                 logger.warn("Timeout ssh.", exc_info=True)
                 return
@@ -520,13 +587,23 @@ echo "--------------------------------------------------------------------------
             path = Path("/opt/out_dir/docker_states")
             path.mkdir(exist_ok=True, parents=True)
             self.tempfile_containers = (
-                f"{path}/{self.env.cr.dbname}.machine."
-                f"{rec.id}.containers"
+                f"{path}/{self.env.cr.dbname}.machine." f"{rec.id}.containers"
             )
 
     def performance_ssh(self, lines=1000):
         self.ensure_one()
-        branch = self.env['cicd.git.branch'].search([], limit=1)
-        with branch.shell('test') as shell:
-            output = shell.odoo('produce-test-lines', str(lines))
-            assert(len(output['stdout'].splitlines()) > 999)
+        branch = self.env["cicd.git.branch"].search([], limit=1)
+        with branch.shell("test") as shell:
+            output = shell.odoo("produce-test-lines", str(lines))
+            assert len(output["stdout"].splitlines()) > 999
+
+    @api.model
+    def create(self, vals):
+        machine = super().create(vals)
+        machine._make_default_temp_dir()
+        return machine
+
+    def _make_default_temp_dir(self):
+        for rec in self:
+            if not rec.volume_ids.filtered(lambda x: x.ttype == "temp"):
+                rec.volume_ids = [[0, 0, {"ttype": "temp", "name": "/tmp/cicd"}]]
