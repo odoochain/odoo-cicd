@@ -67,7 +67,6 @@ class RobotTest(models.Model):
 
                 shell.odoo("up", "-d", "postgres")
                 shell.wait_for_postgres()
-                breakpoint()
                 output = shell.odoo(
                     "robot",
                     "--parallel",

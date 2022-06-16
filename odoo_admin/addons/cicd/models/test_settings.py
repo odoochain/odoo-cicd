@@ -146,7 +146,6 @@ class TestSettings(models.Model):
 
     def _set_testsetting_ids(self):
         for rec in self:
-            breakpoint()
             for line in rec.iterate_all_test_settings():
 
                 def ok(field):
@@ -216,7 +215,6 @@ class TestSettings(models.Model):
 
     @contextmanager
     def _get_source_for_analysis(self):
-        breakpoint()
         repo = self.branch_ids.repo_id
         machine = repo.machine_id
         if self._name != "cicd.test.run":
