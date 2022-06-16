@@ -38,6 +38,7 @@ class RobotTest(models.Model):
         self.avg_duration = 0
         self.min_duration = 0
         self.max_duration = 0
+        self.queuejob_log = False
 
     def _execute(self):
         # there could be errors at install all
@@ -79,7 +80,7 @@ class RobotTest(models.Model):
                     allow_error=True,
                 )["stdout"].split("---!!!---###---")
 
-                self._grab_robot_output()
+                self._grab_robot_output(shell)
 
                 if len(output) == 1:
                     raise ValidationError(
