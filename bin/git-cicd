@@ -52,4 +52,7 @@ function retry {
 }
 
 retry git "$@"
+returncode=$?
 sync
+
+exit $returncode
