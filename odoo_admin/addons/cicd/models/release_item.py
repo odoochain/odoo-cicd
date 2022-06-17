@@ -327,6 +327,7 @@ class ReleaseItem(models.Model):
 
                 except MergeConflict as ex:
                     for commit in ex.conflicts:
+                        assert commit._name == "cicd.git.commit"
                         self.branch_ids.filtered(lambda x: x.commit_id == commit).write(
                             {"state": "conflict"}
                         )
@@ -336,6 +337,7 @@ class ReleaseItem(models.Model):
                 else:
                     if "collecting" in self.state and self.state != "collecting":
                         self.state = "collecting"
+                    self.message_post(body=("Successfully merged"))
 
                 if self.branch_ids:
                     assert self.item_branch_id
@@ -345,10 +347,12 @@ class ReleaseItem(models.Model):
 
             except Exception as ex:  # pylint: disable=broad-except
                 self.state = "collecting_merge_technical"
-                self.exc_info = f"{ex}" f"{traceback.format_exc()}"
+                err = f"{ex}" f"{traceback.format_exc()}"
+                self.exc_info = err
                 if logsio:
                     logsio.error(ex)
                 logger.error(ex)
+                self.message_post(body=(f"Error: {err}"))
             else:
                 if message_commit and commits:
                     message_commit.no_approvals = True
@@ -365,7 +369,6 @@ class ReleaseItem(models.Model):
         if commits_checksum:
             self.merged_checksum = commits_checksum
 
-        self.message_post(body=("Successfully merged"))
         self.env.cr.commit()
 
     def abort(self):
