@@ -110,17 +110,23 @@ class CicdTestRun(models.Model):
     )
 
     def iterate_testlines(self):
+        """returns the lines for robottests, unittests, migration tests inherting
+        from abstract class test run line.
+
+        Yields:
+            inherited test run line: a concrete test run
+        """
         for field in self._fields.keys():
             if getattr(self._fields[field], "istestline", False):
                 for line in self[field]:
                     yield line
 
-    def init(self):
+    def init(self):  # pylint: disable=missing-function-docstring
         super().init()
         self.env.cr.execute((current_dir / "test_run_trigger.sql").read_text())
 
     def refresh_jobs(self):
-        pass
+        """Dummy used to reload the webform in odoo."""
 
     def _compute_queuejobs(self):
         for rec in self:

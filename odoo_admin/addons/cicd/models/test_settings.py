@@ -33,12 +33,6 @@ class TestSettingAbstract(models.AbstractModel):
         ("Set at testruns when the preparation of test run lines succeeded"),
         copy=False,
     )
-    test_run_line_ids = fields.Many2many(
-        "cicd.test.run.line", compute="_compute_test_run_lines", store=False, copy=False
-    )
-    success_rate = fields.Float(
-        compute="_compute_success_rate", store=False, copy=False
-    )
     name = fields.Char(compute="_compute_name", store=False)
 
     def as_job(self, suffix, afterrun=False, eta=None):
@@ -57,13 +51,6 @@ class TestSettingAbstract(models.AbstractModel):
         eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
         return self.with_delay(channel="testruns", identity_key=marker, eta=eta)
 
-    def _compute_test_run_lines(self):
-        for rec in self:
-            ref = f"{self._name},{rec.id}"
-            self.test_run_line_ids = self.env["cicd.test.run.line"].search(
-                [("test_setting_id", "=", ref)]
-            )
-
     def _compute_name(self):
         for rec in self:
             rec.name = rec.get_name()
@@ -74,27 +61,6 @@ class TestSettingAbstract(models.AbstractModel):
     def reset_at_testrun(self):
         """If a testrun is restarted to reset fields."""
         self.preparation_done = False
-
-    def _compute_success_rate(self):
-        for rec in self:
-            if not rec.preparation_done or rec.parent_id._name != "cicd.test.run":
-                rec.success_rate = 0
-            else:
-                success_lines = float(
-                    len(
-                        list(
-                            x
-                            for x in rec.test_run_line_ids.filtered_domain(
-                                [("state", "=", "success")]
-                            )
-                        )
-                    )
-                )
-                count_lines = float(len(rec.test_run_line_ids))
-                if not count_lines:
-                    rec.success_rate = 0
-                else:
-                    rec.success_rate = 100 * success_lines / count_lines
 
     def get_testrun_values(self, testrun, defaults=None):
         """Returns minimum settings for a setup configuration line. The minimum values
@@ -204,13 +170,17 @@ class TestSettings(models.Model):
 
     def _compute_success_rate_factor(self):
         for rec in self:
-            success_rates = list(
-                map(lambda x: x.success_rate, self.iterate_all_test_settings())
-            )
-            if not success_rates:
+            if rec._name != "cicd.test.run":
                 rec.success_rate = 0
             else:
-                rec.success_rate = float(sum(success_rates)) / float(len(success_rates))
+                success_lines = float(
+                    len([x for x in rec.iterate_testlines() if x.state == "success"])
+                )
+                count_lines = float(len(list(rec.iterate_testlines())))
+                if not count_lines:
+                    rec.success_rate = 0
+                else:
+                    rec.success_rate = 100 * success_lines / count_lines
 
     def iterate_all_test_settings(self):
         """Iterates all fields, that contain test-settings.
