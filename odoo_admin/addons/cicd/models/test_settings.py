@@ -1,12 +1,11 @@
-# pylint: disable=W0212
+# pylint: disable=W0212,E0401
 import arrow
 from contextlib import contextmanager
-from odoo import _, api, fields, models, SUPERUSER_ID
-from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.models import NewId
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
-from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 
 
 class TestSettingAbstract(models.AbstractModel):
@@ -43,6 +42,17 @@ class TestSettingAbstract(models.AbstractModel):
     name = fields.Char(compute="_compute_name", store=False)
 
     def as_job(self, suffix, afterrun=False, eta=None):
+        """Puts the execution of a line into a queuejob.
+
+        Args:
+            suffix (string): a unique identifier
+            afterrun (bool, optional): If True, it is considered as a cleanup job.
+            If only cleanups are running, then the test is considered as done. Defaults to False.
+            eta (int, optional): Parameter eta passed to queuejobs. Defaults to None.
+
+        Returns:
+            TestSettingAbstract: a queuejobified version of self
+        """
         marker = self.parent_id._get_qj_marker(suffix, afterrun=afterrun)
         eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
         return self.with_delay(channel="testruns", identity_key=marker, eta=eta)
@@ -62,6 +72,7 @@ class TestSettingAbstract(models.AbstractModel):
         raise NotImplementedError()
 
     def reset_at_testrun(self):
+        """If a testrun is restarted to reset fields."""
         self.preparation_done = False
 
     def _compute_success_rate(self):
@@ -71,12 +82,12 @@ class TestSettingAbstract(models.AbstractModel):
             else:
                 success_lines = float(
                     len(
-                        [
+                        list(
                             x
                             for x in rec.test_run_line_ids.filtered_domain(
                                 [("state", "=", "success")]
                             )
-                        ]
+                        )
                     )
                 )
                 count_lines = float(len(rec.test_run_line_ids))
@@ -85,23 +96,31 @@ class TestSettingAbstract(models.AbstractModel):
                 else:
                     rec.success_rate = 100 * success_lines / count_lines
 
-    def _is_success(self):
-        self.ensure_one()
-        for line in self.test_run_line_ids:
-            if not self.preparation_done or not line.state:
-                raise RetryableJobError("Not all lines done", ignore_retry=True)
-            if line.ttype not in ("preparation", "log"):
-                if line.state == "failed":
-                    return False
-
     def get_testrun_values(self, testrun, defaults=None):
+        """Returns minimum settings for a setup configuration line. The minimum values
+        are taken from the base model, that all others inherit from.
+
+        Args:
+            testrun (odoo.model): Test Run Instance
+            defaults (dict, optional): Values to be set for specific
+            setting like unittest/robottest. Defaults to None.
+
+        Returns:
+            dict: all combined values
+        """
         vals = defaults or {}
+        assert isinstance(defaults, dict)
         vals.update(
             {"test_setting_id": f"{self._name},{self.id}", "run_id": testrun.id}
         )
         return vals
 
-    def produce_test_run_lines(self, testrun):
+    def produce_test_run_lines(self, testrun):  # pylint: disable=unused-argument
+        """
+        Produces the real tests, that are run individually from this setting.
+        Called by specific classes like for unittests, robottests.
+        Basic setup is done here.
+        """
         self.preparation_done = True
 
 
@@ -154,8 +173,7 @@ class TestSettings(models.Model):
         for rec in self:
             for line in rec.iterate_all_test_settings():
 
-                def ok(line, field):
-                    # TODO function in models?
+                def is_transferable_value(line, field):
                     obj_field = line._fields[field]
                     if obj_field.compute and not obj_field.store:
                         return False
@@ -173,7 +191,11 @@ class TestSettings(models.Model):
                         return False
                     return True
 
-                values = {x: line[x] for x in line._fields.keys() if ok(line, x)}
+                values = {
+                    x: line[x]
+                    for x in line._fields.keys()
+                    if is_transferable_value(line, x)
+                }
                 values["parent_id"] = f"{rec._name},{rec.id}"
                 if isinstance(line.id, NewId):
                     self.env[line._name].create(values)
@@ -191,6 +213,11 @@ class TestSettings(models.Model):
                 rec.success_rate = float(sum(success_rates)) / float(len(success_rates))
 
     def iterate_all_test_settings(self):
+        """Iterates all fields, that contain test-settings.
+
+        Yields:
+            inherited cicd.test.setting.base: A test setting
+        """
         for field in self._get_test_run_fields():
             for line in self[field]:
                 yield line
