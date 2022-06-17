@@ -34,6 +34,7 @@ class TestSettingAbstract(models.AbstractModel):
         copy=False,
     )
     name = fields.Char(compute="_compute_name", store=False)
+    machine_id = fields.Many2one("cicd.machine", string="Machine")
 
     def as_job(self, suffix, afterrun=False, eta=None):
         """Puts the execution of a line into a queuejob.
@@ -77,7 +78,12 @@ class TestSettingAbstract(models.AbstractModel):
         vals = defaults or {}
         assert isinstance(defaults, dict)
         vals.update(
-            {"test_setting_id": f"{self._name},{self.id}", "run_id": testrun.id}
+            {
+                "test_setting_id": f"{self._name},{self.id}",
+                "run_id": testrun.id,
+                "machine_id": self.machine_id.id
+                or self.branch_id.repo_id.machine_id.id,
+            }
         )
         return vals
 

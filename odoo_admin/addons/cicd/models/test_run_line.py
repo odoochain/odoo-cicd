@@ -82,6 +82,11 @@ class CicdTestRunLine(models.AbstractModel):
             yield shell
 
     def open_queuejob(self):
+        """Display single queuejob in form view.
+
+        Returns:
+            dict: Odoo Action
+        """
         return {
             "view_type": "form",
             "res_model": self.queuejob_id._name,

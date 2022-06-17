@@ -25,6 +25,9 @@
 					<field name="parallel"/>
 					<field name="started"/>
 					<field name="duration"/>
+					<field name="min_duration"/>
+					<field name="avg_duration"/>
+					<field name="max_duration"/>
 					<field name="state"/>
 					<field name="force_success" />
 					<field name="reused"/>

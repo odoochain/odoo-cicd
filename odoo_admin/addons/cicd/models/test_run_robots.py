@@ -1,23 +1,35 @@
+# pylint: disable=self-cls-assignment
+# pylint: disable=R0903
 import re
 import json
 import base64
 from pathlib import Path
-from odoo import _, api, fields, models, SUPERUSER_ID
-from odoo.exceptions import UserError, RedirectWarning, ValidationError
+from odoo import fields, models
+from odoo.exceptions import ValidationError
 from .test_run import SETTINGS
 
-settings = SETTINGS + (
+ROBOT_SETTINGS = SETTINGS + (
     "\n" "RUN_ODOO_QUEUEJOBS=1\n" "RUN_ODOO_CRONJOBS=1\n" "RUN_ROBOT=1\n"
 )
 
 
 def safe_filename(filename):
-    for x in "/\\;!()*":
-        filename = filename.replace(x, "_")
+    """removes invalid filesystem characters.
+
+    Args:
+        filename (str): Filename to make safe
+
+    Returns:
+        str: The safe filename
+    """
+    for character in "/\\;!()*":
+        filename = filename.replace(character, "_")
     return filename
 
 
 class RobotTest(models.Model):
+    """Represents concrete robot-tests."""
+
     _inherit = "cicd.test.run.line"
     _name = "cicd.test.run.line.robottest"
 
@@ -59,7 +71,7 @@ class RobotTest(models.Model):
             assert dump_path
             try:
                 self._ensure_source_and_machines(
-                    shell, start_postgres=True, settings=settings
+                    shell, start_postgres=True, settings=ROBOT_SETTINGS
                 )
                 shell.odoo("restore", "odoo-db", dump_path, force=True)
                 shell.wait_for_postgres()
@@ -125,11 +137,16 @@ class RobotTest(models.Model):
         robot_out = host_run_dir / "odoo_outdir" / "robot_output"
         robot_results_tar = shell.grab_folder_as_tar(robot_out)
         robot_results_tar = (
-            robot_results_tar and base64.b64encode(robot_results_tar) or False
+            base64.b64encode(robot_results_tar) if robot_results_tar else False
         )
         self.robot_output = robot_results_tar
 
     def robot_results(self):
+        """Action for displaying the robot results per web-controller.
+
+        Returns:
+            dict: open url action
+        """
         return {
             "type": "ir.actions.act_url",
             "url": f"/robot_output/{self.id}",
@@ -138,6 +155,8 @@ class RobotTest(models.Model):
 
 
 class TestSettingsRobotTests(models.Model):
+    """Settings for robot tests"""
+
     _inherit = "cicd.test.settings.base"
     _name = "cicd.test.settings.robottest"
     _line_model = "cicd.test.run.line.robottest"
@@ -159,9 +178,19 @@ class TestSettingsRobotTests(models.Model):
     regex = fields.Char("Regex", default=".*")
 
     def get_name(self):
+        """internal unique name
+
+        Returns:
+            string: Name
+        """
         return f"{self.id} - {self.tags or 'no tags'}"
 
     def produce_test_run_lines(self, testrun):
+        """Creates the concrete testable lines.
+
+        Args:
+            testrun (odoo-model): The test run.
+        """
         super().produce_test_run_lines(testrun)
         with self.parent_id._get_source_for_analysis() as shell:
             files = shell.odoo("list-robot-test-files")["stdout"].strip()

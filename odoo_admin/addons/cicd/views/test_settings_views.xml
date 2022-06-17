@@ -18,6 +18,7 @@
 				<tree editable="bottom">
 					<field name="parallel"/>
 					<field name="tags"/>
+					<field name="machine_id"/>
 					<field name="retry_count"/>
 					<field name="timeout"/>
 				</tree>
