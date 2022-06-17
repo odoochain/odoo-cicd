@@ -1,3 +1,4 @@
+# pylint: disable=W0212
 import arrow
 from contextlib import contextmanager
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -27,14 +28,18 @@ class TestSettingAbstract(models.AbstractModel):
         ],
         string="Test",
         required=True,
+        copy=False,
     )
     preparation_done = fields.Boolean(
-        ("Set at testruns when the preparation of test run lines succeeded")
+        ("Set at testruns when the preparation of test run lines succeeded"),
+        copy=False,
     )
     test_run_line_ids = fields.Many2many(
         "cicd.test.run.line", compute="_compute_test_run_lines", store=False, copy=False
     )
-    success_rate = fields.Float(compute="_compute_success_rate", store=False)
+    success_rate = fields.Float(
+        compute="_compute_success_rate", store=False, copy=False
+    )
     name = fields.Char(compute="_compute_name", store=False)
 
     def as_job(self, suffix, afterrun=False, eta=None):
@@ -198,12 +203,18 @@ class TestSettings(models.Model):
             yield fieldname
 
     def apply_test_settings(self, victim):
+        """Transfers settings of test setup e.g. from branch to testrun,
+        from repo to branch
+
+        Args:
+            victim (odoo.model): Inherited from cicd.test.settings
+        """
         for fieldname, field in self._fields.items():
             if not getattr(field, "testrun_field", False):
                 continue
             victim[fieldname].unlink()
             for line in self[fieldname]:
-                line.copy({"test_id": self.id})
+                line.copy({"parent_id": f"{victim._name},{victim.id}"})
 
     def _compute_any_testing(self):
         for rec in self:

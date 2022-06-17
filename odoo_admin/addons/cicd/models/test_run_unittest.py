@@ -75,9 +75,23 @@ class TestSettingsUnittest(models.Model):
     regex = fields.Char("Regex", default=".*")
 
     def get_name(self):
+        """Generate a unique name used in test lines generated.
+
+        Returns:
+            string: the name
+        """
         return f"{self.id} - {self.tags}"
 
     def produce_test_run_lines(self, testrun):
+        """Creates lines that define a test run each based on Settings.
+        For example a configuration for robottests with setting 1,2,5 will create
+        3 test lines where the parallelity is set to 1 and 2 and 5.
+
+        Args:
+            testrun (cicd.test.run<Model>): A testrun, which is the parent of the lines.
+        """
+
+        # pylint: disable=W0212
         super().produce_test_run_lines(testrun)
         with self.parent_id._logsio() as logsio:
             logsio.info("Hashing Modules / Preparing UnitTests")
@@ -92,7 +106,7 @@ class TestSettingsUnittest(models.Model):
             testrun.branch_id._ensure_dump("base", commit=testrun.commit_id.name)
 
             for module, tests in unittests_to_run.items():
-                hash = tests["hash"]
+                hash_value = tests["hash"]
                 tests = tests["tests"]
 
                 for test in tests:
@@ -105,7 +119,7 @@ class TestSettingsUnittest(models.Model):
                             {
                                 "odoo_module": module,
                                 "filepath": test,
-                                "hash": hash,
+                                "hash": hash_value,
                             },
                         )
                     )
@@ -113,15 +127,15 @@ class TestSettingsUnittest(models.Model):
     def _get_unittest_hashes(self, shell, modules):
         result = {}
 
-        threadLimiter = threading.BoundedSemaphore(CONCURRENT_HASH_THREADS)
+        thread_limiter = threading.BoundedSemaphore(CONCURRENT_HASH_THREADS)
 
         class HashThread(threading.Thread):
             def run(self):
-                self.threadLimiter.acquire()
+                self.thread_limiter.acquire()
                 try:
                     self.run_me()
                 finally:
-                    self.threadLimiter.release()
+                    self.thread_limiter.release()
 
             def run_me(self):
                 global result
@@ -136,11 +150,11 @@ class TestSettingsUnittest(models.Model):
             t.module = mod
             t.testrun = self
             t.result = result
-            t.threadLimiter = threadLimiter
+            t.threadLimiter = thread_limiter
             threads.append(t)
             t.start()
 
-        [x.join() for x in threads]
+        [x.join() for x in threads]  # pylint: disable=W0106
         return result
 
     def _get_unit_tests_to_run(self, shell):
