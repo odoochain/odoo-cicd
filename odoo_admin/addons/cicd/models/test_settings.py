@@ -23,6 +23,7 @@ class TestSettingAbstract(models.AbstractModel):
             ("cicd.test.run", "Test-Run"),
             ("cicd.git.branch", "Branch"),
             ("cicd.release", "Release"),
+            ("cicd.git.repo", "Repository"),
         ],
         string="Test",
         required=True,
