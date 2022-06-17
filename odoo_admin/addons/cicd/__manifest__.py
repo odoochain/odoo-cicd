@@ -84,5 +84,5 @@
     "name": "cicd",
     "qweb": [],
     "test": [],
-    "version": "15.0.1.3",
+    "version": "15.0.1.4",
 }

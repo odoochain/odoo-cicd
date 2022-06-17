@@ -149,10 +149,16 @@ class TestSettings(models.Model):
         for rec in self:
             for line in rec.iterate_all_test_settings():
 
-                def ok(field):
+                def ok(line, field):
                     # TODO function in models?
+                    obj_field = line._fields[field]
+                    if obj_field.compute and not obj_field.store:
+                        return False
                     if field in [
                         "id",
+                        "display_name",
+                        "test_run_line_ids",
+                        "parent_id",
                         "create_uid",
                         "create_date",
                         "write_uid",
@@ -160,11 +166,9 @@ class TestSettings(models.Model):
                         "__last_update",
                     ]:
                         return False
-                    if field in ["display_name"]:
-                        return False
                     return True
 
-                values = {x: line[x] for x in line._fields.keys() if ok(x)}
+                values = {x: line[x] for x in line._fields.keys() if ok(line, x)}
                 values["parent_id"] = f"{rec._name},{rec.id}"
                 if isinstance(line.id, NewId):
                     self.env[line._name].create(values)
