@@ -29,6 +29,7 @@
 			<field name="inherit_id" ref="view_cicd_test_run_line_form"></field>
 			<field name="mode">primary</field>
 			<field name="model">cicd.test.run.line.unittest</field>
+			<field name="type">form</field>
 			<field name="arch" type="xml">
 				<xpath expr="//group" position="after">
 					<group string="" colspan="4">
@@ -41,6 +42,7 @@
 		<record id="view_cicd_test_run_line_robottest_form" model="ir.ui.view">
 			<field name="name">cicd.test.run.line form</field>
 			<field name="model">cicd.test.run.line.robottest</field>
+			<field name="type">form</field>
 			<field name="arch" type="xml">
 				<xpath expr="//group" position="after">
 					<group string="" colspan="4">
