@@ -187,9 +187,7 @@ class Repository(models.Model):
                     # clone may happened during that clone
                     shell.remove(path)
                 shell.X(["mv", temppath, path])
-                shell.X(
-                    ["git-cicd", "config", "--global", "--add", "safe.directory", path]
-                )
+                shell.git_safe_directory(path)
             finally:
                 # if something failed cleanup
                 shell.remove(temppath)

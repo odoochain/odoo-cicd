@@ -37,6 +37,7 @@
 									<field name="host" attrs="{'required': [('is_docker_host', '=', False)], 'invisible': [('is_docker_host', '=', True)]}"/>
 									<field name="external_url"/>
 									<field name="test_timeout_web_login"/>
+									<field name="homedir"/>
 								</group>
 							</page>
 							<page name="credentials" string="Credentials">

@@ -31,6 +31,7 @@ class CicdMachine(models.Model):
     active = fields.Boolean("Active", default=True)
     name = fields.Char("Name")
     is_docker_host = fields.Boolean("Is Docker Host", default=True)
+    homedir = fields.Char("Homedir")
     host = fields.Char("Host")
     volume_ids = fields.One2many("cicd.machine.volume", "machine_id", string="Volumes")
     ssh_user = fields.Char("SSH User")

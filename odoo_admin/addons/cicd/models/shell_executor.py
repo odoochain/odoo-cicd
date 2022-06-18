@@ -1,4 +1,5 @@
 import tempfile
+import configparser
 import base64
 import arrow
 import uuid
@@ -113,12 +114,14 @@ class ShellExecutor(BaseShellExecutor):
                     self.logsio.info(f"Path {path} did not exist - not erased")
 
     def _get_home_dir(self):
-        res = self._internal_execute(
-            ["echo", "$HOME"], cwd="/", env=self.env, logoutput=False, timeout=10
-        )["stdout"].strip()
-        if res.endswith("/~"):
-            res = res[:-2]
-        return res
+        if not self.machine.homedir:
+            res = self._internal_execute(
+                ["echo", "$HOME"], cwd="/", env=self.env, logoutput=False, timeout=10
+            )["stdout"].strip()
+            if res.endswith("/~"):
+                res = res[:-2]
+            self.machine.homedir = res
+        return self.machine.homedir
 
     def odoo(self, *cmd, allow_error=False, force=False, timeout=None, logoutput=True):
         env = {
@@ -374,3 +377,23 @@ class ShellExecutor(BaseShellExecutor):
                     raise
             else:
                 break
+
+    def git_safe_directory(self, path):
+        breakpoint()
+        homedir = self._get_home_dir()
+        gitconfig = homedir + "/.gitconfig"
+        if self.exists(gitconfig):
+            data = {'one_directory': False}
+
+            def filter_line(line):
+                if "directory =" not in line:
+                    return line
+                if data['one_directory']:
+                    return
+                data['one_directory'] = True
+                return "\tdirectory = *\n"
+
+            content = "\n".join(
+                filter(bool, map(filter_line, self.get(gitconfig).decode('utf8').splitlines()))
+            )
+            self.put(content, gitconfig)
