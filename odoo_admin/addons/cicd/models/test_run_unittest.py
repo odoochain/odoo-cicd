@@ -40,7 +40,7 @@ class UnitTest(models.Model):
 
             try:
                 if self.run_id.no_reuse or (
-                    not self.run_id.no_resuse
+                    not self.run_id.no_reuse
                     and not self.check_if_test_already_succeeded(
                         self.run_id, filepath=self.filepath, hash=self.hash
                     )
