@@ -908,3 +908,9 @@ class Repository(models.Model):
 
             result = list(map(remove_password, result))
         return result
+
+    def apply_test_settings_to_all_branches(self):
+        breakpoint()
+        for rec in self:
+            for branch in rec.branch_ids:
+                rec.apply_test_settings(branch)

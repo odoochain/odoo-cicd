@@ -209,6 +209,8 @@ class TestSettings(models.Model):
         """Transfers settings of test setup e.g. from branch to testrun,
         from repo to branch
 
+        Initially for all branches:
+
         Args:
             victim (odoo.model): Inherited from cicd.test.settings
         """
@@ -227,7 +229,9 @@ class TestSettings(models.Model):
             rec.any_testing = any(rec[f] for f in _fields)
 
     def _is_success(self):
-        for line in self.iterate_all_test_settings():
+        if not hasattr(self, 'iterate_testlines'):
+            return False
+        for line in self.iterate_testlines():
             if not line._is_success():
                 return False
         return True

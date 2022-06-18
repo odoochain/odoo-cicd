@@ -998,3 +998,4 @@ class GitBranch(models.Model):
                 )
             else:
                 rec.ticket_system_ref_effective = rec.ticket_sytem_ref
+

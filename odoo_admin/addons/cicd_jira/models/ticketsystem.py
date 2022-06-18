@@ -53,6 +53,10 @@ class TicketSystem(models.Model):
             jira.transition_issue(issue, state)
 
     def _jira_comment(self, issue_name, comment):
+        if not isinstance(issue_name, str):
+            raise Exception((
+                f"Issue should be of type str, not {issue_name}"
+            ))
         assert isinstance(issue_name, str)
         jira = self._get_jira_connection()
         try:
