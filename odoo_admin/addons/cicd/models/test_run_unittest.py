@@ -80,7 +80,7 @@ class TestSettingsUnittest(models.Model):
         Returns:
             string: the name
         """
-        return f"{self.id} - {self.tags}"
+        return f"{self.id} - {self.tags or 'no tags'}"
 
     def produce_test_run_lines(self, testrun):
         """Creates lines that define a test run each based on Settings.
