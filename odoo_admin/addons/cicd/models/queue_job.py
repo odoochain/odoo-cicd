@@ -49,6 +49,7 @@ class queuejob(models.Model):
         for delete_excinfo in [
             "Cannot start two jobs for same identity key",
             "Cannot start two test runs for same commit",
+            "cicd.models.test_run.AbortException",
         ]:
             self.search(
                 [("state", "in", ["failed"]), ("exc_info", "ilike", delete_excinfo)]
