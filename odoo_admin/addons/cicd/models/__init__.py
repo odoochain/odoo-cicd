@@ -95,6 +95,7 @@ from . import test_run_line
 from . import test_run
 from . import test_run_unittest
 from . import test_run_robots
+from . import test_run_migration
 from . import database
 from . import postgres_server
 from . import user

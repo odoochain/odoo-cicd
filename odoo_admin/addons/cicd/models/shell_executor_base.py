@@ -12,6 +12,7 @@ from copy import deepcopy
 from pathlib import Path
 import logging
 from odoo.addons.queue_job.exception import RetryableJobError
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 6 * 3600
@@ -21,15 +22,15 @@ def duration(d):
     return (arrow.get() - d).total_seconds()
 
 
-class MyWriter():
+class MyWriter:
     def __init__(self, ttype, logger, logoutput):
         self.text = [""]
         self.ttype = ttype
         self.line = ""
         self.logger = logger
         self.logoutput = logoutput
-        self.filepath = tempfile.mktemp(suffix='shellwriter.log')
-        self.file = open(self.filepath, 'a+')
+        self.filepath = tempfile.mktemp(suffix="shellwriter.log")
+        self.file = open(self.filepath, "a+")
 
     def __del__(self):
         self.cleanup()
@@ -57,13 +58,13 @@ class MyWriter():
         if line.endswith("\n"):
             line = line[:-1]
         if self.logoutput and self.logger:
-            if self.ttype == 'error':
+            if self.ttype == "error":
                 self.logger.error(line)
             else:
                 self.logger.info(line)
 
 
-class BaseShellExecutor():
+class BaseShellExecutor:
     class TimeoutConnection(Exception):
         pass
 
@@ -71,8 +72,12 @@ class BaseShellExecutor():
         pass
 
     def __init__(
-        self, ssh_keyfile, host,
-        cwd, env=None, user=None,
+        self,
+        ssh_keyfile,
+        host,
+        cwd,
+        env=None,
+        user=None,
     ):
 
         self.host = host
@@ -85,9 +90,7 @@ class BaseShellExecutor():
         if not user:
             raise Exception("User required!")
 
-    def _internal_execute(
-        self, cmd, cwd=None, env=None, logoutput=True, timeout=None
-    ):
+    def _internal_execute(self, cmd, cwd=None, env=None, logoutput=True, timeout=None):
 
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
@@ -102,13 +105,13 @@ class BaseShellExecutor():
 
         if isinstance(cmd, (tuple, list)):
             cmd = f"{cmd[0]} " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))
-        cmd = cmd.replace('\n', ' ')
+        cmd = cmd.replace("\n", " ")
         # endregion
 
         # region: Writer Class
 
-        stdwriter = MyWriter('info', self.get_logger(), logoutput)
-        errwriter = MyWriter('error', self.get_logger(), logoutput)
+        stdwriter = MyWriter("info", self.get_logger(), logoutput)
+        errwriter = MyWriter("error", self.get_logger(), logoutput)
 
         # endregion
 
@@ -120,40 +123,51 @@ class BaseShellExecutor():
         stdout = Capture(buffer_size=-1)  # line buffering
         stderr = Capture(buffer_size=-1)  # line buffering
         data = {
-            'stop': False,
-            'started': False,
-            'stop_marker': False,
+            "stop": False,
+            "started": False,
+            "stop_marker": False,
         }
 
         def on_started():
-            data['started'] = True
+            data["started"] = True
 
         def on_stop_marker():
-            data['stop_marker'] = arrow.get()
+            data["stop_marker"] = arrow.get()
 
         def collect(
-            capture, writer, marker=None, on_marker=None,
-            stop_marker=None, on_stop_marker=None
+            capture,
+            writer,
+            marker=None,
+            on_marker=None,
+            stop_marker=None,
+            on_stop_marker=None,
         ):
 
-            while not data['stop']:
+            while not data["stop"]:
                 for line in capture:
-                    line_decoded = line.decode('utf-8')
+                    line_decoded = line.decode("utf-8")
                     is_marker = False
                     if marker and marker in line_decoded and on_started:
                         on_marker()
                         is_marker = True
-                    if stop_marker and stop_marker in line_decoded and \
-                            on_stop_marker:
+                    if stop_marker and stop_marker in line_decoded and on_stop_marker:
                         on_stop_marker()
                         is_marker = True
 
                     if not is_marker:
                         writer.write(line)
 
-        tstd = threading.Thread(target=collect, args=(
-            stdout, stdwriter, start_marker,
-            on_started, stop_marker, on_stop_marker))
+        tstd = threading.Thread(
+            target=collect,
+            args=(
+                stdout,
+                stdwriter,
+                start_marker,
+                on_started,
+                stop_marker,
+                on_stop_marker,
+            ),
+        )
 
         terr = threading.Thread(target=collect, args=(stderr, errwriter))
         tstd.daemon = True
@@ -162,21 +176,18 @@ class BaseShellExecutor():
         # endregion
 
         # region: build command chain
-        bashcmd = (
-            "#!/bin/bash\n"
-            "set -o pipefail\n"
-        )
+        bashcmd = "#!/bin/bash\n" "set -o pipefail\n"
 
         cwd = cwd or self.cwd
         if cwd:
             bashcmd += (
-                'function wait_for_dir {        \n'
+                "function wait_for_dir {        \n"
                 '  deadline=$(date --date " + 30 seconds" +"%Y%m%d%H%M%S") \n'
                 '  while [ "$(date +"%Y%m%d%H%M%S")" -lt "${deadline}" ]; do \n'
                 f'   if [[ -d "{cwd}" ]]; then  \n'
-                '       break                   \n'
-                '    fi                         \n'
-                '  done                         \n'
+                "       break                   \n"
+                "    fi                         \n"
+                "  done                         \n"
                 "}                              \n\n"
                 f"export INITIAL_PWD='{cwd}'\n"
                 "wait_for_dir\n"
@@ -197,14 +208,20 @@ class BaseShellExecutor():
             f"{cmd} | cat -\n"
             f"echo\n"
             f"echo 1>&2\n"
+            f"sync\n"
             f"echo '{stop_marker}' \n"
         )
         # endregion
 
         # region: run command
         p = run(
-            sshcmd, async_=True, stdout=stdout,
-            stderr=stderr, env=effective_env, input=bashcmd)
+            sshcmd,
+            async_=True,
+            stdout=stdout,
+            stderr=stderr,
+            env=effective_env,
+            input=bashcmd,
+        )
         deadline_started = arrow.get().shift(seconds=60)
         while True:
             if p.returncodes and any(x is not None for x in p.returncodes):
@@ -212,9 +229,10 @@ class BaseShellExecutor():
             if arrow.get() > deadline_started:
                 raise RetryableJobError(
                     "Timeout starting command on remote machine",
-                    seconds=10, ignore_retry=True)
-                raise BaseShellExecutor.TimeoutConnection()
-            if data['started']:
+                    seconds=10,
+                    ignore_retry=True,
+                )
+            if data["started"]:
                 break
             if p.commands:
                 p.commands[0].poll()
@@ -227,14 +245,15 @@ class BaseShellExecutor():
             while True:
                 p.commands[0].poll()
 
-                if p.commands[0].returncode is not None and \
-                        not p.commands[0].returncode and \
-                        data.get('stop_marker'):
+                if (
+                    p.commands[0].returncode is not None
+                    and not p.commands[0].returncode
+                    and data.get("stop_marker")
+                ):
                     # Perfect End
                     break
 
-                if p.commands[0].returncode is not None and \
-                        p.commands[0].returncode:
+                if p.commands[0].returncode is not None and p.commands[0].returncode:
                     break
 
                 if arrow.get() > deadline:
@@ -244,18 +263,16 @@ class BaseShellExecutor():
                     break
                 time.sleep(0.05)
 
-                if data.get('stop_marker'):
-                    if duration(
-                            data['stop_marker']) > 10 and not p.returncodes:
+                if data.get("stop_marker"):
+                    if duration(data["stop_marker"]) > 10 and not p.returncodes:
                         break
-                if p.commands[0].returncode is not None and \
-                        not data.get('stop_marker'):
+                if p.commands[0].returncode is not None and not data.get("stop_marker"):
                     data.setdefault("waiting_for_stop", arrow.get())
-                    if duration(data['waiting_for_stop']) > 5:
+                    if duration(data["waiting_for_stop"]) > 5:
                         break
 
         finally:
-            data['stop'] = True
+            data["stop"] = True
         tstd.join()
         terr.join()
         # endregion
@@ -269,7 +286,7 @@ class BaseShellExecutor():
 
         if p.returncodes:
             return_code = p.returncodes[0]
-        elif data.get('stop_marker'):
+        elif data.get("stop_marker"):
             # script finished but ssh didnt get it
             return_code = 0
             if stderr.endswith("\n"):
@@ -283,13 +300,13 @@ class BaseShellExecutor():
         # endregion
 
         return {
-            'timeout': timeout_happened,
-            'exit_code': p.commands[0].returncode,
-            'stdout': stdout,
-            'stderr': stderr,
+            "timeout": timeout_happened,
+            "exit_code": p.commands[0].returncode,
+            "stdout": stdout,
+            "stderr": stderr,
         }
 
-    def _get_ssh_client(self, cmd='ssh', split_host=False):
+    def _get_ssh_client(self, cmd="ssh", split_host=False):
         host = self.host
         user = self.user
         base = f"{cmd} -T -oStrictHostKeyChecking=no -i {self.ssh_keyfile}"

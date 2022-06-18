@@ -1,4 +1,4 @@
-import time
+import re
 import json
 import threading
 from pathlib import Path
@@ -8,106 +8,138 @@ from .test_run import SETTINGS
 from .shell_executor import ShellExecutor
 from odoo.addons.queue_job.exception import RetryableJobError
 import logging
+
 _logger = logging.getLogger()
 
 CONCURRENT_HASH_THREADS = 8  # minimum system load observed
 
 
-class TestrunUnittest(models.Model):
-    _inherit = 'cicd.test.run'
+class UnitTest(models.Model):
+    _inherit = "cicd.test.run.line"
+    _name = "cicd.test.run.line.unittest"
 
-    def _run_unit_tests(self, **kwargs):
-        self = self.with_context(testrun=f'{self.id}_prepare_unittests')
+    odoo_module = fields.Char("Odoo Module")
+    filepath = fields.Char("Filepath")
 
-        self._report("Hashing Modules / Preparing UnitTests")
-        with self._shell(quick=False) as shell:
-            self._ensure_source_and_machines(
-                shell, start_postgres=False, settings="")
-            unittests_to_run = self._get_unit_tests_to_run(shell)
-
-        self._report("Hashing Modules / Preparing UnitTests Done")
-        if not unittests_to_run:
-            return
-
-        # make sure dump exists for all
-        self.branch_id._ensure_dump('base', commit=self.commit_id.name)
-
-        count = len(list(unittests_to_run.keys()))
-        for index, (module, tests) in enumerate(unittests_to_run.items()):
-            hash = tests['hash']
-            tests = tests['tests']
-
-            self.as_job(
-                f"unittest-module-{module}")._run_unit_tests_of_module(
-                    index, count, module, hash, tests)
-            self._report(f"Unittest in module {module}")
-
-    def _run_unit_tests_of_module(self, index, count, module, hash, tests):
+    def _execute(self):
+        self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
         breakpoint()
-        self = self.with_context(testrun=f"testrun_{self.id}_{module}")
         with self._shell(quick=True) as shell:
-            dump_path = self.branch_id._ensure_dump(
-                'base', commit=self.commit_id.name)
-            settings = SETTINGS + (
-                "\nSERVER_WIDE_MODULES=base,web\n"
+            dump_path = self.run_id.branch_id._ensure_dump(
+                "base", commit=self.run_id.commit_id.name
             )
+            settings = SETTINGS + ("\nSERVER_WIDE_MODULES=base,web\n")
             assert dump_path
             self._ensure_source_and_machines(
-                shell, start_postgres=False, settings=settings)
+                shell, start_postgres=False, settings=settings
+            )
             shell.odoo("down", "-v", force=True, allow_error=True)
             shell.odoo("up", "-d", "postgres")
-            shell.odoo(
-                'restore', 'odoo-db', dump_path,
-                '--no-dev-scripts', force=True)
+            shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             shell.wait_for_postgres()
 
-            def _update(item):
-                shell.odoo('update', item, '--no-dangling-check')
+            try:
+                if self.run_id.no_reuse or (
+                    not self.run_id.no_resuse
+                    and not self.check_if_test_already_succeeded(
+                        self.run_id, filepath=self.filepath, hash=self.hash
+                    )
+                ):
+                    self._report(f"Installing module {self.odoo_module}")
+                    shell.odoo("update", self.odoo_module, "--no-dangling-check")
 
-            if not self._generic_run(
-                shell, [module],
-                'unittest', _update,
-                name_prefix='install ',
-            ):
+                    self._report(f"Starting Unittest {self.filepath}")
+                    shell.odoo(
+                        "unittest",
+                        self.filepath,
+                        "--non-interactive",
+                        timeout=self.test_setting_id.timeout,
+                    )
+            finally:
+                self._report("Unittest finished")
+                shell.odoo("kill", allow_error=True)
+                shell.odoo("rm", allow_error=True)
+                shell.odoo("down", "-v", force=True, allow_error=True)
+
+    def _compute_name(self):
+        for rec in self:
+            filename = (rec.filepath or "").split("/")[-1]
+            rec.name = f"{rec.odoo_module}:{filename}"
+
+
+class TestSettingsUnittest(models.Model):
+    _inherit = "cicd.test.settings.base"
+    _name = "cicd.test.settings.unittest"
+
+    tags = fields.Char("Filter to tags (comma separated, may be empty)")
+    regex = fields.Char("Regex", default=".*")
+
+    def get_name(self):
+        """Generate a unique name used in test lines generated.
+
+        Returns:
+            string: the name
+        """
+        return f"{self.id} - {self.tags}"
+
+    def produce_test_run_lines(self, testrun):
+        """Creates lines that define a test run each based on Settings.
+        For example a configuration for robottests with setting 1,2,5 will create
+        3 test lines where the parallelity is set to 1 and 2 and 5.
+
+        Args:
+            testrun (cicd.test.run<Model>): A testrun, which is the parent of the lines.
+        """
+
+        # pylint: disable=W0212
+        super().produce_test_run_lines(testrun)
+        with self.parent_id._logsio() as logsio:
+            logsio.info("Hashing Modules / Preparing UnitTests")
+            with self.parent_id._get_source_for_analysis() as shell:
+                unittests_to_run = self._get_unit_tests_to_run(shell)
+
+            logsio.info("Hashing Modules / Preparing UnitTests Done")
+            if not unittests_to_run:
                 return
 
-            def _unittest(item):
-                try:
-                    shell.odoo(
-                        'unittest', item, "--non-interactive",
-                        timeout=self.timeout_tests)
-                finally:
-                    shell.odoo("kill", allow_error=True)
-                    shell.odoo("rm", allow_error=True)
-                    shell.odoo("down", "-v", force=True, allow_error=True)
+            # make sure dump exists for all
+            testrun.branch_id._ensure_dump("base", commit=testrun.commit_id.name)
 
-            self._generic_run(
-                shell, tests,
-                'unittest', _unittest,
-                try_count=self.retry_unit_tests,
-                name_callback=self._unittest_name_callback,
-                name_prefix=f"({index + 1} / {count}) ",
-                odoo_module=module,
-                hash=hash,
-            )
+            for module, tests in unittests_to_run.items():
+                hash_value = tests["hash"]
+                tests = tests["tests"]
+
+                for test in tests:
+                    if self.regex:
+                        if not re.findall(self.regex, test):
+                            continue
+                    self.env["cicd.test.run.line.unittest"].create(
+                        self.get_testrun_values(
+                            testrun,
+                            {
+                                "odoo_module": module,
+                                "filepath": test,
+                                "hash": hash_value,
+                            },
+                        )
+                    )
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
 
-        threadLimiter = threading.BoundedSemaphore(CONCURRENT_HASH_THREADS)
+        thread_limiter = threading.BoundedSemaphore(CONCURRENT_HASH_THREADS)
 
         class HashThread(threading.Thread):
             def run(self):
-                self.threadLimiter.acquire()
+                self.thread_limiter.acquire()
                 try:
                     self.run_me()
                 finally:
-                    self.threadLimiter.release()
+                    self.thread_limiter.release()
 
             def run_me(self):
                 global result
-                hash = self.testrun._get_hash_for_module(
-                    shell, self.module)
+                hash = self.testrun._get_hash_for_module(shell, self.module)
                 self.result[self.module] = hash
 
         threads = []
@@ -118,11 +150,11 @@ class TestrunUnittest(models.Model):
             t.module = mod
             t.testrun = self
             t.result = result
-            t.threadLimiter = threadLimiter
+            t.threadLimiter = thread_limiter
             threads.append(t)
             t.start()
 
-        [x.join() for x in threads]
+        [x.join() for x in threads]  # pylint: disable=W0106
         return result
 
     def _get_unit_tests_to_run(self, shell):
@@ -132,10 +164,9 @@ class TestrunUnittest(models.Model):
         _unittests_by_module = {}
 
         def _setdefault(d, m):
-            return d.setdefault(m, {'tests': [], 'hash': None})
+            return d.setdefault(m, {"tests": [], "hash": None})
 
-        hashes = self._get_unittest_hashes(
-            shell, unittests_by_module.keys())
+        hashes = self._get_unittest_hashes(shell, unittests_by_module.keys())
 
         shell.logsio.info("Analyzing following unittests if to run:")
         for module, tests in unittests_by_module.items():
@@ -147,32 +178,27 @@ class TestrunUnittest(models.Model):
             hash = hashes.get(module)
             if not hash:
                 t = _setdefault(_unittests_by_module, module)
-                t['tests'] = tests
+                t["tests"] = tests
                 continue
 
             for test in tests:
-                generic_run_name = self._get_generic_run_name(
-                    test, self._unittest_name_callback)
-
-                test_already_succeeded = \
-                    self.line_ids.check_if_test_already_succeeded(
-                        self, generic_run_name, hash,
+                test_already_succeeded = self.check_if_test_already_succeeded(
+                    self.parent_id, filepath=test, hash=hash
                 )
 
-                if self.no_reuse or (
-                    not self.no_reuse and
-                    not test_already_succeeded
+                if self.parent_id.no_reuse or (
+                    not self.parent_id.no_reuse and not test_already_succeeded
                 ):
                     t = _setdefault(_unittests_by_module, module)
-                    t['hash'] = hash
-                    t['tests'].append(test)
+                    t["hash"] = hash
+                    t["tests"].append(test)
 
         return _unittests_by_module
 
     def _get_unit_tests(self, shell):
         self.ensure_one()
-        cmd = ['list-unit-test-files']
-        files = shell.odoo(*cmd)['stdout'].strip()
+        cmd = ["list-unit-test-files"]
+        files = shell.odoo(*cmd)["stdout"].strip()
         return list(filter(bool, files.split("!!!")[1].splitlines()))
 
     def _get_unit_tests_by_modules(self, files):
@@ -188,13 +214,29 @@ class TestrunUnittest(models.Model):
 
     @api.model
     def _get_hash_for_module(self, shell, module_path):
-        breakpoint()
         res = shell.odoo("list-deps", module_path)
-        stdout = res['stdout']
+        stdout = res["stdout"]
         deps = json.loads(stdout.split("---", 1)[1])
-        return deps['hash']
+        return deps["hash"]
 
     def _unittest_name_callback(self, f):
         p = Path(f)
         # TODO checking: 3 mal parent
         return str(p.relative_to(p.parent.parent.parent))
+
+    @api.model
+    def check_if_test_already_succeeded(self, testrun, filepath, hash):
+        """
+        Compares the hash of the module with an existing
+        previous run with same hash.
+        """
+        hash = hash or self.hash
+        res = self.env["cicd.test.run.line.unittest"].search_count(
+            [
+                ("run_id.branch_ids.repo_id", "=", testrun.branch_ids.repo_id.id),
+                ("filepath", "=", filepath),
+                ("hash", "=", hash),
+                ("state", "=", "success"),
+            ]
+        )
+        return bool(res)

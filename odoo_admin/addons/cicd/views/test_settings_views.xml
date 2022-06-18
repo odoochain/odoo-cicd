@@ -1,0 +1,38 @@
+<odoo>
+	<data noupdate='0'>
+
+		<record id="unittest_settings_tree" model="ir.ui.view">
+			<field name="model">cicd.test.settings.unittest</field>
+			<field name="arch" type="xml">
+				<tree editable="bottom">
+					<field name="tags"/>
+					<field name="regex"/>
+					<field name="retry_count"/>
+					<field name="timeout"/>
+				</tree>
+			</field>
+		</record>
+		<record id="robottest_settings_tree" model="ir.ui.view">
+			<field name="model">cicd.test.settings.robottest</field>
+			<field name="arch" type="xml">
+				<tree editable="bottom">
+					<field name="parallel"/>
+					<field name="tags"/>
+					<field name="machine_id"/>
+					<field name="retry_count"/>
+					<field name="timeout"/>
+				</tree>
+			</field>
+		</record>
+		<record id="migrationtest_settings_tree" model="ir.ui.view">
+			<field name="model">cicd.test.settings.migrations</field>
+			<field name="arch" type="xml">
+				<tree editable="bottom">
+					<field name="dump_id"/>
+					<field name="retry_count"/>
+					<field name="timeout"/>
+				</tree>
+			</field>
+		</record>
+	</data>
+</odoo>

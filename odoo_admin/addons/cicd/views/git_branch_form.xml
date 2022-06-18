@@ -171,13 +171,14 @@
 								</field>
 							</page>
 							<page name="qa" string="Quality">
-								<group string="Quality Assurance Settings" col='4' groups="cicd.group_developer">
-									<field name="run_unittests" widget="boolean_toggle"/>
-									<field name="retry_unit_tests" />
-									<field name="timeout_tests"/>
-									<field name="timeout_migration"/>
-									<field name="run_robottests" widget="boolean_toggle"/>
-									<field name="simulate_install_id"/>
+								<group string="Unit-Tests" col='2'>
+									<field nolabel="1" name="unittest_ids" context="{'tree_view_ref': 'cicd.unittest_settings_tree'}"/>
+								</group>
+								<group string="Robo-Tests">
+									<field nolabel="1" name="robottest_ids" context="{'tree_view_ref': 'cicd.robottest_settings_tree'}"/>
+								</group>
+								<group string="Migrations">
+									<field nolabel="1" name="migration_ids" context="{'tree_view_ref': 'cicd.migrationtest_settings_tree'}"/>
 								</group>
 							</page>
 							<page string="Releases" name="releases">

@@ -5,18 +5,14 @@
 			<field name="model">cicd.test.run.line</field>
 			<field name="arch" type="xml">
 				<form string="">
-					<field name="robot_output" invisible="1"/>
-					<header>
-						<button name="robot_results" string="Robot Results" type="object" attrs="{'invisible': [('robot_output', '=', False)]}"/>
-					</header>
+					<widget name="web_ribbon" title="Success" bg_color="bg-success" attrs="{'invisible': [('state', '!=', 'success')]}"/>
+					<widget name="web_ribbon" title="Failed" bg_color="bg-danger" attrs="{'invisible': [('state', '!=', 'failed')]}"/>
 					<sheet>
 						<group colspan="4" col="4">
-							<field name="ttype"/>
+							<field name="state"/>
 							<field name="started"/>
-							<field name="force_success"/>
-						</group>
-						<group string="" colspan="4">
-							<field name="name"/>
+							<field name="duration"/>
+							<field name="force_success" attrs="{'invisible': [('state', '=', 'success')]}"/>
 						</group>
 						<separator string="Exception Info" colspan="4"/>
 						<field name="exc_info" nolabel="1" colspan="4"/>
@@ -26,6 +22,34 @@
 						<button special="cancel" string="Cancel" class="oe_link" />
 					</footer>
 				</form>
+			</field>
+		</record>
+		<record id="view_cicd_test_run_line_unittest_form" model="ir.ui.view">
+			<field name="name">cicd.test.run.line form</field>
+			<field name="inherit_id" ref="view_cicd_test_run_line_form"></field>
+			<field name="mode">primary</field>
+			<field name="model">cicd.test.run.line.unittest</field>
+			<field name="type">form</field>
+			<field name="arch" type="xml">
+				<xpath expr="//group" position="after">
+					<group string="" colspan="4">
+						<field name="odoo_module"/>
+						<field name="filepath"/>
+					</group>
+				</xpath>
+			</field>
+		</record>
+		<record id="view_cicd_test_run_line_robottest_form" model="ir.ui.view">
+			<field name="name">cicd.test.run.line form</field>
+			<field name="model">cicd.test.run.line.robottest</field>
+			<field name="type">form</field>
+			<field name="arch" type="xml">
+				<xpath expr="//group" position="after">
+					<group string="" colspan="4">
+						<field name="filepath"/>
+						<field name="parallel"/>
+					</group>
+				</xpath>
 			</field>
 		</record>
 	</data>

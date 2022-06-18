@@ -3,33 +3,36 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 
 class ItemBranch(models.Model):
-    _inherit = 'cicd.open.window.mixin'
-    _name = 'cicd.release.item.branch'
+    _inherit = "cicd.open.window.mixin"
+    _name = "cicd.release.item.branch"
 
     item_id = fields.Many2one(
-        'cicd.release.item', string="Item", required=True, ondelete="cascade")
-    branch_id = fields.Many2one(
-        'cicd.git.branch', string="Branch", required=True)
-    commit_id = fields.Many2one(
-        'cicd.git.commit', string="Commit", required=True)
-    state = fields.Selection([
-        ('candidate', 'Candidate'),
-        ('merged', 'Merged'),
-        ('already_merged', 'Already Merged'),
-        ('conflict', 'Conflict'),
-    ], string="State", default="candidate")
+        "cicd.release.item", string="Item", required=True, ondelete="cascade"
+    )
+    branch_id = fields.Many2one("cicd.git.branch", string="Branch", required=True)
+    commit_id = fields.Many2one("cicd.git.commit", string="Commit", required=True)
+    state = fields.Selection(
+        [
+            ("candidate", "Candidate"),
+            ("merged", "Merged"),
+            ("already_merged", "Already Merged"),
+            ("conflict", "Conflict"),
+        ],
+        string="State",
+        default="candidate",
+    )
     commit_date = fields.Datetime(related="commit_id.date")
     is_merged = fields.Boolean(compute="_is_merged", store=True)
 
-    @api.onchange('branch_id')
+    @api.onchange("branch_id")
     def _onchange_branch_id(self):
         for rec in self:
             rec.commit_id = rec.branch_id.latest_commit_id
 
-    @api.depends('state')
+    @api.depends("state")
     def _is_merged(self):
         for rec in self:
-            rec.is_merged = 'merged' in rec.state
+            rec.is_merged = "merged" in rec.state
 
     @api.constrains("commit_id", "branch_id")
     def _check_branch_commit(self):
@@ -39,27 +42,32 @@ class ItemBranch(models.Model):
                     raise ValidationError("Commit not part of branch")
 
     _sql_constraints = [
-        ('item_id_branch_id_unique', "unique(item_id, branch_id)",
-        _("Only one unique entry allowed.")),
+        (
+            "item_id_branch_id_unique",
+            "unique(item_id, branch_id)",
+            _("Only one unique entry allowed."),
+        ),
     ]
 
     @api.model
     def create(self, vals):
-        if not vals.get('commit_id'):
-            branch = self.env['cicd.git.branch'].browse(vals['branch_id'])
-            vals['commit_id'] = branch.latest_commit_id.id
+        if not vals.get("commit_id"):
+            branch = self.env["cicd.git.branch"].browse(vals["branch_id"])
+            vals["commit_id"] = branch.latest_commit_id.id
         return super().create(vals)
 
-    @api.recordchange('commit_id')
+    @api.recordchange("commit_id")
     def _updated_commit(self):
         for rec in self:
-            rec.state = 'candidate'
+            rec.state = "candidate"
 
     def open_window(self):
-        return super().open_window({
-            'res_model': self.commit_id._name,
-            'res_id': self.commit_id.id,
-        })
+        return super().open_window(
+            {
+                "res_model": self.commit_id._name,
+                "res_id": self.commit_id.id,
+            }
+        )
 
     def view_changes(self):
         return self.commit_id.view_changes()

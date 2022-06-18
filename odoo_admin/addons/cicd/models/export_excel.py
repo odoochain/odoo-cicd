@@ -5,31 +5,28 @@ from odoo.exceptions import UserError, RedirectWarning, ValidationError
 
 
 class CicdExportExcel(models.TransientModel):
-    _name = 'cicd.export.excel'
+    _name = "cicd.export.excel"
 
-    branch_id = fields.Many2one(
-        'cicd.git.branch', string="Branch", required=True)
+    branch_id = fields.Many2one("cicd.git.branch", string="Branch", required=True)
     filecontent = fields.Binary("Filecontent", attachment=True)
     filename = fields.Char("Filename", compute="_compute_filename")
     sql = fields.Text("SQL")
 
     def _compute_filename(self):
         for rec in self:
-            rec.filename = (
-                f"{self.id}"
-                ".xlsx"
-            )
+            rec.filename = f"{self.id}" ".xlsx"
 
     def ok(self):
         with self.branch_id.shell("Excel Export") as shell:
-            filename = tempfile.mktemp(suffix='.')
+            filename = tempfile.mktemp(suffix=".")
             sql = self.sql.strip()
             sql = sql.replace("\n", " ")
             shell.odoo(
                 "excel",
-                base64.encodestring(sql.encode('utf-8')).decode('utf-8'),
+                base64.encodestring(sql.encode("utf-8")).decode("utf-8"),
                 "--base64",
-                "-f", filename
+                "-f",
+                filename,
             )
             try:
                 content = shell.get(filename)
@@ -37,15 +34,17 @@ class CicdExportExcel(models.TransientModel):
             finally:
                 shell.remove(filename)
 
-        attachment = self.env['ir.attachment'].search([
-            ('res_model', '=', self._name),
-            ('res_id', '=', self.id),
-            ('res_field', '=', 'filecontent'),
-        ], limit=1)
+        attachment = self.env["ir.attachment"].search(
+            [
+                ("res_model", "=", self._name),
+                ("res_id", "=", self.id),
+                ("res_field", "=", "filecontent"),
+            ],
+            limit=1,
+        )
 
         return {
-            'type': 'ir.actions.act_url',
-            'url': '/web/content/{}?download=True'.format(
-                attachment.id),
-            'target': 'self'
+            "type": "ir.actions.act_url",
+            "url": "/web/content/{}?download=True".format(attachment.id),
+            "target": "self",
         }
