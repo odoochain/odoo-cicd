@@ -40,7 +40,7 @@ class UnitTest(models.Model):
 
             try:
                 if self.run_id.no_reuse or (
-                    not self.run_id.no_resuse
+                    not self.run_id.no_reuse
                     and not self.check_if_test_already_succeeded(
                         self.run_id, filepath=self.filepath, hash=self.hash
                     )
@@ -80,7 +80,7 @@ class TestSettingsUnittest(models.Model):
         Returns:
             string: the name
         """
-        return f"{self.id} - {self.tags}"
+        return f"{self.id} - {self.tags or 'no tags'}"
 
     def produce_test_run_lines(self, testrun):
         """Creates lines that define a test run each based on Settings.

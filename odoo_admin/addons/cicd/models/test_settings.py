@@ -82,7 +82,7 @@ class TestSettingAbstract(models.AbstractModel):
                 "test_setting_id": f"{self._name},{self.id}",
                 "run_id": testrun.id,
                 "machine_id": self.machine_id.id
-                or self.branch_id.repo_id.machine_id.id,
+                or self.parent_id.branch_id.repo_id.machine_id.id,
             }
         )
         return vals
