@@ -13,6 +13,7 @@
 					<field name="reused"/>
 					<field name="try_count"/>
 					<field name="hash"/>
+					<field name="project_name"/>
 				</tree>
 			</field>
 		</record>
@@ -33,6 +34,7 @@
 					<field name="reused"/>
 					<field name="try_count"/>
 					<field name="robot_output" invisible='1'/>
+					<field name="project_name"/>
 				</tree>
 			</field>
 		</record>
@@ -47,6 +49,7 @@
 					<field name="force_success" />
 					<field name="reused"/>
 					<field name="try_count"/>
+					<field name="project_name"/>
 				</tree>
 			</field>
 		</record>
