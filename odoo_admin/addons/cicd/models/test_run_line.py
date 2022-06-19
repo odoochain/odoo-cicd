@@ -74,7 +74,7 @@ class CicdTestRunLine(models.AbstractModel):
     def _shell(self, quick=False):
         assert self.env.context.get("testrun")
         with self.effective_machine_id._shell(
-            cwd=self._get_source_path(),
+            cwd=self._get_source_path(self.effective_machine_id),
             project_name=self.project_name,
         ) as shell:
             if not quick:
@@ -231,8 +231,8 @@ class CicdTestRunLine(models.AbstractModel):
             lo("up", "-d", "postgres")
             shell.wait_for_postgres()
 
-    def _get_source_path(self):
-        path = Path(self.effective_machine_id._get_volume("source"))
+    def _get_source_path(self, machine):
+        path = Path(machine._get_volume("source"))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
         path = path / f"testrun_{self.run_id.id}"
@@ -242,7 +242,7 @@ class CicdTestRunLine(models.AbstractModel):
         assert machine._name == "cicd.machine"
 
         with pg_advisory_lock(self.env.cr, f"testrun_{self.id}"):
-            path = self._get_source_path()
+            path = self._get_source_path(machine)
 
             with machine._shell(cwd=path.parent) as shell:
                 if not shell.exists(path / ".git"):
@@ -271,7 +271,7 @@ class CicdTestRunLine(models.AbstractModel):
                 self._report(f"Checked out source code at {shell.cwd}")
 
     def cleanup(self):
-        instance_folder = self._get_source_path()
+        instance_folder = self._get_source_path(self.effective_machine_id)
         breakpoint()
 
         with self.effective_machine_id._shell(

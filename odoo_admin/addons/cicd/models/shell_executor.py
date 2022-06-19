@@ -268,12 +268,14 @@ class ShellExecutor(BaseShellExecutor):
         if isinstance(content, str):
             content = content.encode("utf-8")
         filename.write_bytes(content)
+        breakpoint()
         try:
             cmd, host = self._get_ssh_client("scp", split_host=True)
             capt = Capture()
             p = run(cmd + f" '{filename}' '{host}:{dest}'", stdout=capt, stderr=capt)
             if p.commands[0].returncode:
-                raise Exception(f"Transfer failed to {host}:{dest}")
+                err = capt.readlines()
+                raise Exception(f"Transfer failed to {host}:{dest}\n{err}")
         finally:
             filename.unlink()
 
@@ -380,20 +382,4 @@ class ShellExecutor(BaseShellExecutor):
 
     def git_safe_directory(self, path):
         breakpoint()
-        homedir = self._get_home_dir()
-        gitconfig = homedir + "/.gitconfig"
-        if self.exists(gitconfig):
-            data = {'one_directory': False}
-
-            def filter_line(line):
-                if "directory =" not in line:
-                    return line
-                if data['one_directory']:
-                    return
-                data['one_directory'] = True
-                return "\tdirectory = *\n"
-
-            content = "\n".join(
-                filter(bool, map(filter_line, self.get(gitconfig).decode('utf8').splitlines()))
-            )
-            self.put(content, gitconfig)
+        self.X(["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"])
