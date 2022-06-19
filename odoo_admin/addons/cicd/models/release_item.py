@@ -648,3 +648,13 @@ class ReleaseItem(models.Model):
                                 f"{self.item_branch_id.name}"
                             )
                         )
+
+    def _cleanup(self):
+        for rec in self:
+            machine = rec.repo_id.machine_id
+            if not rec.item_branch_id:
+                continue
+            with machine._shell() as shell:
+                folder = rec.item_branch_id._get_instance_folder(machine)
+                if shell.exists(folder):
+                    shell.remove(folder)

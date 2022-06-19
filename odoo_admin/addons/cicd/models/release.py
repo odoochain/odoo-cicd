@@ -182,6 +182,8 @@ class Release(models.Model):
         )
         for item in items:
             item.cron_heartbeat()
+            if item.is_failed or item.is_done:
+                item._cleanup()
 
     def make_hotfix(self):
         self._make_unordinary_release("hotfix")
