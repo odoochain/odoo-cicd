@@ -235,8 +235,7 @@ class CicdTestRunLine(models.AbstractModel):
         path = Path(self.effective_machine_id._get_volume("source"))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
-        project_name = self.project_name
-        path = path / f"{project_name}_testrun_{self.run_id.id}"
+        path = path / f"testrun_{self.run_id.id}"
         return path
 
     def _checkout_source_code(self, machine):
