@@ -90,6 +90,7 @@ class CicdTestRun(models.Model):
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many("queue.job", compute="_compute_queuejobs")
+    done_rate = fields.Float("Done Rate", compute="_compute_donerate")
     line_unittest_ids = fields.One2many(
         "cicd.test.run.line.unittest",
         "run_id",
@@ -108,6 +109,16 @@ class CicdTestRun(models.Model):
         string="Migration Tests",
         istestline=True,
     )
+
+    def _compute_donerate(self):
+        for rec in self:
+            lines = list(self.iterate_testlines())
+            alllines = len(lines)
+            openlines = len([x for x in lines if x.state in [False, 'open'])
+            if not alllines:
+                rec.done_rate = 0
+            else:
+                rec.done_rate = 100 * openlines / alllines
 
     def iterate_testlines(self):
         """returns the lines for robottests, unittests, migration tests inherting
