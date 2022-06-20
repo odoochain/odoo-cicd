@@ -457,7 +457,7 @@ echo "--------------------------------------------------------------------------
         you should not delete the file
         """
         self.ensure_one()
-        if self == dest_machine:  # TODO undo
+        if self == dest_machine:
             yield source_path
         else:
             filename = tempfile.mktemp(suffix=".")

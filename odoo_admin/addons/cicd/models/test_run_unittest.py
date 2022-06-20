@@ -133,6 +133,7 @@ class TestSettingsUnittest(models.Model):
                         if not re.findall(self.regex, test):
                             continue
                     used_tests.append(test)
+                    del test
 
                 self.env["cicd.test.run.line.unittest"].create(
                     self.get_testrun_values(
@@ -144,6 +145,8 @@ class TestSettingsUnittest(models.Model):
                         },
                     )
                 )
+                del module
+                del tests
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
@@ -195,21 +198,23 @@ class TestSettingsUnittest(models.Model):
             shell.logsio.info(f"Module: {module}")
             for test in tests:
                 shell.logsio.info(f"  - {test}")
+                del test
 
         for module, tests in unittests_by_module.items():
             hash = hashes.get(module)
             if not hash:
-                t = _setdefault(_unittests_by_module, module)
-                t["tests"] = tests
-                continue
+                raise Exception(f"Module has no hash: {module}")
             test_already_succeeded = self.check_if_test_already_succeeded(
                 self.parent_id, odoo_module=module, hash=hash
             )
 
             if self.parent_id.no_reuse or not test_already_succeeded:
-                t = _setdefault(_unittests_by_module, module)
-                t["hash"] = hash
-                t["tests"].append(test)
+                for test in tests:
+                    _setdefault(_unittests_by_module, module)
+                    _unittests_by_module[module]['hash'] = hash
+                    _unittests_by_module[module]['tests'].append(test)
+            del hash
+            del module
 
         return _unittests_by_module
 
@@ -248,7 +253,6 @@ class TestSettingsUnittest(models.Model):
         Compares the hash of the module with an existing
         previous run with same hash.
         """
-        hash = hash or self.hash
         res = self.env["cicd.test.run.line.unittest"].search_count(
             [
                 ("run_id.branch_ids.repo_id", "=", testrun.branch_ids.repo_id.id),
