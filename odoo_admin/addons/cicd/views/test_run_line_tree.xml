@@ -5,7 +5,7 @@
 			<field name="arch" type="xml">
 				<tree decoration-danger="state == 'failed'" decoration-success="state == 'success'" create="0" delete="0">
 					<field name="odoo_module"/>
-					<field name="filepath"/>
+					<field name="filepaths"/>
 					<field name="started"/>
 					<field name="duration"/>
 					<field name="state"/>

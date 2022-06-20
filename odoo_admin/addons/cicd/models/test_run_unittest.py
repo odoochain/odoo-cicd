@@ -19,8 +19,9 @@ class UnitTest(models.Model):
     _name = "cicd.test.run.line.unittest"
 
     odoo_module = fields.Char("Odoo Module")
-    filepath = fields.Char("Filepath")
+    filepaths = fields.Char("Filepath")
     hash = fields.Char("Hash", help="For using", required=True)
+    broken_tests = fields.Char("Broken Tests")
 
     @api.constrains("hash")
     def _check_hash(self):
@@ -31,6 +32,7 @@ class UnitTest(models.Model):
     def _execute(self):
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
         breakpoint()
+        self.broken_tests = False
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
                 "base", commit=self.run_id.commit_id.name
@@ -49,20 +51,29 @@ class UnitTest(models.Model):
                 if self.run_id.no_reuse or (
                     not self.run_id.no_reuse
                     and not self.test_setting_id.check_if_test_already_succeeded(
-                        self.run_id, filepath=self.filepath, hash=self.hash
+                        self.run_id, odoo_module=self.odoo_module, hash=self.hash
                     )
                 ):
                     self._report(f"Installing module {self.odoo_module}")
                     shell.odoo("update", self.odoo_module, "--no-dangling-check")
 
-                    self._report(f"Starting Unittest {self.filepath}")
-                    shell.odoo(
-                        "unittest",
-                        self.filepath,
-                        "--non-interactive",
-                        timeout=self.test_setting_id.timeout,
-                    )
+                    broken = []
+                    for path in self.filepath.split(","):
+                        self._report(f"Starting Unittest {path}")
+                        res = shell.odoo(
+                            "unittest",
+                            path,
+                            "--non-interactive",
+                            timeout=self.test_setting_id.timeout,
+                            allow_error=True,
+                        )
+                        if res['returncode']:
+                            broken.append(path)
+                    if broken:
+                        self.broken_tests = ','.join(broken)
+                        raise Exception("Broken tests: {self.broken_tests}")
             finally:
+                self.env.cr.commit()
                 self._report("Unittest finished")
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
@@ -116,20 +127,23 @@ class TestSettingsUnittest(models.Model):
                 hash_value = tests["hash"]
                 tests = tests["tests"]
 
+                used_tests = []
                 for test in tests:
                     if self.regex:
                         if not re.findall(self.regex, test):
                             continue
-                    self.env["cicd.test.run.line.unittest"].create(
-                        self.get_testrun_values(
-                            testrun,
-                            {
-                                "odoo_module": module,
-                                "filepath": test,
-                                "hash": hash_value,
-                            },
-                        )
+                    used_tests.append(test)
+
+                self.env["cicd.test.run.line.unittest"].create(
+                    self.get_testrun_values(
+                        testrun,
+                        {
+                            "odoo_module": module,
+                            "filepaths": ','.join(sorted(used_tests)),
+                            "hash": hash_value,
+                        },
                     )
+                )
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
