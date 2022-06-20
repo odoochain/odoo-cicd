@@ -20,6 +20,13 @@ class UnitTest(models.Model):
 
     odoo_module = fields.Char("Odoo Module")
     filepath = fields.Char("Filepath")
+    hash = fields.Char("Hash", help="For using", required=True)
+
+    @api.constrains("hash")
+    def _check_hash(self):
+        for rec in self:
+            if not rec.hash:
+                raise ValidationError("Requires Hash!")
 
     def _execute(self):
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
@@ -150,7 +157,7 @@ class TestSettingsUnittest(models.Model):
             t.module = mod
             t.testrun = self
             t.result = result
-            t.threadLimiter = thread_limiter
+            t.thread_limiter = thread_limiter
             threads.append(t)
             t.start()
 
@@ -158,6 +165,7 @@ class TestSettingsUnittest(models.Model):
         return result
 
     def _get_unit_tests_to_run(self, shell):
+        breakpoint()
         self.ensure_one()
         unittests = self._get_unit_tests(shell)
         unittests_by_module = self._get_unit_tests_by_modules(unittests)

@@ -49,7 +49,6 @@ class CicdTestRunLine(models.AbstractModel):
         string="Initiating Testsetting",
         required=True,
     )
-    hash = fields.Char("Hash", help="For using")
     reused = fields.Boolean("Reused", readonly=True)
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
     effective_machine_id = fields.Many2one("cicd.machine", compute="_compute_machine")

@@ -381,5 +381,4 @@ class ShellExecutor(BaseShellExecutor):
                 break
 
     def git_safe_directory(self, path):
-        breakpoint()
         self.X(["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"])
