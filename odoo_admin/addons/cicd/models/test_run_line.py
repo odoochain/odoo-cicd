@@ -301,3 +301,12 @@ class CicdTestRunLine(models.AbstractModel):
             rec.project_name = self.with_context(
                 testrun=f"testrun_{rec.id}"
             ).run_id.branch_id.project_name
+
+    def _is_success(self):
+        for rec in self:
+            if rec.state in [False, 'open']:
+                raise RetryableJobError(
+                    "Line is open - have to wait.", ignore_retry=True, seconds=30)
+            if rec.state == 'failed':
+                return False
+        return True

@@ -425,6 +425,7 @@ class GitBranch(models.Model):
         "block_release",
     )
     def _compute_state(self):
+        breakpoint()
         for rec in self:
             tasks = rec.task_ids.with_context(prefetch_fields=False)
             task_names = set(tasks.mapped("name"))
@@ -525,6 +526,7 @@ class GitBranch(models.Model):
             elif last_item:
                 if state in ["tested", "done"]:
                     state = "candidate"
+        return state
 
     @api.depends("name", "ticket_system_ref")
     def _compute_ticket_system_url(self):
