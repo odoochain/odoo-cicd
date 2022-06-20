@@ -10,10 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class Release(models.Model):
-    _inherits = {
-        "cicd.test.settings": "test_setting_ids",
-    }
-    _inherit = ["mail.thread", "mixin.schedule"]
+    _inherit = ["mail.thread", "mixin.schedule", "cicd.test.settings"]
     _name = "cicd.release"
 
     active = fields.Boolean("Active", default=True)

@@ -125,7 +125,7 @@ class TestSettings(models.Model):
 
     any_testing = fields.Boolean(compute="_compute_any_testing")
     success_rate = fields.Float(
-        "Success Rate", compute="_compute_success_rate_factor", tracking=True
+        "Success Rate [%]", compute="_compute_success_rate_factor", tracking=True
     )
     state = fields.Selection([])
 

@@ -166,6 +166,7 @@
 										<field name="state"/>
 										<field name="commit_id"/>
 										<field name="success_rate"/>
+										<field name="done_rate"/>
 										<field name="duration"/>
 									</tree>
 								</field>
