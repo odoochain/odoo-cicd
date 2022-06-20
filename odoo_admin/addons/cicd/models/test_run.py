@@ -90,7 +90,7 @@ class CicdTestRun(models.Model):
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many("queue.job", compute="_compute_queuejobs")
-    done_rate = fields.Float("Done Rate", compute="_compute_donerate")
+    done_rate = fields.Float("Done Rate [%]", compute="_compute_donerate")
     line_unittest_ids = fields.One2many(
         "cicd.test.run.line.unittest",
         "run_id",
