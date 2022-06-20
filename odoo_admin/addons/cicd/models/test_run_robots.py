@@ -183,7 +183,7 @@ class TestSettingsRobotTests(models.Model):
         Returns:
             string: Name
         """
-        return f"{self.id} - {self.tags or 'no tags'}"
+        return f"{self._name}:{self.id} - {self.tags or 'no tags'}"
 
     def produce_test_run_lines(self, testrun):
         """Creates the concrete testable lines.
