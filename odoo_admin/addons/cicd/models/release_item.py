@@ -273,6 +273,7 @@ class ReleaseItem(models.Model):
             )
         )
         self.env.cr.commit()
+        message_commit = None
 
         with self.release_id._get_logsio() as logsio:
             logsio.info((f"Merging on {target_branch_name} following commits: "))

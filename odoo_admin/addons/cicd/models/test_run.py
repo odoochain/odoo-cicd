@@ -285,6 +285,7 @@ class CicdTestRun(models.Model):
     # Entrypoint
     # ----------------------------------------------
     def execute(self):
+        breakpoint()
         self.ensure_one()
         self.do_abort = False
         self.date_started = fields.Datetime.now()

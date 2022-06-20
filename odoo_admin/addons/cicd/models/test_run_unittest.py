@@ -81,8 +81,8 @@ class UnitTest(models.Model):
 
     def _compute_name(self):
         for rec in self:
-            filename = (rec.filepath or "").split("/")[-1]
-            rec.name = f"{rec.odoo_module}:{filename}"
+            paths = (rec.filepath or "").split(",")
+            rec.name = f"{rec.odoo_module}[{len(paths)}]"
 
 
 class TestSettingsUnittest(models.Model):
@@ -202,18 +202,14 @@ class TestSettingsUnittest(models.Model):
                 t = _setdefault(_unittests_by_module, module)
                 t["tests"] = tests
                 continue
+            test_already_succeeded = self.check_if_test_already_succeeded(
+                self.parent_id, odoo_module=module, hash=hash
+            )
 
-            for test in tests:
-                test_already_succeeded = self.check_if_test_already_succeeded(
-                    self.parent_id, filepath=test, hash=hash
-                )
-
-                if self.parent_id.no_reuse or (
-                    not self.parent_id.no_reuse and not test_already_succeeded
-                ):
-                    t = _setdefault(_unittests_by_module, module)
-                    t["hash"] = hash
-                    t["tests"].append(test)
+            if self.parent_id.no_reuse or not test_already_succeeded:
+                t = _setdefault(_unittests_by_module, module)
+                t["hash"] = hash
+                t["tests"].append(test)
 
         return _unittests_by_module
 
@@ -247,7 +243,7 @@ class TestSettingsUnittest(models.Model):
         return str(p.relative_to(p.parent.parent.parent))
 
     @api.model
-    def check_if_test_already_succeeded(self, testrun, filepath, hash):
+    def check_if_test_already_succeeded(self, testrun, odoo_module, hash):
         """
         Compares the hash of the module with an existing
         previous run with same hash.
@@ -256,7 +252,7 @@ class TestSettingsUnittest(models.Model):
         res = self.env["cicd.test.run.line.unittest"].search_count(
             [
                 ("run_id.branch_ids.repo_id", "=", testrun.branch_ids.repo_id.id),
-                ("filepath", "=", filepath),
+                ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
                 ("state", "=", "success"),
             ]
