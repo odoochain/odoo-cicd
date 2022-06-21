@@ -143,6 +143,9 @@ class CicdTestRunLine(models.AbstractModel):
                         logsio.info(f"Running {self.name}")
                         self._execute()
 
+                    except RetryableJobError:
+                        raise
+
                     except Exception:  # pylint: disable=broad-except
                         msg = traceback.format_exc()
                         logsio.error(f"Error happened: {msg}")
