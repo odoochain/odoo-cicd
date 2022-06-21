@@ -46,6 +46,7 @@ class UnitTest(models.Model):
             if not self.hash:
                 self.hash = self.test_setting_id._get_hash_for_module(
                     shell, self.odoo_module)
+                self.env.cr.commit()
             shell.odoo("down", "-v", force=True, allow_error=True)
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)

@@ -111,7 +111,7 @@ class CicdTestRun(models.Model):
 
     def _compute_donerate(self):
         for rec in self:
-            lines = list(self.iterate_testlines())
+            lines = list(rec.iterate_testlines())
             alllines = len(lines)
             openlines = len([x for x in lines if x.state in [False, "open"]])
             if not alllines:
