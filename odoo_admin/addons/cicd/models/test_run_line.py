@@ -164,12 +164,16 @@ class CicdTestRunLine(models.AbstractModel):
                     self.log = logfile.read_text()
                     logfile.unlink()
 
+        except RetryableJobError:
+            raise
+
         except Exception:  # pylint: disable=broad-except
             if logfile.exists():
                 logfile.unlink()
             raise
 
-        self.env.cr.commit()
+        finally:
+            self.env.cr.commit()
 
     def _report(self, msg=None, exception=None):
         if exception:
