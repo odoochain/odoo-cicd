@@ -20,14 +20,8 @@ class UnitTest(models.Model):
 
     odoo_module = fields.Char("Odoo Module")
     filepaths = fields.Char("Filepath")
-    hash = fields.Char("Hash", help="For using", required=True)
+    hash = fields.Char("Hash", help="For using")
     broken_tests = fields.Char("Broken Tests")
-
-    @api.constrains("hash")
-    def _check_hash(self):
-        for rec in self:
-            if not rec.hash:
-                raise ValidationError("Requires Hash!")
 
     def _execute(self):
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
@@ -46,6 +40,9 @@ class UnitTest(models.Model):
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             shell.wait_for_postgres()
+
+            if not self.hash:
+                self.hash = self.run_id._get_hash_for_module(shell, self.module)
 
             try:
                 if self.run_id.no_reuse or (
@@ -81,7 +78,7 @@ class UnitTest(models.Model):
 
     def _compute_name(self):
         for rec in self:
-            paths = (rec.filepath or "").split(",")
+            paths = (rec.filepaths or "").split(",")
             rec.name = f"{rec.odoo_module}[{len(paths)}]"
 
 
@@ -91,6 +88,7 @@ class TestSettingsUnittest(models.Model):
 
     tags = fields.Char("Filter to tags (comma separated, may be empty)")
     regex = fields.Char("Regex", default=".*")
+    precalc_hashes = fields.Boolean("Pre-Calculate Hashes")
 
     def get_name(self):
         """Generate a unique name used in test lines generated.
@@ -114,7 +112,8 @@ class TestSettingsUnittest(models.Model):
         with self.parent_id._logsio() as logsio:
             logsio.info("Hashing Modules / Preparing UnitTests")
             with self.parent_id._get_source_for_analysis() as shell:
-                unittests_to_run = self._get_unit_tests_to_run(shell)
+                unittests_to_run = self._get_unit_tests_to_run(
+                    shell, precalc=self.precalc_hashes)
 
             logsio.info("Hashing Modules / Preparing UnitTests Done")
             if not unittests_to_run:
@@ -181,7 +180,7 @@ class TestSettingsUnittest(models.Model):
         [x.join() for x in threads]  # pylint: disable=W0106
         return result
 
-    def _get_unit_tests_to_run(self, shell):
+    def _get_unit_tests_to_run(self, shell, precalc):
         breakpoint()
         self.ensure_one()
         unittests = self._get_unit_tests(shell)
@@ -191,7 +190,9 @@ class TestSettingsUnittest(models.Model):
         def _setdefault(d, m):
             return d.setdefault(m, {"tests": [], "hash": None})
 
-        hashes = self._get_unittest_hashes(shell, unittests_by_module.keys())
+        hashes = {}
+        if precalc and not self.parent_id.no_reuse:
+            hashes = self._get_unittest_hashes(shell, unittests_by_module.keys())
 
         shell.logsio.info("Analyzing following unittests if to run:")
         for module, tests in unittests_by_module.items():
@@ -203,16 +204,18 @@ class TestSettingsUnittest(models.Model):
         for module, tests in unittests_by_module.items():
             hash = hashes.get(module)
             if not hash:
-                raise Exception(f"Module has no hash: {module}")
-            test_already_succeeded = self.check_if_test_already_succeeded(
-                self.parent_id, odoo_module=module, hash=hash
-            )
+                test_already_succeeded = False
+            else:
+                test_already_succeeded = self.check_if_test_already_succeeded(
+                    self.parent_id, odoo_module=module, hash=hash
+                )
 
             if self.parent_id.no_reuse or not test_already_succeeded:
                 for test in tests:
-                    _setdefault(_unittests_by_module, module)
-                    _unittests_by_module[module]['hash'] = hash
-                    _unittests_by_module[module]['tests'].append(test)
+                    val = _setdefault(_unittests_by_module, module)
+                    val['hash'] = hash
+                    val['tests'].append(test)
+                    del val
             del hash
             del module
 

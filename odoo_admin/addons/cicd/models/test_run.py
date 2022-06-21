@@ -327,9 +327,10 @@ class CicdTestRun(models.Model):
             yield x[0]
 
     def rerun(self):
-        for qj in self._get_queuejobs("all", include_wait_for_finish=True):
-            if qj["state"] not in ["done"]:
-                raise ValidationError("There are pending jobs - cannot restart")
+        breakpoint()
+        # for qj in self._get_queuejobs("all", include_wait_for_finish=True):
+        #     if qj["state"] not in ["done"]:
+        #         raise ValidationError("There are pending jobs - cannot restart")
 
         for qj in self._get_queuejobs("all", include_wait_for_finish=True):
             self.env.cr.execute("delete from queue_job where id = %s", (qj["id"],))

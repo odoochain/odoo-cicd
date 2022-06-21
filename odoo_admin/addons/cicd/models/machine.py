@@ -219,11 +219,13 @@ class CicdMachine(models.Model):
 
     @api.model
     def _clean_tempdirs(self):
-        for machine in self.search([]):
+        for machine in self.search([('active', '=', True)]):
             machine.with_delay()._clean_temppath()
 
     def _clean_temppath(self):
         self.ensure_one()
+        if not self.active:
+            return
         with self._shell() as shell:
             for vol in self.volume_ids.filtered(lambda x: x.ttype == "temp"):
                 if not shell.exists(vol.name):
