@@ -27,9 +27,9 @@ class UnitTest(models.Model):
     @api.depends("filepaths")
     def _compute_display_filepaths(self):
         for rec in self:
-            names = (rec.filepaths or '').split(",")
+            names = (rec.filepaths or "").split(",")
             names = list(map(lambda x: x.split("/")[-1], names))
-            rec.display_filepaths = ','.join(names)
+            rec.display_filepaths = ",".join(names)
 
     def _execute(self):
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
@@ -45,13 +45,13 @@ class UnitTest(models.Model):
             )
             if not self.hash:
                 self.hash = self.test_setting_id._get_hash_for_module(
-                    shell, self.odoo_module)
+                    shell, self.odoo_module
+                )
                 self.env.cr.commit()
             shell.odoo("down", "-v", force=True, allow_error=True)
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             shell.wait_for_postgres()
-
 
             try:
                 if self.run_id.no_reuse or (
@@ -76,10 +76,10 @@ class UnitTest(models.Model):
                             timeout=self.test_setting_id.timeout,
                             allow_error=True,
                         )
-                        if res['exit_code']:
+                        if res["exit_code"]:
                             broken.append(path)
                     if broken:
-                        self.broken_tests = ','.join(broken)
+                        self.broken_tests = ",".join(broken)
                         raise Exception("Broken tests: {self.broken_tests}")
             finally:
                 self.env.cr.commit()
@@ -125,7 +125,8 @@ class TestSettingsUnittest(models.Model):
             logsio.info("Hashing Modules / Preparing UnitTests")
             with self.parent_id._get_source_for_analysis() as shell:
                 unittests_to_run = self._get_unit_tests_to_run(
-                    shell, precalc=self.precalc_hashes)
+                    shell, precalc=self.precalc_hashes
+                )
 
             logsio.info("Hashing Modules / Preparing UnitTests Done")
             if not unittests_to_run:
@@ -151,7 +152,7 @@ class TestSettingsUnittest(models.Model):
                         testrun,
                         {
                             "odoo_module": module,
-                            "filepaths": ','.join(sorted(used_tests)),
+                            "filepaths": ",".join(sorted(used_tests)),
                             "hash": hash_value,
                         },
                     )
@@ -225,8 +226,8 @@ class TestSettingsUnittest(models.Model):
             if self.parent_id.no_reuse or not test_already_succeeded:
                 for test in tests:
                     val = _setdefault(_unittests_by_module, module)
-                    val['hash'] = hash
-                    val['tests'].append(test)
+                    val["hash"] = hash
+                    val["tests"].append(test)
                     del val
             del hash
             del module
