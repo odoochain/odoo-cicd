@@ -252,20 +252,25 @@ class CicdTestRunLine(models.AbstractModel):
                         machine=machine,
                         branch=self.run_id.branch_id.name,
                     )
-            with shell.clone(cwd=path) as shell:
-                shell.X(["git-cicd", "checkout", "-f", self.run_id.commit_id.name])
 
-                self._report("Checking commit")
-                sha = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
+            def matches_commit(shell):
+                current_commit = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
                     "stdout"
                 ].strip()
-                if sha != self.run_id.commit_id.name:
-                    raise WrongShaException(
-                        (
-                            f"checked-out SHA {sha} "
-                            f"not matching test sha {self.run_id.commit_id.name}"
+                dirty = bool(shell.X(["git-cicd", "status", "-s"])['stdout'].strip())
+                return current_commit == self.run_id.commit_id.name and not dirty
+
+            with shell.clone(cwd=path) as shell:
+                if not matches_commit(shell):
+                    shell.X(["git-cicd", "checkout", "-f", self.run_id.commit_id.name])
+                    if not matches_commit(shell):
+                        raise WrongShaException(
+                            (
+                                f"After force checkout directory is not clean and "
+                                f"matching test sha {self.run_id.commit_id.name}"
+                                f"in {shell.cwd}"
+                            )
                         )
-                    )
                 self._report("Commit matches")
                 self._report(f"Checked out source code at {shell.cwd}")
 

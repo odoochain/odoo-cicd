@@ -268,7 +268,6 @@ class ShellExecutor(BaseShellExecutor):
         if isinstance(content, str):
             content = content.encode("utf-8")
         filename.write_bytes(content)
-        breakpoint()
         try:
             cmd, host = self._get_ssh_client("scp", split_host=True)
             capt = Capture()

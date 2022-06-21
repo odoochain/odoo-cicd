@@ -116,7 +116,7 @@ class CicdTestRun(models.Model):
             if not alllines:
                 rec.done_rate = 0
             else:
-                rec.done_rate = 100 * openlines / alllines
+                rec.done_rate = 100 * (alllines - openlines) / alllines
 
     def iterate_testlines(self):
         """returns the lines for robottests, unittests, migration tests inherting
@@ -166,6 +166,7 @@ class CicdTestRun(models.Model):
                     commit=self.commit_id.name,
                     force_instance_folder=instance_folder,
                     no_update_images=True,
+                    no_checkout=True,
                 ),
             except Exception as ex:
                 logger.error(ex)

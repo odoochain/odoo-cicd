@@ -181,6 +181,7 @@ class Branch(models.Model):
         registry=None,
         force_instance_folder=None,
         no_update_images=False,
+        no_checkout=False,
         **kwargs,
     ):
 
@@ -195,7 +196,7 @@ class Branch(models.Model):
                     registry=registry,
                 )
                 self._collect_all_files_by_their_checksum(shell)
-                if commit:
+                if commit and not no_checkout:
                     shell.checkout_commit(commit)
                 params = []
                 if no_update_images:

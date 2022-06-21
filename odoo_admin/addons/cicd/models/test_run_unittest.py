@@ -25,7 +25,6 @@ class UnitTest(models.Model):
 
     def _execute(self):
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
-        breakpoint()
         self.broken_tests = False
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
@@ -36,13 +35,15 @@ class UnitTest(models.Model):
             self._ensure_source_and_machines(
                 shell, start_postgres=False, settings=settings
             )
+            if not self.hash:
+                self.hash = self.test_setting_id._get_hash_for_module(
+                    shell, self.odoo_module)
+            breakpoint()
             shell.odoo("down", "-v", force=True, allow_error=True)
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             shell.wait_for_postgres()
 
-            if not self.hash:
-                self.hash = self.run_id._get_hash_for_module(shell, self.module)
 
             try:
                 if self.run_id.no_reuse or (
