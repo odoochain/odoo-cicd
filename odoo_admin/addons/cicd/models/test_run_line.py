@@ -240,7 +240,7 @@ class CicdTestRunLine(models.AbstractModel):
     def _checkout_source_code(self, machine):
         assert machine._name == "cicd.machine"
 
-        with pg_advisory_lock(self.env.cr, f"testrun_{self.id}"):
+        with pg_advisory_lock(self.env.cr, f"testrun_{self.run_id.id}"):
             path = self._get_source_path(machine)
 
             with machine._shell(cwd=path.parent) as shell:
