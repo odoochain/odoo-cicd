@@ -86,8 +86,6 @@ class CicdTestRun(models.Model):
         tracking=True,
     )
     duration = fields.Integer("Duration [s]", tracking=True)
-    queuejob_log = fields.Binary("Queuejob Log")
-    queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
     no_reuse = fields.Boolean("No Reuse")
     queuejob_ids = fields.Many2many("queue.job", compute="_compute_queuejobs")
     done_rate = fields.Float("Done Rate [%]", compute="_compute_donerate")
@@ -146,10 +144,6 @@ class CicdTestRun(models.Model):
                 for x in self._get_queuejobs("all", include_wait_for_finish=True)
             ]
             rec.queuejob_ids = [[6, 0, ids]]
-
-    def _queuejob_log_filename(self):
-        for rec in self:
-            rec.queuejob_log_filename = "queuejobs.xlsx"
 
     def abort(self):
         for qj in self._get_queuejobs("active"):

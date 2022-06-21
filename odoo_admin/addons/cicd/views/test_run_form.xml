@@ -28,8 +28,6 @@
 							<field name="duration"/>
 							<field name="success_rate"/>
 							<field name="done_rate"/>
-							<field name="queuejob_log" filename="queuejob_log_filename"/>
-							<field name="queuejob_log_filename" invisible='1'/>
 							<field name="no_reuse"/>
 						</group>
 						<notebook>

@@ -39,6 +39,13 @@ class RobotTest(models.Model):
     avg_duration = fields.Float("Avg Duration [s]")
     min_duration = fields.Float("Min Duration [s]")
     max_duration = fields.Float("Max Duration [s]")
+    queuejob_log = fields.Binary("Queuejob Log")
+    queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
+
+    def _queuejob_log_filename(self):
+        for rec in self:
+            name = self.filepath.split("/")[-1]
+            rec.queuejob_log_filename = f"queuejobs-logs-{name}-{self.id}.xlsx"
 
     def _compute_name(self):
         for rec in self:
