@@ -20,8 +20,16 @@ class UnitTest(models.Model):
 
     odoo_module = fields.Char("Odoo Module")
     filepaths = fields.Char("Filepath")
+    display_filepaths = fields.Text("Filepaths", compute="_compute_display_filepaths")
     hash = fields.Char("Hash", help="For using")
     broken_tests = fields.Char("Broken Tests")
+
+    @api.depends("filepaths")
+    def _compute_display_filepaths(self):
+        for rec in self:
+            names = (rec.filepaths or '').split(",")
+            names = list(map(lambda x: x.split("/")[-1], names))
+            rec.display_filepaths = names
 
     def _execute(self):
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
@@ -38,7 +46,6 @@ class UnitTest(models.Model):
             if not self.hash:
                 self.hash = self.test_setting_id._get_hash_for_module(
                     shell, self.odoo_module)
-            breakpoint()
             shell.odoo("down", "-v", force=True, allow_error=True)
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
@@ -54,9 +61,11 @@ class UnitTest(models.Model):
                 ):
                     self._report(f"Installing module {self.odoo_module}")
                     shell.odoo("update", self.odoo_module, "--no-dangling-check")
+                    shell.odoo("up", "-d", "postgres")
+                    shell.wait_for_postgres()
 
                     broken = []
-                    for path in self.filepath.split(","):
+                    for path in self.filepaths.split(","):
                         self._report(f"Starting Unittest {path}")
                         res = shell.odoo(
                             "unittest",

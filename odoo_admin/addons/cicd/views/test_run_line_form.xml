@@ -34,7 +34,7 @@
 				<xpath expr="//group" position="after">
 					<group string="" colspan="4">
 						<field name="odoo_module"/>
-						<field name="filepaths"/>
+						<field name="display_filepaths"/>
 						<field name="broken_tests"/>
 					</group>
 				</xpath>
