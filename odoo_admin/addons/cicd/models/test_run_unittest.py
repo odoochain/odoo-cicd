@@ -54,12 +54,13 @@ class UnitTest(models.Model):
             shell.wait_for_postgres()
 
             try:
-                if self.run_id.no_reuse or (
-                    not self.run_id.no_reuse
-                    and not self.test_setting_id.check_if_test_already_succeeded(
+                if not self.run_id.no_reuse:
+                    if self.test_setting_id.check_if_test_already_succeeded(
                         self.run_id, odoo_module=self.odoo_module, hash=self.hash
-                    )
-                ):
+                    ):
+                        self.reused = True
+                        self.state = 'success'
+                if self.state == 'open':
                     self._report(f"Installing module {self.odoo_module}")
                     shell.odoo("update", self.odoo_module, "--no-dangling-check")
                     shell.odoo("up", "-d", "postgres")
@@ -272,6 +273,7 @@ class TestSettingsUnittest(models.Model):
         res = self.env["cicd.test.run.line.unittest"].search_count(
             [
                 ("run_id.branch_ids.repo_id", "=", testrun.branch_ids.repo_id.id),
+                ('reused', '=', False),
                 ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
                 ("state", "=", "success"),
