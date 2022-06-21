@@ -65,6 +65,7 @@ class UnitTest(models.Model):
                     shell.wait_for_postgres()
 
                     broken = []
+                    breakpoint()
                     for path in self.filepaths.split(","):
                         self._report(f"Starting Unittest {path}")
                         res = shell.odoo(

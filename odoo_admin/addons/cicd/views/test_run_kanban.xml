@@ -41,10 +41,6 @@
 									<field name="success_rate"/><span>%</span>
 								</div>
 								<div>
-									<strong>Done:</strong>
-									<field name="done_rate"/><span>%</span>
-								</div>
-								<div>
 									<strong>Repository:</strong>
 									<field name="repo_short"/>
 								</div>
