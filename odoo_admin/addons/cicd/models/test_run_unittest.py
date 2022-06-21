@@ -29,7 +29,7 @@ class UnitTest(models.Model):
         for rec in self:
             names = (rec.filepaths or '').split(",")
             names = list(map(lambda x: x.split("/")[-1], names))
-            rec.display_filepaths = names
+            rec.display_filepaths = ','.join(names)
 
     def _execute(self):
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
@@ -74,7 +74,7 @@ class UnitTest(models.Model):
                             timeout=self.test_setting_id.timeout,
                             allow_error=True,
                         )
-                        if res['returncode']:
+                        if res['exit_code']:
                             broken.append(path)
                     if broken:
                         self.broken_tests = ','.join(broken)
