@@ -257,7 +257,7 @@ class CicdTestRunLine(models.AbstractModel):
                 current_commit = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
                     "stdout"
                 ].strip()
-                dirty = bool(shell.X(["git-cicd", "status", "-s"])['stdout'].strip())
+                dirty = not bool(shell.X(["git-cicd", "status", "-s"])['stdout'].strip())
                 return current_commit == self.run_id.commit_id.name and not dirty
 
             with shell.clone(cwd=path) as shell:

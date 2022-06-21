@@ -181,7 +181,7 @@ class CicdTestRun(models.Model):
             raise
 
         except AbortException:
-            pass
+            raise
 
         except Exception as ex:  # pylint: disable=broad-except
             if "reference is not a tree" in str(ex):

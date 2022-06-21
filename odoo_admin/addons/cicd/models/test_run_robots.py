@@ -102,7 +102,8 @@ class RobotTest(models.Model):
 
                 if len(output) == 1:
                     raise ValidationError(
-                        "Did not find marker to get json result from console output"
+                        "Did not find marker to get json result from console output here "
+                        f"in {output}"
                     )
                 testdata = self._eval_test_output(output[1])
 

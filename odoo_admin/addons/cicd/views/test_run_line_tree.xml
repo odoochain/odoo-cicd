@@ -11,9 +11,9 @@
 					<field name="state"/>
 					<field name="force_success" />
 					<field name="reused"/>
-					<field name="try_count"/>
-					<field name="hash"/>
-					<field name="project_name"/>
+					<field name="try_count" groups="base.group_no_one"/>
+					<field name="hash" groups="base.group_no_one"/>
+					<field name="project_name" groups="base.group_no_one"/>
 				</tree>
 			</field>
 		</record>
@@ -32,9 +32,9 @@
 					<field name="state"/>
 					<field name="force_success" />
 					<field name="reused"/>
-					<field name="try_count"/>
+					<field name="try_count" groups="base.group_no_one"/>
 					<field name="robot_output" invisible='1'/>
-					<field name="project_name"/>
+					<field name="project_name" groups="base.group_no_one"/>
 				</tree>
 			</field>
 		</record>
@@ -48,8 +48,8 @@
 					<field name="state"/>
 					<field name="force_success" />
 					<field name="reused"/>
-					<field name="try_count"/>
-					<field name="project_name"/>
+					<field name="try_count" groups="base.group_no_one"/>
+					<field name="project_name" groups="base.group_no_one"/>
 				</tree>
 			</field>
 		</record>
