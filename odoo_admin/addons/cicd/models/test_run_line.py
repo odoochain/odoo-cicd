@@ -144,6 +144,8 @@ class CicdTestRunLine(models.AbstractModel):
                         self._execute()
 
                     except RetryableJobError:
+                        self.started = False
+                        self.env.cr.commit()
                         raise
 
                     except Exception:  # pylint: disable=broad-except
@@ -226,9 +228,10 @@ class CicdTestRunLine(models.AbstractModel):
         self._log(
             lambda self: self._checkout_source_code(shell.machine), "checkout source"
         )
+
         lo = partial(self._lo, shell)
-        # lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
         self.run_id._reload(shell, settings, shell.cwd)
+
         lo("regpull", allow_error=True)
         lo("build")
         lo("kill", allow_error=True)
@@ -245,13 +248,14 @@ class CicdTestRunLine(models.AbstractModel):
         return path
 
     def _checkout_source_code(self, machine):
+        breakpoint()
         assert machine._name == "cicd.machine"
 
         with pg_advisory_lock(self.env.cr, f"testrun_{self.run_id.id}"):
             path = self._get_source_path(machine)
-
             with machine._shell(cwd=path.parent) as shell:
-                if not shell.exists(path / ".git"):
+
+                def refetch_dir():
                     shell.remove(path)
                     self._report("Checking out source code...")
                     self.run_id.branch_id.repo_id._technical_clone_repo(
@@ -259,27 +263,29 @@ class CicdTestRunLine(models.AbstractModel):
                         machine=machine,
                         branch=self.run_id.branch_id.name,
                     )
+                if not shell.exists(path / ".git"):
+                    refetch_dir()
 
-            def matches_commit(shell):
-                current_commit = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
-                    "stdout"
-                ].strip()
-                dirty = not bool(shell.X(["git-cicd", "status", "-s"])['stdout'].strip())
-                return current_commit == self.run_id.commit_id.name and not dirty
+                def matches_commit():
+                    current_commit = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
+                        "stdout"
+                    ].strip()
+                    dirty = bool(shell.X(["git-cicd", "status", "-s"])['stdout'].strip())
+                    return current_commit == self.run_id.commit_id.name and not dirty
 
-            with shell.clone(cwd=path) as shell:
-                if not matches_commit(shell):
-                    shell.X(["git-cicd", "checkout", "-f", self.run_id.commit_id.name])
-                    if not matches_commit(shell):
-                        raise WrongShaException(
-                            (
-                                f"After force checkout directory is not clean and "
-                                f"matching test sha {self.run_id.commit_id.name}"
-                                f"in {shell.cwd}"
+                with shell.clone(cwd=path) as shell:
+                    if not matches_commit():
+                        refetch_dir()
+                        if not matches_commit():
+                            raise WrongShaException(
+                                (
+                                    f"After force checkout directory is not clean and "
+                                    f"matching test sha {self.run_id.commit_id.name}"
+                                    f"in {shell.cwd}"
+                                )
                             )
-                        )
-                self._report("Commit matches")
-                self._report(f"Checked out source code at {shell.cwd}")
+                    self._report("Commit matches")
+                    self._report(f"Checked out source code at {shell.cwd}")
 
     def cleanup(self):
         instance_folder = self._get_source_path(self.effective_machine_id)
@@ -321,3 +327,8 @@ class CicdTestRunLine(models.AbstractModel):
             if rec.state == 'failed':
                 return False
         return True
+
+    def retry(self):
+        for rec in self:
+            rec.state = 'open'
+            rec._create_worker_queuejob()

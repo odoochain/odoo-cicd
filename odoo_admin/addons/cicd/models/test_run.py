@@ -1,4 +1,5 @@
 from curses import wrapper
+import time
 import arrow
 from contextlib import contextmanager, closing
 from . import pg_advisory_lock
@@ -112,7 +113,7 @@ class CicdTestRun(models.Model):
         for rec in self:
             lines = list(self.iterate_testlines())
             alllines = len(lines)
-            openlines = len([x for x in lines if x.state in [False, 'open']])
+            openlines = len([x for x in lines if x.state in [False, "open"]])
             if not alllines:
                 rec.done_rate = 0
             else:
@@ -175,20 +176,32 @@ class CicdTestRun(models.Model):
             else:
                 shell.logsio.info("Reloaded")
 
-        try:
-            reload()
-        except RetryableJobError:
-            raise
+        docker_compose_config = (
+            f"{shell._get_home_dir()}/.odoo/run/{shell.project_name}/docker-compose.yml"
+        )
+        for i in range(10):
+            try:
+                reload()
+            except RetryableJobError:
+                time.sleep(30)
 
-        except AbortException:
-            raise
+            except AbortException:
+                raise
 
-        except Exception as ex:  # pylint: disable=broad-except
-            if "reference is not a tree" in str(ex):
-                raise RetryableJobError(
-                    ("Missing commit not arrived " "- retrying later.")
-                ) from ex
-            raise
+            except Exception as ex:  # pylint: disable=broad-except
+                if "reference is not a tree" in str(ex):
+                    raise RetryableJobError(
+                        ("Missing commit not arrived " "- retrying later.")
+                    ) from ex
+
+            if shell.exists(docker_compose_config):
+                break
+        else:
+            raise RetryableJobError(
+                ("Error at reload - compose config not found {docker_compose_config}"),
+                seconds=20,
+                ignore_retry=True,
+            )
 
     def _abort_if_required(self):
         if self.do_abort and not self.env.context.get("testrun_cleanup"):
