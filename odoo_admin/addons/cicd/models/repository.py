@@ -220,7 +220,10 @@ class Repository(models.Model):
             if not self._is_healthy_repository(shell, path):
                 shell.rm(path)
 
-                shell.X(["git-cicd", "clone", self.url, path])
+                temppath = shell.machine._temppath(usage="clone_repo")
+                shell.X(["git-cicd", "clone", self.url, temppath])
+                shell.safe_move_directory(temppath, path)
+                del temppath
         return path
 
     def _get_remotes(self, shell):

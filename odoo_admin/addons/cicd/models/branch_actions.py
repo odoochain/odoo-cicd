@@ -888,7 +888,7 @@ for path in base.glob("*"):
                             repo_path
                         )  # make sure to avoid rm /
 
-    def _ensure_dump(self, ttype, commit):
+    def _ensure_dump(self, ttype, commit, dumptype=None):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
@@ -897,12 +897,13 @@ for path in base.glob("*"):
         self.ensure_one()
 
         cache = json.loads(self.ensure_dump_cache or "{}")
-        dest_path = cache.get(ttype, {}).get(commit)
+        key = f"{ttype}.{dumptype or ''}"
+        dest_path = cache.get(key, {}).get(commit)
 
         if not dest_path:
-            dest_path = self._ensure_dump_get_dest_path(ttype, commit)
-            cache.setdefault(ttype, {})
-            cache[ttype][commit] = str(dest_path)
+            dest_path = self._ensure_dump_get_dest_path(ttype, commit, dumptype)
+            cache.setdefault(key, {})
+            cache[key][commit] = str(dest_path)
             self.ensure_dump_cache = json.dumps(cache)
             self.env.cr.commit()
 
@@ -921,10 +922,13 @@ for path in base.glob("*"):
             if ttype == "full":
                 shell.odoo("update")
                 shell.wait_for_postgres()
-            shell.odoo("backup", "odoo-db", dest_path)
+            params = ["backup", "odoo-db", dest_path]
+            if dumptype:
+                params.append("--dumptype", dumptype)
+            shell.odoo(*params)
         return dest_path
 
-    def _ensure_dump_get_dest_path(self, ttype, commit):
+    def _ensure_dump_get_dest_path(self, ttype, commit, dumptype):
         machine = self.machine_id
         instance_folder = self._get_instance_folder(machine)
         settings = self._get_settings_isolated_run()
@@ -948,10 +952,10 @@ for path in base.glob("*"):
                     ]
                     deps = json.loads(output)
                     hash = deps["hash"]
-                    return f"base_dump_{self.repo_id.short}_{hash}"
+                    return f"base_dump_{dumptype}_{self.repo_id.short}_{hash}"
 
                 elif ttype == "full":
-                    return f"all_installed_{self.repo_id.short}_{self.name}"
+                    return f"all_installed_{dumptype}_{self.repo_id.short}_{self.name}"
 
                 raise NotImplementedError(ttype)
 
