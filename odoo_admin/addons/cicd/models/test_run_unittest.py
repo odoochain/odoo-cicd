@@ -48,18 +48,22 @@ class UnitTest(models.Model):
                     shell, self.odoo_module
                 )
                 self.env.cr.commit()
+
+            if not self.run_id.no_reuse:
+                if self.test_setting_id.check_if_test_already_succeeded(
+                    self.run_id, odoo_module=self.odoo_module, hash=self.hash
+                ):
+                    self.reused = True
+                    self.state = 'success'
+                    self.env.cr.commit()
+                    return
+
             shell.odoo("down", "-v", force=True, allow_error=True)
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             shell.wait_for_postgres()
 
             try:
-                if not self.run_id.no_reuse:
-                    if self.test_setting_id.check_if_test_already_succeeded(
-                        self.run_id, odoo_module=self.odoo_module, hash=self.hash
-                    ):
-                        self.reused = True
-                        self.state = 'success'
                 if self.state == 'open':
                     self._report(f"Installing module {self.odoo_module}")
                     shell.odoo("update", self.odoo_module, "--no-dangling-check")
