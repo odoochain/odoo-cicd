@@ -670,6 +670,7 @@ class Branch(models.Model):
         self._after_build(shell=shell, **kwargs)
 
     def _compress(self, shell, compress_job_id, **kwargs):
+        breakpoint()
         self.ensure_one()
         compressor = self.env["cicd.compressor"].sudo().browse(compress_job_id)
 
@@ -695,6 +696,7 @@ class Branch(models.Model):
             shell.machine,
             dest_file_path,
         ) as effective_dest_file_path:
+            breakpoint()
             compressor.last_input_size = int(
                 shell.X(["stat", "-c", "%s", effective_dest_file_path])[
                     "stdout"

@@ -379,6 +379,9 @@ class ShellExecutor(BaseShellExecutor):
             else:
                 break
 
+    def git_is_dirty(self):
+        return bool(self.X(["git-cicd", "status", "-s"])['stdout'].strip())
+
     def git_safe_directory(self, path):
         self.X(
             ["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"]

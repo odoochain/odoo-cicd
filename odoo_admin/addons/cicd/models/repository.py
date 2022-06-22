@@ -186,7 +186,7 @@ class Repository(models.Model):
                 if shell.exists(path):
                     # clone may happened during that clone
                     shell.remove(path)
-                shell.X(["mv", temppath, path])
+                shell.safe_move_directory(temppath, path)
                 shell.git_safe_directory(path)
             finally:
                 # if something failed cleanup
