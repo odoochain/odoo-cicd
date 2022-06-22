@@ -493,8 +493,16 @@ echo "--------------------------------------------------------------------------
                     ]
                 )
                 # wait - took some time after rsync that it appeared
-                # TODO really needed? dont want
-                # time.sleep(60)
+                with dest_machine._shell() as shell:
+                    for i in range(20):
+                        if shell.exists(dest_path):
+                            break
+                        time.sleep(5)
+                    else:
+                        raise Exception((
+                            "After rsync file was "
+                            f"not found on {dest_machine.name}:{dest_path}"
+                        ))
                 try:
                     yield dest_path
 
