@@ -179,6 +179,7 @@ class CicdTestRunLine(models.AbstractModel):
 
         finally:
             self.env.cr.commit()
+            self._clean_instance_folder()
 
     def _report(self, msg=None, exception=None):
         if exception:
@@ -222,6 +223,13 @@ class CicdTestRunLine(models.AbstractModel):
             allow_error=kwparams.get("allow_error"),
         )
 
+    def _clean_instance_folder(self):
+        machine = self.effective_machine_id
+        folder = self._get_source_path(machine)
+        with machine._shell() as shell:
+            if shell.exists(folder):
+                shell.remove(folder)
+
     def _ensure_source_and_machines(
         self, shell, start_postgres=False, settings="", reload_only_on_need=False
     ):
@@ -244,7 +252,8 @@ class CicdTestRunLine(models.AbstractModel):
         path = Path(machine._get_volume("source"))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
-        path = path / f"testrun_{self.run_id.id}"
+        # 22.06.2022 too many problems - directory missing in tests
+        path = path / f"testrun_{self.id}"
         return path
 
     def _checkout_source_code(self, machine):
@@ -298,7 +307,8 @@ class CicdTestRunLine(models.AbstractModel):
                 shell.odoo("down", "-v", force=True, allow_error=True)
                 shell.odoo("rm", force=True, allow_error=True)
 
-            shell.remove(instance_folder)
+            if shell.exists(instance_folder):
+                shell.remove(instance_folder)
 
     def as_job(self, suffix, afterrun=False, eta=None):
         marker = self.run_id._get_qj_marker(suffix, afterrun=afterrun)

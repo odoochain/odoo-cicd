@@ -418,6 +418,10 @@ class Branch(models.Model):
         # todo make button
         self._after_build(shell=shell, **kwargs)
 
+    def delete_folder_deferred(self, machine, folder):
+        with machine._shell() as shell:
+            shell.remove(folder)
+
     def _checkout_latest(self, shell, instance_folder=None, **kwargs):
         """
         Use this for getting source code. It updates also submodules.
@@ -442,16 +446,17 @@ class Branch(models.Model):
                     usage="replace_main_folder", maxage=dict(hours=2)
                 )
                 if shell2.exists(instance_folder):
-                    shell2.X(["mv", instance_folder, path2])
-                shell2.X(["mv", path, instance_folder])
-                shell2.remove(path2)
+                    shell2.safe_move_directory(instance_folder, path2)
+                shell2.safe_move_directory(path, instance_folder)
+                self.with_delay(
+                    eta=arrow.utcnow().shift(hours=3).strftime(DTF)
+                ).delete_folder_deferred(shell2.machine, str(path2))
 
         machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
         shell.logsio.write_text(f"Updating instance folder {my_name}")
         _clone_instance_folder(machine, instance_folder)
         shell.logsio.write_text(f"Cloning {my_name} to {instance_folder}")
-        # breakpoint()  # TODO debug error in 448
 
         with shell.clone(cwd=instance_folder) as shell:
             shell.logsio.write_text(f"Checking out {my_name}")

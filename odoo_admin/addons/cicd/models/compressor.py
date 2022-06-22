@@ -51,6 +51,7 @@ class Compressor(models.Model):
                 )
 
     def _start(self):
+        breakpoint()
         self.ensure_one()
         if not self.active:
             return
