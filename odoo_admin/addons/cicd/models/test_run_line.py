@@ -179,7 +179,7 @@ class CicdTestRunLine(models.AbstractModel):
 
         finally:
             self.env.cr.commit()
-            self._clean_instance_folder()
+            # self._clean_instance_folder()
 
     def _report(self, msg=None, exception=None):
         if exception:
@@ -253,7 +253,8 @@ class CicdTestRunLine(models.AbstractModel):
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
         # 22.06.2022 too many problems - directory missing in tests
-        path = path / f"testrun_{self.id}"
+        # back again
+        path = path / f"testrun_{self.run_id.id}"
         return path
 
     def _checkout_source_code(self, machine):

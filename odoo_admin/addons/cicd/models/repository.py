@@ -218,8 +218,6 @@ class Repository(models.Model):
 
         with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
             if not self._is_healthy_repository(shell, path):
-                shell.rm(path)
-
                 temppath = shell.machine._temppath(usage="clone_repo")
                 shell.X(["git-cicd", "clone", self.url, temppath])
                 shell.safe_move_directory(temppath, path)

@@ -924,7 +924,7 @@ for path in base.glob("*"):
                 shell.wait_for_postgres()
             params = ["backup", "odoo-db", dest_path]
             if dumptype:
-                params.append("--dumptype", dumptype)
+                params += ["--dumptype", dumptype]
             shell.odoo(*params)
         return dest_path
 
