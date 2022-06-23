@@ -11,6 +11,7 @@
 					<field name="duration"/>
 					<field name="state"/>
 					<field name="force_success" />
+					<button name="toggle_force_success" attrs="{'invisible': [('state', 'not in', ['failed'])]}" type="object" string="Force"/>
 					<field name="reused"/>
 					<field name="try_count" groups="base.group_no_one"/>
 					<field name="hash" groups="base.group_no_one"/>
@@ -33,6 +34,7 @@
 					<field name="max_duration"/>
 					<field name="state"/>
 					<field name="force_success" />
+					<button name="toggle_force_success" attrs="{'invisible': [('state', 'not in', ['failed'])]}" type="object" string="Force"/>
 					<field name="reused"/>
 					<field name="try_count" groups="base.group_no_one"/>
 					<field name="robot_output" invisible='1'/>
@@ -50,6 +52,7 @@
 					<field name="duration"/>
 					<field name="state"/>
 					<field name="force_success" />
+					<button name="toggle_force_success" attrs="{'invisible': [('state', 'not in', ['failed'])]}" type="object" string="Force"/>
 					<field name="reused"/>
 					<field name="try_count" groups="base.group_no_one"/>
 					<field name="project_name" groups="base.group_no_one"/>
