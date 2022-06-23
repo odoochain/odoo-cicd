@@ -179,9 +179,12 @@ class TestSettings(models.Model):
             if rec._name != "cicd.test.run":
                 rec.success_rate = 0
             else:
-                success_lines = float(
-                    len([x for x in rec.iterate_testlines() if x._is_success()])
-                )
+                try:
+                    success_lines = float(
+                        len([x for x in rec.iterate_testlines() if x._is_success()])
+                    )
+                except RetryableJobError:
+                    success_lines = 0
                 count_lines = float(len(list(rec.iterate_testlines())))
                 if not count_lines:
                     rec.success_rate = 0
