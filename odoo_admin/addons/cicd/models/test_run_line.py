@@ -166,7 +166,9 @@ class CicdTestRunLine(models.AbstractModel):
                             or "wodoo/myconfigparser.py" in msg
                             or "wodoo/click_config.py" in msg
                         ):
-                            raise RetryableJobError("Recoverable error", ignore_retry=True, seconds=60)
+                            raise RetryableJobError(
+                                "Recoverable error", ignore_retry=True, seconds=60
+                            )
 
                     else:
                         # e.g. robottests return state from run

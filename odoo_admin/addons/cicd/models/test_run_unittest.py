@@ -38,6 +38,7 @@ class UnitTest(models.Model):
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
                 "base", commit=self.run_id.commit_id.name,
+                dumptype='wodoobin',
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
             settings = SETTINGS + ("\nSERVER_WIDE_MODULES=base,web\n")

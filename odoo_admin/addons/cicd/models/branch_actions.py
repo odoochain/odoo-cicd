@@ -151,6 +151,10 @@ class Branch(models.Model):
         shell.logsio.info("Downing")
         shell.odoo("kill")
         shell.odoo("rm")
+        if "wodoo-bin" in shell.odoo("show-dump-type", dump_name)["stdout"].lower():
+            raise ValidationError(
+                "Cannot restore wodoobin dump on cicd (everything would be lost)"
+            )
         shell.logsio.info(f"Restoring {dump_name}")
         shell.odoo("-f", "restore", "odoo-db", "--no-remove-webassets", dump_name)
         if self.remove_web_assets_after_restore:
@@ -906,6 +910,7 @@ for path in base.glob("*"):
         assert ttype in ["full", "base"]
         assert isinstance(commit, str)
         self.ensure_one()
+        breakpoint()
 
         cache = json.loads(self.ensure_dump_cache or "{}")
         key = f"{ttype}.{dumptype or ''}"
