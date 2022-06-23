@@ -16,6 +16,9 @@
 					<field name="identity_key"/>
 					<field name="uuid"/>
 				</field>
+				<field name="date_done" position="after">
+					<field name="duration"/>
+				</field>
 				<field name="uuid" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</field>

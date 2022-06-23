@@ -1,3 +1,4 @@
+import arrow
 import re
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -6,6 +7,19 @@ from odoo.addons.queue_job.job import Job
 
 class queuejob(models.Model):
     _inherit = "queue.job"
+
+    duration = fields.Float("Duration", compute="_compute_duration")
+
+    @api.depends("date_started", "date_done")
+    def _compute_duration(self):
+        for rec in self:
+            if not rec.date_done or not rec.date_started:
+                rec.duration = 0
+                continue
+            rec.duration = (
+                arrow.get(rec.date_done) - arrow.get(rec.date_started)
+            ).total_seconds()
+
 
     def run_now(self):
         for self in self:
