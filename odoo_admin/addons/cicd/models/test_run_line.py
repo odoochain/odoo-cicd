@@ -159,10 +159,15 @@ class CicdTestRunLine(models.AbstractModel):
 
                         # grace -->
                         if (
-                            "No such file or directory" in msg
-                            and f"testrun_{self.run_id.id}" in msg
+                            (
+                                "No such file or directory" in msg
+                                and f"testrun_{self.run_id.id}" in msg
+                            )
+                            or "wodoo/myconfigparser.py" in msg
+                            or "wodoo/click_config.py" in msg
                         ):
                             self.state = "open"
+
                     else:
                         # e.g. robottests return state from run
                         self.state = "success"
