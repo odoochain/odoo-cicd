@@ -892,6 +892,7 @@ for path in base.glob("*"):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
+        breakpoint()
         assert ttype in ["full", "base"]
         assert isinstance(commit, str)
         self.ensure_one()

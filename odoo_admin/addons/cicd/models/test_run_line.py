@@ -106,7 +106,7 @@ class CicdTestRunLine(models.AbstractModel):
     def _onchange_force(self):
         for rec in self:
             if rec.run_id.state not in ["running"]:
-                rec.run_id._compute_success_rate()
+                rec.run_id._compute_success_state()
 
     @api.model
     def create(self, vals):

@@ -36,7 +36,7 @@ class UnitTest(models.Model):
         self.broken_tests = False
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
-                "base", commit=self.run_id.commit_id.name, dumptype="wodoobin",
+                "base", commit=self.run_id.commit_id.name,
             )
             settings = SETTINGS + ("\nSERVER_WIDE_MODULES=base,web\n")
             assert dump_path
@@ -139,7 +139,7 @@ class TestSettingsUnittest(models.Model):
 
             # make sure dump exists for all
             testrun.branch_id._ensure_dump(
-                "base", commit=testrun.commit_id.name, dumptype="wodoobin")
+                "base", commit=testrun.commit_id.name, dumptype=None)  # "wodoobin")
 
             for module, tests in unittests_to_run.items():
                 hash_value = tests["hash"]
