@@ -186,7 +186,7 @@ class Repository(models.Model):
                 if shell.exists(path):
                     # clone may happened during that clone
                     shell.remove(path)
-                shell.X(["mv", temppath, path])
+                shell.safe_move_directory(temppath, path)
                 shell.git_safe_directory(path)
             finally:
                 # if something failed cleanup
@@ -218,9 +218,10 @@ class Repository(models.Model):
 
         with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
             if not self._is_healthy_repository(shell, path):
-                shell.rm(path)
-
-                shell.X(["git-cicd", "clone", self.url, path])
+                temppath = shell.machine._temppath(usage="clone_repo")
+                shell.X(["git-cicd", "clone", self.url, temppath])
+                shell.safe_move_directory(temppath, path)
+                del temppath
         return path
 
     def _get_remotes(self, shell):

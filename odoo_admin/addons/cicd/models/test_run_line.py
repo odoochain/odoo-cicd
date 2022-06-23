@@ -106,7 +106,7 @@ class CicdTestRunLine(models.AbstractModel):
     def _onchange_force(self):
         for rec in self:
             if rec.run_id.state not in ["running"]:
-                rec.run_id._compute_success_rate()
+                rec.run_id._compute_success_state()
 
     @api.model
     def create(self, vals):
@@ -119,6 +119,9 @@ class CicdTestRunLine(models.AbstractModel):
         return res
 
     def ok(self):
+        return {"type": "ir.actions.act_window_close"}
+
+    def close_window(self):
         return {"type": "ir.actions.act_window_close"}
 
     def execute(self):
@@ -143,6 +146,11 @@ class CicdTestRunLine(models.AbstractModel):
                         logsio.info(f"Running {self.name}")
                         self._execute()
 
+                    except RetryableJobError:
+                        self.started = False
+                        self.env.cr.commit()
+                        raise
+
                     except Exception:  # pylint: disable=broad-except
                         msg = traceback.format_exc()
                         logsio.error(f"Error happened: {msg}")
@@ -164,12 +172,17 @@ class CicdTestRunLine(models.AbstractModel):
                     self.log = logfile.read_text()
                     logfile.unlink()
 
+        except RetryableJobError:
+            raise
+
         except Exception:  # pylint: disable=broad-except
             if logfile.exists():
                 logfile.unlink()
             raise
 
-        self.env.cr.commit()
+        finally:
+            self.env.cr.commit()
+            # self._clean_instance_folder()
 
     def _report(self, msg=None, exception=None):
         if exception:
@@ -213,15 +226,23 @@ class CicdTestRunLine(models.AbstractModel):
             allow_error=kwparams.get("allow_error"),
         )
 
+    def _clean_instance_folder(self):
+        machine = self.effective_machine_id
+        folder = self._get_source_path(machine)
+        with machine._shell() as shell:
+            if shell.exists(folder):
+                shell.remove(folder)
+
     def _ensure_source_and_machines(
         self, shell, start_postgres=False, settings="", reload_only_on_need=False
     ):
         self._log(
             lambda self: self._checkout_source_code(shell.machine), "checkout source"
         )
+
         lo = partial(self._lo, shell)
-        # lo = lambda *args, **kwargs: self._lo(shell, *args, **kwargs)
         self.run_id._reload(shell, settings, shell.cwd)
+
         lo("regpull", allow_error=True)
         lo("build")
         lo("kill", allow_error=True)
@@ -234,17 +255,20 @@ class CicdTestRunLine(models.AbstractModel):
         path = Path(machine._get_volume("source"))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
+        # 22.06.2022 too many problems - directory missing in tests
+        # back again
         path = path / f"testrun_{self.run_id.id}"
         return path
 
     def _checkout_source_code(self, machine):
+        breakpoint()
         assert machine._name == "cicd.machine"
 
-        with pg_advisory_lock(self.env.cr, f"testrun_{self.id}"):
+        with pg_advisory_lock(self.env.cr, f"testrun_{self.run_id.id}"):
             path = self._get_source_path(machine)
-
             with machine._shell(cwd=path.parent) as shell:
-                if not shell.exists(path / ".git"):
+
+                def refetch_dir():
                     shell.remove(path)
                     self._report("Checking out source code...")
                     self.run_id.branch_id.repo_id._technical_clone_repo(
@@ -252,27 +276,29 @@ class CicdTestRunLine(models.AbstractModel):
                         machine=machine,
                         branch=self.run_id.branch_id.name,
                     )
+                if not shell.exists(path / ".git"):
+                    refetch_dir()
 
-            def matches_commit(shell):
-                current_commit = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
-                    "stdout"
-                ].strip()
-                dirty = bool(shell.X(["git-cicd", "status", "-s"])['stdout'].strip())
-                return current_commit == self.run_id.commit_id.name and not dirty
+                def matches_commit():
+                    current_commit = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
+                        "stdout"
+                    ].strip()
+                    dirty = bool(shell.X(["git-cicd", "status", "-s"])['stdout'].strip())
+                    return current_commit == self.run_id.commit_id.name and not dirty
 
-            with shell.clone(cwd=path) as shell:
-                if not matches_commit(shell):
-                    shell.X(["git-cicd", "checkout", "-f", self.run_id.commit_id.name])
-                    if not matches_commit(shell):
-                        raise WrongShaException(
-                            (
-                                f"After force checkout directory is not clean and "
-                                f"matching test sha {self.run_id.commit_id.name}"
-                                f"in {shell.cwd}"
+                with shell.clone(cwd=path) as shell:
+                    if not matches_commit():
+                        refetch_dir()
+                        if not matches_commit():
+                            raise WrongShaException(
+                                (
+                                    f"After force checkout directory is not clean and "
+                                    f"matching test sha {self.run_id.commit_id.name}"
+                                    f"in {shell.cwd}"
+                                )
                             )
-                        )
-                self._report("Commit matches")
-                self._report(f"Checked out source code at {shell.cwd}")
+                    self._report("Commit matches")
+                    self._report(f"Checked out source code at {shell.cwd}")
 
     def cleanup(self):
         instance_folder = self._get_source_path(self.effective_machine_id)
@@ -285,7 +311,8 @@ class CicdTestRunLine(models.AbstractModel):
                 shell.odoo("down", "-v", force=True, allow_error=True)
                 shell.odoo("rm", force=True, allow_error=True)
 
-            shell.remove(instance_folder)
+            if shell.exists(instance_folder):
+                shell.remove(instance_folder)
 
     def as_job(self, suffix, afterrun=False, eta=None):
         marker = self.run_id._get_qj_marker(suffix, afterrun=afterrun)
@@ -307,10 +334,16 @@ class CicdTestRunLine(models.AbstractModel):
             ).run_id.branch_id.project_name
 
     def _is_success(self):
+        breakpoint()
         for rec in self:
             if rec.state in [False, 'open']:
                 raise RetryableJobError(
                     "Line is open - have to wait.", ignore_retry=True, seconds=30)
-            if rec.state == 'failed':
+            if rec.state == 'failed' and not rec.force_success:
                 return False
         return True
+
+    def retry(self):
+        for rec in self:
+            rec.state = 'open'
+            rec._create_worker_queuejob()

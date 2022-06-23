@@ -379,5 +379,23 @@ class ShellExecutor(BaseShellExecutor):
             else:
                 break
 
+    def git_is_dirty(self):
+        return bool(self.X(["git-cicd", "status", "-s"])['stdout'].strip())
+
     def git_safe_directory(self, path):
-        self.X(["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"])
+        self.X(
+            ["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"]
+        )
+
+    def safe_move_directory(self, src, dest):
+        src = str(Path(src))
+        dest = str(Path(dest))
+        if self.exists(dest):
+            self.remove(dest)
+
+        # keep directory ID for running processes; probably files vanished in between,
+        # then catch that error
+        self.X(["mv", src, dest], allow_error=True)
+        if self.exists(src):
+            self.X(["rsync", src + "/", dest + "/", "-ar"])
+            self.remove(src)

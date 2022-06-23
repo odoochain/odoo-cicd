@@ -51,6 +51,7 @@ class Task(models.Model):
     finished = fields.Boolean("Finished")
 
     def _compute_state(self):
+        breakpoint()
         for rec in self:
             if rec.finished:
                 if rec.state not in [DONE, FAILED]:
@@ -58,8 +59,8 @@ class Task(models.Model):
                 continue
             qj = rec._semaphore_get_queuejob()
             if not qj:
-                # keep last state as queuejobs are deleted from time to time
-                pass
+                if rec.state in ['enqueued', 'pending', 'started']:
+                    rec.state = 'failed'
             else:
                 qj = qj.sorted(lambda x: x.id, reverse=True)[0]
                 if qj.state in [DONE, FAILED]:
@@ -176,6 +177,7 @@ class Task(models.Model):
 
     def _internal_exec(self, delete_after=False):
         # functions called often block the repository access
+        breakpoint()
         if self.finished:
             return
 
@@ -210,11 +212,7 @@ class Task(models.Model):
 
                 # mini check if it is a git repository:
                 if not args.get('no_repo', False):
-                    try:
-                        shell.X(["git-cicd", "status"])
-                    except Exception:
-                        pass
-                    else:
+                    if not shell.git_is_dirty():
                         sha = shell.X([
                             "git-cicd", "log", "-n1",
                             "--format=%H"])['stdout'].strip()
@@ -281,6 +279,8 @@ class Task(models.Model):
     @api.model
     def _cron_check_states_vs_queuejobs(self):
         for task in self.search([('state', '=', STARTED)]):
+            if task.id == 605008:
+                breakpoint()
             task._compute_state()
 
     def unlink(self):

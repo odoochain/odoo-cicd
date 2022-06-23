@@ -1,4 +1,5 @@
 import base64
+import time
 import uuid
 import json
 import subprocess
@@ -462,7 +463,7 @@ echo "--------------------------------------------------------------------------
         if self == dest_machine:
             yield source_path
         else:
-            filename = tempfile.mktemp(suffix=".")
+            filename = tempfile.mktemp(suffix=".") #locally
             ssh_keyfile = self._place_ssh_credentials()
             ssh_cmd_base = f"ssh -o Batchmode=yes -o StrictHostKeyChecking=no -i"
             subprocess.run(
@@ -477,7 +478,7 @@ echo "--------------------------------------------------------------------------
             )
             try:
                 ssh_keyfile = dest_machine._place_ssh_credentials()
-                subprocess.run(
+                subprocess.check_call(
                     [
                         "rsync",
                         "-e",
@@ -491,6 +492,17 @@ echo "--------------------------------------------------------------------------
                         + str(dest_path),
                     ]
                 )
+                # wait - took some time after rsync that it appeared
+                with dest_machine._shell() as shell:
+                    for i in range(20):
+                        if shell.exists(dest_path):
+                            break
+                        time.sleep(5)
+                    else:
+                        raise Exception((
+                            "After rsync file was "
+                            f"not found on {dest_machine.name}:{dest_path}"
+                        ))
                 try:
                     yield dest_path
 

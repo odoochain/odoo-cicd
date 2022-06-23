@@ -418,6 +418,10 @@ class Branch(models.Model):
         # todo make button
         self._after_build(shell=shell, **kwargs)
 
+    def delete_folder_deferred(self, machine, folder):
+        with machine._shell() as shell:
+            shell.remove(folder)
+
     def _checkout_latest(self, shell, instance_folder=None, **kwargs):
         """
         Use this for getting source code. It updates also submodules.
@@ -442,16 +446,17 @@ class Branch(models.Model):
                     usage="replace_main_folder", maxage=dict(hours=2)
                 )
                 if shell2.exists(instance_folder):
-                    shell2.X(["mv", instance_folder, path2])
-                shell2.X(["mv", path, instance_folder])
-                shell2.remove(path2)
+                    shell2.safe_move_directory(instance_folder, path2)
+                shell2.safe_move_directory(path, instance_folder)
+                self.with_delay(
+                    eta=arrow.utcnow().shift(hours=3).strftime(DTF)
+                ).delete_folder_deferred(shell2.machine, str(path2))
 
         machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
         shell.logsio.write_text(f"Updating instance folder {my_name}")
         _clone_instance_folder(machine, instance_folder)
         shell.logsio.write_text(f"Cloning {my_name} to {instance_folder}")
-        # breakpoint()  # TODO debug error in 448
 
         with shell.clone(cwd=instance_folder) as shell:
             shell.logsio.write_text(f"Checking out {my_name}")
@@ -665,6 +670,7 @@ class Branch(models.Model):
         self._after_build(shell=shell, **kwargs)
 
     def _compress(self, shell, compress_job_id, **kwargs):
+        breakpoint()
         self.ensure_one()
         compressor = self.env["cicd.compressor"].sudo().browse(compress_job_id)
 
@@ -690,6 +696,7 @@ class Branch(models.Model):
             shell.machine,
             dest_file_path,
         ) as effective_dest_file_path:
+            breakpoint()
             compressor.last_input_size = int(
                 shell.X(["stat", "-c", "%s", effective_dest_file_path])[
                     "stdout"
@@ -881,21 +888,23 @@ for path in base.glob("*"):
                             repo_path
                         )  # make sure to avoid rm /
 
-    def _ensure_dump(self, ttype, commit):
+    def _ensure_dump(self, ttype, commit, dumptype=None):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
+        breakpoint()
         assert ttype in ["full", "base"]
         assert isinstance(commit, str)
         self.ensure_one()
 
         cache = json.loads(self.ensure_dump_cache or "{}")
-        dest_path = cache.get(ttype, {}).get(commit)
+        key = f"{ttype}.{dumptype or ''}"
+        dest_path = cache.get(key, {}).get(commit)
 
         if not dest_path:
-            dest_path = self._ensure_dump_get_dest_path(ttype, commit)
-            cache.setdefault(ttype, {})
-            cache[ttype][commit] = str(dest_path)
+            dest_path = self._ensure_dump_get_dest_path(ttype, commit, dumptype)
+            cache.setdefault(key, {})
+            cache[key][commit] = str(dest_path)
             self.ensure_dump_cache = json.dumps(cache)
             self.env.cr.commit()
 
@@ -914,10 +923,13 @@ for path in base.glob("*"):
             if ttype == "full":
                 shell.odoo("update")
                 shell.wait_for_postgres()
-            shell.odoo("backup", "odoo-db", dest_path)
+            params = ["backup", "odoo-db", dest_path]
+            if dumptype:
+                params += ["--dumptype", dumptype]
+            shell.odoo(*params)
         return dest_path
 
-    def _ensure_dump_get_dest_path(self, ttype, commit):
+    def _ensure_dump_get_dest_path(self, ttype, commit, dumptype):
         machine = self.machine_id
         instance_folder = self._get_instance_folder(machine)
         settings = self._get_settings_isolated_run()
@@ -941,10 +953,10 @@ for path in base.glob("*"):
                     ]
                     deps = json.loads(output)
                     hash = deps["hash"]
-                    return f"base_dump_{self.repo_id.short}_{hash}"
+                    return f"base_dump_{dumptype}_{self.repo_id.short}_{hash}"
 
                 elif ttype == "full":
-                    return f"all_installed_{self.repo_id.short}_{self.name}"
+                    return f"all_installed_{dumptype}_{self.repo_id.short}_{self.name}"
 
                 raise NotImplementedError(ttype)
 

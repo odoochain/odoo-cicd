@@ -51,6 +51,7 @@ class Compressor(models.Model):
                 )
 
     def _start(self):
+        breakpoint()
         self.ensure_one()
         if not self.active:
             return
@@ -99,18 +100,17 @@ class Compressor(models.Model):
         }
 
     def _get_latest_dump(self, logsio):
+        breakpoint()
         self.ensure_one()
 
         logsio.info("Identifying latest dump")
         with self.source_volume_id.machine_id._shell(
             logsio=logsio, cwd=""
         ) as source_shell:
-            output = list(
-                reversed(
-                    source_shell.X(["ls", "-trA", self.source_volume_id.name])["stdout"]
-                    .strip()
-                    .split("\n")
-                )
+            output = (
+                source_shell.X(["ls", "-tA", self.source_volume_id.name])["stdout"]
+                .strip()
+                .splitlines()
             )
 
             for line in output:
@@ -118,7 +118,6 @@ class Compressor(models.Model):
                     continue
                 if re.findall(self.regex, line):
                     return line.strip()
-                    break
             else:
                 logsio.info("No files found.")
                 return

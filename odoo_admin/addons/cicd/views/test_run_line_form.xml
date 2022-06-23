@@ -19,7 +19,7 @@
 					</sheet>
 					<footer>
 						<button name="ok" string="Save" type="object" />
-						<button special="cancel" string="Cancel" class="oe_link" />
+						<button name="close_window" string="Cancel" class="oe_link" special="cancel"/>
 					</footer>
 				</form>
 			</field>
