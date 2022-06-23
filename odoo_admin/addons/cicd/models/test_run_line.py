@@ -156,6 +156,13 @@ class CicdTestRunLine(models.AbstractModel):
                         logsio.error(f"Error happened: {msg}")
                         self.state = "failed"
                         self.exc_info = msg
+
+                        # grace -->
+                        if (
+                            "No such file or directory" in msg
+                            and f"testrun_{self.run_id.id}" in msg
+                        ):
+                            self.state = "open"
                     else:
                         # e.g. robottests return state from run
                         self.state = "success"
@@ -276,6 +283,7 @@ class CicdTestRunLine(models.AbstractModel):
                         machine=machine,
                         branch=self.run_id.branch_id.name,
                     )
+
                 if not shell.exists(path / ".git"):
                     refetch_dir()
 
@@ -283,7 +291,9 @@ class CicdTestRunLine(models.AbstractModel):
                     current_commit = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
                         "stdout"
                     ].strip()
-                    dirty = bool(shell.X(["git-cicd", "status", "-s"])['stdout'].strip())
+                    dirty = bool(
+                        shell.X(["git-cicd", "status", "-s"])["stdout"].strip()
+                    )
                     return current_commit == self.run_id.commit_id.name and not dirty
 
                 with shell.clone(cwd=path) as shell:
@@ -336,14 +346,15 @@ class CicdTestRunLine(models.AbstractModel):
     def _is_success(self):
         breakpoint()
         for rec in self:
-            if rec.state in [False, 'open']:
+            if rec.state in [False, "open"]:
                 raise RetryableJobError(
-                    "Line is open - have to wait.", ignore_retry=True, seconds=30)
-            if rec.state == 'failed' and not rec.force_success:
+                    "Line is open - have to wait.", ignore_retry=True, seconds=30
+                )
+            if rec.state == "failed" and not rec.force_success:
                 return False
         return True
 
     def retry(self):
         for rec in self:
-            rec.state = 'open'
+            rec.state = "open"
             rec._create_worker_queuejob()
