@@ -62,6 +62,7 @@
 							<field name="author_id"/>
 							<field name="assignee_id"/>
 							<field name="last_snapshot" attrs="{'invisible': [('enable_snapshots', '=', False)]}"/>
+							<field name="update_i18n"/>
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>

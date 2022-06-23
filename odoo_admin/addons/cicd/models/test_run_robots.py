@@ -65,6 +65,7 @@ class RobotTest(models.Model):
             self.run_id.branch_id._ensure_dump("full", self.run_id.commit_id.name)
         except Exception as ex:
             raise Exception("Failed to install all modules.") from ex
+        self.env.cr.commit()  # publish the dump
 
         safe_robot_file = safe_filename(self.filepath)
         self = self.with_context(testrun=f"testrun_{self.id}_robot_{safe_robot_file}")

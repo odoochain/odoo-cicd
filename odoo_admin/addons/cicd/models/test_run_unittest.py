@@ -32,39 +32,41 @@ class UnitTest(models.Model):
             rec.display_filepaths = ",".join(names)
 
     def _execute(self):
+        breakpoint()
         self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
         self.broken_tests = False
-        with self._shell(quick=True) as shell:
-            dump_path = self.run_id.branch_id._ensure_dump(
-                "base", commit=self.run_id.commit_id.name,
-            )
-            settings = SETTINGS + ("\nSERVER_WIDE_MODULES=base,web\n")
-            assert dump_path
-            self._ensure_source_and_machines(
-                shell, start_postgres=False, settings=settings
-            )
-            if not self.hash:
-                self.hash = self.test_setting_id._get_hash_for_module(
-                    shell, self.odoo_module
+        try:
+            with self._shell(quick=True) as shell:
+                dump_path = self.run_id.branch_id._ensure_dump(
+                    "base", commit=self.run_id.commit_id.name,
                 )
-                self.env.cr.commit()
-
-            if not self.run_id.no_reuse:
-                if self.test_setting_id.check_if_test_already_succeeded(
-                    self.run_id, odoo_module=self.odoo_module, hash=self.hash
-                ):
-                    self.reused = True
-                    self.state = 'success'
+                self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
+                settings = SETTINGS + ("\nSERVER_WIDE_MODULES=base,web\n")
+                assert dump_path
+                self._ensure_source_and_machines(
+                    shell, start_postgres=False, settings=settings
+                )
+                if not self.hash:
+                    self.hash = self.test_setting_id._get_hash_for_module(
+                        shell, self.odoo_module
+                    )
                     self.env.cr.commit()
-                    return
 
-            shell.odoo("down", "-v", force=True, allow_error=True)
-            shell.odoo("up", "-d", "postgres")
-            shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
-            shell.wait_for_postgres()
+                if not self.run_id.no_reuse:
+                    if self.test_setting_id.check_if_test_already_succeeded(
+                        self.run_id, odoo_module=self.odoo_module, hash=self.hash
+                    ):
+                        self.reused = True
+                        self.state = 'success'
+                        self.env.cr.commit()
+                        return
 
-            try:
-                if self.state == 'open':
+                shell.odoo("down", "-v", force=True, allow_error=True)
+                shell.odoo("up", "-d", "postgres")
+                shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
+                shell.wait_for_postgres()
+
+                try:
                     self._report(f"Installing module {self.odoo_module}")
                     shell.odoo("update", self.odoo_module, "--no-dangling-check")
                     shell.odoo("up", "-d", "postgres")
@@ -86,12 +88,19 @@ class UnitTest(models.Model):
                     if broken:
                         self.broken_tests = ",".join(broken)
                         raise Exception("Broken tests: {self.broken_tests}")
-            finally:
+                finally:
+                    self.env.cr.commit()
+                    self._report("Unittest finished")
+                    shell.odoo("kill", allow_error=True)
+                    shell.odoo("rm", allow_error=True)
+                    shell.odoo("down", "-v", force=True, allow_error=True)
+        except Exception as ex:
+            strex = str(ex)
+            if 'No such file or directory' in strex and f'testrun_{self.run_id.id}' in strex:
+                self.state = 'open'
                 self.env.cr.commit()
-                self._report("Unittest finished")
-                shell.odoo("kill", allow_error=True)
-                shell.odoo("rm", allow_error=True)
-                shell.odoo("down", "-v", force=True, allow_error=True)
+            else:
+                raise
 
     def _compute_name(self):
         for rec in self:

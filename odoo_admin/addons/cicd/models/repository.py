@@ -44,6 +44,7 @@ class Repository(models.Model):
         required=True,
         domain=[("ttype", "=", "dev")],
     )
+    update_i18n = fields.Boolean("Update I18N at updates")
     name = fields.Char("URL", required=True)
     login_type = fields.Selection(
         [

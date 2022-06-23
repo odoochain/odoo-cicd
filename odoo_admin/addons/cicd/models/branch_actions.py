@@ -65,7 +65,11 @@ class Branch(models.Model):
             try:
                 shell.logsio.info("Updating")
                 result = shell.odoo(
-                    "update", "--since-git-sha", commit, "--no-dangling-check", "--i18n"
+                    "update",
+                    "--since-git-sha",
+                    commit,
+                    "--no-dangling-check",
+                    "--i18n" if self.update_i18n else "",
                 )
 
                 if result["exit_code"]:
@@ -89,7 +93,9 @@ class Branch(models.Model):
         shell.logsio.info("Building")
         self._internal_build(shell)
         shell.logsio.info("Updating")
-        shell.odoo("update", "--no-dangling-check")  # , "--i18n")
+        shell.odoo(
+            "update", "--no-dangling-check", "--i18n" if self.update_i18n else ""
+        )
         shell.logsio.info("Upping")
         shell.odoo("up", "-d")
 
@@ -99,7 +105,12 @@ class Branch(models.Model):
         shell.logsio.info("Building")
         self._internal_build(shell)
         shell.logsio.info("Updating")
-        shell.odoo("update", "--no-dangling-check", "--installed-modules")
+        shell.odoo(
+            "update",
+            "--no-dangling-check",
+            "--installed-modules",
+            "--i18n" if self.update_i18n else "",
+        )
         shell.logsio.info("Upping")
         shell.odoo("up", "-d")
 
@@ -892,7 +903,6 @@ for path in base.glob("*"):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
-        breakpoint()
         assert ttype in ["full", "base"]
         assert isinstance(commit, str)
         self.ensure_one()

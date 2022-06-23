@@ -39,6 +39,7 @@ class GitBranch(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
     _name = "cicd.git.branch"
 
+    update_i18n = fields.Boolean("Update I18N at updates")
     force_prepare_dump = fields.Boolean("Force prepare Dump")
     is_release_branch = fields.Boolean(
         compute="_compute_is_release_branch", search="_search_release_branch"
@@ -334,6 +335,9 @@ class GitBranch(models.Model):
             )
 
         res.repo_id.apply_test_settings(res)
+
+        if 'update_i18n' not in vals:
+            res.update_i18n = res.repo_id.update_i18n
 
         return res
 
