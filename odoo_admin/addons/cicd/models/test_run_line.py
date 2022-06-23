@@ -121,6 +121,9 @@ class CicdTestRunLine(models.AbstractModel):
     def ok(self):
         return {"type": "ir.actions.act_window_close"}
 
+    def close_window(self):
+        return {"type": "ir.actions.act_window_close"}
+
     def execute(self):
         self.run_id._switch_to_running_state()
         logfile = Path(self.logfile_path)
@@ -331,11 +334,12 @@ class CicdTestRunLine(models.AbstractModel):
             ).run_id.branch_id.project_name
 
     def _is_success(self):
+        breakpoint()
         for rec in self:
             if rec.state in [False, 'open']:
                 raise RetryableJobError(
                     "Line is open - have to wait.", ignore_retry=True, seconds=30)
-            if rec.state == 'failed':
+            if rec.state == 'failed' and not rec.force_success:
                 return False
         return True
 

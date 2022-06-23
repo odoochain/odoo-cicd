@@ -180,7 +180,7 @@ class TestSettings(models.Model):
                 rec.success_rate = 0
             else:
                 success_lines = float(
-                    len([x for x in rec.iterate_testlines() if x.state == "success"])
+                    len([x for x in rec.iterate_testlines() if x._is_success()])
                 )
                 count_lines = float(len(list(rec.iterate_testlines())))
                 if not count_lines:
