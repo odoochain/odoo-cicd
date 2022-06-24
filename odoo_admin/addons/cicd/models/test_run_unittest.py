@@ -166,11 +166,6 @@ class TestSettingsUnittest(models.Model):
             if not unittests_to_run:
                 return
 
-            # make sure dump exists for all
-            testrun.branch_id._ensure_dump(
-                "base", commit=testrun.commit_id.name, dumptype=None
-            )  # "wodoobin")
-
             for module, tests in unittests_to_run.items():
                 hash_value = tests["hash"]
                 tests = tests["tests"]

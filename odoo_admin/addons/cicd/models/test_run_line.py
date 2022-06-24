@@ -134,13 +134,14 @@ class CicdTestRunLine(models.AbstractModel):
         self.state = "failed"
         self.exc_info = msg
 
-        # grace -->
-        if (
-            ("No such file or directory" in msg and f"testrun_{self.run_id.id}" in msg)
-            or "wodoo/myconfigparser.py" in msg
-            or "wodoo/click_config.py" in msg
-        ):
-            raise RetryableJobError("Recoverable error", ignore_retry=True, seconds=60)
+        # no grace anymore
+        # # grace -->
+        # if (
+        #     ("No such file or directory" in msg and f"testrun_{self.run_id.id}" in msg)
+        #     or "wodoo/myconfigparser.py" in msg
+        #     or "wodoo/click_config.py" in msg
+        # ):
+        #     raise RetryableJobError("Recoverable error", ignore_retry=True, seconds=60)
 
     def execute(self):
         self.run_id._switch_to_running_state()
@@ -349,8 +350,8 @@ class CicdTestRunLine(models.AbstractModel):
         eta = arrow.utcnow().shift(minutes=eta or 0).strftime(DTF)
         return self.with_delay(channel="testruns", identity_key=marker, eta=eta)
 
-    def _create_worker_queuejob(self, ids):
-        ids_string = ",".join(map(str, sorted(ids)))
+    def _create_worker_queuejob(self):
+        ids_string = ",".join(map(str, sorted(self.ids)))
         names = ",".join(self.mapped("name"))
         idkey = f"testrunline-{ids_string}-{names}"
         job = self.as_job(suffix=idkey).execute()
