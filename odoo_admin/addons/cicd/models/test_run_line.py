@@ -1,4 +1,5 @@
 import re
+import traceback
 from functools import partial
 import arrow
 from contextlib import contextmanager
@@ -150,69 +151,79 @@ class CicdTestRunLine(models.AbstractModel):
         logfile = Path(self[0].logfile_path)
         self.write({'state': 'running'})
         self.env.cr.commit()
-        try:
 
-            with self.get_environment_for_execute() as (shell, runenv):
-                for rec in self:
-                    try:
-                        rec.try_count = 0
-                        while rec.try_count < (rec.test_setting_id.retry_count or 1):
-                            rec.log = False
-                            if rec.run_id.do_abort:
-                                raise AbortException("Aborted by user")
-                            rec.try_count += 1
+        @contextmanager
+        def _get_env():
+            try:
+                with self.get_environment_for_execute() as (shell, runenv):
+                    yield shell, runenv
+            except RetryableJobError:
+                raise
+            except Exception as ex:
+                msg = traceback.format_exc()
+                self.filtered(lambda x: x.state == 'running').write({'state': 'failed'})
+                self.message_post(body=(
+                    "Exception at preparation occurred:\n"
+                    f"{msg}"
+                ))
+                self.env.cr.commit()
+                raise
 
-                            with rec.run_id._logsio() as logsio:
-                                logsio.info(f"Try #{rec.try_count}")
+        with _get_env() as shell, runenv:
+            for rec in self:
+                try:
+                    rec.try_count = 0
+                    while rec.try_count < (rec.test_setting_id.retry_count or 1):
+                        rec.log = False
+                        if rec.run_id.do_abort:
+                            raise AbortException("Aborted by user")
+                        rec.try_count += 1
 
-                                rec.started = fields.Datetime.now()
+                        with rec.run_id._logsio() as logsio:
+                            logsio.info(f"Try #{rec.try_count}")
+
+                            rec.started = fields.Datetime.now()
+                            rec.env.cr.commit()
+                            try:
+                                logsio.info(f"Running {rec.name}")
+                                rec._execute(shell, runenv)
+
+                            except RetryableJobError:
+                                rec.started = False
                                 rec.env.cr.commit()
-                                try:
-                                    logsio.info(f"Running {rec.name}")
-                                    rec._execute(shell, runenv)
+                                raise
 
-                                except RetryableJobError:
-                                    rec.started = False
-                                    rec.env.cr.commit()
-                                    raise
+                            except Exception:  # pylint: disable=broad-except
+                                msg = traceback.format_exc()
+                                rec.handle_run_exception(msg)
+                                logsio.error(f"Error happened: {msg}")
 
-                                except Exception:  # pylint: disable=broad-except
-                                    msg = traceback.format_exc()
-                                    rec.handle_run_exception(msg)
-                                    logsio.error(f"Error happened: {msg}")
+                            else:
+                                # e.g. robottests return state from run
+                                rec.state = "success"
+                                rec.exc_info = False
+                        end = arrow.get()
+                        rec.duration = (
+                            end - arrow.get(rec.started or arrow.utcnow())
+                        ).total_seconds()
+                        if rec.state == "success":
+                            break
 
-                                else:
-                                    # e.g. robottests return state from run
-                                    rec.state = "success"
-                                    rec.exc_info = False
-                            end = arrow.get()
-                            rec.duration = (
-                                end - arrow.get(rec.started or arrow.utcnow())
-                            ).total_seconds()
-                            if rec.state == "success":
-                                break
-
-                            rec.log = False
-                            if logfile.exists():
-                                rec.log = logfile.read_text()
-                                logfile.unlink()
-
-                    except RetryableJobError:
-                        raise
-
-                    except Exception:  # pylint: disable=broad-except
+                        rec.log = False
                         if logfile.exists():
+                            rec.log = logfile.read_text()
                             logfile.unlink()
-                        raise
 
-                    finally:
-                        rec.env.cr.commit()
-        except RetryableJobError:
-            raise
-        except Exception:
-            self.filtered(lambda x: x.state == 'running').write({'state': 'failed'})
-            self.env.cr.commit()
-            raise
+                except RetryableJobError:
+                    raise
+
+                except Exception:  # pylint: disable=broad-except
+                    if logfile.exists():
+                        logfile.unlink()
+                    raise
+
+                finally:
+                    rec.env.cr.commit()
 
     def _report(self, msg=None, exception=None):
         if exception:
