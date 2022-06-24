@@ -79,9 +79,10 @@ class CicdTestRunLine(models.AbstractModel):
     @contextmanager
     def _shell(self, quick=False):
         assert self.env.context.get("testrun")
+        project_name = self[0].project_name
         with self.effective_machine_id._shell(
-            cwd=self._get_source_path(self.effective_machine_id),
-            project_name=self.project_name,
+            cwd=self._get_source_path(self[0].effective_machine_id),
+            project_name=project_name,
         ) as shell:
             if not quick:
                 self._ensure_source_and_machines(shell)
@@ -259,13 +260,14 @@ class CicdTestRunLine(models.AbstractModel):
         settings="",
         reload_only_on_need=False,
     ):
-        assert self.batchids
-        self._log(
-            lambda self: self._checkout_source_code(shell.machine, self.batchids),
+        assert list(filter(bool, self.mapped("batchids")))
+        selfone = self[0]
+        selfone._log(
+            lambda self: self._checkout_source_code(shell.machine, selfone.batchids),
             "checkout source",
         )
 
-        lo = partial(self._lo, shell)
+        lo = partial(selfone._lo, shell)
         self.run_id._reload(shell, settings, shell.cwd)
 
         lo("regpull", allow_error=True)
@@ -276,8 +278,9 @@ class CicdTestRunLine(models.AbstractModel):
             lo("up", "-d", "postgres")
             shell.wait_for_postgres()
 
-    def _get_source_path(self, machine, batchids):
+    def _get_source_path(self, machine):
         path = Path(machine._get_volume("source"))
+        batchids = ",".join(list(set(self.mapped("batchids"))))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
         # 22.06.2022 too many problems - directory missing in tests
@@ -287,11 +290,10 @@ class CicdTestRunLine(models.AbstractModel):
         return path
 
     def _checkout_source_code(self, machine, batchids):
-        breakpoint()
         assert machine._name == "cicd.machine"
 
         with pg_advisory_lock(self.env.cr, f"testrun_{batchids}"):
-            path = self._get_source_path(machine, batchids)
+            path = self._get_source_path(machine)
             with machine._shell(cwd=path.parent) as shell:
 
                 def refetch_dir():
@@ -330,9 +332,7 @@ class CicdTestRunLine(models.AbstractModel):
                     self._report(f"Checked out source code at {shell.cwd}")
 
     def cleanup(self):
-        instance_folder = self._get_source_path(
-            self.effective_machine_id, self.batchids
-        )
+        instance_folder = self._get_source_path(self.effective_machine_id)
         breakpoint()
 
         with self.effective_machine_id._shell(

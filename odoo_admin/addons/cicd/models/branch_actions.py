@@ -910,7 +910,6 @@ for path in base.glob("*"):
         assert ttype in ["full", "base"]
         assert isinstance(commit, str)
         self.ensure_one()
-        breakpoint()
 
         cache = json.loads(self.ensure_dump_cache or "{}")
         key = f"{ttype}.{dumptype or ''}"

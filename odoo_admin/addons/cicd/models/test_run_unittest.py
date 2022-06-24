@@ -43,6 +43,8 @@ class UnitTest(models.Model):
 
     @contextmanager
     def get_environment_for_execute(self):
+        odoo_modules = ','.join(self.mapped('odoo_module'))
+        self = self.with_context(testrun=(f"testrun_{self[0].batchids}_{odoo_modules}"))
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
                 "base",
@@ -56,7 +58,7 @@ class UnitTest(models.Model):
             assert dump_path
 
             self._ensure_source_and_machines(
-                shell, start_postgres=False, settings=settings, uniqueid=ids_as_string,
+                shell, start_postgres=False, settings=settings,
             )
             shell.odoo("down", "-v", force=True, allow_error=True)
 
@@ -78,7 +80,6 @@ class UnitTest(models.Model):
 
     def _execute(self, shell, runenv):
         breakpoint()
-        self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
         self.broken_tests = False
 
         self._ensure_hash(shell)
