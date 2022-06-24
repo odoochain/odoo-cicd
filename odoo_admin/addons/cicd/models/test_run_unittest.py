@@ -62,9 +62,13 @@ class UnitTest(models.Model):
             )
             shell.odoo("down", "-v", force=True, allow_error=True)
 
-            snapname = f"snap_{self.id}"
+            snapname = f"snap_{ids_as_string}"
+            breakpoint()
             shell.odoo("up", "-d", "postgres")
-            shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
+            # shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
+            # TODO remove that, rename the database from the dump then
+            shell.odoo("db", "reset", force=True)
+            shell.odoo("snap", "remove", snapname, allow_error=True)
             shell.odoo("snap", "save", snapname)
             shell.wait_for_postgres()
 
@@ -100,10 +104,11 @@ class UnitTest(models.Model):
 
     def _execute_test_at_prepared_environment(self, shell, runenv):
         self._report(f"Installing module {self.odoo_module}")
-        shell.odoo("update", self.odoo_module, "--no-dangling-check")
         shell.odoo("snap", "restore", runenv['snapname'])
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
+        shell.odoo("update", self.odoo_module, "--no-dangling-check")
+        breakpoint()
 
         broken = []
         for path in self.filepaths.split(","):

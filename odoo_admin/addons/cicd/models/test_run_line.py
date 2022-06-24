@@ -145,6 +145,7 @@ class CicdTestRunLine(models.AbstractModel):
         #     raise RetryableJobError("Recoverable error", ignore_retry=True, seconds=60)
 
     def execute(self):
+        breakpoint()
         self.run_id._switch_to_running_state()
         logfile = Path(self[0].logfile_path)
 
@@ -362,7 +363,7 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _compute_project_name(self):
         for rec in self:
-            rec.project_name = self.with_context(
+            rec.project_name = rec.with_context(
                 testrun=f"testrun_{rec.id}"
             ).run_id.branch_id.project_name
 

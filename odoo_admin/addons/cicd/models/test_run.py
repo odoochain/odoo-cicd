@@ -335,7 +335,6 @@ class CicdTestRun(models.Model):
             yield x[0]
 
     def rerun(self):
-        breakpoint()
         # for qj in self._get_queuejobs("all", include_wait_for_finish=True):
         #     if qj["state"] not in ["done"]:
         #         raise ValidationError("There are pending jobs - cannot restart")
