@@ -148,62 +148,71 @@ class CicdTestRunLine(models.AbstractModel):
         breakpoint()
         self.run_id._switch_to_running_state()
         logfile = Path(self[0].logfile_path)
+        self.write({'state': 'running'})
+        self.env.cr.commit()
+        try:
 
-        with self.get_environment_for_execute() as (shell, runenv):
-            try:
-                self.try_count = 0
-                while self.try_count < (self.test_setting_id.retry_count or 1):
-                    self.log = False
-                    if self.run_id.do_abort:
-                        raise AbortException("Aborted by user")
-                    self.try_count += 1
+            with self.get_environment_for_execute() as (shell, runenv):
+                for rec in self:
+                    try:
+                        rec.try_count = 0
+                        while rec.try_count < (rec.test_setting_id.retry_count or 1):
+                            rec.log = False
+                            if rec.run_id.do_abort:
+                                raise AbortException("Aborted by user")
+                            rec.try_count += 1
 
-                    with self.run_id._logsio() as logsio:
-                        logsio.info(f"Try #{self.try_count}")
+                            with rec.run_id._logsio() as logsio:
+                                logsio.info(f"Try #{rec.try_count}")
 
-                        self.started = fields.Datetime.now()
-                        self.env.cr.commit()
-                        try:
-                            logsio.info(f"Running {self.name}")
-                            self._execute(shell, runenv)
+                                rec.started = fields.Datetime.now()
+                                rec.env.cr.commit()
+                                try:
+                                    logsio.info(f"Running {rec.name}")
+                                    rec._execute(shell, runenv)
 
-                        except RetryableJobError:
-                            self.started = False
-                            self.env.cr.commit()
-                            raise
+                                except RetryableJobError:
+                                    rec.started = False
+                                    rec.env.cr.commit()
+                                    raise
 
-                        except Exception:  # pylint: disable=broad-except
-                            msg = traceback.format_exc()
-                            self.handle_run_exception(msg)
-                            logsio.error(f"Error happened: {msg}")
+                                except Exception:  # pylint: disable=broad-except
+                                    msg = traceback.format_exc()
+                                    rec.handle_run_exception(msg)
+                                    logsio.error(f"Error happened: {msg}")
 
-                        else:
-                            # e.g. robottests return state from run
-                            self.state = "success"
-                            self.exc_info = False
-                    end = arrow.get()
-                    self.duration = (
-                        end - arrow.get(self.started or arrow.utcnow())
-                    ).total_seconds()
-                    if self.state == "success":
-                        break
+                                else:
+                                    # e.g. robottests return state from run
+                                    rec.state = "success"
+                                    rec.exc_info = False
+                            end = arrow.get()
+                            rec.duration = (
+                                end - arrow.get(rec.started or arrow.utcnow())
+                            ).total_seconds()
+                            if rec.state == "success":
+                                break
 
-                    self.log = False
-                    if logfile.exists():
-                        self.log = logfile.read_text()
-                        logfile.unlink()
+                            rec.log = False
+                            if logfile.exists():
+                                rec.log = logfile.read_text()
+                                logfile.unlink()
 
-            except RetryableJobError:
-                raise
+                    except RetryableJobError:
+                        raise
 
-            except Exception:  # pylint: disable=broad-except
-                if logfile.exists():
-                    logfile.unlink()
-                raise
+                    except Exception:  # pylint: disable=broad-except
+                        if logfile.exists():
+                            logfile.unlink()
+                        raise
 
-            finally:
-                self.env.cr.commit()
-                # self._clean_instance_folder()
+                    finally:
+                        rec.env.cr.commit()
+        except RetryableJobError:
+            raise
+        except Exception:
+            self.filtered(lambda x: x.state == 'running').write({'state': 'failed'})
+            self.env.cr.commit()
+            raise
 
     def _report(self, msg=None, exception=None):
         if exception:
@@ -333,8 +342,9 @@ class CicdTestRunLine(models.AbstractModel):
                     self._report(f"Checked out source code at {shell.cwd}")
 
     def cleanup(self):
+        if not self.batchids:
+            return
         instance_folder = self._get_source_path(self.effective_machine_id)
-        breakpoint()
 
         with self.effective_machine_id._shell(
             project_name=self.project_name,
@@ -370,7 +380,9 @@ class CicdTestRunLine(models.AbstractModel):
     def _is_success(self):
         breakpoint()
         for rec in self:
-            if rec.state in [False, "open"]:
+            if rec.state in [False, "open", "running"]:
+                if rec.run_id.do_abort:
+                    return False
                 raise RetryableJobError(
                     "Line is open - have to wait.", ignore_retry=True, seconds=30
                 )
