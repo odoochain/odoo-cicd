@@ -859,8 +859,8 @@ for path in base.glob("*"):
         )
 
     @contextmanager
-    def _tempinstance(self, uniqueappendix, commit=None):
-        settings = self._get_settings_isolated_run()
+    def _tempinstance(self, uniqueappendix, commit=None, dbname="odoo"):
+        settings = self._get_settings_isolated_run(dbname=dbname)
         machine = self.machine_id
         assert machine.ttype == "dev"
         self = self.with_context(testrun=uniqueappendix)
@@ -903,7 +903,7 @@ for path in base.glob("*"):
                             repo_path
                         )  # make sure to avoid rm /
 
-    def _ensure_dump(self, ttype, commit, dumptype=None):
+    def _ensure_dump(self, ttype, commit, dumptype=None, dbname="odoo"):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
@@ -912,7 +912,7 @@ for path in base.glob("*"):
         self.ensure_one()
 
         cache = json.loads(self.ensure_dump_cache or "{}")
-        key = f"{ttype}.{dumptype or ''}"
+        key = f"{ttype}.{dumptype or ''}.{dbname}"
         dest_path = cache.get(key, {}).get(commit)
 
         if not dest_path:
@@ -926,7 +926,7 @@ for path in base.glob("*"):
             if shell.exists(dest_path):
                 return dest_path
 
-        with self._tempinstance("ensuredump", commit=commit) as shell:
+        with self._tempinstance("ensuredump", commit=commit, dbname=dbname) as shell:
             breakpoint()
             shell.logsio.info(f"Creating dump file {dest_path}")
             shell.odoo("up", "-d", "postgres")

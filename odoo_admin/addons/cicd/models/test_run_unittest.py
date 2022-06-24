@@ -43,31 +43,33 @@ class UnitTest(models.Model):
 
     @contextmanager
     def get_environment_for_execute(self):
-        odoo_modules = ','.join(self.mapped('odoo_module'))
+        odoo_modules = ",".join(sorted(self.mapped("odoo_module")))
+        DBNAME = "odoo"
         self = self.with_context(testrun=(f"testrun_{self[0].batchids}_{odoo_modules}"))
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
                 "base",
                 commit=self.run_id.commit_id.name,
                 dumptype="wodoobin",
+                dbname=DBNAME,
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
-            ids_as_string = '_'.join(sorted(map(str, self.ids)))
+            ids_as_string = "_".join(sorted(map(str, self.ids)))
 
-            settings = SETTINGS + ("\nSERVER_WIDE_MODULES=base,web\n")
+            settings = SETTINGS + (f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}")
             assert dump_path
 
             self._ensure_source_and_machines(
-                shell, start_postgres=False, settings=settings,
+                shell,
+                start_postgres=False,
+                settings=settings,
             )
             shell.odoo("down", "-v", force=True, allow_error=True)
 
             snapname = f"snap_{ids_as_string}"
             breakpoint()
             shell.odoo("up", "-d", "postgres")
-            # shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
-            # TODO remove that, rename the database from the dump then
-            shell.odoo("db", "reset", force=True)
+            shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             shell.odoo("snap", "remove", snapname, allow_error=True)
             shell.odoo("snap", "save", snapname)
             shell.wait_for_postgres()
@@ -104,7 +106,7 @@ class UnitTest(models.Model):
 
     def _execute_test_at_prepared_environment(self, shell, runenv):
         self._report(f"Installing module {self.odoo_module}")
-        shell.odoo("snap", "restore", runenv['snapname'])
+        shell.odoo("snap", "restore", runenv["snapname"])
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
         shell.odoo("update", self.odoo_module, "--no-dangling-check")
@@ -148,7 +150,6 @@ class TestSettingsUnittest(models.Model):
         """
         return f"{self._name}:{self.id} - {self.tags or 'no tags'}"
 
-
     def produce_test_run_lines(self, testrun):
         """Creates lines that define a test run each based on Settings.
         For example a configuration for robottests with setting 1,2,5 will create
@@ -184,16 +185,18 @@ class TestSettingsUnittest(models.Model):
                     used_tests.append(test)
                     del test
 
-                res.append(self.env["cicd.test.run.line.unittest"].create(
-                    self.get_testrun_values(
-                        testrun,
-                        {
-                            "odoo_module": module,
-                            "filepaths": ",".join(sorted(used_tests)),
-                            "hash": hash_value,
-                        },
+                res.append(
+                    self.env["cicd.test.run.line.unittest"].create(
+                        self.get_testrun_values(
+                            testrun,
+                            {
+                                "odoo_module": module,
+                                "filepaths": ",".join(sorted(used_tests)),
+                                "hash": hash_value,
+                            },
+                        )
                     )
-                ))
+                )
                 del module
                 del tests
         return res
