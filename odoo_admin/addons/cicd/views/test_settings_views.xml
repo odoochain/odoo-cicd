@@ -10,6 +10,7 @@
 					<field name="regex"/>
 					<field name="retry_count"/>
 					<field name="timeout"/>
+					<field name="lines_per_worker"/>
 				</tree>
 			</field>
 		</record>
@@ -22,6 +23,7 @@
 					<field name="machine_id"/>
 					<field name="retry_count"/>
 					<field name="timeout"/>
+					<field name="lines_per_worker"/>
 				</tree>
 			</field>
 		</record>
@@ -32,6 +34,7 @@
 					<field name="dump_id"/>
 					<field name="retry_count"/>
 					<field name="timeout"/>
+					<field name="lines_per_worker"/>
 				</tree>
 			</field>
 		</record>

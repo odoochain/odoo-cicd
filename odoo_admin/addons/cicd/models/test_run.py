@@ -310,7 +310,7 @@ class CicdTestRun(models.Model):
             logsio.info(f"Started Testrun {self.name}")
 
         for test_setup in self.iterate_all_test_settings():
-            test_setup.as_job(test_setup.name).produce_test_run_lines(self)
+            test_setup.as_job(test_setup.name).init_testrun(self)
 
     def _compute_success_state(self):
         breakpoint()

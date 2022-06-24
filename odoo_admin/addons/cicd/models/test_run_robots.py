@@ -200,6 +200,7 @@ class TestSettingsRobotTests(models.Model):
         Args:
             testrun (odoo-model): The test run.
         """
+        res = []
         super().produce_test_run_lines(testrun)
         with self.parent_id._get_source_for_analysis() as shell:
             files = shell.odoo("list-robot-test-files")["stdout"].strip()
@@ -211,7 +212,7 @@ class TestSettingsRobotTests(models.Model):
                     continue
             parallel = self.parallel or "1"
             for parallel in parallel.split(","):
-                self.env["cicd.test.run.line.robottest"].create(
+                res.append(self.env["cicd.test.run.line.robottest"].create(
                     self.get_testrun_values(
                         testrun,
                         {
@@ -219,4 +220,5 @@ class TestSettingsRobotTests(models.Model):
                             "filepath": robotfile,
                         },
                     )
-                )
+                ))
+        return res
