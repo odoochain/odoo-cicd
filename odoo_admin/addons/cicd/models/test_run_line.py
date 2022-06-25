@@ -146,7 +146,6 @@ class CicdTestRunLine(models.AbstractModel):
         #     raise RetryableJobError("Recoverable error", ignore_retry=True, seconds=60)
 
     def execute(self):
-        breakpoint()
         self.run_id._switch_to_running_state()
         logfile = Path(self[0].logfile_path)
         self.write({'state': 'running'})
@@ -389,7 +388,6 @@ class CicdTestRunLine(models.AbstractModel):
             ).run_id.branch_id.project_name
 
     def _is_success(self):
-        breakpoint()
         for rec in self:
             if rec.state in [False, "open", "running"]:
                 if rec.run_id.do_abort:
