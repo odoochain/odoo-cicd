@@ -381,9 +381,18 @@ class ShellExecutor(BaseShellExecutor):
         return bool(self.X(["git-cicd", "status", "-s"])["stdout"].strip())
 
     def git_safe_directory(self, path):
-        self.X(
-            ["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"]
-        )
+        while True:
+            try:
+                self.X(
+                    ["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"]
+                )
+            except Exception as ex:
+                if '.gitconfig: File exists' in str(ex):
+                    time.sleep(3)
+                else:
+                    raise
+            else:
+                break
 
     def safe_move_directory(self, src, dest):
         src = str(Path(src))
