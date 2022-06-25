@@ -100,11 +100,10 @@ class TestSettingAbstract(models.AbstractModel):
         breakpoint()
         lines = self.produce_test_run_lines(testrun)
         for i in range(0, len(lines), self.lines_per_worker):
-            batch = lines[i:i+self.lines_per_worker]
+            batch = lines[i : i + self.lines_per_worker]
             ids = [x.id for x in batch]
             browse_lines = batch[0].browse(ids)
             browse_lines._create_worker_queuejob()
-
 
 class TestSettings(models.Model):
     """
@@ -139,8 +138,6 @@ class TestSettings(models.Model):
     )
     state = fields.Selection([])
 
-
-
     def _compute_testsetting_ids(self):
         for rec in self:
             rec.unittest_ids = self.env["cicd.test.settings.unittest"].search(
@@ -155,8 +152,16 @@ class TestSettings(models.Model):
 
     def _set_testsetting_ids(self):
         for rec in self:
-            for line in rec.iterate_all_test_settings():
+            # deleted?
+            lines = list(rec.iterate_all_test_settings())
+            for field in self._get_test_run_fields():
+                existing = self.env[self._fields[field].comodel_name].search([
+                    ('parent_id', '=', f'{self._name},{rec.id}')])
+                for ex in existing:
+                    if ex not in lines:
+                        ex.unlink()
 
+            for line in lines:
                 def is_transferable_value(line, field):
                     obj_field = line._fields[field]
                     if obj_field.compute and not obj_field.store:
@@ -244,7 +249,7 @@ class TestSettings(models.Model):
             rec.any_testing = any(rec[f] for f in _fields)
 
     def _is_success(self):
-        if not hasattr(self, 'iterate_testlines'):
+        if not hasattr(self, "iterate_testlines"):
             return False
         for line in self.iterate_testlines():
             if not line._is_success():
