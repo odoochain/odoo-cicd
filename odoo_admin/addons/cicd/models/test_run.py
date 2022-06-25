@@ -113,7 +113,7 @@ class CicdTestRun(models.Model):
         for rec in self:
             lines = list(rec.iterate_testlines())
             alllines = len(lines)
-            openlines = len([x for x in lines if x.state in [False, "open"]])
+            openlines = len([x for x in lines if x.state in [False, "open", "running"]])
             if not alllines:
                 rec.done_rate = 0
             else:

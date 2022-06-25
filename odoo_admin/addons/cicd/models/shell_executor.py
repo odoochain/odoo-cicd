@@ -302,9 +302,9 @@ class ShellExecutor(BaseShellExecutor):
         assert dest_path not in ["/", "/var/"]
         assert len(Path(dest_path).parts) > 2
 
-        filename = (
-            self.machine._temppath(usage="srcfile", maxage=dict(hours=1)) / "src.tar.gz"
-        )
+        remote_temp_path = self.machine._temppath(usage="srcfile", maxage=dict(hours=1))
+        filename = remote_temp_path / "src.tar.gz"
+        self.X(["mkdir", "-p", remote_temp_path])
 
         self.put(content, filename)
         try:
@@ -381,9 +381,18 @@ class ShellExecutor(BaseShellExecutor):
         return bool(self.X(["git-cicd", "status", "-s"])["stdout"].strip())
 
     def git_safe_directory(self, path):
-        self.X(
-            ["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"]
-        )
+        while True:
+            try:
+                self.X(
+                    ["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"]
+                )
+            except Exception as ex:
+                if '.gitconfig: File exists' in str(ex):
+                    time.sleep(3)
+                else:
+                    raise
+            else:
+                break
 
     def safe_move_directory(self, src, dest):
         src = str(Path(src))
