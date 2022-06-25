@@ -1,5 +1,6 @@
 import re
 import json
+import random
 import threading
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -8,10 +9,12 @@ from .test_run import SETTINGS
 from .shell_executor import ShellExecutor
 from odoo.addons.queue_job.exception import RetryableJobError
 import logging
+from contextlib import contextmanager, closing
 
 _logger = logging.getLogger()
 
 CONCURRENT_HASH_THREADS = 8  # minimum system load observed
+GRAB_OTHERS = 5
 
 
 class UnitTest(models.Model):
@@ -23,6 +26,7 @@ class UnitTest(models.Model):
     display_filepaths = fields.Text("Filepaths", compute="_compute_display_filepaths")
     hash = fields.Char("Hash", help="For using")
     broken_tests = fields.Char("Broken Tests")
+    unittests_per_worker = fields.Integer(default=5)
 
     @api.depends("filepaths")
     def _compute_display_filepaths(self):
@@ -31,68 +35,98 @@ class UnitTest(models.Model):
             names = list(map(lambda x: x.split("/")[-1], names))
             rec.display_filepaths = ",".join(names)
 
-    def _execute(self):
-        breakpoint()
-        self = self.with_context(testrun=(f"testrun_{self.id}_{self.odoo_module}"))
-        self.broken_tests = False
+    def _ensure_hash(self, shell):
+        if not self.hash:
+            self.hash = self.test_setting_id._get_hash_for_module(
+                shell, self.odoo_module
+            )
+
+    @contextmanager
+    def get_environment_for_execute(self):
+        odoo_modules = ",".join(sorted(self.mapped("odoo_module")))
+        DBNAME = "odoo"
+        self = self.with_context(testrun=(f"testrun_{self[0].batchids}_{odoo_modules}"))
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
-                "base", commit=self.run_id.commit_id.name,
+                "base",
+                commit=self.run_id.commit_id.name,
+                dumptype="wodoobin",
+                dbname=DBNAME,
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
-            settings = SETTINGS + ("\nSERVER_WIDE_MODULES=base,web\n")
+            ids_as_string = "_".join(sorted(map(str, self.ids)))
+
+            settings = SETTINGS + (f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}")
             assert dump_path
+
             self._ensure_source_and_machines(
-                shell, start_postgres=False, settings=settings
+                shell,
+                start_postgres=False,
+                settings=settings,
             )
-            if not self.hash:
-                self.hash = self.test_setting_id._get_hash_for_module(
-                    shell, self.odoo_module
-                )
-                self.env.cr.commit()
-
-            if not self.run_id.no_reuse:
-                if self.test_setting_id.check_if_test_already_succeeded(
-                    self.run_id, odoo_module=self.odoo_module, hash=self.hash
-                ):
-                    self.reused = True
-                    self.state = 'success'
-                    self.env.cr.commit()
-                    return
-
             shell.odoo("down", "-v", force=True, allow_error=True)
+
+            snapname = f"snap_{ids_as_string}"
+            breakpoint()
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
+            shell.odoo("snap", "remove", snapname, allow_error=True)
+            shell.odoo("snap", "save", snapname)
             shell.wait_for_postgres()
 
             try:
-                self._report(f"Installing module {self.odoo_module}")
-                shell.odoo("update", self.odoo_module, "--no-dangling-check")
-                shell.odoo("up", "-d", "postgres")
-                shell.wait_for_postgres()
-
-                broken = []
-                breakpoint()
-                for path in self.filepaths.split(","):
-                    self._report(f"Starting Unittest {path}")
-                    res = shell.odoo(
-                        "unittest",
-                        path,
-                        "--non-interactive",
-                        timeout=self.test_setting_id.timeout,
-                        allow_error=True,
-                    )
-                    if res["exit_code"]:
-                        broken.append(path)
-                if broken:
-                    self.broken_tests = ",".join(broken)
-                    raise Exception("Broken tests: {self.broken_tests}")
+                yield shell, {
+                    "snapname": snapname,
+                }
             finally:
-                self.env.cr.commit()
-                self._report("Unittest finished")
+                shell.odoo("snap", "remove", snapname, allow_error=True)
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
                 shell.odoo("down", "-v", force=True, allow_error=True)
+
+    def _execute(self, shell, runenv):
+        breakpoint()
+        self.broken_tests = False
+
+        self._ensure_hash(shell)
+        self.env.cr.commit()
+
+        if not self.run_id.no_reuse:
+            if self.test_setting_id.check_if_test_already_succeeded(
+                self.run_id, odoo_module=self.odoo_module, hash=self.hash
+            ):
+                self.reused = True
+                return
+
+        try:
+            self._execute_test_at_prepared_environment(shell, runenv)
+        finally:
+            self.env.cr.commit()
+            self._report("Unittest finished")
+
+    def _execute_test_at_prepared_environment(self, shell, runenv):
+        self._report(f"Installing module {self.odoo_module}")
+        shell.odoo("snap", "restore", runenv["snapname"])
+        shell.odoo("up", "-d", "postgres")
+        shell.wait_for_postgres()
+        shell.odoo("update", self.odoo_module, "--no-dangling-check")
+        breakpoint()
+
+        broken = []
+        for path in self.filepaths.split(","):
+            self._report(f"Starting Unittest {path}")
+            res = shell.odoo(
+                "unittest",
+                path,
+                "--non-interactive",
+                timeout=self.test_setting_id.timeout,
+                allow_error=True,
+            )
+            if res["exit_code"]:
+                broken.append(path)
+        if broken:
+            self.broken_tests = ",".join(broken)
+            raise Exception("Broken tests: {self.broken_tests}")
 
     def _compute_name(self):
         for rec in self:
@@ -124,6 +158,7 @@ class TestSettingsUnittest(models.Model):
         Args:
             testrun (cicd.test.run<Model>): A testrun, which is the parent of the lines.
         """
+        res = []
 
         # pylint: disable=W0212
         super().produce_test_run_lines(testrun)
@@ -138,10 +173,6 @@ class TestSettingsUnittest(models.Model):
             if not unittests_to_run:
                 return
 
-            # make sure dump exists for all
-            testrun.branch_id._ensure_dump(
-                "base", commit=testrun.commit_id.name, dumptype=None)  # "wodoobin")
-
             for module, tests in unittests_to_run.items():
                 hash_value = tests["hash"]
                 tests = tests["tests"]
@@ -154,18 +185,21 @@ class TestSettingsUnittest(models.Model):
                     used_tests.append(test)
                     del test
 
-                self.env["cicd.test.run.line.unittest"].create(
-                    self.get_testrun_values(
-                        testrun,
-                        {
-                            "odoo_module": module,
-                            "filepaths": ",".join(sorted(used_tests)),
-                            "hash": hash_value,
-                        },
+                res.append(
+                    self.env["cicd.test.run.line.unittest"].create(
+                        self.get_testrun_values(
+                            testrun,
+                            {
+                                "odoo_module": module,
+                                "filepaths": ",".join(sorted(used_tests)),
+                                "hash": hash_value,
+                            },
+                        )
                     )
                 )
                 del module
                 del tests
+        return res
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
@@ -279,7 +313,7 @@ class TestSettingsUnittest(models.Model):
         res = self.env["cicd.test.run.line.unittest"].search_count(
             [
                 ("run_id.branch_ids.repo_id", "=", testrun.branch_ids.repo_id.id),
-                ('reused', '=', False),
+                ("reused", "=", False),
                 ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
                 ("state", "=", "success"),

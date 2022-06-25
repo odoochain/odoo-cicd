@@ -35,6 +35,7 @@ class TestSettingAbstract(models.AbstractModel):
     )
     name = fields.Char(compute="_compute_name", store=False)
     machine_id = fields.Many2one("cicd.machine", string="Machine")
+    lines_per_worker = fields.Integer(string="Worker Batch", default=8)
 
     def as_job(self, suffix, afterrun=False, eta=None):
         """Puts the execution of a line into a queuejob.
@@ -95,6 +96,15 @@ class TestSettingAbstract(models.AbstractModel):
         """
         self.preparation_done = True
 
+    def init_testrun(self, testrun):
+        breakpoint()
+        lines = self.produce_test_run_lines(testrun)
+        for i in range(0, len(lines), self.lines_per_worker):
+            batch = lines[i:i+self.lines_per_worker]
+            ids = [x.id for x in batch]
+            browse_lines = batch[0].browse(ids)
+            browse_lines._create_worker_queuejob()
+
 
 class TestSettings(models.Model):
     """
@@ -128,6 +138,8 @@ class TestSettings(models.Model):
         "Success Rate [%]", compute="_compute_success_rate_factor", tracking=True
     )
     state = fields.Selection([])
+
+
 
     def _compute_testsetting_ids(self):
         for rec in self:

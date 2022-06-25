@@ -310,7 +310,7 @@ class CicdTestRun(models.Model):
             logsio.info(f"Started Testrun {self.name}")
 
         for test_setup in self.iterate_all_test_settings():
-            test_setup.as_job(test_setup.name).produce_test_run_lines(self)
+            test_setup.as_job(test_setup.name).init_testrun(self)
 
     def _compute_success_state(self):
         breakpoint()
@@ -335,7 +335,6 @@ class CicdTestRun(models.Model):
             yield x[0]
 
     def rerun(self):
-        breakpoint()
         # for qj in self._get_queuejobs("all", include_wait_for_finish=True):
         #     if qj["state"] not in ["done"]:
         #         raise ValidationError("There are pending jobs - cannot restart")

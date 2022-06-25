@@ -1,4 +1,5 @@
 import re
+import traceback
 from functools import partial
 import arrow
 from contextlib import contextmanager
@@ -28,11 +29,13 @@ class CicdTestRunLine(models.AbstractModel):
     queuejob_id = fields.Many2one("queue.job", string="Queuejob")
     machine_id = fields.Many2one("cicd.machine", string="Machine")
     duration = fields.Integer("Duration")
+    batchids = fields.Char("Batch IDS")
     state = fields.Selection(
         [
             ("open", "Open"),
             ("success", "Success"),
             ("failed", "Failed"),
+            ("running", "Running"),
         ],
         default="open",
         required=True,
@@ -70,11 +73,17 @@ class CicdTestRunLine(models.AbstractModel):
             )
 
     @contextmanager
+    def get_environment_for_execute(self):
+        # shell, dictenv
+        yield None, None
+
+    @contextmanager
     def _shell(self, quick=False):
         assert self.env.context.get("testrun")
+        project_name = self[0].project_name
         with self.effective_machine_id._shell(
-            cwd=self._get_source_path(self.effective_machine_id),
-            project_name=self.project_name,
+            cwd=self._get_source_path(self[0].effective_machine_id),
+            project_name=project_name,
         ) as shell:
             if not quick:
                 self._ensure_source_and_machines(shell)
@@ -115,7 +124,6 @@ class CicdTestRunLine(models.AbstractModel):
             vals["machine_id"] = testrun.branch_id.repo_id.machine_id.id
         res = super().create(vals)
 
-        res._create_worker_queuejob()
         return res
 
     def ok(self):
@@ -124,77 +132,98 @@ class CicdTestRunLine(models.AbstractModel):
     def close_window(self):
         return {"type": "ir.actions.act_window_close"}
 
+    def handle_run_exception(self, msg):
+        self.state = "failed"
+        self.exc_info = msg
+
+        # no grace anymore
+        # # grace -->
+        # if (
+        #     ("No such file or directory" in msg and f"testrun_{self.run_id.id}" in msg)
+        #     or "wodoo/myconfigparser.py" in msg
+        #     or "wodoo/click_config.py" in msg
+        # ):
+        #     raise RetryableJobError("Recoverable error", ignore_retry=True, seconds=60)
+
     def execute(self):
+        breakpoint()
         self.run_id._switch_to_running_state()
-        logfile = Path(self.logfile_path)
+        logfile = Path(self[0].logfile_path)
+        self.write({'state': 'running'})
+        self.env.cr.commit()
 
-        try:
+        @contextmanager
+        def _get_env():
+            try:
+                with self.get_environment_for_execute() as (shell, runenv):
+                    yield shell, runenv
+            except RetryableJobError:
+                raise
+            except Exception as ex:
+                msg = traceback.format_exc()
+                self.filtered(lambda x: x.state == 'running').write({'state': 'failed'})
+                self.message_post(body=(
+                    "Exception at preparation occurred:\n"
+                    f"{msg}"
+                ))
+                self.env.cr.commit()
+                raise
 
-            self.try_count = 0
-            while self.try_count < (self.test_setting_id.retry_count or 1):
-                self.log = False
-                if self.run_id.do_abort:
-                    raise AbortException("Aborted by user")
-                self.try_count += 1
+        with _get_env() as shell, runenv:
+            for rec in self:
+                try:
+                    rec.try_count = 0
+                    while rec.try_count < (rec.test_setting_id.retry_count or 1):
+                        rec.log = False
+                        if rec.run_id.do_abort:
+                            raise AbortException("Aborted by user")
+                        rec.try_count += 1
 
-                with self.run_id._logsio() as logsio:
-                    logsio.info(f"Try #{self.try_count}")
+                        with rec.run_id._logsio() as logsio:
+                            logsio.info(f"Try #{rec.try_count}")
 
-                    self.started = fields.Datetime.now()
-                    self.env.cr.commit()
-                    try:
-                        logsio.info(f"Running {self.name}")
-                        self._execute()
+                            rec.started = fields.Datetime.now()
+                            rec.env.cr.commit()
+                            try:
+                                logsio.info(f"Running {rec.name}")
+                                rec._execute(shell, runenv)
 
-                    except RetryableJobError:
-                        self.started = False
-                        self.env.cr.commit()
-                        raise
+                            except RetryableJobError:
+                                rec.started = False
+                                rec.env.cr.commit()
+                                raise
 
-                    except Exception:  # pylint: disable=broad-except
-                        msg = traceback.format_exc()
-                        logsio.error(f"Error happened: {msg}")
-                        self.state = "failed"
-                        self.exc_info = msg
+                            except Exception:  # pylint: disable=broad-except
+                                msg = traceback.format_exc()
+                                rec.handle_run_exception(msg)
+                                logsio.error(f"Error happened: {msg}")
 
-                        # grace -->
-                        if (
-                            (
-                                "No such file or directory" in msg
-                                and f"testrun_{self.run_id.id}" in msg
-                            )
-                            or "wodoo/myconfigparser.py" in msg
-                            or "wodoo/click_config.py" in msg
-                        ):
-                            raise RetryableJobError("Recoverable error", ignore_retry=True, seconds=60)
+                            else:
+                                # e.g. robottests return state from run
+                                rec.state = "success"
+                                rec.exc_info = False
+                        end = arrow.get()
+                        rec.duration = (
+                            end - arrow.get(rec.started or arrow.utcnow())
+                        ).total_seconds()
+                        if rec.state == "success":
+                            break
 
-                    else:
-                        # e.g. robottests return state from run
-                        self.state = "success"
-                        self.exc_info = False
-                end = arrow.get()
-                self.duration = (
-                    end - arrow.get(self.started or arrow.utcnow())
-                ).total_seconds()
-                if self.state == "success":
-                    break
+                        rec.log = False
+                        if logfile.exists():
+                            rec.log = logfile.read_text()
+                            logfile.unlink()
 
-                self.log = False
-                if logfile.exists():
-                    self.log = logfile.read_text()
-                    logfile.unlink()
+                except RetryableJobError:
+                    raise
 
-        except RetryableJobError:
-            raise
+                except Exception:  # pylint: disable=broad-except
+                    if logfile.exists():
+                        logfile.unlink()
+                    raise
 
-        except Exception:  # pylint: disable=broad-except
-            if logfile.exists():
-                logfile.unlink()
-            raise
-
-        finally:
-            self.env.cr.commit()
-            # self._clean_instance_folder()
+                finally:
+                    rec.env.cr.commit()
 
     def _report(self, msg=None, exception=None):
         if exception:
@@ -246,13 +275,20 @@ class CicdTestRunLine(models.AbstractModel):
                 shell.remove(folder)
 
     def _ensure_source_and_machines(
-        self, shell, start_postgres=False, settings="", reload_only_on_need=False
+        self,
+        shell,
+        start_postgres=False,
+        settings="",
+        reload_only_on_need=False,
     ):
-        self._log(
-            lambda self: self._checkout_source_code(shell.machine), "checkout source"
+        assert list(filter(bool, self.mapped("batchids")))
+        selfone = self[0]
+        selfone._log(
+            lambda self: self._checkout_source_code(shell.machine, selfone.batchids),
+            "checkout source",
         )
 
-        lo = partial(self._lo, shell)
+        lo = partial(selfone._lo, shell)
         self.run_id._reload(shell, settings, shell.cwd)
 
         lo("regpull", allow_error=True)
@@ -265,18 +301,19 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _get_source_path(self, machine):
         path = Path(machine._get_volume("source"))
+        batchids = ",".join(list(set(self.mapped("batchids"))))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
         # 22.06.2022 too many problems - directory missing in tests
         # back again
-        path = path / f"testrun_{self.run_id.id}"
+        # better structure with prepare environment
+        path = path / f"testrun_{batchids}"
         return path
 
-    def _checkout_source_code(self, machine):
-        breakpoint()
+    def _checkout_source_code(self, machine, batchids):
         assert machine._name == "cicd.machine"
 
-        with pg_advisory_lock(self.env.cr, f"testrun_{self.run_id.id}"):
+        with pg_advisory_lock(self.env.cr, f"testrun_{batchids}"):
             path = self._get_source_path(machine)
             with machine._shell(cwd=path.parent) as shell:
 
@@ -316,17 +353,18 @@ class CicdTestRunLine(models.AbstractModel):
                     self._report(f"Checked out source code at {shell.cwd}")
 
     def cleanup(self):
+        if not self.batchids:
+            return
         instance_folder = self._get_source_path(self.effective_machine_id)
-        breakpoint()
 
         with self.effective_machine_id._shell(
             project_name=self.project_name,
         ) as shell:
             if shell.exists(instance_folder):
-                shell.odoo("down", "-v", force=True, allow_error=True)
-                shell.odoo("rm", force=True, allow_error=True)
+                with shell.clone(cwd=instance_folder) as shell2:
+                    shell2.odoo("down", "-v", force=True, allow_error=True)
+                    shell2.odoo("rm", force=True, allow_error=True)
 
-            if shell.exists(instance_folder):
                 shell.remove(instance_folder)
 
     def as_job(self, suffix, afterrun=False, eta=None):
@@ -335,23 +373,27 @@ class CicdTestRunLine(models.AbstractModel):
         return self.with_delay(channel="testruns", identity_key=marker, eta=eta)
 
     def _create_worker_queuejob(self):
-        idkey = f"testrunline-{self.id}-{self.name}"
+        ids_string = ",".join(map(str, sorted(self.ids)))
+        names = ",".join(self.mapped("name"))
+        idkey = f"testrunline-{ids_string}-{names}"
         job = self.as_job(suffix=idkey).execute()
         jobs = self.env["queue.job"].search([("uuid", "=", job.uuid)])
         if not jobs:
             raise Exception("Could not create queuejob")
-        self.queuejob_id = jobs[0]
+        self.write({"queuejob_id": jobs[0], "batchids": ids_string})
 
     def _compute_project_name(self):
         for rec in self:
-            rec.project_name = self.with_context(
+            rec.project_name = rec.with_context(
                 testrun=f"testrun_{rec.id}"
             ).run_id.branch_id.project_name
 
     def _is_success(self):
         breakpoint()
         for rec in self:
-            if rec.state in [False, "open"]:
+            if rec.state in [False, "open", "running"]:
+                if rec.run_id.do_abort:
+                    return False
                 raise RetryableJobError(
                     "Line is open - have to wait.", ignore_retry=True, seconds=30
                 )
