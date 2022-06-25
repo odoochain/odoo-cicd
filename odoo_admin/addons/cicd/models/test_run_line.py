@@ -169,7 +169,7 @@ class CicdTestRunLine(models.AbstractModel):
                 self.env.cr.commit()
                 raise
 
-        with _get_env() as shell, runenv:
+        with _get_env() as (shell, runenv):
             for rec in self:
                 try:
                     rec.try_count = 0

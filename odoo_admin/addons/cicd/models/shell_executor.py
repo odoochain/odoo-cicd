@@ -302,9 +302,9 @@ class ShellExecutor(BaseShellExecutor):
         assert dest_path not in ["/", "/var/"]
         assert len(Path(dest_path).parts) > 2
 
-        filename = (
-            self.machine._temppath(usage="srcfile", maxage=dict(hours=1)) / "src.tar.gz"
-        )
+        remote_temp_path = self.machine._temppath(usage="srcfile", maxage=dict(hours=1))
+        filename = remote_temp_path / "src.tar.gz"
+        self.X(["mkdir", "-p", remote_temp_path])
 
         self.put(content, filename)
         try:
