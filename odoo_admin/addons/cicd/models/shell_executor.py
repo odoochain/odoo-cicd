@@ -301,16 +301,14 @@ class ShellExecutor(BaseShellExecutor):
     def extract_zip(self, content, dest_path):
         assert dest_path not in ["/", "/var/"]
         assert len(Path(dest_path).parts) > 2
-        filename = str(
-            Path(tempfile._get_default_temppath())
-            / next(tempfile._get_candidate_names())
+
+        filename = (
+            self.machine._temppath(usage="srcfile", maxage=dict(hours=1)) / "src.tar.gz"
         )
+
         self.put(content, filename)
         try:
-            temppath = str(
-                Path(tempfile._get_default_temppath())
-                / next(tempfile._get_candidate_names())
-            )
+            temppath = self.machine._temppath(usage="srcfile", maxage=dict(hours=1))
             self.X(["mkdir", "-p", temppath])
             self.X(["tar", "xfz", filename], cwd=temppath)
             try:
@@ -380,7 +378,7 @@ class ShellExecutor(BaseShellExecutor):
                 break
 
     def git_is_dirty(self):
-        return bool(self.X(["git-cicd", "status", "-s"])['stdout'].strip())
+        return bool(self.X(["git-cicd", "status", "-s"])["stdout"].strip())
 
     def git_safe_directory(self, path):
         self.X(
