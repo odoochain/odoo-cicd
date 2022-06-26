@@ -448,6 +448,7 @@ class ReleaseItem(models.Model):
 
         elif self.state == "integrating":
             # check if test done
+            breakpoint()
             runs = self.item_branch_id.latest_commit_id.test_run_ids
             open_runs = runs.filtered(lambda x: x.state not in ["failed", "success"])
             success = "success" in runs.mapped("state")

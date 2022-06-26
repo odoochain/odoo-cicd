@@ -505,9 +505,7 @@ class Branch(models.Model):
                 shell.X(["git-cicd", "branch", "-D", branch])
                 del branch
 
-            current_branch = shell.X(["git-cicd", "branch", "--show-current"])[
-                "stdout"
-            ].strip()
+            current_branch = shell.current_branch()
             if not current_branch:
                 raise Exception("Somehow no current branch found")
             try:

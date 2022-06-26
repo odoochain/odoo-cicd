@@ -384,10 +384,17 @@ class ShellExecutor(BaseShellExecutor):
         while True:
             try:
                 self.X(
-                    ["git-cicd", "config", "--global", "--replace-all", "safe.directory", "*"]
+                    [
+                        "git-cicd",
+                        "config",
+                        "--global",
+                        "--replace-all",
+                        "safe.directory",
+                        "*",
+                    ]
                 )
             except Exception as ex:
-                if '.gitconfig: File exists' in str(ex):
+                if ".gitconfig: File exists" in str(ex):
                     time.sleep(3)
                 else:
                     raise
@@ -406,3 +413,9 @@ class ShellExecutor(BaseShellExecutor):
         if self.exists(src):
             self.X(["rsync", src + "/", dest + "/", "-ar"])
             self.remove(src)
+
+    def current_branch(self):
+        current_branch = self.X(["git-cicd", "branch", "--show-current"])[
+            "stdout"
+        ].strip()
+        return current_branch
