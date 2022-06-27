@@ -161,7 +161,7 @@ class CicdTestRunLine(models.AbstractModel):
             except Exception as ex:
                 msg = traceback.format_exc()
                 self.filtered(lambda x: x.state == 'running').write({'state': 'failed'})
-                self.message_post(body=(
+                self.run_id.message_post(body=(
                     "Exception at preparation occurred:\n"
                     f"{msg}"
                 ))

@@ -245,7 +245,6 @@ class Repository(models.Model):
         branch = branch.strip()
 
         if any(x in branch for x in "():?*/\\!\"'"):
-            breakpoint()
             raise InvalidBranchName(branch)
         return branch
 
@@ -745,7 +744,14 @@ class Repository(models.Model):
                     )
                 shell.X(["git-cicd", "remote", "set-url", "origin", self.url])
                 shell.logsio.info("Pushing tags")
-                shell.X(["git-cicd", "push", "--tags"])
+                shell.X(["git-cicd", "branch", "-u", f"origin/{dest.name}"])
+                shell.X(
+                    [
+                        "git-cicd",
+                        "push",
+                        "--tags",
+                    ]
+                )
                 shell.logsio.info("Pushing ")
                 shell.X(["git-cicd", "push"])
                 mergecommitid = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
@@ -910,7 +916,6 @@ class Repository(models.Model):
         return result
 
     def apply_test_settings_to_all_branches(self):
-        breakpoint()
         for rec in self:
             for branch in rec.branch_ids:
                 rec.apply_test_settings(branch)
