@@ -14,13 +14,15 @@
 					<th>Success-Rate</th>
 					<td>
 						<t t-esc="obj.success_rate"/>
-%</td>
+						<span>%</span>
+					</td>
 				</tr>
 				<tr>
 					<th>Duration</th>
 					<td>
 						<t t-esc="obj.duration"/>
-seconds</td>
+						<span>seconds</span>
+					</td>
 				</tr>
 			</table>
 			<h2>Failed Tests</h2>
