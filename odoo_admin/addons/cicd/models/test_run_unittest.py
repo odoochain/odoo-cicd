@@ -27,6 +27,7 @@ class UnitTest(models.Model):
     hash = fields.Char("Hash", help="For using")
     broken_tests = fields.Char("Broken Tests")
     unittests_per_worker = fields.Integer(default=5)
+    tags = fields.Char("Tags")
 
     @api.depends("filepaths")
     def _compute_display_filepaths(self):

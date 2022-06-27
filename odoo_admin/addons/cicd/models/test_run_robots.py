@@ -42,6 +42,7 @@ class RobotTest(models.Model):
     max_duration = fields.Float("Max Duration [s]")
     queuejob_log = fields.Binary("Queuejob Log")
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
+    tags = fields.Char("Tags")
 
     def _queuejob_log_filename(self):
         for rec in self:
@@ -84,7 +85,6 @@ class RobotTest(models.Model):
             shell.odoo("down", "-v", force=True, allow_error=True)
 
             snapname = f"snap_{ids_as_string}"
-            breakpoint()
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             shell.odoo("snap", "remove", snapname, allow_error=True)
@@ -113,14 +113,19 @@ class RobotTest(models.Model):
 
         shell.odoo("up", "-d")
         shell.wait_for_postgres()
-        output = shell.odoo(
+        cmd = [
             "robot",
             "--parallel",
             self.parallel,
             "--output-json",
             "-p",
             "password=1",
-            self.filepath,
+        ]
+        if self.tags:
+            cmd += ["--tags", self.tags]
+        cmd += [self.filepath]
+        output = shell.odoo(
+            *cmd,
             timeout=self.test_setting_id.timeout,
             allow_error=True,
         )["stdout"].split("---!!!---###---")
