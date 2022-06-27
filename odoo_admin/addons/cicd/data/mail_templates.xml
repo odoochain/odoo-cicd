@@ -82,10 +82,10 @@ seconds</td>
 								<t t-esc="commit and commit.date"/>
 							</p>
 							<p t-if="branch.enduser_summary">
-								<t t-esc="branch.enduser_summary"/>
+								<t t-raw="branch.enduser_summary.replace('\n', '&amp;lt;br/&amp;gt;')"/>
 							</p>
 							<p t-if="branch.enduser_summary_ticketsystem">
-								<t t-esc="branch.enduser_summary_ticketsystem"/>
+								<t t-raw="branch.enduser_summary_ticketsystem.replace('\n', '&amp;lt;br/&amp;gt;')"/>
 							</p>
 						</li>
 					</ul>
