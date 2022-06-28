@@ -17,7 +17,7 @@ repos:
   patches:
   - queue.patches
   path: odoo_admin/addons/queue
-  sha: 5fe8275131dcba1d8b23d602ab75d3051c8e4bdd
+  sha: f02dd13efecc70f40f18397bdf971bcfd6ac998d
   type: integrated
   url: https://github.com/OCA/queue.git
 - branch: 15.0
