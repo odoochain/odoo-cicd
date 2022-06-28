@@ -11,7 +11,11 @@ from contextlib import contextmanager, closing
 from .test_run import SETTINGS
 
 ROBOT_SETTINGS = SETTINGS + (
-    "\n" "RUN_ODOO_QUEUEJOBS=1\n" "RUN_ODOO_CRONJOBS=1\n" "RUN_ROBOT=1\n"
+    "\n"
+    "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=0\n"
+    "RUN_ODOO_QUEUEJOBS=1\n"
+    "RUN_ODOO_CRONJOBS=1\n"
+    "RUN_ROBOT=1\n"
 )
 
 
@@ -73,7 +77,7 @@ class RobotTest(models.Model):
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
             ids_as_string = "_".join(sorted(map(str, self.ids)))
 
-            settings = SETTINGS + (f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}")
+            settings = ROBOT_SETTINGS + (f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}")
             assert dump_path
 
             self._ensure_source_and_machines(
@@ -108,10 +112,11 @@ class RobotTest(models.Model):
         shell.odoo("snap", "restore", runenv["snapname"])
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
+        shell.odoo("up", "-d", "odoo_queuejobs")
         shell.odoo("up", "-d", "odoo")
         shell.odoo("up", "-d")
         shell.wait_for_postgres()
-        time.sleep((self.try_count - 1) * 20)   # perhaps wait
+        time.sleep((self.try_count - 1) * 20)  # perhaps wait
         cmd = [
             "robot",
             "--parallel",
