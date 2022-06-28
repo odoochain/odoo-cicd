@@ -322,8 +322,8 @@ class CicdTestRunLine(models.AbstractModel):
                         machine=machine,
                         branch=self.run_id.branch_id.name,
                     )
-                    with shell.clone(cwd=path) as shell:
-                        shell.checkout_commit(self.run_id.commit_id.name)
+                    with shell.clone(cwd=path) as shell2:
+                        shell2.checkout_commit(self.run_id.commit_id.name)
 
                 if not shell.exists(path / ".git"):
                     refetch_dir()
