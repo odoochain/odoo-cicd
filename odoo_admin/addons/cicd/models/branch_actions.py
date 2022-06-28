@@ -925,6 +925,7 @@ for path in base.glob("*"):
             shell.logsio.info(f"Dumping to {dest_path}")
             if ttype == "full":
                 shell.odoo("update", timeout=60 * 30)
+                shell.odoo('turn-into-dev')
                 shell.wait_for_postgres()
             params = ["backup", "odoo-db", dest_path]
             if dumptype:
@@ -963,7 +964,7 @@ for path in base.glob("*"):
                     return f"base_dump_{dumptype}_{self.repo_id.short}_{hash}"
 
                 elif ttype == "full":
-                    return f"all_installed_{dumptype}_{self.repo_id.short}_{commit}"
+                    return f"full_{dumptype}_{self.repo_id.short}_{commit}"
 
                 raise NotImplementedError(ttype)
 

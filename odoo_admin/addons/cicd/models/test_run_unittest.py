@@ -44,7 +44,7 @@ class UnitTest(models.Model):
 
     @contextmanager
     def get_environment_for_execute(self):
-        odoo_modules = ",".join(sorted(self.mapped("odoo_module")))
+        breakpoint()
         DBNAME = "odoo"
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(

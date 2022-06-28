@@ -146,23 +146,26 @@ class CicdTestRunLine(models.AbstractModel):
     def execute(self):
         self.run_id._switch_to_running_state()
         logfile = Path(self[0].logfile_path)
-        self.write({'state': 'running'})
+        self.write({"state": "running"})
         self.env.cr.commit()
 
         @contextmanager
         def _get_env():
             try:
-                with self.get_environment_for_execute() as (shell, runenv):
+                breakpoint()
+                with self._get_contexted().get_environment_for_execute() as (
+                    shell,
+                    runenv,
+                ):
                     yield shell, runenv
             except RetryableJobError:
                 raise
             except Exception as ex:
                 msg = traceback.format_exc()
-                self.filtered(lambda x: x.state == 'running').write({'state': 'failed'})
-                self.run_id.message_post(body=(
-                    "Exception at preparation occurred:\n"
-                    f"{msg}"
-                ))
+                self.filtered(lambda x: x.state == "running").write({"state": "failed"})
+                self.run_id.message_post(
+                    body=("Exception at preparation occurred:\n" f"{msg}")
+                )
                 self.env.cr.commit()
                 raise
 
@@ -338,7 +341,6 @@ class CicdTestRunLine(models.AbstractModel):
                     return current_commit == self.run_id.commit_id.name and not dirty
 
                 with shell.clone(cwd=path) as shell:
-                    breakpoint()
                     if not matches_commit():
                         refetch_dir()
                         if not matches_commit():
@@ -382,10 +384,14 @@ class CicdTestRunLine(models.AbstractModel):
             raise Exception("Could not create queuejob")
         self.write({"queuejob_id": jobs[0], "batchids": ids_string})
 
+    def _get_contexted(self):
+        breakpoint()
+        batchids = ','.join(list(sorted(set(self.mapped('batchids')))))
+        return self.with_context(testrun=f"testrun_{batchids}")
+
     def _compute_project_name(self):
         for rec in self:
-            batchids = rec.batchids
-            rec_testrun = rec.with_context(testrun=f"testrun_{batchids}")
+            rec_testrun = rec._get_contexted()
             project_name = rec_testrun.run_id.branch_id.project_name
             rec.project_name = project_name
 

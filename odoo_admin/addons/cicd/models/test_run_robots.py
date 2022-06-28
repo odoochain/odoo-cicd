@@ -1,5 +1,6 @@
 # pylint: disable=self-cls-assignment
 # pylint: disable=R0903
+import time
 import re
 import json
 import base64
@@ -100,18 +101,17 @@ class RobotTest(models.Model):
                 shell.odoo("down", "-v", force=True, allow_error=True)
 
     def _execute(self, shell, runenv):
-        breakpoint()
         safe_robot_file = safe_filename(self.filepath)
-        self = self.with_context(testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
 
         self._reset_fields()
 
         shell.odoo("snap", "restore", runenv["snapname"])
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
-
+        shell.odoo("up", "-d", "odoo")
         shell.odoo("up", "-d")
         shell.wait_for_postgres()
+        time.sleep((self.try_count - 1) * 20)   # perhaps wait
         cmd = [
             "robot",
             "--parallel",
