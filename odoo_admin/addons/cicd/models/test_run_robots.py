@@ -63,9 +63,7 @@ class RobotTest(models.Model):
 
     @contextmanager
     def get_environment_for_execute(self):
-        names = ",".join(sorted(self.mapped("name")))
         DBNAME = "odoo"
-        self = self.with_context(testrun=(f"testrun_{self[0].batchids}_{names}"))
         with self._shell(quick=True) as shell:
             # there could be errors at install all
             dump_path = self.run_id.branch_id._ensure_dump(
@@ -102,6 +100,7 @@ class RobotTest(models.Model):
                 shell.odoo("down", "-v", force=True, allow_error=True)
 
     def _execute(self, shell, runenv):
+        breakpoint()
         safe_robot_file = safe_filename(self.filepath)
         self = self.with_context(testrun=f"testrun_{self.id}_robot_{safe_robot_file}")
 

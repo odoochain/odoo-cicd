@@ -68,9 +68,8 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _compute_machine(self):
         for rec in self:
-            rec.effective_machine_id = (
-                rec.machine_id or rec.run_id.branch_id.repo_id.machine_id
-            )
+            machine = rec.machine_id or rec.run_id.branch_id.repo_id.machine_id
+            rec.effective_machine_id = machine
 
     @contextmanager
     def get_environment_for_execute(self):
@@ -79,7 +78,6 @@ class CicdTestRunLine(models.AbstractModel):
 
     @contextmanager
     def _shell(self, quick=False):
-        assert self.env.context.get("testrun")
         project_name = self[0].project_name
         with self.effective_machine_id._shell(
             cwd=self._get_source_path(self[0].effective_machine_id),
@@ -324,6 +322,8 @@ class CicdTestRunLine(models.AbstractModel):
                         machine=machine,
                         branch=self.run_id.branch_id.name,
                     )
+                    with shell.clone(cwd=path) as shell2:
+                        shell2.checkout_commit(self.run_id.commit_id.name)
 
                 if not shell.exists(path / ".git"):
                     refetch_dir()
@@ -338,6 +338,7 @@ class CicdTestRunLine(models.AbstractModel):
                     return current_commit == self.run_id.commit_id.name and not dirty
 
                 with shell.clone(cwd=path) as shell:
+                    breakpoint()
                     if not matches_commit():
                         refetch_dir()
                         if not matches_commit():
@@ -383,9 +384,10 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _compute_project_name(self):
         for rec in self:
-            rec.project_name = rec.with_context(
-                testrun=f"testrun_{rec.id}"
-            ).run_id.branch_id.project_name
+            batchids = rec.batchids
+            rec_testrun = rec.with_context(testrun=f"testrun_{batchids}")
+            project_name = rec_testrun.run_id.branch_id.project_name
+            rec.project_name = project_name
 
     def _is_success(self):
         for rec in self:

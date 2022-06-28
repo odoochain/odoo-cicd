@@ -73,8 +73,7 @@ class Branch(models.Model):
         if not issue:
             return
         self.jira_json = json.dumps(issue.raw, indent=4)
-        enduser_summary_ticketsystem = \
-            [issue.raw['fields']['description']]
+        enduser_summary_ticketsystem = []
         self.name_ticketsystem = issue.raw['fields']['summary'] or ''
 
         it_issue = issue
