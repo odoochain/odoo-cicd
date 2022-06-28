@@ -14,9 +14,9 @@ repos:
   type: integrated
   url: https://github.com/odoo/odoo
 - branch: 15.0
-  path: odoo_admin/addons/queue
   patches:
-    - queue.patches
+  - queue.patches
+  path: odoo_admin/addons/queue
   sha: 5fe8275131dcba1d8b23d602ab75d3051c8e4bdd
   type: integrated
   url: https://github.com/OCA/queue.git
@@ -27,6 +27,7 @@ repos:
   url: https://github.com/OCA/web.git
 - branch: 15.0
   path: odoo_admin/addons_robot
+  sha: 10441fe65640b9be0cd71b28c389c6466dc3b2be
   type: integrated
   url: https://github.com/marcwimmer/odoo-robot_utils
 - branch: 15.0
