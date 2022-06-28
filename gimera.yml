@@ -37,6 +37,6 @@ repos:
   url: ssh://git@github.com/marcwimmer/odoo-visualize-queries.git
 - branch: 15.0
   path: odoo_admin/addons/social
-  sha: cfd3ba42eca52e9df5b87efe65acdfc92fc31c34
+  sha: e025b645865e0698d614a2250ae5522bdff2aa4a
   type: integrated
   url: https://github.com/OCA/social.git
