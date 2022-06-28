@@ -4,6 +4,7 @@
 from odoo import api, fields, models, _
 from odoo.tools.float_utils import float_round, float_is_zero
 from odoo.exceptions import UserError
+from odoo.osv.expression import AND
 from dateutil.relativedelta import relativedelta
 
 
@@ -89,12 +90,20 @@ class StockMove(models.Model):
         vals['purchase_line_id'] = self.purchase_line_id.id
         return vals
 
+    def _prepare_procurement_values(self):
+        proc_values = super()._prepare_procurement_values()
+        if self.restrict_partner_id:
+            proc_values['supplierinfo_name'] = self.restrict_partner_id
+            self.restrict_partner_id = False
+        return proc_values
+
     def _clean_merged(self):
         super(StockMove, self)._clean_merged()
         self.write({'created_purchase_line_id': False})
 
     def _get_upstream_documents_and_responsibles(self, visited):
-        if self.created_purchase_line_id and self.created_purchase_line_id.state not in ('draft', 'done', 'cancel'):
+        if self.created_purchase_line_id and self.created_purchase_line_id.state not in ('done', 'cancel') \
+                and (self.created_purchase_line_id.state != 'draft' or self._context.get('include_draft_documents')):
             return [(self.created_purchase_line_id.order_id, self.created_purchase_line_id.order_id.user_id, visited)]
         elif self.purchase_line_id and self.purchase_line_id.state not in ('done', 'cancel'):
             return[(self.purchase_line_id.order_id, self.purchase_line_id.order_id.user_id, visited)]
@@ -248,9 +257,10 @@ class Orderpoint(models.Model):
 
     def _get_replenishment_order_notification(self):
         self.ensure_one()
-        order = self.env['purchase.order.line'].search([
-            ('orderpoint_id', 'in', self.ids)
-        ], limit=1).order_id
+        domain = [('orderpoint_id', 'in', self.ids)]
+        if self.env.context.get('written_date'):
+            domain = AND([domain, [('write_date', '>', self.env.context.get('written_after'))]])
+        order = self.env['purchase.order.line'].search(domain, limit=1).order_id
         if order:
             action = self.env.ref('purchase.action_rfq_form')
             return {
@@ -293,7 +303,8 @@ class Orderpoint(models.Model):
 
     def _get_orderpoint_procurement_date(self):
         date = super()._get_orderpoint_procurement_date()
-        date -= relativedelta(days=self.company_id.po_lead)
+        if any(rule.action == 'buy' for rule in self.rule_ids):
+            date -= relativedelta(days=self.company_id.po_lead)
         return date
 
 

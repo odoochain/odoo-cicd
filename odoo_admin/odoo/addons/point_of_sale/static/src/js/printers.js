@@ -30,7 +30,11 @@ class PrintResultGenerator {
             successful: false,
             message: {
                 title: _t('Connection to the printer failed'),
-                body: _t('Please check if the printer is still connected.'),
+                body: _t('Please check if the printer is still connected. \n' +
+                    'Some browsers don\'t allow HTTP calls from websites to devices in the network (for security reasons). ' +
+                    'If it is the case, you will need to follow Odoo\'s documentation for ' +
+                    '\'Self-signed certificate for ePOS printers\' and \'Secure connection (HTTPS)\' to solve the issue'
+                ),
             },
         });
     }
@@ -99,7 +103,7 @@ var PrinterMixin = {
             html2canvas(self.receipt[0], {
                 onparsed: function(queue) {
                     queue.stack.ctx.height = Math.ceil(self.receipt.outerHeight() + self.receipt.offset().top);
-                    queue.stack.ctx.width = Math.ceil(self.receipt.outerWidth() + self.receipt.offset().left);
+                    queue.stack.ctx.width = Math.ceil(self.receipt.outerWidth() + 2 * self.receipt.offset().left);
                 },
                 onrendered: function (canvas) {
                     $('.pos-receipt-print').empty();
