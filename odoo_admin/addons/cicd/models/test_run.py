@@ -198,7 +198,7 @@ class CicdTestRun(models.Model):
                 break
         else:
             raise RetryableJobError(
-                ("Error at reload - compose config not found {docker_compose_config}"),
+                (f"Error at reload - compose config not found {docker_compose_config}"),
                 seconds=20,
                 ignore_retry=True,
             )

@@ -107,6 +107,9 @@ class ShellExecutor(BaseShellExecutor):
                 self.logsio.info(f"Path {path} exists and is erased now.")
             self._internal_execute(["rm", "-Rf", path])
             if self.exists(path):
+                self._internal_execute(["sudo", "rm", "-Rf", path])
+
+            if self.exists(path):
                 raise UserError(f"Removing of {path} failed.")
         else:
             if self.logsio:
