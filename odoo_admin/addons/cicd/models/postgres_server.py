@@ -101,7 +101,6 @@ class PostgresServer(models.Model):
                 rec.filedbsizes.write_text(json.dumps(dbs, indent=4))
 
     def update_databases(self):
-        self.ensure_one()
         for rec in self:
             if not rec.filedbsizes.exists():
                 continue
