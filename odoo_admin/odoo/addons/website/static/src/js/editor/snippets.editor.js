@@ -67,17 +67,7 @@ weSnippetEditor.SnippetsMenu.include({
         });
         FontFamilyPickerUserValueWidget.prototype.fontVariables = fontVariables;
 
-        const ret = this._super(...arguments);
-
-        // TODO adapt in master. This patches the embed code snippet
-        // in stable versions.
-        const $sbody = this.$snippets.find('[data-snippet="s_embed_code"]');
-        if ($sbody.length) {
-            $sbody[0].classList.remove('o_half_screen_height');
-            $sbody[0].classList.add('pt64', 'pb64');
-        }
-
-        return ret;
+        return this._super(...arguments);
     },
     /**
      * Depending of the demand, reconfigure they gmap key or configure it
@@ -222,7 +212,7 @@ weSnippetEditor.SnippetsMenu.include({
     /**
      * Activates the button to animate text if the selection is in an
      * animated text element or deactivates the button if not.
-     *
+     * 
      * @private
      */
     _toggleAnimatedTextButton() {
@@ -236,7 +226,7 @@ weSnippetEditor.SnippetsMenu.include({
     /**
      * Displays the button that allows to highlight the animated text if there
      * is animated text in the page.
-     *
+     * 
      * @private
      */
     _toggleHighlightAnimatedTextButton() {

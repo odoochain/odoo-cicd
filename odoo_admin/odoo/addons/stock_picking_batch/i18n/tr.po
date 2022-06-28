@@ -16,10 +16,10 @@
 # Umur Akın <umura@projetgrup.com>, 2021
 # Buket Şeker <buket_skr@hotmail.com>, 2021
 # abc Def <hdogan1974@gmail.com>, 2021
+# Tugay Hatıl <tugayh@projetgrup.com>, 2021
 # Murat Durmuş <muratd@projetgrup.com>, 2021
 # Ozlem Cikrikci <ozlemc@eskayazilim.com.tr>, 2021
 # Ediz Duman <neps1192@gmail.com>, 2021
-# Tugay Hatıl <tugayh@projetgrup.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -27,7 +27,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-11-16 13:19+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: Tugay Hatıl <tugayh@projetgrup.com>, 2022\n"
+"Last-Translator: Ediz Duman <neps1192@gmail.com>, 2021\n"
 "Language-Team: Turkish (https://www.transifex.com/odoo/teams/41243/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -38,7 +38,7 @@ msgstr ""
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
 msgid "<strong>FROM</strong>"
-msgstr "<strong>BAŞLANGIÇ</strong>"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
@@ -63,12 +63,12 @@ msgstr "<strong>Sorumlu:</strong>"
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
 msgid "<strong>TO</strong>"
-msgstr "<strong>BİTİŞ</strong>"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
 msgid "<strong>→</strong>"
-msgstr "<strong>→</strong>"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__message_needaction
@@ -100,12 +100,12 @@ msgstr "Aktivite Simge Tipi "
 #: code:addons/stock_picking_batch/wizard/stock_add_to_wave.py:0
 #, python-format
 msgid "Add Operations"
-msgstr "Operasyon Ekle"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_to_batch_form
 msgid "Add pickings to"
-msgstr "Transfer ekle"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_add_to_wave_form
@@ -124,12 +124,12 @@ msgstr "Gruba Ekle"
 #. module: stock_picking_batch
 #: model:ir.actions.act_window,name:stock_picking_batch.stock_picking_to_batch_action_stock_picking
 msgid "Add to batch"
-msgstr "Batch ekle"
+msgstr "Toplu iş ekle"
 
 #. module: stock_picking_batch
 #: model:ir.actions.act_window,name:stock_picking_batch.stock_add_to_wave_action_stock_picking
 msgid "Add to wave"
-msgstr "Gruba ekle"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
@@ -139,7 +139,7 @@ msgstr "Tahsis"
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__allowed_picking_ids
 msgid "Allowed Picking"
-msgstr "İzin Verilen Transferler"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__message_attachment_count
@@ -212,7 +212,7 @@ msgstr "İptal Edildi"
 #: code:addons/stock_picking_batch/wizard/stock_add_to_wave.py:0
 #, python-format
 msgid "Cannot create wave transfers"
-msgstr "Grup transferi oluşturulamıyor"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
@@ -240,12 +240,12 @@ msgstr "Onayla"
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_type__count_picking_batch
 msgid "Count Picking Batch"
-msgstr "Batch Transfer Sayısı"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_type__count_picking_wave
 msgid "Count Picking Wave"
-msgstr "Grup Transfer Sayısı"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.actions.act_window,help:stock_picking_batch.stock_picking_batch_action
@@ -255,7 +255,7 @@ msgstr "Yeni toplu transfer oluştur"
 #. module: stock_picking_batch
 #: model_terms:ir.actions.act_window,help:stock_picking_batch.action_picking_tree_wave
 msgid "Create a new wave transfer"
-msgstr "Yeni Grup Transfer Oluştur"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_add_to_wave__create_uid
@@ -505,7 +505,7 @@ msgstr "Bu toplu transferden sorumlu kişi"
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_add_to_wave__user_id
 msgid "Person responsible for this wave transfer"
-msgstr "Bu grup transferinden sorumlu kişi"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_add_to_wave__picking_ids
@@ -523,8 +523,6 @@ msgstr "Toplama Türü"
 msgid ""
 "Please add 'Done' quantities to the batch picking to create a new pack."
 msgstr ""
-"Yeni bir paket oluşturmak için lütfen batch transfere 'Bitti' miktarlarını "
-"ekleyin."
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_form
@@ -588,9 +586,6 @@ msgid ""
 "              - If not manually changed and transfers are added/removed/updated then this will be their earliest scheduled date\n"
 "                but this scheduled date will not be set for all transfers in batch."
 msgstr ""
-"Transferlerin işlenmesi için planlanan tarih.\n"
-"- Manuel olarak ayarlanırsa, toplu olarak tüm transferler için planlanan tarih otomatik olarak bu tarihe güncellenir.\n"
-"- Manuel olarak değiştirilmezse ve transferler eklenir/kaldırılır/güncellenirse, bu onların en erken planlanan tarihi olacaktır, ancak bu planlanan tarih toplu olarak tüm transferler için ayarlanmaz."
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_filter
@@ -676,12 +671,12 @@ msgstr "Stok Hedef Paket"
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__move_line_ids
 msgid "Stock move lines"
-msgstr "Ürün hareketleri"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__move_ids
 msgid "Stock moves"
-msgstr "Stok hareketleri"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.report_picking_batch
@@ -694,8 +689,6 @@ msgid ""
 "Technical Field used to decide whether the button \"Allocation\" should be "
 "displayed."
 msgstr ""
-"\"Tahsis\" düğmesinin görüntülenip görüntülenmeyeceğini belirlemek için "
-"kullanılan Teknik Alan."
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,help:stock_picking_batch.field_stock_picking_batch__show_check_availability
@@ -711,8 +704,6 @@ msgstr ""
 msgid ""
 "Technical field used to decide whether the validate button should be shown."
 msgstr ""
-"Doğrula düğmesinin gösterilip gösterilmeyeceğine karar vermek için "
-"kullanılan teknik alan."
 
 #. module: stock_picking_batch
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
@@ -722,9 +713,6 @@ msgid ""
 "\n"
 "Incompatibilities: %s"
 msgstr ""
-"Aşağıdaki transferler toplu transfere eklenemez %s. Acil transferler değilse lütfen durumlarını ve işlem türlerini kontrol edin.\n"
-"\n"
-"Uyumsuzluklar: %s"
 
 #. module: stock_picking_batch
 #: model_terms:ir.actions.act_window,help:stock_picking_batch.stock_picking_batch_action
@@ -747,39 +735,35 @@ msgid ""
 "                    It may also be useful to assign jobs (one person = one batch) or\n"
 "                    help the timing management of operations (tasks to be done at 1pm)."
 msgstr ""
-"Parti aktarımının amacı, verimliliklerini arttırmak için birlikte yapılması "
-"gereken (yapılması gereken) işlemleri gruplandırmaktır. İş atamak (bir kişi "
-"= bir parti) veya işlemlerin zamanlama yönetimine yardımcı olmak da yararlı "
-"olabilir (13: 00'da yapılacak işler)."
 
 #. module: stock_picking_batch
 #: code:addons/stock_picking_batch/wizard/stock_add_to_wave.py:0
 #, python-format
 msgid "The selected operations should belong to a unique company."
-msgstr "Seçilen operasyonlar benzersiz bir şirkete ait olmalıdır."
+msgstr ""
 
 #. module: stock_picking_batch
 #: code:addons/stock_picking_batch/wizard/stock_picking_to_batch.py:0
 #, python-format
 msgid "The selected pickings should belong to an unique company."
-msgstr "Seçilen toplamalar benzersiz bir şirkete ait olmalıdır."
+msgstr ""
 
 #. module: stock_picking_batch
 #: code:addons/stock_picking_batch/wizard/stock_add_to_wave.py:0
 #, python-format
 msgid "The selected transfers should belong to a unique company."
-msgstr "Seçilen transferler benzersiz bir şirkete ait olmalıdır."
+msgstr ""
 
 #. module: stock_picking_batch
 #: code:addons/stock_picking_batch/wizard/stock_add_to_wave.py:0
 #, python-format
 msgid "The selected transfers should belong to the same operation type"
-msgstr "Seçilen transferler aynı işlem tipine ait olmalıdır."
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__is_wave
 msgid "This batch is a wave"
-msgstr "Bu batch bir grup"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_batch_filter
@@ -832,12 +816,12 @@ msgstr "Doğrula"
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_add_to_wave__wave_id
 msgid "Wave Transfer"
-msgstr "Grup Transfer"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model,name:stock_picking_batch.model_stock_add_to_wave
 msgid "Wave Transfer Lines"
-msgstr "Grup Transfer Satırları"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.actions.act_window,name:stock_picking_batch.action_picking_tree_wave
@@ -848,7 +832,7 @@ msgstr "Dalga Transferleri"
 #. module: stock_picking_batch
 #: model_terms:ir.ui.view,arch_db:stock_picking_batch.stock_picking_type_kanban_batch
 msgid "Waves"
-msgstr "Gruplar"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields,field_description:stock_picking_batch.field_stock_picking_batch__website_message_ids
@@ -864,30 +848,30 @@ msgstr "Websitesi iletişim geçmişi"
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 #, python-format
 msgid "You cannot delete Done batch transfers."
-msgstr "Bitti durumundaki batch transferi silemezsiniz."
+msgstr ""
 
 #. module: stock_picking_batch
 #: code:addons/stock_picking_batch/models/stock_picking_batch.py:0
 #, python-format
 msgid "You have to set some pickings to batch."
-msgstr "Batch için bazı transferleri ayarlamalısınız."
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_picking_to_batch__mode__new
 msgid "a new batch transfer"
-msgstr "yeni bir batch transfer"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_add_to_wave__mode__new
 msgid "a new wave transfer"
-msgstr "yeni bir grup transfer"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_picking_to_batch__mode__existing
 msgid "an existing batch transfer"
-msgstr "mevcut bir batch transfer"
+msgstr ""
 
 #. module: stock_picking_batch
 #: model:ir.model.fields.selection,name:stock_picking_batch.selection__stock_add_to_wave__mode__existing
 msgid "an existing wave transfer"
-msgstr "mevcut bir grup transfer"
+msgstr ""

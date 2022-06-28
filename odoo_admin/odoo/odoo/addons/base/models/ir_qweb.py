@@ -409,7 +409,7 @@ def render(template_name, values, load, **options):
         _Registry__cache = {}
 
     class MockIrQWeb(IrQWeb):
-        _register = False               # not visible in real registry
+        _name = 'ir.qweb.mock'
 
         pool = MockPool()
 

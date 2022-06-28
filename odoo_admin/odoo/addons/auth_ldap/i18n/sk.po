@@ -42,8 +42,6 @@ msgid ""
 "Automatically create local user accounts for new users authenticating via "
 "LDAP"
 msgstr ""
-"Automaticky vytvorte lokálne používateľské účty pre nových používateľov "
-"autentifikovaných cez LDAP"
 
 #. module: auth_ldap
 #: model:ir.model,name:auth_ldap.model_res_company
@@ -58,7 +56,7 @@ msgstr "Spoločnosť"
 #. module: auth_ldap
 #: model:ir.model,name:auth_ldap.model_res_company_ldap
 msgid "Company LDAP configuration"
-msgstr "Konfigurácia firemnej LDAP"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model,name:auth_ldap.model_res_config_settings
@@ -68,7 +66,7 @@ msgstr "Nastavenia konfigurácie"
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__create_user
 msgid "Create User"
-msgstr "Vytvoriť užívateľa"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__create_uid
@@ -101,48 +99,48 @@ msgstr "ID"
 #: model_terms:ir.ui.view,arch_db:auth_ldap.res_company_ldap_view_tree
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
 msgid "LDAP Configuration"
-msgstr "LDAP konfigurácia"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company__ldaps
 #: model:ir.model.fields,field_description:auth_ldap.field_res_config_settings__ldaps
 msgid "LDAP Parameters"
-msgstr "LDAP parametre"
+msgstr ""
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.res_config_settings_view_form
 msgid "LDAP Server"
-msgstr "LDAP Server"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_server
 msgid "LDAP Server address"
-msgstr "LDAP adresa servera"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_server_port
 msgid "LDAP Server port"
-msgstr "LDAP port servera"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_base
 msgid "LDAP base"
-msgstr "LDAP základ"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_binddn
 msgid "LDAP binddn"
-msgstr "LDAP binddn"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_filter
 msgid "LDAP filter"
-msgstr "LDAP filter"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_password
 msgid "LDAP password"
-msgstr "LDAP heslo"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap____last_update
@@ -162,18 +160,18 @@ msgstr "Naposledy upravované"
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
 msgid "Login Information"
-msgstr "Prihlasovacie údaje"
+msgstr ""
 
 #. module: auth_ldap
 #: code:addons/auth_ldap/models/res_company_ldap.py:0
 #, python-format
 msgid "No local user found for LDAP login and not configured to create one"
-msgstr "Nenašiel sa lokálny užívateľ pre LDAP login, nedá sa vytvoriť nový"
+msgstr ""
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
 msgid "Process Parameter"
-msgstr "Proces parametrov"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_tls
@@ -182,9 +180,6 @@ msgid ""
 "option requires a server with STARTTLS enabled, otherwise all authentication"
 " attempts will fail."
 msgstr ""
-"Vyžiadajte zabezpečné TLS/SSL zašifrovanie pri pripájaní na LDAP server. "
-"Táto možnosť vyžaduje server s aktivovaným STARTTLS, inak všetky autorizačné"
-" pokusy zlyhajú"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__sequence
@@ -194,17 +189,17 @@ msgstr "Postupnosť"
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
 msgid "Server Information"
-msgstr "Informácia servera"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.actions.act_window,name:auth_ldap.action_ldap_installer
 msgid "Setup your LDAP Server"
-msgstr "Nastavte svoj LDAP server"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__user
 msgid "Template User"
-msgstr "Šablóna užívateľa"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_password
@@ -212,7 +207,6 @@ msgid ""
 "The password of the user account on the LDAP server that is used to query "
 "the directory."
 msgstr ""
-"Heslo účtu používateľa na LDAP serveri ktorý je používaný na dotaz adresára."
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_binddn
@@ -220,23 +214,21 @@ msgid ""
 "The user account on the LDAP server that is used to query the directory. "
 "Leave empty to connect anonymously."
 msgstr ""
-"Účet používateľa na LDAP serveri ktorý je používaný na dotaz adresára. "
-"Nechajte prázdne pre anonymné pripojenie."
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_tls
 msgid "Use TLS"
-msgstr "Použiť TLS"
+msgstr ""
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
 msgid "User Information"
-msgstr "Informácia používateľa"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__user
 msgid "User to copy when creating new users"
-msgstr "Pouźívateľna skopírovanie pri vytváraní nových používateľov"
+msgstr ""
 
 #. module: auth_ldap
 #: model:ir.model,name:auth_ldap.model_res_users

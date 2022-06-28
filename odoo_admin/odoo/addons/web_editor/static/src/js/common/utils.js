@@ -179,7 +179,6 @@ function _areCssValuesEqual(value1, value2, cssProp, $target) {
         temp2El.style.backgroundImage = value2;
         document.body.appendChild(temp2El);
         value2 = getComputedStyle(temp2El).backgroundImage;
-        document.body.removeChild(temp2El);
 
         return value1 === value2;
     }

@@ -41,8 +41,7 @@ class TestProjectCommon(TransactionCase):
             'groups_id': [(6, 0, [cls.env.ref('base.group_portal').id])]})
         cls.user_projectuser = Users.create({
             'name': 'Armande ProjectUser',
-            'login': 'armandel',
-            'password': 'armandel',
+            'login': 'Armande',
             'email': 'armande.projectuser@example.com',
             'groups_id': [(6, 0, [user_group_employee.id, user_group_project_user.id])]
         })

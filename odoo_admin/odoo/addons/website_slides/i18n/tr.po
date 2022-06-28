@@ -18,14 +18,13 @@
 # Levent Karakaş <levent@mektup.at>, 2021
 # Murat Kaplan <muratk@projetgrup.com>, 2021
 # Saban Yildiz <sabany@projetgrup.com>, 2021
+# Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2021
 # Umur Akın <umura@projetgrup.com>, 2021
 # ANIL TAN SAĞIR <anils@projetgrup.com>, 2021
+# Tugay Hatıl <tugayh@projetgrup.com>, 2021
 # Murat Durmuş <muratd@projetgrup.com>, 2021
 # Ozlem Cikrikci <ozlemc@eskayazilim.com.tr>, 2021
 # abc Def <hdogan1974@gmail.com>, 2021
-# Tugay Hatıl <tugayh@projetgrup.com>, 2022
-# Ertuğrul Güreş <ertugrulg@projetgrup.com>, 2022
-# Halil, 2022
 # 
 msgid ""
 msgstr ""
@@ -33,7 +32,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-10-05 10:53+0000\n"
 "PO-Revision-Date: 2021-09-14 12:29+0000\n"
-"Last-Translator: Halil, 2022\n"
+"Last-Translator: abc Def <hdogan1974@gmail.com>, 2021\n"
 "Language-Team: Turkish (https://www.transifex.com/odoo/teams/41243/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -64,7 +63,7 @@ msgstr "#  Websitesi Görüntüleme Sayısı "
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_partner__completion
 msgid "% Completed Slides"
-msgstr "Tamamlanan Slayt Yüzdesi"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.mail_notification_channel_invite
@@ -74,7 +73,7 @@ msgstr "&amp;nbsp;"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_all
 msgid "'. Showing results for '"
-msgstr "'. ' için sonuçlar gösteriliyor"
+msgstr ""
 
 #. module: website_slides
 #. openerp-web
@@ -89,7 +88,7 @@ msgstr "(boş)"
 #: code:addons/website_slides/static/src/xml/website_slides_upload.xml:0
 #, python-format
 msgid ". This way, they will be secured."
-msgstr ". Bu şekilde güvenlikleri sağlanacaktır."
+msgstr ""
 
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_slide_demo_1_5
@@ -100,7 +99,7 @@ msgstr "3 Temel Metodolojiler"
 #: code:addons/website_slides/models/slide_channel.py:0
 #, python-format
 msgid "<b>%s</b> is requesting access to this course."
-msgstr "<b>%s</b> bu kursa erişim istiyor."
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list
@@ -119,15 +118,13 @@ msgstr "<b>Tarafından sipariş</b>"
 msgid ""
 "<b>Save & Publish</b> your lesson to make it available to your attendees."
 msgstr ""
-"Katılımcılarınızın kullanımına sunmak için dersinizi <b>kaydedin ve "
-"yayınlayın</b>."
 
 #. module: website_slides
 #. openerp-web
 #: code:addons/website_slides/static/src/js/tours/slides_tour.js:0
 #, python-format
 msgid "<b>Save</b> your question."
-msgstr "Sorunuzu <b>kaydedin</b>."
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_aside_training_category
@@ -145,13 +142,6 @@ msgid ""
 "</div>\n"
 "            "
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"        Merhaba<br/><br/>\n"
-"        Yeni bir kursa katılmaya davet edildiniz: <t t-out=\"object.channel_id.name or ''\">Bahçecilik Temelleri</t>.\n"
-"    </p>\n"
-"</div>\n"
-"            "
 
 #. module: website_slides
 #: model:mail.template,body_html:website_slides.mail_template_channel_completed
@@ -177,26 +167,6 @@ msgid ""
 "                </div>\n"
 "            "
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <div style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"                        <p style=\"margin: 0px;\">Merhaba <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</t>,</p><br/>\n"
-"                        <p><b>Tebrikler!</b></p>\n"
-"                        <p><b t-out=\"object.channel_id.name or ''\">Bahçecilik Temelleri</b>kursunu tamamladınız.</p>\n"
-"                        <p>Mevcut diğer kurslara göz atın.</p><br/>\n"
-"\n"
-"                        <div style=\"padding: 16px 8px 16px 8px; text-align: center;\">\n"
-"                            <a href=\"/slides/all\" style=\"background-color: #875a7b; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px;\">\n"
-"                               Kursları keşfedin\n"
-"                            </a>\n"
-"                        </div>\n"
-"                      Bu özel içeriğin tadını çıkarın!\n"
-"                        <t t-if=\"object.channel_id.user_id.signature\">\n"
-"                            <br/>\n"
-"                            <t t-out=\"object.channel_id.user_id.signature or ''\">--<br/>Mitchell Admin</t>\n"
-"                        </t>\n"
-"                    </div>\n"
-"                </div>\n"
-"            "
 
 #. module: website_slides
 #: model:mail.template,body_html:website_slides.slide_template_shared
@@ -221,25 +191,6 @@ msgid ""
 "                </div>\n"
 "            "
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"                        Hello<br/><br/>\n"
-"                        <t t-out=\"user.name or ''\">Mitchell Admin</t> shared the <t t-out=\"object.slide_type or ''\">document</t> <strong t-out=\"object.name or ''\">Trees</strong> with you!\n"
-"                        <div style=\"margin: 16px 8px 16px 8px; text-align: center;\">\n"
-"                            <a t-att-href=\"(object.website_url + '?fullscreen=1') if ctx.get('fullscreen') else object.website_url\">\n"
-"                                <img t-att-alt=\"object.name\" t-attf-src=\"{{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/image_1024\" style=\"height:auto; width:150px; margin: 16px;\"/>\n"
-"                            </a>\n"
-"                        </div>\n"
-"                        <div style=\"padding: 16px 8px 16px 8px; text-align: center;\">\n"
-"                            <a t-att-href=\"(object.website_url + '?fullscreen=1') if ctx.get('fullscreen') else object.website_url\" style=\"background-color: #875a7b; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px;\">View <strong t-out=\"object.name or ''\">Trees</strong></a>\n"
-"                        </div>\n"
-"                        <t t-if=\"user.signature\">\n"
-"                            <br/>\n"
-"                            <t t-out=\"user.signature or ''\">--<br/>Mitchell Admin</t>\n"
-"                        </t>\n"
-"                    </p>\n"
-"                </div>\n"
-"            "
 
 #. module: website_slides
 #: model:mail.template,body_html:website_slides.slide_template_published
@@ -268,34 +219,11 @@ msgid ""
 "                </div>\n"
 "            "
 msgstr ""
-"<div style=\"margin: 0px; padding: 0px;\">\n"
-"                    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
-"                        Hello<br/><br/>\n"
-"                        There is something new in the course <strong t-out=\"object.channel_id.name or ''\">Trees, Wood and Gardens</strong> you are following:<br/><br/>\n"
-"                        <center><strong t-out=\"object.name or ''\">Trees</strong></center>\n"
-"                        <t t-if=\"object.image_1024\">\n"
-"                            <div style=\"padding: 16px 8px 16px 8px; text-align: center;\">\n"
-"                                <a t-att-href=\"object.website_url\">\n"
-"                                <img t-att-alt=\"object.name\" t-attf-src=\"{{ ctx.get('base_url') }}/web/image/slide.slide/{{ object.id }}/image_1024\" style=\"height:auto; width:150px; margin: 16px;\"/>\n"
-"                            </a>\n"
-"                        </div>\n"
-"                        </t>\n"
-"                        <div style=\"padding: 16px 8px 16px 8px; text-align: center;\">\n"
-"                            <a t-att-href=\"object.website_url\" style=\"background-color: #875a7b; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px;\">View content</a>\n"
-"                        </div>\n"
-"                        Enjoy this exclusive content!\n"
-"                        <t t-if=\"user.signature\">\n"
-"                            <br/>\n"
-"                            <t t-out=\"user.signature or ''\">--<br/>Mitchell Admin</t>\n"
-"                        </t>\n"
-"                    </p>\n"
-"                </div>\n"
-"            "
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.user_profile_content
 msgid "<i class=\"fa fa-arrow-right mr-1\"/>All Courses"
-msgstr "<i class=\"fa fa-arrow-right mr-1\"/>Tüm Kurslar"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
@@ -328,7 +256,7 @@ msgstr "<i class=\"fa fa-circle-o-notch fa-spin mr-2\"/><b>Yükleniyor...</b>"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.rating_rating_view_kanban_slide_channel
 msgid "<i class=\"fa fa-clock-o mr-2\" aria-label=\"Create date\"/>"
-msgstr "<i class=\"fa fa-clock-o mr-2\" aria-label=\"Create date\"/>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_slide_view_kanban
@@ -352,7 +280,7 @@ msgstr "<i class=\"fa fa-code\"/> Göm"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
 msgid "<i class=\"fa fa-comments\"/> Comments ("
-msgstr "<i class=\"fa fa-comments\"/> Yorumlar ("
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
@@ -371,7 +299,7 @@ msgstr "<i class=\"fa fa-envelope\"/> Eposta"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_social_email
 msgid "<i class=\"fa fa-envelope\"/> Send Email"
-msgstr "<i class=\"fa fa-envelope\"/> E-Posta Gönder"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_cards
@@ -451,7 +379,7 @@ msgstr "<i class=\"fa fa-flag-checkered text-warning mr-2\"/>Test"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.rating_rating_view_kanban_slide_channel
 msgid "<i class=\"fa fa-folder mr-2\" aria-label=\"Open folder\"/>"
-msgstr "<i class=\"fa fa-folder mr-2\" aria-label=\"Open folder\"/>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list
@@ -461,7 +389,7 @@ msgstr "<i class=\"fa fa-folder-o mr-1\"/><span>Bölüm Ekle</span>"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_cards
 msgid "<i class=\"fa fa-folder-o mr-1\"/>Add a section"
-msgstr "<i class=\"fa fa-folder-o mr-1\"/>Bölüm ekle"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_home
@@ -484,8 +412,6 @@ msgid ""
 "<i class=\"fa fa-home\"/><span class=\"d-none d-md-inline-block ml-1\">Back "
 "to course</span>"
 msgstr ""
-"<i class=\"fa fa-home d-md-none\"/><span class=\"d-none d-md-inline-block "
-"ml-1\">Kursa geri dön</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
@@ -516,8 +442,6 @@ msgid ""
 "<i class=\"fa fa-plus mr-2\"/>\n"
 "            <span>Add Question</span>"
 msgstr ""
-"<i class=\"fa fa-plus mr-2\"/>\n"
-"            <span>Soru Ekle</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.lesson_content_quiz_add_buttons
@@ -525,8 +449,6 @@ msgid ""
 "<i class=\"fa fa-plus mr-2\"/>\n"
 "            <span>Add Quiz</span>"
 msgstr ""
-"<i class=\"fa fa-plus mr-2\"/>\n"
-"            <span>Quiz Ekle</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_slide_view_kanban
@@ -568,23 +490,21 @@ msgid ""
 "<i class=\"fa fa-sign-out\"/><span class=\"d-none d-md-inline-block "
 "ml-1\">Exit Fullscreen</span>"
 msgstr ""
-"<i class=\"fa fa-sign-out\"/><span class=\"d-none d-md-inline-block "
-"ml-1\">Tam ekrandan çık</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.rating_rating_view_kanban_slide_channel
 msgid "<i class=\"fa fa-star text-black-25\" aria-label=\"A star\"/>"
-msgstr "<i class=\"fa fa-star text-black-25\" aria-label=\"A star\"/>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.rating_rating_view_kanban_slide_channel
 msgid "<i class=\"fa fa-star\" aria-label=\"A star\" role=\"img\"/>"
-msgstr "<i class=\"fa fa-star\" aria-label=\"A star\" role=\"img\"/>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.rating_rating_view_kanban_slide_channel
 msgid "<i class=\"fa fa-star-half-o\" aria-label=\"Half a star\" role=\"img\"/>"
-msgstr "<i class=\"fa fa-star-half-o\" aria-label=\"Half a star\" role=\"img\"/>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_all
@@ -592,8 +512,6 @@ msgid ""
 "<i class=\"fa fa-tag mr-2 text-muted\"/>\n"
 "                      My Courses"
 msgstr ""
-"<i class=\"fa fa-tag mr-2 text-muted\"/>\n"
-"                      Kurslarım"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.lesson_card
@@ -620,9 +538,6 @@ msgid ""
 "                                Request already sent\n"
 "                            </small>"
 msgstr ""
-"<small class=\"text-success\">\n"
-"                                İstek önceden gönderildi\n"
-"                            </small>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_main
@@ -631,9 +546,6 @@ msgid ""
 "px-2 font-weight-normal\"><i class=\"fa fa-check\"/> "
 "Completed</span></small>"
 msgstr ""
-"<small><span class=\"badge badge-pill badge-success pull-right my-1 py-1 "
-"px-2 font-weight-normal\"><i class=\"fa fa-check\"/> "
-"Tamamlandı</span></small>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.lesson_card
@@ -646,13 +558,11 @@ msgid ""
 "<span class=\"badge badge-info badge-arrow-right font-weight-normal px-2 "
 "py-1 m-1\">New</span>"
 msgstr ""
-"<span class=\"badge badge-info badge-arrow-right font-weight-normal px-2 "
-"py-1 m-1\">Yeni</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.lesson_card
 msgid "<span class=\"badge badge-info\">Preview</span>"
-msgstr "<span class=\"badge badge-info\">Önizle</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_slide
@@ -660,8 +570,6 @@ msgid ""
 "<span class=\"badge badge-light badge-hide border font-weight-normal px-2 "
 "py-1 m-1\">Add Quiz</span>"
 msgstr ""
-"<span class=\"badge badge-light badge-hide border font-weight-normal px-2 "
-"py-1 m-1\">Quiz Ekle</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_card
@@ -678,8 +586,6 @@ msgid ""
 "<span class=\"badge badge-pill badge-success py-1 px-2 mx-auto\" "
 "style=\"font-size: 1em\"><i class=\"fa fa-check\"/> Completed</span>"
 msgstr ""
-"<span class=\"badge badge-pill badge-success py-1 px-2 mx-auto\" "
-"style=\"font-size: 1em\"><i class=\"fa fa-check\"/> Tamamlandı</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_fullscreen
@@ -687,8 +593,6 @@ msgid ""
 "<span class=\"badge badge-pill badge-success py-1 px-2\" style=\"font-size: "
 "1em\"><i class=\"fa fa-check\"/> Completed</span>"
 msgstr ""
-"<span class=\"badge badge-pill badge-success py-1 px-2\" style=\"font-size: "
-"1em\"><i class=\"fa fa-check\"/> Tamamlandı</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.lesson_card
@@ -705,8 +609,6 @@ msgid ""
 "<span class=\"badge badge-success font-weight-normal px-2 py-1 "
 "m-1\"><span>Preview</span></span>"
 msgstr ""
-"<span class=\"badge badge-success font-weight-normal px-2 py-1 "
-"m-1\"><span>Önizle</span></span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
@@ -714,8 +616,6 @@ msgid ""
 "<span class=\"badge badge-success font-weight-normal px-2 py-1 "
 "m-1\">Preview</span>"
 msgstr ""
-"<span class=\"badge badge-success font-weight-normal px-2 py-1 "
-"m-1\">Önizle</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
@@ -724,9 +624,6 @@ msgid ""
 "                            <i class=\"fa fa-fw fa-flag\"/> 10 xp\n"
 "                        </span>"
 msgstr ""
-"<span class=\"badge font-weight-bold px-2 py-1 m-1 badge-warning\">\n"
-"                            <i class=\"fa fa-fw fa-flag\"/> 10 xp\n"
-"                        </span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
@@ -787,7 +684,7 @@ msgstr "<span class=\"o_stat_text\">Kurslar</span>"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_card_information_arrow
 msgid "<span class=\"o_wslides_arrow\">New Content</span>"
-msgstr "<span class=\"o_wslides_arrow\">Yeni İçerik</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_aside_training
@@ -797,7 +694,7 @@ msgstr "<span class=\"p-2\">Kurs içeriği</span>"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.user_quickkarma_card
 msgid "<span class=\"text-500 mx-2\">•</span>"
-msgstr "<span class=\"text-500 mx-2\">•</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
@@ -813,8 +710,6 @@ msgstr "<span class=\"text-muted\">Katılımcılar</span>"
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
 msgid "<span class=\"text-muted\">Common tasks for a computer scientist</span>"
 msgstr ""
-"<span class=\"text-muted\">Bir bilgisayar bilimcisi için ortak "
-"görevler</span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_view_kanban
@@ -824,7 +719,7 @@ msgstr "<span class=\"text-muted\">İçindekiler</span>"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
 msgid "<span class=\"text-muted\">Parts of computer science</span>"
-msgstr "<span class=\"text-muted\">Bilgisayar biliminin bölümleri</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.embed_slide
@@ -834,10 +729,6 @@ msgid ""
 "                                        <span id=\"next\" class=\"mx-1 mx-sm-2\" title=\"Next slide\" aria-label=\"Next slide\" role=\"button\"><i class=\"fa fa-arrow-circle-right\"/></span>\n"
 "                                        <span id=\"last\" class=\"mx-1 mx-sm-2\" title=\"Last slide\" aria-label=\"Last slide\" role=\"button\"><i class=\"fa fa-step-forward\"/></span>"
 msgstr ""
-"<span id=\"first\" class=\"mr-1 mr-sm-2\" title=\"First slide\" aria-label=\"First slide\" role=\"button\"><i class=\"fa fa-step-backward\"/></span>\n"
-"                                        <span id=\"previous\" class=\"mx-1 mx-sm-2\" title=\"Previous slide\" aria-label=\"Previous slide\" role=\"button\"><i class=\"fa fa-arrow-circle-left\"/></span>\n"
-"                                        <span id=\"next\" class=\"mx-1 mx-sm-2\" title=\"Next slide\" aria-label=\"Next slide\" role=\"button\"><i class=\"fa fa-arrow-circle-right\"/></span>\n"
-"                                        <span id=\"last\" class=\"mx-1 mx-sm-2\" title=\"Last slide\" aria-label=\"Last slide\" role=\"button\"><i class=\"fa fa-step-forward\"/></span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.embed_slide
@@ -846,9 +737,6 @@ msgid ""
 "                                            <i class=\"fa fa-arrows-alt\"/>\n"
 "                                        </span>"
 msgstr ""
-"<span id=\"fullscreen\" class=\"ml-1 ml-sm-2\" title=\"View fullscreen\" aria-label=\"Fullscreen\" role=\"button\">\n"
-"                                            <i class=\"fa fa-arrows-alt\"/>\n"
-"                                        </span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.embed_slide
@@ -860,12 +748,6 @@ msgid ""
 "                                            <i class=\"fa fa-search-plus\"/>\n"
 "                                        </span>"
 msgstr ""
-"<span id=\"zoomout\" class=\"d-none d-sm-inline ml-2 mr-2\" title=\"Zoom out\" aria-label=\"Zoom out\" role=\"button\">\n"
-"                                            <i class=\"fa fa-search-minus\"/>\n"
-"                                        </span>\n"
-"                                        <span id=\"zoomin\" class=\"d-none d-sm-inline\" title=\"Zoom in\" aria-label=\"Zoom in\" role=\"button\">\n"
-"                                            <i class=\"fa fa-search-plus\"/>\n"
-"                                        </span>"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_view_kanban
@@ -886,42 +768,42 @@ msgstr "<span> saat</span>"
 #: model_terms:ir.ui.view,arch_db:website_slides.course_main
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_cards
 msgid "<span>Add Tag</span>"
-msgstr "<span>Etiket Ekle</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
 msgid "<span>Answering Questions</span>"
-msgstr "<span>Soruları Cevapla</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
 msgid "<span>Asking Question</span>"
-msgstr "<span>Soru Sor</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
 msgid "<span>Asking the right question</span>"
-msgstr "<span>Doğru soruyu sor</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
 msgid "<span>Logic</span>"
-msgstr "<span>Mantık</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
 msgid "<span>Mathematics</span>"
-msgstr "<span>Matematik</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_slide
 msgid "<span>Preview</span>"
-msgstr "<span>Önizle</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_list_sample
 msgid "<span>Science</span>"
-msgstr "<span>Bilim</span>"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
@@ -959,8 +841,6 @@ msgid ""
 "A good course has a structure. Pick a name for your first section and click "
 "<b>Save</b> to create it."
 msgstr ""
-"İyi bir kursun bir yapısı vardır. İlk bölümünüz için bir ad seçin ve "
-"oluşturmak için <b>Kaydet'e</b> tıklayın."
 
 #. module: website_slides
 #: model:slide.slide,name:website_slides.slide_slide_demo_1_4
@@ -1040,7 +920,7 @@ msgstr "API Anahtarı"
 #: code:addons/website_slides/models/slide_channel.py:0
 #, python-format
 msgid "Access Granted"
-msgstr "Erişim izni"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_res_groups
@@ -1051,17 +931,17 @@ msgstr "Erişim Grupları "
 #: code:addons/website_slides/models/slide_channel.py:0
 #, python-format
 msgid "Access Refused"
-msgstr "Erişim Reddedildi"
+msgstr ""
 
 #. module: website_slides
 #: model:mail.activity.type,name:website_slides.mail_activity_data_access_request
 msgid "Access Request"
-msgstr "Erişim Talebi"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__has_requested_access
 msgid "Access Requested"
-msgstr "Erişim İstendi"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_channel_form
@@ -1137,7 +1017,7 @@ msgstr "Bölüm Ekle"
 #: model_terms:ir.ui.view,arch_db:website_slides.course_main
 #: model_terms:ir.ui.view,arch_db:website_slides.course_slides_cards
 msgid "Add Tag"
-msgstr "Etiket Ekle"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.actions.act_window,help:website_slides.slide_slide_action
@@ -1157,21 +1037,21 @@ msgstr "Bir Bölüm Ekle"
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_tag_group_view_form
 #, python-format
 msgid "Add a tag"
-msgstr "Etiket Ekle"
+msgstr ""
 
 #. module: website_slides
 #. openerp-web
 #: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
 #, python-format
 msgid "Add an answer below this one"
-msgstr "Bunun altına bir cevap ekleyin"
+msgstr ""
 
 #. module: website_slides
 #. openerp-web
 #: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
 #, python-format
 msgid "Add comment on this answer"
-msgstr "Bu cevaba yorum ekle"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_channel_invite_view_form
@@ -1190,18 +1070,18 @@ msgstr ""
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide__slide_resource_ids
 msgid "Additional Resource for this slide"
-msgstr "Bu slayt için Ek Kaynak"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_content_detailed
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_slide_form
 msgid "Additional Resources"
-msgstr "Ek kaynaklar"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_slide_resource
 msgid "Additional resource for a particular slide"
-msgstr "Belirli bir slayt için ek kaynak"
+msgstr ""
 
 #. module: website_slides
 #: model:slide.channel.tag,name:website_slides.slide_channel_tag_level_advanced
@@ -1241,7 +1121,7 @@ msgstr "Mobilya yaratma hakkında bilmeniz gereken her şey."
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide__slide_resource_downloadable
 msgid "Allow Download"
-msgstr "İndirmeye izin ver"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide__is_preview
@@ -1263,12 +1143,12 @@ msgstr "Kursta derecelendirmeye izin ver"
 #: code:addons/website_slides/static/src/xml/website_slides_channel.xml:0
 #, python-format
 msgid "Allow students to review your course"
-msgstr "Öğrencilerin kursunuzu incelemesine izin verin"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,help:website_slides.field_slide_slide__slide_resource_downloadable
 msgid "Allow the user to download the content of the slide."
-msgstr "Kullanıcının slaydın içeriğini indirmesine izin verin."
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_slide__channel_allow_comment
@@ -1279,7 +1159,7 @@ msgstr "Yorum yapmaya izin verir"
 #: code:addons/website_slides/models/slide_channel.py:0
 #, python-format
 msgid "Already Requested"
-msgstr "Daha önceden istendi"
+msgstr ""
 
 #. module: website_slides
 #. openerp-web
@@ -1292,7 +1172,7 @@ msgstr " \"%s\" zaten yükleniyor.."
 #: code:addons/website_slides/models/slide_channel.py:0
 #, python-format
 msgid "Already member"
-msgstr "zaten üye"
+msgstr ""
 
 #. module: website_slides
 #. openerp-web
@@ -1361,14 +1241,14 @@ msgstr "Bu slaytı arşivlemek istediğinizden emin misiniz?"
 #: code:addons/website_slides/static/src/xml/slide_management.xml:0
 #, python-format
 msgid "Are you sure you want to delete this category ?"
-msgstr "Bu kategoriyi silmek istediğinizden emin misiniz?"
+msgstr ""
 
 #. module: website_slides
 #. openerp-web
 #: code:addons/website_slides/static/src/xml/slide_quiz_create.xml:0
 #, python-format
 msgid "Are you sure you want to delete this question :"
-msgstr "Bu soruyu silmek istediğinizden emin misiniz:"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.view_slide_slide_form
@@ -1451,7 +1331,7 @@ msgstr "Bahçeciliğin Temelleri"
 #: code:addons/website_slides/static/src/xml/website_slides_unsubscribe.xml:0
 #, python-format
 msgid "Be notified when a new content is added."
-msgstr "Yeni bir içerik eklendiğinde haberdar olun."
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__can_comment
@@ -1461,7 +1341,7 @@ msgstr "Yorum Yapılabilir"
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_invite__can_edit_body
 msgid "Can Edit Body"
-msgstr "Gövdeyi Düzenleyebilir"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__can_publish
@@ -1542,7 +1422,7 @@ msgstr "Sertifikalı Bilgi"
 #: code:addons/website_slides/static/src/xml/website_slides_upload.xml:0
 #, python-format
 msgid "Change video privacy settings"
-msgstr "Video gizlilik ayarlarını değiştir"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_partner__channel_id
@@ -1579,17 +1459,17 @@ msgstr "Bir kez slayt / ders eklenmiş olsa bile kanal doğrulandı."
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_channel_tag_group
 msgid "Channel/Course Groups"
-msgstr "Kanal/Kurs Grupları"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model,name:website_slides.model_slide_channel_tag
 msgid "Channel/Course Tag"
-msgstr "Kanal/Kurs Etiketi"
+msgstr ""
 
 #. module: website_slides
 #: model:mail.template,name:website_slides.mail_template_slide_channel_invite
 msgid "Channel: Invite by email"
-msgstr "Kanal: E-posta ile davet edin"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_tag__channel_ids
@@ -1607,7 +1487,7 @@ msgstr "Kopya kağıdı"
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
 #, python-format
 msgid "Check Profile"
-msgstr "Profili Kontrol Et"
+msgstr ""
 
 #. module: website_slides
 #. openerp-web
@@ -1629,7 +1509,7 @@ msgstr "Yanıtları kontrol edin"
 #: code:addons/website_slides/static/src/js/tours/slides_tour.js:0
 #, python-format
 msgid "Choose a <b>File</b> on your computer."
-msgstr "Bilgisayarınızda bir <b>Dosya</b> seçin."
+msgstr ""
 
 #. module: website_slides
 #. openerp-web
@@ -1643,7 +1523,7 @@ msgstr "Bir PDF veya Resim seçin"
 #: code:addons/website_slides/static/src/xml/website_slides_channel.xml:0
 #, python-format
 msgid "Choose a layout"
-msgstr "Bir görünüm seçin"
+msgstr ""
 
 #. module: website_slides
 #: model:slide.channel,name:website_slides.slide_channel_demo_3_furn0
@@ -2207,12 +2087,12 @@ msgstr "DIY Mobilya"
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_searchbar_input_snippet_options
 msgid "Date (new to old)"
-msgstr "Tarih (yeniden eskiye)"
+msgstr ""
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.slide_searchbar_input_snippet_options
 msgid "Date (old to new)"
-msgstr "Tarih (eskiden yeniye)"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_invite__null_value
@@ -3174,7 +3054,7 @@ msgstr "Tamamlandı"
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_invite__is_mail_template_editor
 msgid "Is Editor"
-msgstr "İş Düzenleyicisi"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__message_is_follower
@@ -3774,7 +3654,7 @@ msgstr "Sunum mevcut değil."
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.courses_all
 msgid "No results found for '"
-msgstr "' için sonuç bulunamadı"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.model.fields.selection,name:website_slides.selection__slide_channel__promote_strategy__none
@@ -3915,10 +3795,6 @@ msgid ""
 "a placeholder expression that provides the appropriate language, e.g. {{ "
 "object.partner_id.lang }}."
 msgstr ""
-"E-posta gönderirken seçmek için isteğe bağlı çeviri dili (ISO kodu). "
-"Ayarlanmazsa, İngilizce sürüm kullanılacaktır. Bu genellikle uygun dili "
-"sağlayan bir yer tutucu ifadesi olmalıdır, örneğin {{ object.partner_id.lang"
-" }}."
 
 #. module: website_slides
 #: model:ir.model.fields,help:website_slides.field_slide_channel_invite__null_value
@@ -4307,7 +4183,7 @@ msgstr ""
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel_invite__render_model
 msgid "Rendering Model"
-msgstr "İşleme Modeli"
+msgstr ""
 
 #. module: website_slides
 #: model:ir.ui.menu,name:website_slides.website_slides_menu_report
@@ -4528,12 +4404,6 @@ msgstr "Bölüm Adı"
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__access_token
 msgid "Security Token"
 msgstr "Güvenlik Token"
-
-#. module: website_slides
-#: code:addons/website_slides/models/res_users.py:0
-#, python-format
-msgid "See our eLearning"
-msgstr ""
 
 #. module: website_slides
 #. openerp-web
@@ -5049,7 +4919,7 @@ msgid ""
 "The document type will be set automatically based on the document URL and "
 "properties (e.g. height and width for presentation and document)."
 msgstr ""
-"Belge türü, belge URL'sine ve özelliklerine (örn. Sunum ve belge için "
+"Belge türü, belge URL'sine ve özelliklerine (ör. Sunum ve belge için "
 "yükseklik ve genişlik) göre otomatik olarak ayarlanacaktır."
 
 #. module: website_slides

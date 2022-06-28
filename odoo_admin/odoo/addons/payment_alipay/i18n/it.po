@@ -26,8 +26,6 @@ msgid ""
 "* Cross-border: For the overseas seller \n"
 "* Express Checkout: For the Chinese Seller"
 msgstr ""
-"  * Transfrontaliero: per venditori esteri \n"
-"  * Cassa veloce: per venditori cinesi"
 
 #. module: payment_alipay
 #: model:ir.model.fields,field_description:payment_alipay.field_payment_acquirer__alipay_payment_method
@@ -54,12 +52,12 @@ msgstr "Transfrontaliero"
 #: code:addons/payment_alipay/models/payment_transaction.py:0
 #, python-format
 msgid "Expected signature %(sc) but received %(sign)s."
-msgstr "Firma attesa %(sc) ma ricevuta %(sign)s."
+msgstr ""
 
 #. module: payment_alipay
 #: model:ir.model.fields.selection,name:payment_alipay.selection__payment_acquirer__alipay_payment_method__express_checkout
 msgid "Express Checkout (only for Chinese merchants)"
-msgstr "Express Checkout (solo per commercianti cinesi)"
+msgstr ""
 
 #. module: payment_alipay
 #: model:ir.model.fields,field_description:payment_alipay.field_payment_acquirer__alipay_md5_signature_key
@@ -102,7 +100,6 @@ msgstr "Fornitore"
 #, python-format
 msgid "Received data with missing reference %(r)s or txn_id %(t)s."
 msgstr ""
-"Dati ricevuti con riferimento %(r)s mancante o txn_id %(t)s mancante ."
 
 #. module: payment_alipay
 #: code:addons/payment_alipay/controllers/main.py:0
@@ -121,8 +118,6 @@ msgid ""
 "Received notification data with unknown reference:\n"
 "%s"
 msgstr ""
-"Dati di notifica ricevuti con riferimento sconosciuto:\n"
-"%s"
 
 #. module: payment_alipay
 #: model:ir.model.fields,help:payment_alipay.field_payment_acquirer__provider
@@ -143,8 +138,6 @@ msgid ""
 "The currency returned by Alipay %(rc)s does not match the transaction "
 "currency %(tc)s."
 msgstr ""
-"La valuta restituita da Alipay %(rc)s non corrisponde alla valuta della "
-"transazione %(tc)s."
 
 #. module: payment_alipay
 #: model:ir.model.fields,help:payment_alipay.field_payment_acquirer__alipay_seller_email

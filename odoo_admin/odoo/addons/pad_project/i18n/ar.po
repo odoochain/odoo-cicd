@@ -4,7 +4,7 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
+# Mohamed Abuelmagd <mabuelmagd12@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Mohamed Abuelmagd <mabuelmagd12@gmail.com>, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,17 +24,17 @@ msgstr ""
 #: model:ir.model.fields,field_description:pad_project.field_project_project__pad_availability
 #: model:ir.model.fields,field_description:pad_project.field_project_task__pad_availability
 msgid "Availability of collaborative pads"
-msgstr "توافر اللوحات التعاونية "
+msgstr "توافر المنصات التعاونيه"
 
 #. module: pad_project
 #: model_terms:ir.ui.view,arch_db:pad_project.project_project_view_form
 msgid "Available to:"
-msgstr "متاح لـ: "
+msgstr "متوافر ل:"
 
 #. module: pad_project
 #: model_terms:ir.ui.view,arch_db:pad_project.project_project_view_form
 msgid "Collaborative Pads"
-msgstr "اللوحات التعاونية "
+msgstr "منصات تعاونية"
 
 #. module: pad_project
 #: model_terms:ir.ui.view,arch_db:pad_project.portal_my_task
@@ -47,8 +47,7 @@ msgid ""
 "Edit tasks' description collaboratively in real time.<br/>\n"
 "                            See each author's text in a distinct color."
 msgstr ""
-"قم بتحرير وصف المهام بشكل تعاوني في الوقت الفعلي.<br/>\n"
-"                            شاهد نص كل مؤلف بلون مميز."
+"تحرير وصف المهام بشكل تعاوني في نفس الوقت.<br/> شاهد نص كل مؤلف بلون مميز."
 
 #. module: pad_project
 #: model:ir.model.fields.selection,name:pad_project.selection__project_project__pad_availability__internal
@@ -58,13 +57,13 @@ msgstr "مستخدمين داخليين"
 #. module: pad_project
 #: model:ir.model.fields.selection,name:pad_project.selection__project_project__pad_availability__portal
 msgid "Internal Users & Portal Users"
-msgstr "المستخدمين الداخليين ومستخدمي البوابة "
+msgstr "المستخدمون الداخليون ومستخدمو البوابة"
 
 #. module: pad_project
 #: model:ir.model.fields,field_description:pad_project.field_project_project__description_pad
 #: model:ir.model.fields,field_description:pad_project.field_project_task__description_pad
 msgid "Pad URL"
-msgstr "رابط URL للوحة "
+msgstr "رابط باد"
 
 #. module: pad_project
 #: model:ir.model,name:pad_project.model_project_project
@@ -84,15 +83,15 @@ msgstr "المهمة"
 #. module: pad_project
 #: model:ir.model.fields,field_description:pad_project.field_project_task__use_pad
 msgid "Use collaborative pad"
-msgstr "استخدام اللوحة التعاونية "
+msgstr "استخدام منصات تعاونية"
 
 #. module: pad_project
 #: model:ir.model.fields,help:pad_project.field_project_project__use_pads
 #: model:ir.model.fields,help:pad_project.field_project_task__use_pad
 msgid "Use collaborative pad for the tasks on this project."
-msgstr "استخدام اللوحات التعاونية للمهام في هذا المشروع. "
+msgstr "استخدام منصات تعاونية لمهمات هذا المشروع."
 
 #. module: pad_project
 #: model:ir.model.fields,field_description:pad_project.field_project_project__use_pads
 msgid "Use collaborative pads"
-msgstr "استخدام اللوحات التعاونية "
+msgstr "استخدام منصات تعاونية"

@@ -46,9 +46,8 @@ export class FollowButton extends Component {
      * @private
      * @param {MouseEvent} ev
      */
-    async _onClickUnfollow(ev) {
-        await this.thread.unfollow();
-        this.trigger('reload', { fieldNames: ['message_follower_ids'], keepChanges: true });
+    _onClickUnfollow(ev) {
+        this.thread.unfollow();
     }
 
     /**

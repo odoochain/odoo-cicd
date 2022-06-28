@@ -6,7 +6,6 @@
 # Martin Trigaux, 2021
 # Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2021
 # Odoo Thaidev <odoothaidev@gmail.com>, 2021
-# Wichanon Jamwutthipreecha, 2022
 # 
 msgid ""
 msgstr ""
@@ -14,7 +13,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:29+0000\n"
 "PO-Revision-Date: 2021-09-14 12:27+0000\n"
-"Last-Translator: Wichanon Jamwutthipreecha, 2022\n"
+"Last-Translator: Odoo Thaidev <odoothaidev@gmail.com>, 2021\n"
 "Language-Team: Thai (https://www.transifex.com/odoo/teams/41243/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,14 +27,14 @@ msgstr ""
 #, python-format
 msgid ""
 "<strong><b>Good job!</b> You went through all steps of this tour.</strong>"
-msgstr "<strong><b>ยอดเยี่ยม!</b> คุณผ่านทุกขั้นตอนของทัวร์นี้แล้ว</strong>"
+msgstr ""
 
 #. module: web_tour
 #. openerp-web
 #: code:addons/web_tour/static/src/js/tour_step_utils.js:0
 #, python-format
 msgid "Click on the <i>Home icon</i> to navigate across apps."
-msgstr "คลิกที่ <i> ไอคอนโฮม </i> เพื่อไปยังแอปต่างๆ"
+msgstr "คลิกที่ <i> ไอคอนหน้าแรก </i> เพื่อไปยังแอปต่างๆ"
 
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__user_id
@@ -52,22 +51,22 @@ msgstr "ปิดการใช้งานทัวร์"
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__display_name
 msgid "Display Name"
-msgstr "แสดงชื่อ"
+msgstr "ชื่อที่ใช้แสดง"
 
 #. module: web_tour
 #: model:ir.model,name:web_tour.model_ir_http
 msgid "HTTP Routing"
-msgstr "การกำหนด HTTP"
+msgstr "See http://openerp.com"
 
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour__id
 msgid "ID"
-msgstr "ไอดี"
+msgstr "รหัส"
 
 #. module: web_tour
 #: model:ir.model.fields,field_description:web_tour.field_web_tour_tour____last_update
 msgid "Last Modified on"
-msgstr "แก้ไขครั้งล่าสุดเมื่อ"
+msgstr "แก้ไขครั้งสุดท้ายเมื่อ"
 
 #. module: web_tour
 #: model_terms:ir.ui.view,arch_db:web_tour.edit_tour_list
@@ -86,28 +85,28 @@ msgstr "ชื่อ"
 #: code:addons/web_tour/static/src/debug/tour_dialog_component.xml:0
 #, python-format
 msgid "Onboarding tours"
-msgstr "ทัวร์การเริ่มงาน"
+msgstr ""
 
 #. module: web_tour
 #. openerp-web
 #: code:addons/web_tour/static/src/js/tour_step_utils.js:0
 #, python-format
 msgid "Open bugger menu."
-msgstr "เปิดเมนูบักเกอร์"
+msgstr ""
 
 #. module: web_tour
 #. openerp-web
 #: code:addons/web_tour/static/src/debug/tour_dialog_component.xml:0
 #, python-format
 msgid "Path"
-msgstr "เส้นทาง"
+msgstr "Path"
 
 #. module: web_tour
 #. openerp-web
 #: code:addons/web_tour/static/src/js/tip.js:0
 #, python-format
 msgid "Scroll to reach the next step."
-msgstr "เลื่อนเพื่อไปยังขั้นตอนต่อไป"
+msgstr ""
 
 #. module: web_tour
 #. openerp-web
@@ -136,7 +135,7 @@ msgstr "เริ่มทัวร์"
 #: code:addons/web_tour/static/src/debug/tour_dialog_component.xml:0
 #, python-format
 msgid "Start tour"
-msgstr "เริ่มทัวร์"
+msgstr ""
 
 #. module: web_tour
 #. openerp-web
@@ -151,14 +150,14 @@ msgstr "ทดสอบ"
 #: code:addons/web_tour/static/src/debug/tour_dialog_component.xml:0
 #, python-format
 msgid "Test tour"
-msgstr "ทดสอบทัวร์"
+msgstr ""
 
 #. module: web_tour
 #. openerp-web
 #: code:addons/web_tour/static/src/debug/tour_dialog_component.xml:0
 #, python-format
 msgid "Testing tours"
-msgstr "ทดสอบทัวร์"
+msgstr ""
 
 #. module: web_tour
 #: model_terms:ir.ui.view,arch_db:web_tour.edit_tour_search

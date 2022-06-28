@@ -57,15 +57,14 @@ class Web_Editor(http.Controller):
 
             :returns PNG image converted from given font
         """
-        size = max(width, height, 1) if width else size
         width = width or size
         height = height or size
         # Make sure we have at least size=1
         width = max(1, min(width, 512))
         height = max(1, min(height, 512))
         # Initialize font
-        with tools.file_open(font.lstrip('/'), 'rb') as f:
-            font_obj = ImageFont.truetype(f, size)
+        addons_path = http.addons_manifest['web']['addons_path']
+        font_obj = ImageFont.truetype(addons_path + font, height)
 
         # if received character is not a number, keep old behaviour (icon is character)
         icon = chr(int(icon)) if icon.isdigit() else icon
@@ -76,7 +75,7 @@ class Web_Editor(http.Controller):
             bg = ','.join(bg.split(',')[:-1])+')'
 
         # Determine the dimensions of the icon
-        image = Image.new("RGBA", (width, height), color)
+        image = Image.new("RGBA", (width, height), color=(0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
         boxw, boxh = draw.textsize(icon, font=font_obj)
@@ -607,15 +606,7 @@ class Web_Editor(http.Controller):
                     or attachment.type != 'binary'
                     or not attachment.public
                     or not attachment.url.startswith(request.httprequest.path)):
-                # Fallback to URL lookup to allow using shapes that were
-                # imported from data files.
-                attachment = request.env['ir.attachment'].sudo().search([
-                    ('type', '=', 'binary'),
-                    ('public', '=', True),
-                    ('url', '=', request.httprequest.path),
-                ], limit=1)
-                if not attachment:
-                    raise werkzeug.exceptions.NotFound()
+                raise werkzeug.exceptions.NotFound()
             svg = b64decode(attachment.datas).decode('utf-8')
         else:
             svg = self._get_shape_svg(module, 'shapes', filename)

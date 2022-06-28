@@ -9,7 +9,6 @@ from lxml import etree
 import os
 from pathlib import Path
 from queue import Queue, Empty
-import re
 import subprocess
 from threading import Lock
 import time
@@ -119,7 +118,7 @@ class KeyboardUSBDriver(Driver):
         try:
             manufacturer = util.get_string(self.dev, self.dev.iManufacturer)
             product = util.get_string(self.dev, self.dev.iProduct)
-            return re.sub(r"[^\w \-+/*&]", '', "%s - %s" % (manufacturer, product))
+            return ("%s - %s") % (manufacturer, product)
         except ValueError as e:
             _logger.warning(e)
             return _('Unknown input device')

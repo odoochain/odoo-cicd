@@ -4,6 +4,7 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
+# Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2021
 # surapas haemaprasertsuk <surapas@gmail.com>, 2021
 # Wichanon Jamwutthipreecha, 2022
 # 
@@ -29,14 +30,14 @@ msgstr "เปิดใช้งาน"
 #. module: utm
 #: model:ir.model.fields,help:utm.field_utm_campaign__is_auto_campaign
 msgid "Allows us to filter relevant Campaigns"
-msgstr "ช่วยให้เราสามารถกรองแคมเปญที่เกี่ยวข้อง"
+msgstr ""
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Approval-based Flow"
-msgstr "โฟลว์ตามการอนุมัติ"
+msgstr ""
 
 #. module: utm
 #. openerp-web
@@ -53,19 +54,19 @@ msgstr "เก็บถาวร"
 #. module: utm
 #: model_terms:ir.actions.act_window,help:utm.action_view_utm_tag
 msgid "Assign tags to your campaigns to organize, filter and track them."
-msgstr "กำหนดแท็กให้กับแคมเปญของคุณเพื่อจัดระเบียบ กรอง และติดตาม"
+msgstr ""
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Audience-driven Flow"
-msgstr "โฟลว์ที่ขับเคลื่อนโดยผู้ชม"
+msgstr ""
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_campaign__is_auto_campaign
 msgid "Automatically Generated Campaign"
-msgstr "แคมเปญที่สร้างขึ้นโดยอัตโนมัติ"
+msgstr ""
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_mixin__campaign_id
@@ -82,13 +83,13 @@ msgstr "ชื่อแคมเปญ"
 #. module: utm
 #: model:ir.model,name:utm.model_utm_stage
 msgid "Campaign Stage"
-msgstr "ขั้นตอนแคมเปญ"
+msgstr ""
 
 #. module: utm
 #: model:ir.actions.act_window,name:utm.action_view_utm_tag
 #: model_terms:ir.ui.view,arch_db:utm.utm_tag_view_tree
 msgid "Campaign Tags"
-msgstr "แท็กแคมเปญ"
+msgstr ""
 
 #. module: utm
 #: model:ir.actions.act_window,name:utm.utm_campaign_action
@@ -102,19 +103,19 @@ msgstr "แคมเปญ"
 msgid ""
 "Campaigns are used to centralize your marketing efforts and track their "
 "results."
-msgstr "แคมเปญใช้เพื่อรวมศูนย์การตลาดของคุณและติดตามผลลัพธ์"
+msgstr ""
 
 #. module: utm
 #: model:utm.campaign,name:utm.utm_campaign_christmas_special
 msgid "Christmas Special"
-msgstr "คริสต์มาสสเปเชียล"
+msgstr ""
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Collect ideas, design creative content and publish it once reviewed."
-msgstr "รวบรวมไอเดีย ออกแบบเนื้อหาที่สร้างสรรค์ และเผยแพร่เมื่อตรวจสอบแล้ว"
+msgstr ""
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_campaign__color
@@ -127,32 +128,32 @@ msgstr "ดัชนีสี"
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Copywriting"
-msgstr "การเขียนโฆษณา"
+msgstr ""
 
 #. module: utm
 #: model:utm.source,name:utm.utm_source_craigslist
 msgid "Craigslist"
-msgstr "Craigslist"
+msgstr ""
 
 #. module: utm
 #: model_terms:ir.actions.act_window,help:utm.utm_medium_action
 msgid "Create a Medium"
-msgstr "สร้างสื่อกลาง"
+msgstr ""
 
 #. module: utm
 #: model_terms:ir.actions.act_window,help:utm.action_view_utm_tag
 msgid "Create a Tag"
-msgstr "สร้างแท็ก"
+msgstr ""
 
 #. module: utm
 #: model_terms:ir.actions.act_window,help:utm.utm_campaign_action
 msgid "Create a campaign"
-msgstr "สร้างแคมเปญ"
+msgstr ""
 
 #. module: utm
 #: model_terms:ir.actions.act_window,help:utm.action_view_utm_stage
 msgid "Create a stage for your campaigns"
-msgstr "สร้างขั้นตอนสำหรับแคมเปญของคุณ"
+msgstr ""
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_campaign__create_uid
@@ -177,7 +178,7 @@ msgstr "สร้างเมื่อ"
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Creative Flow"
-msgstr "โฟลว์ความคิดสร้างสรรค์"
+msgstr ""
 
 #. module: utm
 #: model_terms:ir.ui.view,arch_db:utm.utm_campaign_view_kanban
@@ -189,14 +190,14 @@ msgstr "ลบ"
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Deploy"
-msgstr "ปรับใช้"
+msgstr ""
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Deployed"
-msgstr "ปรับใช้"
+msgstr ""
 
 #. module: utm
 #. openerp-web
@@ -214,7 +215,7 @@ msgstr "ออกแบบ"
 #: model:ir.model.fields,field_description:utm.field_utm_stage__display_name
 #: model:ir.model.fields,field_description:utm.field_utm_tag__display_name
 msgid "Display Name"
-msgstr "แสดงชื่อ"
+msgstr "ชื่อที่ใช้แสดง"
 
 #. module: utm
 #. openerp-web
@@ -243,26 +244,26 @@ msgstr "อีเมลแคมเปญ - สินค้า"
 #. module: utm
 #: model:utm.campaign,name:utm.utm_campaign_email_campaign_services
 msgid "Email Campaign - Services"
-msgstr "อีเมลแคมเปญ - บริการ"
+msgstr ""
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Event-driven Flow"
-msgstr "โฟลว์ที่ขับเคลื่อนด้วยอีเวนต์"
+msgstr ""
 
 #. module: utm
 #: model:utm.source,name:utm.utm_source_facebook
 msgid "Facebook"
-msgstr "Facebook"
+msgstr "เฟสบุ๊ค"
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Gather Data"
-msgstr "รวบรวมข้อมูล"
+msgstr ""
 
 #. module: utm
 #. openerp-web
@@ -272,23 +273,21 @@ msgid ""
 "Gather data, build a recipient list and write content based on your "
 "Marketing target."
 msgstr ""
-"รวบรวมข้อมูล สร้างรายชื่อผู้รับ "
-"และเขียนเนื้อหาอิงตามเป้าหมายทางการตลาดของคุณ"
 
 #. module: utm
 #: model:utm.source,name:utm.utm_source_glassdoor
 msgid "Glassdoor"
-msgstr "ประตูกระจก"
+msgstr ""
 
 #. module: utm
 #: model_terms:ir.ui.view,arch_db:utm.view_utm_campaign_view_search
 msgid "Group By"
-msgstr "กลุ่มโดย"
+msgstr "จัดกลุ่มตาม"
 
 #. module: utm
 #: model:ir.model,name:utm.model_ir_http
 msgid "HTTP Routing"
-msgstr "การกำหนด HTTP"
+msgstr "See http://openerp.com"
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_campaign__id
@@ -297,7 +296,7 @@ msgstr "การกำหนด HTTP"
 #: model:ir.model.fields,field_description:utm.field_utm_stage__id
 #: model:ir.model.fields,field_description:utm.field_utm_tag__id
 msgid "ID"
-msgstr "ไอดี"
+msgstr "รหัส"
 
 #. module: utm
 #. openerp-web
@@ -314,7 +313,7 @@ msgstr "แนวคิด"
 #: model:ir.model.fields,field_description:utm.field_utm_stage____last_update
 #: model:ir.model.fields,field_description:utm.field_utm_tag____last_update
 msgid "Last Modified on"
-msgstr "แก้ไขครั้งล่าสุดเมื่อ"
+msgstr "แก้ไขครั้งสุดท้ายเมื่อ"
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_campaign__write_uid
@@ -323,7 +322,7 @@ msgstr "แก้ไขครั้งล่าสุดเมื่อ"
 #: model:ir.model.fields,field_description:utm.field_utm_stage__write_uid
 #: model:ir.model.fields,field_description:utm.field_utm_tag__write_uid
 msgid "Last Updated by"
-msgstr "อัปเดตครั้งล่าสุดโดย"
+msgstr "อัพเดทครั้งสุดท้ายโดย"
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_campaign__write_date
@@ -332,24 +331,24 @@ msgstr "อัปเดตครั้งล่าสุดโดย"
 #: model:ir.model.fields,field_description:utm.field_utm_stage__write_date
 #: model:ir.model.fields,field_description:utm.field_utm_tag__write_date
 msgid "Last Updated on"
-msgstr "อัปเดตครั้งล่าสุดเมื่อ"
+msgstr "อัพเดทครั้งสุดท้ายเมื่อ"
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Later"
-msgstr "ภายหลัง"
+msgstr ""
 
 #. module: utm
 #: model:utm.source,name:utm.utm_source_mailing
 msgid "Lead Recall"
-msgstr "การเรียกคืนลูกค้าเป้าหมาย"
+msgstr ""
 
 #. module: utm
 #: model:ir.ui.menu,name:utm.menu_link_tracker_root
 msgid "Link Tracker"
-msgstr "ตัวติดตามลิงก์"
+msgstr "Link using field"
 
 #. module: utm
 #: model:utm.source,name:utm.utm_source_linkedin
@@ -361,7 +360,7 @@ msgstr "LinkedIn"
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "List-Building"
-msgstr "ตัวสร้าง-รายการ"
+msgstr ""
 
 #. module: utm
 #: model:utm.tag,name:utm.utm_tag_1
@@ -372,24 +371,24 @@ msgstr "การตลาด"
 #: model:ir.model.fields,field_description:utm.field_utm_mixin__medium_id
 #: model_terms:ir.ui.view,arch_db:utm.utm_medium_view_form
 msgid "Medium"
-msgstr "สื่อกลาง"
+msgstr "ปานกลาง"
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_medium__name
 msgid "Medium Name"
-msgstr "ชื่อกลาง"
+msgstr ""
 
 #. module: utm
 #: model:ir.actions.act_window,name:utm.utm_medium_action
 #: model:ir.ui.menu,name:utm.menu_utm_medium
 #: model_terms:ir.ui.view,arch_db:utm.utm_medium_view_tree
 msgid "Mediums"
-msgstr "สื่อกลาง"
+msgstr ""
 
 #. module: utm
 #: model:utm.source,name:utm.utm_source_monster
 msgid "Monster"
-msgstr "มอนสเตอร์"
+msgstr ""
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_stage__name
@@ -410,21 +409,21 @@ msgstr "ข่าวสาร"
 #. module: utm
 #: model_terms:ir.actions.act_window,help:utm.utm_source_action
 msgid "No Sources yet!"
-msgstr "ยังไม่มีแหล่งที่มา!"
+msgstr ""
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Pre-Launch"
-msgstr "ก่อนการเปิดตัว"
+msgstr ""
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Prepare Campaigns and get them approved before making them go live."
-msgstr "เตรียมแคมเปญและได้รับการอนุมัติก่อนที่จะเผยแพร่"
+msgstr ""
 
 #. module: utm
 #. openerp-web
@@ -434,8 +433,6 @@ msgid ""
 "Prepare your Campaign, test it with part of your audience and deploy it "
 "fully afterwards."
 msgstr ""
-"เตรียมแคมเปญของคุณ ทดสอบกับผู้ชมบางส่วนของคุณ "
-"และปรับใช้อย่างเต็มที่ในภายหลัง"
 
 #. module: utm
 #. openerp-web
@@ -478,12 +475,12 @@ msgstr "กำหนดเวลา"
 #. module: utm
 #: model_terms:ir.ui.view,arch_db:utm.utm_medium_view_search
 msgid "Search UTM Medium"
-msgstr "ค้นหาสื่อกลาง UTM"
+msgstr ""
 
 #. module: utm
 #: model:utm.source,name:utm.utm_source_search_engine
 msgid "Search engine"
-msgstr "เครื่องมือค้นหา"
+msgstr ""
 
 #. module: utm
 #. openerp-web
@@ -512,26 +509,26 @@ msgstr "ลำดับ"
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Soft-Launch"
-msgstr "Soft-Launch"
+msgstr ""
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Soft-Launch Flow"
-msgstr "โฟลว์ Soft-Launch"
+msgstr ""
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_mixin__source_id
 #: model_terms:ir.ui.view,arch_db:utm.utm_source_view_form
 #: model_terms:ir.ui.view,arch_db:utm.utm_source_view_tree
 msgid "Source"
-msgstr "แหล่งที่มา"
+msgstr "ต้นฉบับ"
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_source__name
 msgid "Source Name"
-msgstr "ชื่อแหล่งที่มา"
+msgstr "ชื่อแหล่ง"
 
 #. module: utm
 #: model:ir.actions.act_window,name:utm.utm_source_action
@@ -543,7 +540,7 @@ msgstr "แหล่งที่มา"
 #: model:ir.model.fields,field_description:utm.field_utm_campaign__stage_id
 #: model_terms:ir.ui.view,arch_db:utm.view_utm_campaign_view_search
 msgid "Stage"
-msgstr "ขั้นตอน"
+msgstr "สถานะ"
 
 #. module: utm
 #: model_terms:ir.ui.view,arch_db:utm.utm_stage_view_search
@@ -557,8 +554,6 @@ msgid ""
 "Stages allow you to organize your workflow  (e.g. : plan, design, in "
 "progress,  done, …)."
 msgstr ""
-"ขั้นตอนช่วยให้คุณจัดระเบียบเวิร์กโฟลว์ของคุณ (เช่น : วางแผน การออกแบบ "
-"อยู่ระหว่างดำเนินการ เสร็จสิ้น …)"
 
 #. module: utm
 #: model:ir.model.fields,help:utm.field_utm_tag__color
@@ -566,18 +561,16 @@ msgid ""
 "Tag color. No color means no display in kanban to distinguish internal tags "
 "from public categorization tags."
 msgstr ""
-"แท็กสี "
-"ไม่มีสีหมายความว่าไม่มีการแสดงในคัมบังเพื่อแยกแท็กภายในออกจากแท็กการจัดหมวดหมู่สาธารณะ"
 
 #. module: utm
 #: model:ir.model.constraint,message:utm.constraint_utm_tag_name_uniq
 msgid "Tag name already exists !"
-msgstr "ชื่อแท็กนี้มีอยู่แล้ว!"
+msgstr "ชื่อป้ายกำกับมีอยู่แล้ว"
 
 #. module: utm
 #: model:ir.model.fields,field_description:utm.field_utm_campaign__tag_ids
 msgid "Tags"
-msgstr "แท็ก"
+msgstr "ป้ายกำกับ"
 
 #. module: utm
 #. openerp-web
@@ -613,14 +606,14 @@ msgid ""
 "This is the source of the link, e.g. Search Engine, another domain, or name "
 "of email list"
 msgstr ""
-"นี่เป็นที่มาของลิงก์ เช่น เครื่องมือค้นหา โดเมนอื่นๆ หรือชื่อรายการอีเมล"
+"นี่เป็นที่มาของลิงก์ เช่น เครื่องมือค้นหา โดเมนอื่น หรือชื่อรายการอีเมล"
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "To be Approved"
-msgstr "ได้รับการอนุมัติ"
+msgstr ""
 
 #. module: utm
 #. openerp-web
@@ -630,13 +623,11 @@ msgid ""
 "Track incoming events (e.g. : Christmas, Black Friday, ...) and publish "
 "timely content."
 msgstr ""
-"ติดตามอีเวนต์ที่เข้ามา (เช่น คริสต์มาส แบล็กฟรายเดย์ ...) "
-"และเผยแพร่เนื้อหาในเวลาที่เหมาะสม"
 
 #. module: utm
 #: model:utm.source,name:utm.utm_source_twitter
 msgid "Twitter"
-msgstr "Twitter"
+msgstr "ทวิตเตอร์"
 
 #. module: utm
 #: model:ir.model,name:utm.model_utm_campaign
@@ -648,12 +639,12 @@ msgstr "แคมเปญ UTM "
 #: model_terms:ir.ui.view,arch_db:utm.utm_campaign_view_tree
 #: model_terms:ir.ui.view,arch_db:utm.view_utm_campaign_view_search
 msgid "UTM Campaigns"
-msgstr "แคมเปญ UTM "
+msgstr ""
 
 #. module: utm
 #: model:ir.model,name:utm.model_utm_medium
 msgid "UTM Medium"
-msgstr "สื่อกลาง UTM"
+msgstr ""
 
 #. module: utm
 #: model_terms:ir.actions.act_window,help:utm.utm_medium_action
@@ -661,18 +652,16 @@ msgid ""
 "UTM Mediums track the mean that was used to attract traffic (e.g. "
 "\"Website\", \"Twitter\", ...)."
 msgstr ""
-"สื่อกลาง UTM ติดตามค่าเฉลี่ยที่ใช้ในการดึงดูดการเข้าชม (เช่น \"เว็บไซต์\", "
-"\"Twitter\", ...)"
 
 #. module: utm
 #: model:ir.model,name:utm.model_utm_mixin
 msgid "UTM Mixin"
-msgstr "UTM Mixin"
+msgstr ""
 
 #. module: utm
 #: model:ir.model,name:utm.model_utm_source
 msgid "UTM Source"
-msgstr "แหล่งที่มา UTM"
+msgstr ""
 
 #. module: utm
 #: model_terms:ir.actions.act_window,help:utm.utm_source_action
@@ -680,33 +669,31 @@ msgid ""
 "UTM Sources track where traffic comes from  (e.g. \"May Newsletter\", \"\", "
 "...)."
 msgstr ""
-"แหล่งที่มา UTM ติดตามที่มาของการเข้าชม (เช่น \"จดหมายข่าวพฤษภาคม\", \"\", "
-"...)"
 
 #. module: utm
 #: model:ir.actions.act_window,name:utm.action_view_utm_stage
 msgid "UTM Stages"
-msgstr "ขั้นตอน UTM"
+msgstr ""
 
 #. module: utm
 #: model:ir.model,name:utm.model_utm_tag
 msgid "UTM Tag"
-msgstr "แท็ก UTM"
+msgstr ""
 
 #. module: utm
 #: model:ir.ui.menu,name:utm.marketing_utm
 msgid "UTMs"
-msgstr "UTMs"
+msgstr ""
 
 #. module: utm
 #. openerp-web
 #: code:addons/utm/static/src/js/utm_campaign_kanban_examples.js:0
 #, python-format
 msgid "Use This For My Campaigns"
-msgstr "ใช้สิ่งนี้สำหรับแคมเปญของฉัน"
+msgstr ""
 
 #. module: utm
 #: model_terms:ir.ui.view,arch_db:utm.utm_campaign_view_form
 #: model_terms:ir.ui.view,arch_db:utm.utm_campaign_view_form_quick_create
 msgid "e.g. Black Friday"
-msgstr "เช่น แบล็คฟรายเดย์"
+msgstr ""

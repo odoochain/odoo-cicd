@@ -6,26 +6,22 @@
 # Carles Antoli <carlesantoli@hotmail.com>, 2021
 # RGB Consulting <odoo@rgbconsulting.com>, 2021
 # M Palau <mpalau@tda.ad>, 2021
+# Martin Trigaux, 2021
 # Marc Tormo i Bochaca <mtbochaca@gmail.com>, 2021
 # Quim - eccit <quim@eccit.com>, 2021
 # Sandra Franch <sandra.franch@upc.edu>, 2021
 # Manel Fernandez Ramirez <manelfera@outlook.com>, 2021
 # Arnau Ros, 2021
 # José Cabrera Lozano <jose.cabrera@edukative.es>, 2021
-# Harcogourmet, 2022
-# Martin Trigaux, 2022
-# Jonatan Gk, 2022
-# jabelchi, 2022
-# marcescu, 2022
-# eriiikgt, 2022
+# jabelchi, 2021
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 15.0\n"
+"Project-Id-Version: Odoo Server saas~14.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-24 08:19+0000\n"
+"POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:23+0000\n"
-"Last-Translator: eriiikgt, 2022\n"
+"Last-Translator: jabelchi, 2021\n"
 "Language-Team: Catalan (https://www.transifex.com/odoo/teams/41243/ca/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -41,7 +37,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__rating_count
 msgid "# Ratings"
-msgstr "# Valoracions"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_operator__nbr_channel
@@ -258,7 +254,7 @@ msgstr "Cancel·lat"
 #: model:ir.actions.act_window,name:im_livechat.im_livechat_canned_response_action
 #: model:ir.ui.menu,name:im_livechat.canned_responses
 msgid "Canned Responses"
-msgstr "Resposta Caned@ item: inlistbox Codec setting"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.actions.act_window,help:im_livechat.im_livechat_canned_response_action
@@ -331,8 +327,6 @@ msgid ""
 "Chat is private and unique between 2 persons. Group is private among invited"
 " persons. Channel can be freely joined (depending on its configuration)."
 msgstr ""
-"El xat és privat i únic entre 2 persones. El grup és privat entre persones "
-"convidades. El canal es pot afegir lliurement (segons la seva configuració)."
 
 #. module: im_livechat
 #. openerp-web
@@ -355,14 +349,14 @@ msgstr "Tancar"
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Close chat window"
-msgstr "Tanca la finestra de xat"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Close conversation"
-msgstr "Tanca la conversa"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__technical_name
@@ -469,7 +463,7 @@ msgstr ""
 #: model:ir.actions.act_window,name:im_livechat.rating_rating_action_livechat_report
 #: model:ir.ui.menu,name:im_livechat.rating_rating_menu_livechat
 msgid "Customer Ratings"
-msgstr "Valoracions del client"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__day_number
@@ -659,7 +653,7 @@ msgstr ""
 #: code:addons/im_livechat/static/src/legacy/public_livechat.js:0
 #, python-format
 msgid "How may I help you?"
-msgstr "Hola, com et puc ajudar?"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -695,7 +689,7 @@ msgstr "Imatge"
 #: code:addons/im_livechat/static/src/legacy/public_livechat.js:0
 #, python-format
 msgid "Invalid email address"
-msgstr "Adreça de correu electrònic no vàlida"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_res_users_settings__is_discuss_sidebar_category_livechat_open
@@ -731,7 +725,7 @@ msgstr "Unir-se"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "Join Channel"
-msgstr "Entra al canal"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_digest_digest__kpi_livechat_conversations_value
@@ -787,7 +781,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_mail_channel_partner
 msgid "Listeners of a Channel"
-msgstr "Escoltadors d' un canal"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.module.category,name:im_livechat.module_category_im_livechat
@@ -825,7 +819,7 @@ msgstr ""
 #: model:ir.model,name:im_livechat.model_im_livechat_channel
 #: model_terms:ir.ui.view,arch_db:im_livechat.rating_rating_view_search_livechat
 msgid "Livechat Channel"
-msgstr "Canal de Livechat"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_im_livechat_channel_rule
@@ -925,11 +919,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__sequence
 msgid "Matching order"
 msgstr ""
-
-#. module: im_livechat
-#: model:ir.model,name:im_livechat.model_mail_message
-msgid "Message"
-msgstr "Missatge"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -1044,7 +1033,7 @@ msgstr ""
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Oops! Something went wrong."
-msgstr "S'ha produït un error"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__partner_id
@@ -1103,7 +1092,7 @@ msgstr "Fitxer PDF"
 #. module: im_livechat
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_channel__rating_percentage_satisfaction
 msgid "Percentage of happy ratings"
-msgstr "Percentatge de valoracions positives"
+msgstr "Percentatge de valoracions \"feliç\""
 
 #. module: im_livechat
 #. openerp-web
@@ -1125,7 +1114,7 @@ msgstr "Espereu"
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Please wait..."
-msgstr "Si us plau, espereu..."
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
@@ -1229,7 +1218,7 @@ msgstr ""
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Received by Everyone"
-msgstr "Rebuda per tots"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
@@ -1263,7 +1252,7 @@ msgstr "Informe"
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Reset Zoom"
-msgstr "Reinicia el zoom"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -1276,7 +1265,7 @@ msgstr ""
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Rotate"
-msgstr "Gira"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__rule_ids
@@ -1329,7 +1318,7 @@ msgstr ""
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Seen by Everyone"
-msgstr "Se'n veu tothom"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
@@ -1598,36 +1587,30 @@ msgid "User"
 msgstr "Usuari"
 
 #. module: im_livechat
-#: model:ir.model.fields,field_description:im_livechat.field_res_partner__user_livechat_username
-#: model:ir.model.fields,field_description:im_livechat.field_res_users__user_livechat_username
-msgid "User Livechat Username"
-msgstr ""
-
-#. module: im_livechat
 #: model:ir.model,name:im_livechat.model_res_users_settings
 msgid "User Settings"
-msgstr "Arranjament d' usuari"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "User is idle"
-msgstr "L' usuari està inactiu"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "User is offline"
-msgstr "L' usuari està fora de línia"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "User is online"
-msgstr "L' usuari és en línia"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_res_users
@@ -1647,7 +1630,7 @@ msgstr "Vídeo"
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Viewer"
-msgstr "Visor"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
@@ -1747,7 +1730,7 @@ msgstr ""
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Zoom In"
-msgstr "Apropa"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
@@ -1755,7 +1738,7 @@ msgstr "Apropa"
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "Zoom Out"
-msgstr "Allunya"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_rule_view_form
@@ -1765,12 +1748,12 @@ msgstr ""
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "e.g. Hello, how may I help you?"
-msgstr "p. ex. Hola, com et puc ajudar?"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "e.g. YourWebsite.com"
-msgstr "p. ex. YourWebsite.com"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
@@ -1784,7 +1767,7 @@ msgstr "des de"
 #: code:addons/im_livechat/static/src/legacy/public_livechat.xml:0
 #, python-format
 msgid "mail@example.com"
-msgstr "mail@example.com"
+msgstr ""
 
 #. module: im_livechat
 #. openerp-web
@@ -1822,7 +1805,7 @@ msgstr "segons"
 #: code:addons/im_livechat/static/src/legacy/public_livechat.js:0
 #, python-format
 msgid "unnamed"
-msgstr "sense nom"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template

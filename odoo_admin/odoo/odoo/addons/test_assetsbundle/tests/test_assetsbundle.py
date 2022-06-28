@@ -749,19 +749,19 @@ class TestAssetsBundleWithIRAMock(FileTouchable):
 
         # patch methods 'create' and 'unlink' of model 'ir.attachment'
         origin_create = IrAttachment.create
-        origin_unlink = AssetsBundle._unlink_attachments
+        origin_unlink = IrAttachment.unlink
 
         @api.model
         def create(self, vals):
             counter.update(['create'])
             return origin_create(self, vals)
 
-        def unlink(self, attachments):
+        def unlink(self):
             counter.update(['unlink'])
-            return origin_unlink(self, attachments)
+            return origin_unlink(self)
 
         self.patch(IrAttachment, 'create', create)
-        self.patch(AssetsBundle, '_unlink_attachments', unlink)
+        self.patch(IrAttachment, 'unlink', unlink)
 
     def _get_asset(self):
         files, _ = self.env['ir.qweb']._get_asset_content(self.stylebundle_name)

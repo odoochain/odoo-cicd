@@ -8,7 +8,6 @@
 # Quim - eccit <quim@eccit.com>, 2021
 # Manel Fernandez Ramirez <manelfera@outlook.com>, 2021
 # jabelchi, 2021
-# ericrolo, 2022
 # 
 msgid ""
 msgstr ""
@@ -16,7 +15,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:19+0000\n"
-"Last-Translator: ericrolo, 2022\n"
+"Last-Translator: jabelchi, 2021\n"
 "Language-Team: Catalan (https://www.transifex.com/odoo/teams/41243/ca/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -41,8 +40,6 @@ msgid ""
 "Adjust the margins of generated checks to make it fit your printer's "
 "settings."
 msgstr ""
-"Ajusteu els marges dels xecs generats perquè s'ajustin a la configuració de "
-"la vostra impressora."
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_payment__check_amount_in_words
@@ -64,7 +61,7 @@ msgstr "Disposició de xec"
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_margin_left
 #: model:ir.model.fields,field_description:account_check_printing.field_res_config_settings__account_check_printing_margin_left
 msgid "Check Left Margin"
-msgstr "Comproveu el Marge Esquerre"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_payment__check_number
@@ -79,7 +76,7 @@ msgstr "Impressió de xecs"
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_res_config_settings__account_check_printing_margin_right
 msgid "Check Right Margin"
-msgstr "Comproveu el Marge Dret"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_journal__check_sequence_id
@@ -90,13 +87,13 @@ msgstr "Seqüència de xecs"
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_margin_top
 #: model:ir.model.fields,field_description:account_check_printing.field_res_config_settings__account_check_printing_margin_top
 msgid "Check Top Margin"
-msgstr "Comproveu el Marge Superior"
+msgstr ""
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_payment.py:0
 #, python-format
 msgid "Check numbers can only consist of digits"
-msgstr "Els números de xec només poden constar de dígits"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_account_journal__check_manual_sequencing
@@ -224,18 +221,12 @@ msgid ""
 "SEPA Credit Transfer: Pay in the SEPA zone by submitting a SEPA Credit Transfer file to your bank. Module account_sepa is necessary.\n"
 "SEPA Direct Debit: Get paid in the SEPA zone thanks to a mandate your partner will have granted to you. Module account_sepa is necessary.\n"
 msgstr ""
-"Manual: pagueu o rebeu pagaments per qualsevol mètode fora d'Odoo.\n"
-"Adquirents de pagament: cada mètode de pagament té el seu propi mètode de pagament. Sol·liciteu una transacció en/a una targeta gràcies a un token de pagament guardat pel soci en comprar o subscriure's en línia.\n"
-"Xec: pagueu factures amb xec i imprimiu-lo des d'Odoo.\n"
-"Dipòsit per lots: coure diversos xecs de clients alhora generant i enviant un dipòsit per lots al banc. El mòdul account_batch_payment és necessari.\n"
-"Transferència de crèdit SEPA: pagueu a la zona SEPA enviant un fitxer de transferència de crèdit SEPA al vostre banc. Mòdul account_sepa és necessari.\n"
-"Dèbit Directe SEPA: Rep pagaments a la zona SEPA gràcies a un mandat que t'haurà atorgat el teu soci. Mòdul account_sepa és necessari.\n"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_multi_stub
 #: model:ir.model.fields,field_description:account_check_printing.field_res_config_settings__account_check_printing_multi_stub
 msgid "Multi-Pages Check Stub"
-msgstr "Taló de xecs de diverses pàgines"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_journal__check_next_number
@@ -248,7 +239,7 @@ msgstr "Núm. del pròxim xec"
 #: code:addons/account_check_printing/wizard/print_prenumbered_checks.py:0
 #, python-format
 msgid "Next Check Number should only contains numbers."
-msgstr "El número de comprovació següent només hauria de contenir números."
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields.selection,name:account_check_printing.selection__res_company__account_check_printing_layout__disabled
@@ -294,7 +285,7 @@ msgstr "Introduïu el número del primer xec pre-imprès que aneu a imprimir."
 #: model:ir.model.fields,field_description:account_check_printing.field_account_move__preferred_payment_method_id
 #: model:ir.model.fields,field_description:account_check_printing.field_account_payment__preferred_payment_method_id
 msgid "Preferred Payment Method"
-msgstr "Mètode de Pagament Preferit"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_res_partner__property_payment_method_id
@@ -304,10 +295,6 @@ msgid ""
 "vendor bills by preferred payment method to register payments in mass. Use "
 "cases: create bank files for batch wires, check runs."
 msgstr ""
-"Mètode de pagament preferit per pagar aquest proveïdor. S'utilitza per "
-"filtrar les factures de proveïdors pel mètode de pagament preferit per "
-"registrar els pagaments en massa. Casos d'ús: crear fitxers bancaris per a "
-"cables per lots, comprovar tirades."
 
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
@@ -328,7 +315,7 @@ msgstr "Imprimir xecs"
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_date_label
 #: model:ir.model.fields,field_description:account_check_printing.field_res_config_settings__account_check_printing_date_label
 msgid "Print Date Label"
-msgstr "Imprimeix l'etiqueta de data"
+msgstr ""
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_payment.py:0
@@ -346,7 +333,7 @@ msgstr "Registrar pagament"
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_margin_right
 msgid "Right Margin"
-msgstr "Marge Dret"
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_res_company__account_check_printing_layout
@@ -355,8 +342,6 @@ msgid ""
 "Select the format corresponding to the check paper you will be printing your checks on.\n"
 "In order to disable the printing feature, select 'None'."
 msgstr ""
-"Seleccioneu el format corresponent al paper de xecs on imprimireu els vostres xecs.\n"
-"Per desactivar la funció d'impressió, seleccioneu \"Cap\"."
 
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.view_account_payment_form_inherited
@@ -375,9 +360,6 @@ msgid ""
 "Something went wrong with Check Layout, please select another layout in "
 "Invoicing/Accounting Settings and try again."
 msgstr ""
-"S'ha produït un error amb Comprova la disposició. Si us plau, seleccioneu un"
-" altre disseny a la configuració de facturació/comptabilitat i torneu-ho a "
-"provar."
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_payment.py:0
@@ -386,8 +368,6 @@ msgid ""
 "The following numbers are already used:\n"
 "%s"
 msgstr ""
-"Ja s'utilitzen els següents números:\n"
-"%s"
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_journal.py:0
@@ -417,8 +397,6 @@ msgid ""
 "This option allows you to print check details (stub) on multiple pages if "
 "they don't fit on a single page."
 msgstr ""
-"Aquesta opció us permet imprimir els detalls del xec (taló) en diverses "
-"pàgines si no caben en una sola pàgina."
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_res_company__account_check_printing_date_label
@@ -427,8 +405,6 @@ msgid ""
 "This option allows you to print the date label on the check as per CPA.\n"
 "Disable this if your pre-printed check includes the date label."
 msgstr ""
-"Aquesta opció us permet imprimir l'etiqueta de la data al xec segons el CPA.\n"
-"Desactiveu-ho si el vostre xec preimpres inclou l'etiqueta de la data."
 
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
@@ -445,7 +421,7 @@ msgstr "Desmarcar enviats"
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.view_account_payment_form_inherited
 msgid "Void Check"
-msgstr "Comprovació Nul·la"
+msgstr ""
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_payment.py:0
@@ -454,5 +430,3 @@ msgid ""
 "You have to choose a check layout. For this, go in Invoicing/Accounting "
 "Settings, search for 'Checks layout' and set one."
 msgstr ""
-"Heu de triar un disseny de comprovació. Per a això, aneu a Configuració de "
-"facturació/comptabilitat, cerqueu \"Disposició de xecs\" i configureu-ne un."

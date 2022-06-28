@@ -80,10 +80,12 @@ class TestHrAttendance(TransactionCase):
         self.assertTrue(action.get('warning'))
 
     def test_checkin_kiosk_no_pin_mode(self):
-        """ Employee cannot check in/out without pin in kiosk when user has not group `use_pin` """
+        """ Employee can check in/out without pin in kiosk when user has not group `use_pin` """
         employee = self.employee_kiosk.with_user(self.user_no_pin)
         employee.attendance_manual({}, entered_pin=None)
-        self.assertEqual(employee.attendance_state, 'checked_out', "He shouldn't be able to check in without")
+        self.assertEqual(employee.attendance_state, 'checked_in', "He should be able to check in with his pin")
+        employee.attendance_manual({}, entered_pin=None)
+        self.assertEqual(employee.attendance_state, 'checked_out', "He should be able to check out with his pin")
 
     def test_hours_today(self):
         """ Test day start is correctly computed according to the employee's timezone """

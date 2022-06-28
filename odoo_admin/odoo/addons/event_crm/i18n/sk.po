@@ -4,13 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2022
-# Damian Brencic <brencicdamian12313@gmail.com>, 2022
-# karolína schusterová <karolina.schusterova@vdp.sk>, 2022
-# Matus Krnac <matus.krnac@gmail.com>, 2022
-# Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
-# rastislav Brencic <rastislav.brencic99@gmail.com>, 2022
-# Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022
-# Filip Hanes <filip.hanes@protonmail.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -18,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:21+0000\n"
-"Last-Translator: Filip Hanes <filip.hanes@protonmail.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2022\n"
 "Language-Team: Slovak (https://www.transifex.com/odoo/teams/41243/sk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -30,12 +23,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:event_crm.field_event_event__lead_count
 #: model:ir.model.fields,field_description:event_crm.field_event_registration__lead_count
 msgid "# Leads"
-msgstr "# Potenciálne príležitosti"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_crm_lead__registration_count
 msgid "# Registrations"
-msgstr "# Registrácie"
+msgstr ""
 
 #. module: event_crm
 #: code:addons/event_crm/models/event_registration.py:0
@@ -52,7 +45,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:event_crm.event_registration_view_form
 #: model_terms:ir.ui.view,arch_db:event_crm.event_view_form
 msgid "<span class=\"o_stat_text\"> Leads</span>"
-msgstr "<span class=\"o_stat_text\"> Potenciálne príležitosti</span>"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__active
@@ -172,7 +165,7 @@ msgstr "Udalosť"
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__event_type_ids
 msgid "Event Categories"
-msgstr "Kategórie udalostí"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model,name:event_crm.model_event_lead_rule
@@ -187,7 +180,7 @@ msgstr "Registrácia udalosti"
 #. module: event_crm
 #: model:ir.actions.act_window,name:event_crm.event_registration_action_from_lead
 msgid "Event registrations"
-msgstr "Registrácie eventu"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,help:event_crm.field_crm_lead__event_id
@@ -246,7 +239,7 @@ msgstr "Naposledy upravované"
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_type__lead
 msgid "Lead"
-msgstr "Potenciálna príležitosť"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_tree
@@ -261,13 +254,13 @@ msgstr ""
 #. module: event_crm
 #: model:ir.ui.menu,name:event_crm.event_lead_rule_menu
 msgid "Lead Generation"
-msgstr "Generovanie potenciálnej príežitosti"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.actions.act_window,name:event_crm.event_lead_rule_action
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form
 msgid "Lead Generation Rule"
-msgstr "Pravidlo generovania Potenciálnych príležitostí"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_tree
@@ -277,12 +270,12 @@ msgstr ""
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_type
 msgid "Lead Type"
-msgstr "Typ iniciatívy"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model,name:event_crm.model_crm_lead
 msgid "Lead/Opportunity"
-msgstr "Potenciálna príležitosť / obchodný prípad"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.actions.act_window,name:event_crm.crm_lead_action_from_event
@@ -290,7 +283,7 @@ msgstr "Potenciálna príležitosť / obchodný prípad"
 #: model:ir.model.fields,field_description:event_crm.field_event_event__lead_ids
 #: model:ir.model.fields,field_description:event_crm.field_event_registration__lead_ids
 msgid "Leads"
-msgstr "Potenciálna príležitosť"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,help:event_crm.field_event_registration__lead_ids
@@ -327,14 +320,14 @@ msgstr ""
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_type__opportunity
 msgid "Opportunity"
-msgstr "Obchodný prípad"
+msgstr ""
 
 #. module: event_crm
 #: code:addons/event_crm/models/event_registration.py:0
 #: code:addons/event_crm/models/event_registration.py:0
 #, python-format
 msgid "Participants"
-msgstr "Účastníci"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields.selection,name:event_crm.selection__event_lead_rule__lead_creation_basis__attendee
@@ -378,7 +371,7 @@ msgstr ""
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__name
 msgid "Rule Name"
-msgstr "Meno pravidla"
+msgstr ""
 
 #. module: event_crm
 #: model:event.lead.rule,name:event_crm.event_lead_rule_0
@@ -393,12 +386,12 @@ msgstr ""
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_sales_team_id
 msgid "Sales Team"
-msgstr "Obchodný tím"
+msgstr ""
 
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_user_id
 msgid "Salesperson"
-msgstr "Obchodník"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_search
@@ -418,7 +411,7 @@ msgstr ""
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_tag_ids
 msgid "Tags"
-msgstr "Tagy"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.actions.act_window,help:event_crm.event_lead_rule_action
@@ -428,7 +421,7 @@ msgstr ""
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_search
 msgid "Trigger Type"
-msgstr "Typ spúšťača"
+msgstr ""
 
 #. module: event_crm
 #: code:addons/event_crm/models/event_registration.py:0
@@ -440,7 +433,7 @@ msgstr ""
 #. module: event_crm
 #: model:ir.model.fields,field_description:event_crm.field_event_lead_rule__lead_creation_trigger
 msgid "When"
-msgstr "Kedy"
+msgstr ""
 
 #. module: event_crm
 #: model_terms:ir.ui.view,arch_db:event_crm.event_lead_rule_view_form

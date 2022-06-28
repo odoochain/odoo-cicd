@@ -118,7 +118,7 @@ class ProductProduct(models.Model):
         digits='Product Price',
         groups="base.group_user",
         help="""In Standard Price & AVCO: value of the product (automatically computed in AVCO).
-        In FIFO: value of the next unit that will leave the stock (automatically computed).
+        In FIFO: value of the last unit that left the stock (automatically computed).
         Used to value the product when the purchase cost is not known (e.g. inventory adjustment).
         Used to compute margins on sale orders.""")
     volume = fields.Float('Volume', digits='Volume')
@@ -757,7 +757,7 @@ class ProductPackaging(models.Model):
     name = fields.Char('Product Packaging', required=True)
     sequence = fields.Integer('Sequence', default=1, help="The first in the sequence is the default one.")
     product_id = fields.Many2one('product.product', string='Product', check_company=True)
-    qty = fields.Float('Contained Quantity', default=1, digits='Product Unit of Measure', help="Quantity of products contained in the packaging.")
+    qty = fields.Float('Contained Quantity', default=1, help="Quantity of products contained in the packaging.")
     barcode = fields.Char('Barcode', copy=False, help="Barcode used for packaging identification. Scan this packaging barcode from a transfer in the Barcode app to move all the contained units")
     product_uom_id = fields.Many2one('uom.uom', related='product_id.uom_id', readonly=True)
     company_id = fields.Many2one('res.company', 'Company', index=True)
@@ -778,10 +778,19 @@ class ProductPackaging(models.Model):
         # per package might be a float, leading to incorrect results. For example:
         # 8 % 1.6 = 1.5999999999999996
         # 5.4 % 1.8 = 2.220446049250313e-16
-        if product_qty and packaging_qty:
-            rounded_qty = float_round(product_qty / packaging_qty, precision_rounding=1.0,
-                                  rounding_method=rounding_method) * packaging_qty
-            return rounded_qty if float_compare(rounded_qty, product_qty, precision_rounding=default_uom.rounding) else product_qty
+        if (
+            product_qty
+            and packaging_qty
+            and float_compare(
+                product_qty / packaging_qty,
+                float_round(product_qty / packaging_qty, precision_rounding=1.0),
+                precision_rounding=default_uom.rounding
+            )
+            != 0
+        ):
+            return float_round(
+                product_qty / packaging_qty, precision_rounding=1.0, rounding_method=rounding_method
+            ) * packaging_qty
         return product_qty
 
     def _find_suitable_product_packaging(self, product_qty, uom_id):
@@ -849,9 +858,3 @@ class SupplierInfo(models.Model):
             'label': _('Import Template for Vendor Pricelists'),
             'template': '/product/static/xls/product_supplierinfo.xls'
         }]
-
-    @api.constrains('product_id', 'product_tmpl_id')
-    def _check_product_variant(self):
-        for supplier in self:
-            if supplier.product_id and supplier.product_tmpl_id and supplier.product_id.product_tmpl_id != supplier.product_tmpl_id:
-                raise ValidationError(_('The product variant must be a variant of the product template.'))

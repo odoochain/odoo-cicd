@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:22+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -30,19 +29,19 @@ msgstr "متوفر"
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_res_company
 msgid "Companies"
-msgstr "الشركات "
+msgstr "شركات"
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__hr_attendance_overtime
 msgid "Count Extra Hours"
-msgstr "حساب الساعات الإضافية "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__overtime_deductible
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_employee_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.res_users_view_form
 msgid "Deduct Extra Hours"
-msgstr "خصم الساعات الإضافية "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_allocation_overtime_view_form
@@ -54,20 +53,20 @@ msgstr "تجاهل"
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave__overtime_id
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__overtime_id
 msgid "Extra Hours"
-msgstr "الساعات الإضافية "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_attendance_holidays_hr_leave_allocation_view_form_inherit
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_view_form
 msgid "Extra Hours Available"
-msgstr "الساعات الإضافية المتاحة "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. openerp-web
 #: code:addons/hr_holidays_attendance/static/src/xml/time_off_calendar.xml:0
 #, python-format
 msgid "HOURS AVAILABLE"
-msgstr "الساعات المتاحة "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. openerp-web
@@ -79,31 +78,31 @@ msgstr "الساعات"
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_type__hr_attendance_overtime
 msgid "Hr Attendance Overtime"
-msgstr "وقت الحضور الإضافي للموارد البشرية "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.actions.act_window,name:hr_holidays_attendance.hr_leave_allocation_overtime_action
 #: model:ir.actions.act_window,name:hr_holidays_attendance.hr_leave_allocation_overtime_manager_action
 msgid "New Allocation Request"
-msgstr "طلب مخصصات جديد "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,help:hr_holidays_attendance.field_hr_leave_type__overtime_deductible
 msgid ""
 "Once a time off of this type is approved, extra hours in attendances will be"
 " deducted."
-msgstr "بمجرد الموافقة على إجازة، سوف يتم خصم الساعات الإضافية من الحضور. "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave__overtime_deductible
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__overtime_deductible
 msgid "Overtime Deductible"
-msgstr "الوقت الإضافي القابل للخصم "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_res_users__request_overtime
 msgid "Request Overtime"
-msgstr "طلب ساعات عمل إضافية "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model_terms:ir.ui.view,arch_db:hr_holidays_attendance.hr_leave_allocation_overtime_view_form
@@ -115,67 +114,67 @@ msgstr "حفظ"
 #, python-format
 msgid ""
 "The employee does not have enough extra hours to extend this allocation."
-msgstr "لا يملك الموظف ساعات إضافية كافية لتمديد تخصيصه. "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: code:addons/hr_holidays_attendance/models/hr_leave.py:0
 #, python-format
 msgid "The employee does not have enough extra hours to extend this leave."
-msgstr "لا يملك الموظف ساعات إضافية كافية لتمديد إجازته. "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: code:addons/hr_holidays_attendance/models/hr_leave_allocation.py:0
 #, python-format
 msgid ""
 "The employee does not have enough extra hours to request this allocation."
-msgstr "لا يملك الموظف ساعات إضافية كافية لطلب هذا المخصص. "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: code:addons/hr_holidays_attendance/models/hr_leave.py:0
 #: code:addons/hr_holidays_attendance/models/hr_leave.py:0
 #, python-format
 msgid "The employee does not have enough extra hours to request this leave."
-msgstr "لا يملك الموظف ساعات إضافية كافية لطلب هذه الإجازة. "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: code:addons/hr_holidays_attendance/models/hr_leave_allocation.py:0
 #, python-format
 msgid ""
 "The employee does not have enough overtime hours to request this leave."
-msgstr "لا يملك الموظف ساعات عمل إضافية كافية لطلب هذه الإجازة. "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_leave
 msgid "Time Off"
-msgstr "الإجازات "
+msgstr "الاجازات"
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_leave_allocation
 msgid "Time Off Allocation"
-msgstr "مخصص الإجازات "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_hr_leave_type
 msgid "Time Off Type"
-msgstr "نوع الإجازة "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave__employee_overtime
 #: model:ir.model.fields,field_description:hr_holidays_attendance.field_hr_leave_allocation__employee_overtime
 msgid "Total Overtime"
-msgstr "إجمالي ساعات العمل الإضافية "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #: model:ir.model,name:hr_holidays_attendance.model_res_users
 msgid "Users"
-msgstr "المستخدمين "
+msgstr "المستخدمون"
 
 #. module: hr_holidays_attendance
 #: code:addons/hr_holidays_attendance/models/hr_leave.py:0
 #: code:addons/hr_holidays_attendance/models/hr_leave.py:0
 #, python-format
 msgid "You do not have enough extra hours to request this leave"
-msgstr "لا تملك ساعات إضافية كافية لطلب هذه الإجازة "
+msgstr ""
 
 #. module: hr_holidays_attendance
 #. openerp-web
@@ -183,4 +182,4 @@ msgstr "لا تملك ساعات إضافية كافية لطلب هذه الإ�
 #: code:addons/hr_holidays_attendance/static/src/xml/time_off_calendar.xml:0
 #, python-format
 msgid "requires_allocation"
-msgstr "requires_allocation"
+msgstr ""

@@ -575,8 +575,6 @@ class Product(models.Model):
         owner_id = self.env['res.partner'].browse(owner_id)
         to_uom = self.env['uom.uom'].browse(to_uom)
         quants = self.env['stock.quant']._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=True)
-        if lot_id:
-            quants = quants.filtered(lambda q: q.lot_id == lot_id)
         theoretical_quantity = sum([quant.quantity for quant in quants])
         if to_uom and product_id.uom_id != to_uom:
             theoretical_quantity = product_id.uom_id._compute_quantity(theoretical_quantity, to_uom)
@@ -979,13 +977,7 @@ class ProductCategory(models.Model):
         domain=[('product_categ_selectable', '=', True)])
     removal_strategy_id = fields.Many2one(
         'product.removal', 'Force Removal Strategy',
-        help="Set a specific removal strategy that will be used regardless of the source location for this product category.\n\n"
-             "FIFO: products/lots that were stocked first will be moved out first.\n"
-             "LIFO: products/lots that were stocked last will be moved out first.\n"
-             "Closet location: products/lots closest to the target location will be moved out first.\n"
-             "FEFO: products/lots with the closest removal date will be moved out first "
-             "(the availability of this method depends on the \"Expiration Dates\" setting)."
-    )
+        help="Set a specific removal strategy that will be used regardless of the source location for this product category")
     total_route_ids = fields.Many2many(
         'stock.location.route', string='Total routes', compute='_compute_total_route_ids',
         readonly=True)

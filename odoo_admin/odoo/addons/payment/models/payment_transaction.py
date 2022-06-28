@@ -298,20 +298,16 @@ class PaymentTransaction(models.Model):
         if any(tx.state != 'authorized' for tx in self):
             raise ValidationError(_("Only authorized transactions can be captured."))
 
-        payment_utils.check_rights_on_recordset(self)
         for tx in self:
-            # In sudo mode because we need to be able to read on acquirer fields.
-            tx.sudo()._send_capture_request()
+            tx._send_capture_request()
 
     def action_void(self):
         """ Check the state of the transaction and request to have them voided. """
         if any(tx.state != 'authorized' for tx in self):
             raise ValidationError(_("Only authorized transactions can be voided."))
 
-        payment_utils.check_rights_on_recordset(self)
         for tx in self:
-            # In sudo mode because we need to be able to read on acquirer fields.
-            tx.sudo()._send_void_request()
+            tx._send_void_request()
 
     def action_refund(self, amount_to_refund=None):
         """ Check the state of the transactions and request their refund.
@@ -594,14 +590,13 @@ class PaymentTransaction(models.Model):
         :return: The refund transaction
         :rtype: recordset of `payment.transaction`
         """
-        self.ensure_one()
+        self.ensure_one
 
         return self.create({
             'acquirer_id': self.acquirer_id.id,
             'reference': self._compute_reference(self.provider, prefix=f'R-{self.reference}'),
             'amount': -(amount_to_refund or self.amount),
             'currency_id': self.currency_id.id,
-            'token_id': self.token_id.id,
             'operation': 'refund',
             'source_transaction_id': self.id,
             'partner_id': self.partner_id.id,

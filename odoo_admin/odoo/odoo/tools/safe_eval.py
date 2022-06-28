@@ -86,8 +86,6 @@ _EXPR_OPCODES = _CONST_OPCODES.union(to_opcodes([
     # specialised comparisons
     'IS_OP', 'CONTAINS_OP',
     'DICT_MERGE', 'DICT_UPDATE',
-    # Basically used in any "generator literal"
-    'GEN_START',  # added in 3.10 but already removed from 3.11.
 ])) - _BLACKLIST
 
 _SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes([
@@ -415,7 +413,7 @@ dateutil = wrap_module(dateutil, {
     for mod in mods
 })
 json = wrap_module(__import__('json'), ['loads', 'dumps'])
-time = wrap_module(__import__('time'), ['time', 'strptime', 'strftime', 'sleep'])
+time = wrap_module(__import__('time'), ['time', 'strptime', 'strftime'])
 pytz = wrap_module(__import__('pytz'), [
     'utc', 'UTC', 'timezone',
 ])

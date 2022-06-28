@@ -7,18 +7,16 @@
 # Csaba Tóth <i3rendszerhaz@gmail.com>, 2021
 # Ákos Nagy <akos.nagy@oregional.hu>, 2021
 # Martin Trigaux, 2021
+# Tamás Németh <ntomasz81@gmail.com>, 2021
 # gezza <geza.nagy@oregional.hu>, 2021
-# Tamás Németh <ntomasz81@gmail.com>, 2022
-# sixsix six, 2022
-# Tamás Dombos, 2022
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 15.0\n"
+"Project-Id-Version: Odoo Server saas~14.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-24 08:19+0000\n"
+"POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:27+0000\n"
-"Last-Translator: Tamás Dombos, 2022\n"
+"Last-Translator: gezza <geza.nagy@oregional.hu>, 2021\n"
 "Language-Team: Hungarian (https://www.transifex.com/odoo/teams/41243/hu/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -95,13 +93,13 @@ msgstr ""
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
 msgid "<i class=\"fa fa-ban mr-2\"/>Unpublished"
-msgstr "<i class=\"fa fa-ban mr-2\"/>Nem közzétett"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_details
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
 msgid "<i class=\"fa fa-check mr-2\"/>Registered"
-msgstr "<i class=\"fa fa-check mr-2\"/>Regisztrálva"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
@@ -118,12 +116,12 @@ msgstr ""
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_complete
 msgid "<i class=\"fa fa-fw fa-calendar\"/> Add to Google Calendar"
-msgstr "Hozzáadás a Google Naptárhoz"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_complete
 msgid "<i class=\"fa fa-fw fa-calendar\"/> Add to iCal/Outlook"
-msgstr "Hozzáadás az iCal/Outlookhoz"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_configure_tickets_button
@@ -131,8 +129,6 @@ msgid ""
 "<i class=\"fa fa-gear mr-1\" role=\"img\" aria-label=\"Configure\" "
 "title=\"Configure event tickets\"/><em>Configure Tickets</em>"
 msgstr ""
-"<i class=\"fa fa-gear mr-1\" role=\"img\" aria-label=\"Configure\" "
-"title=\"Configure event tickets\"/><em>Jegyek beállítása</em>"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
@@ -143,7 +139,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event.country_events_list
 #: model_terms:ir.ui.view,arch_db:website_event.s_country_events
 msgid "<i class=\"fa fa-globe mr-2\"/>Upcoming Events"
-msgstr "<i class=\"fa fa-globe mr-2\"/>Közelgő események"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
@@ -221,7 +217,7 @@ msgstr ""
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_template
 msgid "<span class=\"py-2 o_wevent_registration_title text-left\">Tickets</span>"
-msgstr "<span class=\"py-2 o_wevent_registration_title text-left\">Jegyek</span>"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_template
@@ -247,18 +243,16 @@ msgid ""
 "<span>Tickets</span>\n"
 "                        <span class=\"btn p-0 close d-none\">×</span>"
 msgstr ""
-"<span>Jegyek</span>\n"
-"                        <span class=\"btn p-0 close d-none\">×</span>"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
 msgid "<span>×</span>"
-msgstr "<span>×</span>"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
 msgid "<strong> You ordered more tickets than available seats</strong>"
-msgstr "<strong> Több jegyet rendelt, mint ahány elérhető hely van</strong>"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_photos
@@ -273,7 +267,7 @@ msgstr "Rólunk"
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "Add to Calendar"
-msgstr "Hozzáadás a naptárhoz"
+msgstr ""
 
 #. module: website_event
 #: code:addons/website_event/controllers/main.py:0
@@ -461,7 +455,7 @@ msgstr "E-mail"
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "End -"
-msgstr "Vége -"
+msgstr ""
 
 #. module: website_event
 #: model:ir.model,name:website_event.model_event_event
@@ -584,13 +578,11 @@ msgid ""
 "Find out what people see and say about this event, and join the "
 "conversation."
 msgstr ""
-"Tudja meg, hogy másik mit látnak és írnak erről az eseményről, és "
-"kapcsolódjon be a beszélgetésbe!"
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_follow_us
 msgid "Follow Us"
-msgstr "Kövess minket"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.layout
@@ -600,12 +592,12 @@ msgstr ""
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "Get the direction"
-msgstr "Útvonaltervezés"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "Google"
-msgstr "Google"
+msgstr ""
 
 #. module: website_event
 #: model:ir.model.fields,field_description:website_event.field_website_event_menu__id
@@ -755,7 +747,7 @@ msgstr ""
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
 msgid "No events found."
-msgstr "Nem találhatóak események"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.actions.act_window,help:website_event.event_registration_action_from_visitor
@@ -800,12 +792,12 @@ msgstr "Szülő"
 #: code:addons/website_event/models/event_event.py:0
 #, python-format
 msgid "Past Events"
-msgstr "Elmúlt események"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
 msgid "Phone <small>(Optional)</small>"
-msgstr "Telefonszám <small>(opcionális)</small>"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.index_sidebar_photos
@@ -826,7 +818,7 @@ msgstr ""
 #: code:addons/website_event/static/src/js/website_event.js:0
 #, python-format
 msgid "Please select at least one ticket."
-msgstr "Válasszon legalább egy jegyet"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.res_config_settings_view_form
@@ -867,7 +859,7 @@ msgstr ""
 #. module: website_event
 #: model:ir.model.fields,field_description:website_event.field_website_visitor__event_registered_ids
 msgid "Registered Events"
-msgstr "Események, amelyekre regisztráltam"
+msgstr ""
 
 #. module: website_event
 #: code:addons/website_event/controllers/main.py:0
@@ -879,7 +871,7 @@ msgstr "Regisztráció"
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_complete
 msgid "Registration confirmed!"
-msgstr "Regisztráció megerősítve!"
+msgstr ""
 
 #. module: website_event
 #: model:ir.actions.act_window,name:website_event.event_registration_action_from_visitor
@@ -932,7 +924,7 @@ msgstr "SEO optimalizált"
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "SHARE"
-msgstr "Megosztás"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_template
@@ -947,7 +939,7 @@ msgstr ""
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_search_box_input
 msgid "Search an event..."
-msgstr "Esemény keresése ..."
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.country_events_list
@@ -986,7 +978,7 @@ msgstr "Bocsánat, a kért esemény már nem áll rendelkezésre."
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.event_description_full
 msgid "Start -"
-msgstr "Kezdete -"
+msgstr ""
 
 #. module: website_event
 #: model:ir.model.fields,field_description:website_event.field_event_event__start_today
@@ -997,7 +989,7 @@ msgstr ""
 #. openerp-web
 #: code:addons/website_event/static/src/xml/event_create.xml:0
 #, python-format
-msgid "Start → End"
+msgid "Start 🠖 End"
 msgstr ""
 
 #. module: website_event
@@ -1033,17 +1025,17 @@ msgstr ""
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_attendee_details
 msgid "Ticket #"
-msgstr "Jegy #"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_template
 msgid "Ticket Sales starting on"
-msgstr "A jegyek eladása ezen a napon indul"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.registration_template
 msgid "Tickets for this Event are <b>Sold Out</b>"
-msgstr "Erre az eseményre <b>az összes jegy elkelt</b>"
+msgstr ""
 
 #. module: website_event
 #: code:addons/website_event/models/event_event.py:0
@@ -1066,12 +1058,12 @@ msgstr "Nem közzétett"
 #: model_terms:ir.ui.view,arch_db:website_event.event_time
 #, python-format
 msgid "Upcoming Events"
-msgstr "Közelgő események"
+msgstr ""
 
 #. module: website_event
 #: model_terms:ir.ui.view,arch_db:website_event.events_list
 msgid "Use the top button '<b>+ New</b>' to create an event."
-msgstr "Használja a felső '<b>+ Új</b>' gombot esemény létrehozásához."
+msgstr ""
 
 #. module: website_event
 #. openerp-web

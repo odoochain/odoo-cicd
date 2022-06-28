@@ -2,7 +2,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.addons.crm.tests.common import TestCrmCommon
-from odoo.exceptions import AccessError, UserError
+from odoo.addons.mail.tests.common import mail_new_test_user
+from odoo.exceptions import AccessError
 from odoo.tests import Form, tagged
 from odoo.tests.common import users
 
@@ -60,93 +61,6 @@ class TestCRMLeadMultiCompany(TestCrmCommon):
         lead_team_no_company.team_id = self.team_company2
         self.assertEqual(lead_team_no_company.company_id, self.company_2)
         self.assertEqual(lead_team_no_company.team_id, self.team_company2)
-
-    @users('user_sales_manager_mc')
-    def test_lead_mc_company_computation_env_team_norestrict(self):
-        """ Check that the computed company is the one coming from the team even
-        when it's not in self.env.companies. This may happen when running the
-        Lead Assignment task. """
-        LeadUnsyncCids = self.env['crm.lead'].with_context(allowed_company_ids=[self.company_main.id])
-        self.assertEqual(LeadUnsyncCids.env.company, self.company_main)
-        self.assertEqual(LeadUnsyncCids.env.companies, self.company_main)
-        self.assertEqual(LeadUnsyncCids.env.user.company_id, self.company_2)
-
-        # multicompany raises if trying to create manually
-        with self.assertRaises(AccessError):
-            lead = LeadUnsyncCids.create({
-                'name': 'My Lead MC',
-                'team_id': self.team_company2.id
-            })
-
-        # simulate auto-creation through sudo (assignment-like)
-        lead = LeadUnsyncCids.sudo().create({
-            'name': 'My Lead MC',
-            'team_id': self.team_company2.id,
-        })
-        self.assertEqual(lead.company_id, self.company_2)
-        self.assertEqual(lead.team_id, self.team_company2)
-        self.assertEqual(lead.user_id, self.user_sales_manager_mc)
-
-    @users('user_sales_manager_mc')
-    def test_lead_mc_company_computation_env_user_restrict(self):
-        """ Check that the computed company is allowed (aka in self.env.companies).
-        User is logged in company_main even his default default company is
-        company_2. """
-        LeadUnsyncCids = self.env['crm.lead'].with_context(allowed_company_ids=[self.company_main.id])
-        self.assertEqual(LeadUnsyncCids.env.company, self.company_main)
-        self.assertEqual(LeadUnsyncCids.env.companies, self.company_main)
-        self.assertEqual(LeadUnsyncCids.env.user.company_id, self.company_2)
-
-        # simulate auto-creation through sudo (assignment-like)
-        lead = LeadUnsyncCids.sudo().create({
-            'name': 'My Lead MC',
-        })
-        self.assertFalse(lead.company_id,
-                         'Lead: due to MC rule, avoid setting a company when it would cause crashes')
-        self.assertEqual(lead.team_id, self.sales_team_1,
-                         'Lead: due to MC rule, took first availability in other company')
-        self.assertEqual(lead.user_id, self.user_sales_manager_mc)
-
-        # manual creation
-        lead = LeadUnsyncCids.create({
-            'name': 'My Lead MC',
-        })
-        self.assertFalse(lead.company_id,
-                         'Lead: due to MC rule, avoid setting a company when it would cause crashes')
-        self.assertEqual(lead.team_id, self.sales_team_1)
-        self.assertEqual(lead.user_id, self.user_sales_manager_mc)
-
-
-    @users('user_sales_manager_mc')
-    def test_lead_mc_company_computation_partner_restrict(self):
-        """ Check company on partner limits the company on lead. As contacts may
-        be separated by company, lead with a partner should be limited to that
-        company. """
-        partner_c2 = self.partner_c2.with_env(self.env)
-        self.assertEqual(partner_c2.company_id, self.company_2)
-        lead = self.env['crm.lead'].create({
-            'partner_id': partner_c2.id,
-            'name': 'MC Partner, no company lead',
-            'user_id': False,
-            'team_id': False,
-        })
-        self.assertEqual(lead.company_id, self.company_2)
-
-        partner_main = self.env['res.partner'].create({
-            'company_id': self.company_main.id,
-            'email': 'partner_main@multicompany.example.com',
-            'name': 'Customer for Main',
-        })
-        lead.write({'partner_id': partner_main})
-        self.assertEqual(lead.company_id, self.company_main)
-
-        # writing current user on lead would imply putting its team and team's company
-        # on lead (aka self.company_2), and this clashes with company restriction on
-        # customer
-        with self.assertRaises(UserError):
-            lead.write({
-                'user_id': self.env.user,
-            })
 
     @users('user_sales_manager_mc')
     def test_lead_mc_company_form(self):
@@ -219,21 +133,3 @@ class TestCRMLeadMultiCompany(TestCrmCommon):
         crm_lead_form.user_id = self.env.user
         # self.assertEqual(crm_lead_form.company_id, self.env['res.company'])  # FIXME
         self.assertEqual(crm_lead_form.company_id, self.company_2)
-
-    @users('user_sales_manager_mc')
-    def test_lead_mc_company_form_w_partner_id(self):
-        """ Test lead company computation with partner having a company. """
-        partner_c2 = self.partner_c2.with_env(self.env)
-        crm_lead_form = Form(self.env['crm.lead'])
-        crm_lead_form.name = "Test Lead"
-
-        crm_lead_form.user_id = self.user_sales_manager_mc
-        crm_lead_form.partner_id = partner_c2
-        self.assertEqual(crm_lead_form.company_id, self.company_2, 'Crm: company comes from sales')
-        self.assertEqual(crm_lead_form.team_id, self.team_company2, 'Crm: team comes from sales')
-
-        # reset sales: should not reset company, as partner constrains it
-        crm_lead_form.team_id = self.env['crm.team']
-        crm_lead_form.user_id = self.env['res.users']
-        # ensuring that company_id is not overwritten when the salesperson becomes empty (w\o any team_id)
-        self.assertEqual(crm_lead_form.company_id, self.company_2, 'Crm: company comes from partner')

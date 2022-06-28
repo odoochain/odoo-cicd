@@ -7,8 +7,6 @@
 # Martin Trigaux, 2021
 # Pedro M. Baeza <pedro.baeza@tecnativa.com>, 2021
 # Luis M. Ontalba <luis.martinez@tecnativa.com>, 2021
-# Jonatan Gk, 2022
-# marcescu, 2022
 # 
 msgid ""
 msgstr ""
@@ -16,7 +14,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:29+0000\n"
 "PO-Revision-Date: 2021-09-14 12:27+0000\n"
-"Last-Translator: marcescu, 2022\n"
+"Last-Translator: Luis M. Ontalba <luis.martinez@tecnativa.com>, 2021\n"
 "Language-Team: Spanish (https://www.transifex.com/odoo/teams/41243/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -33,8 +31,6 @@ msgid ""
 ")\n"
 "                    to meet them !"
 msgstr ""
-")\n"
-"                   ¡para conocerlos!"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
@@ -47,8 +43,6 @@ msgid ""
 "<i class=\"fa fa-folder-open\"/>\n"
 "                By Country"
 msgstr ""
-"<i class=\"fa fa-folder-open\"/>\n"
-"                Por país"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar_sponsorship
@@ -56,8 +50,6 @@ msgid ""
 "<i class=\"fa fa-folder-open\"/>\n"
 "                By Level"
 msgstr ""
-"<i class=\"fa fa-folder-open\"/>\n"
-"                Por nivel"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
@@ -71,18 +63,17 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_aside
 msgid "<small class=\"badge badge-danger\">Unpublished</small>"
-msgstr "<small class=\"badge badge-danger\">Sin publicar</small>"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_search_tag
 msgid "<span class=\"btn border-0 py-1\">×</span>"
-msgstr "<span class=\"btn border-0 py-1\">×</span>"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_aside
 msgid "<span class=\"h5 mb-0 pt-0 pt-md-3 pb-0 pb-md-2\">Other exhibitors</span>"
 msgstr ""
-"<span class=\"h5 mb-0 pt-0 pt-md-3 pb-0 pb-md-2\">Otros expositores</span>"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -90,8 +81,6 @@ msgid ""
 "<span>Oops! This room is currently closed</span><br/>\n"
 "                    Come back between"
 msgstr ""
-"<span>¡Ups! Esta sala se encuentra cerrada</span><br/>\n"
-"                    entre"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -99,8 +88,6 @@ msgid ""
 "<span>Oops! This room is full</span><br/>Come back later to have a chat with"
 " us!"
 msgstr ""
-"<span>¡Ups! Esta sala está llena</span><br/>¡Vuelva más tarde para charlar "
-"con nosotros!"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -140,7 +127,7 @@ msgstr "Ícono de tipo de actvidad"
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_main
 msgid "Add some exhibitors to get started !"
-msgstr "¡Agregue algunos expositores para empezar!"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar_country
@@ -150,7 +137,7 @@ msgstr "Todos los países"
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar_sponsorship
 msgid "All Levels"
-msgstr "Todos los niveles"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
@@ -184,12 +171,12 @@ msgstr "Nº de archivos adjuntos"
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Attendees will be able to join to meet"
-msgstr "Los asistentes podrán unirse"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Available from"
-msgstr "Disponible desde"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:event.sponsor.type,name:website_event_exhibitor.event_sponsor_type1
@@ -205,7 +192,7 @@ msgstr "Puede publicar"
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__subtitle
 msgid "Catchy marketing sentence for promote"
-msgstr "Frase de marketing atractiva para promocionar"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__chat_room_id
@@ -217,7 +204,7 @@ msgstr "Sala de chat"
 #: code:addons/website_event_exhibitor/static/src/xml/event_exhibitor_connect.xml:0
 #, python-format
 msgid "Come back between"
-msgstr "Vuelva entre"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_7_sponsor_0
@@ -256,12 +243,12 @@ msgstr "Bandera del país"
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_action
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_action_from_event
 msgid "Create a Sponsor / Exhibitor"
-msgstr "Crear patrocinador / expositor"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_type_action
 msgid "Create a Sponsor Level"
-msgstr "Crear un nivel de patrocinador"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__create_uid
@@ -308,12 +295,12 @@ msgstr "Nombre mostrado"
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_type__exhibitor_menu
 msgid "Display exhibitors on website"
-msgstr "Mostrar a los expositores en el sitio web"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Display in footer"
-msgstr "Mostrar en el pie de página"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__partner_email
@@ -324,7 +311,7 @@ msgstr "Correo electrónico"
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__hour_to
 msgid "End hour"
-msgstr "Hora de finalización"
+msgstr ""
 
 #. module: website_event_exhibitor
 #. openerp-web
@@ -347,12 +334,12 @@ msgstr "Patrocinador del evento"
 #: model:ir.model,name:website_event_exhibitor.model_event_sponsor_type
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_type_view_tree
 msgid "Event Sponsor Level"
-msgstr "Nivel de patrocinador de evento"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_type_view_form
 msgid "Event Sponsor Levels"
-msgstr "Niveles de patrocinador de eventos"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.actions.act_window,name:website_event_exhibitor.event_sponsor_action
@@ -369,25 +356,25 @@ msgstr "Plantilla de evento"
 #. module: website_event_exhibitor
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor__exhibitor_type__exhibitor
 msgid "Exhibitor"
-msgstr "Expositor"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: code:addons/website_event_exhibitor/models/event_event.py:0
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_search
 #, python-format
 msgid "Exhibitors"
-msgstr "Expositores"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_type_view_form
 msgid "Exhibitors Menu Item"
-msgstr "Elemento de menú de expositores"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_event__exhibitor_menu_ids
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__website_event_menu__menu_type__exhibitor
 msgid "Exhibitors Menus"
-msgstr "Menú de expositores"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_follower_ids
@@ -436,7 +423,7 @@ msgstr "Feliz de ser patrocinador"
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__has_message
 msgid "Has Message"
-msgstr "Tiene un mensaje"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__id
@@ -495,7 +482,7 @@ msgstr "Está publicado"
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Jitsi Name"
-msgstr "Nombre de Jitsi"
+msgstr ""
 
 #. module: website_event_exhibitor
 #. openerp-web
@@ -503,12 +490,12 @@ msgstr "Nombre de Jitsi"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 #, python-format
 msgid "Join us next time to meet"
-msgstr "Visítenos la próxima vez para conocer"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 msgid "Join us there to meet"
-msgstr "Visítenos para conocer"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__room_lang_id
@@ -546,7 +533,7 @@ msgstr "Nivel"
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_kanban
 msgid "Level:"
-msgstr "Nivel:"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
@@ -612,7 +599,7 @@ msgstr "Nombre"
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
-msgstr "Siguiente evento en el calendario de actividades."
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_date_deadline
@@ -632,12 +619,12 @@ msgstr "Tipo de la siguiente actividad"
 #. module: website_event_exhibitor
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor_type__display_ribbon_style__no_ribbon
 msgid "No Ribbon"
-msgstr "Sin cinta"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_main
 msgid "No exhibitor found."
-msgstr "No se encontró ningún expositor."
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_needaction_counter
@@ -673,17 +660,17 @@ msgstr "En línea"
 #. module: website_event_exhibitor
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor__exhibitor_type__online
 msgid "Online Exhibitor"
-msgstr "Expositor en línea"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Opening Hours"
-msgstr "Horario de atención"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__hour_from
 msgid "Opening hour"
-msgstr "Horario de apertura"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__room_participant_count
@@ -718,8 +705,6 @@ msgid ""
 "Rank your sponsors based on your own grading system (e.g. \"Gold, Silver, "
 "Bronze\")."
 msgstr ""
-"Clasifique a sus patrocinadores según su propio sistema de clasificación "
-"(por ejemplo, \"Oro, Plata, Bronce\")."
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
@@ -734,7 +719,7 @@ msgstr "Usuario responsable"
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__display_ribbon_style
 msgid "Ribbon Style"
-msgstr "Estilo de la cinta"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__room_is_full
@@ -761,7 +746,7 @@ msgstr "Secuencia"
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_event__exhibitor_menu
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_type__exhibitor_menu
 msgid "Showcase Exhibitors"
-msgstr "Lista de expositores"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:event.sponsor.type,name:website_event_exhibitor.event_sponsor_type2
@@ -772,14 +757,14 @@ msgstr "Plata"
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__subtitle
 msgid "Slogan"
-msgstr "Slogan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: code:addons/website_event_exhibitor/models/event_sponsor.py:0
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor__exhibitor_type__sponsor
 #, python-format
 msgid "Sponsor"
-msgstr "Patrocinador"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_event__sponsor_count
@@ -789,34 +774,34 @@ msgstr "Nº de patrocinadores"
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__email
 msgid "Sponsor Email"
-msgstr "Correo electrónico del patrocinador"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__name
 msgid "Sponsor Level"
-msgstr "Nivel del patrocinador"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.actions.act_window,name:website_event_exhibitor.event_sponsor_type_action
 #: model:ir.ui.menu,name:website_event_exhibitor.menu_event_sponsor_type
 msgid "Sponsor Levels"
-msgstr "Niveles del patrocinador"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__mobile
 msgid "Sponsor Mobile"
-msgstr "Celular del patrocinador"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__name
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Sponsor Name"
-msgstr "Nombre del patrocinador"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__phone
 msgid "Sponsor Phone"
-msgstr "Teléfono del patrocinador"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__exhibitor_type
@@ -831,12 +816,12 @@ msgstr "Sitio web del patrocinador"
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_kanban
 msgid "Sponsor image"
-msgstr "Imagen del patrocinador"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__sponsor_type_id
 msgid "Sponsoring Level"
-msgstr "Nivel de patrocinio"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_event__sponsor_ids
@@ -851,8 +836,6 @@ msgid ""
 "Sponsors are advertised on your event pages.<br>\n"
 "    Exhibitors have a dedicated page a with chat room for people to connect with them."
 msgstr ""
-"Los patrocinadores se anuncian en las páginas de sus eventos.<br>\n"
-"    Los expositores tienen una página dedicada con una sala de chat para que la gente conecte con ellos."
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__activity_state
@@ -874,8 +857,6 @@ msgid ""
 "The event %s starts on %s (%s). \n"
 "Join us there to meet %s !"
 msgstr ""
-"El evento %s comienza el %s (%s). \n"
-"Únase para conocer %s"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__website_url
@@ -915,7 +896,7 @@ msgstr "Visible en el sitio web actual"
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_main
 msgid "We did not find any exhibitor matching your"
-msgstr "No encontramos ningún expositor que coincida con su"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
@@ -946,27 +927,27 @@ msgstr "Historial de comunicaciones del sitio web"
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__is_in_opening_hours
 msgid "Within opening hours"
-msgstr "Dentro del horario de atención"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "e.g. : OpenWood Decoration"
-msgstr "Por ejemplo: decoración de OpenWood"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "e.g. : https://www.odoo.com"
-msgstr "ej. : https://www.odoo.com"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "e.g. : open.wood.decoration@example.com"
-msgstr "Por ejemplo: open.wood.decoration@example.com"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "e.g. Your best choice for your home"
-msgstr "ej. La mejor opción para su hogar"
+msgstr ""
 
 #. module: website_event_exhibitor
 #. openerp-web
@@ -974,14 +955,14 @@ msgstr "ej. La mejor opción para su hogar"
 #: code:addons/website_event_exhibitor/static/src/xml/event_exhibitor_connect.xml:0
 #, python-format
 msgid "is not available right now."
-msgstr "no está disponible en este momento."
+msgstr ""
 
 #. module: website_event_exhibitor
 #. openerp-web
 #: code:addons/website_event_exhibitor/static/src/xml/event_exhibitor_connect.xml:0
 #, python-format
 msgid "is over."
-msgstr "terminó."
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -989,8 +970,6 @@ msgid ""
 "is over.\n"
 "                <br/>"
 msgstr ""
-"terminó.\n"
-"                <br/>"
 
 #. module: website_event_exhibitor
 #. openerp-web
@@ -1002,7 +981,7 @@ msgstr "minutos"
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_main
 msgid "search."
-msgstr "buscar."
+msgstr ""
 
 #. module: website_event_exhibitor
 #. openerp-web
@@ -1010,7 +989,7 @@ msgstr "buscar."
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 #, python-format
 msgid "starts in"
-msgstr "comienza en"
+msgstr ""
 
 #. module: website_event_exhibitor
 #. openerp-web
@@ -1018,4 +997,4 @@ msgstr "comienza en"
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 #, python-format
 msgid "starts on"
-msgstr "comienza el"
+msgstr ""

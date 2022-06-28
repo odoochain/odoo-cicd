@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-12-16 08:45+0000\n"
 "PO-Revision-Date: 2021-09-14 12:22+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,28 +22,28 @@ msgstr ""
 #. module: gamification_sale_crm
 #: model:gamification.goal.definition,name:gamification_sale_crm.definition_crm_nbr_customer_refunds
 msgid "Customer Credit Notes"
-msgstr "الإشعارات الدائنة للعميل "
+msgstr "إشعارات خصم العميل"
 
 #. module: gamification_sale_crm
 #: model:gamification.goal.definition,name:gamification_sale_crm.definition_crm_lead_delay_close
 msgid "Days to Close a Deal"
-msgstr "عدد الأيام حتى يتم إتمام الصفقة "
+msgstr "عدد الأيام حتى يتم إقفال الصفقة"
 
 #. module: gamification_sale_crm
 #: model:gamification.challenge,name:gamification_sale_crm.challenge_crm_marketing
 msgid "Lead Acquisition"
-msgstr "استقطاب العملاء المهتمين "
+msgstr "الاستحواذ على عملاء"
 
 #. module: gamification_sale_crm
 #: model:gamification.challenge,name:gamification_sale_crm.challenge_crm_sale
 msgid "Monthly Sales Targets"
-msgstr "أهداف المبيعات الشهرية المراد تحقيقها "
+msgstr "المبيعات الشهرية المستهدفة"
 
 #. module: gamification_sale_crm
 #: model:gamification.challenge.line,name:gamification_sale_crm.line_crm_marketing1
 #: model:gamification.goal.definition,name:gamification_sale_crm.definition_crm_nbr_new_leads
 msgid "New Leads"
-msgstr "العملاء المهتمون الجدد "
+msgstr "الترشيحات الجديدة"
 
 #. module: gamification_sale_crm
 #: model:gamification.challenge.line,name:gamification_sale_crm.line_crm_marketing3
@@ -66,12 +65,12 @@ msgstr "أوامر البيع المُسددة"
 #: model:gamification.challenge.line,name:gamification_sale_crm.line_crm_marketing2
 #: model:gamification.goal.definition,name:gamification_sale_crm.definition_crm_lead_delay_open
 msgid "Time to Qualify a Lead"
-msgstr "الوقت اللازم لتأهيل العميل المهتم "
+msgstr "الوقت اللازم لتأهيل ترشيح"
 
 #. module: gamification_sale_crm
 #: model:gamification.goal.definition,name:gamification_sale_crm.definition_crm_tot_customer_refunds
 msgid "Total Customer Credit Notes"
-msgstr "إجمالي الإشعارات الدائنة للعميل "
+msgstr "إجمالي إشعارات خصم العميل"
 
 #. module: gamification_sale_crm
 #: model:gamification.challenge.line,name:gamification_sale_crm.line_crm_sale1

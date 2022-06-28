@@ -3,15 +3,7 @@
 # 	* website_event_exhibitor
 # 
 # Translators:
-# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2022
-# oon arfiandwi <oon.arfiandwi@gmail.com>, 2022
-# Febrasari Almania <febrasari.almania@gmail.com>, 2022
-# Bonny Useful <bonny.useful@gmail.com>, 2022
-# Andhitia Rama <andhitia.r@gmail.com>, 2022
-# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022
-# whenwesober, 2022
-# Martin Trigaux, 2022
-# Ryanto The <ry.the77@gmail.com>, 2022
+# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -19,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:29+0000\n"
 "PO-Revision-Date: 2021-09-14 12:27+0000\n"
-"Last-Translator: Ryanto The <ry.the77@gmail.com>, 2022\n"
+"Last-Translator: Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021\n"
 "Language-Team: Indonesian (https://www.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -100,32 +92,32 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_needaction
 msgid "Action Needed"
-msgstr "Perlu Tindakan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__active
 msgid "Active"
-msgstr "Aktif"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_ids
 msgid "Activities"
-msgstr "Aktivitas"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_exception_decoration
 msgid "Activity Exception Decoration"
-msgstr "Dekorasi Pengecualian Aktivitas"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_state
 msgid "Activity State"
-msgstr "Status Aktivitas"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_type_icon
 msgid "Activity Type Icon"
-msgstr "Ikon Jenis Aktifitas"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_main
@@ -135,7 +127,7 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar_country
 msgid "All Countries"
-msgstr "Semua Negara"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar_sponsorship
@@ -146,7 +138,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_search
 msgid "Archived"
-msgstr "Diarsipkan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_7_sponsor_0
@@ -169,7 +161,7 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_attachment_count
 msgid "Attachment Count"
-msgstr "Hitungan Lampiran"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
@@ -185,7 +177,7 @@ msgstr ""
 #: model:event.sponsor.type,name:website_event_exhibitor.event_sponsor_type1
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor_type__display_ribbon_style__bronze
 msgid "Bronze"
-msgstr "Perunggu"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__can_publish
@@ -235,7 +227,7 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__country_id
 msgid "Country"
-msgstr "Negara"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__country_flag_url
@@ -257,19 +249,19 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__create_uid
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__create_uid
 msgid "Created by"
-msgstr "Dibuat oleh"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__create_date
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__create_date
 msgid "Created on"
-msgstr "Dibuat pada"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__website_description
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Description"
-msgstr "Deskripsi"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_7_sponsor_0
@@ -293,7 +285,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__display_name
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__display_name
 msgid "Display Name"
-msgstr "Nama Tampilan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_type__exhibitor_menu
@@ -309,7 +301,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__partner_email
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Email"
-msgstr "Email"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__hour_to
@@ -326,7 +318,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_main
 #, python-format
 msgid "Event"
-msgstr "Acara"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model,name:website_event_exhibitor.model_event_sponsor
@@ -382,28 +374,28 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_follower_ids
 msgid "Followers"
-msgstr "Pengikut"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "Pengikut (Rekanan)"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr "Ikon font awesome, misalnya fa-tasks"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:event.sponsor.type,name:website_event_exhibitor.event_sponsor_type3
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor_type__display_ribbon_style__gold
 msgid "Gold"
-msgstr "Emas"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_search
 msgid "Group By"
-msgstr "Dikelompokkan berdasarkan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:event.sponsor,website_description:website_event_exhibitor.event_7_sponsor_0
@@ -432,29 +424,29 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__id
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_exception_icon
 msgid "Icon"
-msgstr "Ikon"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__activity_exception_icon
 msgid "Icon to indicate an exception activity."
-msgstr "Ikon untuk menunjukkan sebuah aktivitas pengecualian."
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__message_needaction
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__message_unread
 msgid "If checked, new messages require your attention."
-msgstr "Jika dicentang, pesan baru memerlukan penanganan dan perhatian Anda."
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__message_has_error
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "Jika dicentang, beberapa pesan mempunyai kesalahan dalam pengiriman."
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__image_128
@@ -474,7 +466,7 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_is_follower
 msgid "Is Follower"
-msgstr "Pengikut"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__is_published
@@ -502,25 +494,25 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__room_lang_id
 msgid "Language"
-msgstr "Bahasa"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor____last_update
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type____last_update
 msgid "Last Modified on"
-msgstr "Terakhir diubah pada"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__write_uid
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__write_uid
 msgid "Last Updated by"
-msgstr "Terakhir diperbarui oleh"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__write_date
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui pada"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__room_last_activity
@@ -530,7 +522,7 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_search
 msgid "Level"
-msgstr "Tingkatan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_kanban
@@ -545,12 +537,12 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__image_512
 msgid "Logo"
-msgstr "Logo"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_main_attachment_id
 msgid "Main Attachment"
-msgstr "Lampiran Utama"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__room_max_capacity
@@ -570,18 +562,18 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_has_error
 msgid "Message Delivery error"
-msgstr "Kesalahan Pengiriman Pesan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_ids
 msgid "Messages"
-msgstr "Pesan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__partner_mobile
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Mobile"
-msgstr "Ponsel"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
@@ -596,7 +588,7 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__partner_name
 msgid "Name"
-msgstr "Nama"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_calendar_event_id
@@ -606,17 +598,17 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr "Batas Waktu Aktivitas Berikutnya"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_summary
 msgid "Next Activity Summary"
-msgstr "Ringkasan Aktivitas Berikutnya"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_type_id
 msgid "Next Activity Type"
-msgstr "Tipe Aktivitas Berikutnya"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor_type__display_ribbon_style__no_ribbon
@@ -631,33 +623,33 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_needaction_counter
 msgid "Number of Actions"
-msgstr "Jumlah Tindakan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_has_error_counter
 msgid "Number of errors"
-msgstr "Jumlah kesalahan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__message_needaction_counter
 msgid "Number of messages which requires an action"
-msgstr "Jumlah pesan yang butuh tindakan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr "Jumlah dari pesan dengan kesalahan pengiriman"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__message_unread_counter
 msgid "Number of unread messages"
-msgstr "Jumlah pesan yang belum dibaca"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_search
 msgid "Online"
-msgstr "Daring"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor__exhibitor_type__online
@@ -683,7 +675,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__partner_id
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Partner"
-msgstr "Rekanan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__room_max_participant_reached
@@ -694,12 +686,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__partner_phone
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Phone"
-msgstr "Telepon"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_search
 msgid "Published"
-msgstr "Terpublikasi"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.actions.act_window,help:website_event_exhibitor.event_sponsor_type_action
@@ -711,12 +703,12 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
 msgid "Register"
-msgstr "Tidak ada Cash Register didefinisikan!"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__activity_user_id
 msgid "Responsible User"
-msgstr "Tanggung-jawab"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__display_ribbon_style
@@ -736,13 +728,13 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_has_sms_error
 msgid "SMS Delivery error"
-msgstr "Kesalahan Pengiriman SMS"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__sequence
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor_type__sequence
 msgid "Sequence"
-msgstr "Urutan"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_event__exhibitor_menu
@@ -754,7 +746,7 @@ msgstr ""
 #: model:event.sponsor.type,name:website_event_exhibitor.event_sponsor_type2
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor_type__display_ribbon_style__silver
 msgid "Silver"
-msgstr "Perak"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__subtitle
@@ -808,12 +800,12 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__exhibitor_type
 msgid "Sponsor Type"
-msgstr "Jenis sponsor"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__url
 msgid "Sponsor Website"
-msgstr "Situs sponsor"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_kanban
@@ -847,10 +839,6 @@ msgid ""
 "Today: Activity date is today\n"
 "Planned: Future activities."
 msgstr ""
-"Status berdasarkan aktivitas\n"
-"Terlambat: Batas waktu telah terlewati\n"
-"Hari ini: Tanggal aktivitas adalah hari ini\n"
-"Direncanakan: Aktivitas yang akan datang."
 
 #. module: website_event_exhibitor
 #: code:addons/website_event_exhibitor/controllers/website_event_main.py:0
@@ -863,17 +851,17 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__website_url
 msgid "The full URL to access the document through the website."
-msgstr "URL lengkap untuk mengakses dokumen melalui situs web."
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__event_date_tz
 msgid "Timezone"
-msgstr "Zona Waktu"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "Jenis dari aktivitas pengecualian pada rekaman data."
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_thumb_details
@@ -883,12 +871,12 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_unread
 msgid "Unread Messages"
-msgstr "Pesan Belum Dibaca"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_unread_counter
 msgid "Unread Messages Counter"
-msgstr "Penghitung Pesan yang Belum Dibaca"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__website_published
@@ -904,7 +892,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_tree
 msgid "Website"
-msgstr "Situs web"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model,name:website_event_exhibitor.model_website_event_menu
@@ -914,17 +902,17 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__website_message_ids
 msgid "Website Messages"
-msgstr "Pesan situs"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__website_url
 msgid "Website URL"
-msgstr "URL Situs Web"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__website_message_ids
 msgid "Website communication history"
-msgstr "Sejarah komunikasi situs"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__is_in_opening_hours
@@ -978,7 +966,7 @@ msgstr ""
 #: code:addons/website_event_exhibitor/static/src/xml/event_exhibitor_connect.xml:0
 #, python-format
 msgid "minutes"
-msgstr "menit"
+msgstr ""
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_main

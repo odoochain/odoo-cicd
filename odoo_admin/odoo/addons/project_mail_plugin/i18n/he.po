@@ -5,7 +5,6 @@
 # Translators:
 # Martin Trigaux, 2021
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2021
-# Lilach Gilliam <lilach.gilliam@gmail.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -13,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:25+0000\n"
-"Last-Translator: Lilach Gilliam <lilach.gilliam@gmail.com>, 2022\n"
+"Last-Translator: ZVI BLONDER <ZVIBLONDER@gmail.com>, 2021\n"
 "Language-Team: Hebrew (https://www.transifex.com/odoo/teams/41243/he/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -26,14 +25,14 @@ msgstr ""
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Could not create the project"
-msgstr "לא ניתן ליצור את הפרויקט"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Could not create the task"
-msgstr "לא ניתן ליצור את המשימה"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
@@ -47,77 +46,77 @@ msgstr "צור"
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Create %(name)s"
-msgstr "צור %(name)s"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Create Project & Task"
-msgstr "צור פרוייקט & משימה"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Create a Task in a new Project"
-msgstr "צור משימה ופרוייקט חדש"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Create a Task in an existing Project"
-msgstr "צור משימה בפרויקט קיים"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Email already logged on the task"
-msgstr "דוא\"ל כבר מחובר למשימה"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Log Email Into Task"
-msgstr "חבר אימייל למשימה"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Log the email on the task"
-msgstr "רשום את המייל על המשימה"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "No project found."
-msgstr "לא נמצא פרוייקט"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "No tasks found for this contact."
-msgstr "לא נמצאו משימות עבור איש קשר זה."
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "OR"
-msgstr "או"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Pick a Project to create a Task"
-msgstr "Pick a Project to create a Task"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
@@ -131,14 +130,14 @@ msgstr "שם הפרויקט"
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Save Contact to create new Tasks."
-msgstr "שמור איש קשר כדי ליצור משימות חדשות."
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Save the contact to create new tasks."
-msgstr "שמור את איש הקשר כדי ליצור משימות חדשות."
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
@@ -152,14 +151,14 @@ msgstr "חיפוש"
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Search Projects..."
-msgstr "חפש פרויקטים..."
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Search a Project"
-msgstr "חפש פרויקט"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
@@ -173,30 +172,30 @@ msgstr "משימה"
 #: code:addons/project_mail_plugin/controllers/project_client.py:0
 #, python-format
 msgid "Task for %s"
-msgstr "משימה עבור %s"
+msgstr ""
 
 #. module: project_mail_plugin
 #: model:ir.actions.act_window,name:project_mail_plugin.project_task_action_form_edit
 msgid "Task: redirect to form in edit mode"
-msgstr "משימה: הבור לטופס במצב עריכה"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Tasks (%(count)s)"
-msgstr "משימות (%(count)s"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Tasks (%s)"
-msgstr "משימות (%s)"
+msgstr ""
 
 #. module: project_mail_plugin
 #. openerp-web
 #: code:addons/project_mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "The project name is required"
-msgstr "נדרש להזין שם פרוייקט"
+msgstr ""

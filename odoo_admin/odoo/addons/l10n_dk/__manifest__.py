@@ -4,8 +4,8 @@
 {
     'name': 'Denmark - Accounting',
     'version': '1.0',
-    'author': 'Odoo House ApS, VK DATA ApS',
-    'website': 'http://odoodanmark.dk',
+    'author': 'Odoo House ApS',
+    'website': 'https://odoohouse.dk',
     'category': 'Accounting/Localizations/Account Charts',
     'description': """
 
@@ -87,6 +87,7 @@ Produkt setup:
 
 .
 
+Copyright 2018 Odoo House ApS
     """,
     'depends': ['account', 'base_iban', 'base_vat'],
     'data': [
@@ -94,7 +95,6 @@ Produkt setup:
         'data/l10n_dk_chart_template_data.xml',
         'data/account.account.template.csv',
         'data/l10n_dk_chart_template_post_data.xml',
-        'data/account_tax_report_data.xml',
         'data/account_tax_template_data.xml',
         'data/account_fiscal_position_template.xml',
         'data/account_fiscal_position_tax_template.xml',

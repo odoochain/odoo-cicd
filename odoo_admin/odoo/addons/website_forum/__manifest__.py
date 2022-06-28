@@ -10,7 +10,7 @@
     'description': """
 Ask questions, get answers, no distractions
         """,
-    'website': 'https://www.odoo.com/app/forum',
+    'website': 'https://www.odoo.com/app/forums',
     'depends': [
         'auth_signup',
         'website_mail',

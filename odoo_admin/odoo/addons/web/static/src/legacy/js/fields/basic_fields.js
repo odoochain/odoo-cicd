@@ -988,7 +988,6 @@ var FieldDate = InputField.extend({
 
     /**
      * Confirm the value on hit enter and re-render
-     * It will also remove the offset to get the UTC value
      *
      * @private
      * @override
@@ -997,14 +996,7 @@ var FieldDate = InputField.extend({
     async _onKeydown(ev) {
         this._super(...arguments);
         if (ev.which === $.ui.keyCode.ENTER) {
-            let value = this.$input.val();
-            try {
-                value = this._parseValue(value);
-                if (this.datewidget.type_of_date === "datetime") {
-                    value.add(-this.getSession().getTZOffset(value), "minutes");
-                }
-            } catch (err) {}
-            await this._setValue(value);
+            await this._setValue(this.$input.val());
             this._render();
         }
     },
@@ -1691,7 +1683,7 @@ var FieldEmail = InputField.extend({
     description: _lt("Email"),
     className: 'o_field_email',
     events: _.extend({}, InputField.prototype.events, {
-        'click': '_onClickLink',
+        'click': '_onClick',
     }),
     prefix: 'mailto',
     supportedFieldTypes: ['char'],
@@ -1766,10 +1758,8 @@ var FieldEmail = InputField.extend({
      * @private
      * @param {MouseEvent} ev
      */
-    _onClickLink: function (ev) {
-        if (ev.target.matches("a")) {
-            ev.stopImmediatePropagation();
-        }
+    _onClick: function (ev) {
+        ev.stopPropagation();
     },
 });
 
@@ -2144,18 +2134,10 @@ var FieldBinaryImage = AbstractFieldBinary.extend({
         if (width) {
             $img.attr('width', width);
             $img.css('max-width', width + 'px');
-            if (!height) {
-                $img.css('height', 'auto');
-                $img.css('max-height', '100%');
-            }
         }
         if (height) {
             $img.attr('height', height);
             $img.css('max-height', height + 'px');
-            if (!width) {
-                $img.css('width', 'auto');
-                $img.css('max-width', '100%');
-            }
         }
         this.$('> img').remove();
         this.$el.prepend($img);
@@ -2253,18 +2235,10 @@ var CharImageUrl = AbstractField.extend({
             if (width) {
                 $img.attr('width', width);
                 $img.css('max-width', width + 'px');
-                if (!height) {
-                    $img.css('height', 'auto');
-                    $img.css('max-height', '100%');
-                }
             }
             if (height) {
                 $img.attr('height', height);
                 $img.css('max-height', height + 'px');
-                if (!width) {
-                    $img.css('width', 'auto');
-                    $img.css('max-width', '100%');
-                }
             }
             this.$('> img').remove();
             this.$el.prepend($img);
@@ -2492,7 +2466,7 @@ var PriorityWidget = AbstractField.extend({
     events: {
         'mouseover > a': '_onMouseOver',
         'mouseout > a': '_onMouseOut',
-        'click > a': '_onPriorityClick',
+        'click > a': '_onClick',
         'keydown > a': '_onKeydown',
     },
     supportedFieldTypes: ['selection'],
@@ -2615,7 +2589,7 @@ var PriorityWidget = AbstractField.extend({
      * @param {MouseEvent} event
      * @private
      */
-    _onPriorityClick: function (event) {
+    _onClick: function (event) {
         event.preventDefault();
         event.stopPropagation();
         var index = $(event.currentTarget).data('index');
@@ -2971,9 +2945,6 @@ var BooleanToggle = FieldBoolean.extend({
      * Adds the icon fa-check-circle if value is true else adds icon
      * fa-times-circle
      *
-     * The boolean_toggle should only be disabled when there is a readonly modifier
-     * not when the view is in readonly mode
-     *
      * @override
      */
     async _render() {
@@ -2985,8 +2956,6 @@ var BooleanToggle = FieldBoolean.extend({
         const i = document.createElement("i");
         i.setAttribute('class', `fa ${classToApply}`);
         this.el.querySelector('label').appendChild(i);
-        const isReadonly = this.record.evalModifiers(this.attrs.modifiers).readonly || false;
-        this.$input.prop('disabled', isReadonly);
     },
 
     //--------------------------------------------------------------------------
@@ -3001,10 +2970,8 @@ var BooleanToggle = FieldBoolean.extend({
      */
     _onClick: async function (event) {
         event.stopPropagation();
-        if (!this.$input.prop('disabled')) {
-            await this._setValue(!this.value);
-            this._render();
-        }
+        await this._setValue(!this.value);
+        this._render();
     },
 });
 
@@ -4076,7 +4043,7 @@ var FieldColorPicker = FieldInteger.extend({
         _t('Green'),
         _t('Purple'),
     ],
-    widthInList: '1',
+
     /**
      * Prepares the rendering, since we are based on an input but not using it
      * setting tagName after parent init force the widget to not render an input

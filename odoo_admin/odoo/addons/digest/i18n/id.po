@@ -2,25 +2,12 @@
 # This file contains the translation of the following modules:
 # 	* digest
 # 
-# Translators:
-# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2022
-# Bonny Useful <bonny.useful@gmail.com>, 2022
-# William Surya Permana <zarambie_game@yahoo.com>, 2022
-# Ryanto The <ry.the77@gmail.com>, 2022
-# oon arfiandwi <oon.arfiandwi@gmail.com>, 2022
-# pnyet <david@zeromail.us>, 2022
-# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022
-# Deddy Ddr <deddy.ddr@gmail.com>, 2022
-# Martin Trigaux, 2022
-# whenwesober, 2022
-# 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 15.0\n"
+"Project-Id-Version: Odoo Server saas~14.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-24 08:19+0000\n"
+"POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:21+0000\n"
-"Last-Translator: whenwesober, 2022\n"
 "Language-Team: Indonesian (https://www.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -46,7 +33,7 @@ msgstr ""
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_form
 msgid "Activate"
-msgstr "Aktifkan"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields.selection,name:digest.selection__digest_digest__state__activated
@@ -61,7 +48,7 @@ msgstr ""
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_tip__group_id
 msgid "Authorized Group"
-msgstr "Kelompok Berwenang"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__available_fields
@@ -77,12 +64,12 @@ msgstr ""
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__company_id
 msgid "Company"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: digest
 #: model:ir.model,name:digest.model_res_config_settings
 msgid "Config Settings"
-msgstr "Pengaturan Konfigurasi"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.res_config_settings_view_form
@@ -111,23 +98,23 @@ msgstr ""
 #: model:ir.model.fields,field_description:digest.field_digest_digest__create_uid
 #: model:ir.model.fields,field_description:digest.field_digest_tip__create_uid
 msgid "Created by"
-msgstr "Dibuat oleh"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__create_date
 #: model:ir.model.fields,field_description:digest.field_digest_tip__create_date
 msgid "Created on"
-msgstr "Dibuat pada"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__currency_id
 msgid "Currency"
-msgstr "Mata Uang"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields.selection,name:digest.selection__digest_digest__periodicity__daily
 msgid "Daily"
-msgstr "Harian"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_form
@@ -142,7 +129,7 @@ msgstr ""
 #. module: digest
 #: model:ir.model,name:digest.model_digest_digest
 msgid "Digest"
-msgstr "Singkat"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_res_config_settings__digest_id
@@ -181,17 +168,17 @@ msgstr ""
 #: model:ir.model.fields,field_description:digest.field_digest_digest__display_name
 #: model:ir.model.fields,field_description:digest.field_digest_tip__display_name
 msgid "Display Name"
-msgstr "Nama Tampilan"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_form
 msgid "General"
-msgstr "Umum"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_search
 msgid "Group by"
-msgstr "Dikelompokkan menurut"
+msgstr ""
 
 #. module: digest
 #: model_terms:digest.tip,tip_description:digest.digest_tip_digest_1
@@ -209,7 +196,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:digest.field_digest_digest__id
 #: model:ir.model.fields,field_description:digest.field_digest_tip__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_form
@@ -246,7 +233,7 @@ msgstr ""
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_form
 msgid "KPIs"
-msgstr "KPI"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__kpi_mail_message_total_value
@@ -280,35 +267,35 @@ msgstr ""
 #: model:ir.model.fields,field_description:digest.field_digest_digest____last_update
 #: model:ir.model.fields,field_description:digest.field_digest_tip____last_update
 msgid "Last Modified on"
-msgstr "Terakhir diubah pada"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__write_uid
 #: model:ir.model.fields,field_description:digest.field_digest_tip__write_uid
 msgid "Last Updated by"
-msgstr "Terakhir diperbarui oleh"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__write_date
 #: model:ir.model.fields,field_description:digest.field_digest_tip__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui pada"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__kpi_mail_message_total
 msgid "Messages"
-msgstr "Pesan"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields.selection,name:digest.selection__digest_digest__periodicity__monthly
 msgid "Monthly"
-msgstr "Bulanan"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__name
 #: model:ir.model.fields,field_description:digest.field_digest_tip__name
 msgid "Name"
-msgstr "Nama"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.res_config_settings_view_form
@@ -331,12 +318,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:digest.field_digest_digest__periodicity
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_search
 msgid "Periodicity"
-msgstr "Periode"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_mail_main
 msgid "Powered by"
-msgstr "Disajikan oleh"
+msgstr ""
 
 #. module: digest
 #: code:addons/digest/models/digest.py:0
@@ -354,14 +341,14 @@ msgstr ""
 #. module: digest
 #: model:ir.model.fields.selection,name:digest.selection__digest_digest__periodicity__quarterly
 msgid "Quarterly"
-msgstr "Triwulanan"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__user_ids
 #: model:ir.model.fields,field_description:digest.field_digest_tip__user_ids
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_form
 msgid "Recipients"
-msgstr "Penerima"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_section_mobile
@@ -376,7 +363,7 @@ msgstr ""
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_form
 msgid "Send Now"
-msgstr "Kirim Sekarang"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_mail_main
@@ -386,22 +373,22 @@ msgstr ""
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_tip__sequence
 msgid "Sequence"
-msgstr "Urutan"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.res_config_settings_view_form
 msgid "Statistics"
-msgstr "Statistik"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,field_description:digest.field_digest_digest__state
 msgid "Status"
-msgstr "Status"
+msgstr ""
 
 #. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_form
 msgid "Subscribe"
-msgstr "Langganan"
+msgstr ""
 
 #. module: digest
 #: code:addons/digest/models/digest.py:0
@@ -484,7 +471,7 @@ msgstr ""
 #. module: digest
 #: model:ir.model,name:digest.model_res_users
 msgid "Users"
-msgstr "Pengguna"
+msgstr ""
 
 #. module: digest
 #: model:ir.model.fields,help:digest.field_digest_tip__user_ids
@@ -501,14 +488,14 @@ msgstr ""
 #: code:addons/digest/models/digest.py:0
 #, python-format
 msgid ""
-"We have noticed you did not connect these last few days. We have "
-"automatically switched your preference to %(new_perioridicy_str)s Digests."
+"We have noticed you did not connect these last few days so we've "
+"automatically switched your preference to weekly Digests."
 msgstr ""
 
 #. module: digest
 #: model:ir.model.fields.selection,name:digest.selection__digest_digest__periodicity__weekly
 msgid "Weekly"
-msgstr "Mingguan"
+msgstr ""
 
 #. module: digest
 #: model_terms:digest.tip,tip_description:digest.digest_tip_digest_2
@@ -554,29 +541,11 @@ msgid ""
 msgstr ""
 
 #. module: digest
-#: code:addons/digest/models/digest.py:0
-#, python-format
-msgid "monthly"
-msgstr ""
-
-#. module: digest
-#: code:addons/digest/models/digest.py:0
-#, python-format
-msgid "quarterly"
-msgstr ""
-
-#. module: digest
 #: model_terms:ir.ui.view,arch_db:digest.digest_digest_view_form
 msgid ""
 "then create a computed field called\n"
 "                                                <code>kpi_myfield_value</code>\n"
 "                                                that will compute your customized KPI."
-msgstr ""
-
-#. module: digest
-#: code:addons/digest/models/digest.py:0
-#, python-format
-msgid "weekly"
 msgstr ""
 
 #. module: digest

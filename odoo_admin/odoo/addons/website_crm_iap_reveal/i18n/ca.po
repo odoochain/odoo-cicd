@@ -12,7 +12,6 @@
 # Arnau Ros, 2021
 # jabelchi, 2021
 # José Cabrera Lozano <jose.cabrera@edukative.es>, 2021
-# marcescu, 2022
 # 
 msgid ""
 msgstr ""
@@ -20,7 +19,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:27+0000\n"
-"Last-Translator: marcescu, 2022\n"
+"Last-Translator: José Cabrera Lozano <jose.cabrera@edukative.es>, 2021\n"
 "Language-Team: Catalan (https://www.transifex.com/odoo/teams/41243/ca/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -83,17 +82,17 @@ msgstr ""
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__company_size_min
 msgid "Company Size"
-msgstr "Mida de l'empresa"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__company_size_max
 msgid "Company Size Max"
-msgstr "Mida màxima de l'empresa"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "Contact Filter"
-msgstr "Filtre de contacte"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__country_ids
@@ -108,7 +107,7 @@ msgstr "Data de creació"
 #. module: crm_iap_lead_website
 #: model_terms:ir.actions.act_window,help:crm_iap_lead_website.crm_reveal_rule_action
 msgid "Create a conversion rule"
-msgstr "Crea una regla de conversió"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.actions.act_window,help:crm_iap_lead_website.crm_reveal_rule_action
@@ -130,7 +129,7 @@ msgstr "Creat el"
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__lead_for
 msgid "Data Tracking"
-msgstr "Seguiment de dades"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__display_name
@@ -147,7 +146,7 @@ msgstr ""
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__contact_filter_type
 msgid "Filter On"
-msgstr "Filtre activat"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__filter_on_size
@@ -157,7 +156,7 @@ msgstr ""
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__filter_on_size
 msgid "Filter on Size"
-msgstr "Filtra per la mida"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
@@ -182,7 +181,7 @@ msgstr "Alta"
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_lead__reveal_iap_credits
 msgid "IAP Credits"
-msgstr "Crèdits IAP"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__id
@@ -238,7 +237,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_lead__reveal_rule_id
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_view__reveal_rule_id
 msgid "Lead Generation Rule"
-msgstr "Regla de generación de clientes potenciales"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.actions.act_window,name:crm_iap_lead_website.crm_reveal_view_action
@@ -286,7 +285,7 @@ msgstr ""
 #. module: crm_iap_lead_website
 #: model:ir.model.constraint,message:crm_iap_lead_website.constraint_crm_reveal_rule_limit_extra_contacts
 msgid "Maximum 5 contacts are allowed!"
-msgstr "Es permeten 5 contactes màxims!"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__priority__1
@@ -297,12 +296,12 @@ msgstr "Mitja"
 #: code:addons/crm_iap_lead_website/models/crm_reveal_rule.py:0
 #, python-format
 msgid "Missing Library"
-msgstr "Biblioteca desapareguda"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_view__reveal_state__not_found
 msgid "Not Found"
-msgstr "No trobat"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__extra_contacts
@@ -317,7 +316,7 @@ msgstr "Nombre d'iniciatives generades"
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__opportunity_count
 msgid "Number of Generated Opportunity"
-msgstr "Nombre d'oportunitats generades"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__country_ids
@@ -341,7 +340,7 @@ msgstr "Oportunitat"
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "Opportunity Data"
-msgstr "Dades d'oportunitat"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
@@ -352,17 +351,17 @@ msgstr ""
 #: code:addons/crm_iap_lead_website/models/crm_reveal_rule.py:0
 #, python-format
 msgid "Opportunity created by Odoo Lead Generation"
-msgstr "Oportunitat creada per Odoo Lead Generation"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__other_role_ids
 msgid "Other Roles"
-msgstr "Altres rols"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__preferred_role_id
 msgid "Preferred Role"
-msgstr "Rol preferit"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__priority
@@ -410,13 +409,13 @@ msgstr "Comercial"
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_view_search
 msgid "Search CRM Reveal Rule"
-msgstr "Buscar regla de revelació de CRM"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__seniority_id
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__contact_filter_type__seniority
 msgid "Seniority"
-msgstr "Antiguitat"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__sequence
@@ -471,12 +470,12 @@ msgstr "Tipus"
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__regex_url
 msgid "URL Expression"
-msgstr "Enllaç Expressió"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "Up to"
-msgstr "Fins a"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__sequence
@@ -514,17 +513,17 @@ msgstr ""
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "e.g. /page"
-msgstr "Per exemple, /pàgina"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "e.g. US Visitors"
-msgstr "p. ex. visitants dels EUA"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "employees"
-msgstr "empleats"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form

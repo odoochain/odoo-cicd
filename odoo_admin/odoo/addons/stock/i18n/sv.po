@@ -10,17 +10,15 @@
 # Robert Frykelius <robert.frykelius@linserv.se>, 2021
 # Kristoffer Grundström <lovaren@gmail.com>, 2021
 # lasch a <bmail440@gmail.com>, 2021
+# Martin Trigaux, 2021
 # Anders Wallenquist <anders.wallenquist@vertel.se>, 2021
 # Haojun Zou <apollo_zhj@msn.com>, 2021
 # Martin Wilderoth <martin.wilderoth@linserv.se>, 2021
 # Chrille Hedberg <hedberg.chrille@gmail.com>, 2021
 # Daniel Osser <danielosser@gmail.com>, 2021
-# 3eec91a23d05c632ffac786ac42b81b8_b6fff7b <8985b7bc57db860af29969457dbb51b3_1018915>, 2021
-# emavertel, 2022
-# Simon S, 2022
-# Martin Trigaux, 2022
-# Mikael Åkerberg <mikael.akerberg@mariaakerberg.com>, 2022
-# Kim Asplund <kim.asplund@gmail.com>, 2022
+# STefan Rundgren <stefanrundgren@cellglas.com>, 2021
+# Kim Asplund <kim.asplund@gmail.com>, 2021
+# Simon S, 2021
 # 
 msgid ""
 msgstr ""
@@ -28,7 +26,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-11-16 13:18+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: Kim Asplund <kim.asplund@gmail.com>, 2022\n"
+"Last-Translator: Simon S, 2021\n"
 "Language-Team: Swedish (https://www.transifex.com/odoo/teams/41243/sv/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -136,7 +134,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock.view_backorder_confirmation
 #: model_terms:ir.ui.view,arch_db:stock.view_immediate_transfer
 msgid "&gt;"
-msgstr "&gt;"
+msgstr ""
 
 #. module: stock
 #: model:ir.actions.report,print_report_name:stock.action_report_inventory
@@ -664,7 +662,7 @@ msgstr ""
 #. module: stock
 #: model:res.groups,name:stock.group_warning_stock
 msgid "A warning can be set on a partner (Stock)"
-msgstr "En varning kan ställas in på en kontakt (Lager)"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_rule__action
@@ -736,15 +734,13 @@ msgstr "Lägg till en ny rutt"
 #. module: stock
 #: model_terms:ir.actions.act_window,help:stock.action_storage_category
 msgid "Add a new storage category"
-msgstr "Lägg till en ny Lagerkategori"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_form
 msgid ""
 "Add an internal note that will be printed on the Picking Operations sheet"
 msgstr ""
-"Lägg till en intern anteckning som kommer att skrivas ut på arket för "
-"plockningsoperationer."
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_res_config_settings__group_stock_adv_location
@@ -944,10 +940,7 @@ msgid "As soon as possible"
 msgstr "Så snart som möjligt"
 
 #. module: stock
-#. openerp-web
-#: code:addons/stock/static/src/js/report_stock_reception.js:0
 #: model_terms:ir.ui.view,arch_db:stock.report_reception_body
-#, python-format
 msgid "Assign"
 msgstr ""
 
@@ -1121,7 +1114,7 @@ msgstr "Streckkodsläsare"
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_res_config_settings__module_stock_picking_batch
 msgid "Batch Transfers"
-msgstr "Partiförflyttningar"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields.selection,name:stock.selection__stock_picking_type__reservation_method__by_date
@@ -1175,7 +1168,7 @@ msgstr ""
 #: model:product.product,name:stock.product_cable_management_box
 #: model:product.template,name:stock.product_cable_management_box_product_template
 msgid "Cable Management Box"
-msgstr "Kabelhanteringslåda"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.stock_picking_calendar
@@ -1782,7 +1775,7 @@ msgid ""
 "setting"
 msgstr ""
 "Skapandet av ett nytt lager kommer automatiskt att aktivera inställningen "
-"\"Lagerplatser\""
+"\"Lagringsplatser\""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_picking__date
@@ -1859,7 +1852,7 @@ msgstr ""
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_res_config_settings__module_delivery_dhl
 msgid "DHL Express Connector"
-msgstr "DHL Express kontakt"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_report_stock_quantity__date
@@ -2036,12 +2029,10 @@ msgstr ""
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_location__removal_strategy_id
 msgid ""
-"Defines the default method used for suggesting the exact location (shelf) where to take the products from, which lot etc. for this location. This method can be enforced at the product category level, and a fallback is made on the parent locations if none is set here.\n"
-"\n"
-"FIFO: products/lots that were stocked first will be moved out first.\n"
-"LIFO: products/lots that were stocked last will be moved out first.\n"
-"Closet location: products/lots closest to the target location will be moved out first.\n"
-"FEFO: products/lots with the closest removal date will be moved out first (the availability of this method depends on the \"Expiration Dates\" setting)."
+"Defines the default method used for suggesting the exact location (shelf) "
+"where to take the products from, which lot etc. for this location. This "
+"method can be enforced at the product category level, and a fallback is made"
+" on the parent locations if none is set here."
 msgstr ""
 
 #. module: stock
@@ -2118,7 +2109,7 @@ msgstr "Leveransrutt"
 #. module: stock
 #: model:ir.actions.report,name:stock.action_report_delivery
 msgid "Delivery Slip"
-msgstr "Följesedel"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_procurement_group__move_type
@@ -2390,7 +2381,7 @@ msgstr ""
 #. module: stock
 #: model:res.groups,name:stock.group_lot_on_delivery_slip
 msgid "Display Serial & Lot Number in Delivery Slips"
-msgstr "Visa serie- & partinummer på följesedlar"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.package_level_tree_view_picking
@@ -2512,7 +2503,7 @@ msgstr ""
 #: model:ir.model.fields,help:stock.field_stock_scrap__tracking
 #: model:ir.model.fields,help:stock.field_stock_track_line__tracking
 msgid "Ensure the traceability of a storable product in your warehouse."
-msgstr "Säkerställ spårbarheten för en lagringsbar produkt i ditt lager."
+msgstr ""
 
 #. module: stock
 #. openerp-web
@@ -2539,7 +2530,7 @@ msgstr ""
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.exception_on_picking
 msgid "Exception(s):"
-msgstr "Undantag:"
+msgstr ""
 
 #. module: stock
 #: code:addons/stock/models/stock_move.py:0
@@ -2767,7 +2758,7 @@ msgstr ""
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.report_product_product_replenishment
 msgid "Forecasted with Pending"
-msgstr "Prognostiserat med väntande"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.report_replenishment_header
@@ -2847,7 +2838,7 @@ msgstr ""
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
 msgid "Get a full traceability from vendors to customers"
-msgstr "Få full spårbarhet från leverantörer till kunder"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -3195,12 +3186,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock.view_immediate_transfer
 msgid "Immediate transfer?"
 msgstr ""
-
-#. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid "Import"
-msgstr "Importera"
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_warehouse__in_type_id
@@ -3983,7 +3968,7 @@ msgstr ""
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_move_line__lot_name
 msgid "Lot/Serial Number Name"
-msgstr "Parti- / Serienummernamn"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.product_form_view_procurement_button
@@ -4048,7 +4033,7 @@ msgstr ""
 #. module: stock
 #: model:res.groups,name:stock.group_tracking_owner
 msgid "Manage Different Stock Owners"
-msgstr "Hantera olika lagerägare"
+msgstr ""
 
 #. module: stock
 #: model:res.groups,name:stock.group_production_lot
@@ -4058,12 +4043,12 @@ msgstr "Administrera partier / serienummer"
 #. module: stock
 #: model:res.groups,name:stock.group_stock_multi_locations
 msgid "Manage Multiple Stock Locations"
-msgstr "Hantera flera lagerplatser"
+msgstr ""
 
 #. module: stock
 #: model:res.groups,name:stock.group_stock_multi_warehouses
 msgid "Manage Multiple Warehouses"
-msgstr "Hantera flera lager"
+msgstr ""
 
 #. module: stock
 #: model:res.groups,name:stock.group_tracking_lot
@@ -4073,12 +4058,12 @@ msgstr "Administrera förpackningar"
 #. module: stock
 #: model:res.groups,name:stock.group_adv_location
 msgid "Manage Push and Pull inventory flows"
-msgstr "Hantera push- och pull-lagerflöden"
+msgstr ""
 
 #. module: stock
 #: model:res.groups,name:stock.group_stock_storage_categories
 msgid "Manage Storage Categories"
-msgstr "Hantera Lagerkategorier"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -4509,12 +4494,6 @@ msgid "No stock move found"
 msgstr "Ingen lagerflytt hittad"
 
 #. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid "No Stock On Hand"
-msgstr ""
-
-#. module: stock
 #: model_terms:ir.actions.act_window,help:stock.action_picking_form
 #: model_terms:ir.actions.act_window,help:stock.action_picking_tree_all
 #: model_terms:ir.actions.act_window,help:stock.action_picking_tree_backorder
@@ -4652,8 +4631,6 @@ msgid ""
 "On hand quantity which hasn't been reserved on a transfer, in the default "
 "unit of measure of the product"
 msgstr ""
-"Lagersaldo som inte har reserverats vid en överföring, i produktens "
-"standardmåttenhet."
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.product_template_kanban_stock_view
@@ -5021,7 +4998,7 @@ msgstr "Pakettyp"
 #: model:ir.ui.menu,name:stock.menu_packaging_types
 #: model_terms:ir.ui.view,arch_db:stock.stock_package_type_tree
 msgid "Package Types"
-msgstr "Typer av Emballage"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_quant_package__package_use
@@ -5228,7 +5205,7 @@ msgstr "Föregående operationer"
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_warehouse_orderpoint__route_id
 msgid "Preferred Route"
-msgstr "Föredragen rutt"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_product_replenish__route_ids
@@ -5238,14 +5215,6 @@ msgstr "Föredragen rutt"
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_move__route_ids
 msgid "Preferred route"
-msgstr "Föredragen rutt"
-
-#. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid ""
-"Press the CREATE button to define quantity for each product in your stock or"
-" import them from a spreadsheet throughout Favorites"
 msgstr ""
 
 #. module: stock
@@ -5286,7 +5255,7 @@ msgstr ""
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
 msgid "Process operations faster with barcodes"
-msgstr "Hantera operationer snabbare med streckkoder"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -5625,7 +5594,7 @@ msgstr ""
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_form
 msgid "Put in Pack"
-msgstr "Lägg i förpackning"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -5671,7 +5640,7 @@ msgstr "Inlagringsregler"
 #. module: stock
 #: model:ir.model.constraint,message:stock.constraint_stock_warehouse_orderpoint_qty_multiple_check
 msgid "Qty Multiple must be greater than or equal to zero."
-msgstr "Kvantitetsmultipel måste vara större än eller lika med noll."
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_res_config_settings__module_quality_control
@@ -6180,7 +6149,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_form
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_move_tree
 msgid "Reserved"
-msgstr "Reserverad"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_quant__reserved_quantity
@@ -6190,7 +6159,7 @@ msgstr "Reserverad kvantitet"
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.report_product_product_replenishment
 msgid "Reserved from stock"
-msgstr "Reserverad från lagret"
+msgstr ""
 
 #. module: stock
 #: code:addons/stock/models/stock_move_line.py:0
@@ -6268,7 +6237,7 @@ msgstr ""
 #: code:addons/stock/models/stock_warehouse.py:0
 #, python-format
 msgid "Returns"
-msgstr "Returer"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields.selection,name:stock.selection__stock_quant_package__package_use__reusable
@@ -6538,7 +6507,7 @@ msgstr "Sälj och köp produkter med olika måttenheter"
 msgid ""
 "Send an automatic confirmation SMS Text Message when Delivery Orders are "
 "done"
-msgstr "Skicka ett automatiskt bekräftelse-SMS när leveransordrar är klara"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -6581,7 +6550,7 @@ msgstr "Sekvens"
 #: code:addons/stock/models/stock_warehouse.py:0
 #, python-format
 msgid "Sequence in"
-msgstr "Sekvens in"
+msgstr ""
 
 #. module: stock
 #: code:addons/stock/models/stock_warehouse.py:0
@@ -6593,7 +6562,7 @@ msgstr ""
 #: code:addons/stock/models/stock_warehouse.py:0
 #, python-format
 msgid "Sequence out"
-msgstr "Sekvens ut"
+msgstr ""
 
 #. module: stock
 #: code:addons/stock/models/stock_warehouse.py:0
@@ -6663,12 +6632,8 @@ msgstr ""
 #. module: stock
 #: model:ir.model.fields,help:stock.field_product_category__removal_strategy_id
 msgid ""
-"Set a specific removal strategy that will be used regardless of the source location for this product category.\n"
-"\n"
-"FIFO: products/lots that were stocked first will be moved out first.\n"
-"LIFO: products/lots that were stocked last will be moved out first.\n"
-"Closet location: products/lots closest to the target location will be moved out first.\n"
-"FEFO: products/lots with the closest removal date will be moved out first (the availability of this method depends on the \"Expiration Dates\" setting)."
+"Set a specific removal strategy that will be used regardless of the source "
+"location for this product category"
 msgstr ""
 
 #. module: stock
@@ -7138,7 +7103,7 @@ msgstr "Lagerflyttar som har behandlats"
 #. module: stock
 #: model:ir.model,name:stock.model_stock_package_type
 msgid "Stock package type"
-msgstr "Lager Emballagetyp"
+msgstr ""
 
 #. module: stock
 #: model:ir.model,name:stock.model_report_stock_report_stock_rule
@@ -7168,7 +7133,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:stock.product_form_view_procurement_button
 #: model_terms:ir.ui.view,arch_db:stock.product_template_form_view_procurement_button
 msgid "Storage Capacities"
-msgstr "Lagerkapacitet"
+msgstr ""
 
 #. module: stock
 #: model:ir.actions.act_window,name:stock.action_storage_category
@@ -7177,7 +7142,7 @@ msgstr "Lagerkapacitet"
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
 #: model_terms:ir.ui.view,arch_db:stock.stock_storage_category_tree
 msgid "Storage Categories"
-msgstr "Lagerkategorier"
+msgstr ""
 
 #. module: stock
 #: model:ir.model,name:stock.model_stock_storage_category
@@ -7187,7 +7152,7 @@ msgstr "Lagerkategorier"
 #: model:ir.model.fields,field_description:stock.field_stock_storage_category_capacity__storage_category_id
 #: model_terms:ir.ui.view,arch_db:stock.stock_storage_category_form
 msgid "Storage Category"
-msgstr "Lagerkategori"
+msgstr ""
 
 #. module: stock
 #: model:ir.actions.act_window,name:stock.action_storage_category_capacity
@@ -7197,12 +7162,12 @@ msgstr "Lagerkategori"
 #: model:ir.ui.menu,name:stock.menu_storage_categoty_capacity_config
 #: model_terms:ir.ui.view,arch_db:stock.stock_storage_category_capacity_tree
 msgid "Storage Category Capacity"
-msgstr "Lagerkategori Kapacitet"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_res_config_settings__group_stock_multi_locations
 msgid "Storage Locations"
-msgstr "Lagerplatser"
+msgstr "Lagringsplatser"
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_res_config_settings__group_stock_multi_locations
@@ -7502,8 +7467,10 @@ msgstr ""
 #, python-format
 msgid ""
 "The quantity done for the product \"%s\" doesn't respect the rounding "
-"precision defined on the unit of measure \"%s\". Please change the quantity "
-"done or the rounding precision of your unit of measure."
+"precision                                   defined on the unit of measure "
+"\"%s\". Please change the quantity done or the"
+"                                   rounding precision of your unit of "
+"measure."
 msgstr ""
 
 #. module: stock
@@ -7553,7 +7520,7 @@ msgstr ""
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_move_line__picking_id
 msgid "The stock operation where the packing has been made"
-msgstr "Lageroperationen där packningen har gjorts"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_move__rule_id
@@ -7566,8 +7533,6 @@ msgid ""
 "The stock will be reserved for operations waiting for availability and the "
 "reordering rules will be triggered."
 msgstr ""
-"Lagret kommer att reserveras för operationer som väntar på att bli "
-"tillgängliga och ombeställningsreglerna kommer att utlösas."
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_rule__propagate_warehouse_id
@@ -7583,14 +7548,6 @@ msgstr ""
 #. module: stock
 #: model_terms:ir.actions.act_window,help:stock.stock_move_line_action
 msgid "There's no product move yet"
-msgstr ""
-
-#. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid ""
-"This analysis gives you an overview of the current stock level of your "
-"products."
 msgstr ""
 
 #. module: stock
@@ -7774,8 +7731,6 @@ msgid ""
 "This user will be responsible of the next activities related to logistic "
 "operations for this product."
 msgstr ""
-"Den här användaren kommer att ansvara för de kommande aktiviteterna kopplade"
-" till den logistiska hanteringen av denna produkt."
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.inventory_warning_reset_view
@@ -7825,7 +7780,7 @@ msgstr "Att göra"
 #: model:ir.model.fields,field_description:stock.field_stock_replenishment_info__qty_to_order
 #: model:ir.model.fields,field_description:stock.field_stock_warehouse_orderpoint__qty_to_order
 msgid "To Order"
-msgstr "Att beställa"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_immediate_transfer_line__to_immediate
@@ -7873,7 +7828,7 @@ msgstr "Spårbarhet"
 #: model_terms:ir.ui.view,arch_db:stock.report_stock_inventory
 #, python-format
 msgid "Traceability Report"
-msgstr "Spårbarhetsrapport"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_res_config_settings__module_product_expiry
@@ -7971,7 +7926,7 @@ msgstr ""
 #: model_terms:ir.actions.act_window,help:stock.action_picking_type_list
 #: model_terms:ir.actions.act_window,help:stock.stock_picking_action_picking_type
 msgid "Transfers allow you to move products from one location to another."
-msgstr "Med flytt kan du flytta produkter från en plats till en annan."
+msgstr ""
 
 #. module: stock
 #: model:ir.actions.act_window,name:stock.do_view_pickings
@@ -8051,10 +8006,7 @@ msgid "USPS Connector"
 msgstr ""
 
 #. module: stock
-#. openerp-web
-#: code:addons/stock/static/src/js/report_stock_reception.js:0
 #: model_terms:ir.ui.view,arch_db:stock.report_reception_body
-#, python-format
 msgid "Unassign"
 msgstr ""
 
@@ -8236,12 +8188,12 @@ msgstr ""
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
 msgid "Use your own routes"
-msgstr "Använd era egna rutter"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.report_product_product_replenishment
 msgid "Used by"
-msgstr "Använd av"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_picking_type__sequence
@@ -8886,8 +8838,6 @@ msgid ""
 "You have not recorded <i>done</i> quantities yet, by clicking on "
 "<i>apply</i> Odoo will process all the quantities."
 msgstr ""
-"Du har inte angivit <i>Klara</i> kvantiteter ännu. Genom att klicka på "
-"<i>Verktställ</i> kommer systemet att behandla alla kvantiteter."
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.view_backorder_confirmation
@@ -8945,7 +8895,8 @@ msgid ""
 "You need to activate storage locations to be able to do internal operation "
 "types."
 msgstr ""
-"Du behöver aktivera lagerplatser för att kunna göra interna operationstyper."
+"Du behöver aktivera lagringsplatser för att kunna göra interna "
+"operationstyper."
 
 #. module: stock
 #: code:addons/stock/models/stock_move.py:0
@@ -9000,15 +8951,6 @@ msgid ""
 "You'll find here smart replenishment propositions based on inventory forecasts.\n"
 "            Choose the quantity to buy or manufacture and launch orders in a click.\n"
 "            To save time in the future, set the rules as \"automated\"."
-msgstr ""
-"Här hittar du smarta förslag till påfyllning som bygger på lagerprognoser.\n"
-"            Välj kvantiteten att köpa eller tillverka och starta beställningar med ett klick.\n"
-"            För att spara tid i framtiden kan man ställa in reglerna till \"automatiserade\"."
-
-#. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid "Your stock is currently empty"
 msgstr ""
 
 #. module: stock

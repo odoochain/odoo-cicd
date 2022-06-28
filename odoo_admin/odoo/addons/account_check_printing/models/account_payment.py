@@ -20,7 +20,7 @@ class AccountPaymentRegister(models.TransientModel):
                 lambda l: l.payment_method_id == preferred
             )
             if record.payment_type == 'outbound' and method_line:
-                record.payment_method_line_id = method_line[0]
+                record.payment_method_line_id = method_line
 
 
 class AccountPayment(models.Model):
@@ -46,12 +46,12 @@ class AccountPayment(models.Model):
 
     @api.constrains('check_number', 'journal_id')
     def _constrains_check_number(self):
-        payment_checks = self.filtered('check_number')
-        if not payment_checks:
+        if not self:
             return
-        for payment_check in payment_checks:
-            if not payment_check.check_number.isdecimal():
-                raise ValidationError(_('Check numbers can only consist of digits'))
+        try:
+            self.mapped(lambda p: str(int(p.check_number)))
+        except ValueError:
+            raise ValidationError(_('Check numbers can only consist of digits'))
         self.flush()
         self.env.cr.execute("""
             SELECT payment.check_number, move.journal_id
@@ -66,10 +66,8 @@ class AccountPayment(models.Model):
                AND payment.id IN %(ids)s
                AND move.state = 'posted'
                AND other_move.state = 'posted'
-               AND payment.check_number IS NOT NULL
-               AND other_payment.check_number IS NOT NULL
         """, {
-            'ids': tuple(payment_checks.ids),
+            'ids': tuple(self.ids),
         })
         res = self.env.cr.dictfetchall()
         if res:
@@ -113,14 +111,15 @@ class AccountPayment(models.Model):
             method_line = record.journal_id.outbound_payment_method_line_ids\
                 .filtered(lambda l: l.payment_method_id == preferred)
             if record.payment_type == 'outbound' and method_line:
-                record.payment_method_line_id = method_line[0]
+                record.payment_method_line_id = method_line
 
     def action_post(self):
+        res = super(AccountPayment, self).action_post()
         payment_method_check = self.env.ref('account_check_printing.account_payment_method_check')
         for payment in self.filtered(lambda p: p.payment_method_id == payment_method_check and p.check_manual_sequencing):
             sequence = payment.journal_id.check_sequence_id
             payment.check_number = sequence.next_by_id()
-        return super(AccountPayment, self).action_post()
+        return res
 
     def print_checks(self):
         """ Check that the recordset is valid, set the payments state to sent and call print_checks() """
@@ -141,8 +140,8 @@ class AccountPayment(models.Model):
                     FROM account_payment payment
                     JOIN account_move move ON movE.id = payment.move_id
                    WHERE journal_id = %(journal_id)s
-                   AND payment.check_number IS NOT NULL
-                ORDER BY payment.check_number::INTEGER DESC
+                   AND check_number IS NOT NULL
+                ORDER BY check_number::INTEGER DESC
                    LIMIT 1
             """, {
                 'journal_id': self.journal_id.id,

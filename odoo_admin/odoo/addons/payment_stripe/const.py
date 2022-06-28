@@ -2,10 +2,6 @@
 
 from collections import namedtuple
 
-API_VERSION = '2019-05-16'  # The API version of Stripe implemented in this module
-
-# Stripe proxy URL
-PROXY_URL = 'https://stripe.api.odoo.com/api/stripe/'
 
 # Support payment method types
 PMT = namedtuple('PaymentMethodType', ['name', 'countries', 'currencies', 'recurrence'])
@@ -26,8 +22,3 @@ INTENT_STATUS_MAPPING = {
     'done': ('succeeded',),
     'cancel': ('canceled',),
 }
-
-# Events which are handled by the webhook
-WEBHOOK_HANDLED_EVENTS = [
-    'checkout.session.completed',
-]

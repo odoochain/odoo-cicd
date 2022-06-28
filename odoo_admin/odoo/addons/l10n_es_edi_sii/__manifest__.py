@@ -39,6 +39,9 @@
         'views/l10n_es_edi_certificate_views.xml',
         'views/res_config_settings_views.xml',
     ],
+    'demo': [
+        'demo/demo_company.xml'
+    ],
     'external_dependencies': {
         'python': ['pyOpenSSL'],
     },

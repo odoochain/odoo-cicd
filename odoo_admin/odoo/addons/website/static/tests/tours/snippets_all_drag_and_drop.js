@@ -62,12 +62,12 @@ tour.register("snippets_all_drag_and_drop", {
 }, [
     {
         content: "Ensure snippets are actually passed at the test.",
-        trigger: "body",
+        trigger: "#oe_snippets",
         run: function () {
             // safety check, otherwise the test might "break" one day and
             // receive no steps. The test would then not test anything anymore
             // without us noticing it.
-            if (steps.length < 220) {
+            if (steps.lenth < 280) {
                 console.error("This test is not behaving as it should.");
             }
         },

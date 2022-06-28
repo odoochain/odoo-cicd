@@ -5,17 +5,9 @@ from odoo import http, _
 from odoo.http import request
 
 
-def sitemap_terms(env, rule, qs):
-    if qs and qs.lower() not in '/terms':
-        return
-    use_invoice_terms = env['ir.config_parameter'].sudo().get_param('account.use_invoice_terms')
-    if use_invoice_terms and env.company.terms_type == 'html':
-        yield {'loc': '/terms'}
-
-
 class TermsController(http.Controller):
 
-    @http.route('/terms', type='http', auth='public', website=True, sitemap=sitemap_terms)
+    @http.route('/terms', type='http', auth='public', website=True, sitemap=True)
     def terms_conditions(self, **kwargs):
         use_invoice_terms = request.env['ir.config_parameter'].sudo().get_param('account.use_invoice_terms')
         if not (use_invoice_terms and request.env.company.terms_type == 'html'):

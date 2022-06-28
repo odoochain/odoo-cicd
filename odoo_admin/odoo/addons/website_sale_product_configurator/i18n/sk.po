@@ -24,21 +24,21 @@ msgstr ""
 #: code:addons/website_sale_product_configurator/static/src/js/website_sale_options.js:0
 #, python-format
 msgid "Add to cart"
-msgstr "Pridať do košíka"
+msgstr ""
 
 #. module: website_sale_product_configurator
 #. openerp-web
 #: code:addons/website_sale_product_configurator/static/src/js/website_sale_options.js:0
 #, python-format
 msgid "Continue Shopping"
-msgstr "Pokračovať v nákupe"
+msgstr ""
 
 #. module: website_sale_product_configurator
 #. openerp-web
 #: code:addons/website_sale_product_configurator/static/src/js/website_sale_options.js:0
 #, python-format
 msgid "Proceed to Checkout"
-msgstr "Pokračujte k pokladni"
+msgstr ""
 
 #. module: website_sale_product_configurator
 #: model:ir.model,name:website_sale_product_configurator.model_sale_order

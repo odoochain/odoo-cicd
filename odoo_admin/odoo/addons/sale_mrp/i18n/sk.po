@@ -53,12 +53,12 @@ msgstr ""
 #. module: sale_mrp
 #: model:ir.model,name:sale_mrp.model_stock_move_line
 msgid "Product Moves (Stock Move Line)"
-msgstr "Pohyby produktu (riadok skladového pohybu)"
+msgstr ""
 
 #. module: sale_mrp
 #: model:ir.model,name:sale_mrp.model_mrp_production
 msgid "Production Order"
-msgstr "Výrobná objednávka"
+msgstr ""
 
 #. module: sale_mrp
 #: model:ir.model,name:sale_mrp.model_sale_order
@@ -68,7 +68,7 @@ msgstr "Objednávka "
 #. module: sale_mrp
 #: model:ir.model,name:sale_mrp.model_sale_order_line
 msgid "Sales Order Line"
-msgstr "Položka objednávok"
+msgstr ""
 
 #. module: sale_mrp
 #: code:addons/sale_mrp/models/mrp_production.py:0
@@ -79,4 +79,4 @@ msgstr ""
 #. module: sale_mrp
 #: model:ir.model,name:sale_mrp.model_stock_move
 msgid "Stock Move"
-msgstr "Pohyb skladu"
+msgstr ""

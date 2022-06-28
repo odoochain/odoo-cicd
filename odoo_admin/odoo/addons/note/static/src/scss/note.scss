@@ -33,8 +33,7 @@
         }
         .note-editable {
             border: none;
-            padding: $o-sheet-vpadding $o-horizontal-padding 10px !important;
-            min-height: 300px;
+            padding: $o-sheet-vpadding $o-horizontal-padding;
         }
     }
     .oe_form_field.oe_memo {

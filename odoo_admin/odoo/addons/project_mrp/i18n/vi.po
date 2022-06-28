@@ -4,6 +4,7 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
+# Duy BQ <duybq86@gmail.com>, 2021
 # Vo Thanh Thuy, 2022
 # 
 msgid ""
@@ -25,7 +26,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:project_mrp.project_project_form_view_inherited
 #, python-format
 msgid "Bills of Materials"
-msgstr "Định mức vật liệu"
+msgstr "Định mức nguyên liệu"
 
 #. module: project_mrp
 #: model:ir.model.fields,field_description:project_mrp.field_project_project__bom_count
@@ -37,7 +38,7 @@ msgstr "Số BoM"
 #: model_terms:ir.ui.view,arch_db:project_mrp.project_project_form_view_inherited
 #, python-format
 msgid "Manufacturing Orders"
-msgstr "Đơn sản xuất "
+msgstr "Lệnh Sản xuất"
 
 #. module: project_mrp
 #: model:ir.model.fields,field_description:project_mrp.field_project_project__production_count
@@ -59,4 +60,4 @@ msgstr "Số đơn công đoạn"
 #: model_terms:ir.ui.view,arch_db:project_mrp.project_project_form_view_inherited
 #, python-format
 msgid "Work Orders"
-msgstr "Đơn công đoạn"
+msgstr "Lệnh làm việc"

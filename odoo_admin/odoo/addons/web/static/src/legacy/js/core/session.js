@@ -133,8 +133,7 @@ var Session = core.Class.extend(mixins.EventDispatcherMixin, {
         return this.rpc("/web/session/destroy", {});
     },
     user_has_group: function (group) {
-        // the frontend session info has no `uid` but an `user_id`
-        if (!this.uid && !this.user_id) {
+        if (!this.uid) {
             return Promise.resolve(false);
         }
         var def = this._groups_def[group];
@@ -197,18 +196,7 @@ var Session = core.Class.extend(mixins.EventDispatcherMixin, {
         });
     },
     load_translations: function (modules=null) {
-        var lang = this.user_context.lang
-        /* We need to get the website lang at this level.
-           The only way is to get it is to take the HTML tag lang
-           Without it, we will always send undefined if there is no lang
-           in the user_context. */
-        var html = document.documentElement,
-            htmlLang = html.getAttribute('lang');
-        if (!this.user_context.lang && htmlLang) {
-            lang = htmlLang.replace('-', '_');
-        }
-
-        return _t.database.load_translations(this, modules, lang, this.translationURL);
+        return _t.database.load_translations(this, modules, this.user_context.lang, this.translationURL);
     },
     load_js: function (files) {
         var self = this;
@@ -317,7 +305,7 @@ var Session = core.Class.extend(mixins.EventDispatcherMixin, {
      * @returns {integer}
      */
     getTZOffset: function (date) {
-        return -new Date(new Date(date).toISOString().replace('Z', '')).getTimezoneOffset();
+        return -new Date(date).getTimezoneOffset();
     },
     //--------------------------------------------------------------------------
     // Public

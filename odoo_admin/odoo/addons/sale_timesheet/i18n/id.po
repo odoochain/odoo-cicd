@@ -3,18 +3,7 @@
 # 	* sale_timesheet
 # 
 # Translators:
-# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2022
-# William Surya Permana <zarambie_game@yahoo.com>, 2022
-# whenwesober, 2022
-# pnyet <david@zeromail.us>, 2022
-# Ikhsanul Wirsa <iwirsa02@outlook.co.id>, 2022
-# Muftiara Syuhada <muftiara.syuhada@gmail.com>, 2022
-# Martin Trigaux, 2022
-# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022
-# PAS IRVANUS <ipankbiz@gmail.com>, 2022
-# oon arfiandwi <oon.arfiandwi@gmail.com>, 2022
-# Bonny Useful <bonny.useful@gmail.com>, 2022
-# Ryanto The <ry.the77@gmail.com>, 2022
+# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -22,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-10-05 10:54+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: Ryanto The <ry.the77@gmail.com>, 2022\n"
+"Last-Translator: Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021\n"
 "Language-Team: Indonesian (https://www.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -206,17 +195,17 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__analytic_account_id
 msgid "Analytic Account"
-msgstr "Akun Analitik"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_account_analytic_line
 msgid "Analytic Line"
-msgstr "Baris Analitik"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_line__analytic_line_ids
 msgid "Analytic lines"
-msgstr "Baris Analitik"
+msgstr ""
 
 #. module: sale_timesheet
 #: code:addons/sale_timesheet/wizard/project_create_sale_order.py:0
@@ -276,7 +265,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.res_config_settings_view_form
 msgid "Billing"
-msgstr "Tagihan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:project.task,legend_blocked:sale_timesheet.project_task_1
@@ -284,12 +273,12 @@ msgstr "Tagihan"
 #: model:project.task,legend_blocked:sale_timesheet.project_task_3
 #: model:project.task,legend_blocked:sale_timesheet.project_task_internal
 msgid "Blocked"
-msgstr "Diblokir"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:project.task,legend_done:sale_timesheet.project_task_4
 msgid "Buzz or set as done"
-msgstr "Buzz atau set seperti yang dilakukan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.ui.menu,name:sale_timesheet.menu_timesheet_billing_analysis
@@ -310,7 +299,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order__commercial_partner_id
 msgid "Commercial Entity"
-msgstr "Entitas Komersial"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__commercial_partner_id
@@ -322,12 +311,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__company_id
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_profitability_report_view_search
 msgid "Company"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_res_config_settings
 msgid "Config Settings"
-msgstr "Pengaturan Konfigurasi"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.res_config_settings_view_form
@@ -337,7 +326,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__cost
 msgid "Cost"
-msgstr "Modal"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__cost_currency_id
@@ -348,7 +337,7 @@ msgstr "Mata Uang Biaya"
 #: code:addons/sale_timesheet/models/project.py:0
 #, python-format
 msgid "Costs"
-msgstr "Biaya"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.filters,name:sale_timesheet.ir_filter_project_profitability_report_costs_and_revenues
@@ -359,7 +348,7 @@ msgstr ""
 #: model:ir.actions.act_window,name:sale_timesheet.project_project_action_multi_create_invoice
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_create_invoice_view_form
 msgid "Create Invoice"
-msgstr "Buat Faktur"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_project_create_invoice
@@ -403,7 +392,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order_line__create_uid
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__create_uid
 msgid "Created by"
-msgstr "Dibuat oleh"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_invoice__create_date
@@ -411,14 +400,14 @@ msgstr "Dibuat oleh"
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order_line__create_date
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__create_date
 msgid "Created on"
-msgstr "Dibuat pada"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_invoice__currency_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order_line__currency_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__currency_id
 msgid "Currency"
-msgstr "Mata Uang"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order__partner_id
@@ -427,7 +416,7 @@ msgstr "Mata Uang"
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__partner_id
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_profitability_report_view_search
 msgid "Customer"
-msgstr "Pelanggan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:product.product,name:sale_timesheet.product_service_order_timesheet
@@ -449,7 +438,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__line_date
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_profitability_report_view_search
 msgid "Date"
-msgstr "Tanggal"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_my_timesheets_inherit
@@ -483,7 +472,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__display_name
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__display_name
 msgid "Display Name"
-msgstr "Nama Tampilan"
+msgstr ""
 
 #. module: sale_timesheet
 #. openerp-web
@@ -497,7 +486,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order_line__employee_id
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__employee_id
 msgid "Employee"
-msgstr "Karyawan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields.selection,name:sale_timesheet.selection__project_project__pricing_type__employee_rate
@@ -519,7 +508,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_advance_payment_inv__date_end_invoice_timesheet
 msgid "End Date"
-msgstr "Tanggal Berakhir"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.product_template_view_search_sale_timesheet
@@ -529,7 +518,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_profitability_report_view_search
 msgid "Group By"
-msgstr "Dikelompokkan berdasarkan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_line__has_displayed_warning_upsell
@@ -551,7 +540,7 @@ msgstr ""
 #: model:product.template,uom_name:sale_timesheet.product_service_order_timesheet_product_template
 #: model:product.template,uom_name:sale_timesheet.time_product_product_template
 msgid "Hours"
-msgstr "Jam"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_invoice__id
@@ -560,7 +549,7 @@ msgstr "Jam"
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__id
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:project.task,legend_normal:sale_timesheet.project_task_1
@@ -569,7 +558,7 @@ msgstr "ID"
 #: model:project.task,legend_normal:sale_timesheet.project_task_4
 #: model:project.task,legend_normal:sale_timesheet.project_task_internal
 msgid "In Progress"
-msgstr "Dalam Proses"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order__info_invoice
@@ -582,7 +571,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
 #, python-format
 msgid "Invoice"
-msgstr "Faktur"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_res_config_settings__invoice_policy
@@ -641,17 +630,17 @@ msgstr ""
 #: code:addons/sale_timesheet/models/project.py:0
 #, python-format
 msgid "Invoices"
-msgstr "Faktur"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_form
 msgid "Invoicing"
-msgstr "Penagihan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.view_product_timesheet_form
 msgid "Invoicing Policy"
-msgstr "Kebijakan Penagihan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_advance_payment_inv__invoicing_timesheet_enabled
@@ -676,12 +665,12 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_account_move
 msgid "Journal Entry"
-msgstr "Entri Jurnal"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_account_move_line
 msgid "Journal Item"
-msgstr "Item Jurnal"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:product.product,name:sale_timesheet.product_service_deliver_timesheet_2
@@ -702,7 +691,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report____last_update
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map____last_update
 msgid "Last Modified on"
-msgstr "Terakhir diubah pada"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_invoice__write_uid
@@ -710,7 +699,7 @@ msgstr "Terakhir diubah pada"
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order_line__write_uid
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__write_uid
 msgid "Last Updated by"
-msgstr "Terakhir diperbarui oleh"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_invoice__write_date
@@ -718,12 +707,12 @@ msgstr "Terakhir diperbarui oleh"
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order_line__write_date
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui pada"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order__line_ids
 msgid "Lines"
-msgstr "Baris"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_product_product__service_type
@@ -733,16 +722,13 @@ msgid ""
 "Timesheets on contract: Invoice based on the tracked hours on the related timesheet.\n"
 "Create a task and track hours: Create a task on the sales order validation and track the work hours."
 msgstr ""
-"Stel manual jumlah pada order: Fakturkan berdasarkan input jumlah manual tanpa membuat akun analitik.\n"
-"Absensi pada kontrak: Fakturkan berdasarkan jumlah jam kehadiran pada absensi.\n"
-"Buat tugas dan telusuri jumlah jam: Buat tugas pada validasi order penjualan dan telusuri jam kerja."
 
 #. module: sale_timesheet
 #: code:addons/sale_timesheet/models/project.py:0
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__margin
 #, python-format
 msgid "Margin"
-msgstr "Margin"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_order_line__qty_delivered_method
@@ -757,12 +743,12 @@ msgstr ""
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_profitability_report_view_search
 msgid "My Projects"
-msgstr "Proyek"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:project.task,legend_blocked:sale_timesheet.project_task_4
 msgid "Need functional or technical help"
-msgstr "Butuh bantuan fungsional atau teknis"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.actions.act_window,help:sale_timesheet.action_timesheet_from_invoice
@@ -772,7 +758,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model_terms:ir.actions.act_window,help:sale_timesheet.timesheet_action_billing_report
 msgid "No data yet!"
-msgstr "Belum ada data!"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_search
@@ -806,12 +792,12 @@ msgstr ""
 #: code:addons/sale_timesheet/models/project.py:0
 #, python-format
 msgid "Operation not supported"
-msgstr "Operation not supported"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_account_analytic_line__order_id
 msgid "Order Reference"
-msgstr "Referensi Order"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_my_timesheets_inherit
@@ -843,7 +829,7 @@ msgstr ""
 #: code:addons/sale_timesheet/static/src/xml/sale_project_templates.xml:0
 #, python-format
 msgid "Planned"
-msgstr "Sudah Direncanakan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields.selection,name:sale_timesheet.selection__product_template__service_policy__ordered_timesheet
@@ -854,18 +840,18 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_project__pricing_type
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_task__pricing_type
 msgid "Pricing"
-msgstr "Harga"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_product_product
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__product_id
 msgid "Product"
-msgstr "Produk"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_product_template
 msgid "Product Template"
-msgstr "Templete Produk"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_project_create_sale_order_line__product_id
@@ -900,7 +886,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_order__project_id
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_profitability_report_view_search
 msgid "Project"
-msgstr "Proyek"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__company_id
@@ -916,7 +902,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__user_id
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_profitability_report_view_search
 msgid "Project Manager"
-msgstr "Manajer Proyek"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_project_profitability_report
@@ -958,7 +944,7 @@ msgstr ""
 #: code:addons/sale_timesheet/models/project.py:0
 #, python-format
 msgid "Rating"
-msgstr "Peringkat"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:project.task,legend_done:sale_timesheet.project_task_1
@@ -966,7 +952,7 @@ msgstr "Peringkat"
 #: model:project.task,legend_done:sale_timesheet.project_task_3
 #: model:project.task,legend_done:sale_timesheet.project_task_internal
 msgid "Ready"
-msgstr "Siap"
+msgstr ""
 
 #. module: sale_timesheet
 #. openerp-web
@@ -974,7 +960,7 @@ msgstr "Siap"
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_update_default_description
 #, python-format
 msgid "Remaining"
-msgstr "Sisa"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_sharing_inherit_project_task_view_form
@@ -1026,7 +1012,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__sale_order_id
 msgid "Sale Order"
-msgstr "Order Penjualan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_task__so_analytic_account_id
@@ -1041,7 +1027,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__sale_line_id
 msgid "Sale Order Line"
-msgstr "Baris Pesanan Penjualan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_project__sale_line_employee_ids
@@ -1051,7 +1037,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_sale_advance_payment_inv
 msgid "Sales Advance Payment Invoice"
-msgstr "Faktur Pembayaran Penjualan di Muka"
+msgstr ""
 
 #. module: sale_timesheet
 #: code:addons/sale_timesheet/controllers/portal.py:0
@@ -1061,7 +1047,7 @@ msgstr "Faktur Pembayaran Penjualan di Muka"
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_project_view_kanban_inherit_sale_timesheet
 #, python-format
 msgid "Sales Order"
-msgstr "Order Penjualan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__order_confirmation_date
@@ -1081,7 +1067,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_sale_order_line
 msgid "Sales Order Line"
-msgstr "Detail Order Penjualan"
+msgstr ""
 
 #. module: sale_timesheet
 #: code:addons/sale_timesheet/models/product.py:0
@@ -1173,7 +1159,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.res_config_settings_view_form
 msgid "Sell services and invoice time spent"
-msgstr "Jual layanan dan faktur waktu yang dihabiskan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:product.product,name:sale_timesheet.product_service_deliver_timesheet_1
@@ -1185,7 +1171,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order_line__product_id
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_update_default_description
 msgid "Service"
-msgstr "Jasa"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_product__service_policy
@@ -1213,7 +1199,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.actions.act_window,name:sale_timesheet.product_template_action_default_services
 msgid "Services"
-msgstr "Jasa"
+msgstr ""
 
 #. module: sale_timesheet
 #. openerp-web
@@ -1226,7 +1212,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_sale_advance_payment_inv__date_start_invoice_timesheet
 msgid "Start Date"
-msgstr "Tanggal Mulai"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_profitability_report_view_tree
@@ -1253,7 +1239,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__task_id
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_profitability_report_view_search
 msgid "Task"
-msgstr "Kegiatan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model,name:sale_timesheet.model_project_task_recurrence
@@ -1268,7 +1254,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:project.project,label_tasks:sale_timesheet.project_support
 msgid "Tasks"
-msgstr "Kegiatan"
+msgstr ""
 
 #. module: sale_timesheet
 #: code:addons/sale_timesheet/models/product.py:0
@@ -1292,7 +1278,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_project_task__so_analytic_account_id
 msgid "The analytic account related to a sales order."
-msgstr "Akun  analitik yang terkait  dengan  order penjualan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_update_default_description
@@ -1371,7 +1357,7 @@ msgstr ""
 #: model:ir.actions.act_window,name:sale_timesheet.timesheet_action_plan_pivot
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.timesheet_view_pivot_revenue
 msgid "Timesheet"
-msgstr "Lembar waktu"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_profitability_report__timesheet_cost
@@ -1436,7 +1422,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.view_hr_timesheet_line_pivot_billing_rate
 #, python-format
 msgid "Timesheets"
-msgstr "Tabel Waktu"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.sale_advance_payment_inv_timesheet_view_form
@@ -1457,7 +1443,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields.selection,name:sale_timesheet.selection__product_template__service_type__timesheet
 msgid "Timesheets on project (one fare per SO/Project)"
-msgstr "Kartu absen pada projek (satu tarif tiap projek)"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.res_config_settings_view_form
@@ -1472,7 +1458,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_update_default_description
 msgid "Total"
-msgstr "Total"
+msgstr ""
 
 #. module: sale_timesheet
 #. openerp-web
@@ -1501,13 +1487,13 @@ msgstr ""
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.portal_my_timesheets_inherit
 msgid "Total:"
-msgstr "Total:"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_product__service_type
 #: model:ir.model.fields,field_description:sale_timesheet.field_product_template__service_type
 msgid "Track Service"
-msgstr "Telusuri Jasa"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.actions.act_window,help:sale_timesheet.action_timesheet_from_invoice
@@ -1520,7 +1506,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order_line__price_unit
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_sale_line_employee_map__price_unit
 msgid "Unit Price"
-msgstr "Harga Satuan"
+msgstr ""
 
 #. module: sale_timesheet
 #: model:ir.model.fields,help:sale_timesheet.field_project_create_sale_order_line__price_unit
@@ -1558,7 +1544,7 @@ msgstr ""
 #. module: sale_timesheet
 #: model:ir.model.fields,field_description:sale_timesheet.field_project_create_sale_order_line__wizard_id
 msgid "Wizard"
-msgstr "Wisaya"
+msgstr ""
 
 #. module: sale_timesheet
 #: code:addons/sale_timesheet/wizard/project_create_invoice.py:0
@@ -1599,20 +1585,20 @@ msgstr ""
 #: code:addons/sale_timesheet/models/sale_order.py:0
 #, python-format
 msgid "day"
-msgstr "hari"
+msgstr ""
 
 #. module: sale_timesheet
 #: code:addons/sale_timesheet/models/sale_order.py:0
 #: code:addons/sale_timesheet/wizard/project_create_sale_order.py:0
 #, python-format
 msgid "days"
-msgstr "hari"
+msgstr ""
 
 #. module: sale_timesheet
 #: code:addons/sale_timesheet/wizard/project_create_sale_order.py:0
 #, python-format
 msgid "hours"
-msgstr "jam"
+msgstr ""
 
 #. module: sale_timesheet
 #: model_terms:ir.ui.view,arch_db:sale_timesheet.project_update_default_description

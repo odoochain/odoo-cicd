@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Farid Fox, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:28+0000\n"
-"Last-Translator: Farid Fox, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -44,7 +43,7 @@ msgstr "# من النقرات"
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.share_page_menu
 msgid "<span title=\"Track this page to count clicks\">Link Tracker</span>"
-msgstr "<span title=\"Track this page to count clicks\">متتبع الروابط</span>"
+msgstr ""
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.graphs
@@ -88,7 +87,7 @@ msgid ""
 "placement=\"top\" role=\"img\" aria-label=\"Tooltip info\" title=\"Defines "
 "the context of your link. It might be an event you want to promote or a "
 "special promotion.\"/>"
-msgstr "حملة دعائية"
+msgstr ""
 
 #. module: website_links
 #. openerp-web
@@ -112,7 +111,7 @@ msgstr "نسخ"
 #: model_terms:ir.ui.view,arch_db:website_links.graphs
 #, python-format
 msgid "Edit code"
-msgstr "تعديل الكود"
+msgstr ""
 
 #. module: website_links
 #. openerp-web
@@ -157,7 +156,7 @@ msgid ""
 "placement=\"top\" role=\"img\" aria-label=\"Tooltip info\" title=\"Defines "
 "the medium used to share your link. It might be an email, or a Facebook Ads "
 "for instance.\"/>"
-msgstr "الوسيط"
+msgstr ""
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.create_shorten_url
@@ -174,7 +173,7 @@ msgstr "الأحدث"
 #: code:addons/website_links/static/src/js/website_links_charts.js:0
 #, python-format
 msgid "No data"
-msgstr "لا توجد بيانات"
+msgstr ""
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.create_shorten_url
@@ -187,8 +186,6 @@ msgid ""
 "Share this page with a <strong>short link</strong> that includes "
 "<strong>analytics trackers</strong>."
 msgstr ""
-"شارك هذه الصفحة باستخدام <strong>رابط مختصر</strong> والذي يحتوي "
-"على<strong>متتبعات التحليل</strong>."
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.create_shorten_url
@@ -198,10 +195,6 @@ msgid ""
 "the source from which your traffic will come from, Facebook or Twitter for "
 "instance.\"/>"
 msgstr ""
-"المصدر <i class=\"fa fa-info-circle\" data-toggle=\"tooltip\" data-"
-"placement=\"top\" role=\"img\" aria-label=\"Tooltip info\" title=\"Defines "
-"the source from which your traffic will come from, Facebook or Twitter for "
-"instance.\"/>"
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.graphs
@@ -222,7 +215,7 @@ msgstr "الإحصائيات"
 #: code:addons/website_links/static/src/js/website_links_code_editor.js:0
 #, python-format
 msgid "The code cannot be left empty"
-msgstr "لا يمكن ترك الكود فارغاً"
+msgstr ""
 
 #. module: website_links
 #. openerp-web
@@ -231,7 +224,7 @@ msgstr "لا يمكن ترك الكود فارغاً"
 #: code:addons/website_links/static/src/js/website_links_charts.js:0
 #, python-format
 msgid "There is no data to show"
-msgstr "لا توجد بيانات لعرضها"
+msgstr ""
 
 #. module: website_links
 #. openerp-web
@@ -239,7 +232,7 @@ msgstr "لا توجد بيانات لعرضها"
 #: code:addons/website_links/static/src/js/website_links_code_editor.js:0
 #, python-format
 msgid "This code is already taken"
-msgstr "هذا الكود مُستخدَم بالفعل"
+msgstr ""
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.create_shorten_url
@@ -247,8 +240,6 @@ msgid ""
 "Those trackers can be used in Google Analytics to track clicks and visitors,"
 " or in Odoo reports to track opportunities and related revenues."
 msgstr ""
-"يمكن استخدام أدوات التتبع هذه في Google Analytics لتتبع النقرات والزوار، أو "
-"في تقارير أودو لتتبع الفرص والإيرادات ذات الصلة."
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.create_shorten_url
@@ -260,7 +251,7 @@ msgstr "رابط ويب"
 #: code:addons/website_links/static/src/js/website_links.js:0
 #, python-format
 msgid "Unable to get recent links"
-msgstr "غير قادر على الحصول على الروابط الحديثة"
+msgstr "غير قادر على الحصول على وصلات الأخيرة"
 
 #. module: website_links
 #. openerp-web
@@ -273,7 +264,7 @@ msgstr "غير محدد"
 #: code:addons/website_links/models/link_tracker.py:0
 #, python-format
 msgid "Visit Webpage Statistics"
-msgstr "مشاهدة إحصائيات صفحة الويب"
+msgstr ""
 
 #. module: website_links
 #. openerp-web
@@ -312,7 +303,7 @@ msgstr "نسخ"
 #: code:addons/website_links/static/src/js/website_links.js:0
 #, python-format
 msgid "e.g. Newsletter, Social Network, .."
-msgstr "على سبيل المثال النشرة الإخبارية، الشبكة الاجتماعية، .."
+msgstr ""
 
 #. module: website_links
 #. openerp-web
@@ -320,20 +311,18 @@ msgstr "على سبيل المثال النشرة الإخبارية، الشب�
 #, python-format
 msgid "e.g. Promotion of June, Winter Newsletter, .."
 msgstr ""
-"على سبيل المثال الترويج للنشرة الإخبارية لشهر يونيو، النشرة البريدية "
-"الشتوية، .."
 
 #. module: website_links
 #. openerp-web
 #: code:addons/website_links/static/src/js/website_links.js:0
 #, python-format
 msgid "e.g. Search Engine, Website page, .."
-msgstr "على سبيل المثال محرك بحث، صفحة موقع إلكتروني، .."
+msgstr ""
 
 #. module: website_links
 #: model_terms:ir.ui.view,arch_db:website_links.create_shorten_url
 msgid "e.g. https://www.odoo.com/contactus"
-msgstr "على سبيل المثال https://www.odoo.com/contactus"
+msgstr ""
 
 #. module: website_links
 #. openerp-web

@@ -27,13 +27,13 @@ msgstr "Zrušené"
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
 msgid "Close"
-msgstr "Zatvoriť"
+msgstr ""
 
 #. module: base_import_module
 #: code:addons/base_import_module/controllers/main.py:0
 #, python-format
 msgid "Could not select database '%s'"
-msgstr "Nepodarilo sa vybrať databázu '%s'"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields,field_description:base_import_module.field_base_import_module__create_uid
@@ -54,20 +54,18 @@ msgstr "Zobrazovaný názov"
 #: code:addons/base_import_module/models/ir_module.py:0
 #, python-format
 msgid "File '%s' exceed maximum allowed file size"
-msgstr "Súbor '%s' presahuje maximálnu povolenú veľkosť súboru."
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields,field_description:base_import_module.field_base_import_module__force
 msgid "Force init"
-msgstr "Silená inicializácia"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields,help:base_import_module.field_base_import_module__force
 msgid ""
 "Force init mode even if installed. (will update `noupdate='1'` records)"
 msgstr ""
-"Vynútiť režim spustenia, aj keď je nainštalovaný. (aktualizuje záznamy "
-"`noupdate = '1'`)"
 
 #. module: base_import_module
 #: model:ir.model.fields,field_description:base_import_module.field_base_import_module__id
@@ -77,12 +75,12 @@ msgstr "ID"
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
 msgid "Import App"
-msgstr "Importovať aplikáciu"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields,field_description:base_import_module.field_base_import_module__import_message
 msgid "Import Message"
-msgstr "Importovať správu"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.actions.act_window,name:base_import_module.action_view_base_module_import
@@ -90,17 +88,17 @@ msgstr "Importovať správu"
 #: model:ir.ui.menu,name:base_import_module.menu_view_base_module_import
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
 msgid "Import Module"
-msgstr "Importovať modul"
+msgstr ""
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
 msgid "Import module"
-msgstr "Importovať modul"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields,field_description:base_import_module.field_ir_module_module__imported
 msgid "Imported Module"
-msgstr "Importovaný modul"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields,field_description:base_import_module.field_base_import_module____last_update
@@ -120,47 +118,45 @@ msgstr "Naposledy upravované"
 #. module: base_import_module
 #: model:ir.model,name:base_import_module.model_ir_module_module
 msgid "Module"
-msgstr "Modul"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields,field_description:base_import_module.field_base_import_module__module_file
 msgid "Module .ZIP file"
-msgstr ".ZIP súbor modulu"
+msgstr ""
 
 #. module: base_import_module
 #: code:addons/base_import_module/models/ir_module.py:0
 #, python-format
 msgid "No file sent."
-msgstr "Nebol odoslaný žiadny súbor."
+msgstr ""
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
 msgid "Note: you can only import data modules (.xml files and static assets)"
 msgstr ""
-"Poznámka: môžete importovať iba dátové moduly (súbory .xml a statické "
-"prostriedky)"
 
 #. module: base_import_module
 #: code:addons/base_import_module/controllers/main.py:0
 #, python-format
 msgid "Only administrators can upload a module"
-msgstr "Modul môžu nahrať iba správcovia"
+msgstr ""
 
 #. module: base_import_module
 #: code:addons/base_import_module/models/ir_module.py:0
 #, python-format
 msgid "Only zip files are supported."
-msgstr "Podporované sú iba súbory zip."
+msgstr ""
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
 msgid "Open Modules"
-msgstr "Otvoriť moduly"
+msgstr ""
 
 #. module: base_import_module
 #: model_terms:ir.ui.view,arch_db:base_import_module.view_base_module_import
 msgid "Select module package to import (.zip file):"
-msgstr "Vyberte balík modulu na import (.zip súbor):"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields,field_description:base_import_module.field_base_import_module__state
@@ -171,13 +167,13 @@ msgstr "Stav"
 #: code:addons/base_import_module/models/ir_module.py:0
 #, python-format
 msgid "Studio customizations require Studio"
-msgstr "Prispôsobenie aplikácie Studio vyžaduje Studio"
+msgstr ""
 
 #. module: base_import_module
 #: code:addons/base_import_module/models/ir_module.py:0
 #, python-format
 msgid "Studio customizations require the Odoo Studio app."
-msgstr "Prispôsobenie aplikácie Studio vyžaduje aplikáciu Odoo Studio."
+msgstr ""
 
 #. module: base_import_module
 #: code:addons/base_import_module/models/ir_module.py:0
@@ -187,21 +183,18 @@ msgid ""
 "\n"
 " - %s"
 msgstr ""
-"Neuspokojené závislosti modulu: \n"
-"\n"
-" - %s"
 
 #. module: base_import_module
 #: model:ir.model,name:base_import_module.model_ir_ui_view
 msgid "View"
-msgstr "Náhľad"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields.selection,name:base_import_module.selection__base_import_module__state__done
 msgid "done"
-msgstr "dokončené"
+msgstr ""
 
 #. module: base_import_module
 #: model:ir.model.fields.selection,name:base_import_module.selection__base_import_module__state__init
 msgid "init"
-msgstr "iniciovať"
+msgstr ""

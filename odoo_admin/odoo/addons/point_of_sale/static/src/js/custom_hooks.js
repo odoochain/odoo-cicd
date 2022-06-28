@@ -145,21 +145,5 @@ odoo.define('point_of_sale.custom_hooks', function (require) {
         });
     }
 
-    function useAsyncLockedMethod(method) {
-        const component = Component.current;
-        let called = false;
-        return async (...args) => {
-            if (called) {
-                return;
-            }
-            try {
-                called = true;
-                await method.call(component, ...args);
-            } finally {
-                called = false;
-            }
-        };
-    }
-
-    return { useErrorHandlers, useAutoFocusToLast, onChangeOrder, useBarcodeReader, useAsyncLockedMethod };
+    return { useErrorHandlers, useAutoFocusToLast, onChangeOrder, useBarcodeReader };
 });

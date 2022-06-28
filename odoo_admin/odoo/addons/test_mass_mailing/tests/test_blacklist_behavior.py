@@ -51,8 +51,8 @@ class TestAutoBlacklist(common.TestMassMailCommon):
 
     @mute_logger('odoo.addons.mail.models.mail_thread')
     def _test_mailing_bounce_w_auto_bl(self, bounce_base_values):
-        mailing = self.mailing_bl.with_env(self.env)
-        target = self.target_rec.with_env(self.env)
+        mailing = self.env['mailing.mailing'].browse(self.mailing_bl.ids)
+        target = self.env['mailing.test.blacklist'].browse(self.target_rec.ids)
 
         # create bounced history of 4 statistics
         traces = self.env['mailing.trace']
@@ -66,8 +66,9 @@ class TestAutoBlacklist(common.TestMassMailCommon):
                 self.gateway_mail_bounce(new_mailing, target, bounce_base_values)
 
         # mass mail record: ok, not blacklisted yet
+        mailing.action_put_in_queue()
         with self.mock_mail_gateway(mail_unlink_sent=False):
-            mailing.action_send_mail()
+            mailing._process_mass_mailing_queue()
 
         self.assertMailTraces(
             [{'email': 'test.record.00@test.example.com'}],
@@ -84,9 +85,11 @@ class TestAutoBlacklist(common.TestMassMailCommon):
         self.assertTrue(target.is_blacklisted)
 
         # mass mail record: ko, blacklisted
-        new_mailing = mailing.copy({'mailing_domain': [('id', 'in', target.ids)]})
+        new_mailing = mailing.copy()
+        new_mailing.write({'mailing_domain': [('id', 'in', target.ids)]})
+        new_mailing.action_put_in_queue()
         with self.mock_mail_gateway(mail_unlink_sent=False):
-            new_mailing.action_send_mail()
+            new_mailing._process_mass_mailing_queue()
         self.assertMailTraces(
             [{'email': 'test.record.00@test.example.com', 'trace_status': 'cancel', 'failure_type': 'mail_bl'}],
             new_mailing, target, check_mail=True

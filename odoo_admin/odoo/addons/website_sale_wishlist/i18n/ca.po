@@ -10,7 +10,6 @@
 # Sandra Franch <sandra.franch@upc.edu>, 2021
 # Manel Fernandez Ramirez <manelfera@outlook.com>, 2021
 # jabelchi, 2021
-# marcescu, 2022
 # 
 msgid ""
 msgstr ""
@@ -18,7 +17,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:29+0000\n"
-"Last-Translator: marcescu, 2022\n"
+"Last-Translator: jabelchi, 2021\n"
 "Language-Team: Catalan (https://www.transifex.com/odoo/teams/41243/ca/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -29,7 +28,7 @@ msgstr ""
 #. module: website_sale_wishlist
 #: model_terms:ir.ui.view,arch_db:website_sale_wishlist.product_add_to_wishlist
 msgid "<i class=\"fa fa-heart-o fa-2x\" role=\"img\" aria-label=\"Add to wishlist\"/>"
-msgstr "<i class=\"fa fa-heart-o fa-2x\" role=\"img\" aria-label=\"Add to wishlist\"/>"
+msgstr ""
 
 #. module: website_sale_wishlist
 #: model_terms:ir.ui.view,arch_db:website_sale_wishlist.product_wishlist
@@ -65,7 +64,7 @@ msgstr "Afegir a preferits"
 #. module: website_sale_wishlist
 #: model_terms:ir.ui.view,arch_db:website_sale_wishlist.product_add_to_wishlist
 msgid "Add to wishlist"
-msgstr "Afegeix a la llista de desitjos"
+msgstr ""
 
 #. module: website_sale_wishlist
 #: model:ir.model,name:website_sale_wishlist.model_res_partner
@@ -176,7 +175,7 @@ msgstr "Llista de preferits de botiga"
 #. module: website_sale_wishlist
 #: model_terms:ir.ui.view,arch_db:website_sale_wishlist.snippet_options
 msgid "Show Empty Wishlist"
-msgstr "Mostra la llista de desitjos buida"
+msgstr ""
 
 #. module: website_sale_wishlist
 #: model:ir.model,name:website_sale_wishlist.model_res_users

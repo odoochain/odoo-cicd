@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import models, fields, api, _
-from odoo.exceptions import UserError
-
+from odoo import models, fields, api
 from psycopg2 import OperationalError
 import base64
 import logging
@@ -129,11 +127,7 @@ class AccountEdiDocument(models.Model):
                     if not old_attachment.res_model or not old_attachment.res_id:
                         attachments_to_unlink |= old_attachment
                 if move_result.get('success') is True:
-                    document.write({
-                        'state': 'sent',
-                        'error': False,
-                        'blocking_level': False,
-                    })
+                    document.state = 'sent'
                 else:
                     document.write({
                         'error': move_result.get('error', False),
@@ -236,17 +230,15 @@ class AccountEdiDocument(models.Model):
                     if attachments_potential_unlink:
                         self._cr.execute('SELECT * FROM ir_attachment WHERE id IN %s FOR UPDATE NOWAIT', [tuple(attachments_potential_unlink.ids)])
 
+                    self._process_job(documents, doc_type)
             except OperationalError as e:
                 if e.pgcode == '55P03':
                     _logger.debug('Another transaction already locked documents rows. Cannot process documents.')
-                    if not with_commit:
-                        raise UserError(_('This document is being sent by another process already. '))
-                    continue
                 else:
                     raise e
-            self._process_job(documents, doc_type)
-            if with_commit and len(jobs_to_process) > 1:
-                self.env.cr.commit()
+            else:
+                if with_commit and len(jobs_to_process) > 1:
+                    self.env.cr.commit()
 
         return len(all_jobs) - len(jobs_to_process)
 

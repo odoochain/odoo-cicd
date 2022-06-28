@@ -5,7 +5,6 @@ import { useUpdate } from '@mail/component_hooks/use_update/use_update';
 
 import { FormViewDialog } from 'web.view_dialogs';
 import { ComponentAdapter } from 'web.OwlCompatibility';
-import session from 'web.session';
 
 const { Component } = owl;
 const { useRef } = owl.hooks;
@@ -110,13 +109,11 @@ export class ComposerSuggestedRecipient extends Component {
             // recipient that does not have a partner, the partner creation form
             // should be opened.
             if (isChecked && this._dialogRef && !this._isDialogOpen) {
-                const widget = this._dialogRef.comp.widget;
                 this._isDialogOpen = true;
-                widget.on('closed', this, () => {
+                this._dialogRef.comp.widget.on('closed', this, () => {
                     this._isDialogOpen = false;
                 });
-                widget.context = Object.assign({}, widget.context, session.user_context);
-                widget.open();
+                this._dialogRef.comp.widget.open();
             }
         }
     }

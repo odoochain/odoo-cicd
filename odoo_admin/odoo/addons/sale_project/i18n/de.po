@@ -28,13 +28,13 @@ msgstr ""
 #. module: sale_project
 #: model_terms:ir.ui.view,arch_db:sale_project.view_edit_project_inherit_form
 msgid "Create Invoice"
-msgstr "Rechnung erstellen"
+msgstr "Rechnung erzeugen"
 
 #. module: sale_project
 #: model:ir.model.fields,field_description:sale_project.field_product_product__service_tracking
 #: model:ir.model.fields,field_description:sale_project.field_product_template__service_tracking
 msgid "Create on Order"
-msgstr "Bei Auftrag erstellen"
+msgstr "Eine Bestellung erstellen"
 
 #. module: sale_project
 #: model:ir.model.fields,field_description:sale_project.field_sale_order__visible_project
@@ -422,7 +422,7 @@ msgid ""
 "because it is a re-invoiced expense."
 msgstr ""
 "Sie können die Auftragsposition %(order_id)s - %(product_id)snicht mit "
-"dieser Aufgabe verknüpfen, da es sich um eine weiterberechnete Auslage "
+"dieser Aufgabe verknüpfen, da es sich um eine neu berechnete Ausgabe "
 "handelt."
 
 #. module: sale_project

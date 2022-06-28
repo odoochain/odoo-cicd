@@ -3,15 +3,7 @@
 # 	* sale_management
 # 
 # Translators:
-# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2022
-# William Surya Permana <zarambie_game@yahoo.com>, 2022
-# Muhammad Syarif <mhdsyarif.ms@gmail.com>, 2022
-# pnyet <david@zeromail.us>, 2022
-# whenwesober, 2022
-# PAS IRVANUS <ipankbiz@gmail.com>, 2022
-# Ryanto The <ry.the77@gmail.com>, 2022
-# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022
-# Martin Trigaux, 2022
+# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -19,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:27+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: Martin Trigaux, 2022\n"
+"Last-Translator: Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021\n"
 "Language-Team: Indonesian (https://www.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -40,12 +32,12 @@ msgstr ""
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__active
 msgid "Active"
-msgstr "Aktif"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Add a note"
-msgstr "Tambahkan catatan"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_form_quote
@@ -56,7 +48,7 @@ msgstr ""
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Add a section"
-msgstr "Add a section"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_content_inherit_sale_management
@@ -82,41 +74,41 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_search
 msgid "Archived"
-msgstr "Diarsipkan"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.ui.menu,name:sale_management.menu_product_attribute_action
 msgid "Attributes"
-msgstr "Atribut"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__product_uom_category_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__product_uom_category_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__product_uom_category_id
 msgid "Category"
-msgstr "Kategori"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_res_company
 msgid "Companies"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__company_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__company_id
 msgid "Company"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_res_config_settings
 msgid "Config Settings"
-msgstr "Pengaturan Konfigurasi"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Confirmation"
-msgstr "Konfirmasi"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__mail_template_id
@@ -131,8 +123,6 @@ msgid ""
 "Conversion between Units of Measure can only occur if they belong to the "
 "same category. The conversion will be made based on the ratios."
 msgstr ""
-"Konversi antara satuan hanya dapat terjadi jika mereka berada pada kategori "
-"yang sama. Konversi akan dibuat berdasarkan rasio."
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.res_config_settings_view_form
@@ -150,7 +140,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__create_uid
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__create_uid
 msgid "Created by"
-msgstr "Dibuat oleh"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__create_date
@@ -158,7 +148,7 @@ msgstr "Dibuat oleh"
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__create_date
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__create_date
 msgid "Created on"
-msgstr "Dibuat pada"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_res_company__sale_order_template_id
@@ -177,7 +167,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sale_management.report_saleorder_document_inherit_sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Description"
-msgstr "Deskripsi"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.res_config_settings_view_form
@@ -189,19 +179,19 @@ msgstr ""
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_digest_digest
 msgid "Digest"
-msgstr "Singkat"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.report_saleorder_document_inherit_sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_form_quote
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_content_inherit_sale_management
 msgid "Disc.%"
-msgstr "Disc.%"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__discount
 msgid "Discount (%)"
-msgstr "Diskon (%)"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__display_name
@@ -209,23 +199,23 @@ msgstr "Diskon (%)"
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__display_name
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__display_name
 msgid "Display Name"
-msgstr "Nama Tampilan"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__display_type
 msgid "Display Type"
-msgstr "Display Type"
+msgstr ""
 
 #. module: sale_management
 #: code:addons/sale_management/models/digest.py:0
 #, python-format
 msgid "Do not have access, skip this data for user's digest email"
-msgstr "Tidak punya akses, lewati data ini untuk email singkat pengguna"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.res_config_settings_view_form
 msgid "Documentation"
-msgstr "Dokumentasi"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_non_accountable_fields_null
@@ -250,7 +240,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__active
@@ -270,7 +260,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line____last_update
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option____last_update
 msgid "Last Modified on"
-msgstr "Terakhir diubah pada"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__write_uid
@@ -278,7 +268,7 @@ msgstr "Terakhir diubah pada"
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__write_uid
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__write_uid
 msgid "Last Updated by"
-msgstr "Terakhir diperbarui oleh"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__write_date
@@ -286,18 +276,18 @@ msgstr "Terakhir diperbarui oleh"
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__write_date
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui pada"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__line_id
 msgid "Line"
-msgstr "Baris"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__sale_order_template_line_ids
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Lines"
-msgstr "Baris"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.constraint,message:sale_management.constraint_sale_order_template_line_accountable_product_id_required
@@ -308,7 +298,7 @@ msgstr ""
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_note
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Note"
-msgstr "Catatan"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template__number_of_days
@@ -323,7 +313,7 @@ msgstr "Kursi Kantor"
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__require_payment
 msgid "Online Payment"
-msgstr "Pembayaran Daring"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__require_signature
@@ -335,18 +325,18 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_form_quote
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Optional Products"
-msgstr "Pilihan produk"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order__sale_order_option_ids
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_line__sale_order_option_ids
 msgid "Optional Products Lines"
-msgstr "Opsional produk baris"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_content_inherit_sale_management
 msgid "Options"
-msgstr "Opsi"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__is_present
@@ -359,19 +349,19 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__product_id
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_content_inherit_sale_management
 msgid "Product"
-msgstr "Produk"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__quantity
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__product_uom_qty
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__quantity
 msgid "Quantity"
-msgstr "Kuantitas"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_form_quote
 msgid "Quantity:"
-msgstr "Jumlah:"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_res_config_settings__module_sale_quotation_builder
@@ -390,7 +380,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_tree
 msgid "Quotation Template"
-msgstr "Kutipan Template"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_sale_order_template_line
@@ -400,7 +390,7 @@ msgstr ""
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Quotation Template Lines"
-msgstr "Kutipan Template baris"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_sale_order_template_option
@@ -411,7 +401,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__sale_order_template_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__sale_order_template_id
 msgid "Quotation Template Reference"
-msgstr "Kutipan Template referensi"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.actions.act_window,name:sale_management.sale_order_template_action
@@ -420,7 +410,7 @@ msgstr "Kutipan Template referensi"
 #: model:res.groups,name:sale_management.group_sale_order_template
 #: model_terms:ir.ui.view,arch_db:sale_management.res_config_settings_view_form
 msgid "Quotation Templates"
-msgstr "Kutipan template"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -430,7 +420,7 @@ msgstr ""
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_content_inherit_sale_management
 msgid "Remove"
-msgstr "Hapus"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_content_inherit_sale_management
@@ -454,22 +444,22 @@ msgstr ""
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_sale_order_option
 msgid "Sale Options"
-msgstr "Opsi dijual"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.digest_digest_view_form
 msgid "Sales"
-msgstr "Penjualan"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_sale_order
 msgid "Sales Order"
-msgstr "Order Penjualan"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model,name:sale_management.model_sale_order_line
 msgid "Sales Order Line"
-msgstr "Detail Order Penjualan"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__order_id
@@ -490,7 +480,7 @@ msgstr ""
 #: model:ir.model.fields.selection,name:sale_management.selection__sale_order_template_line__display_type__line_section
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "Section"
-msgstr "Bagian"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:digest.tip,tip_description:sale_management.digest_tip_sale_management_1
@@ -504,7 +494,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__sequence
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__sequence
 msgid "Sequence"
-msgstr "Urutan"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:digest.tip,tip_description:sale_management.digest_tip_sale1_management_0
@@ -517,12 +507,12 @@ msgstr ""
 #. module: sale_management
 #: model:ir.model.fields,help:sale_management.field_sale_order_template_line__display_type
 msgid "Technical field for UX purpose."
-msgstr "Technical field for UX purpose."
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template__note
 msgid "Terms and conditions"
-msgstr "Syarat dan ketentuan"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
@@ -562,28 +552,28 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:sale_management.report_saleorder_document_inherit_sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_portal_content_inherit_sale_management
 msgid "Unit Price"
-msgstr "Harga Satuan"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_form_quote
 msgid "Unit Price:"
-msgstr "Harga Satuan:"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_line__product_uom_id
 msgid "Unit of Measure"
-msgstr "Satuan"
+msgstr ""
 
 #. module: sale_management
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_option__uom_id
 #: model:ir.model.fields,field_description:sale_management.field_sale_order_template_option__uom_id
 msgid "Unit of Measure "
-msgstr "Ukuran Unit"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_form_quote
 msgid "UoM"
-msgstr "Satuan"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.actions.act_window,help:sale_management.sale_order_template_action
@@ -632,7 +622,7 @@ msgstr ""
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form
 msgid "days"
-msgstr "hari"
+msgstr ""
 
 #. module: sale_management
 #: model_terms:ir.ui.view,arch_db:sale_management.sale_order_template_view_form

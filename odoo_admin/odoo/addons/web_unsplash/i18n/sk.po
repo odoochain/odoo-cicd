@@ -22,12 +22,12 @@ msgstr ""
 #. module: web_unsplash
 #: model_terms:ir.ui.view,arch_db:web_unsplash.res_config_settings_view_form
 msgid "<i class=\"fa fa-arrow-right\"/> Generate an Access Key"
-msgstr "<i class=\"fa fa-arrow-right\"/> Vytvoriť prístupový kľúč"
+msgstr ""
 
 #. module: web_unsplash
 #: model:ir.model.fields,field_description:web_unsplash.field_res_config_settings__unsplash_access_key
 msgid "Access Key"
-msgstr "Prístupový kľúč"
+msgstr ""
 
 #. module: web_unsplash
 #. openerp-web
@@ -52,7 +52,7 @@ msgstr "Nastavenia konfigurácie"
 #: code:addons/web_unsplash/controllers/main.py:0
 #, python-format
 msgid "ERROR: Unknown Unsplash URL!"
-msgstr "CHYBA: Neznáma Unsplash URL!"
+msgstr ""
 
 #. module: web_unsplash
 #: code:addons/web_unsplash/controllers/main.py:0
@@ -72,14 +72,14 @@ msgstr ""
 #: code:addons/web_unsplash/static/src/xml/unsplash_image_widget.xml:0
 #, python-format
 msgid "Paste your access key here"
-msgstr "Vložte svoj prístupový kľúč"
+msgstr ""
 
 #. module: web_unsplash
 #. openerp-web
 #: code:addons/web_unsplash/static/src/xml/unsplash_image_widget.xml:0
 #, python-format
 msgid "Paste your application ID here"
-msgstr "Vložte svoje ID aplikácie"
+msgstr ""
 
 #. module: web_unsplash
 #. openerp-web
@@ -101,19 +101,18 @@ msgstr ""
 #, python-format
 msgid "Please check your internet connection or contact administrator."
 msgstr ""
-"Skontrolujte vaše internetové pripojenie alebo kontaktujte administrátora."
 
 #. module: web_unsplash
 #: model:ir.model,name:web_unsplash.model_ir_qweb_field_image
 msgid "Qweb Field Image"
-msgstr "Qweb pole obrázok"
+msgstr ""
 
 #. module: web_unsplash
 #. openerp-web
 #: code:addons/web_unsplash/static/src/xml/unsplash_image_widget.xml:0
 #, python-format
 msgid "Search is temporarily unavailable"
-msgstr "Hľadanie dočasne nedostupné"
+msgstr ""
 
 #. module: web_unsplash
 #. openerp-web
@@ -127,7 +126,7 @@ msgstr ""
 #: code:addons/web_unsplash/static/src/xml/unsplash_image_widget.xml:0
 #, python-format
 msgid "Something went wrong"
-msgstr "Niečo sa pokazilo"
+msgstr ""
 
 #. module: web_unsplash
 #. openerp-web

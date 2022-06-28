@@ -8,4 +8,3 @@ from . import account_payment
 from . import ir_actions_report
 from . import mail_template
 from . import ir_attachment
-from . import uom

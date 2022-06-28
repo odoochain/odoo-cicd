@@ -12,7 +12,6 @@
             <field name="type">purchase</field>
             <!-- avoid being selected as default journal -->
             <field name="sequence">99</field>
-            <field name="alias_name">purchase_expense</field>
         </record>
 
         <record id="res_partner_address_fp" model="res.partner">

@@ -3,7 +3,6 @@
 # * l10n_multilang
 # 
 # Translators:
-# sakodoo <sak@odoo.com>, 2022
 # Martin Trigaux, 2022
 # 
 msgid ""
@@ -28,12 +27,12 @@ msgstr "Účet"
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_account_chart_template
 msgid "Account Chart Template"
-msgstr "Účtovná osnova"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_account_account_tag
 msgid "Account Tag"
-msgstr "Tag účtu"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model.fields,help:l10n_multilang.field_res_country_state__name
@@ -50,28 +49,28 @@ msgstr "Analytický účet"
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_res_country_state
 msgid "Country state"
-msgstr "Spolková krajina"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_tax_template__description
 msgid "Display on Invoices"
-msgstr "Zobraziť na faktúrach"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_account_fiscal_position
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_fiscal_position__name
 msgid "Fiscal Position"
-msgstr "Fiškálna pozícia"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_fiscal_position_template__name
 msgid "Fiscal Position Template"
-msgstr "Šablóna fiškánej pozície"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_base_language_install
 msgid "Install Language"
-msgstr "Nainštalovať Jazyk"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_account_journal
@@ -86,12 +85,12 @@ msgstr "Názov účtovného denníka"
 #. module: l10n_multilang
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_tax__description
 msgid "Label on Invoices"
-msgstr "Značka na faktúrach"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model.fields,help:l10n_multilang.field_account_fiscal_position__note
 msgid "Legal mentions that have to be printed on the invoices."
-msgstr "Právne údaje, ktoré musia byť vytlačené na faktúre."
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_account__name
@@ -105,17 +104,17 @@ msgstr "Meno"
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_fiscal_position__note
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_fiscal_position_template__note
 msgid "Notes"
-msgstr "Poznámky"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_chart_template__spoken_languages
 msgid "Spoken Languages"
-msgstr "Hovorené jazyky"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model.fields,field_description:l10n_multilang.field_res_country_state__name
 msgid "State Name"
-msgstr "Názov štátu"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model.fields,help:l10n_multilang.field_account_chart_template__spoken_languages
@@ -125,9 +124,6 @@ msgid ""
 " the final object when generating them from templates. You must provide the "
 "language codes separated by ';'"
 msgstr ""
-"Uveďte tu jazyky pre ktoré môže byť nahraný preklad šablón počas inštalácie "
-"tohto lokalizačného modulu a skopírované do cieľového objektu počas "
-"generovania zo šablón. Kódy jazykov musia byť uvedené oddeľovačom ';'"
 
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_account_tax
@@ -138,17 +134,17 @@ msgstr "Daň"
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_tax__name
 #: model:ir.model.fields,field_description:l10n_multilang.field_account_tax_template__name
 msgid "Tax Name"
-msgstr "Názov dane"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_account_fiscal_position_template
 msgid "Template for Fiscal Position"
-msgstr "Šablóna pre fiškálnu pozíciu"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_account_account_template
 msgid "Templates for Accounts"
-msgstr "Šablóny pre účty"
+msgstr ""
 
 #. module: l10n_multilang
 #: model:ir.model,name:l10n_multilang.model_account_tax_template

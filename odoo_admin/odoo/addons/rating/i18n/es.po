@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# marcescu, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:29+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: marcescu, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Spanish (https://www.transifex.com/odoo/teams/41243/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,7 +22,7 @@ msgstr ""
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_parent_mixin__rating_count
 msgid "# Ratings"
-msgstr "# Calificación"
+msgstr ""
 
 #. module: rating
 #: model:ir.model.fields,help:rating.field_rating_rating__access_token
@@ -75,7 +74,7 @@ msgstr "Nombre mostrado"
 #: model_terms:ir.ui.view,arch_db:rating.rating_rating_view_search
 #, python-format
 msgid "Dissatisfied"
-msgstr "Insatisfecho"
+msgstr ""
 
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__res_id
@@ -101,7 +100,7 @@ msgstr "Habilitado si la valoración ha sido introducida."
 #. module: rating
 #: model_terms:ir.ui.view,arch_db:rating.rating_external_page_submit
 msgid "Feel free to write a feedback on your experience:"
-msgstr "No dude en escribir un comentario en el que describa su experiencia:"
+msgstr ""
 
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__consumed
@@ -228,12 +227,12 @@ msgstr "Nombre de documento matriz"
 #. module: rating
 #: model_terms:ir.ui.view,arch_db:rating.rating_rating_view_form
 msgid "Parent Holder"
-msgstr "Soporte padre"
+msgstr ""
 
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__parent_ref
 msgid "Parent Ref"
-msgstr "Referencia madre"
+msgstr ""
 
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__parent_res_model_id
@@ -249,7 +248,7 @@ msgstr "Porcentaje de valoraciones positivas"
 #: model:ir.model.fields,field_description:rating.field_rating_rating__rated_partner_id
 #: model_terms:ir.ui.view,arch_db:rating.rating_rating_view_search
 msgid "Rated Operator"
-msgstr "Operador valorado"
+msgstr ""
 
 #. module: rating
 #: model:ir.model,name:rating.model_rating_rating
@@ -315,12 +314,12 @@ msgstr "Cuenta de calificación"
 #. module: rating
 #: model:ir.model.constraint,message:rating.constraint_rating_rating_rating_range
 msgid "Rating should be between 0 and 5"
-msgstr "La valoración debe ser entre 0 y 5"
+msgstr ""
 
 #. module: rating
 #: model:ir.model.fields,help:rating.field_rating_rating__rating
 msgid "Rating value: 0=Unhappy, 5=Happy"
-msgstr "Valores de la calificación: 0=infeliz, 5=feliz"
+msgstr ""
 
 #. module: rating
 #: model:ir.actions.act_window,name:rating.rating_rating_view
@@ -360,7 +359,7 @@ msgstr "Recurso"
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__resource_ref
 msgid "Resource Ref"
-msgstr "Referencia del recurso"
+msgstr ""
 
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__res_name
@@ -393,12 +392,12 @@ msgstr "Enviados a fecha de"
 #. module: rating
 #: model_terms:ir.ui.view,arch_db:rating.rating_external_page_submit
 msgid "Thank you for rating our services!"
-msgstr "¡Gracias por calificar nuestros servicios!"
+msgstr ""
 
 #. module: rating
 #: model_terms:ir.ui.view,arch_db:rating.rating_external_page_view
 msgid "Thank you, we appreciate your feedback!"
-msgstr "¡Gracias, apreciamos sus comentarios!"
+msgstr ""
 
 #. module: rating
 #: model:ir.model.fields,help:rating.field_rating_rating__res_name
@@ -418,7 +417,7 @@ msgstr "Hoy"
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__is_internal
 msgid "Visible Internally Only"
-msgstr "Visible solo internamente"
+msgstr ""
 
 #. module: rating
 #: model_terms:ir.ui.view,arch_db:rating.rating_rating_view_kanban

@@ -20,7 +20,10 @@
                         </div>
                         <notebook> 
                             <page string="Job Description">
-                                <field name="description" options="{'collaborative': true}" attrs="{'invisible': [('state', '!=', 'recruit')]}"/>
+                                <div attrs="{'invisible': [('state', '!=', 'recruit')]}" name="job_description">
+                                    <label for="description"/>
+                                    <field name="description" options="{'collaborative': true}"/>
+                                </div>
                             </page>
                             <page string="Recruitment">
                                 <group>

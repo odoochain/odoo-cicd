@@ -318,7 +318,6 @@ class AccountChartTemplate(models.Model):
 
             created.line_ids._onchange_product_id()
             created.line_ids._onchange_account_id()
-            created.line_ids._onchange_price_subtotal()
 
             created._recompute_dynamic_lines(
                 recompute_all_taxes=True,

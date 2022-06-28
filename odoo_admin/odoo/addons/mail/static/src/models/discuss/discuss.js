@@ -49,16 +49,13 @@ function factory(dependencies) {
          * @param {integer} ui.item.id
          */
         async handleAddChannelAutocompleteSelect(ev, ui) {
-            // Necessary in order to prevent AutocompleteSelect event's default
-            // behaviour as html tags visible for a split second in text area
-            ev.preventDefault();
             const name = this.addingChannelValue;
             this.clearIsAddingItem();
             if (ui.item.special) {
                 const channel = await this.async(() =>
                     this.messaging.models['mail.thread'].performRpcCreateChannel({
                         name,
-                        privacy: ui.item.special === 'private' ? 'private' : 'groups',
+                        privacy: ui.item.special,
                     })
                 );
                 channel.open();
@@ -183,7 +180,9 @@ function factory(dependencies) {
         }
 
         /**
-         * Opens thread from init active id if the thread exists.
+         * Open thread from init active id. `initActiveId` is used to refer to
+         * a thread that we may not have full data yet, such as when messaging
+         * is not yet initialized.
          */
         openInitThread() {
             const [model, id] = typeof this.initActiveId === 'number'
@@ -405,14 +404,6 @@ function factory(dependencies) {
          */
         isAddingChat: attr({
             compute: '_computeIsAddingChat',
-            default: false,
-        }),
-        /**
-         * Determines if the logic for opening a thread via the `initActiveId`
-         * has been processed. This is necessary to ensure that this only
-         * happens once.
-         */
-        isInitThreadHandled: attr({
             default: false,
         }),
         /**

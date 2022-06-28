@@ -147,7 +147,6 @@ class TestSwissQR(AccountTestInvoicingCommon):
 
         expected_params = {
             'barcode_type': 'QR',
-            'barLevel': 'M',
             'width': 256,
             'height': 256,
             'quiet': 1,

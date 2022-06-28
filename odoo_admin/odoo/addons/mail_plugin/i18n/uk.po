@@ -4,7 +4,7 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Alina Lisnenko <alinasemeniuk1@gmail.com>, 2022
+# Alina Lisnenko <alinasemeniuk1@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:23+0000\n"
-"Last-Translator: Alina Lisnenko <alinasemeniuk1@gmail.com>, 2022\n"
+"Last-Translator: Alina Lisnenko <alinasemeniuk1@gmail.com>, 2021\n"
 "Language-Team: Ukrainian (https://www.transifex.com/odoo/teams/41243/uk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,14 +25,14 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "%s employees"
-msgstr "%s співробітники"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Add Contact To Database"
-msgstr "Додати контакт до бази даних"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -52,14 +52,14 @@ msgstr "Дозволити"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "An error has occurred when trying to fetch translations."
-msgstr "Виникла помилка під час спроби отримати переклади."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Annual Revenue"
-msgstr "Річний дохід"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -69,42 +69,40 @@ msgid ""
 "Attachments could not be logged in Odoo because their total size exceeded "
 "the allowed maximum."
 msgstr ""
-"Не вдалося зареєструвати вкладені файли в Odoo, оскільки їх загальний розмір"
-" перевищив дозволений максимум."
 
 #. module: mail_plugin
 #: code:addons/mail_plugin/controllers/mail_plugin.py:0
 #, python-format
 msgid "Bad Email."
-msgstr "Поганий Email."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Buy More"
-msgstr "Купити більше"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Buy new credits"
-msgstr "Купити нові кредити"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Can not save the contact"
-msgstr "Неможливо зберегти контакт"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Clear Translations Cache"
-msgstr "Очистити кеш перекладів"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -125,7 +123,7 @@ msgstr "Компанія"
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Company Created."
-msgstr "Компанію створено."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -133,7 +131,7 @@ msgstr "Компанію створено."
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Company Insights"
-msgstr "Інсайти компанії"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -148,14 +146,14 @@ msgstr "Тип компанії"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Company created"
-msgstr "Компанію створено"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Company updated"
-msgstr "Компанію оновлено"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -177,25 +175,25 @@ msgstr "Деталі контактної особи"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Contact created"
-msgstr "Контакт створено"
+msgstr ""
 
 #. module: mail_plugin
 #: code:addons/mail_plugin/controllers/mail_plugin.py:0
 #, python-format
 msgid "Contact has no valid email"
-msgstr "Конаткт не має дійсного email"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Contacts Found (%(count)s)"
-msgstr "Контакти знайдено (%(count)s)"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,help:mail_plugin.field_res_partner_iap__partner_id
 msgid "Corresponding partner"
-msgstr "Кореспондуючий партнер"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -203,22 +201,20 @@ msgstr "Кореспондуючий партнер"
 #, python-format
 msgid "Could not autocomplete the company. Internal error. Try again later..."
 msgstr ""
-"Неможливо автоматично заповнити компанію. Внутрішня помилка. Спробуйте знову"
-" пізніше..."
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Could not connect to database. Try to log out and in."
-msgstr "Неможливо підключитися до бази даних. Спробуйте вийти та зайти."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Could not connect to your database. Please try again."
-msgstr "Неможливо підключитися до вашої бази даних. Спробуйте знову пізніше."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -226,7 +222,6 @@ msgstr "Неможливо підключитися до вашої бази д�
 #, python-format
 msgid "Could not display image %(attachmentName)s, size is over limit."
 msgstr ""
-"Неможливо відобразити зображення %(attachmentName)s, розмір перевищує ліміт."
 
 #. module: mail_plugin
 #. openerp-web
@@ -240,14 +235,14 @@ msgstr "Створити"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Create a Company"
-msgstr "Створити компанію"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Create a company"
-msgstr "Створити компанію"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__create_uid
@@ -264,21 +259,21 @@ msgstr "Створено"
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Debug"
-msgstr "Debug"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Debug Zone"
-msgstr "Debug Zone"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Debug zone for development purpose."
-msgstr "Debug zone з метою розробки."
+msgstr ""
 
 #. module: mail_plugin
 #: model_terms:ir.ui.view,arch_db:mail_plugin.app_auth
@@ -300,14 +295,14 @@ msgstr "Відобразити назву"
 #. module: mail_plugin
 #: model:ir.model.fields,help:mail_plugin.field_res_partner_iap__iap_search_domain
 msgid "Domain used to find the company"
-msgstr "Домен використовується для пошуку компанії"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Email already logged on the contact"
-msgstr "Email вже записаний на контакті"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -323,28 +318,28 @@ msgstr "Співробітники"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Enrich Company"
-msgstr "Залучити компанію"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Error during enrichment"
-msgstr "Помилка під час залучення"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Founded Year"
-msgstr "Рік заснування"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "From : %(email)s"
-msgstr "Від : %(email)s"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -358,7 +353,7 @@ msgstr "Від:"
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Gmail Inbox"
-msgstr "Вхідні листи Gmail"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model,name:mail_plugin.model_ir_http
@@ -377,19 +372,19 @@ msgstr "Інформація збільшення IAP"
 #: model_terms:ir.ui.view,arch_db:mail_plugin.res_partner_iap_view_form
 #: model_terms:ir.ui.view,arch_db:mail_plugin.res_partner_iap_view_tree
 msgid "IAP Partner"
-msgstr "Партнер IAP"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.ui.menu,name:mail_plugin.res_partner_iap_menu
 msgid "IAP Partners"
-msgstr "Партнери IAP"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,help:mail_plugin.field_res_partner__iap_enrich_info
 #: model:ir.model.fields,help:mail_plugin.field_res_partner_iap__iap_enrich_info
 #: model:ir.model.fields,help:mail_plugin.field_res_users__iap_enrich_info
 msgid "IAP response stored as a JSON string"
-msgstr "Відповідь IAP, що зберігається у вигляді рядка JSON"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__id
@@ -409,7 +404,7 @@ msgstr "Промисловість"
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Invalid URL"
-msgstr "Недійсна URL"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -444,14 +439,14 @@ msgstr "Дозвольте"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Log Email Into Contact"
-msgstr "Введіть Email на контакті"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Log email"
-msgstr "Введіть email"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -459,7 +454,7 @@ msgstr "Введіть email"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Logged from"
-msgstr "Введено з"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -482,28 +477,28 @@ msgstr "Вийти"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "No additional insights were found for this company"
-msgstr "Для цієї компанії не знайдено жодної додаткової інформації"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "No company attached to this contact"
-msgstr "Не під'єднано жодної компанії до цього контакту"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "No company attached to this contact."
-msgstr "Не під'єднано жодної компанії до цього контакту."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "No company linked to this contact could be enriched"
-msgstr "Жодна компанія, пов’язана з цим контактом, не може бути залучена"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -511,69 +506,67 @@ msgstr "Жодна компанія, пов’язана з цим контак�
 #, python-format
 msgid "No company linked to this contact could be enriched or found in Odoo"
 msgstr ""
-"Жодна компанія, пов’язана з цим контактом, не може бути залучена або "
-"знайдена в Odoo"
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "No contact found."
-msgstr "Не знайдено контакту."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "No data found for this email address."
-msgstr "Не знайдено даних для цієї адреси електронної пошти."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "No extra information found"
-msgstr "Не знайдено додаткової інформації"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "No insights for this company."
-msgstr "Немає інсайтів для цієї компанії."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "No insights found for this address."
-msgstr "Не знайдено інсайтів для цієї компанії."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Not enough credits to enrich."
-msgstr "Недостатньо кредитів для залучення."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Odoo Access Token"
-msgstr "Токен доступу Odoo"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Odoo Server URL"
-msgstr "URL сервера Odoo"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.constraint,message:mail_plugin.constraint_res_partner_iap_unique_partner_id
 msgid "Only one partner IAP is allowed for one partner"
-msgstr "IAP лише одного партнера дозволений для одного партнера"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -583,22 +576,20 @@ msgid ""
 "Oops, looks like you have exhausted your free enrichment requests. Please "
 "log in to try again."
 msgstr ""
-"Ой, схоже, ви вичерпали свої безкоштовні запити на залучення. Будь ласка, "
-"увійдіть, щоб спробувати ще раз."
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Our IAP server is down, please come back later."
-msgstr "Наш сервер IAP впав, поверніться пізніше."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Outlook Inbox"
-msgstr "Вхідні листи Outlook"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__partner_id
@@ -608,7 +599,7 @@ msgstr "Партнер"
 #. module: mail_plugin
 #: model:ir.model,name:mail_plugin.model_res_partner_iap
 msgid "Partner IAP"
-msgstr "IAP партнера"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -643,7 +634,7 @@ msgstr "Оновити"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Refresh Contact"
-msgstr "Оновіть контакт"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -657,14 +648,7 @@ msgstr "Доходи"
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Save in Odoo"
-msgstr "Зберегти в Odoo"
-
-#. module: mail_plugin
-#. openerp-web
-#: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
-#, python-format
-msgid "Save the contact to create the company"
-msgstr "Збережіть контакт, щоб створити компанію"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -678,35 +662,35 @@ msgstr "Пошук"
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__iap_search_domain
 #: model:ir.model.fields,field_description:mail_plugin.field_res_users__iap_search_domain
 msgid "Search Domain / Email"
-msgstr "Пошук домену / Email"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Search In Database"
-msgstr "Пошук у базі даних"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Search In Odoo"
-msgstr "Пошук в Odoo"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Search contact"
-msgstr "Пошук контакту"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Search contact in Odoo..."
-msgstr "Пошук контакту Odoo..."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -714,13 +698,13 @@ msgstr "Пошук контакту Odoo..."
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Something bad happened. Please, try again later."
-msgstr "Сталося щось погане. Спробуйте ще раз пізніше."
+msgstr ""
 
 #. module: mail_plugin
 #: code:addons/mail_plugin/controllers/mail_plugin.py:0
 #, python-format
 msgid "The partner already has a company related to him"
-msgstr "У партнера вже компанія, пов'язана з ним"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -728,14 +712,13 @@ msgstr "У партнера вже компанія, пов'язана з ним
 #, python-format
 msgid "This company has no email address and could not be enriched."
 msgstr ""
-"У цієї компанії немає адреси електронної пошти і її не можна залучити."
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "This contact does not exist in the Odoo database."
-msgstr "Цей контакт не існує в базі Odoo."
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -743,15 +726,13 @@ msgstr "Цей контакт не існує в базі Odoo."
 #, python-format
 msgid "This contact has no email address, no company could be enriched."
 msgstr ""
-"Цей контакт не має електронної адреси, жодна компанія не може бути "
-"збагачена."
 
 #. module: mail_plugin
 #: code:addons/mail_plugin/controllers/mail_plugin.py:0
 #: code:addons/mail_plugin/controllers/mail_plugin.py:0
 #, python-format
 msgid "This partner does not exist"
-msgstr "Цей партнер не існує"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -761,8 +742,6 @@ msgid ""
 "Warning: Attachments could not be logged in Odoo because their total size "
 "exceeded the allowed maximum."
 msgstr ""
-"Увага: Не вдалося зареєструвати вкладені файли в Odoo, оскільки їх загальний"
-" розмір перевищив дозволений максимум."
 
 #. module: mail_plugin
 #. openerp-web
@@ -772,8 +751,6 @@ msgid ""
 "Warning: Could not fetch the attachments %(attachments)s as their sizes are "
 "bigger then the maximum size of %(size)sMB per each attachment."
 msgstr ""
-"Увага: Неможливо отримати прикріплення %(attachments)s оскільки їхній розмір"
-" більший за максимальний %(size)sMB на кожне прикрпілення."
 
 #. module: mail_plugin
 #. openerp-web
@@ -788,21 +765,20 @@ msgstr "Веб-сайт"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Year founded"
-msgstr "Рік заснування"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "You don't have enough credit to enrich."
-msgstr "У вас недостатньо кредитів для залучення"
+msgstr ""
 
 #. module: mail_plugin
 #: code:addons/mail_plugin/controllers/mail_plugin.py:0
 #, python-format
 msgid "You need to specify at least the partner_id or the name and the email"
 msgstr ""
-"Вам потрібно вказати принаймні partner_id або ім’я та електронну адресу"
 
 #. module: mail_plugin
 #: model_terms:ir.ui.view,arch_db:mail_plugin.app_auth

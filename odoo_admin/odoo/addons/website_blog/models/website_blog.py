@@ -3,13 +3,12 @@
 
 from datetime import datetime
 import random
-import re
 
 from odoo import api, models, fields, _
 from odoo.addons.http_routing.models.ir_http import slug, unslug
-from odoo.addons.website.tools import text_from_html
 from odoo.tools.json import scriptsafe as json_scriptsafe
 from odoo.tools.translate import html_translate
+from odoo.tools import html2plaintext
 
 
 class Blog(models.Model):
@@ -198,8 +197,7 @@ class BlogPost(models.Model):
             if blog_post.teaser_manual:
                 blog_post.teaser = blog_post.teaser_manual
             else:
-                content = text_from_html(blog_post.content)
-                content = re.sub('\\s+', ' ', content).strip()
+                content = html2plaintext(blog_post.content).replace('\n', ' ')
                 blog_post.teaser = content[:200] + '...'
 
     def _set_teaser(self):

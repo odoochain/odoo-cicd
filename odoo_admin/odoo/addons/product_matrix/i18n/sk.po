@@ -22,21 +22,21 @@ msgstr ""
 #. module: product_matrix
 #: model:product.attribute.value,name:product_matrix.product_attribute_value_color_1
 msgid "Blue"
-msgstr "Modrá"
+msgstr ""
 
 #. module: product_matrix
 #. openerp-web
 #: code:addons/product_matrix/static/src/js/section_and_note_widget.js:0
 #, python-format
 msgid "Choose Product Variants"
-msgstr "Vyberte varianty produktu"
+msgstr ""
 
 #. module: product_matrix
 #. openerp-web
 #: code:addons/product_matrix/static/src/js/section_and_note_widget.js:0
 #, python-format
 msgid "Close"
-msgstr "Zatvoriť"
+msgstr ""
 
 #. module: product_matrix
 #. openerp-web
@@ -48,17 +48,17 @@ msgstr "Potvrdiť"
 #. module: product_matrix
 #: model:product.attribute,name:product_matrix.product_attribute_gender
 msgid "Gender"
-msgstr "Pohlavie"
+msgstr ""
 
 #. module: product_matrix
 #: model:product.attribute.value,name:product_matrix.product_attribute_value_m
 msgid "Men"
-msgstr "Muži"
+msgstr ""
 
 #. module: product_matrix
 #: model:product.template,name:product_matrix.matrix_product_template_shirt
 msgid "My Company Tshirt (GRID)"
-msgstr "Tričko mojej spoločnosti (GRID)"
+msgstr ""
 
 #. module: product_matrix
 #. openerp-web
@@ -70,7 +70,7 @@ msgstr "Nedostupné"
 #. module: product_matrix
 #: model:product.attribute.value,name:product_matrix.product_attribute_value_color_2
 msgid "Pink"
-msgstr "Ružová"
+msgstr ""
 
 #. module: product_matrix
 #: model:ir.model,name:product_matrix.model_product_template
@@ -80,22 +80,22 @@ msgstr "Šablóna produktu"
 #. module: product_matrix
 #: model:ir.model,name:product_matrix.model_product_template_attribute_value
 msgid "Product Template Attribute Value"
-msgstr "Hodnota atribútu šablóny produktu"
+msgstr ""
 
 #. module: product_matrix
 #: model:product.attribute.value,name:product_matrix.product_attribute_value_color_4
 msgid "Rainbow"
-msgstr "Dúha"
+msgstr ""
 
 #. module: product_matrix
 #: model:product.template,description_sale:product_matrix.matrix_product_template_shirt
 msgid "Show your company love around you =)."
-msgstr "Ukážte lásku vašej spoločnosti okolo vás =)."
+msgstr ""
 
 #. module: product_matrix
 #: model:product.attribute,name:product_matrix.product_attribute_size
 msgid "Size"
-msgstr "Veľkosť"
+msgstr ""
 
 #. module: product_matrix
 #: model:product.template,uom_name:product_matrix.matrix_product_template_shirt
@@ -105,19 +105,19 @@ msgstr "Jednotky"
 #. module: product_matrix
 #: model:product.attribute.value,name:product_matrix.product_attribute_value_w
 msgid "Women"
-msgstr "Ženy"
+msgstr ""
 
 #. module: product_matrix
 #: model:product.attribute.value,name:product_matrix.product_attribute_value_size_xl
 msgid "XL"
-msgstr "XL"
+msgstr ""
 
 #. module: product_matrix
 #: model:product.attribute.value,name:product_matrix.product_attribute_value_size_xs
 msgid "XS"
-msgstr "XS"
+msgstr ""
 
 #. module: product_matrix
 #: model:product.attribute.value,name:product_matrix.product_attribute_value_color_3
 msgid "Yellow"
-msgstr "Žltá"
+msgstr ""

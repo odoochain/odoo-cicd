@@ -8,9 +8,8 @@ describe('insetHTML', () => {
                 stepFunction: async editor => {
                     await editor.execCommand('insertHTML', '<i class="fa fa-pastafarianism"></i>');
                 },
-                contentAfterEdit:
-                    '<p><i class="fa fa-pastafarianism" contenteditable="false">\u200b</i>[]<br></p>',
-                contentAfter: '<p><i class="fa fa-pastafarianism"></i>[]<br></p>',
+                contentAfter:
+                    '<p><i class="fa fa-pastafarianism" contenteditable="false">​</i>[]<br></p>',
             });
         });
         it('should insert html after an empty paragraph', async () => {
@@ -19,9 +18,8 @@ describe('insetHTML', () => {
                 stepFunction: async editor => {
                     await editor.execCommand('insertHTML', '<i class="fa fa-pastafarianism"></i>');
                 },
-                contentAfterEdit:
-                    '<p><br></p><i class="fa fa-pastafarianism" contenteditable="false">\u200b</i>[]',
-                contentAfter: '<p><br></p><i class="fa fa-pastafarianism"></i>[]',
+                contentAfter:
+                    '<p><br></p><i class="fa fa-pastafarianism" contenteditable="false">​</i>[]',
             });
         });
         it('should insert html between two letters', async () => {
@@ -30,9 +28,8 @@ describe('insetHTML', () => {
                 stepFunction: async editor => {
                     await editor.execCommand('insertHTML', '<i class="fa fa-pastafarianism"></i>');
                 },
-                contentAfterEdit:
-                    '<p>a<i class="fa fa-pastafarianism" contenteditable="false">\u200b</i>[]b<br></p>',
-                contentAfter: '<p>a<i class="fa fa-pastafarianism"></i>[]b<br></p>',
+                contentAfter:
+                    '<p>a<i class="fa fa-pastafarianism" contenteditable="false">​</i>[]b<br></p>',
             });
         });
         it('should insert html in an empty editable', async () => {
@@ -41,8 +38,7 @@ describe('insetHTML', () => {
                 stepFunction: async editor => {
                     await editor.execCommand('insertHTML', '<i class="fa fa-pastafarianism"></i>');
                 },
-                contentAfterEdit: '<i class="fa fa-pastafarianism" contenteditable="false">\u200b</i>[]<br>',
-                contentAfter: '<i class="fa fa-pastafarianism"></i>[]<br>',
+                contentAfter: '<i class="fa fa-pastafarianism" contenteditable="false">​</i>[]<br>',
             });
         });
         it('should insert html in between naked text in the editable', async () => {
@@ -51,9 +47,8 @@ describe('insetHTML', () => {
                 stepFunction: async editor => {
                     await editor.execCommand('insertHTML', '<i class="fa fa-pastafarianism"></i>');
                 },
-                contentAfterEdit:
-                    'a<i class="fa fa-pastafarianism" contenteditable="false">\u200b</i>[]b<br>',
-                contentAfter: 'a<i class="fa fa-pastafarianism"></i>[]b<br>',
+                contentAfter:
+                    'a<i class="fa fa-pastafarianism" contenteditable="false">​</i>[]b<br>',
             });
         });
         it('should insert several html nodes in between naked text in the editable', async () => {
@@ -62,7 +57,7 @@ describe('insetHTML', () => {
                 stepFunction: async editor => {
                     await editor.execCommand('insertHTML', '<p>b</p><p>c</p><p>d</p>');
                 },
-                contentAfter: 'ab<p>c</p>d[]e<br>',
+                contentAfter: 'a<p>b</p><p>c</p><p>d</p>[]e<br>',
             });
         });
     });
@@ -73,8 +68,7 @@ describe('insetHTML', () => {
                 stepFunction: async editor => {
                     await editor.execCommand('insertHTML', '<i class="fa fa-pastafarianism"></i>');
                 },
-                contentAfterEdit: '<i class="fa fa-pastafarianism" contenteditable="false">\u200b</i>[]<br>',
-                contentAfter: '<i class="fa fa-pastafarianism"></i>[]<br>',
+                contentAfter: '<i class="fa fa-pastafarianism" contenteditable="false">​</i>[]<br>',
             });
         });
         it('should delete selection and insert html in its place', async () => {
@@ -83,9 +77,8 @@ describe('insetHTML', () => {
                 stepFunction: async editor => {
                     await editor.execCommand('insertHTML', '<i class="fa fa-pastafarianism"></i>');
                 },
-                contentAfterEdit:
-                    'a<i class="fa fa-pastafarianism" contenteditable="false">\u200b</i>[]c<br>',
-                contentAfter: 'a<i class="fa fa-pastafarianism"></i>[]c<br>',
+                contentAfter:
+                    'a<i class="fa fa-pastafarianism" contenteditable="false">​</i>[]c<br>',
             });
         });
     });

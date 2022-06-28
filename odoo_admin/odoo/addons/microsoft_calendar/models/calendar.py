@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools import is_html_empty
+from odoo.tools import html2plaintext, is_html_empty, plaintext2html
 
 ATTENDEE_CONVERTER_O2M = {
     'needsAction': 'notresponded',
@@ -16,7 +16,6 @@ ATTENDEE_CONVERTER_O2M = {
     'accepted': 'accepted'
 }
 ATTENDEE_CONVERTER_M2O = {
-    'none': 'needsAction',
     'notResponded': 'needsAction',
     'tentativelyAccepted': 'tentative',
     'declined': 'declined',
@@ -106,7 +105,7 @@ class Meeting(models.Model):
         values = {
             **default_values,
             'name': microsoft_event.subject or _("(No title)"),
-            'description': microsoft_event.body and microsoft_event.body['content'],
+            'description': plaintext2html(microsoft_event.bodyPreview),
             'location': microsoft_event.location and microsoft_event.location.get('displayName') or False,
             'user_id': microsoft_event.owner(self.env).id,
             'privacy': sensitivity_o2m.get(microsoft_event.sensitivity, self.default_get(['privacy'])['privacy']),
@@ -274,8 +273,8 @@ class Meeting(models.Model):
 
         if 'description' in fields_to_sync:
             values['body'] = {
-                'content': self.description if not is_html_empty(self.description) else '',
-                'contentType': "html",
+                'content': html2plaintext(self.description) if not is_html_empty(self.description) else '',
+                'contentType': "text",
             }
 
         if any(x in fields_to_sync for x in ['allday', 'start', 'date_end', 'stop']):
@@ -430,14 +429,9 @@ class Meeting(models.Model):
         return values
 
     def _cancel_microsoft(self):
-        """
-        Cancel an Microsoft event.
-        There are 2 cases:
-          1) the organizer is an Odoo user: he's the only one able to delete the Odoo event. Attendees can just decline.
-          2) the organizer is NOT an Odoo user: any attendee should remove the Odoo event.
-        """
+        # only owner can delete => others refuse the event
         user = self.env.user
-        records = self.filtered(lambda e: not e.user_id or e.user_id == user)
-        super(Meeting, records)._cancel_microsoft()
-        attendees = (self - records).attendee_ids.filtered(lambda a: a.partner_id == user.partner_id)
+        my_cancelled_records = self.filtered(lambda e: e.user_id == user)
+        super(Meeting, my_cancelled_records)._cancel_microsoft()
+        attendees = (self - my_cancelled_records).attendee_ids.filtered(lambda a: a.partner_id == user.partner_id)
         attendees.do_decline()

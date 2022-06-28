@@ -44,6 +44,7 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
         wysiwyg_change: '_onChange',
         wysiwyg_attachment: '_onAttachmentChange',
     },
+
     /**
      * @override
      */
@@ -92,13 +93,12 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
      *
      * @override
      */
-    commitChanges: async function () {
+    commitChanges: function () {
         if (this.mode == "readonly" || !this.isRendered) {
             return this._super();
         }
         var _super = this._super.bind(this);
-        await this.wysiwyg.cleanForSave();
-        this._setValue(this._getValue());
+        this.wysiwyg.odooEditor.clean();
         return this.wysiwyg.saveModifiedImages(this.$content).then(() => {
             this._isDirty = this.wysiwyg.isDirty();
             _super();
@@ -169,6 +169,7 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
      */
     _createWysiwygIntance: async function () {
         this.wysiwyg = await wysiwygLoader.createWysiwyg(this, this._getWysiwygOptions());
+        this.wysiwyg.__extraAssetsForIframe = this.__extraAssetsForIframe || [];
         return this.wysiwyg.appendTo(this.$el).then(() => {
             this.$content = this.wysiwyg.$editable;
             this._onLoadWysiwyg();
@@ -199,19 +200,14 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
             iframeCssAssets: this.nodeOptions.cssEdit,
             snippets: this.nodeOptions.snippets,
             value: this.value,
-            allowCommandVideo: Boolean(this.nodeOptions.allowCommandVideo) && (!this.field.sanitize || !this.field.sanitize_tags),
             mediaModalParams: {
                 noVideos: 'noVideos' in this.nodeOptions ? this.nodeOptions.noVideos : true,
-                res_model: this.model,
-                res_id: this.res_id,
-                useMediaLibrary: true,
             },
             linkForceNewWindow: true,
+
             tabsize: 0,
-            height: this.nodeOptions.height,
-            minHeight: this.nodeOptions.minHeight,
-            maxHeight: this.nodeOptions.maxHeight,
-            resizable: 'resizable' in this.nodeOptions ? this.nodeOptions.resizable : false,
+            height: this.nodeOptions.height || 110,
+            resizable: 'resizable' in this.nodeOptions ? this.nodeOptions.resizable : true,
             editorPlugins: [QWebPlugin],
         });
     },
@@ -313,7 +309,6 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
         var def = new Promise(function (resolve) {
             resolver = resolve;
         });
-        const externalLinkSelector = `a:not([href^="${location.origin}"]):not([href^="/"])`;
         if (this.nodeOptions.cssReadonly) {
             this.$iframe = $('<iframe class="o_readonly d-none"/>');
             this.$iframe.appendTo(this.$el);
@@ -379,12 +374,6 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
                             self._onClick(ev);
                         }
                     });
-
-                    // Ensure all external links are opened in a new tab.
-                    for (const externalLink of cwindow.document.body.querySelectorAll(externalLinkSelector)) {
-                        externalLink.setAttribute('target', '_blank');
-                        externalLink.setAttribute('rel', 'noreferrer');
-                    }
                 });
             });
         } else {
@@ -392,18 +381,11 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
             this.$content.appendTo(this.$el);
             this._qwebPlugin = new QWebPlugin();
             this._qwebPlugin.sanitizeElement(this.$content[0]);
-            // Ensure all external links are opened in a new tab.
-            for (const externalLink of this.$content.find(externalLinkSelector)) {
-                externalLink.setAttribute('target', '_blank');
-                externalLink.setAttribute('rel', 'noreferrer');
-            }
             resolver();
         }
 
         def.then(function () {
-            if (!self.hasReadonlyModifier) {
-                self.$content.on('click', 'ul.o_checklist > li', self._onReadonlyClickChecklist.bind(self));
-            }
+            self.$content.on('click', 'ul.o_checklist > li', self._onReadonlyClickChecklist.bind(self));
             if (self.$iframe) {
                 // Iframe is hidden until fully loaded to avoid glitches.
                 self.$iframe.removeClass('d-none');

@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,7 +23,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sale_product_matrix.field_product_product__product_add_mode
 #: model:ir.model.fields,field_description:sale_product_matrix.field_product_template__product_add_mode
 msgid "Add product mode"
-msgstr "إضافة وضع المنتج "
+msgstr ""
 
 #. module: sale_product_matrix
 #: model:ir.model.fields,help:sale_product_matrix.field_product_product__product_add_mode
@@ -33,18 +32,16 @@ msgid ""
 "Configurator: choose attribute values to add the matching         product variant to the order.\n"
 "Grid: add several variants at once from the grid of attribute values"
 msgstr ""
-"المهيئ: اختر قيم الخصائص لإضافة متغير المنتج المطابق إلى الطلب. \n"
-"الشبكة: أضف عدة متغيرات دفعة واحدة من شبكة قيم الخصائص "
 
 #. module: sale_product_matrix
 #: model:ir.model.fields,field_description:sale_product_matrix.field_sale_order__grid_product_tmpl_id
 msgid "Grid Product Tmpl"
-msgstr "قالب منتج الشبكة "
+msgstr ""
 
 #. module: sale_product_matrix
 #: model:ir.model.fields,field_description:sale_product_matrix.field_sale_order__grid_update
 msgid "Grid Update"
-msgstr "تحديث الشبكة "
+msgstr ""
 
 #. module: sale_product_matrix
 #: model:ir.model.fields,help:sale_product_matrix.field_sale_order__report_grids
@@ -52,28 +49,26 @@ msgid ""
 "If set, the matrix of the products configurable by matrix will be shown on "
 "the report of the order."
 msgstr ""
-"إذا كان محدداً، سوف يتم إظهار مصفوفات المنتجات القابلة للتهيئة بواسطة "
-"المصفوفة في تقرير الطلب. "
 
 #. module: sale_product_matrix
 #: model:ir.model.fields,field_description:sale_product_matrix.field_sale_order__grid
 msgid "Matrix local storage"
-msgstr "مساحة التخزين المحلية للمصفوفة "
+msgstr ""
 
 #. module: sale_product_matrix
 #: model:ir.model.fields.selection,name:sale_product_matrix.selection__product_template__product_add_mode__matrix
 msgid "Order Grid Entry"
-msgstr "قيد شبكة الطلب "
+msgstr ""
 
 #. module: sale_product_matrix
 #: model:ir.model.fields,field_description:sale_product_matrix.field_sale_order__report_grids
 msgid "Print Variant Grids"
-msgstr "طباعة شبكات المتغيرات "
+msgstr ""
 
 #. module: sale_product_matrix
 #: model:ir.model.fields.selection,name:sale_product_matrix.selection__product_template__product_add_mode__configurator
 msgid "Product Configurator"
-msgstr "مهيئ المنتج "
+msgstr ""
 
 #. module: sale_product_matrix
 #: model:ir.model,name:sale_product_matrix.model_product_template
@@ -88,12 +83,12 @@ msgstr "أمر البيع"
 #. module: sale_product_matrix
 #: model_terms:ir.ui.view,arch_db:sale_product_matrix.product_template_grid_view_form
 msgid "Sales Variant Selection"
-msgstr "اختيار متغير المبيعات "
+msgstr ""
 
 #. module: sale_product_matrix
 #: model:ir.model.fields,help:sale_product_matrix.field_sale_order__grid_product_tmpl_id
 msgid "Technical field for product_matrix functionalities."
-msgstr "حقل تقني لوظائف product_matrix. "
+msgstr ""
 
 #. module: sale_product_matrix
 #: model:ir.model.fields,help:sale_product_matrix.field_sale_order__grid
@@ -102,18 +97,15 @@ msgid ""
 "If grid_update, will be loaded on the SO. \n"
 "If not, represents the matrix to open."
 msgstr ""
-"مساحة تخزين تقنية محلية للشبكة. \n"
-"إذا كانت grid_update، سوف يتم تحميلها في أمر البيع. \n"
-"إذا لم تكن كذلك، فعندها تمثل المصفوفة لفتحها. "
 
 #. module: sale_product_matrix
 #: model:ir.model.fields,help:sale_product_matrix.field_sale_order__grid_update
 msgid "Whether the grid field contains a new matrix to apply or not."
-msgstr "ما إذا كان حقل الشبكة يحتوي على مصفوفة جديدة لتطبيقها أم لا. "
+msgstr ""
 
 #. module: sale_product_matrix
 #: code:addons/sale_product_matrix/models/sale_order.py:0
 #, python-format
 msgid ""
 "You cannot change the quantity of a product present in multiple sale lines."
-msgstr "لا يمكنك تغيير كمية منتج موجود في عدة بنود بيع. "
+msgstr ""

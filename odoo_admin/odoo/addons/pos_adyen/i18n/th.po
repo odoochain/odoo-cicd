@@ -3,7 +3,7 @@
 # 	* pos_adyen
 # 
 # Translators:
-# Wichanon Jamwutthipreecha, 2022
+# Martin Trigaux, 2021
 # 
 msgid ""
 msgstr ""
@@ -11,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-11-16 13:18+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
-"Last-Translator: Wichanon Jamwutthipreecha, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Thai (https://www.transifex.com/odoo/teams/41243/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -22,58 +22,58 @@ msgstr ""
 #. module: pos_adyen
 #: model_terms:ir.ui.view,arch_db:pos_adyen.pos_config_view_form
 msgid "Add tip through payment terminal (Adyen)"
-msgstr "เพิ่มทิปผ่านจุดชำระเงิน (Adyen)"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_api_key
 msgid "Adyen API key"
-msgstr "Adyen API คีย์"
+msgstr ""
 
 #. module: pos_adyen
 #. openerp-web
 #: code:addons/pos_adyen/static/src/js/payment_adyen.js:0
 #, python-format
 msgid "Adyen Error"
-msgstr "ข้อผิดพลาด Adyen"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_latest_diagnosis
 msgid "Adyen Latest Diagnosis"
-msgstr "การวินิจฉัย Adyen ล่าสุด"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_latest_response
 msgid "Adyen Latest Response"
-msgstr "การตอบสนอง Adyen ล่าสุด"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_terminal_identifier
 msgid "Adyen Terminal Identifier"
-msgstr "ตัวระบุสถานี Adyen"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_payment_method__adyen_test_mode
 msgid "Adyen Test Mode"
-msgstr "โหมดทดลอง Adyen"
+msgstr ""
 
 #. module: pos_adyen
 #. openerp-web
 #: code:addons/pos_adyen/static/src/js/payment_adyen.js:0
 #, python-format
 msgid "An unexpected error occurred. Message from Adyen: %s"
-msgstr "เกิดข้อผิดพลาดทีคาดไม่ถึง ข้อความจาก Adyen: %s"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,field_description:pos_adyen.field_pos_config__adyen_ask_customer_for_tip
 msgid "Ask Customers For Tip"
-msgstr "ขอทิปจากลูกค้า"
+msgstr ""
 
 #. module: pos_adyen
 #. openerp-web
 #: code:addons/pos_adyen/static/src/js/payment_adyen.js:0
 #, python-format
 msgid "Authentication failed. Please check your Adyen credentials."
-msgstr "การตรวจสอบสิทธิ์ล้มเหลว โปรดตรวจสอบข้อมูลรับรอง Adyen ของคุณ"
+msgstr ""
 
 #. module: pos_adyen
 #. openerp-web
@@ -82,14 +82,14 @@ msgstr "การตรวจสอบสิทธิ์ล้มเหลว �
 msgid ""
 "Cancelling the payment failed. Please cancel it manually on the payment "
 "terminal."
-msgstr "การยกเลิกการชำระเงินล้มเหลว โปรดยกเลิกด้วยตนเองที่จุดชำระเงิน"
+msgstr ""
 
 #. module: pos_adyen
 #. openerp-web
 #: code:addons/pos_adyen/static/src/js/payment_adyen.js:0
 #, python-format
 msgid "Cannot process transactions with negative amount."
-msgstr "ไม่สามารถประมวลผลธุรกรรมที่มียอดติดลบได้"
+msgstr ""
 
 #. module: pos_adyen
 #. openerp-web
@@ -99,60 +99,58 @@ msgid ""
 "Could not connect to the Odoo server, please check your internet connection "
 "and try again."
 msgstr ""
-"ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ Odoo ได้ "
-"โปรดตรวจสอบการเชื่อมต่ออินเตอร์เน็ตของคุณและลองอีกครั้ง"
 
 #. module: pos_adyen
 #. openerp-web
 #: code:addons/pos_adyen/static/src/js/payment_adyen.js:0
 #, python-format
 msgid "Message from Adyen: %s"
-msgstr "ข้อความจาก Adyen: %s"
+msgstr ""
 
 #. module: pos_adyen
 #: code:addons/pos_adyen/models/pos_config.py:0
 #, python-format
 msgid ""
 "Please configure a tip product for POS %s to support tipping with Adyen."
-msgstr "โปรดกำหนดค่าสินค้าทิปสำหรับ POS %sเพื่อรองรับการให้ทิปกับเอเดียน"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model,name:pos_adyen.model_pos_config
 msgid "Point of Sale Configuration"
-msgstr "กำหนดค่าการขายหน้าร้าน"
+msgstr "การตั้งค่าจุดขาย"
 
 #. module: pos_adyen
 #: model:ir.model,name:pos_adyen.model_pos_payment_method
 msgid "Point of Sale Payment Methods"
-msgstr "วิธีการชำระเงินการขายหน้าร้าน"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_config__adyen_ask_customer_for_tip
 msgid "Prompt the customer to tip."
-msgstr "แจ้งลูกค้าเพื่อให้ทิป"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_test_mode
 msgid "Run transactions in the test environment."
-msgstr "ดำเนินการธุรกรรมในสภาพแวดล้อมทดลอง"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_latest_response
 msgid ""
 "Technical field used to buffer the latest asynchronous notification from "
 "Adyen."
-msgstr "ฟิลด์เทคนิคที่ใช้ในการกันการแจ้งเตือนแบบอะซิงโครนัสล่าสุดจาก Adyen"
+msgstr ""
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_latest_diagnosis
 msgid "Technical field used to determine if the terminal is still connected."
-msgstr "ฟิลด์เทคนิคที่ใช้ในการตรวจสอบว่าสถานียังคงเชื่อมต่ออยู่หรือไม่"
+msgstr ""
 
 #. module: pos_adyen
 #: code:addons/pos_adyen/models/pos_payment_method.py:0
 #, python-format
 msgid "Terminal %s is already used on payment method %s."
-msgstr "สถานี %s ได้ใช้วิธีการชำระเงินแล้ว %s"
+msgstr ""
 
 #. module: pos_adyen
 #. openerp-web
@@ -162,8 +160,6 @@ msgid ""
 "The connection to your payment terminal failed. Please check if it is still "
 "connected to the internet."
 msgstr ""
-"การเชื่อมต่อกับจุดชำระเงินของคุณล้มเหลว "
-"โปรดตรวจสอบว่ายังคงเชื่อมต่อกับอินเตอร์เน็ตอยู่หรือไม่"
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_api_key
@@ -171,10 +167,8 @@ msgid ""
 "Used when connecting to Adyen: https://docs.adyen.com/user-management/how-"
 "to-get-the-api-key/#description"
 msgstr ""
-"ใช้เมื่อเชื่อมต่อกับ Adyen: https://docs.adyen.com/user-management/how-to-"
-"get-the-api-key/#description"
 
 #. module: pos_adyen
 #: model:ir.model.fields,help:pos_adyen.field_pos_payment_method__adyen_terminal_identifier
 msgid "[Terminal model]-[Serial number], for example: P400Plus-123456789"
-msgstr "[Terminal model]-[Serial number] ตัวอย่างเช่น: P400Plus-123456789"
+msgstr ""

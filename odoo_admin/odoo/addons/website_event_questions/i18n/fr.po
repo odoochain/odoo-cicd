@@ -4,7 +4,7 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Cécile Collart <cco@odoo.com>, 2022
+# Cécile Collart <cco@odoo.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -12,23 +12,23 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:29+0000\n"
 "PO-Revision-Date: 2021-09-14 12:28+0000\n"
-"Last-Translator: Cécile Collart <cco@odoo.com>, 2022\n"
+"Last-Translator: Cécile Collart <cco@odoo.com>, 2021\n"
 "Language-Team: French (https://www.transifex.com/odoo/teams/41243/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Language: fr\n"
-"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #. module: website_event_questions
 #: model:event.question.answer,name:website_event_questions.event_0_question_2_answer_2
 msgid "A friend"
-msgstr "Un ami"
+msgstr ""
 
 #. module: website_event_questions
 #: model:event.question,title:website_event_questions.event_0_question_1
 msgid "Allergies"
-msgstr "Allergies"
+msgstr ""
 
 #. module: website_event_questions
 #: model:ir.model.fields,field_description:website_event_questions.field_event_question_answer__name
@@ -42,7 +42,7 @@ msgstr "Réponse"
 #: model_terms:ir.ui.view,arch_db:website_event_questions.event_registration_answer_view_pivot
 #: model_terms:ir.ui.view,arch_db:website_event_questions.event_registration_answer_view_tree
 msgid "Answer Breakdown"
-msgstr "Répartition des réponses"
+msgstr ""
 
 #. module: website_event_questions
 #: model:ir.model.fields,field_description:website_event_questions.field_event_question__answer_ids
@@ -54,12 +54,12 @@ msgstr "Réponses"
 #. module: website_event_questions
 #: model:ir.model.fields,field_description:website_event_questions.field_event_question__once_per_order
 msgid "Ask only once per order"
-msgstr "Demandez une seule fois par commande"
+msgstr ""
 
 #. module: website_event_questions
 #: model:ir.model.fields,field_description:website_event_questions.field_event_registration__registration_answer_ids
 msgid "Attendee Answers"
-msgstr "Réponses des participants"
+msgstr ""
 
 #. module: website_event_questions
 #: model:ir.model.fields,field_description:website_event_questions.field_event_registration_answer__partner_id
@@ -69,7 +69,7 @@ msgstr "Réservé par"
 #. module: website_event_questions
 #: model:event.question.answer,name:website_event_questions.event_0_question_2_answer_1
 msgid "Commercials"
-msgstr "Publicités"
+msgstr ""
 
 #. module: website_event_questions
 #: model:event.question.answer,name:website_event_questions.event_7_question_0_answer_0
@@ -142,12 +142,12 @@ msgstr "Questions générales"
 #. module: website_event_questions
 #: model:event.question,title:website_event_questions.event_7_question_1
 msgid "How did you hear about us ?"
-msgstr "Comment avez-vous entendu parler de nous ?"
+msgstr ""
 
 #. module: website_event_questions
 #: model:event.question,title:website_event_questions.event_0_question_2
 msgid "How did you learn about this event?"
-msgstr "Comment avez-vous découvert cet événement ?"
+msgstr ""
 
 #. module: website_event_questions
 #: model:ir.model.fields,field_description:website_event_questions.field_event_question__id
@@ -163,9 +163,6 @@ msgid ""
 "propagated to every attendees.If not it will be asked for every attendee of "
 "a reservation."
 msgstr ""
-"Si True, cette question ne sera posée qu'une seule fois et sa valeur sera "
-"propagée à tous les participants. Sinon, elle sera posée à tous les "
-"participants d'une réservation."
 
 #. module: website_event_questions
 #: model:ir.model.fields,field_description:website_event_questions.field_event_question____last_update
@@ -191,7 +188,7 @@ msgstr "Dernière mise à jour le"
 #. module: website_event_questions
 #: model:event.question,title:website_event_questions.event_0_question_0
 msgid "Meal Type"
-msgstr "Type de repas"
+msgstr ""
 
 #. module: website_event_questions
 #: model:event.question.answer,name:website_event_questions.event_0_question_0_answer_0
@@ -206,7 +203,7 @@ msgstr "Non"
 #. module: website_event_questions
 #: model:event.question.answer,name:website_event_questions.event_0_question_2_answer_0
 msgid "Our website"
-msgstr "Notre site web"
+msgstr ""
 
 #. module: website_event_questions
 #: model:event.question,title:website_event_questions.event_type_data_conference_question_0
@@ -216,7 +213,7 @@ msgstr ""
 #. module: website_event_questions
 #: model:event.question.answer,name:website_event_questions.event_0_question_0_answer_2
 msgid "Pastafarian"
-msgstr "Pastafarian"
+msgstr ""
 
 #. module: website_event_questions
 #: model:ir.model.fields,field_description:website_event_questions.field_event_question_answer__question_id
@@ -266,7 +263,7 @@ msgstr "Ventes"
 #. module: website_event_questions
 #: model_terms:ir.ui.view,arch_db:website_event_questions.event_registration_answer_view_tree
 msgid "Selected answer"
-msgstr "Réponse sélectionnée"
+msgstr ""
 
 #. module: website_event_questions
 #: model:ir.model.fields.selection,name:website_event_questions.selection__event_question__question_type__simple_choice
@@ -302,7 +299,7 @@ msgstr "Réponse texte"
 #. module: website_event_questions
 #: model:ir.model.constraint,message:website_event_questions.constraint_event_registration_answer_value_check
 msgid "There must be a suggested value or a text value."
-msgstr "Il doit y avoir une valeur suggérée ou une valeur de texte."
+msgstr ""
 
 #. module: website_event_questions
 #: model:ir.model.fields,field_description:website_event_questions.field_event_question__title
@@ -323,7 +320,7 @@ msgstr "Végétarien"
 #. module: website_event_questions
 #: model:event.question,title:website_event_questions.event_7_question_0
 msgid "Which field are you working in"
-msgstr "Dans quel domaine travaillez-vous"
+msgstr ""
 
 #. module: website_event_questions
 #: model:event.question.answer,name:website_event_questions.event_type_data_conference_question_0_answer_0
@@ -336,5 +333,3 @@ msgstr "Oui"
 msgid ""
 "You cannot change the question type of a question that already has answers!"
 msgstr ""
-"Vous ne pouvez pas modifier le type de question d'une question qui a déjà "
-"des réponses !"

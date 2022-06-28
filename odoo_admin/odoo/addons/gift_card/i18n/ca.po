@@ -9,8 +9,6 @@
 # Manel Fernandez Ramirez <manelfera@outlook.com>, 2021
 # José Cabrera Lozano <jose.cabrera@edukative.es>, 2021
 # jabelchi, 2021
-# Harcogourmet, 2022
-# marcescu, 2022
 # 
 msgid ""
 msgstr ""
@@ -18,7 +16,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:22+0000\n"
-"Last-Translator: marcescu, 2022\n"
+"Last-Translator: jabelchi, 2021\n"
 "Language-Team: Catalan (https://www.transifex.com/odoo/teams/41243/ca/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -72,7 +70,7 @@ msgstr "Divisa"
 #: code:addons/gift_card/models/product.py:0
 #, python-format
 msgid "Deleting the Gift Card Pay product is not allowed."
-msgstr "No es permet suprimir el producte de la targeta de regal."
+msgstr ""
 
 #. module: gift_card
 #: model:ir.model.fields,field_description:gift_card.field_gift_card__display_name
@@ -87,13 +85,13 @@ msgstr "Expirat"
 #. module: gift_card
 #: model:ir.model.fields,field_description:gift_card.field_gift_card__expired_date
 msgid "Expired Date"
-msgstr "Data de venciment"
+msgstr ""
 
 #. module: gift_card
 #: code:addons/gift_card/models/gift_card.py:0
 #, python-format
 msgid "Gift #%s"
-msgstr "Regal #%s"
+msgstr ""
 
 #. module: gift_card
 #: model:ir.model,name:gift_card.model_gift_card
@@ -105,12 +103,12 @@ msgstr "Regal #%s"
 #: model_terms:ir.ui.view,arch_db:gift_card.gift_card_view_search
 #: model_terms:ir.ui.view,arch_db:gift_card.gift_card_view_tree
 msgid "Gift Card"
-msgstr "Targeta Regal"
+msgstr ""
 
 #. module: gift_card
 #: model:ir.actions.act_window,name:gift_card.gift_card_action
 msgid "Gift Cards"
-msgstr "Targetes de regal"
+msgstr ""
 
 #. module: gift_card
 #: model:ir.model.fields,field_description:gift_card.field_gift_card__id
@@ -120,12 +118,12 @@ msgstr "ID"
 #. module: gift_card
 #: model:ir.model.fields,help:gift_card.field_gift_card__partner_id
 msgid "If empty, all users can use it"
-msgstr "Si està buit, tots els usuaris poden utilitzar-lo"
+msgstr ""
 
 #. module: gift_card
 #: model:ir.model.fields,field_description:gift_card.field_gift_card__initial_amount
 msgid "Initial Amount"
-msgstr "Import inicial"
+msgstr ""
 
 #. module: gift_card
 #: model:ir.model.fields,field_description:gift_card.field_gift_card____last_update
@@ -171,12 +169,12 @@ msgstr "Estat/Província"
 #. module: gift_card
 #: model:ir.model.constraint,message:gift_card.constraint_gift_card_unique_gift_card_code
 msgid "The gift card code must be unique."
-msgstr "El codi de targeta de regal ha de ser únic."
+msgstr ""
 
 #. module: gift_card
 #: model:ir.model.constraint,message:gift_card.constraint_gift_card_check_amount
 msgid "The initial amount must be positive."
-msgstr "La quantitat inicial ha de ser positiva."
+msgstr ""
 
 #. module: gift_card
 #: model:product.product,uom_name:gift_card.gift_card_product_50

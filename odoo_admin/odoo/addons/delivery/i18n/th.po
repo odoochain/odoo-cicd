@@ -4,10 +4,11 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
+# Seksan Poltree <seksan.poltree@gmail.com>, 2021
 # Khwunchai Jaengsawang <khwunchai.j@ku.th>, 2021
 # monchai7 <montchye@gmail.com>, 2021
 # Pornvibool Tippayawat <pornvibool.t@gmail.com>, 2021
-# Wichanon Jamwutthipreecha, 2022
+# Wichanon Jamwutthipreecha, 2021
 # 
 msgid ""
 msgstr ""
@@ -15,7 +16,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-11-16 13:19+0000\n"
 "PO-Revision-Date: 2021-09-14 12:21+0000\n"
-"Last-Translator: Wichanon Jamwutthipreecha, 2022\n"
+"Last-Translator: Wichanon Jamwutthipreecha, 2021\n"
 "Language-Team: Thai (https://www.transifex.com/odoo/teams/41243/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,17 +28,17 @@ msgstr ""
 #: code:addons/delivery/models/sale_order.py:0
 #, python-format
 msgid " (Estimated Cost: %s )"
-msgstr " (ราคาโดยประมาณ: %s )"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_quant_package_weight_form
 msgid "(computed:"
-msgstr "(คำนวณแล้ว:"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
 msgid "<i class=\"fa fa-arrow-right mr-1\"/>Get rate"
-msgstr "<i class=\"fa fa-arrow-right mr-1\"/>รับอัตรา"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/models/delivery_carrier.py:0
@@ -47,9 +48,6 @@ msgid ""
 "                    Buy Odoo Enterprise now to get more providers.\n"
 "                </p>"
 msgstr ""
-"<p class=\"o_view_nocontent\">\n"
-"                    ซื้อ Odoo Enterprise ตอนนี้เพื่อรับผู้ให้บริการเพิ่มเติม\n"
-"                </p>"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
@@ -57,18 +55,16 @@ msgid ""
 "<span class=\"o_warning_text\">Test</span>\n"
 "                                    <span class=\"o_stat_text\">Environment</span>"
 msgstr ""
-"<span class=\"o_warning_text\">ทดลอง</span>\n"
-"                                    <span class=\"o_stat_text\">สภาพแวดล้อม</span>"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "<span class=\"text-danger\">No debug</span>"
-msgstr "<span class=\"text-danger\">ไม่มีการดีบัก</span>"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "<span class=\"text-success\">Debug requests</span>"
-msgstr "<span class=\"text-success\">คำร้องขอดีบัก</span>"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
@@ -76,35 +72,33 @@ msgid ""
 "<span class=\"text-success\">Production</span>\n"
 "                                    <span class=\"o_stat_text\">Environment</span>"
 msgstr ""
-"<span class=\"text-success\">การผลิต</span>\n"
-"                                    <span class=\"o_stat_text\">สภาพแวดล้อม</span>"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.stock_report_delivery_package_section_line_inherit_delivery
 msgid "<span> - Weight (estimated): </span>"
-msgstr "<span> - น้ำหนัก (โดยประมาณ): </span>"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_stock_report_delivery_no_package_section_line
 #: model_terms:ir.ui.view,arch_db:delivery.stock_report_delivery_package_section_line_inherit_delivery
 msgid "<span> - Weight: </span>"
-msgstr "<span> - น้ำหนัก: </span>"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_package_barcode_small_delivery
 msgid "<span>Shipping Weight: </span>"
-msgstr "<span>น้ำหนักการจัดส่ง: </span>"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_delivery_document2
 #: model_terms:ir.ui.view,arch_db:delivery.report_shipping2
 msgid "<strong>Carrier:</strong>"
-msgstr "<strong>ผู้ให้บริการ:</strong>"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_delivery_document2
 msgid "<strong>HS Code</strong>"
-msgstr "<strong>HS โค้ด</strong>"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_package_barcode_delivery
@@ -112,8 +106,6 @@ msgid ""
 "<strong>Shipping Weight:</strong>\n"
 "                <br/>"
 msgstr ""
-"<strong>น้ำหนักการจัดส่ง:</strong>\n"
-"                <br/>"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_delivery_document2
@@ -121,13 +113,11 @@ msgid ""
 "<strong>Total Weight:</strong>\n"
 "                <br/>"
 msgstr ""
-"<strong>น้ำหนักรวม:</strong>\n"
-"                <br/>"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_delivery_document2
 msgid "<strong>Tracking Number:</strong>"
-msgstr "<strong>หมายเลขติดตาม:</strong>"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.report_shipping2
@@ -135,13 +125,11 @@ msgid ""
 "<strong>Weight:</strong>\n"
 "                <br/>"
 msgstr ""
-"<strong>น้ำหนัก:</strong>\n"
-"                <br/>"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__integration_level
 msgid "Action while validating Delivery Orders"
-msgstr "ดำเนินการขณะตรวจสอบคำสั่งจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__active
@@ -158,12 +146,12 @@ msgstr "เพิ่ม"
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
 #, python-format
 msgid "Add a shipping method"
-msgstr "เพิ่มวิธีการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
 msgid "Add shipping"
-msgstr "เพิ่มการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__amount
@@ -175,7 +163,7 @@ msgstr "จำนวน"
 msgid ""
 "Amount of the order to benefit from a free shipping, expressed in the "
 "company currency"
-msgstr "จำนวนคำสั่งที่ได้รับประโยชน์จากการจัดส่งฟรี แสดงเป็นสกุลเงินของบริษัท"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
@@ -186,22 +174,22 @@ msgstr "เก็บถาวร"
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__available_carrier_ids
 msgid "Available Carriers"
-msgstr "ผู้ให้บริการที่มีอยู่"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_carrier__delivery_type__base_on_rule
 msgid "Based on Rules"
-msgstr "อิงตามกฎ"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__weight_bulk
 msgid "Bulk Weight"
-msgstr "น้ำหนักรวม"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__can_generate_return
 msgid "Can Generate Return"
-msgstr "สามารถสร้างการคืน"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_picking_withcarrier_out_form
@@ -217,17 +205,17 @@ msgstr "ยกเลิก"
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_tree
 msgid "Carrier"
-msgstr "ผู้ให้บริการ"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_stock_package_type__shipper_package_code
 msgid "Carrier Code"
-msgstr "โค้ดผู้ให้บริการ"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_choose_delivery_carrier__carrier_id
 msgid "Choose the method to deliver your goods"
-msgstr "เลือกวิธีการส่งสินค้า"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__company_id
@@ -285,39 +273,39 @@ msgstr "ลูกค้า"
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__debug_logging
 msgid "Debug logging"
-msgstr "การบันทึกดีบัก"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_res_partner__property_delivery_carrier_id
 #: model:ir.model.fields,help:delivery.field_res_users__property_delivery_carrier_id
 msgid "Default delivery method used in sales orders."
-msgstr "วิธีการจัดส่งเริ่มต้นที่ใช้ในคำสั่งขาย"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.actions.act_window,help:delivery.action_delivery_carrier_form
 msgid "Define a new delivery method"
-msgstr "กำหนดวิธีการจัดส่งใหม่"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
 msgid "Delivery Carrier"
-msgstr "ผู้ให้บริการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_choose_delivery_carrier
 msgid "Delivery Carrier Selection Wizard"
-msgstr "ตัวช่วยการเลือกผู้ให้บริการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_form
 msgid "Delivery Cost"
-msgstr "ค่าจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__delivery_message
 #: model:ir.model.fields,field_description:delivery.field_sale_order__delivery_message
 msgid "Delivery Message"
-msgstr "ข้อความจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__name
@@ -330,22 +318,22 @@ msgstr "วิธีการจัดส่งสินค้า"
 #. module: delivery
 #: model:ir.model,name:delivery.model_choose_delivery_package
 msgid "Delivery Package Selection Wizard"
-msgstr "ตัวช่วยการเลือกแพ็คเกจการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_package__delivery_package_type_id
 msgid "Delivery Package Type"
-msgstr "ประเภทแพ็คเกจการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__delivery_price
 msgid "Delivery Price"
-msgstr "ราคาส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_delivery_price_rule
 msgid "Delivery Price Rules"
-msgstr "กฎราคาส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__product_id
@@ -355,18 +343,18 @@ msgstr "สินค้าจัดส่ง"
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__delivery_rating_success
 msgid "Delivery Rating Success"
-msgstr "คะแนนการจัดส่งสำเร็จ"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__delivery_set
 msgid "Delivery Set"
-msgstr "ชุดจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__recompute_delivery_price
 #: model:ir.model.fields,field_description:delivery.field_sale_order_line__recompute_delivery_price
 msgid "Delivery cost should be recomputed"
-msgstr "ค่าจัดส่งควรจะคำนวณใหม่"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.vpicktree_view_tree
@@ -376,24 +364,24 @@ msgstr "ปลายทาง"
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Destination Availability"
-msgstr "ความพร้อมของจุดหมายปลายทาง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_stock_move_line__destination_country_code
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__destination_country_code
 msgid "Destination Country"
-msgstr "ประเทศปลายทาง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__sequence
 msgid "Determine the display order"
-msgstr "กำหนดลำดับการแสดงผล"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
 #: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_package_view_form
 msgid "Discard"
-msgstr "ละทิ้ง"
+msgstr "ยกเลิก"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__display_name
@@ -401,12 +389,12 @@ msgstr "ละทิ้ง"
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__display_name
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__display_name
 msgid "Display Name"
-msgstr "แสดงชื่อ"
+msgstr "ชื่อที่ใช้แสดง"
 
 #. module: delivery
 #: model:ir.actions.act_window,name:delivery.act_delivery_trackers_url
 msgid "Display tracking links"
-msgstr "แสดงลิงก์ติดตาม"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.actions.act_window,help:delivery.action_delivery_carrier_form
@@ -415,21 +403,18 @@ msgid ""
 "                UPS Express, UPS Standard) with a set of pricing rules attached\n"
 "                to each method."
 msgstr ""
-"ผู้ให้บริการแต่ละราย (เช่น UPS) สามารถมีวิธีการจัดส่งได้หลายวิธี (เช่น\n"
-"                UPS Express, UPS Standard) พร้อมชุดกฎการกำหนดราคาที่แนบมา\n"
-"                ในแต่ละวิธี"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__prod_environment
 msgid "Environment"
-msgstr "สภาพแวดล้อม"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/models/delivery_carrier.py:0
 #: code:addons/delivery/models/delivery_grid.py:0
 #, python-format
 msgid "Error: this delivery method is not available for this address."
-msgstr "ข้อผิดพลาด: วิธีการจัดส่งนี้ไม่สามารถใช้ได้สำหรับที่อยู่นี้"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__invoice_policy
@@ -437,19 +422,16 @@ msgid ""
 "Estimated Cost: the customer will be invoiced the estimated cost of the shipping.\n"
 "Real Cost: the customer will be invoiced the real cost of the shipping, the cost of the shipping will be updated on the SO after the delivery."
 msgstr ""
-"ต้นทุนโดยประมาณ: ลูกค้าจะได้รับใบแจ้งหนี้เป็นต้นทุนโดยประมาณของการจัดส่ง\n"
-"ต้นทุนจริง: ลูกค้าจะได้รับใบแจ้งหนี้เป็นต้นทุนจริงของการจัดส่ง ต้นทุนของการจัดส่งจะได้รับการอัปเดตใน SO หลังจากการส่งมอบ"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_carrier__invoice_policy__estimated
 msgid "Estimated cost"
-msgstr "ต้นทุนโดยประมาณ"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_sale_order__carrier_id
 msgid "Fill this field if you plan to invoice the shipping based on picking."
 msgstr ""
-"กรอกข้อมูลในฟิลด์นี้หากคุณวางแผนที่จะออกใบแจ้งหนี้สำหรับการจัดส่งตามการรับ"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
@@ -457,7 +439,6 @@ msgid ""
 "Filling this form allows you to filter delivery carriers according to the "
 "delivery address of your customer."
 msgstr ""
-"การกรอกแบบฟอร์มนี้ทำให้คุณสามารถกรองผู้ให้บริการจัดส่งตามที่อยู่จัดส่งของลูกค้าของคุณ"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__fixed_price
@@ -476,27 +457,27 @@ msgstr "จัดส่งฟรี"
 #: model:product.product,name:delivery.product_product_delivery
 #: model:product.template,name:delivery.product_product_delivery_product_template
 msgid "Free delivery charges"
-msgstr "ค่าจัดส่งฟรี"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__free_over
 msgid "Free if order amount is above"
-msgstr "ฟรีหากยอดคำสั่งซื้อเกิน"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__return_label_on_delivery
 msgid "Generate Return Label"
-msgstr "สร้างฉลากส่งคืน"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_carrier__integration_level__rate
 msgid "Get Rate"
-msgstr "รับอัตรา"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_carrier__integration_level__rate_and_ship
 msgid "Get Rate and Create Shipment"
-msgstr "รับอัตราและสร้างการขนส่ง"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_search
@@ -507,7 +488,7 @@ msgstr "จัดกลุ่มตาม"
 #: model:ir.model.fields,field_description:delivery.field_product_product__hs_code
 #: model:ir.model.fields,field_description:delivery.field_product_template__hs_code
 msgid "HS Code"
-msgstr "HS โค้ด"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__id
@@ -515,7 +496,7 @@ msgstr "HS โค้ด"
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__id
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__id
 msgid "ID"
-msgstr "ไอดี"
+msgstr "รหัส"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__free_over
@@ -523,23 +504,21 @@ msgid ""
 "If the order total amount (shipping excluded) is above or equal to this "
 "value, the customer benefits from a free shipping"
 msgstr ""
-"หากยอดรวมของคำสั่งซื้อ (ไม่รวมค่าจัดส่ง) สูงกว่าหรือเท่ากับมูลค่านี้ "
-"ลูกค้าจะได้ประโยชน์จากการจัดส่งฟรี"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Install more Providers"
-msgstr "ติดตั้งผู้ให้บริการเพิ่มเติม"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__integration_level
 msgid "Integration Level"
-msgstr "ระดับการผสาน"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__invoicing_message
 msgid "Invoicing Message"
-msgstr "ข้อความแจ้งหนี้"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__invoice_policy
@@ -549,7 +528,7 @@ msgstr "นโยบายการแจ้งหนี้"
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__is_return_picking
 msgid "Is Return Picking"
-msgstr "คือการรับคืน"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order_line__is_delivery
@@ -562,7 +541,7 @@ msgstr "เป็นการจัดส่ง"
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier____last_update
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule____last_update
 msgid "Last Modified on"
-msgstr "แก้ไขครั้งล่าสุดเมื่อ"
+msgstr "แก้ไขครั้งสุดท้ายเมื่อ"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__write_uid
@@ -570,7 +549,7 @@ msgstr "แก้ไขครั้งล่าสุดเมื่อ"
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__write_uid
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__write_uid
 msgid "Last Updated by"
-msgstr "อัปเดตครั้งล่าสุดโดย"
+msgstr "อัพเดทครั้งสุดท้ายโดย"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__write_date
@@ -578,12 +557,12 @@ msgstr "อัปเดตครั้งล่าสุดโดย"
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__write_date
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__write_date
 msgid "Last Updated on"
-msgstr "อัปเดตครั้งล่าสุดเมื่อ"
+msgstr "อัพเดทครั้งสุดท้ายเมื่อ"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__debug_logging
 msgid "Log requests in order to ease debugging"
-msgstr "บันทึกคำขอเพื่อความสะดวกในการดีบัก"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__margin
@@ -593,17 +572,17 @@ msgstr "อัตรากำไรขั้นต้น"
 #. module: delivery
 #: model:ir.model.constraint,message:delivery.constraint_delivery_carrier_margin_not_under_100_percent
 msgid "Margin cannot be lower than -100%"
-msgstr "อัตรากำไรขั้นต้นต้องไม่ต่ำกว่า -100%"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Margin on Rate"
-msgstr "อัตรากำไรขั้นต้นบนอัตรา"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__max_value
 msgid "Maximum Value"
-msgstr "ค่าสูงสุด"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__name
@@ -613,20 +592,20 @@ msgstr "ชื่อ"
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__stock_package_type__package_carrier_type__none
 msgid "No carrier integration"
-msgstr "ไม่มีการผสานรวมผู้ให้บริการ"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/models/delivery_grid.py:0
 #, python-format
 msgid "No price rule matching this order; delivery cost cannot be computed."
-msgstr "ไม่มีกฎราคาที่ตรงกับคำสั่งนี้ ไม่สามารถคำนวณค่าจัดส่งได้"
+msgstr ""
 
 #. module: delivery
 #: model:delivery.carrier,name:delivery.normal_delivery_carrier
 #: model:product.product,name:delivery.product_product_delivery_normal
 #: model:product.template,name:delivery.product_product_delivery_normal_product_template
 msgid "Normal Delivery Charges"
-msgstr "ค่าจัดส่งแบบธรรมดา"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_tracking_url_warning_form
@@ -641,35 +620,35 @@ msgstr "ผู้ปฏิบัติการ"
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__order_id
 msgid "Order"
-msgstr "คำสั่ง"
+msgstr "Order"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_package_view_form
 msgid "Package"
-msgstr "แพ็คเกจ"
+msgstr "หีบห่อ"
 
 #. module: delivery
 #: code:addons/delivery/models/stock_picking.py:0
 #, python-format
 msgid "Package Details"
-msgstr "รายละเอียดแพ็คเกจ"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/wizard/choose_delivery_package.py:0
 #, python-format
 msgid "Package too heavy!"
-msgstr "บรรจุุภัณฑ์หนักมาก!"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_stock_quant_package
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__package_ids
 msgid "Packages"
-msgstr "แพ็คเกจ"
+msgstr "หีบห่อ"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_package__picking_id
 msgid "Picking"
-msgstr "การรับ"
+msgstr "การรับสินค้า"
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_price_rule__variable__price
@@ -681,28 +660,28 @@ msgstr "ราคา"
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_form
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_price_rule_tree
 msgid "Price Rules"
-msgstr "กฎราคา"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Pricing"
-msgstr "กำหนดราคา"
+msgstr "ราคา"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__price_rule_ids
 msgid "Pricing Rules"
-msgstr "กฎการกำหนดราคา"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.sale_order_portal_content_inherit_sale_stock_inherit_website_sale_delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_picking_withcarrier_out_form
 msgid "Print Return Label"
-msgstr "พิมพ์ฉลากการคืน"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_stock_move_line
 msgid "Product Moves (Stock Move Line)"
-msgstr "ย้ายสินค้า ( ไลน์เคลื่อนย้ายสต๊อก )"
+msgstr "เคลื่อนย้ายสินค้า ( ในสต็อค )"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order_line__product_qty
@@ -712,7 +691,7 @@ msgstr "ปริมาณสินค้า"
 #. module: delivery
 #: model:ir.model,name:delivery.model_product_template
 msgid "Product Template"
-msgstr "เทมเพลตสินค้า"
+msgstr "รูปแบบสินค้า"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__delivery_type
@@ -731,27 +710,27 @@ msgstr "จำนวน"
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_carrier__invoice_policy__real
 msgid "Real cost"
-msgstr "ต้นทุนจริง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__return_label_ids
 msgid "Return Label"
-msgstr "ฉลากการส่งคืน"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__get_return_label_from_portal
 msgid "Return Label Accessible from Customer Portal"
-msgstr "ฉลากส่งคืนที่เข้าถึงได้จากพอร์ทัลลูกค้า"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_stock_return_picking
 msgid "Return Picking"
-msgstr "การรับคืน"
+msgstr "ส่งคืนการหยิบ"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__list_base_price
 msgid "Sale Base Price"
-msgstr "ฐานราคาการขาย"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__list_price
@@ -762,12 +741,12 @@ msgstr "ราคาขาย"
 #. module: delivery
 #: model:ir.model,name:delivery.model_sale_order
 msgid "Sales Order"
-msgstr "คำสั่งขาย"
+msgstr "ใบสั่งขาย"
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_sale_order_line
 msgid "Sales Order Line"
-msgstr "ไลน์คำสั่งขาย"
+msgstr "รายการคำสั่งขาย"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_package_view_form
@@ -777,7 +756,7 @@ msgstr "บันทึก"
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_picking_withcarrier_out_form
 msgid "Send to Shipper"
-msgstr "ส่งไปยังผู้จัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__sequence
@@ -788,12 +767,12 @@ msgstr "ลำดับ"
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_sale_order__is_all_service
 msgid "Service Product"
-msgstr "สินค้าบริการ"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__prod_environment
 msgid "Set to True if your credentials are certified for production."
-msgstr "ตั้งค่าเป็น จริง หากข้อมูลประจำตัวของคุณได้รับการรับรองสำหรับการผลิต"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/models/stock_picking.py:0
@@ -802,24 +781,22 @@ msgid ""
 "Shipment sent to carrier %(carrier_name)s for shipping with tracking number "
 "%(ref)s<br/>Cost: %(price).2f %(currency)s"
 msgstr ""
-"จัดส่งไปยังผู้ให้บริการ %(carrier_name)sสำหรับการจัดส่งพร้อมหมายเลขติดตาม "
-"%(ref)s<br/>ต้นทุน: %(price).2f %(currency)s"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__carrier_price
 msgid "Shipping Cost"
-msgstr "ต้นทุนการจัดส่ง"
+msgstr "ค่าใช้จ่ายในการจัดส่ง"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_picking_withcarrier_out_form
 msgid "Shipping Information"
-msgstr "ข้อมูลการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_carrier__carrier_id
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "Shipping Method"
-msgstr "วิธีการการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.actions.act_window,name:delivery.action_delivery_carrier_form
@@ -843,13 +820,11 @@ msgid ""
 "Standardized code for international shipping and goods declaration. At the "
 "moment, only used for the FedEx shipping provider."
 msgstr ""
-"รหัสมาตรฐานสำหรับการขนส่งระหว่างประเทศและการประกาศสินค้า "
-"ซึ่งในขณะนี้ใช้สำหรับผู้ให้บริการจัดส่งของ FedEx เท่านั้น"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__state_ids
 msgid "States"
-msgstr "รัฐ"
+msgstr "จังหวัด"
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_stock_move
@@ -859,7 +834,7 @@ msgstr "ย้ายสต็อก"
 #. module: delivery
 #: model:ir.model,name:delivery.model_stock_package_type
 msgid "Stock package type"
-msgstr "ประเภทของบรรจุภัณฑ์สต๊อก"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_stock_move_line__destination_country_code
@@ -868,38 +843,36 @@ msgid ""
 "The ISO country code in two chars. \n"
 "You can use this field for quick search."
 msgstr ""
-"โค้ดประเทศ ISO ในสองตัวอักษร\n"
-"คุณสามารถใช้ช่องนี้เพื่อการค้นหาอย่างรวดเร็ว"
 
 #. module: delivery
 #: model:delivery.carrier,name:delivery.delivery_carrier
 #: model:product.product,name:delivery.product_product_delivery_poste
 #: model:product.template,name:delivery.product_product_delivery_poste_product_template
 msgid "The Poste"
-msgstr "The Poste"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__get_return_label_from_portal
 msgid ""
 "The return label can be downloaded by the customer from the customer portal."
-msgstr "ลูกค้าสามารถดาวน์โหลดฉลากคืนสินค้าได้จากพอร์ทัลลูกค้า"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__return_label_on_delivery
 msgid "The return label is automatically generated at the delivery."
-msgstr "ฉลากส่งคืนจะถูกสร้างขึ้นโดยอัตโนมัติเมื่อจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/models/delivery_carrier.py:0
 #, python-format
 msgid "The shipping is free since the order amount exceeds %.2f."
-msgstr "การจัดส่งฟรีเนื่องจากยอดคำสั่งซื้อเกิน%.2f"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/wizard/choose_delivery_carrier.py:0
 #, python-format
 msgid "The shipping price will be set once the delivery is done."
-msgstr "ราคาขนส่งจะถูกกำหนดเมื่อการจัดส่งเสร็จสิ้น"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/wizard/choose_delivery_package.py:0
@@ -908,14 +881,12 @@ msgid ""
 "The weight of your package is higher than the maximum weight authorized for "
 "this package type. Please choose another package type."
 msgstr ""
-"น้ำหนักของบรรจุภัณฑ์คุณสูงกว่าน้ำหนักสูงสุดที่อนุญาตสำหรับบรรจุภัณฑ์ประเภทนี้"
-" โปรดเลือกประเภทบรรจุภัณฑ์อื่น"
 
 #. module: delivery
 #: code:addons/delivery/models/delivery_grid.py:0
 #, python-format
 msgid "There is no matching delivery rule."
-msgstr "ไม่มีกฎการจัดส่งที่ตรงกัน"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.actions.act_window,help:delivery.action_delivery_carrier_form
@@ -924,19 +895,16 @@ msgid ""
 "                according to your settings; on the sales order (based on the\n"
 "                quotation) or the invoice (based on the delivery orders)."
 msgstr ""
-"วิธีการเหล่านี้ช่วยให้คำนวณราคาจัดส่งได้โดยอัตโนมัติ\n"
-"               ตามการตั้งค่าของคุณ ในคำสั่งขาย (ขึ้นอยู่กับ\n"
-"                ใบเสนอราคา) หรือใบแจ้งหนี้ (ตามคำสั่งจัดส่ง)"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_delivery_carrier__margin
 msgid "This percentage will be added to the shipping price."
-msgstr "เปอร์เซ็นต์นี้จะถูกเพิ่มเข้าไปในราคาจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_stock_quant_package__weight
 msgid "Total weight of all the products contained in the package."
-msgstr "น้ำหนักรวมของสินค้าทั้งหมดที่อยู่ในบรรจุภัณฑ์"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_stock_picking__shipping_weight
@@ -945,29 +913,26 @@ msgid ""
 "shipping weight specified will default to their products' total weight. This"
 " is the weight used to compute the cost of the shipping."
 msgstr ""
-"น้ำหนักรวมของบรรจุภัณฑ์และผลิตภัณฑ์ที่ไม่อยู่ในบรรจุภัณฑ์ "
-"บรรจุภัณฑ์ที่ไม่ได้ระบุน้ำหนักในการจัดส่งจะใช้ค่าเริ่มต้นเป็นน้ำหนักรวมของสินค้า"
-" นี่คือน้ำหนักที่ใช้ในการคำนวณต้นทุนของการขนส่ง"
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_stock_picking__weight_bulk
 msgid "Total weight of products which are not in a package."
-msgstr "น้ำหนักรวมของสินค้าที่ไม่ได้อยู่ในบรรจุภัณฑ์"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_stock_quant_package__shipping_weight
 msgid "Total weight of the package."
-msgstr "น้ำหนักรวมของบรรจุภัณฑ์"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,help:delivery.field_stock_picking__weight
 msgid "Total weight of the products in the picking."
-msgstr "น้ำหนักรวมของสินค้าในการรับ"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_tracking_url_warning_form
 msgid "Trackers URL"
-msgstr "ตัวติดตาม URL"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_picking_withcarrier_out_form
@@ -977,22 +942,22 @@ msgstr "การติดตาม"
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__carrier_tracking_ref
 msgid "Tracking Reference"
-msgstr "อ้างอิงการติดตาม"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__carrier_tracking_url
 msgid "Tracking URL"
-msgstr "การติดตาม URL"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.sale_order_portal_content_inherit_sale_stock_inherit_website_sale_delivery
 msgid "Tracking:"
-msgstr "การติดตาม:"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model,name:delivery.model_stock_picking
 msgid "Transfer"
-msgstr "โอน"
+msgstr "การโอน"
 
 #. module: delivery
 #: model:product.product,uom_name:delivery.product_product_delivery
@@ -1007,24 +972,24 @@ msgstr "หน่วย"
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.choose_delivery_carrier_view_form
 msgid "Update"
-msgstr "อัปเดต"
+msgstr "อัพเดท"
 
 #. module: delivery
 #: code:addons/delivery/models/sale_order.py:0
 #: model_terms:ir.ui.view,arch_db:delivery.view_order_form_with_carrier
 #, python-format
 msgid "Update shipping cost"
-msgstr "อัปเดตค่าจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__variable
 msgid "Variable"
-msgstr "ตัวแปร"
+msgstr "ตัวแปล"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_price_rule__variable_factor
 msgid "Variable Factor"
-msgstr "ปัจจัยตัวแปร"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields.selection,name:delivery.selection__delivery_price_rule__variable__volume
@@ -1051,19 +1016,19 @@ msgstr "น้ำหนัก * ปริมาตร"
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__shipping_weight
 msgid "Weight for Shipping"
-msgstr "น้ำหนักในการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_picking_withcarrier_out_form
 msgid "Weight for shipping"
-msgstr "น้ำหนักในการจัดส่ง"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_choose_delivery_package__weight_uom_name
 #: model:ir.model.fields,field_description:delivery.field_stock_picking__weight_uom_name
 #: model:ir.model.fields,field_description:delivery.field_stock_quant_package__weight_uom_name
 msgid "Weight unit of measure label"
-msgstr "หน่วยฉลากน้ำหนัก"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/models/sale_order.py:0
@@ -1074,15 +1039,11 @@ msgid ""
 "The following delivery lines (product, invoiced quantity and price) have already been processed:\n"
 "\n"
 msgstr ""
-"คุณไม่สามารถอัปเดตค่าจัดส่งในคำสั่งที่มีการออกใบแจ้งหนี้แล้ว!\n"
-"\n"
-"ไลน์การจัดส่งต่อไปนี้ (สินค้า ปริมาณที่ออกใบแจ้งหนี้ และราคา) ได้รับการประมวลผลแล้ว:\n"
-"\n"
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.delivery_tracking_url_warning_form
 msgid "You have multiple tracker links, they are available in the chatter."
-msgstr "คุณมีลิงก์ติดตามหลายลิงก์ซึ่งอยู่ในแชท"
+msgstr ""
 
 #. module: delivery
 #: code:addons/delivery/models/stock_picking.py:0
@@ -1091,19 +1052,18 @@ msgid ""
 "Your delivery method has no redirect on courier provider's website to track "
 "this order."
 msgstr ""
-"วิธีการจัดส่งของคุณไม่มีการเปลี่ยนเส้นทางบนเว็บไซต์ของผู้ให้บริการจัดส่งเพื่อติดตามคำสั่งนี้"
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__zip_from
 msgid "Zip From"
-msgstr "รหัสไปรษณีย์จาก"
+msgstr ""
 
 #. module: delivery
 #: model:ir.model.fields,field_description:delivery.field_delivery_carrier__zip_to
 msgid "Zip To"
-msgstr "รหัสไปรษณีย์ถึง"
+msgstr ""
 
 #. module: delivery
 #: model_terms:ir.ui.view,arch_db:delivery.view_delivery_carrier_form
 msgid "e.g. UPS Express"
-msgstr "เช่น UPS เอ็กซ์เพรส"
+msgstr ""

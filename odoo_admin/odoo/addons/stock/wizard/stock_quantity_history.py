@@ -3,7 +3,6 @@
 
 from odoo import _, fields, models
 from odoo.osv import expression
-from odoo.tools.misc import format_datetime
 
 
 class StockQuantityHistory(models.TransientModel):
@@ -34,6 +33,5 @@ class StockQuantityHistory(models.TransientModel):
             'res_model': 'product.product',
             'domain': domain,
             'context': dict(self.env.context, to_date=self.inventory_datetime),
-            'display_name': format_datetime(self.env, self.inventory_datetime)
         }
         return action

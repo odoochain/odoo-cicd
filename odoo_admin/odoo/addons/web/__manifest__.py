@@ -282,7 +282,7 @@ This module provides the core of the Odoo Web Client.
             'web/static/src/legacy/js/report/report.js',
         ],
         'web.report_assets_pdf': [
-            'web/static/src/legacy/js/report/reset.min.css',
+            'web/static/src/css/reset.min.css',
         ],
 
         # ---------------------------------------------------------------------

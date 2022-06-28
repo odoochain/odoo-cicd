@@ -99,7 +99,7 @@ class Channel(models.Model):
 
     @api.constrains('channel_last_seen_partner_ids', 'channel_partner_ids')
     def _constraint_partners_chat(self):
-        for ch in self.sudo().filtered(lambda ch: ch.channel_type == 'chat'):
+        for ch in self.filtered(lambda ch: ch.channel_type == 'chat'):
             if len(ch.channel_last_seen_partner_ids) > 2 or len(ch.channel_partner_ids) > 2:
                 raise ValidationError(_("A channel of type 'chat' cannot have more than two users."))
 
@@ -145,7 +145,7 @@ class Channel(models.Model):
         if new_members:
             self.env['mail.channel.partner'].create(new_members)
         if outdated:
-            outdated.sudo().unlink()
+            outdated.unlink()
 
     def _search_channel_partner_ids(self, operator, operand):
         return [(
@@ -317,13 +317,6 @@ class Channel(models.Model):
                         channel_name=channel.name,
                         group_name=channel.group_public_id.name,
                         partner_names=', '.join(partner.name for partner in invalid_partners)
-                    ))
-                if guests:
-                    raise UserError(_(
-                        'Channel "%(channel_name)s" only accepts members of group "%(group_name)s". Forbidden for: %(guest_names)s',
-                        channel_name=channel.name,
-                        group_name=channel.group_public_id.name,
-                        guest_names=', '.join(guest.name for guest in guests)
                     ))
             existing_partners = self.env['res.partner'].search([('id', 'in', partners.ids), ('channel_ids', 'in', channel.id)])
             members_to_create += [{
@@ -584,13 +577,7 @@ class Channel(models.Model):
     def _message_compute_parent_id(self, parent_id):
         # super() unravels the chain of parents to set parent_id as the first
         # ancestor. We don't want that in channel.
-        if not parent_id:
-            return parent_id
-        return self.env['mail.message'].search(
-            [('id', '=', parent_id),
-             ('model', '=', self._name),
-             ('res_id', '=', self.id)
-            ]).id
+        return parent_id
 
     @api.returns('mail.message', lambda value: value.id)
     def message_post(self, *, message_type='notification', **kwargs):
@@ -804,10 +791,6 @@ class Channel(models.Model):
                     'fetched_message_id': cp.fetched_message_id.id,
                     'seen_message_id': cp.seen_message_id.id,
                 } for cp in members_by_channel[channel] if cp.partner_id], key=lambda p: p['partner_id'])
-                info['guestMembers'] = [('insert', sorted([{
-                    'id': member.guest_id.id,
-                    'name': member.guest_id.name,
-                } for member in members_by_channel[channel] if member.guest_id], key=lambda g: g['id']))]
 
             # add RTC sessions info
             info.update({
@@ -1079,7 +1062,7 @@ class Channel(models.Model):
         self.add_members(self.env.user.partner_id.ids)
 
     @api.model
-    def channel_create(self, name, privacy='groups'):
+    def channel_create(self, name, privacy='public'):
         """ Create a channel and add the current partner, broadcast it (to make the user directly
             listen to it when polling)
             :param name : the name of the channel to create

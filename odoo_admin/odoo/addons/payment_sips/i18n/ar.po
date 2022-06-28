@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:49+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,7 +24,6 @@ msgstr ""
 #, python-format
 msgid "Incorrect amount: received %(received).2f, expected %(expected).2f"
 msgstr ""
-"المبلغ غير صحيح: ما تم استلامه %(received).2f، المتوقع %(expected).2f "
 
 #. module: payment_sips
 #: model:ir.model.fields,field_description:payment_sips.field_payment_acquirer__sips_version
@@ -41,27 +39,27 @@ msgstr "معرف التاجر"
 #: code:addons/payment_sips/models/payment_transaction.py:0
 #, python-format
 msgid "No transaction found matching reference %s."
-msgstr "لم يتم العثور على معاملة تطابق المرجع %s. "
+msgstr ""
 
 #. module: payment_sips
 #: model:ir.model,name:payment_sips.model_payment_acquirer
 msgid "Payment Acquirer"
-msgstr "بوابة الدفع "
+msgstr "معالج السداد"
 
 #. module: payment_sips
 #: model:ir.model,name:payment_sips.model_account_payment_method
 msgid "Payment Methods"
-msgstr "طرق الدفع "
+msgstr "طرق السداد"
 
 #. module: payment_sips
 #: model:ir.model,name:payment_sips.model_payment_transaction
 msgid "Payment Transaction"
-msgstr "معاملة الدفع "
+msgstr "معاملة السداد"
 
 #. module: payment_sips
 #: model:ir.model.fields,field_description:payment_sips.field_payment_acquirer__sips_prod_url
 msgid "Production URL"
-msgstr "رابط URL للإنتاج "
+msgstr ""
 
 #. module: payment_sips
 #: model:ir.model.fields,field_description:payment_sips.field_payment_acquirer__provider
@@ -71,17 +69,17 @@ msgstr "المزود"
 #. module: payment_sips
 #: model:ir.model.fields,field_description:payment_sips.field_payment_acquirer__sips_secret
 msgid "SIPS Secret Key"
-msgstr "مفتاح SIPS السري "
+msgstr ""
 
 #. module: payment_sips
 #: model_terms:ir.ui.view,arch_db:payment_sips.payment_acquirer_form
 msgid "Secret Key"
-msgstr "المفتاح السري "
+msgstr "مفتاح سري"
 
 #. module: payment_sips
 #: model:ir.model.fields,field_description:payment_sips.field_payment_acquirer__sips_key_version
 msgid "Secret Key Version"
-msgstr "نسخة المفتاح السري "
+msgstr ""
 
 #. module: payment_sips
 #: model:account.payment.method,name:payment_sips.payment_method_sips
@@ -92,26 +90,26 @@ msgstr "Sips"
 #. module: payment_sips
 #: model:ir.model.fields,field_description:payment_sips.field_payment_acquirer__sips_test_url
 msgid "Test URL"
-msgstr "رابط URL اختباري "
+msgstr ""
 
 #. module: payment_sips
 #: model:ir.model.fields,help:payment_sips.field_payment_acquirer__sips_merchant_id
 msgid "The ID solely used to identify the merchant account with Sips"
-msgstr "المعرف مُستخدم فقط لتعريف حساب التاجر مع Sips "
+msgstr ""
 
 #. module: payment_sips
 #: model:ir.model.fields,help:payment_sips.field_payment_acquirer__provider
 msgid "The Payment Service Provider to use with this acquirer"
-msgstr "مقدم خدمة الدفع لاستخدامه مع بوابة الدفع هذه "
+msgstr ""
 
 #. module: payment_sips
 #: code:addons/payment_sips/models/payment_transaction.py:0
 #, python-format
 msgid "This currency is not supported: %s."
-msgstr "العملة غير مدعومة: %s. "
+msgstr ""
 
 #. module: payment_sips
 #: code:addons/payment_sips/models/payment_transaction.py:0
 #, python-format
 msgid "Unrecognized response received from the payment provider."
-msgstr "تم استلام رد غير معروف من مزود الدفع. "
+msgstr ""

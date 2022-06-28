@@ -29,7 +29,6 @@ class ResCompany(models.Model):
     l10n_es_edi_test_env = fields.Boolean(
         string="Test Mode",
         help="Use the test environment",
-        default=True,
     )
 
     @api.depends('country_id', 'l10n_es_edi_certificate_ids')

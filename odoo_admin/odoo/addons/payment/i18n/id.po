@@ -3,29 +3,18 @@
 # 	* payment
 # 
 # Translators:
-# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2022
-# Muftiara Syuhada <muftiara.syuhada@gmail.com>, 2022
-# Gradien Foundation <gradien.co@gmail.com>, 2022
-# Altela Eleviansyah Pramardhika <altela_pramardhika@yahoo.com>, 2022
-# PAS IRVANUS <ipankbiz@gmail.com>, 2022
-# William Surya Permana <zarambie_game@yahoo.com>, 2022
-# whenwesober, 2022
-# Andhitia Rama <andhitia.r@gmail.com>, 2022
-# Deddy Ddr <deddy.ddr@gmail.com>, 2022
-# Bonny Useful <bonny.useful@gmail.com>, 2022
-# oon arfiandwi <oon.arfiandwi@gmail.com>, 2022
-# Ikhsanul Wirsa <iwirsa02@outlook.co.id>, 2022
-# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022
-# Martin Trigaux, 2022
-# Ryanto The <ry.the77@gmail.com>, 2022
+# Ikhsanul Wirsa <iwirsa02@outlook.co.id>, 2021
+# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021
+# Martin Trigaux, 2021
+# Ryanto The <ry.the77@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-24 08:20+0000\n"
+"POT-Creation-Date: 2021-12-21 12:49+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
-"Last-Translator: Ryanto The <ry.the77@gmail.com>, 2022\n"
+"Last-Translator: Ryanto The <ry.the77@gmail.com>, 2021\n"
 "Language-Team: Indonesian (https://www.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -59,7 +48,7 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.confirm
 msgid "<i class=\"fa fa-arrow-circle-right\"/> Back to My Account"
-msgstr "<i class=\"fa fa-arrow-circle-right\"/> Kembali ke Akun Saya"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.portal_breadcrumb
@@ -184,18 +173,28 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__access_token
 msgid "Access Token"
-msgstr "Token Akses"
+msgstr ""
 
 #. module: payment
 #: code:addons/payment/wizards/payment_acquirer_onboarding_wizard.py:0
 #, python-format
 msgid "Account"
-msgstr "Akun"
+msgstr ""
+
+#. module: payment
+#: model_terms:payment.acquirer,pending_msg:payment.payment_acquirer_transfer
+msgid "Account Holder:"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer_onboarding_wizard__acc_number
 msgid "Account Number"
-msgstr "Nomor Rekening"
+msgstr ""
+
+#. module: payment
+#: model_terms:payment.acquirer,pending_msg:payment.payment_acquirer_transfer
+msgid "Account Number:"
+msgstr ""
 
 #. module: payment
 #: code:addons/payment/models/account_payment_method.py:0
@@ -206,18 +205,18 @@ msgstr "Nomor Rekening"
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_search
 #, python-format
 msgid "Acquirer"
-msgstr "Pengakuisisi"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_token__acquirer_id
 msgid "Acquirer Account"
-msgstr "Akun Pengakuisisi"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_token__acquirer_ref
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__acquirer_reference
 msgid "Acquirer Reference"
-msgstr "Referensi Pengakuisisi"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_icon__acquirer_ids
@@ -232,28 +231,23 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_kanban
 msgid "Activate"
-msgstr "Aktifkan"
-
-#. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.onboarding_payment_acquirer_step
-msgid "Activate Stripe"
 msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_token__active
 msgid "Active"
-msgstr "Aktif"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__fees_active
 msgid "Add Extra Fees"
-msgstr "Tambahkan Biaya Ekstra"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_address
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Address"
-msgstr "Alamat"
+msgstr ""
 
 #. module: payment
 #: model:payment.acquirer,name:payment.payment_acquirer_adyen
@@ -275,7 +269,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__amount
 #: model_terms:ir.ui.view,arch_db:payment.confirm
 msgid "Amount"
-msgstr "Jumlah"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_account_payment__amount_available_for_refund
@@ -298,13 +292,13 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_onboarding_wizard_form
 msgid "Apply"
-msgstr "Terapkan"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_token_form
 #: model_terms:ir.ui.view,arch_db:payment.payment_token_search
 msgid "Archived"
-msgstr "Diarsipkan"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -351,23 +345,23 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_form
 msgid "Availability"
-msgstr "Ketersediaan"
+msgstr ""
 
 #. module: payment
 #: code:addons/payment/wizards/payment_acquirer_onboarding_wizard.py:0
 #, python-format
 msgid "Bank"
-msgstr "Bank"
-
-#. module: payment
-#: model_terms:payment.acquirer,pending_msg:payment.payment_acquirer_transfer
-msgid "Bank Accounts"
-msgstr "Rekening Bank"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer_onboarding_wizard__journal_name
 msgid "Bank Name"
-msgstr "Nama Bank"
+msgstr ""
+
+#. module: payment
+#: model_terms:payment.acquirer,pending_msg:payment.payment_acquirer_transfer
+msgid "Bank:"
+msgstr ""
 
 #. module: payment
 #: model:payment.acquirer,name:payment.payment_acquirer_buckaroo
@@ -410,7 +404,7 @@ msgstr "Batal"
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_transaction__state__cancel
 msgid "Canceled"
-msgstr "Dibatalkan"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__cancel_msg
@@ -455,10 +449,15 @@ msgid "Choose a payment method"
 msgstr ""
 
 #. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.onboarding_payment_acquirer_step
+msgid "Choose your default customer payment method."
+msgstr ""
+
+#. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_city
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "City"
-msgstr "Kota"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -471,27 +470,22 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.payment_link_wizard_view_form
 #: model_terms:ir.ui.view,arch_db:payment.payment_refund_wizard_view_form
 msgid "Close"
-msgstr "Tutup"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_account_payment_register__payment_method_code
 msgid "Code"
-msgstr "Kode"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__color
 msgid "Color"
-msgstr "Warna"
-
-#. module: payment
-#: model_terms:payment.acquirer,pending_msg:payment.payment_acquirer_transfer
-msgid "Communication"
-msgstr "Komunikasi"
+msgstr ""
 
 #. module: payment
 #: model:ir.model,name:payment.model_res_company
 msgid "Companies"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__company_id
@@ -502,17 +496,17 @@ msgstr "Perusahaan"
 #: model_terms:ir.ui.view,arch_db:payment.payment_token_search
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_search
 msgid "Company"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_form
 msgid "Configuration"
-msgstr "Konfigurasi"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_kanban
 msgid "Configure"
-msgstr "Atur"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -524,12 +518,12 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_transaction__state__done
 msgid "Confirmed"
-msgstr "Dikonfirmasi"
+msgstr ""
 
 #. module: payment
 #: model:ir.model,name:payment.model_res_partner
 msgid "Contact"
-msgstr "Kontak"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__module_id
@@ -539,13 +533,13 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__country_ids
 msgid "Countries"
-msgstr "Negara"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_country_id
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Country"
-msgstr "Negara"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__tokenize
@@ -576,7 +570,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_token__create_uid
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__create_uid
 msgid "Created by"
-msgstr "Dibuat oleh"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__create_date
@@ -587,16 +581,11 @@ msgstr "Dibuat oleh"
 #: model:ir.model.fields,field_description:payment.field_payment_token__create_date
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__create_date
 msgid "Created on"
-msgstr "Dibuat pada"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_form
 msgid "Credentials"
-msgstr "Kredensial"
-
-#. module: payment
-#: model:payment.acquirer,display_as:payment.payment_acquirer_stripe
-msgid "Credit & Debit Card"
 msgstr ""
 
 #. module: payment
@@ -640,6 +629,11 @@ msgid "Credit Card (powered by Sips)"
 msgstr ""
 
 #. module: payment
+#: model:payment.acquirer,display_as:payment.payment_acquirer_stripe
+msgid "Credit Card (powered by Stripe)"
+msgstr ""
+
+#. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_acquirer_onboarding_wizard__payment_method__stripe
 msgid "Credit card (via Stripe)"
 msgstr ""
@@ -649,7 +643,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_refund_wizard__currency_id
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__currency_id
 msgid "Currency"
-msgstr "Mata Uang"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_acquirer_onboarding_wizard__payment_method__manual
@@ -659,7 +653,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_id
 msgid "Customer"
-msgstr "Pelanggan"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_acquirer__sequence
@@ -669,7 +663,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__description
 msgid "Description"
-msgstr "Deskripsi"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,help:payment.field_payment_acquirer__display_as
@@ -696,27 +690,27 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_token__display_name
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__display_name
 msgid "Display Name"
-msgstr "Nama Tampilan"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__display_as
 msgid "Displayed as"
-msgstr "Ditampilkan sebagai"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__res_company__payment_acquirer_onboarding_state__done
 msgid "Done"
-msgstr "Selesai"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__done_msg
 msgid "Done Message"
-msgstr "Pesan Selesai"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_transaction__state__draft
 msgid "Draft"
-msgstr "Draft"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer_onboarding_wizard__paypal_email_account
@@ -724,11 +718,6 @@ msgstr "Draft"
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_email
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_onboarding_wizard_form
 msgid "Email"
-msgstr "Email"
-
-#. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.onboarding_payment_acquirer_step
-msgid "Enable credit &amp; debit card payments supported by Stripe"
 msgstr ""
 
 #. module: payment
@@ -739,7 +728,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_transaction__state__error
 msgid "Error"
-msgstr "Eror!"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -754,7 +743,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.checkout
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_form
 msgid "Fees"
-msgstr "Biaya"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__support_fees_computation
@@ -764,12 +753,12 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__fees_dom_fixed
 msgid "Fixed domestic fees"
-msgstr "Biaya domestik tetap"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__fees_int_fixed
 msgid "Fixed international fees"
-msgstr "Biaya tetap internasional"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__acquirer_id
@@ -786,7 +775,7 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.confirm
 msgid "From"
-msgstr "Dari"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_acquirer__support_refund__full_only
@@ -813,12 +802,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.payment_token_search
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_search
 msgid "Group By"
-msgstr "Dikelompokkan berdasarkan"
+msgstr ""
 
 #. module: payment
 #: model:ir.model,name:payment.model_ir_http
 msgid "HTTP Routing"
-msgstr "HTTP routing"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__has_multiple_acquirers
@@ -838,7 +827,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__pre_msg
 msgid "Help Message"
-msgstr "Pesan Bantuan"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_acquirer_onboarding_wizard__paypal_user_type__new_user
@@ -859,7 +848,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_token__id
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_form
@@ -884,7 +873,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__image_128
 #: model:ir.model.fields,field_description:payment.field_payment_icon__image
 msgid "Image"
-msgstr "Gambar"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_icon__image_payment_form
@@ -908,7 +897,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_form
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_kanban
 msgid "Install"
-msgstr "Pasang"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__module_state
@@ -918,7 +907,7 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_search
 msgid "Installed"
-msgstr "Terpasang"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -937,7 +926,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__invoice_ids
 #, python-format
 msgid "Invoices"
-msgstr "Faktur"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__invoices_count
@@ -959,17 +948,17 @@ msgstr ""
 #. module: payment
 #: model:ir.model,name:payment.model_account_journal
 msgid "Journal"
-msgstr "Jurnal"
+msgstr ""
 
 #. module: payment
 #: model:ir.model,name:payment.model_account_move
 msgid "Journal Entry"
-msgstr "Entri Jurnal"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__res_company__payment_acquirer_onboarding_state__just_done
 msgid "Just done"
-msgstr "Just done"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__landing_route
@@ -979,7 +968,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_lang
 msgid "Language"
-msgstr "Bahasa"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer____last_update
@@ -990,7 +979,7 @@ msgstr "Bahasa"
 #: model:ir.model.fields,field_description:payment.field_payment_token____last_update
 #: model:ir.model.fields,field_description:payment.field_payment_transaction____last_update
 msgid "Last Modified on"
-msgstr "Terakhir diubah pada"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__last_state_change
@@ -1006,7 +995,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_token__write_uid
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__write_uid
 msgid "Last Updated by"
-msgstr "Terakhir diperbarui oleh"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__write_date
@@ -1017,7 +1006,7 @@ msgstr "Terakhir diperbarui oleh"
 #: model:ir.model.fields,field_description:payment.field_payment_token__write_date
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui pada"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_link_wizard_view_form
@@ -1032,7 +1021,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__res_company__payment_onboarding_payment_method__manual
 msgid "Manual"
-msgstr "Manual"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_refund_wizard__amount_available_for_refund
@@ -1048,17 +1037,17 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__state_message
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "Message"
-msgstr "Pesan"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_form
 msgid "Messages"
-msgstr "Pesan"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer_onboarding_wizard__manual_name
 msgid "Method"
-msgstr "Metode"
+msgstr ""
 
 #. module: payment
 #: model:payment.acquirer,name:payment.payment_acquirer_mollie
@@ -1079,7 +1068,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_form
 #: model_terms:ir.ui.view,arch_db:payment.payment_icon_form
 msgid "Name"
-msgstr "Nama"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_acquirer__provider__none
@@ -1111,7 +1100,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__res_company__payment_acquirer_onboarding_state__not_done
 msgid "Not done"
-msgstr "Not done"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.verified_token_checkmark
@@ -1156,11 +1145,6 @@ msgid "Ok"
 msgstr "Ok"
 
 #. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.onboarding_payment_acquirer_step
-msgid "Online Payments"
-msgstr ""
-
-#. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_transaction__operation__online_direct
 msgid "Online direct payment"
 msgstr ""
@@ -1173,11 +1157,6 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_transaction__operation__online_redirect
 msgid "Online payment with redirection"
-msgstr ""
-
-#. module: payment
-#: model_terms:ir.ui.view,arch_db:payment.onboarding_payment_acquirer_step
-msgid "Online payments enabled"
 msgstr ""
 
 #. module: payment
@@ -1207,12 +1186,12 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__operation
 msgid "Operation"
-msgstr "Operasi"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__res_company__payment_onboarding_payment_method__other
 msgid "Other"
-msgstr "Lainnya"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_acquirer_onboarding_wizard__payment_method__other
@@ -1227,7 +1206,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_acquirer__support_refund__partial
 msgid "Partial"
-msgstr "Sebagian"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__partner_id
@@ -1235,12 +1214,12 @@ msgstr "Sebagian"
 #: model_terms:ir.ui.view,arch_db:payment.payment_token_search
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_search
 msgid "Partner"
-msgstr "Rekanan"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_name
 msgid "Partner Name"
-msgstr "Nama Rekanan"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.checkout
@@ -1268,7 +1247,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_refund_wizard__payment_id
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__payment_id
 msgid "Payment"
-msgstr "Pembayaran"
+msgstr ""
 
 #. module: payment
 #: model:ir.model,name:payment.model_payment_acquirer
@@ -1282,7 +1261,7 @@ msgstr "Pemilik Tagihan"
 #: model:ir.ui.menu,name:payment.payment_acquirer_menu
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_list
 msgid "Payment Acquirers"
-msgstr "Penerima Pembayaran"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__available_acquirer_ids
@@ -1292,7 +1271,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_refund_wizard__payment_amount
 msgid "Payment Amount"
-msgstr "Jumlah Pembayaran"
+msgstr ""
 
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_form
@@ -1324,7 +1303,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__journal_id
 msgid "Payment Journal"
-msgstr "Jurnal Pembayaran"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__link
@@ -1333,13 +1312,14 @@ msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer_onboarding_wizard__payment_method
+#: model_terms:ir.ui.view,arch_db:payment.onboarding_payment_acquirer_step
 msgid "Payment Method"
-msgstr "Metode Pembayaran"
+msgstr ""
 
 #. module: payment
 #: model:ir.model,name:payment.model_account_payment_method_line
 msgid "Payment Methods"
-msgstr "Cara Pembayaran"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__description
@@ -1389,7 +1369,7 @@ msgstr "Transaksi Tagihan"
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_list
 msgid "Payment Transactions"
-msgstr "Transaksi Tagihan"
+msgstr ""
 
 #. module: payment
 #: model:ir.actions.act_window,name:payment.action_payment_transaction_linked_to_token
@@ -1407,10 +1387,15 @@ msgid "Payment acquirer selected"
 msgstr ""
 
 #. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.onboarding_payment_acquirer_step
+msgid "Payment method set!"
+msgstr ""
+
+#. module: payment
 #: model:ir.model,name:payment.model_account_payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_token_form
 msgid "Payments"
-msgstr "Pembayaran"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -1434,17 +1419,22 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_transaction__state__pending
 msgid "Pending"
-msgstr "Ditunda"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__pending_msg
 msgid "Pending Message"
-msgstr "Pesan Tertunda"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_phone
 msgid "Phone"
-msgstr "Telepon"
+msgstr ""
+
+#. module: payment
+#: model_terms:payment.acquirer,pending_msg:payment.payment_acquirer_transfer
+msgid "Please make a payment to:"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -1467,16 +1457,6 @@ msgid "Please set an amount smaller than %s."
 msgstr ""
 
 #. module: payment
-#: model_terms:payment.acquirer,pending_msg:payment.payment_acquirer_transfer
-msgid "Please use the following transfer details"
-msgstr ""
-
-#. module: payment
-#: model_terms:payment.acquirer,pending_msg:payment.payment_acquirer_transfer
-msgid "Please use the order name as communication reference."
-msgstr ""
-
-#. module: payment
 #. openerp-web
 #: code:addons/payment/static/src/xml/payment_post_processing.xml:0
 #, python-format
@@ -1494,14 +1474,14 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__provider
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_search
 msgid "Provider"
-msgstr "Pemberi"
+msgstr ""
 
 #. module: payment
 #. openerp-web
 #: code:addons/payment/static/src/xml/payment_post_processing.xml:0
 #, python-format
 msgid "Reason:"
-msgstr "Alasan"
+msgstr ""
 
 #. module: payment
 #: code:addons/payment/models/payment_transaction.py:0
@@ -1518,7 +1498,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__reference
 #: model_terms:ir.ui.view,arch_db:payment.confirm
 msgid "Reference"
-msgstr "Referensi"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.constraint,message:payment.constraint_payment_transaction_reference_uniq
@@ -1534,7 +1514,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.view_account_payment_form_inherit_payment
 #, python-format
 msgid "Refund"
-msgstr "Pengembalian Dana"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_refund_wizard__amount_to_refund
@@ -1550,7 +1530,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 #: model_terms:ir.ui.view,arch_db:payment.view_account_payment_form_inherit_payment
 msgid "Refunds"
-msgstr "Pengembalian"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_account_payment__refunds_count
@@ -1561,17 +1541,17 @@ msgstr ""
 #. module: payment
 #: model:ir.model,name:payment.model_account_payment_register
 msgid "Register Payment"
-msgstr "Buat Pembayaran"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__res_id
 msgid "Related Document ID"
-msgstr "ID Dokumen Terkait"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_link_wizard__res_model
 msgid "Related Document Model"
-msgstr "Model Dokumen Terkait"
+msgstr ""
 
 #. module: payment
 #: model:payment.acquirer,name:payment.payment_acquirer_sepa_direct_debit
@@ -1617,7 +1597,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__sequence
 #: model:ir.model.fields,field_description:payment.field_payment_icon__sequence
 msgid "Sequence"
-msgstr "Urutan"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -1627,13 +1607,18 @@ msgstr "Urutan"
 #: code:addons/payment/static/src/js/payment_form_mixin.js:0
 #, python-format
 msgid "Server Error"
-msgstr "Kesalahan Server"
+msgstr ""
 
 #. module: payment
 #. openerp-web
 #: code:addons/payment/static/src/xml/payment_post_processing.xml:0
 #, python-format
 msgid "Server error:"
+msgstr ""
+
+#. module: payment
+#: model_terms:ir.ui.view,arch_db:payment.onboarding_payment_acquirer_step
+msgid "Set payments"
 msgstr ""
 
 #. module: payment
@@ -1698,7 +1683,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:payment.payment_acquirer_search
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "State"
-msgstr "Status"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_res_company__payment_acquirer_onboarding_state
@@ -1709,7 +1694,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__state
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_search
 msgid "Status"
-msgstr "Status"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__res_company__payment_onboarding_payment_method__stripe
@@ -1747,7 +1732,7 @@ msgstr ""
 #. module: payment
 #: model:payment.acquirer,name:payment.payment_acquirer_test
 msgid "Test"
-msgstr "Tes"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields.selection,name:payment.selection__payment_acquirer__state__test
@@ -2028,7 +2013,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:payment.field_account_move__transaction_ids
 #: model:ir.model.fields,field_description:payment.field_account_payment__transaction_ids
 msgid "Transactions"
-msgstr "Transaksi"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__support_refund
@@ -2063,7 +2048,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__fees_dom_var
 msgid "Variable domestic fees (in percents)"
-msgstr "Biaya variabel domestik (dalam persen)"
+msgstr ""
 
 #. module: payment
 #: code:addons/payment/models/payment_acquirer.py:0
@@ -2074,7 +2059,7 @@ msgstr ""
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_acquirer__fees_int_var
 msgid "Variable international fees (in percents)"
-msgstr "Biaya variabel internasional (dalam persen)"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_token__verified
@@ -2104,7 +2089,7 @@ msgstr ""
 #: code:addons/payment/static/src/js/manage_form.js:0
 #, python-format
 msgid "Warning!"
-msgstr "Peringatan!"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -2164,7 +2149,7 @@ msgstr ""
 #. module: payment
 #: model:payment.acquirer,name:payment.payment_acquirer_transfer
 msgid "Wire Transfer"
-msgstr "Transfer rekening"
+msgstr ""
 
 #. module: payment
 #. openerp-web
@@ -2185,6 +2170,12 @@ msgstr ""
 #: code:addons/payment/models/ir_ui_view.py:0
 #, python-format
 msgid "You cannot delete a view that is used by a payment acquirer."
+msgstr ""
+
+#. module: payment
+#: code:addons/payment/wizards/payment_acquirer_onboarding_wizard.py:0
+#, python-format
+msgid "You have to set a journal for your payment acquirer %s."
 msgstr ""
 
 #. module: payment
@@ -2240,7 +2231,7 @@ msgstr ""
 #: model_terms:payment.acquirer,auth_msg:payment.payment_acquirer_transfer
 #, python-format
 msgid "Your payment has been authorized."
-msgstr "Tagihan Anda telah disahkan."
+msgstr ""
 
 #. module: payment
 #: code:addons/payment/models/payment_acquirer.py:0
@@ -2319,12 +2310,12 @@ msgstr ""
 #. module: payment
 #: model_terms:ir.ui.view,arch_db:payment.payment_transaction_form
 msgid "ZIP"
-msgstr "Kode Pos"
+msgstr ""
 
 #. module: payment
 #: model:ir.model.fields,field_description:payment.field_payment_transaction__partner_zip
 msgid "Zip"
-msgstr "Kode Pos"
+msgstr ""
 
 #. module: payment
 #: model:ir.actions.server,name:payment.cron_post_process_payment_tx_ir_actions_server

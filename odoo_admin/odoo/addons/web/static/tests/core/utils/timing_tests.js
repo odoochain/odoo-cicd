@@ -69,7 +69,11 @@ QUnit.module("utils", () => {
     });
 
     QUnit.test("debounce with immediate", async function (assert) {
-        const execRegisteredTimeouts = mockTimeout();
+        patchWithCleanup(browser, {
+            setTimeout: (later) => {
+                later();
+            },
+        });
         const myFunc = () => {
             assert.step("myFunc");
             return 42;
@@ -79,27 +83,14 @@ QUnit.module("utils", () => {
             assert.step("resolved " + x);
         });
         assert.verifySteps(["myFunc"]);
+        await Promise.resolve(); // wait for promise returned by myFunc
         await Promise.resolve(); // wait for promise returned by debounce
-        await Promise.resolve(); // wait for promise returned chained onto it (step resolved x)
-        assert.verifySteps(["resolved 42"]);
 
-        myDebouncedFunc().then((x) => {
-            assert.step("resolved " + x);
-        });
-        await execRegisteredTimeouts();
-        assert.verifySteps([]); // not called 3000ms did not elapse between the previous call and the first
-
-        myDebouncedFunc().then((x) => {
-            assert.step("resolved " + x);
-        });
-        assert.verifySteps(["myFunc"]);
-        await Promise.resolve(); // wait for promise returned by debounce
-        await Promise.resolve(); // wait for promise returned chained onto it (step resolved x)
         assert.verifySteps(["resolved 42"]);
     });
 
-    QUnit.test("debounced call can be cancelled", async function (assert) {
-        assert.expect(3);
+    QUnit.test("debounced call can be canceled", async function (assert) {
+        assert.expect(1);
         const execRegisteredTimeouts = mockTimeout();
         const myFunc = () => {
             assert.step("myFunc");
@@ -108,11 +99,7 @@ QUnit.module("utils", () => {
         myDebouncedFunc();
         myDebouncedFunc.cancel();
         execRegisteredTimeouts();
-        assert.verifySteps([], "Debounced call was cancelled");
-
-        myDebouncedFunc();
-        execRegisteredTimeouts();
-        assert.verifySteps(["myFunc"], "Debounced call was not cancelled");
+        assert.verifySteps([], "Debounced call was canceled");
     });
 
     QUnit.test("throttleForAnimation", async (assert) => {

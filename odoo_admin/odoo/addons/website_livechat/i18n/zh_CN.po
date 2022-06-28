@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:28+0000\n"
-"Last-Translator: 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Chinese (China) (https://www.transifex.com/odoo/teams/41243/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,13 +22,13 @@ msgstr ""
 #. module: website_livechat
 #: model:ir.model.fields,field_description:website_livechat.field_website_visitor__session_count
 msgid "# Sessions"
-msgstr "# 会话"
+msgstr ""
 
 #. module: website_livechat
 #: code:addons/website_livechat/models/mail_channel.py:0
 #, python-format
 msgid "%s has left the conversation."
-msgstr "%s 已离开对话。"
+msgstr ""
 
 #. module: website_livechat
 #: code:addons/website_livechat/models/mail_channel.py:0
@@ -38,13 +37,11 @@ msgid ""
 "%s has started a conversation with %s. \n"
 "                        The chat request has been canceled."
 msgstr ""
-"%s 已经开始与 %s对话. \n"
-"                        聊天请求已被取消."
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.channel_page
 msgid "<small>%</small>"
-msgstr "<small>%</small>"
+msgstr ""
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.res_config_settings_view_form
@@ -97,7 +94,7 @@ msgstr "聊天"
 #: model_terms:ir.ui.view,arch_db:website_livechat.website_visitor_view_form
 #: model_terms:ir.ui.view,arch_db:website_livechat.website_visitor_view_kanban
 msgid "Chats"
-msgstr "聊天"
+msgstr ""
 
 #. module: website_livechat
 #: model:ir.model,name:website_livechat.model_res_config_settings
@@ -117,7 +114,7 @@ msgstr "讨论频道"
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.channel_page
 msgid "Great"
-msgstr "很棒"
+msgstr ""
 
 #. module: website_livechat
 #: model:ir.model,name:website_livechat.model_ir_http
@@ -139,7 +136,7 @@ msgstr "历史"
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.website_visitor_view_search
 msgid "In Conversation"
-msgstr "在谈话中"
+msgstr ""
 
 #. module: website_livechat
 #: model:ir.model.fields,field_description:website_livechat.field_im_livechat_channel__is_published
@@ -151,7 +148,7 @@ msgstr "已发布"
 #: code:addons/website_livechat/static/src/components/visitor_banner/visitor_banner.xml:0
 #, python-format
 msgid "Lang"
-msgstr "语言"
+msgstr ""
 
 #. module: website_livechat
 #: code:addons/website_livechat/models/website.py:0
@@ -197,7 +194,7 @@ msgstr "新频道"
 #: code:addons/website_livechat/models/website_visitor.py:0
 #, python-format
 msgid "No Livechat Channel allows you to send a chat request for website %s."
-msgstr "没有 在线聊天频道 允许您发送网站聊天请求%s."
+msgstr ""
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.channel_page
@@ -219,12 +216,12 @@ msgstr "在线"
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.website_visitor_view_kanban
 msgid "Operator Avatar"
-msgstr "操作员头像"
+msgstr ""
 
 #. module: website_livechat
 #: model:ir.model.fields,field_description:website_livechat.field_website_visitor__livechat_operator_name
 msgid "Operator Name"
-msgstr "操作员名称"
+msgstr ""
 
 #. module: website_livechat
 #: code:addons/website_livechat/models/website_visitor.py:0
@@ -232,7 +229,7 @@ msgstr "操作员名称"
 msgid ""
 "Recipients are not available. Please refresh the page to get latest visitors"
 " status."
-msgstr "收件人不可用。请刷新页面以获取最新的访问者状态。"
+msgstr ""
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.channel_page
@@ -242,22 +239,22 @@ msgstr "悲伤的表情"
 #. module: website_livechat
 #: model:ir.actions.server,name:website_livechat.website_livechat_send_chat_request_action_server
 msgid "Send Chat Requests"
-msgstr "发送聊天请求"
+msgstr ""
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.website_visitor_view_form
 msgid "Send chat request"
-msgstr "发送聊天请求"
+msgstr ""
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.website_visitor_view_kanban
 msgid "Speaking With"
-msgstr "语音"
+msgstr ""
 
 #. module: website_livechat
 #: model:ir.model.fields,field_description:website_livechat.field_website_visitor__livechat_operator_id
 msgid "Speaking with"
-msgstr "语音"
+msgstr ""
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.channel_page
@@ -283,12 +280,12 @@ msgstr "通过网站访问文档的完整网址。"
 #: code:addons/website_livechat/models/mail_channel.py:0
 #, python-format
 msgid "The visitor"
-msgstr "访客"
+msgstr ""
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.channel_list_page
 msgid "There are no public livechat channels to show."
-msgstr "没有可显示的公共实时聊天频道。"
+msgstr ""
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.channel_page
@@ -310,17 +307,17 @@ msgstr "访问者"
 #: code:addons/website_livechat/static/src/components/visitor_banner/visitor_banner.xml:0
 #, python-format
 msgid "Visitor is online"
-msgstr "访客在线"
+msgstr ""
 
 #. module: website_livechat
 #: model:ir.actions.act_window,name:website_livechat.website_visitor_livechat_session_action
 msgid "Visitor's Sessions"
-msgstr "访客会话"
+msgstr ""
 
 #. module: website_livechat
 #: model:ir.model.fields,field_description:website_livechat.field_website_visitor__mail_channel_ids
 msgid "Visitor's livechat channels"
-msgstr "访客的在线聊天频道"
+msgstr ""
 
 #. module: website_livechat
 #: model:ir.ui.menu,name:website_livechat.website_livechat_visitor_menu
@@ -366,7 +363,7 @@ msgstr "网站说明"
 #: code:addons/website_livechat/models/mail_channel.py:0
 #, python-format
 msgid "an operator"
-msgstr "一个操作员"
+msgstr ""
 
 #. module: website_livechat
 #: model_terms:ir.ui.view,arch_db:website_livechat.channel_page

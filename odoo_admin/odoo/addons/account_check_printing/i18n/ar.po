@@ -24,7 +24,7 @@ msgstr ""
 #: code:addons/account_check_printing/models/account_journal.py:0
 #, python-format
 msgid " : Check Number Sequence"
-msgstr " :  تسلسل رقم الشيك "
+msgstr " :  رقم  التسلسلي الشيك "
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_res_company__account_check_printing_margin_left
@@ -36,7 +36,7 @@ msgstr " :  تسلسل رقم الشيك "
 msgid ""
 "Adjust the margins of generated checks to make it fit your printer's "
 "settings."
-msgstr "قم بتعديل هوامش الشيكات التي تم إنشاؤها لجعلها تناسب إعدادات طابعتك. "
+msgstr "تعديل قيم هوامش الشيكات الناتجة لجعلها تناسب إعدادات طابعتك."
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_payment__check_amount_in_words
@@ -46,13 +46,13 @@ msgstr "المبلغ بالكلمات"
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
 msgid "Cancel"
-msgstr "إلغاء "
+msgstr "الغاء"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_layout
 #: model:ir.model.fields,field_description:account_check_printing.field_res_config_settings__account_check_printing_layout
 msgid "Check Layout"
-msgstr "مخطط الشيك "
+msgstr "تخطيط الشيك"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_margin_left
@@ -78,7 +78,7 @@ msgstr "الهامش الأيمن للشيك"
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_journal__check_sequence_id
 msgid "Check Sequence"
-msgstr "تسلسل الشيك "
+msgstr "مسلسل الشيك"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_margin_top
@@ -90,7 +90,7 @@ msgstr "الهامش العلوي للشيك"
 #: code:addons/account_check_printing/models/account_payment.py:0
 #, python-format
 msgid "Check numbers can only consist of digits"
-msgstr "تتكون أرقام الشيكات من أرقام فقط "
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_account_journal__check_manual_sequencing
@@ -101,12 +101,12 @@ msgstr "حدد هذا الاختيار إذا كانت شيكاتك المطبو
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.account_journal_dashboard_kanban_view_inherited
 msgid "Check to print"
-msgstr "شيك بانتظار الطباعة"
+msgstr "شيك للطباعة"
 
 #. module: account_check_printing
 #: model:account.payment.method,name:account_check_printing.account_payment_method_check
 msgid "Checks"
-msgstr "الشيكات "
+msgstr "شيكات"
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_account_journal__check_sequence_id
@@ -118,22 +118,22 @@ msgstr "تسلسل أرقام الشيكات."
 #: model_terms:ir.ui.view,arch_db:account_check_printing.view_payment_check_printing_search
 #, python-format
 msgid "Checks to Print"
-msgstr "شيكات بانتظار الطباعة "
+msgstr "شيكات للطباعة"
 
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.account_journal_dashboard_kanban_view_inherited
 msgid "Checks to print"
-msgstr "شيكات بانتظار الطباعة "
+msgstr "شيكات للطباعة"
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_company
 msgid "Companies"
-msgstr "الشركات "
+msgstr "شركات"
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_config_settings
 msgid "Config Settings"
-msgstr "تهيئة الإعدادات "
+msgstr "ضبط الاعدادات"
 
 #. module: account_check_printing
 #: model:ir.model,name:account_check_printing.model_res_partner
@@ -153,14 +153,14 @@ msgstr "أنشئ في"
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_print_prenumbered_checks__display_name
 msgid "Display Name"
-msgstr "اسم العرض "
+msgstr "الاسم المعروض"
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_payment.py:0
 #: code:addons/account_check_printing/models/account_payment.py:0
 #, python-format
 msgid "Go to the configuration panel"
-msgstr "الذهاب إلى لوحة الإعدادات "
+msgstr "الذهاب للوحة الإعدادات"
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_print_prenumbered_checks__id
@@ -242,7 +242,7 @@ msgstr "رقم الشيك التالي"
 #: code:addons/account_check_printing/wizard/print_prenumbered_checks.py:0
 #, python-format
 msgid "Next Check Number should only contains numbers."
-msgstr "يجب أن يحتوي رقم الشيك التالي على أرقام فقط. "
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields.selection,name:account_check_printing.selection__res_company__account_check_printing_layout__disabled
@@ -273,23 +273,22 @@ msgid ""
 "Payments to print as a checks must have 'Check' selected as payment method "
 "and not have already been reconciled"
 msgstr ""
-"يجب اختيار 'شيك' كطريقة سداد للسداد بالشيكات ويجب ألا يكون قد تمت تسويته من "
-"قبل "
+"يجب تحديد اختيار شيكات كإحدى طرق السداد للسداد بالشيكات إذا لم يكن قد تم "
+"تسويته مسبقًا"
 
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
 msgid ""
 "Please enter the number of the first pre-printed check that you are about to"
 " print on."
-msgstr ""
-"الرجاء إدخال رقم الشيك المطبوع مسبقًا الأول الذي ترغب في الطباعة عليه. "
+msgstr "برجاء إدخال رقم أول شيك مطبوع مسبقًا تود الطباعة عليه."
 
 #. module: account_check_printing
 #: model:ir.model.fields,field_description:account_check_printing.field_account_bank_statement_line__preferred_payment_method_id
 #: model:ir.model.fields,field_description:account_check_printing.field_account_move__preferred_payment_method_id
 #: model:ir.model.fields,field_description:account_check_printing.field_account_payment__preferred_payment_method_id
 msgid "Preferred Payment Method"
-msgstr "طريقة الدفع المفضلة "
+msgstr ""
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_res_partner__property_payment_method_id
@@ -299,10 +298,6 @@ msgid ""
 "vendor bills by preferred payment method to register payments in mass. Use "
 "cases: create bank files for batch wires, check runs."
 msgstr ""
-"طريقة الدفع المفضلة عند الدفع لهذا لمورد. يُستخدَم ذلك لتصفية فواتير "
-"الموردين حسب طريقة الدفع المفضلة لتسجيل المدفوعات دفعة واحدة. حالات "
-"الاستخدام: إنشاء ملفات بنكية لشبكات الاتصال السلكية بين الوحدات المصرفية "
-"وطباعة الشيكات. "
 
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
@@ -323,7 +318,7 @@ msgstr "طباعة الشيكات"
 #: model:ir.model.fields,field_description:account_check_printing.field_res_company__account_check_printing_date_label
 #: model:ir.model.fields,field_description:account_check_printing.field_res_config_settings__account_check_printing_date_label
 msgid "Print Date Label"
-msgstr "طباعة علامة التاريخ "
+msgstr "طباعة عنوان حقل التاريخ"
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_payment.py:0
@@ -361,7 +356,7 @@ msgstr "تم الإرسال"
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_account_journal__check_next_number
 msgid "Sequence number of the next printed check."
-msgstr "الرقم التسلسلي للشيك المطبوع التالي. "
+msgstr "الرقم المسلسل للشيك المطبوع التالي."
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_payment.py:0
@@ -370,8 +365,6 @@ msgid ""
 "Something went wrong with Check Layout, please select another layout in "
 "Invoicing/Accounting Settings and try again."
 msgstr ""
-"لقد وقع خطأ في مخطط الشيك. الرجاء اختيار مخطط آخر في إعدادات "
-"الفوترة/المحاسبة ثم حاول مجدداً. "
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_payment.py:0
@@ -380,8 +373,6 @@ msgid ""
 "The following numbers are already used:\n"
 "%s"
 msgstr ""
-"الأرقام التالية مستخدَمة بالفعل:\n"
-"%s"
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_journal.py:0
@@ -399,9 +390,9 @@ msgid ""
 "printed check paper already has numbers or if the current numbering is "
 "wrong, you can change it in the journal configuration page."
 msgstr ""
-"تمت تهيئة قيد اليومية المُختار لطباعة أرقام الشيكات. إذا كان لشيكاتك "
-"المطبوعة مسبقًا أرقام بالفعل أو إذا كان الترقيم الحالي خاطئًا، فيمكنك تغييره"
-" في صفحة تهيئة دفتر اليومية. "
+"قيد اليومية المُختار تم ضبطه لطباعة أرقام الشيكات. إذا كانت شيكاتك المطبوعة "
+"مسبقًا لها أرقام بالفعل أو إذا كان الترقيم الحالي خاطئًا، فيمكنك تغييره في "
+"صفحة إعدادات دفتر اليومية."
 
 #. module: account_check_printing
 #: model:ir.model.fields,help:account_check_printing.field_res_company__account_check_printing_multi_stub
@@ -420,14 +411,12 @@ msgid ""
 "This option allows you to print the date label on the check as per CPA.\n"
 "Disable this if your pre-printed check includes the date label."
 msgstr ""
-"يتيح لك هذا الخيار طباعة بطاقة التاريخ على الشيك وفقاً لحكم المحاسب القانوني المعتمد. \n"
-"قم بإلغاء التفعيل إذا تضمن الشيك الخاص بك المطبوع مسبقاً علامة التاريخ. "
 
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.print_pre_numbered_checks_view
 msgid ""
 "This will allow to save on payments the number of the corresponding check."
-msgstr "سوف يتيح لك ذلك حفظ رقم الشيك المطابق في المدفوعات. "
+msgstr "سيسمح هذا بحفظ رقم الشيك المطابق على أمر الدفع."
 
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.view_account_payment_form_inherited
@@ -437,7 +426,7 @@ msgstr "إزالة تحديد الرسالة كمُرسلة"
 #. module: account_check_printing
 #: model_terms:ir.ui.view,arch_db:account_check_printing.view_account_payment_form_inherited
 msgid "Void Check"
-msgstr "إبطال الشيك "
+msgstr ""
 
 #. module: account_check_printing
 #: code:addons/account_check_printing/models/account_payment.py:0
@@ -446,5 +435,3 @@ msgid ""
 "You have to choose a check layout. For this, go in Invoicing/Accounting "
 "Settings, search for 'Checks layout' and set one."
 msgstr ""
-"عليك اختيار مخطط للشيك. لفعل ذلك، اذهب إلى إعدادات الفوترة/المحاسبة، ثم ابحث"
-" عن 'مخططات الشيكات' وقم بتعيين واحد. "

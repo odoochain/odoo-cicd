@@ -3,13 +3,7 @@
 # 	* crm_iap_lead_website
 # 
 # Translators:
-# sakodoo <sak@odoo.com>, 2022
 # Martin Trigaux, 2022
-# Damian Brencic <brencicdamian12313@gmail.com>, 2022
-# Jan Prokop, 2022
-# Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022
-# Lívia Dudejová <livia.dudejova@26house.com>, 2022
-# Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
 # 
 msgid ""
 msgstr ""
@@ -17,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:27+0000\n"
-"Last-Translator: Rastislav Brencic <rastislav.brencic@azet.sk>, 2022\n"
+"Last-Translator: Martin Trigaux, 2022\n"
 "Language-Team: Slovak (https://www.transifex.com/odoo/teams/41243/sk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -31,18 +25,16 @@ msgid ""
 "1 credit is consumed per visitor matching the website traffic conditions and"
 " whose company can be identified.<br/>"
 msgstr ""
-"Na jedného návštevníka sa spotrebuje 1 kredit, ktorý zodpovedá podmienkam "
-"využívaniu webstránky a ktorého spoločnosť je možné identifikovať.<br/>"
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "<span class=\"o_stat_text\"> Leads </span>"
-msgstr "<span class=\"o_stat_text\"> Potenciálna príležitosť </span>"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "<span class=\"o_stat_text\"> Opportunities </span>"
-msgstr "<span class=\"o_stat_text\">Obchodná príležitosť </span>"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__active
@@ -57,19 +49,17 @@ msgstr "Archivovaný"
 #. module: crm_iap_lead_website
 #: model:ir.model,name:crm_iap_lead_website.model_crm_reveal_rule
 msgid "CRM Lead Generation Rules"
-msgstr "Pravidlá generovania potenciálnych zákazníkov CRM"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model,name:crm_iap_lead_website.model_crm_reveal_view
 msgid "CRM Reveal View"
-msgstr "Odkryté obrazenie CRM "
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__lead_for
 msgid "Choose whether to track companies only or companies and their contacts"
 msgstr ""
-"Vyberte, či chcete sledovať iba spoločnosti alebo spoločnosti a aj ich "
-"kontakty"
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__lead_for__companies
@@ -79,45 +69,43 @@ msgstr "Spoločnosti"
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__lead_for__people
 msgid "Companies and their Contacts"
-msgstr "Spoločnosti a ich kontakty"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__company_size_min
 msgid "Company Size"
-msgstr "Veľkosť spoločnosti"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__company_size_max
 msgid "Company Size Max"
-msgstr "Maximálna veľkosť spoločnosti"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "Contact Filter"
-msgstr "Kontaktný filter"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__country_ids
 msgid "Countries"
-msgstr "Štáty"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_view__create_date
 msgid "Create Date"
-msgstr "Dátum vytvorenia"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.actions.act_window,help:crm_iap_lead_website.crm_reveal_rule_action
 msgid "Create a conversion rule"
-msgstr "Vytvorte pravidlo prevodu"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.actions.act_window,help:crm_iap_lead_website.crm_reveal_rule_action
 msgid ""
 "Create rules to generate B2B leads/opportunities from your website visitors."
 msgstr ""
-"Vytvorte pravidlá na generovanie B2B Potenciálnych príležitostí / Obchodných"
-" príležitosti od návštevníkov vašich webových stránok."
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__create_uid
@@ -133,7 +121,7 @@ msgstr "Vytvorené"
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__lead_for
 msgid "Data Tracking"
-msgstr "Sledovanie údajov"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__display_name
@@ -145,47 +133,47 @@ msgstr "Zobrazovaný názov"
 #: code:addons/crm_iap_lead_website/models/crm_reveal_rule.py:0
 #, python-format
 msgid "Enter Valid Regex."
-msgstr "Zadajte platný regulárny výraz."
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__contact_filter_type
 msgid "Filter On"
-msgstr "Filter zapnutý"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__filter_on_size
 msgid "Filter companies based on their size."
-msgstr "Filtrujte spoločnosti na základe ich veľkosti."
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__filter_on_size
 msgid "Filter on Size"
-msgstr "Filtrovať podľa veľkosti"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "From"
-msgstr "Od"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__lead_ids
 msgid "Generated Lead / Opportunity"
-msgstr "Generovaná potenciálna príležitosť / obchodný prípad"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model,name:crm_iap_lead_website.model_ir_http
 msgid "HTTP Routing"
-msgstr "HTTP smerovanie"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__priority__2
 msgid "High"
-msgstr "Vysoká"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_lead__reveal_iap_credits
 msgid "IAP Credits"
-msgstr "IAP kredity"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__id
@@ -197,12 +185,12 @@ msgstr "ID"
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_lead__reveal_ip
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_view__reveal_ip
 msgid "IP Address"
-msgstr "IP adresy"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__industry_tag_ids
 msgid "Industries"
-msgstr "Priemyselné odvetvia"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule____last_update
@@ -225,29 +213,29 @@ msgstr "Naposledy upravované"
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__lead_type__lead
 msgid "Lead"
-msgstr "Potenciálna príležitosť"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "Lead Data"
-msgstr "Údaje o Potenciálnej príležitosti"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_lead_opportunity_form
 msgid "Lead Generation Information"
-msgstr "Informácie o generovaní Potenciálnych príležitostí"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_lead__reveal_rule_id
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_view__reveal_rule_id
 msgid "Lead Generation Rule"
-msgstr "Pravidlo generovania Potenciálnych príležitostí"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.actions.act_window,name:crm_iap_lead_website.crm_reveal_view_action
 #: model:ir.ui.menu,name:crm_iap_lead_website.crm_reveal_view_menu_action
 msgid "Lead Generation Views"
-msgstr "Zobrazenie generovania Potenciálnych príležitostí"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: code:addons/crm_iap_lead_website/models/crm_reveal_rule.py:0
@@ -256,8 +244,6 @@ msgid ""
 "Lead Generation requires a GeoIP resolver which could not be found on your "
 "system. Please consult https://pypi.org/project/GeoIP/."
 msgstr ""
-"Generovanie potenciálnych príležitostí vyžaduje prekladač GeoIP, ktorý sa vo"
-" vašom systéme nenašiel. Navštívte stránku https://pypi.org/project/GeoIP/."
 
 #. module: crm_iap_lead_website
 #: model:ir.actions.server,name:crm_iap_lead_website.ir_cron_crm_reveal_lead_ir_actions_server
@@ -265,25 +251,21 @@ msgstr ""
 #: model:ir.cron,name:crm_iap_lead_website.ir_cron_crm_reveal_lead
 msgid "Lead Generation: Leads/Opportunities Generation"
 msgstr ""
-"Generovanie Potenciálnej príležitosti: generovanie Potenciálnych "
-"príležitosti / Obchodných príležitostí "
 
 #. module: crm_iap_lead_website
 #: model:ir.model,name:crm_iap_lead_website.model_crm_lead
 msgid "Lead/Opportunity"
-msgstr "Potenciálna príležitosť / obchodný prípad"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__industry_tag_ids
 msgid "Leave empty to always match. Odoo will not create lead if no match"
 msgstr ""
-"Nechajte vždy prázdne, aby sa zhodovali. Odoo nevytvorí potenciálnu "
-"príležitosť, ak sa nezhoduje"
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__priority__0
 msgid "Low"
-msgstr "Nízka"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
@@ -291,43 +273,42 @@ msgid ""
 "Make sure you know if you have to be GDPR compliant for storing personal "
 "data."
 msgstr ""
-"Uistite sa, či na ukladanie osobných údajov musíte byť v súlade s GDPR."
 
 #. module: crm_iap_lead_website
 #: model:ir.model.constraint,message:crm_iap_lead_website.constraint_crm_reveal_rule_limit_extra_contacts
 msgid "Maximum 5 contacts are allowed!"
-msgstr "Povolených je maximálne 5 kontaktov!"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__priority__1
 msgid "Medium"
-msgstr "Médium"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: code:addons/crm_iap_lead_website/models/crm_reveal_rule.py:0
 #, python-format
 msgid "Missing Library"
-msgstr "Chýbajúca knižnica"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_view__reveal_state__not_found
 msgid "Not Found"
-msgstr "Nenájdené"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__extra_contacts
 msgid "Number of Contacts"
-msgstr "Počet kontaktov"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__lead_count
 msgid "Number of Generated Leads"
-msgstr "Počet generovaných Potenciálnych príležitostí"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__opportunity_count
 msgid "Number of Generated Opportunity"
-msgstr "Počet generovaných obchodných prípadov"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__country_ids
@@ -335,8 +316,6 @@ msgid ""
 "Only visitors of following countries will be converted into "
 "leads/opportunities (using GeoIP)."
 msgstr ""
-"Iba návštevníci z nasledujúcich krajín budú prevedení na Potenciálne "
-"príležitosti / Obchodné príležitosti (pomocou GeoIP)."
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__state_ids
@@ -344,46 +323,42 @@ msgid ""
 "Only visitors of following states will be converted into "
 "leads/opportunities."
 msgstr ""
-"Iba návštevníci z nasledujúcich krajín budú prevedení na Potenciálne "
-"príležitosti / Obchodné príležitosti."
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__lead_type__opportunity
 msgid "Opportunity"
-msgstr "Obchodný prípad"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "Opportunity Data"
-msgstr "Dáta obchodného prípadu"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "Opportunity Generation Conditions"
-msgstr "Podmienky generovania obchodných prípadov"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: code:addons/crm_iap_lead_website/models/crm_reveal_rule.py:0
 #, python-format
 msgid "Opportunity created by Odoo Lead Generation"
 msgstr ""
-"Obchodný prípad vytvorený pomocou Odoo generátorom potenciálnych "
-"príležitostí"
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__other_role_ids
 msgid "Other Roles"
-msgstr "Ďalšie pozície"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__preferred_role_id
 msgid "Preferred Role"
-msgstr "Preferovaná pozícia"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__priority
 msgid "Priority"
-msgstr "Priority"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__regex_url
@@ -392,50 +367,47 @@ msgid ""
 "to target the homepage. Example: /page* to track all the pages which begin "
 "with /page"
 msgstr ""
-"Regex na sledovanie webstránok. Ak chcete sledovať celý web alebo zacieliť "
-"na domovskú stránku, nechajte ho prázdne. Príklad: / page * na sledovanie "
-"všetkých stránok, ktoré začínajú s /page"
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__website_id
 msgid "Restrict Lead generation to this website."
-msgstr "Obmedzte generovanie Potenciálnych príležitostí pre túto webstránku."
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__contact_filter_type__role
 msgid "Role"
-msgstr "Rola"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_view_search
 msgid "Rule"
-msgstr "Pravidlo"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__name
 msgid "Rule Name"
-msgstr "Meno pravidla"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__team_id
 msgid "Sales Team"
-msgstr "Obchodný tím"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__user_id
 msgid "Salesperson"
-msgstr "Obchodník"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_view_search
 msgid "Search CRM Reveal Rule"
-msgstr "Vyhľadať pravidlo odhalenia CRM"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__seniority_id
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__contact_filter_type__seniority
 msgid "Seniority"
-msgstr "Skúsenosť"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__sequence
@@ -450,17 +422,17 @@ msgstr "Štát"
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__state_ids
 msgid "States"
-msgstr "Štáty"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__suffix
 msgid "Suffix"
-msgstr "Prípona"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__tag_ids
 msgid "Tags"
-msgstr "Tagy"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__extra_contacts
@@ -469,10 +441,6 @@ msgid ""
 "criteria. Their details will show up in the history thread of generated "
 "leads/opportunities. One credit is consumed per tracked contact."
 msgstr ""
-"Je to počet kontaktov, ktoré sa majú sledovať, ak ich rola / seniorita "
-"zodpovedajú vašim kritériám. Ich podrobnosti sa zobrazia v doterajšej "
-"histórií vygenerovaných Potenciálnych príležitostí / Obchodných "
-"príležitostí. Na sledovaný kontakt sa spotrebuje jeden kredit."
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__suffix
@@ -480,14 +448,11 @@ msgid ""
 "This will be appended in name of generated lead so you can identify "
 "lead/opportunity is generated with this rule"
 msgstr ""
-"Toto sa pripojí v záujme generovanej potenciálnej príležitosti, aby ste "
-"mohli identifikovať potenciálnu príležitosť / obchodný prípad vytvorenú "
-"pomocou tohto pravidla"
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_view__reveal_state__to_process
 msgid "To Process"
-msgstr "Na spracovanie"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__lead_type
@@ -497,12 +462,12 @@ msgstr "Typ"
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__regex_url
 msgid "URL Expression"
-msgstr "Vyjadrenie adresy URL"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "Up to"
-msgstr "Až do"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,help:crm_iap_lead_website.field_crm_reveal_rule__sequence
@@ -510,19 +475,17 @@ msgid ""
 "Used to order the rules with same URL and countries. Rules with a lower "
 "sequence number will be processed first."
 msgstr ""
-"Používa sa na objednanie pravidiel s rovnakou adresou URL a krajinami. "
-"Pravidlá s nižším poradovým číslom budú spracované ako prvé."
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields.selection,name:crm_iap_lead_website.selection__crm_reveal_rule__priority__3
 msgid "Very High"
-msgstr "Veľmi vysoké"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.actions.act_window,name:crm_iap_lead_website.crm_reveal_rule_action
 #: model:ir.ui.menu,name:crm_iap_lead_website.crm_reveal_rule_menu_action
 msgid "Visits to Leads Rules"
-msgstr "Pravidlá návštev Potenciálnych príležitostí  "
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model:ir.model.fields,field_description:crm_iap_lead_website.field_crm_reveal_rule__website_id
@@ -532,29 +495,29 @@ msgstr "Webstránka"
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "Website Traffic Conditions"
-msgstr "Podmienky prevádzky webstránok"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "additional credit(s) are consumed if the company matches this rule."
-msgstr "ďalšie kredity sa spotrebujú, ak spoločnosť spĺňa toto pravidlo."
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "e.g. /page"
-msgstr "napr. / str"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "e.g. US Visitors"
-msgstr "napr. návštevníci z USA"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "employees"
-msgstr "zamestnanci"
+msgstr ""
 
 #. module: crm_iap_lead_website
 #: model_terms:ir.ui.view,arch_db:crm_iap_lead_website.crm_reveal_rule_form
 msgid "to"
-msgstr "na"
+msgstr ""

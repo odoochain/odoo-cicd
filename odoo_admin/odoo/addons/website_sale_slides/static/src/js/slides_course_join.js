@@ -29,10 +29,9 @@ CourseJoinWidget.include({
         ev.preventDefault();
 
         if (this.channel.channelEnroll === 'payment' && !this.publicUser) {
-            const self = this;
             this.beforeJoin().then(function () {
                 wUtils.sendRequest('/shop/cart/update', {
-                    product_id: self.productId,
+                    product_id: this.productId,
                     express: 1,
                 });
             });

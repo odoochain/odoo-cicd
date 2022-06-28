@@ -5,9 +5,8 @@
 # Translators:
 # Martin Trigaux, 2021
 # Paolo Valier, 2021
+# Friederike Fasterling-Nesselbosch, 2021
 # sakodoo <sak@odoo.com>, 2022
-# Sergio Zanchetta <primes2h@gmail.com>, 2022
-# Friederike Fasterling-Nesselbosch, 2022
 # 
 msgid ""
 msgstr ""
@@ -15,7 +14,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-11-16 13:18+0000\n"
 "PO-Revision-Date: 2021-09-14 12:25+0000\n"
-"Last-Translator: Friederike Fasterling-Nesselbosch, 2022\n"
+"Last-Translator: sakodoo <sak@odoo.com>, 2022\n"
 "Language-Team: Italian (https://www.transifex.com/odoo/teams/41243/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -50,7 +49,7 @@ msgstr "N. di righe"
 #: code:addons/purchase/models/purchase.py:0
 #, python-format
 msgid "%(product)s from %(original_receipt_date)s to %(new_receipt_date)s"
-msgstr "%(product)s da %(original_receipt_date)s a %(new_receipt_date)s"
+msgstr ""
 
 #. module: purchase
 #: code:addons/purchase/models/purchase.py:0
@@ -85,7 +84,7 @@ msgstr "\"Richiesta di preventivo - %s\" % (object.name)"
 #: model_terms:ir.ui.view,arch_db:purchase.track_po_line_qty_received_template
 #: model_terms:ir.ui.view,arch_db:purchase.track_po_line_template
 msgid "-&gt;"
-msgstr "-&gt;"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
@@ -228,7 +227,7 @@ msgid ""
 "title=\"Cancelled\"/><span class=\"d-none d-md-inline\"> Cancelled</span>"
 msgstr ""
 "<i class=\"fa fa-fw fa-remove\" role=\"img\" aria-label=\"Cancelled\" "
-"title=\"Cancellato\"/><span class=\"d-none d-md-inline\"> Annullato</span>"
+"title=\"Cancellato\"/><span class=\"d-none d-md-inline\"> Cancellato</span>"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
@@ -498,7 +497,7 @@ msgstr ""
 #. module: purchase
 #: model:ir.actions.act_window,name:purchase.action_accrued_expense_entry
 msgid "Accrued Expense Entry"
-msgstr "Voce di spesa maturata"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__message_needaction
@@ -625,10 +624,6 @@ msgid ""
 "same average value, therefore only use this as an aggregated value with "
 "group_operator=avg"
 msgstr ""
-"Periodo di tempo tra l'approvazione dell'acquisto e la data di creazione del"
-" documento. A causa di un hack necessario per calcolarlo, ogni record "
-"mostrerà lo stesso valore medio, quindi usalo solo come valore aggregato con"
-" group_operator=avg"
 
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_purchase_report__delay
@@ -1007,7 +1002,7 @@ msgstr "Data"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__date_calendar_start
 msgid "Date Calendar Start"
-msgstr "Data inizio in calendario"
+msgstr ""
 
 #. module: purchase
 #: code:addons/purchase/models/purchase.py:0
@@ -1144,7 +1139,7 @@ msgstr "RdP in bozza"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__dest_address_id
 msgid "Dropship Address"
-msgstr "Indirizzo Spedizione diretta"
+msgstr "Indirizzo Dropship"
 
 #. module: purchase
 #: model:ir.model,name:purchase.model_mail_compose_message
@@ -1230,7 +1225,7 @@ msgstr "Contiene messaggio"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_line_search
 msgid "Hide cancelled lines"
-msgstr "Nascondi righe annullate"
+msgstr "Nascondi righe cancellate"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.portal_my_purchase_order
@@ -1288,7 +1283,7 @@ msgstr ""
 #. module: purchase
 #: model:ir.model.fields,help:purchase.field_product_packaging__purchase
 msgid "If true, the packaging can be used for purchase orders"
-msgstr "Se vero, l'imballaggio può essere usato per gli ordini di acquisto"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.mail_notification_confirm
@@ -1600,7 +1595,7 @@ msgstr "Più recenti"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_calendar_event_id
 msgid "Next Activity Calendar Event"
-msgstr "Prossimo evento del calendario delle attività"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__activity_date_deadline
@@ -1808,7 +1803,7 @@ msgstr "Altre informazioni"
 #: model:mail.template,report_name:purchase.email_template_edi_purchase_done
 #: model:mail.template,report_name:purchase.email_template_edi_purchase_reminder
 msgid "PO_{{ (object.name or '').replace('/','_') }}"
-msgstr "PO_{{ (object.name or '').replace('/','_') }}"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order_line__product_packaging_id
@@ -2385,7 +2380,7 @@ msgid ""
 msgstr ""
 "Riferimento all'ordine di vendita o all'offerta inviata dal fornitore. "
 "Utilizzato per effettuare l'abbinamento quando vengono ricevuti i prodotti, "
-"di solito è riportato nel buono di consegna inviato dal fornitore."
+"di solito è riportato nell'ordine di consegna inviato dal fornitore."
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__mail_reminder_confirmed
@@ -2626,7 +2621,7 @@ msgstr "Imponibile"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_report_view_tree
 msgid "Sum of Qty Billed"
-msgstr "Somma della quantità fatturata"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_report_view_tree
@@ -2667,7 +2662,7 @@ msgstr "Imposta"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__tax_country_id
 msgid "Tax Country"
-msgstr "Paese Imposte"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__tax_totals_json
@@ -2691,8 +2686,6 @@ msgid ""
 "Technical field to filter the available taxes depending on the fiscal "
 "country and fiscal position."
 msgstr ""
-"Campo tecnico per filtrare le imposte disponibili in base al paese fiscale e"
-" alla posizione fiscale."
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content

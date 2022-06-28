@@ -3,11 +3,7 @@
 # 	* portal
 # 
 # Translators:
-# sakodoo <sak@odoo.com>, 2022
-# Damian Brencic <brencicdamian12313@gmail.com>, 2022
-# Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022
-# Jan Prokop, 2022
-# Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
+# Rastislav Brencic <rastislav.brencic@azet.sk>, 2021
 # Martin Trigaux, 2022
 # 
 msgid ""
@@ -29,18 +25,18 @@ msgstr ""
 #: code:addons/portal/static/src/js/portal_sidebar.js:0
 #, python-format
 msgid "%1d days overdue"
-msgstr "%1d dní po splatnosti"
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid "%s is not the reference of a report"
-msgstr "%s nie je odkazom na správu"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_back_in_edit_mode
 msgid "<i class=\"fa fa-arrow-right mr-1\"/>Back to edit mode"
-msgstr "<i class=\"fa fa-arrow-right mr-1\"/>Späť do režimu úprav"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.record_pager
@@ -48,27 +44,20 @@ msgid ""
 "<i class=\"fa fa-chevron-left\" role=\"img\" aria-label=\"Previous\" "
 "title=\"Previous\"/>"
 msgstr ""
-"<i class=\"fa fa-chevron-left\" role=\"img\" aria-label=\"Previous\" "
-"title=\"Previous\"/>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.record_pager
 msgid "<i class=\"fa fa-chevron-right\" role=\"img\" aria-label=\"Next\" title=\"Next\"/>"
-msgstr "<i class=\"fa fa-chevron-right\" role=\"img\" aria-label=\"Next\" title=\"Next\"/>"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_layout
 msgid "<i class=\"fa fa-pencil mx-1\"/>Edit Security Settings"
-msgstr "<i class=\"fa fa-pencil mx-1\"/>Upraviť nastavenia zabezpečenia"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_layout
 msgid "<i class=\"fa fa-pencil\"/> Edit"
-msgstr "<i class=\"fa fa-pencil\"/> Upraviť"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "<i title=\"Documentation\" class=\"fa fa-fw o_button_icon fa-info-circle\"/>"
 msgstr ""
 
 #. module: portal
@@ -78,29 +67,26 @@ msgid ""
 " not allowed once document(s) have been issued for your account. <br/>Please"
 " contact us directly for this operation.</small>"
 msgstr ""
-"<small class=\"form-text text-muted\">Zmena názvu spoločnosti alebo IČ DPH "
-"nie je povolená po vystavení dokumentov pre váš účet. <br/>Pre túto operáciu"
-" nás prosím kontaktujte priamo.</small>"
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "<span class=\"small mr-1 navbar-text\">Filter By:</span>"
-msgstr "<span class=\"small mr-1 navbar-text\">Triediť podľa:</span>"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "<span class=\"small mr-1 navbar-text\">Group By:</span>"
-msgstr "<span class=\"small mr-1 navbar-text\">Zoskupiť podľa:</span>"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "<span class=\"small mr-1 navbar-text\">Sort By:</span>"
-msgstr "<span class=\"small mr-1 navbar-text\">Triediť podľa:</span>"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_share_template
 msgid "<strong>Open </strong>"
-msgstr "<strong>Otvorené </strong>"
+msgstr ""
 
 #. module: portal
 #: model:mail.template,body_html:portal.mail_template_data_portal_welcome
@@ -187,23 +173,16 @@ msgstr ""
 
 #. module: portal
 #. openerp-web
-#: code:addons/portal/static/src/js/portal.js:0
-#, python-format
-msgid "API Key Ready"
-msgstr ""
-
-#. module: portal
-#. openerp-web
 #: code:addons/portal/static/src/js/portal_signature.js:0
 #, python-format
 msgid "Accept & Sign"
-msgstr "Prijať a podpísať"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_warning
 #: model:ir.model.fields,field_description:portal.field_portal_share__access_warning
 msgid "Access warning"
-msgstr "Varovanie prístupu"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_layout
@@ -213,42 +192,37 @@ msgstr "Zabezpečenie účtu"
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
 msgid "Add a note"
-msgstr "Pridaj poznámku"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Add attachment"
-msgstr "Pridať prílohu"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
 msgid "Add contacts to share the document..."
-msgstr "Pridať kontakty na zdieľanie dokumentu..."
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,help:portal.field_portal_share__note
 msgid "Add extra content to display in the email"
-msgstr "Pridajte ďalší obsah, ktorý sa má zobraziť v e-maile"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "Added On"
 msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/mail.py:0
 #, python-format
 msgid "An access token must be provided for each attachment."
-msgstr "Pre každú prílohu musí byť poskytnutý prístupový token."
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Avatar"
-msgstr "Avatar"
+msgstr ""
 
 #. module: portal
 #. openerp-web
@@ -261,7 +235,7 @@ msgstr "Zrušené"
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Change Password"
-msgstr "Zmeň heslo"
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
@@ -271,8 +245,6 @@ msgid ""
 "Changing VAT number is not allowed once document(s) have been issued for "
 "your account. Please contact us directly for this operation."
 msgstr ""
-"Zmeniť DPH nie je povolené ak už boli vytvorené dokumenty pre váš účet. Pre "
-"túto operáciu nás kontaktujte."
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
@@ -280,53 +252,36 @@ msgid ""
 "Changing company name is not allowed once document(s) have been issued for "
 "your account. Please contact us directly for this operation."
 msgstr ""
-"Zmena názvu spoločnosti nie je povolená po vydaní dokladov pre váš účet. "
-"Prosím kontaktujte nás priamo pre túto operáciu."
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/js/portal.js:0
 #, python-format
 msgid "Check failed"
-msgstr "Kontrola zlyhala"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "City"
-msgstr "Mesto"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_signature.xml:0
 #, python-format
 msgid "Click here to see your document."
-msgstr "Pre náhľad dokumentu klikni sem."
+msgstr ""
 
 #. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/js/portal.js:0
 #: model_terms:ir.ui.view,arch_db:portal.portal_back_in_edit_mode
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
-#, python-format
 msgid "Close"
-msgstr "Zatvoriť"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "Company Name"
-msgstr "Názov spoločnosti"
-
-#. module: portal
-#: model:ir.model,name:portal.model_res_config_settings
-msgid "Config Settings"
-msgstr "Nastavenia konfigurácie"
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/js/portal.js:0
-#, python-format
-msgid "Confirm"
-msgstr "Potvrdiť"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
@@ -334,15 +289,13 @@ msgid ""
 "Confirm\n"
 "                                <span class=\"fa fa-long-arrow-right\"/>"
 msgstr ""
-"Potvrďte\n"
-"                                <span class=\"fa fa-long-arrow-right\"/>"
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/js/portal.js:0
 #, python-format
 msgid "Confirm Password"
-msgstr "Potvrdiť heslo"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_res_partner
@@ -353,29 +306,29 @@ msgstr "Kontakt"
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "Contact Details"
-msgstr "Kontaktné údaje"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 msgid "Contacts"
-msgstr "Kontakty"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/js/portal_composer.js:0
 #, python-format
 msgid "Could not save file <strong>%s</strong>"
-msgstr "Súbor sa nepodarilo uložiť <strong>%s</strong>"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "Country"
-msgstr "Štát"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "Country..."
-msgstr "Krajina..."
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_share__create_uid
@@ -414,49 +367,27 @@ msgstr ""
 "všetkým prezerajúcim tento dokument."
 
 #. module: portal
-#: model:ir.model.fields,field_description:portal.field_res_config_settings__portal_allow_api_keys
-msgid "Customer API Keys"
-msgstr ""
-
-#. module: portal
 #: model:ir.model.fields,help:portal.field_portal_mixin__access_url
 msgid "Customer Portal URL"
-msgstr "URL zákazníckeho portálu"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_share_template
 msgid "Dear"
-msgstr "Drahá"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Delete"
-msgstr "Zmazať"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "Description"
-msgstr "Popis"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 #: model_terms:ir.ui.view,arch_db:portal.portal_layout
 msgid "Details"
-msgstr "Podrobnosti"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "Developer API Keys"
-msgstr "Kľúče vývojárskeho rozhrania API"
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/js/portal.js:0
-#, python-format
-msgid "Discard"
-msgstr "Zrušiť"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_share__display_name
@@ -468,88 +399,72 @@ msgstr "Zobrazovaný názov"
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_home
 msgid "Documents"
-msgstr "Dokumenty"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/js/portal_sidebar.js:0
 #, python-format
 msgid "Due in %1d days"
-msgstr "Splatné v %1d dňoch"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/js/portal_sidebar.js:0
 #, python-format
 msgid "Due today"
-msgstr "Splatné dnes"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__email
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "Email"
-msgstr "Email"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_mail_thread
 msgid "Email Thread"
-msgstr "Emailové vlákno"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Employees Only"
-msgstr "Iba zamestnanci"
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid "Enter a description of and purpose for the key."
-msgstr "Zadajte popis a účel kľúča."
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 #, python-format
 msgid "Forgot password?"
-msgstr "Zabudol si heslo?"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 msgid "Grant Access"
-msgstr "Povoliť prístup"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_wizard
 msgid "Grant Portal Access"
-msgstr "Udeliť prístup k portálu"
+msgstr ""
 
 #. module: portal
 #: model:ir.actions.act_window,name:portal.partner_wizard_action
 #: model:ir.actions.server,name:portal.partner_wizard_action_create_and_open
 msgid "Grant portal access"
-msgstr "Udeliť prístup k portálu"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_ir_http
 msgid "HTTP Routing"
-msgstr "HTTP smerovanie"
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid ""
-"Here is your new API key, use it instead of a password for RPC access.\n"
-"                Your login is still necessary for interactive usage."
 msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_breadcrumbs
 msgid "Home"
-msgstr "Domov"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_share__id
@@ -559,65 +474,35 @@ msgid "ID"
 msgstr "ID"
 
 #. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid "Important:"
-msgstr ""
-
-#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 msgid "Internal User"
-msgstr "Interný používateľ"
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_chatter.xml:0
-#, python-format
-msgid "Internal Note"
-msgstr "Interná poznámka"
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_chatter.xml:0
-#, python-format
-msgid "Internal notes are only displayed to internal users."
 msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid "Invalid Email! Please enter a valid email address."
-msgstr "Neplatný email! Prosím zadajte platnú emailovú adresu."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid "Invalid report type: %s"
-msgstr "Neplatný typ prehľadu: %s"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__welcome_message
 msgid "Invitation Message"
-msgstr "Pozvánka"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__is_internal
 msgid "Is Internal"
-msgstr "Je interné"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__is_portal
 msgid "Is Portal"
-msgstr "Je Portál"
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid ""
-"It is very important that this description be clear\n"
-"                and complete,"
 msgstr ""
 
 #. module: portal
@@ -644,34 +529,29 @@ msgstr "Naposledy upravované"
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__login_date
 msgid "Latest Authentication"
-msgstr "Najnovšia autentifikácia"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Leave a comment"
-msgstr "Zanechať komentár"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.res_config_settings_view_form
-msgid "Let your customers create developer API keys"
 msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_share__share_link
 msgid "Link"
-msgstr "Link"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_dropdown
 msgid "Logout"
-msgstr "Odhlásiť sa"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_mail_message
 msgid "Message"
-msgstr "Správa"
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/models/mail_thread.py:0
@@ -684,7 +564,7 @@ msgstr ""
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.my_account_link
 msgid "My Account"
-msgstr "Môj účet"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
@@ -692,24 +572,9 @@ msgid "Name"
 msgstr "Meno"
 
 #. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid "Name your key"
-msgstr "Pomenujte svoj kľúč"
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/js/portal.js:0
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-#, python-format
-msgid "New API Key"
-msgstr "Nový API kľúč"
-
-#. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "New Password:"
-msgstr "Nové heslo:"
+msgstr ""
 
 #. module: portal
 #. openerp-web
@@ -718,22 +583,16 @@ msgstr "Nové heslo:"
 #: model_terms:ir.ui.view,arch_db:portal.pager
 #, python-format
 msgid "Next"
-msgstr "Ďalšie"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_share__note
 msgid "Note"
-msgstr "Poznámka"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_record_sidebar
 msgid "Odoo Logo"
-msgstr "Odoo Logo"
-
-#. module: portal
-#: code:addons/portal/models/res_users_apikeys_description.py:0
-#, python-format
-msgid "Only internal and portal users can create API keys"
 msgstr ""
 
 #. module: portal
@@ -741,76 +600,76 @@ msgstr ""
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Oops! Something went wrong. Try to reload the page and log in."
-msgstr "Ojoj! Niečo sa pokazilo. Skúste znova načítať stránku a prihlásiť sa."
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard__partner_ids
 msgid "Partners"
-msgstr "Partneri"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Password Updated!"
-msgstr "Heslo aktualizované!"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Password:"
-msgstr "Heslo:"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "Phone"
-msgstr "Telefón"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_security.xml:0
 #, python-format
 msgid "Please enter your password to confirm you own this account"
-msgstr "Zadajte svoje heslo, aby ste potvrdili, že vlastníte tento účet"
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/wizard/portal_wizard.py:0
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 #, python-format
 msgid "Portal Access Management"
-msgstr "Správa prístupu k portálu"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_url
 msgid "Portal Access URL"
-msgstr "URL portálového prístupu"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_mixin
 msgid "Portal Mixin"
-msgstr "Portál Mixin"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_share
 msgid "Portal Sharing"
-msgstr "Zdieľanie portálu"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_portal_wizard_user
 msgid "Portal User Config"
-msgstr "Konfigurácia užívateľa portálu"
+msgstr ""
 
 #. module: portal
 #: model:mail.template,name:portal.mail_template_data_portal_welcome
 msgid "Portal: User Invite"
-msgstr "Portál: Pozvánka používateľa"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_record_sidebar
 msgid "Powered by"
-msgstr "Prinášané"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.pager
 msgid "Prev"
-msgstr "Predch."
+msgstr ""
 
 #. module: portal
 #. openerp-web
@@ -818,71 +677,66 @@ msgstr "Predch."
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Previous"
-msgstr "Predchádzajúce"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/js/portal_chatter.js:0
 #, python-format
 msgid "Published on %s"
-msgstr "Zverejnené dňa %s"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 msgid "Re-Invite"
-msgstr "Znovu pozvať"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_share__partner_ids
 msgid "Recipients"
-msgstr "Príjemcovia"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_share__resource_ref
 msgid "Related Document"
-msgstr "Súvisiaci dokument"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_share__res_id
 msgid "Related Document ID"
-msgstr "Súvisiace ID dokumentu"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_share__res_model
 msgid "Related Document Model"
-msgstr "Súvisiaci model dokumentu"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 msgid "Revoke Access"
-msgstr "Odobrať prístup"
-
-#. module: portal
-#: model_terms:ir.ui.view,arch_db:portal.portal_my_security
-msgid "Scope"
-msgstr "Rozsah"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "Search"
-msgstr "Vyhľadávanie"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Security"
-msgstr "Bezpečnosť"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/js/portal.js:0
 #, python-format
 msgid "Security Control"
-msgstr "Bezpečnostná kontrola"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_mixin__access_token
 msgid "Security Token"
-msgstr "Bezpečnostný token"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
@@ -891,9 +745,6 @@ msgid ""
 "                        The email address of each selected contact must be valid and unique.\n"
 "                        If necessary, you can fix any contact's email address directly in the list."
 msgstr ""
-"Zvoľte kontakty, ktoré by mali patriť k portálu, v nižšie uvedenom zozname.\n"
-"Emailová adresa každého vybraného kontaktu musí byť platná a jedinečná.\n"
-"Ak je to nutné, môžete opraviť emailovú adresu ktoréhokoľvek kontaktu priamo v zozname."
 
 #. module: portal
 #. openerp-web
@@ -907,17 +758,17 @@ msgstr "Poslať"
 #: model:ir.actions.act_window,name:portal.portal_share_action
 #: model_terms:ir.ui.view,arch_db:portal.portal_share_wizard
 msgid "Share Document"
-msgstr "Zdieľať dokument"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_ir_ui_view__customize_show
 msgid "Show As Optional Inherit"
-msgstr "Zobraziť ako voliteľné dediť"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.user_sign_in
 msgid "Sign in"
-msgstr "Prihlásiť sa"
+msgstr ""
 
 #. module: portal
 #. openerp-web
@@ -927,58 +778,56 @@ msgid ""
 "Some fields are required. Please make sure to write a message or attach a "
 "document"
 msgstr ""
-"Niektoré polia sú povinné. Nezabudnite napísať správu alebo priložiť "
-"dokument"
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid "Some required fields are empty."
-msgstr "Niektoré povinné polia sú prázdne."
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "State / Province"
-msgstr "Štát / provincia"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "Street"
-msgstr "Ulica"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_signature.xml:0
 #, python-format
 msgid "Thank You!"
-msgstr "Ďakujem!"
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid "The attachment %s cannot be removed because it is linked to a message."
-msgstr "Prílohu %s nie je možné odstrániť, pretože je prepojený so správou."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid ""
 "The attachment %s cannot be removed because it is not in a pending state."
-msgstr "Prílohu %snie je možné odstrániť, pretože nie je v čakajúcom stave."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/mail.py:0
 #, python-format
 msgid ""
 "The attachment %s does not exist or you do not have the rights to access it."
-msgstr "Príloha %s neexistuje alebo nemáte k nej prístupové práva."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid ""
 "The attachment does not exist or you do not have the rights to access it."
-msgstr "Príloha neexistuje alebo nemáte práva na prístup k nej."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/wizard/portal_wizard.py:0
@@ -997,39 +846,32 @@ msgstr ""
 #, python-format
 msgid ""
 "The document does not exist or you do not have the rights to access it."
-msgstr "Dokument neexistuje alebo nemáte práva na prístup k nemu."
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid "The key cannot be retrieved later and provides"
 msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid "The new password and its confirmation must be identical."
-msgstr "Nové heslo a jeho potvrdenie musia byť rovnaké."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid ""
 "The old password you provided is incorrect, your password was not changed."
-msgstr "Zadané staré heslo je nesprávne, vaše heslo nebolo zmenené."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/wizard/portal_wizard.py:0
 #, python-format
 msgid "The partner \"%s\" already has the portal access."
-msgstr "Partner \"%s\" už má prístup k portálu."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/wizard/portal_wizard.py:0
 #, python-format
 msgid "The partner \"%s\" has no portal access."
-msgstr "Partner \"%s\" nemá prístup k portálu."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/wizard/portal_wizard.py:0
@@ -1038,26 +880,24 @@ msgid ""
 "The template \"Portal: new user\" not found for sending email to the portal "
 "user."
 msgstr ""
-"Nenašla sa šablóna „Portál: nový používateľ“ na odosielanie e-mailu "
-"používateľovi portálu."
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "There are no comments for now."
-msgstr "Zatiaľ tu nie sú žiadne komentáre."
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid "This document does not exist."
-msgstr "Tento dokument neexistuje."
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_back_in_edit_mode
 msgid "This is a preview of the customer portal."
-msgstr "Toto je náhľad zákazníckeho portálu."
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
@@ -1065,26 +905,22 @@ msgid ""
 "This partner is linked to an internal User and already has access to the "
 "Portal."
 msgstr ""
-"Tento partner je prepojený s interným používateľom a už má prístup k "
-"portálu."
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.wizard_view
 msgid ""
 "This text is included at the end of the email sent to new portal users."
 msgstr ""
-"Tento text sa nachádza na konci e-mailu zaslaného novým používateľom "
-"portálu."
 
 #. module: portal
 #: model:ir.model.fields,help:portal.field_portal_wizard__welcome_message
 msgid "This text is included in the email sent to new users of the portal."
-msgstr "Tento text je súčasťou e-mailu zaslaného novým používateľom portálu."
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_searchbar
 msgid "Toggle filters"
-msgstr "Prepínajte filtre"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__user_id
@@ -1099,24 +935,24 @@ msgstr "Užívatelia"
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "VAT Number"
-msgstr "Identifikačné číslo DPH"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "Verify New Password:"
-msgstr "Overenie nového hesla:"
+msgstr ""
 
 #. module: portal
 #: model:ir.model,name:portal.model_ir_ui_view
 msgid "View"
-msgstr "Náhľad"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Visible"
-msgstr "Viditeľný"
+msgstr ""
 
 #. module: portal
 #: model:ir.model.fields,field_description:portal.field_account_analytic_account__website_message_ids
@@ -1189,112 +1025,82 @@ msgid "Website communication history"
 msgstr "História komunikácie webstránok"
 
 #. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid "What's this key for?"
-msgstr "Na čo je tento kľúč?"
-
-#. module: portal
 #: model:ir.model.fields,field_description:portal.field_portal_wizard_user__wizard_id
 msgid "Wizard"
-msgstr "Sprievodca"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Write a message..."
-msgstr "Napíšte správu..."
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid "Write down your key"
-msgstr "Zapíšte si kľúč"
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/wizard/portal_share.py:0
 #: code:addons/portal/wizard/portal_share.py:0
 #, python-format
 msgid "You are invited to access %s"
-msgstr "Ste pozvaní na prístup %s"
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/controllers/portal.py:0
 #, python-format
 msgid "You cannot leave any password empty."
-msgstr "Žiadne heslo nemôžete nechať prázdne."
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_share_template
 msgid "You have been invited to access the following document:"
-msgstr "Boli ste pozvaní na prístup k tomuto dokumentu:"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "You must be"
-msgstr "Musíte byť"
+msgstr ""
 
 #. module: portal
 #: code:addons/portal/wizard/portal_wizard.py:0
 #, python-format
 msgid "You should first grant the portal access to the partner \"%s\"."
-msgstr "Najprv by ste mali partnerovi udeliť prístup k portálu \"%s\"."
+msgstr ""
 
 #. module: portal
 #: model:mail.template,subject:portal.mail_template_data_portal_welcome
 msgid "Your account at {{ object.user_id.company_id.name }}"
-msgstr "Váš účet na adrese {{ object.user_id.company_id.name }}"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_contact
 msgid "Your contact"
-msgstr "Váš kontakt"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "Zip / Postal Code"
-msgstr "PSČ"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "avatar"
-msgstr "avatar"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "comment"
-msgstr "komentovať"
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "comments"
-msgstr "komentáre"
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid "full access"
-msgstr ""
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid ""
-"it will be the only way to\n"
-"                identify the key once created"
 msgstr ""
 
 #. module: portal
@@ -1302,38 +1108,26 @@ msgstr ""
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "logged in"
-msgstr "prihlásený"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_record_sidebar
 msgid "odoo"
-msgstr "odoo"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_security
 msgid "password"
-msgstr "heslo"
-
-#. module: portal
-#: model:ir.model,name:portal.model_res_users_apikeys_description
-msgid "res.users.apikeys.description"
-msgstr "res.users.apikeys.description"
+msgstr ""
 
 #. module: portal
 #: model_terms:ir.ui.view,arch_db:portal.portal_my_details
 msgid "select..."
-msgstr "vybrať..."
+msgstr ""
 
 #. module: portal
 #. openerp-web
 #: code:addons/portal/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "to post a comment."
-msgstr "uverejniť komentár."
-
-#. module: portal
-#. openerp-web
-#: code:addons/portal/static/src/xml/portal_security.xml:0
-#, python-format
-msgid "to your user account, it is very important to store it securely."
 msgstr ""

@@ -1,9 +1,5 @@
 ///
-/// This file regroups basic style rules for web_editor enable page edition and
-/// backend utils.
-/// TODO many of those rules should probably not be declared for the backend.
-/// in particular the o_ccX rules, see code linked to the variable named
-/// 'prevent-backend-colors-alteration'.
+/// This file regroups basic style rules for web_editor enable page edition and backend utils.
 ///
 
 :root {
@@ -139,20 +135,18 @@ ul.o_checklist {
             display: block;
             height: $o-checklist-before-size;
             width: $o-checklist-before-size;
-            top: 4px;
+            margin-top: 4px;
             border: 1px solid;
             text-align: center;
             cursor: pointer;
         }
         &.o_checked {
             text-decoration: line-through;
-            &::before {
+            &::after {
                 content: "✓";
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding-left: 1px #{"/*rtl:ignore*/"};
-                padding-top: 1px;
+                position: absolute;
+                left: - ($o-checklist-margin-left - $o-checklist-checkmark-width);
+                top: +1px;
             }
         }
     }
@@ -546,11 +540,11 @@ a.o_underline {
     // modal select media
     .o_technical_modal.o_web_editor_dialog {
         // see template 'web_editor.FieldTextHtml.fullscreen'
-        z-index: $o-we-technical-modal-zindex;
+        z-index: 2001;
 
         > .o_select_media_dialog {
             max-width: inherit !important;
-            z-index: $o-we-technical-modal-zindex;
+            z-index: 2001;
 
             .modal-dialog, .model-content {
                 height: 100%;
@@ -792,11 +786,15 @@ blockquote {
 .btn-custom:hover, .btn-fill-custom:hover {
     filter: invert(0.2);
 }
-.btn-outline-custom:not(:hover) {
-    // Custom buttons have their fill color or gradient specified in their
-    // element style. They must only be shown on hover for outline buttons.
-    background-color: transparent !important;
-    background-image: none !important;
+.btn-outline-custom {
+    &:not(:hover) {
+        background-color: transparent !important;
+        background-image: none !important;
+    }
+    &:hover {
+        background-color: '';
+        background-image: '';
+    }
 }
 
 // Base snippet rules
@@ -877,7 +875,7 @@ section, .oe_img_bg, [data-oe-shape-data] {
 
 /* QWEB */
 
-.odoo-editor-editable, .o_readonly {
+.odoo-editor, .o_readonly {
     t,
     [t-if],
     [t-elif],

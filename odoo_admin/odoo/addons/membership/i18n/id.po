@@ -3,17 +3,7 @@
 # 	* membership
 # 
 # Translators:
-# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2022
-# Gradien Foundation <gradien.co@gmail.com>, 2022
-# oon arfiandwi <oon.arfiandwi@gmail.com>, 2022
-# Bonny Useful <bonny.useful@gmail.com>, 2022
-# Muhammad Syarif <mhdsyarif.ms@gmail.com>, 2022
-# Ikhsanul Wirsa <iwirsa02@outlook.co.id>, 2022
-# Muftiara Syuhada <muftiara.syuhada@gmail.com>, 2022
-# whenwesober, 2022
-# Martin Trigaux, 2022
-# Ryanto The <ry.the77@gmail.com>, 2022
-# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022
+# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -21,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
-"Last-Translator: Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022\n"
+"Last-Translator: Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021\n"
 "Language-Team: Indonesian (https://www.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -32,17 +22,17 @@ msgstr ""
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__num_invoiced
 msgid "# Invoiced"
-msgstr "# Ditagih"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__num_paid
 msgid "# Paid"
-msgstr "# Dibayar"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__num_waiting
 msgid "# Waiting"
-msgstr "# Menunggu"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_kanban
@@ -68,18 +58,16 @@ msgid ""
 "A member with whom you want to associate your membership.It will consider "
 "the membership state of the associated member."
 msgstr ""
-"Anggota dengan siapa Anda ingin keanggotaan Anda. Itu akan mempertimbangkan "
-"keadaan keanggotaan anggota Asosiasi."
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__account_invoice_line
 msgid "Account Invoice line"
-msgstr "Rekening faktur baris"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_form
 msgid "Add a description..."
-msgstr "Tambahkan keterangan..."
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.actions.act_window,help:membership.action_membership_members
@@ -89,7 +77,7 @@ msgstr ""
 #. module: membership
 #: model:ir.model.fields,help:membership.field_membership_membership_line__member_price
 msgid "Amount for the membership"
-msgstr "Jumlah untuk keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__associate_member_id
@@ -97,17 +85,17 @@ msgstr "Jumlah untuk keanggotaan"
 #: model:ir.model.fields,field_description:membership.field_res_users__associate_member
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Associate Member"
-msgstr "Anggota Asosiasi"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "Associated Partner"
-msgstr "Mitra terkait"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_partner_form
 msgid "Buy Membership"
-msgstr "Membeli keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_membership_invoice_view
@@ -118,81 +106,81 @@ msgstr "Batal"
 #: model:ir.model.fields,field_description:membership.field_res_partner__membership_cancel
 #: model:ir.model.fields,field_description:membership.field_res_users__membership_cancel
 msgid "Cancel Membership Date"
-msgstr "Membatalkan keanggotaan tanggal"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__date_cancel
 msgid "Cancel date"
-msgstr "Membatalkan tanggal"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields.selection,name:membership.selection__membership_membership_line__state__canceled
 #: model:ir.model.fields.selection,name:membership.selection__report_membership__membership_state__canceled
 #: model:ir.model.fields.selection,name:membership.selection__res_partner__membership_state__canceled
 msgid "Cancelled Member"
-msgstr "Anggota dibatalkan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_product_search_form_view
 msgid "Category"
-msgstr "Kategori"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_product_product__membership
 #: model:ir.model.fields,help:membership.field_product_template__membership
 msgid "Check if the product is eligible for membership."
-msgstr "Periksa apakah produk yang memenuhi syarat untuk keanggotaan."
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__company_id
 #: model:ir.model.fields,field_description:membership.field_report_membership__company_id
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "Company"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.ui.menu,name:membership.menu_marketing_config_association
 msgid "Configuration"
-msgstr "Konfigurasi"
+msgstr ""
 
 #. module: membership
 #: model:ir.model,name:membership.model_res_partner
 msgid "Contact"
-msgstr "Kontak"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_partner_tree
 msgid "Contacts"
-msgstr "Kontak"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_invoice__create_uid
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__create_uid
 msgid "Created by"
-msgstr "Dibuat oleh"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_invoice__create_date
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__create_date
 msgid "Created on"
-msgstr "Dibuat pada"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__membership_state
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "Current Membership State"
-msgstr "Saat ini keanggotaan negara"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_res_partner__membership_state
 #: model:ir.model.fields,field_description:membership.field_res_users__membership_state
 msgid "Current Membership Status"
-msgstr "Status keanggotaan saat ini"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Customers"
-msgstr "Pelanggan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_product_product__membership_date_from
@@ -200,18 +188,18 @@ msgstr "Pelanggan"
 #: model:ir.model.fields,help:membership.field_res_partner__membership_start
 #: model:ir.model.fields,help:membership.field_res_users__membership_start
 msgid "Date from which membership becomes active."
-msgstr "Tanggal dari keanggotaan yang akan menjadi aktif."
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_membership_membership_line__date
 msgid "Date on which member has joined the membership"
-msgstr "Tanggal pada anggota yang telah bergabung dengan keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_res_partner__membership_cancel
 #: model:ir.model.fields,help:membership.field_res_users__membership_cancel
 msgid "Date on which membership has been cancelled"
-msgstr "Tanggal di mana keanggotaan telah dibatalkan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_product_product__membership_date_to
@@ -219,35 +207,35 @@ msgstr "Tanggal di mana keanggotaan telah dibatalkan"
 #: model:ir.model.fields,help:membership.field_res_partner__membership_stop
 #: model:ir.model.fields,help:membership.field_res_users__membership_stop
 msgid "Date until which membership remains active."
-msgstr "Tanggal sampai yang keanggotaan tetap aktif."
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_invoice__display_name
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__display_name
 #: model:ir.model.fields,field_description:membership.field_report_membership__display_name
 msgid "Display Name"
-msgstr "Nama Tampilan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__tot_earned
 msgid "Earned Amount"
-msgstr "Jumlah yang diterima"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__date_to
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "End Date"
-msgstr "Tanggal Berakhir"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "End Membership Date"
-msgstr "Tanggal akhir keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_report_membership__date_to
 msgid "End membership date"
-msgstr "Tanggal akhir keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
@@ -258,12 +246,11 @@ msgstr ""
 #: model:ir.model.constraint,message:membership.constraint_product_template_membership_date_greater
 msgid "Error ! Ending Date cannot be set before Beginning Date."
 msgstr ""
-"Kesalahan! Tanggal berakhirnya tidak dapat diatur sebelum tanggal awal."
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "Forecast"
-msgstr "Prakiraan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_res_partner__free_member
@@ -272,57 +259,57 @@ msgstr "Prakiraan"
 #: model:ir.model.fields.selection,name:membership.selection__report_membership__membership_state__free
 #: model:ir.model.fields.selection,name:membership.selection__res_partner__membership_state__free
 msgid "Free Member"
-msgstr "Anggota gratis"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__date_from
 msgid "From"
-msgstr "Dari"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Group By"
-msgstr "Dikelompokkan berdasarkan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_product_search_form_view
 msgid "Group by..."
-msgstr "Kelompokkan menurut...."
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_invoice__id
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__id
 #: model:ir.model.fields,field_description:membership.field_report_membership__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_product_search_form_view
 msgid "Inactive"
-msgstr "Tidak Aktif"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__account_invoice_id
 msgid "Invoice"
-msgstr "Faktur"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_membership_invoice_view
 msgid "Invoice Membership"
-msgstr "Faktur keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields.selection,name:membership.selection__membership_membership_line__state__invoiced
 #: model:ir.model.fields.selection,name:membership.selection__report_membership__membership_state__invoiced
 #: model:ir.model.fields.selection,name:membership.selection__res_partner__membership_state__invoiced
 msgid "Invoiced Member"
-msgstr "Anggota tagihan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Invoiced/Paid/Free"
-msgstr "Ditagih/dibayar/gratis"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_res_partner__membership_state
@@ -336,13 +323,6 @@ msgid ""
 "-Invoiced Member: A member whose invoice has been created.\n"
 "-Paying member: A member who has paid the membership fee."
 msgstr ""
-"Ini menunjukkan status keanggotaan.\n"
-"-Non anggota: Pasangan yang tidak diterapkan untuk keanggotaan apapun.\n"
-"-Anggota dibatalkan: Seorang anggota yang telah membatalkan keanggotaan nya.\n"
-"-Old anggota: Anggota tanggal keanggotaan yang telah kedaluwarsa.\n"
-"-Menunggu anggota: Seorang anggota yang telah diterapkan untuk keanggotaan dan faktur yang akan dibuat.\n"
-"-Tagihan anggota: Anggota faktur yang telah dibuat.\n"
-"-Gaji anggota: anggota yang telah membayar biaya keanggotaan."
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_membership_membership_line__state
@@ -355,18 +335,11 @@ msgid ""
 "-Invoiced Member: A member whose invoice has been created.\n"
 "-Paid Member: A member who has paid the membership amount."
 msgstr ""
-"Ini menunjukkan status keanggotaan.\n"
-"-Bukan anggota: Anggota yang tidak diterapkan untuk keanggotaan apapun.\n"
-"-Anggota dibatalkan: Seorang anggota yang telah membatalkan keanggotaan nya.\n"
-"-Anggota lama: Anggota yang keanggotaannya telah kadaluarsa.\n"
-"-Menunggu anggota: Seorang anggota yang telah diterapkan untuk keanggotaan dan faktur yang akan dibuat.\n"
-"-Tagihan anggota: Anggota faktur yang telah dibuat.\n"
-"-Gaji anggota: Anggota yang telah membayar jumlah biaya keanggotaan."
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__date
 msgid "Join Date"
-msgstr "Tanggal bergabung"
+msgstr ""
 
 #. module: membership
 #: model:ir.actions.act_window,name:membership.action_membership_invoice_view
@@ -376,41 +349,41 @@ msgstr ""
 #. module: membership
 #: model:ir.model,name:membership.model_account_move
 msgid "Journal Entry"
-msgstr "Entri Jurnal"
+msgstr ""
 
 #. module: membership
 #: model:ir.model,name:membership.model_account_move_line
 msgid "Journal Item"
-msgstr "Item Jurnal"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_invoice____last_update
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line____last_update
 #: model:ir.model.fields,field_description:membership.field_report_membership____last_update
 msgid "Last Modified on"
-msgstr "Terakhir diubah pada"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_invoice__write_uid
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__write_uid
 msgid "Last Updated by"
-msgstr "Terakhir diperbarui oleh"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_invoice__write_date
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui pada"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__partner_id
 msgid "Member"
-msgstr "Anggota"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_invoice__member_price
 msgid "Member Price"
-msgstr "Anggota harga"
+msgstr ""
 
 #. module: membership
 #: model:ir.actions.act_window,name:membership.action_membership_members
@@ -419,12 +392,12 @@ msgstr "Anggota harga"
 #: model_terms:ir.ui.view,arch_db:membership.membership_members_tree
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Members"
-msgstr "Anggota"
+msgstr ""
 
 #. module: membership
 #: model:ir.actions.act_window,name:membership.action_report_membership_tree
 msgid "Members Analysis"
-msgstr "Anggota analisis"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_invoice__product_id
@@ -439,23 +412,23 @@ msgstr "Anggota analisis"
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_pivot
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "Membership"
-msgstr "Keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_res_partner__membership_amount
 #: model:ir.model.fields,field_description:membership.field_res_users__membership_amount
 msgid "Membership Amount"
-msgstr "Jumlah keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model,name:membership.model_report_membership
 msgid "Membership Analysis"
-msgstr "Analisis keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_form
 msgid "Membership Duration"
-msgstr "Durasi keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_product_product__membership_date_to
@@ -463,20 +436,20 @@ msgstr "Durasi keanggotaan"
 #: model:ir.model.fields,field_description:membership.field_res_partner__membership_stop
 #: model:ir.model.fields,field_description:membership.field_res_users__membership_stop
 msgid "Membership End Date"
-msgstr "Tanggal akhir keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__member_price
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_form
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_tree
 msgid "Membership Fee"
-msgstr "Tanpa biaya keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model,name:membership.model_membership_invoice
 #: model_terms:ir.ui.view,arch_db:membership.view_membership_invoice_view
 msgid "Membership Invoice"
-msgstr "Keanggotaan faktur"
+msgstr ""
 
 #. module: membership
 #: model:ir.model,name:membership.model_membership_membership_line
@@ -486,21 +459,21 @@ msgstr ""
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Membership Partners"
-msgstr "Keanggotaan mitra"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__membership_id
 #: model_terms:ir.ui.view,arch_db:membership.membership_product_search_form_view
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "Membership Product"
-msgstr "Produk keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.actions.act_window,name:membership.action_membership_products
 #: model:ir.ui.menu,name:membership.menu_membership_products
 #: model_terms:ir.ui.view,arch_db:membership.membership_product_search_form_view
 msgid "Membership Products"
-msgstr "Produk keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_product_product__membership_date_from
@@ -508,23 +481,23 @@ msgstr "Produk keanggotaan"
 #: model:ir.model.fields,field_description:membership.field_res_partner__membership_start
 #: model:ir.model.fields,field_description:membership.field_res_users__membership_start
 msgid "Membership Start Date"
-msgstr "Tanggal mulai keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Membership State"
-msgstr "Negara anggota"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__state
 msgid "Membership Status"
-msgstr "Keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_form
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_tree
 msgid "Membership products"
-msgstr "Produk keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model:ir.actions.server,name:membership.ir_cron_update_membership_ir_actions_server
@@ -536,24 +509,24 @@ msgstr ""
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_partner_form
 msgid "Memberships"
-msgstr "Keanggotaan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "Month"
-msgstr "Bulan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.actions.act_window,help:membership.action_report_membership_tree
 msgid "No data yet!"
-msgstr "Belum ada data!"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields.selection,name:membership.selection__membership_membership_line__state__none
 #: model:ir.model.fields.selection,name:membership.selection__report_membership__membership_state__none
 #: model:ir.model.fields.selection,name:membership.selection__res_partner__membership_state__none
 msgid "Non Member"
-msgstr "Bukan Anggota"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.actions.act_window,help:membership.action_membership_members
@@ -567,81 +540,81 @@ msgstr ""
 #: model:ir.model.fields.selection,name:membership.selection__report_membership__membership_state__old
 #: model:ir.model.fields.selection,name:membership.selection__res_partner__membership_state__old
 msgid "Old Member"
-msgstr "Anggota lama"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields.selection,name:membership.selection__membership_membership_line__state__paid
 #: model:ir.model.fields.selection,name:membership.selection__report_membership__membership_state__paid
 #: model:ir.model.fields.selection,name:membership.selection__res_partner__membership_state__paid
 msgid "Paid Member"
-msgstr "Paid Member"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__partner
 msgid "Partner"
-msgstr "Rekanan"
+msgstr ""
 
 #. module: membership
 #: code:addons/membership/models/partner.py:0
 #, python-format
 msgid "Partner doesn't have an address to make the invoice."
-msgstr "Mitra tidak memiliki alamat untuk membuat faktur."
+msgstr ""
 
 #. module: membership
 #: code:addons/membership/models/partner.py:0
 #, python-format
 msgid "Partner is a free Member."
-msgstr "Mitra adalah anggota gratis."
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__tot_pending
 msgid "Pending Amount"
-msgstr "Jumlah tertunda"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_form
 msgid "Product Name"
-msgstr "Nama Produk"
+msgstr ""
 
 #. module: membership
 #: model:ir.model,name:membership.model_product_template
 msgid "Product Template"
-msgstr "Templete Produk"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__quantity
 msgid "Quantity"
-msgstr "Kuantitas"
+msgstr ""
 
 #. module: membership
 #: model:ir.ui.menu,name:membership.menu_report_membership
 msgid "Reporting"
-msgstr "Laporan"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "Revenue Done"
-msgstr "Pendapatan yang dilakukan"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__user_id
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Salesperson"
-msgstr "Penjual"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_res_partner__free_member
 #: model:ir.model.fields,help:membership.field_res_users__free_member
 msgid "Select if you want to give free membership."
-msgstr "Pilih jika Anda ingin memberikan keanggotaan gratis."
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_report_membership__start_date
 #: model_terms:ir.ui.view,arch_db:membership.membership_product_search_form_view
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Start Date"
-msgstr "Tanggal Mulai"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
@@ -671,50 +644,50 @@ msgstr ""
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_form
 msgid "Taxes"
-msgstr "Pajak"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_membership_membership_line__account_invoice_id
 msgid "The move of this entry line."
-msgstr "Pergerakan dari baris entri ini."
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,help:membership.field_res_partner__membership_amount
 #: model:ir.model.fields,help:membership.field_res_users__membership_amount
 msgid "The price negotiated by the partner"
-msgstr "Harga dinegosiasikan oleh partner"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.membership_products_form
 msgid "This note will be displayed on quotations..."
-msgstr "Catatan ini akan ditampilkan di kutipan..."
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "This will display paid, old and total earned columns"
-msgstr "Ini akan menampilkan dibayar, tua dan total kolom diterima"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_report_membership_search
 msgid "This will display waiting, invoiced and total pending columns"
-msgstr "Ini akan menampilkan menunggu, tagihan dan total tertunda kolom"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields,field_description:membership.field_membership_membership_line__date_to
 msgid "To"
-msgstr "Kepada"
+msgstr ""
 
 #. module: membership
 #: model_terms:ir.ui.view,arch_db:membership.view_res_partner_member_filter
 msgid "Vendors"
-msgstr "Pemasok"
+msgstr ""
 
 #. module: membership
 #: model:ir.model.fields.selection,name:membership.selection__membership_membership_line__state__waiting
 #: model:ir.model.fields.selection,name:membership.selection__report_membership__membership_state__waiting
 #: model:ir.model.fields.selection,name:membership.selection__res_partner__membership_state__waiting
 msgid "Waiting Member"
-msgstr "Menunggu anggota"
+msgstr ""
 
 #. module: membership
 #: code:addons/membership/models/partner.py:0

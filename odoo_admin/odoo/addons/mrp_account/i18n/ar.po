@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-11-16 13:19+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -40,8 +39,6 @@ msgid ""
 "Analytic account in which cost and revenue entries will take        place "
 "for financial management of the manufacturing order."
 msgstr ""
-"الحساب التحليلي الذي سوف تكون فيه قيود التكاليف والإيرادات للإدارة المالية "
-"لأمر التصنيع. "
 
 #. module: mrp_account
 #: model:ir.model.fields,help:mrp_account.field_mrp_bom__analytic_account_id
@@ -49,8 +46,6 @@ msgid ""
 "Analytic account in which cost and revenue entries will take place for "
 "financial management of the manufacturing order."
 msgstr ""
-"الحساب التحليلي الذي سوف تكون فيه قيود التكاليف والإيرادات للإدارة المالية "
-"لأمر التصنيع. "
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_bom
@@ -61,17 +56,17 @@ msgstr "قائمة المواد"
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__bom_ids
 #: model_terms:ir.ui.view,arch_db:mrp_account.account_analytic_account_view_form_mrp
 msgid "Bills of Materials"
-msgstr "قوائم المواد "
+msgstr "فواتير المواد"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__bom_count
 msgid "BoM Count"
-msgstr "عدد قوائم المواد "
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_line__category
 msgid "Category"
-msgstr "الفئة "
+msgstr "فئة"
 
 #. module: mrp_account
 #: model:ir.actions.server,name:mrp_account.action_compute_price_bom_product
@@ -101,12 +96,12 @@ msgstr "تم تسجيل التكلفة"
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_production__extra_cost
 msgid "Extra Cost"
-msgstr "التكلفة الإضافية "
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model.fields,help:mrp_account.field_mrp_production__extra_cost
 msgid "Extra cost per produced unit"
-msgstr "التكلفة الإضافية لكل وحدة منتجة "
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model.fields,help:mrp_account.field_mrp_workcenter__costs_hour_account_id
@@ -114,8 +109,8 @@ msgid ""
 "Fill this only if you want automatic analytic accounting entries on "
 "production orders."
 msgstr ""
-"املأ هذه فقط إذا كنت تريد إنشاء قيود محاسبية تحليلية تلقائية في أوامر "
-"الإنتاج. "
+"املأ هذه فقط إذا كنت تريد إنشاء قيود محاسبية تحليلية التلقائيًا في أوامر "
+"الإنتاج."
 
 #. module: mrp_account
 #: model:ir.model.fields.selection,name:mrp_account.selection__account_analytic_line__category__manufacturing_order
@@ -126,17 +121,17 @@ msgstr "أمر التصنيع"
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__production_ids
 #: model_terms:ir.ui.view,arch_db:mrp_account.account_analytic_account_view_form_mrp
 msgid "Manufacturing Orders"
-msgstr "أوامر التصنيع "
+msgstr "اوامر التصنيع"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__production_count
 msgid "Manufacturing Orders Count"
-msgstr "عدد أوامر التصنيع "
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_workorder__mo_analytic_account_line_id
 msgid "Mo Analytic Account Line"
-msgstr "بند الحساب التحليلي لأمر التصنيع "
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_product_product
@@ -156,7 +151,7 @@ msgstr "أمر الانتاج"
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_production__show_valuation
 msgid "Show Valuation"
-msgstr "إظهار التقييم "
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_stock_move
@@ -176,19 +171,19 @@ msgid ""
 " multiple times and only consider new entries in the work centers time "
 "lines."
 msgstr ""
-"حقل تقني يتم تحديده تلقائياً عندما تقوم عملية إنتاج جارية بترحيل قيود "
-"اليومية لتكاليفها. بهذه الطريقة، بإمكاننا تسجيل تكلفة إنتاج واحد عدة مرات "
-"واعتبار القيود الجديدة فقط في المخطط الزمني لمراكز العمل. "
+"حقل تقني يتم تحديده تلقائيًا عند ترحيل عملية إنتاج حالية لقيود يومية "
+"بتكاليفها. هكذا، يمكننا تسجيل تكلفة الإنتاج عدة مرات وإدراج قيود جديدة فقط "
+"في حالة بنود مراكز العمل."
 
 #. module: mrp_account
 #: model_terms:ir.ui.view,arch_db:mrp_account.mrp_production_form_view_inherited
 msgid "Valuation"
-msgstr "التقييم "
+msgstr "تقييم"
 
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_mrp_workorder__wc_analytic_account_line_id
 msgid "Wc Analytic Account Line"
-msgstr "بند مركز العمل لأمر التصنيع "
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_workcenter
@@ -203,7 +198,7 @@ msgstr "أمر العمل"
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__workorder_count
 msgid "Work Order Count"
-msgstr "عدد أوامر العمل "
+msgstr ""
 
 #. module: mrp_account
 #: model:ir.model,name:mrp_account.model_mrp_workcenter_productivity
@@ -213,17 +208,17 @@ msgstr "سجل إنتاجية مركز العمل"
 #. module: mrp_account
 #: model:ir.model.fields,field_description:mrp_account.field_account_analytic_account__workcenter_ids
 msgid "Workcenters"
-msgstr "مراكز العمل "
+msgstr ""
 
 #. module: mrp_account
 #: code:addons/mrp_account/models/stock_move.py:0
 #, python-format
 msgid "[Raw] %s"
-msgstr "[Raw] %s"
+msgstr ""
 
 #. module: mrp_account
 #: code:addons/mrp_account/models/mrp_production.py:0
 #: code:addons/mrp_account/models/mrp_workorder.py:0
 #, python-format
 msgid "[WC] %s"
-msgstr "[WC] %s"
+msgstr ""

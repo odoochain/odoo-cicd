@@ -72,10 +72,7 @@ class HrLeave(models.Model):
             nbr_contracts = self.env['hr.contract'].sudo().search_count(domain)
             if nbr_contracts > 1:
                 contracts = self.env['hr.contract'].sudo().search(domain)
-                raise ValidationError(
-                    _('A leave cannot be set across multiple contracts.') + '\n%s\n%s' % (
-                        ', '.join(contracts.mapped('name')),
-                        holiday.display_name))
+                raise ValidationError(_('A leave cannot be set across multiple contracts.') + '\n' + ', '.join(contracts.mapped('name')))
 
     def _cancel_work_entry_conflict(self):
         """
@@ -203,9 +200,7 @@ class HrLeave(models.Model):
             contracts = employee.sudo()._get_contracts(date_from, date_to, states=['open'])
             contracts |= employee.sudo()._get_incoming_contracts(date_from, date_to)
             calendar = contracts[:1].resource_calendar_id if contracts else None # Note: if len(contracts)>1, the leave creation will crash because of unicity constaint
-            # We force the company in the domain as we are more than likely in a compute_sudo
-            domain = [('company_id', 'in', self.env.company.ids + self.env.context.get('allowed_company_ids', []))]
-            result = employee._get_work_days_data_batch(date_from, date_to, calendar=calendar, domain=domain)[employee.id]
+            result = employee._get_work_days_data_batch(date_from, date_to, calendar=calendar)[employee.id]
             if self.request_unit_half and result['hours'] > 0:
                 result['days'] = 0.5
             return result

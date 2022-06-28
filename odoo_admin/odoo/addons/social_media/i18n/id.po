@@ -3,8 +3,7 @@
 # 	* social_media
 # 
 # Translators:
-# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2022
-# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022
+# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022\n"
+"Last-Translator: Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021\n"
 "Language-Team: Indonesian (https://www.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,17 +22,17 @@ msgstr ""
 #. module: social_media
 #: model:ir.model,name:social_media.model_res_company
 msgid "Companies"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: social_media
 #: model:ir.model.fields,field_description:social_media.field_res_company__social_facebook
 msgid "Facebook Account"
-msgstr "Tidak punya akun Facebook?"
+msgstr ""
 
 #. module: social_media
 #: model:ir.model.fields,field_description:social_media.field_res_company__social_github
 msgid "GitHub Account"
-msgstr "Akun GitHub"
+msgstr ""
 
 #. module: social_media
 #: model:ir.model.fields,field_description:social_media.field_res_company__social_instagram
@@ -43,19 +42,19 @@ msgstr "Akun Instagram"
 #. module: social_media
 #: model:ir.model.fields,field_description:social_media.field_res_company__social_linkedin
 msgid "LinkedIn Account"
-msgstr "Akun LinkedIn"
+msgstr ""
 
 #. module: social_media
 #: model_terms:ir.ui.view,arch_db:social_media.view_company_form_inherit_social_media
 msgid "Social Media"
-msgstr "Media sosial"
+msgstr ""
 
 #. module: social_media
 #: model:ir.model.fields,field_description:social_media.field_res_company__social_twitter
 msgid "Twitter Account"
-msgstr "Twitter Account"
+msgstr ""
 
 #. module: social_media
 #: model:ir.model.fields,field_description:social_media.field_res_company__social_youtube
 msgid "Youtube Account"
-msgstr "Akun YouTube"
+msgstr ""

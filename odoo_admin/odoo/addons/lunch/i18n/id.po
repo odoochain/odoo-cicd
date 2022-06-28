@@ -3,32 +3,16 @@
 # 	* lunch
 # 
 # Translators:
-# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2022
-# Gradien Foundation <gradien.co@gmail.com>, 2022
-# Muhammad Syarif <mhdsyarif.ms@gmail.com>, 2022
-# Edy Kend <edy@azmall.co.id>, 2022
-# Febrasari Almania <febrasari.almania@gmail.com>, 2022
-# Dedi Santoso <dedisantoso@yahoo.com>, 2022
-# William Surya Permana <zarambie_game@yahoo.com>, 2022
-# pnyet <david@zeromail.us>, 2022
-# Gusti Rini <gustirini@gmail.com>, 2022
-# Hendra So <mask783@gmail.com>, 2022
-# oon arfiandwi <oon.arfiandwi@gmail.com>, 2022
-# Andhitia Rama <andhitia.r@gmail.com>, 2022
-# PAS IRVANUS <ipankbiz@gmail.com>, 2022
-# Ryanto The <ry.the77@gmail.com>, 2022
-# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022
-# whenwesober, 2022
-# Bonny Useful <bonny.useful@gmail.com>, 2022
-# Martin Trigaux, 2022
+# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2021
+# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-24 08:19+0000\n"
+"POT-Creation-Date: 2021-10-05 10:53+0000\n"
 "PO-Revision-Date: 2021-09-14 12:23+0000\n"
-"Last-Translator: Martin Trigaux, 2022\n"
+"Last-Translator: Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2021\n"
 "Language-Team: Indonesian (https://www.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -74,7 +58,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:lunch.view_lunch_cashmove_kanban
 #: model_terms:ir.ui.view,arch_db:lunch.view_lunch_cashmove_report_kanban
 msgid "<i class=\"fa fa-clock-o\" role=\"img\" aria-label=\"Date\" title=\"Date\"/>"
-msgstr "<i class=\"fa fa-clock-o\" role=\"img\" aria-label=\"Date\" title=\"Date\"/>"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.view_lunch_cashmove_kanban
@@ -263,7 +247,7 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_needaction
 msgid "Action Needed"
-msgstr "Perlu Tindakan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__active
@@ -273,27 +257,27 @@ msgstr "Perlu Tindakan"
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__active
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_search
 msgid "Active"
-msgstr "Aktif"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_ids
 msgid "Activities"
-msgstr "Aktivitas"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_exception_decoration
 msgid "Activity Exception Decoration"
-msgstr "Dekorasi Pengecualian Aktivitas"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_state
 msgid "Activity State"
-msgstr "Status Aktivitas"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_type_icon
 msgid "Activity Type Icon"
-msgstr "Ikon Jenis Aktifitas"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_form
@@ -304,7 +288,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_location__address
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Address"
-msgstr "Alamat"
+msgstr ""
 
 #. module: lunch
 #: model:res.groups,name:lunch.group_lunch_manager
@@ -317,11 +301,6 @@ msgid "Alert Name"
 msgstr ""
 
 #. module: lunch
-#: model:lunch.alert,name:lunch.alert_office_3
-msgid "Alert for Office 3"
-msgstr ""
-
-#. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__mode__alert
 msgid "Alert in app"
 msgstr ""
@@ -329,13 +308,13 @@ msgstr ""
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.lunch_alert_menu
 msgid "Alerts"
-msgstr "Alert"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove__amount
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove_report__amount
 msgid "Amount"
-msgstr "Jumlah"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_search
@@ -346,7 +325,7 @@ msgstr "Jumlah"
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_search
 msgid "Archived"
-msgstr "Diarsipkan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_order__available_toppings_1
@@ -358,7 +337,7 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_attachment_count
 msgid "Attachment Count"
-msgstr "Hitungan Lampiran"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.constraint,message:lunch.constraint_lunch_supplier_automatic_email_time_range
@@ -368,7 +347,7 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Availability"
-msgstr "Ketersediaan"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
@@ -427,13 +406,13 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search_2
 msgid "By Employee"
-msgstr "Menurut Karyawan"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_search
 msgid "By User"
-msgstr "Oleh Pengguna"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
@@ -445,7 +424,7 @@ msgstr "Batal"
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_order__state__cancelled
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Cancelled"
-msgstr "Dibatalkan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_cashmove_action_payment
@@ -461,12 +440,12 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Categories"
-msgstr "Kategori"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Category"
-msgstr "Kategori"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__mode__chat
@@ -504,7 +483,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__city
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "City"
-msgstr "Kota"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action_control_suppliers
@@ -528,7 +507,7 @@ msgstr ""
 #. module: lunch
 #: model:ir.model,name:lunch.model_res_company
 msgid "Companies"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_location__company_id
@@ -538,17 +517,17 @@ msgstr "Perusahaan"
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__company_id
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__company_id
 msgid "Company"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_res_config_settings
 msgid "Config Settings"
-msgstr "Pengaturan Konfigurasi"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.menu_lunch_config
 msgid "Configuration"
-msgstr "Konfigurasi"
+msgstr ""
 
 #. module: lunch
 #. openerp-web
@@ -566,7 +545,7 @@ msgstr "Konfirmasi"
 #: model:ir.actions.act_window,name:lunch.lunch_cashmove_report_action_control_accounts
 #: model:ir.ui.menu,name:lunch.lunch_cashmove_report_menu_control_accounts
 msgid "Control Accounts"
-msgstr "Kontrol akun"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_order_action_control_suppliers
@@ -578,7 +557,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__country_id
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Country"
-msgstr "Negara"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_cashmove_report_action_control_accounts
@@ -611,7 +590,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__create_uid
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__create_uid
 msgid "Created by"
-msgstr "Dibuat oleh"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__create_date
@@ -623,7 +602,7 @@ msgstr "Dibuat oleh"
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__create_date
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__create_date
 msgid "Created on"
-msgstr "Dibuat pada"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__cron_id
@@ -640,7 +619,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__currency_id
 #: model:ir.model.fields,field_description:lunch.field_res_config_settings__currency_id
 msgid "Currency"
-msgstr "Mata Uang"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_search
@@ -651,13 +630,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove__date
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove_report__date
 msgid "Date"
-msgstr "Tanggal"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__delivery
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__delivery__delivery
 msgid "Delivery"
-msgstr "Pengiriman"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove__description
@@ -665,17 +644,17 @@ msgstr "Pengiriman"
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__product_description
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__description
 msgid "Description"
-msgstr "Deskripsi"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_form
 msgid "Discard"
-msgstr "Abaikan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__mode
 msgid "Display"
-msgstr "Tampilan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__display_name
@@ -688,7 +667,7 @@ msgstr "Tampilan"
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__display_name
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__display_name
 msgid "Display Name"
-msgstr "Nama Tampilan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__display_reorder_button
@@ -704,7 +683,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__email
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__send_by__mail
 msgid "Email"
-msgstr "Email"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__recipients__last_month
@@ -724,7 +703,7 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_alert__recipients__everyone
 msgid "Everyone"
-msgstr "Semua Orang"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__topping_label_1
@@ -795,17 +774,17 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_follower_ids
 msgid "Followers"
-msgstr "Pengikut"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "Pengikut (Rekanan)"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr "Ikon font awesome, misalnya fa-tasks"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__email_formatted
@@ -815,7 +794,7 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__email_formatted
 msgid "Formatted Email"
-msgstr "Email yang telah diformat"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.order,product_description:lunch.order_line_2
@@ -827,12 +806,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__fri
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__fri
 msgid "Fri"
-msgstr "Jum"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Friday"
-msgstr "Jumat"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.order,name:lunch.order_line_3
@@ -845,7 +824,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Group By"
-msgstr "Dikelompokkan berdasarkan"
+msgstr ""
 
 #. module: lunch
 #: model_terms:lunch.product,description:lunch.product_club
@@ -864,9 +843,6 @@ msgid ""
 "Helps you handle your lunch needs, if you are a manager you will be able to "
 "create new products, cashmoves and to confirm or cancel orders."
 msgstr ""
-"Kebutuhan membantu Anda menangani makan siang Anda, jika Anda seorang "
-"manajer Anda akan dapat untuk membuat produk baru, cashmoves dan untuk "
-"mengkonfirmasi atau membatalkan pesanan."
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_product_category_action
@@ -896,34 +872,34 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__id
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_exception_icon
 msgid "Icon"
-msgstr "Ikon"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__activity_exception_icon
 msgid "Icon to indicate an exception activity."
-msgstr "Ikon untuk menunjukkan sebuah aktivitas pengecualian."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_needaction
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_unread
 msgid "If checked, new messages require your attention."
-msgstr "Jika dicentang, pesan baru memerlukan penanganan dan perhatian Anda."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_has_error
 msgid "If checked, some messages have a delivery error."
-msgstr "Jika dicentang, beberapa pesan mempunyai kesalahan dalam pengiriman."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__image_1920
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__image_1920
 msgid "Image"
-msgstr "Gambar"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__image_1024
@@ -973,7 +949,7 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_is_follower
 msgid "Is Follower"
-msgstr "Pengikut"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__is_new
@@ -996,7 +972,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier____last_update
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping____last_update
 msgid "Last Modified on"
-msgstr "Terakhir diubah pada"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__last_order_date
@@ -1013,7 +989,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__write_uid
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__write_uid
 msgid "Last Updated by"
-msgstr "Terakhir diperbarui oleh"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__write_date
@@ -1025,35 +1001,35 @@ msgstr "Terakhir diperbarui oleh"
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__write_date
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui pada"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__location_ids
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__available_location_ids
 msgid "Location"
-msgstr "Lokasi"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_location__name
 msgid "Location Name"
-msgstr "Nama Lokasi"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.lunch_location_menu
 msgid "Locations"
-msgstr "Lokasi"
+msgstr ""
 
 #. module: lunch
 #: model:ir.module.category,name:lunch.module_lunch_category
 #: model:ir.ui.menu,name:lunch.menu_lunch
 #: model_terms:ir.ui.view,arch_db:lunch.res_config_settings_view_form
 msgid "Lunch"
-msgstr "Makan siang"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_lunch_alert
 msgid "Lunch Alert"
-msgstr "Makan Siang Alert"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_alert_action
@@ -1111,7 +1087,7 @@ msgstr ""
 #. module: lunch
 #: model:ir.model,name:lunch.model_lunch_order
 msgid "Lunch Order"
-msgstr "Makan Siang Order"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_lunch_product
@@ -1154,49 +1130,19 @@ msgid "Lunch: Send by email"
 msgstr ""
 
 #. module: lunch
-#: model:ir.actions.server,name:lunch.lunch_alert_cron_sa_224
-msgid "Lunch: alert chat notification (Alert for Office 3)"
-msgstr ""
-
-#. module: lunch
-#: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_225
-msgid "Lunch: send automatic email to Coin gourmand"
-msgstr ""
-
-#. module: lunch
-#: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_221
-msgid "Lunch: send automatic email to Lunch Supplier"
-msgstr ""
-
-#. module: lunch
-#: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_226
-msgid "Lunch: send automatic email to Pizza Inn"
-msgstr ""
-
-#. module: lunch
-#: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_228
-msgid "Lunch: send automatic email to Sushi Shop"
-msgstr ""
-
-#. module: lunch
-#: model:ir.actions.server,name:lunch.lunch_supplier_cron_sa_227
-msgid "Lunch: send automatic email to The Corner"
-msgstr ""
-
-#. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_main_attachment_id
 msgid "Main Attachment"
-msgstr "Lampiran Utama"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_res_config_settings__currency_id
 msgid "Main currency of the company."
-msgstr "Mata uang utama perusahaan."
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.menu_lunch_admin
 msgid "Manager"
-msgstr "Manajer"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_res_config_settings__company_lunch_minimum_threshold
@@ -1211,17 +1157,17 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__message
 msgid "Message"
-msgstr "Pesan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_has_error
 msgid "Message Delivery error"
-msgstr "Kesalahan Pengiriman Pesan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_ids
 msgid "Messages"
-msgstr "Pesan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__moment
@@ -1232,12 +1178,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__mon
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__mon
 msgid "Mon"
-msgstr "Sen"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Monday"
-msgstr "Senin"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_mozzarella
@@ -1252,7 +1198,7 @@ msgstr ""
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_cashmove_report_action_account
 msgid "My Account"
-msgstr "Akun Saya"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.lunch_cashmove_report_menu_form
@@ -1263,7 +1209,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_search
 msgid "My Account grouped"
-msgstr "Account saya dikelompokkan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__my_activity_date_deadline
@@ -1284,13 +1230,13 @@ msgstr ""
 #: model:ir.actions.act_window,name:lunch.lunch_order_action
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "My Orders"
-msgstr "Orderku"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__name
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__name
 msgid "Name"
-msgstr "Nama"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_Napoli
@@ -1300,12 +1246,12 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.view_lunch_product_kanban_order
 msgid "New"
-msgstr "Baru"
+msgstr ""
 
 #. module: lunch
 #: model:ir.ui.menu,name:lunch.lunch_order_menu_form
 msgid "New Order"
-msgstr "Orde baru"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__new_until
@@ -1320,17 +1266,17 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr "Batas Waktu Aktivitas Berikutnya"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_summary
 msgid "Next Activity Summary"
-msgstr "Ringkasan Aktivitas Berikutnya"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_type_id
 msgid "Next Activity Type"
-msgstr "Tipe Aktivitas Berikutnya"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__delivery__no_delivery
@@ -1355,7 +1301,7 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.res_config_settings_view_form
 msgid "None"
-msgstr "Tidak Ada"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_1__0_more
@@ -1367,7 +1313,7 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Not Received"
-msgstr "Tidak diterima"
+msgstr ""
 
 #. module: lunch
 #. openerp-web
@@ -1379,7 +1325,7 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__note
 msgid "Notes"
-msgstr "Catatan"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action_by_supplier
@@ -1404,27 +1350,27 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_needaction_counter
 msgid "Number of Actions"
-msgstr "Jumlah Tindakan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_has_error_counter
 msgid "Number of errors"
-msgstr "Jumlah kesalahan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_needaction_counter
 msgid "Number of messages which requires an action"
-msgstr "Jumlah pesan yang butuh tindakan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr "Jumlah dari pesan dengan kesalahan pengiriman"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__message_unread_counter
 msgid "Number of unread messages"
-msgstr "Jumlah pesan yang belum dibaca"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__topping_quantity_1__1_more
@@ -1443,13 +1389,13 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
 msgid "Order"
-msgstr "Order"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__date
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Order Date"
-msgstr "Tanggal Order"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__automatic_email_time
@@ -1464,24 +1410,24 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Order lines Tree"
-msgstr "Urutan baris pohon"
+msgstr ""
 
 #. module: lunch
 #. openerp-web
 #: code:addons/lunch/static/src/xml/lunch_templates.xml:0
 #, python-format
 msgid "Order now"
-msgstr "Pesan sekarang"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_order__state__ordered
 msgid "Ordered"
-msgstr "Memerintahkan"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Orders"
-msgstr "Order"
+msgstr ""
 
 #. module: lunch
 #: model:mail.template,subject:lunch.lunch_order_mail_supplier
@@ -1507,7 +1453,7 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search
 msgid "Payment"
-msgstr "Pembayaran"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_cashmove_action_payment
@@ -1515,14 +1461,12 @@ msgid ""
 "Payments are used to register liquidity movements. You can process those "
 "payments by your own means or by using installed facilities."
 msgstr ""
-"Payments are used to register liquidity movements. You can process those "
-"payments by your own means or by using installed facilities."
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__phone
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_supplier__send_by__phone
 msgid "Phone"
-msgstr "Telepon"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product.category,name:lunch.categ_pizza
@@ -1552,23 +1496,18 @@ msgid "Pizza Vegetarian"
 msgstr ""
 
 #. module: lunch
-#: model_terms:lunch.alert,message:lunch.alert_office_3
-msgid "Please order"
-msgstr ""
-
-#. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__price
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__price
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Price"
-msgstr "Harga"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__product_id
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Product"
-msgstr "Produk"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__is_available_at
@@ -1579,7 +1518,7 @@ msgstr "Ketersediaan Produk"
 #: model:ir.actions.act_window,name:lunch.lunch_product_category_action
 #: model:ir.ui.menu,name:lunch.lunch_product_category_menu
 msgid "Product Categories"
-msgstr "Kategori Produk"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_form
@@ -1592,7 +1531,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__name
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_tree
 msgid "Product Category"
-msgstr "Kategori Produk"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product_category__product_count
@@ -1602,13 +1541,13 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__product_image
 msgid "Product Image"
-msgstr "Gambar Produk"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__name
 #: model:ir.model.fields,field_description:lunch.field_lunch_product__name
 msgid "Product Name"
-msgstr "Nama Produk"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
@@ -1628,12 +1567,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_form
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_kanban
 msgid "Products"
-msgstr "Produk"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_form
 msgid "Products Form"
-msgstr "Bentuk produk"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_category_view_tree
@@ -1643,12 +1582,12 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_tree
 msgid "Products Tree"
-msgstr "Produk pohon"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__quantity
 msgid "Quantity"
-msgstr "Kuantitas"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
@@ -1659,38 +1598,38 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_kanban
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Receive"
-msgstr "Terima"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields.selection,name:lunch.selection__lunch_order__state__confirmed
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Received"
-msgstr "Diterima"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__recipients
 msgid "Recipients"
-msgstr "Penerima"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_cashmove_action_payment
 msgid "Register a payment"
-msgstr "Register a payment"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 msgid "Reset"
-msgstr "Reset"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__responsible_id
 msgid "Responsible"
-msgstr "Penanggung Jawab"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__activity_user_id
 msgid "Responsible User"
-msgstr "Tanggung-jawab"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_chirashi
@@ -1706,23 +1645,23 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__sat
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__sat
 msgid "Sat"
-msgstr "Sab"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Saturday"
-msgstr "Sabtu"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_form
 msgid "Save"
-msgstr "Simpan"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Search"
-msgstr "Pencarian"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__send_by
@@ -1733,7 +1672,7 @@ msgstr ""
 #: model:ir.actions.act_window,name:lunch.lunch_config_settings_action
 #: model:ir.ui.menu,name:lunch.lunch_settings_menu
 msgid "Settings"
-msgstr "Pengaturan"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__until
@@ -1749,12 +1688,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__state_id
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "State"
-msgstr "Status"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__state
 msgid "Status"
-msgstr "Status"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__activity_state
@@ -1764,30 +1703,26 @@ msgid ""
 "Today: Activity date is today\n"
 "Planned: Future activities."
 msgstr ""
-"Status berdasarkan aktivitas\n"
-"Terlambat: Batas waktu telah terlewati\n"
-"Hari ini: Tanggal aktivitas adalah hari ini\n"
-"Direncanakan: Aktivitas yang akan datang."
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__street
 msgid "Street"
-msgstr "Jalan"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Street 2..."
-msgstr "Tambahan nama jalan..."
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Street..."
-msgstr "Jalan..."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__street2
 msgid "Street2"
-msgstr "Jalan ke-2"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.actions.act_window,help:lunch.lunch_order_action_control_suppliers
@@ -1798,12 +1733,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__sun
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__sun
 msgid "Sun"
-msgstr "Min"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Sunday"
-msgstr "Minggu"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_topping__supplier_id
@@ -1855,7 +1790,6 @@ msgstr ""
 
 #. module: lunch
 #: code:addons/lunch/models/lunch_order.py:0
-#: code:addons/lunch/models/lunch_order.py:0
 #, python-format
 msgid "The vendor related to this order is not available today."
 msgstr ""
@@ -1891,18 +1825,18 @@ msgstr ""
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__thu
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__thu
 msgid "Thu"
-msgstr "Kam"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Thursday"
-msgstr "Kamis"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__tz
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__tz
 msgid "Timezone"
-msgstr "Zona Waktu"
+msgstr ""
 
 #. module: lunch
 #. openerp-web
@@ -1932,7 +1866,7 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "Today"
-msgstr "Hari Ini"
+msgstr ""
 
 #. module: lunch
 #: model:ir.actions.act_window,name:lunch.lunch_order_action_by_supplier
@@ -1996,23 +1930,23 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_tree
 #, python-format
 msgid "Total"
-msgstr "Total"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__price
 msgid "Total Price"
-msgstr "Harga Total"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__tue
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__tue
 msgid "Tue"
-msgstr "Sel"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Tuesday"
-msgstr "Selasa"
+msgstr ""
 
 #. module: lunch
 #: model:lunch.product,name:lunch.product_tuna
@@ -2027,22 +1961,22 @@ msgstr ""
 #. module: lunch
 #: model:ir.model.fields,help:lunch.field_lunch_supplier__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "Jenis dari aktivitas pengecualian pada rekaman data."
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_unread
 msgid "Unread Messages"
-msgstr "Pesan Belum Dibaca"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__message_unread_counter
 msgid "Unread Messages Counter"
-msgstr "Penghitung Pesan yang Belum Dibaca"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__recurrency_end_date
 msgid "Until"
-msgstr "Hingga"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_cashmove__user_id
@@ -2051,12 +1985,12 @@ msgstr "Hingga"
 #: model:res.groups,name:lunch.group_lunch_user
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
 msgid "User"
-msgstr "Pengguna"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model,name:lunch.model_res_users
 msgid "Users"
-msgstr "Pengguna"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_order__supplier_id
@@ -2066,7 +2000,7 @@ msgstr "Pengguna"
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "Vendor"
-msgstr "Pemasok"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_order_view_search
@@ -2078,18 +2012,18 @@ msgstr ""
 #: model:ir.ui.menu,name:lunch.lunch_vendors_menu
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Vendors"
-msgstr "Pemasok"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_alert__wed
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__wed
 msgid "Wed"
-msgstr "Rab"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_product_view_search
 msgid "Wednesday"
-msgstr "Rabu"
+msgstr ""
 
 #. module: lunch
 #: code:addons/lunch/controllers/main.py:0
@@ -2116,7 +2050,7 @@ msgstr ""
 #: code:addons/lunch/static/src/xml/lunch_templates.xml:0
 #, python-format
 msgid "Your Account"
-msgstr "Akun"
+msgstr ""
 
 #. module: lunch
 #. openerp-web
@@ -2145,12 +2079,12 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_supplier_view_form
 msgid "ZIP"
-msgstr "Kode Pos"
+msgstr ""
 
 #. module: lunch
 #: model:ir.model.fields,field_description:lunch.field_lunch_supplier__zip_code
 msgid "Zip"
-msgstr "Kode Pos"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_form
@@ -2161,14 +2095,14 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_form
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_form
 msgid "cashmove form"
-msgstr "Formulir cashmove"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_tree
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_tree_2
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_tree
 msgid "cashmove tree"
-msgstr "pohon cashmove"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_form
@@ -2183,20 +2117,20 @@ msgstr ""
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search_2
 msgid "lunch cashmove"
-msgstr "Makan Siang cashmove"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_report_view_search
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_cashmove_view_search
 msgid "lunch employee payment"
-msgstr "Makan Siang karyawan pembayaran"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_kanban
 msgid "on"
-msgstr "pada"
+msgstr ""
 
 #. module: lunch
 #: model_terms:ir.ui.view,arch_db:lunch.lunch_alert_view_kanban
 msgid "to"
-msgstr "kepada"
+msgstr ""

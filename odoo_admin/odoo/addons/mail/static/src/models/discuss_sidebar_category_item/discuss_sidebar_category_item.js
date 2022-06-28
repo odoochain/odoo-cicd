@@ -123,7 +123,7 @@ function factory(dependencies) {
         _computeHasThreadIcon() {
             switch (this.channelType) {
                 case 'channel':
-                    return ['private', 'public'].includes(this.channel.public);
+                    return this.channel.public === 'private';
                 case 'chat':
                     return true;
                 case 'group':

@@ -268,7 +268,7 @@ class Lead(models.Model):
             team = self.env['crm.team']._get_default_team_id(user_id=user.id, domain=team_domain)
             lead.team_id = team.id
 
-    @api.depends('user_id', 'team_id', 'partner_id')
+    @api.depends('user_id', 'team_id')
     def _compute_company_id(self):
         """ Compute company_id coherency. """
         for lead in self:
@@ -286,21 +286,15 @@ class Lead(models.Model):
                 if lead.team_id and not lead.team_id.company_id and not lead.user_id:
                     proposal = False
                 # no user and no team -> void company and let assignment do its job
-                # unless customer has a company
-                if not lead.team_id and not lead.user_id and \
-                   (not lead.partner_id or lead.partner_id.company_id != proposal):
+                if not lead.team_id and not lead.user_id:
                     proposal = False
 
             # propose a new company based on responsible, limited by team
             if not proposal:
-                if lead.user_id and lead.team_id.company_id:
-                    proposal = lead.team_id.company_id
-                elif lead.user_id:
-                    proposal = lead.user_id.company_id & self.env.companies
+                if lead.user_id:
+                    proposal = lead.team_id.company_id or lead.user_id.company_id
                 elif lead.team_id:
                     proposal = lead.team_id.company_id
-                elif lead.partner_id:
-                    proposal = lead.partner_id.company_id
                 else:
                     proposal = False
 
@@ -672,13 +666,13 @@ class Lead(models.Model):
     def write(self, vals):
         if vals.get('website'):
             vals['website'] = self.env['res.partner']._clean_website(vals['website'])
-        stage_is_won = False
+
         # stage change: update date_last_stage_update
         if 'stage_id' in vals:
             stage_id = self.env['crm.stage'].browse(vals['stage_id'])
             if stage_id.is_won:
                 vals.update({'probability': 100, 'automated_probability': 100})
-                stage_is_won = True
+
         # stage change with new stage: update probability and date_closed
         if vals.get('probability', 0) >= 100 or not vals.get('active', True):
             vals['date_closed'] = fields.Datetime.now()
@@ -687,18 +681,10 @@ class Lead(models.Model):
 
         if any(field in ['active', 'stage_id'] for field in vals):
             self._handle_won_lost(vals)
-        if not stage_is_won:
-            return super(Lead, self).write(vals)
 
-        # stage change between two won stages: does not change the date_closed
-        leads_already_won = self.filtered(lambda r: r.stage_id.is_won)
-        remaining = self - leads_already_won
-        if remaining:
-            result = super(Lead, remaining).write(vals)
-        if leads_already_won:
-            vals.pop('date_closed', False)
-            result = super(Lead, leads_already_won).write(vals)
-        return result
+        write_result = super(Lead, self).write(vals)
+
+        return write_result
 
     @api.model
     def search(self, args, offset=0, limit=None, order=None, count=False):
@@ -2095,7 +2081,7 @@ class Lead(models.Model):
         # - avoid blocking the table for too long with a too big transaction
         transactions_count, transactions_failed_count = 0, 0
         cron_update_lead_start_date = datetime.now()
-        auto_commit = not getattr(threading.current_thread(), 'testing', False)
+        auto_commit = not getattr(threading.currentThread(), 'testing', False)
         for probability, probability_lead_ids in probability_leads.items():
             for lead_ids_current in tools.split_every(PLS_UPDATE_BATCH_STEP, probability_lead_ids):
                 transactions_count += 1

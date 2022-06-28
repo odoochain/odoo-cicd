@@ -74,10 +74,7 @@ const _DialogLinkWidget = Link.extend({
             href: data.url && data.url.length ? data.url : '#',
             class: `${data.classes.replace(/float-\w+/, '')} o_btn_preview`,
         };
-
-        const $linkPreview = this.$("#link-preview");
-        $linkPreview.attr(attrs);
-        this._updateLinkContent($linkPreview, data, { force: true });
+        this.$("#link-preview").attr(attrs).html((data.content && data.content.length) ? data.content : data.url);
     },
     /**
      * @override

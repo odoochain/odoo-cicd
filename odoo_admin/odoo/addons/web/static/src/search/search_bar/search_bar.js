@@ -226,7 +226,7 @@ export class SearchBar extends Component {
     focusFacet(index) {
         const facets = this.el.getElementsByClassName("o_searchview_facet");
         if (facets.length) {
-            if (index === undefined) {
+            if (!index) {
                 facets[facets.length - 1].focus();
             } else {
                 facets[index].focus();

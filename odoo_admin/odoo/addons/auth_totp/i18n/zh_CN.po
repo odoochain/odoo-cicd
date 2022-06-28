@@ -6,7 +6,6 @@
 # Martin Trigaux, 2021
 # 黎伟杰 <674416404@qq.com>, 2021
 # 深圳市耀影科技有限公司_QQ1006399173, 2021
-# 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -14,7 +13,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:20+0000\n"
-"Last-Translator: 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2022\n"
+"Last-Translator: 深圳市耀影科技有限公司_QQ1006399173, 2021\n"
 "Language-Team: Chinese (China) (https://www.transifex.com/odoo/teams/41243/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -26,7 +25,7 @@ msgstr ""
 #: code:addons/auth_totp/controllers/home.py:0
 #, python-format
 msgid "%(browser)s on %(platform)s"
-msgstr "%(browser)s在%(platform)s"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model,name:auth_totp.model_auth_totp_wizard
@@ -37,7 +36,7 @@ msgstr "2-Factor双因素设置向导"
 #: code:addons/auth_totp/wizard/auth_totp_wizard.py:0
 #, python-format
 msgid "2-Factor authentication is now enabled."
-msgstr "现在启用了双重认证。"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_field
@@ -46,8 +45,6 @@ msgid ""
 "<span attrs=\"{'invisible': [('totp_enabled', '=', False)]}\" class=\"text-"
 "muted\">Your account is protected!</span>"
 msgstr ""
-"<span attrs=\"{'invisible': [('totp_enabled', '=', False)]}\" class=\"text-"
-"muted\">您的账户受到保护!</span>"
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
@@ -55,8 +52,6 @@ msgid ""
 "<span class=\"d-md-none d-block\">Or install an authenticator app</span>\n"
 "                                        <span class=\"d-none d-md-block\">Install an authenticator app on your mobile device</span>"
 msgstr ""
-"<span class=\"d-md-none d-block\">或者安装一个认证器应用程序</span>\n"
-"                                        <span class=\"d-none d-md-block\">在你的移动设备上安装一个认证器应用程序</span>"
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
@@ -64,15 +59,13 @@ msgid ""
 "<span class=\"d-none d-md-block\">When requested to do so, scan the barcode below</span>\n"
 "                                    <span class=\"d-block d-md-none\">When requested to do so, copy the key below</span>"
 msgstr ""
-"<span class=\"d-none d-md-block\">当被要求这样做时，请扫描下面的条形码。</span>\n"
-"                                    <span class=\"d-block d-md-none\">当被要求这样做的时候，请复制下面的钥匙</span>"
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
 msgid ""
 "<span class=\"text-muted\">Popular ones include Authy, Google Authenticator "
 "or the Microsoft Authenticator.</span>"
-msgstr "<span class=\"text-muted\">流行的包括Authy、谷歌认证器或微软认证器。</span>"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
@@ -87,19 +80,19 @@ msgstr "激活"
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
 msgid "Added On"
-msgstr "已添加"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
 msgid ""
 "Are you sure? Two-factor authentication will be required again on all your "
 "devices"
-msgstr "你确定吗？你的所有设备将再次需要双重认证"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
 msgid "Authentication Code"
-msgstr "认证码"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model,name:auth_totp.model_auth_totp_device
@@ -109,7 +102,7 @@ msgstr "认证设备"
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
 msgid "Authenticator App Setup"
-msgstr "认证器应用程序的设置"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
@@ -121,12 +114,12 @@ msgstr "取消"
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
 msgid "Cannot scan it?"
-msgstr "不能扫描吗？"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
 msgid "Click on this link to open your authenticator app"
-msgstr "点击此链接，打开你的认证器应用程序"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_wizard__create_uid
@@ -157,12 +150,12 @@ msgstr "设备名称"
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_field
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
 msgid "Disable 2FA"
-msgstr "禁用2FA"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.actions.server,name:auth_totp.action_disable_totp
 msgid "Disable two-factor authentication"
-msgstr "禁用双因素认证"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_device__display_name
@@ -173,18 +166,18 @@ msgstr "显示名称"
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
 msgid "Don't ask again on this device"
-msgstr "在这个设备上不要再问了"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_field
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
 msgid "Enable 2FA"
-msgstr "启用2FA"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
 msgid "Enter your six-digit code below"
-msgstr "在下面输入你的六位数代码"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model,name:auth_totp.model_ir_http
@@ -234,7 +227,7 @@ msgstr "登录"
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
 msgid "Look for an \"Add an account\" button"
-msgstr "寻找一个 \"添加账户 \"的按钮"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
@@ -259,7 +252,7 @@ msgstr "撤销"
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
 msgid "Revoke All"
-msgstr "全部撤销"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_device__scope
@@ -283,8 +276,6 @@ msgid ""
 "To login, enter below the six-digit authentication code provided by your Authenticator app.\n"
 "                        <br/>"
 msgstr ""
-"要登录，请在下面输入由Authenticator应用程序提供的六位数认证代码。\n"
-"                       <br/>"
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_res_users__totp_secret
@@ -294,7 +285,7 @@ msgstr "Totp密匙"
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_form
 msgid "Trusted Device"
-msgstr "受信任的设备"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_res_users__totp_trusted_device_ids
@@ -306,7 +297,7 @@ msgstr "受信任的设备"
 #: code:addons/auth_totp/models/res_users.py:0
 #, python-format
 msgid "Two-Factor Authentication Activation"
-msgstr "双重认证的激活"
+msgstr ""
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
@@ -322,9 +313,6 @@ msgid ""
 "                                The first one is done with your password and the second one with a code you get from a dedicated mobile app.\n"
 "                                Popular ones include Authy, Google Authenticator or the Microsoft Authenticator."
 msgstr ""
-"双重认证（\"2FA\"）是一个双重认证的系统。\n"
-"                                第一个是用你的密码，第二个是用你从一个专门的移动应用程序获得的代码。\n"
-"                                流行的包括Authy、谷歌认证器或微软认证器。"
 
 #. module: auth_totp
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_field
@@ -333,9 +321,6 @@ msgid ""
 "                            The first one is done with your password and the second one with a code you get from a dedicated mobile app.\n"
 "                            Popular ones include Authy, Google Authenticator or the Microsoft Authenticator."
 msgstr ""
-"双重认证（\"2FA\"）是一个双重认证的系统。\n"
-"                            第一个是用你的密码，第二个是用你从一个专门的移动应用程序获得的代码。\n"
-"                            流行的包括Authy、谷歌认证器或微软认证器。"
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_res_users__totp_enabled
@@ -368,7 +353,7 @@ msgstr "双重验证只能为你自己启用"
 #: code:addons/auth_totp/models/res_users.py:0
 #, python-format
 msgid "Two-factor authentication disabled for the following user(s): %s"
-msgstr "禁用以下用户的双重认证：%s。"
+msgstr ""
 
 #. module: auth_totp
 #: model:ir.model.fields,field_description:auth_totp.field_auth_totp_wizard__url
@@ -393,7 +378,7 @@ msgid "Verification Code"
 msgstr "验证码"
 
 #. module: auth_totp
-#: code:addons/auth_totp/models/res_users.py:0
+#: code:addons/auth_totp/controllers/home.py:0
 #: code:addons/auth_totp/wizard/auth_totp_wizard.py:0
 #, python-format
 msgid "Verification failed, please double-check the 6-digit code"
@@ -403,4 +388,4 @@ msgstr "校验失败，请再次检查6位验证码"
 #: model_terms:ir.ui.view,arch_db:auth_totp.auth_totp_form
 #: model_terms:ir.ui.view,arch_db:auth_totp.view_totp_wizard
 msgid "e.g. 123456"
-msgstr "例如: 123456"
+msgstr ""

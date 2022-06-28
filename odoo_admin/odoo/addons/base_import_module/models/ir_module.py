@@ -100,17 +100,11 @@ class IrModule(models.Model):
                         type='binary',
                         datas=data,
                     )
-                    attachment = IrAttachment.sudo().search([('url', '=', url_path), ('type', '=', 'binary'), ('res_model', '=', 'ir.ui.view')])
+                    attachment = IrAttachment.search([('url', '=', url_path), ('type', '=', 'binary'), ('res_model', '=', 'ir.ui.view')])
                     if attachment:
                         attachment.write(values)
                     else:
-                        attachment = IrAttachment.create(values)
-                        self.env['ir.model.data'].create({
-                            'name': f"attachment_{url_path}".replace('.', '_'),
-                            'model': 'ir.attachment',
-                            'module': module,
-                            'res_id': attachment.id,
-                        })
+                        IrAttachment.create(values)
 
         IrAsset = self.env['ir.asset']
         assets_vals = []
@@ -145,7 +139,7 @@ class IrModule(models.Model):
         # Create new assets and attach 'ir.model.data' records to them
         created_assets = IrAsset.create(assets_to_create)
         self.env['ir.model.data'].create([{
-            'name': f"{asset['bundle']}_{asset['path']}".replace(".", "_"),
+            'name': f"{asset['bundle']}.{asset['path']}",
             'model': 'ir.asset',
             'module': module,
             'res_id': asset.id,

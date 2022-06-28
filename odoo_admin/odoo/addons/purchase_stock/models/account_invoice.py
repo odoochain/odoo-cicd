@@ -42,7 +42,8 @@ class AccountMove(models.Model):
                 continue
 
             move = move.with_company(move.company_id)
-            for line in move.invoice_line_ids:
+            for line in move.invoice_line_ids.filtered(lambda line: line.product_id.type == 'product' and line.product_id.valuation == 'real_time'):
+
                 # Filter out lines being not eligible for price difference.
                 if line.product_id.type != 'product' or line.product_id.valuation != 'real_time':
                     continue
@@ -98,17 +99,16 @@ class AccountMove(models.Model):
 
 
                 price_unit = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-                if line.tax_ids:
+                if line.tax_ids and line.quantity:
                     # We do not want to round the price unit since :
                     # - It does not follow the currency precision
                     # - It may include a discount
                     # Since compute_all still rounds the total, we use an ugly workaround:
-                    # shift the decimal part using a fixed quantity to avoid rounding issues
-                    prec = 1e+6
-                    price_unit *= prec
+                    # multiply then divide the price unit.
+                    price_unit *= line.quantity
                     price_unit = line.tax_ids.with_context(round=False, force_sign=move._get_tax_force_sign()).compute_all(
                         price_unit, currency=move.currency_id, quantity=1.0, is_refund=move.move_type == 'in_refund')['total_excluded']
-                    price_unit /= prec
+                    price_unit /= line.quantity
 
                 price_unit_val_dif = price_unit - valuation_price_unit
                 price_subtotal = line.quantity * price_unit_val_dif
@@ -125,7 +125,6 @@ class AccountMove(models.Model):
                     vals = {
                         'name': line.name[:64],
                         'move_id': move.id,
-                        'partner_id': line.partner_id.id or move.commercial_partner_id.id,
                         'currency_id': line.currency_id.id,
                         'product_id': line.product_id.id,
                         'product_uom_id': line.product_uom_id.id,
@@ -137,6 +136,7 @@ class AccountMove(models.Model):
                         'analytic_tag_ids': [(6, 0, line.analytic_tag_ids.ids)],
                         'exclude_from_invoice_tab': True,
                         'is_anglo_saxon_line': True,
+                        'partner_id': line.partner_id.id,
                     }
                     vals.update(line._get_fields_onchange_subtotal(price_subtotal=vals['price_subtotal']))
                     lines_vals_list.append(vals)
@@ -145,7 +145,6 @@ class AccountMove(models.Model):
                     vals = {
                         'name': line.name[:64],
                         'move_id': move.id,
-                        'partner_id': line.partner_id.id or move.commercial_partner_id.id,
                         'currency_id': line.currency_id.id,
                         'product_id': line.product_id.id,
                         'product_uom_id': line.product_uom_id.id,
@@ -157,6 +156,7 @@ class AccountMove(models.Model):
                         'analytic_tag_ids': [(6, 0, line.analytic_tag_ids.ids)],
                         'exclude_from_invoice_tab': True,
                         'is_anglo_saxon_line': True,
+                        'partner_id': line.partner_id.id,
                     }
                     vals.update(line._get_fields_onchange_subtotal(price_subtotal=vals['price_subtotal']))
                     lines_vals_list.append(vals)
