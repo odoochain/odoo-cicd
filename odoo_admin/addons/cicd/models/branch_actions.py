@@ -909,16 +909,7 @@ for path in base.glob("*"):
         assert isinstance(commit, str)
         self.ensure_one()
 
-        cache = json.loads(self.ensure_dump_cache or "{}")
-        key = f"{ttype}.{dumptype or ''}.{dbname}"
-        dest_path = cache.get(key, {}).get(commit)
-
-        if not dest_path:
-            dest_path = self._ensure_dump_get_dest_path(ttype, commit, dumptype)
-            cache.setdefault(key, {})
-            cache[key][commit] = str(dest_path)
-            self.ensure_dump_cache = json.dumps(cache)
-            self.env.cr.commit()
+        dest_path = self._ensure_dump_get_dest_path(ttype, commit, dumptype)
 
         with self.machine_id._shell() as shell:
             if shell.exists(dest_path):
@@ -933,7 +924,7 @@ for path in base.glob("*"):
             shell.wait_for_postgres()
             shell.logsio.info(f"Dumping to {dest_path}")
             if ttype == "full":
-                shell.odoo("update")
+                shell.odoo("update", timeout=60 * 30)
                 shell.wait_for_postgres()
             params = ["backup", "odoo-db", dest_path]
             if dumptype:
@@ -942,6 +933,8 @@ for path in base.glob("*"):
         return dest_path
 
     def _ensure_dump_get_dest_path(self, ttype, commit, dumptype):
+        if commit:
+            assert isinstance(commit, str)
         machine = self.machine_id
         instance_folder = self._get_instance_folder(machine)
         settings = self._get_settings_isolated_run()
@@ -950,13 +943,15 @@ for path in base.glob("*"):
             project_name=self.project_name,
         ) as shell:
             path = Path(shell.machine._get_volume("dumps"))
-            self._checkout_latest(shell)
-            self._reload(
-                shell,
-                project_name=self.project_name,
-                settings=settings,
-                force_instance_folder=instance_folder,
-            )
+
+            if ttype in ['base']:
+                self._checkout_latest(shell)
+                self._reload(
+                    shell,
+                    project_name=self.project_name,
+                    settings=settings,
+                    force_instance_folder=instance_folder,
+                )
 
             def _get_dumpfile_name():
                 if ttype == "base":
@@ -968,7 +963,7 @@ for path in base.glob("*"):
                     return f"base_dump_{dumptype}_{self.repo_id.short}_{hash}"
 
                 elif ttype == "full":
-                    return f"all_installed_{dumptype}_{self.repo_id.short}_{self.name}"
+                    return f"all_installed_{dumptype}_{self.repo_id.short}_{commit}"
 
                 raise NotImplementedError(ttype)
 

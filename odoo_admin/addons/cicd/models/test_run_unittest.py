@@ -46,7 +46,6 @@ class UnitTest(models.Model):
     def get_environment_for_execute(self):
         odoo_modules = ",".join(sorted(self.mapped("odoo_module")))
         DBNAME = "odoo"
-        self = self.with_context(testrun=(f"testrun_{self[0].batchids}_{odoo_modules}"))
         with self._shell(quick=True) as shell:
             dump_path = self.run_id.branch_id._ensure_dump(
                 "base",
