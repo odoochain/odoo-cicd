@@ -10,24 +10,25 @@ repos:
   patches:
   - odoo_admin.patches
   path: odoo_admin/odoo
-  sha: a19a0bdca369c9038a7a34363a1d9b7ee06f899d
+  sha: 3287d4ef30c78d8b64abf3f923ee6c04f1984ab3
   type: integrated
   url: https://github.com/odoo/odoo
 - branch: 15.0
-  path: odoo_admin/addons/queue
   patches:
-    - queue.patches
-  sha: 5fe8275131dcba1d8b23d602ab75d3051c8e4bdd
+  - queue.patches
+  path: odoo_admin/addons/queue
+  sha: f02dd13efecc70f40f18397bdf971bcfd6ac998d
   type: integrated
   url: https://github.com/OCA/queue.git
 - branch: 15.0
   path: odoo_admin/addons/web
-  sha: 0b13aaa3c8e66e845dc7750c29aa77d0d54f399a
+  sha: f3d59726f59237f0e127c0215b5254bd8be783ed
   type: integrated
   url: https://github.com/OCA/web.git
 - branch: 15.0
   path: odoo_admin/addons_robot
-  type: submodule
+  sha: 10441fe65640b9be0cd71b28c389c6466dc3b2be
+  type: integrated
   url: https://github.com/marcwimmer/odoo-robot_utils
 - branch: 15.0
   path: odoo_admin/addons/odoo_visualize_queries
@@ -36,6 +37,6 @@ repos:
   url: ssh://git@github.com/marcwimmer/odoo-visualize-queries.git
 - branch: 15.0
   path: odoo_admin/addons/social
-  sha: cfd3ba42eca52e9df5b87efe65acdfc92fc31c34
+  sha: e025b645865e0698d614a2250ae5522bdff2aa4a
   type: integrated
   url: https://github.com/OCA/social.git

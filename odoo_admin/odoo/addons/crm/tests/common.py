@@ -281,9 +281,16 @@ class TestCrmCommon(TestSalesCommon, MailCase):
             'user_id': cls.user_sales_manager.id,
         })
 
+        cls.partner_c2 = cls.env['res.partner'].create({
+            'company_id': cls.company_2.id,
+            'email': '"Partner C2" <partner_c2@multicompany.example.com>',
+            'name': 'Customer for C2',
+            'phone': '+32455001122',
+        })
+
     def _create_leads_batch(self, lead_type='lead', count=10, email_dup_count=0,
                             partner_count=0, partner_ids=None, user_ids=None,
-                            country_ids=None, probabilities=None):
+                            country_ids=None, probabilities=None, suffix=''):
         """ Helper tool method creating a batch of leads, useful when dealing
         with batch processes. Please update me.
 
@@ -298,7 +305,7 @@ class TestCrmCommon(TestSalesCommon, MailCase):
         """
         types = ['lead', 'opportunity']
         leads_data = [{
-            'name': 'TestLead_%04d' % (x),
+            'name': f'TestLead{suffix}_{x:04d}',
             'type': lead_type if lead_type else types[x % 2],
             'priority': '%s' % (x % 3),
         } for x in range(count)]
