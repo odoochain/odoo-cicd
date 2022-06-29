@@ -971,3 +971,12 @@ for path in base.glob("*"):
             dump_name = _get_dumpfile_name()
             dest_path = path / dump_name
             return dest_path
+
+    def _create_testrun(self):
+        testrun = self.test_run_ids.create(
+            {
+                "commit_id": self.latest_commit_id.id,
+                "branch_id": self.id,
+            }
+        )
+        self.apply_test_settings(testrun)
