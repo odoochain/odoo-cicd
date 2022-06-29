@@ -738,7 +738,7 @@ class GitBranch(models.Model):
                     "commit_id": branch.latest_commit_id.id,
                 }
             )
-            self.apply_test_settings(testrun)
+            branch.apply_test_settings(testrun)
 
         for branch in self.search(
             [("state", "=", "testable"), ("is_release_branch", "=", False)]
