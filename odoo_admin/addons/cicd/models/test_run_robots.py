@@ -76,7 +76,6 @@ class RobotTest(models.Model):
                 "full", self.run_id.commit_id.name, dumptype="wodoobin", dbname=DBNAME
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
-            ids_as_string = "_".join(sorted(map(str, self.ids)))
 
             settings = ROBOT_SETTINGS + (f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}")
             assert dump_path
@@ -88,19 +87,16 @@ class RobotTest(models.Model):
             )
             shell.odoo("down", "-v", force=True, allow_error=True)
 
-            snapname = f"snap_{ids_as_string}"
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
-            shell.odoo("snap", "remove", snapname, allow_error=True)
-            shell.odoo("snap", "save", snapname)
+            shell.odoo("snap", "remove", self.snapname, allow_error=True)
+            shell.odoo("snap", "save", self.snapname)
             shell.wait_for_postgres()
 
             try:
-                yield shell, {
-                    "snapname": snapname,
-                }
+                yield shell, {}
             finally:
-                shell.odoo("snap", "remove", snapname, allow_error=True)
+                shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
                 shell.odoo("down", "-v", force=True, allow_error=True)
@@ -108,17 +104,13 @@ class RobotTest(models.Model):
     def _execute(self, shell, runenv):
         self._reset_fields()
 
-        breakpoint()
         shell.odoo("kill")
-        shell.odoo("snap", "restore", runenv["snapname"])
+        shell.odoo("snap", "restore", self.snapname)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
         shell.odoo("up", "-d", "odoo_queuejobs")
         shell.odoo("up", "-d", "odoo")
         shell.odoo("up", "-d")
-        project_name = shell.project_name
-        cwd = shell.cwd
-        time.sleep((self.try_count - 1) * 4)  # perhaps wait
         cmd = [
             "robot",
             "--parallel",
@@ -202,7 +194,7 @@ class TestSettingsRobotTests(models.Model):
     _line_model = "cicd.test.run.line.robottest"
 
     tags = fields.Char(
-        "Filter to tags (comma separated, may be empty)", default="load-test"
+        "Filter to tags (comma separated, may be empty)", default=""
     )
     parallel = fields.Char(
         "In Parallel",

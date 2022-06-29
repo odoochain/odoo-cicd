@@ -66,20 +66,16 @@ class UnitTest(models.Model):
             )
             shell.odoo("down", "-v", force=True, allow_error=True)
 
-            snapname = f"snap_{ids_as_string}"
-            breakpoint()
             shell.odoo("up", "-d", "postgres")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
-            shell.odoo("snap", "remove", snapname, allow_error=True)
-            shell.odoo("snap", "save", snapname)
+            shell.odoo("snap", "remove", self.snapname, allow_error=True)
+            shell.odoo("snap", "save", self.snapname)
             shell.wait_for_postgres()
 
             try:
-                yield shell, {
-                    "snapname": snapname,
-                }
+                yield shell, {}
             finally:
-                shell.odoo("snap", "remove", snapname, allow_error=True)
+                shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
                 shell.odoo("down", "-v", force=True, allow_error=True)
@@ -106,7 +102,7 @@ class UnitTest(models.Model):
 
     def _execute_test_at_prepared_environment(self, shell, runenv):
         self._report(f"Installing module {self.odoo_module}")
-        shell.odoo("snap", "restore", runenv["snapname"])
+        shell.odoo("snap", "restore", self.snapname)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
         shell.odoo("update", self.odoo_module, "--no-dangling-check")
