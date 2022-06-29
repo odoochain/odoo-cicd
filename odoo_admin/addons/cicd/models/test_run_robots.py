@@ -10,11 +10,12 @@ from odoo.exceptions import ValidationError
 from contextlib import contextmanager, closing
 from .test_run import SETTINGS
 
+# There are tests, that put files into /tmp so better run in one container
 ROBOT_SETTINGS = SETTINGS + (
     "\n"
-    "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=0\n"
-    "RUN_ODOO_QUEUEJOBS=1\n"
-    "RUN_ODOO_CRONJOBS=1\n"
+    "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1\n"
+    "RUN_ODOO_QUEUEJOBS=0\n"
+    "RUN_ODOO_CRONJOBS=0\n"
     "RUN_ROBOT=1\n"
 )
 
@@ -105,18 +106,19 @@ class RobotTest(models.Model):
                 shell.odoo("down", "-v", force=True, allow_error=True)
 
     def _execute(self, shell, runenv):
-        safe_robot_file = safe_filename(self.filepath)
-
         self._reset_fields()
 
+        breakpoint()
+        shell.odoo("kill")
         shell.odoo("snap", "restore", runenv["snapname"])
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
         shell.odoo("up", "-d", "odoo_queuejobs")
         shell.odoo("up", "-d", "odoo")
         shell.odoo("up", "-d")
-        shell.wait_for_postgres()
-        time.sleep((self.try_count - 1) * 20)  # perhaps wait
+        project_name = shell.project_name
+        cwd = shell.cwd
+        time.sleep((self.try_count - 1) * 4)  # perhaps wait
         cmd = [
             "robot",
             "--parallel",

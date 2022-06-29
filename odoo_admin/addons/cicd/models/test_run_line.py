@@ -152,7 +152,6 @@ class CicdTestRunLine(models.AbstractModel):
         @contextmanager
         def _get_env():
             try:
-                breakpoint()
                 with self._get_contexted().get_environment_for_execute() as (
                     shell,
                     runenv,
@@ -385,7 +384,6 @@ class CicdTestRunLine(models.AbstractModel):
         self.write({"queuejob_id": jobs[0], "batchids": ids_string})
 
     def _get_contexted(self):
-        breakpoint()
         batchids = ','.join(list(sorted(set(self.mapped('batchids')))))
         return self.with_context(testrun=f"testrun_{batchids}")
 
