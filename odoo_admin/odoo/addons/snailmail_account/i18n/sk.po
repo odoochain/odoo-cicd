@@ -3,7 +3,6 @@
 # 	* snailmail_account
 # 
 # Translators:
-# sakodoo <sak@odoo.com>, 2022
 # Martin Trigaux, 2022
 # 
 msgid ""
@@ -39,8 +38,6 @@ msgid ""
 "<span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-"
 "specific.\"/>"
 msgstr ""
-"<span class=\"fa fa-lg fa-building-o\" title=\"Values set here are company-"
-"specific.\"/>"
 
 #. module: snailmail_account
 #: model_terms:ir.ui.view,arch_db:snailmail_account.account_invoice_send_inherit_account_wizard_form
@@ -60,7 +57,7 @@ msgstr ""
 #. module: snailmail_account
 #: model:ir.model,name:snailmail_account.model_account_invoice_send
 msgid "Account Invoice Send"
-msgstr "Zaslať faktúru účtu"
+msgstr ""
 
 #. module: snailmail_account
 #: model:ir.model.fields,help:snailmail_account.field_account_invoice_send__snailmail_is_letter
@@ -82,7 +79,7 @@ msgstr "Nastavenia konfigurácie"
 #. module: snailmail_account
 #: model_terms:ir.ui.view,arch_db:snailmail_account.account_invoice_send_inherit_account_wizard_form
 msgid "Contacts"
-msgstr "Kontakty"
+msgstr ""
 
 #. module: snailmail_account
 #: model:ir.model.fields,field_description:snailmail_account.field_snailmail_confirm_invoice__create_uid
@@ -126,7 +123,7 @@ msgstr ""
 #: code:addons/snailmail_account/wizard/account_invoice_send.py:0
 #, python-format
 msgid "Invoice"
-msgstr "Faktúra"
+msgstr ""
 
 #. module: snailmail_account
 #: model:ir.model.fields,field_description:snailmail_account.field_snailmail_confirm_invoice__invoice_send_id
@@ -151,19 +148,19 @@ msgstr "Naposledy upravované"
 #. module: snailmail_account
 #: model:ir.model.fields,field_description:snailmail_account.field_snailmail_confirm_invoice__model_name
 msgid "Model Name"
-msgstr "Názov modelu"
+msgstr ""
 
 #. module: snailmail_account
 #: model:ir.model.fields,field_description:snailmail_account.field_account_invoice_send__partner_id
 msgid "Partner"
-msgstr "Partner"
+msgstr ""
 
 #. module: snailmail_account
 #: model:ir.model.fields,field_description:snailmail_account.field_account_invoice_send__snailmail_is_letter
 #: model:ir.model.fields,field_description:snailmail_account.field_res_company__invoice_is_snailmail
 #: model:ir.model.fields,field_description:snailmail_account.field_res_config_settings__invoice_is_snailmail
 msgid "Send by Post"
-msgstr "Poslať poštou"
+msgstr ""
 
 #. module: snailmail_account
 #: model:ir.model,name:snailmail_account.model_snailmail_confirm_invoice
@@ -173,7 +170,7 @@ msgstr ""
 #. module: snailmail_account
 #: model:ir.model.fields,field_description:snailmail_account.field_account_invoice_send__snailmail_cost
 msgid "Stamp(s)"
-msgstr "Pečiatka"
+msgstr ""
 
 #. module: snailmail_account
 #: code:addons/snailmail_account/wizard/account_invoice_send.py:0

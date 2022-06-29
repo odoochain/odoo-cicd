@@ -7,25 +7,25 @@
 # Paolo Valier, 2021
 # David Minneci <david@numeko.it>, 2021
 # Stefano Consolaro <stefano.consolaro@mymage.it>, 2021
+# Sergio Zanchetta <primes2h@gmail.com>, 2021
+# Martin Trigaux, 2021
 # Léonie Bouchat <lbo@odoo.com>, 2021
 # Cécile Collart <cco@odoo.com>, 2021
-# Sergio Zanchetta <primes2h@gmail.com>, 2022
-# Friederike Fasterling-Nesselbosch, 2022
-# Martin Trigaux, 2022
+# Friederike Fasterling-Nesselbosch, 2021
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-10 06:07+0000\n"
+"POT-Creation-Date: 2021-11-16 13:18+0000\n"
 "PO-Revision-Date: 2021-09-14 12:27+0000\n"
-"Last-Translator: Martin Trigaux, 2022\n"
+"Last-Translator: Friederike Fasterling-Nesselbosch, 2021\n"
 "Language-Team: Italian (https://www.transifex.com/odoo/teams/41243/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Language: it\n"
-"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: website
 #. openerp-web
@@ -51,8 +51,6 @@ msgstr "\"A URL\" non può essere vuoto."
 #, python-format
 msgid "\"URL to\" cannot contain parameter %s which is not used in \"URL from\"."
 msgstr ""
-"\"A URL\" non può contenere il parametro %s, che non è utilizzato in \"Da "
-"URL\"."
 
 #. module: website
 #: code:addons/website/models/website_rewrite.py:0
@@ -64,7 +62,7 @@ msgstr "\"URL to\" non è valido: %s"
 #: code:addons/website/models/website_rewrite.py:0
 #, python-format
 msgid "\"URL to\" must contain parameter %s used in \"URL from\"."
-msgstr "\"A URL\" deve contenere il parametro %s utilizzato in \"Da URL\"."
+msgstr ""
 
 #. module: website
 #: code:addons/website/models/website_rewrite.py:0
@@ -129,6 +127,17 @@ msgstr "&amp;lt;head&amp;gt;"
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "&gt;"
 msgstr "&gt;"
+
+#. module: website
+#: model_terms:ir.ui.view,arch_db:website.sitemap_index_xml
+#: model_terms:ir.ui.view,arch_db:website.sitemap_xml
+msgid "&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;"
+msgstr "&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;"
+
+#. module: website
+#: model_terms:ir.ui.view,arch_db:website.default_xml
+msgid "&lt;?xml version=\"1.0\" encoding=\"utf-8\"?&gt;"
+msgstr "&lt;?xml version=\"1.0\" encoding=\"utf-8\"?&gt;"
 
 #. module: website
 #. openerp-web
@@ -286,6 +295,11 @@ msgstr "/contactus"
 #: model_terms:ir.ui.view,arch_db:website.s_map_options
 msgid "1 km"
 msgstr "1 km"
+
+#. module: website
+#: model_terms:ir.ui.view,arch_db:website.default_csv
+msgid "1,2,3"
+msgstr "1,2,3"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_media_list_options
@@ -948,8 +962,6 @@ msgid ""
 "<i class=\"s_mega_menu_little_icons_icon fa fa-map-o fa-fw mr-2\"/>\n"
 "                            <b>Guides</b>"
 msgstr ""
-"<i class=\"s_mega_menu_little_icons_icon fa fa-map-o fa-fw mr-2\"/>\n"
-"                            <b>Guide</b>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
@@ -1324,23 +1336,23 @@ msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_numbers
-msgid "<span class=\"s_number display-4\">12</span><br/>"
-msgstr "<span class=\"s_number display-4\">12</span><br/>"
+msgid "<span class=\"s_number display-4\">12</span>"
+msgstr "<span class=\"s_number display-4\">12</span>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_numbers
-msgid "<span class=\"s_number display-4\">37</span><br/>"
-msgstr "<span class=\"s_number display-4\">37</span><br/>"
+msgid "<span class=\"s_number display-4\">37</span>"
+msgstr "<span class=\"s_number display-4\">37</span>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_numbers
-msgid "<span class=\"s_number display-4\">45</span><br/>"
-msgstr "<span class=\"s_number display-4\">45</span><br/>"
+msgid "<span class=\"s_number display-4\">45</span>"
+msgstr "<span class=\"s_number display-4\">45</span>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_numbers
-msgid "<span class=\"s_number display-4\">8</span><br/>"
-msgstr "<span class=\"s_number display-4\">8</span><br/>"
+msgid "<span class=\"s_number display-4\">8</span>"
+msgstr "<span class=\"s_number display-4\">8</span>"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_progress_bar
@@ -1462,6 +1474,7 @@ msgstr ""
 "sfondo contestuali e potenti opzioni di visualizzazione."
 
 #. module: website
+#: model:ir.model.fields,help:website.field_base_automation__website_published
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_published
 #: model:ir.model.fields,help:website.field_ir_cron__website_published
 msgid ""
@@ -1770,7 +1783,7 @@ msgstr "Aggiunge collegamenti ai social network nel sito web"
 #: code:addons/website/static/src/snippets/s_website_form/options.js:0
 #, python-format
 msgid "Add new %s"
-msgstr "Aggiungi nuovo/a %s"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_process_steps
@@ -1981,7 +1994,7 @@ msgstr "Si è verificato un errore, il modulo non è stato inviato."
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
 msgid "An error occurred while rendering the template"
-msgstr "Si è verificato un errore durante il rendering del template"
+msgstr ""
 
 #. module: website
 #: model:ir.actions.client,name:website.backend_dashboard
@@ -2142,7 +2155,7 @@ msgstr "Immobilizzazione"
 #. module: website
 #: model:ir.model,name:website.model_web_editor_assets
 msgid "Assets Utils"
-msgstr "Utilità asset"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_asset__copy_ids
@@ -2204,6 +2217,7 @@ msgid "Autosizing"
 msgstr "Ridimensionamento automatico"
 
 #. module: website
+#: model:ir.model.fields,field_description:website.field_base_automation__website_published
 #: model:ir.model.fields,field_description:website.field_ir_actions_server__website_published
 #: model:ir.model.fields,field_description:website.field_ir_cron__website_published
 msgid "Available on the Website"
@@ -2320,7 +2334,7 @@ msgstr "Grande"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Big Icons Subtitles"
-msgstr "Grandi icone Sottotitoli"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_model_fields__website_form_blacklisted
@@ -2665,7 +2679,7 @@ msgstr "Al centro"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Centered"
-msgstr "Al centro"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
@@ -2952,7 +2966,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_map_options
 msgid "Color filter"
-msgstr "Filtro colori"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_progress_bar_options
@@ -3026,7 +3040,7 @@ msgstr "Configurazione"
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__configurator_done
 msgid "Configurator Done"
-msgstr "Configuratore completato"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__has_social_network
@@ -3445,7 +3459,7 @@ msgstr "Personalizza"
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_ui_view__customize_show
 msgid "Customize Show"
-msgstr "Personalizza mostra"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_countdown_options
@@ -3699,7 +3713,7 @@ msgstr "Descrizioni"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Descriptive"
-msgstr "Descrittivo"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
@@ -3756,13 +3770,6 @@ msgid "Directive"
 msgstr ""
 
 #. module: website
-#: model:ir.actions.server,name:website.website_disable_unused_snippets_assets_ir_actions_server
-#: model:ir.cron,cron_name:website.website_disable_unused_snippets_assets
-#: model:ir.cron,name:website.website_disable_unused_snippets_assets
-msgid "Disable unused snippets assets"
-msgstr ""
-
-#. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 #: model_terms:ir.ui.view,arch_db:website.color_combinations_debug_view
 #: model_terms:website.page,arch_db:website.bs_debug_page
@@ -3773,7 +3780,7 @@ msgstr "Disattivo"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_countdown_options
 msgid "Disappearing"
-msgstr "Scomparsa"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
@@ -4358,6 +4365,7 @@ msgid "Extension View"
 msgstr "Vista estesa"
 
 #. module: website
+#: model:ir.model.fields,field_description:website.field_base_automation__xml_id
 #: model:ir.model.fields,field_description:website.field_ir_actions_server__xml_id
 #: model:ir.model.fields,field_description:website.field_ir_cron__xml_id
 #: model:ir.model.fields,field_description:website.field_website_page__xml_id
@@ -4372,7 +4380,7 @@ msgstr "Molto grande"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.searchbar_input_snippet_options
 msgid "Extra link"
-msgstr "Link extra"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
@@ -4595,7 +4603,7 @@ msgstr "Primo menù"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "First Time Only"
-msgstr "Solo la prima volta"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_showcase
@@ -4801,7 +4809,7 @@ msgstr "Schermo intero"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Full-Width"
-msgstr "Intera larghezza"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_list
@@ -4829,7 +4837,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_process_steps
 msgid "Get Delivered"
-msgstr "In consegna"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_comparisons
@@ -5114,7 +5122,7 @@ msgstr "Mezzo schermo"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Hamburger Full"
-msgstr "Hamburger intero"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
@@ -5136,7 +5144,7 @@ msgstr "Felice anniversario Odoo!"
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__has_social_default_image
 msgid "Has Social Default Image"
-msgstr "Ha immagine predefinita social"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -5152,7 +5160,7 @@ msgstr "Colore intestazione"
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_page__header_overlay
 msgid "Header Overlay"
-msgstr "Sovrapposizione intestazione"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
@@ -5218,7 +5226,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_images_subtitles
 msgid "Help center"
-msgstr "Help Center"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -5289,7 +5297,6 @@ msgstr ""
 
 #. module: website
 #. openerp-web
-#: code:addons/website/static/src/js/editor/snippets.options.js:0
 #: code:addons/website/static/src/xml/website.editor.xml:0
 #, python-format
 msgid ""
@@ -5416,6 +5423,7 @@ msgid "ID"
 msgstr "ID"
 
 #. module: website
+#: model:ir.model.fields,help:website.field_base_automation__xml_id
 #: model:ir.model.fields,help:website.field_ir_actions_server__xml_id
 #: model:ir.model.fields,help:website.field_ir_cron__xml_id
 msgid "ID of the action if defined in a XML file"
@@ -5522,7 +5530,7 @@ msgstr "Copertina immagine"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Image Menu"
-msgstr "Menù immagini"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_media_list_options
@@ -5548,7 +5556,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Images Subtitles"
-msgstr "Immagini Sottotitoli"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.one_page_line
@@ -5560,7 +5568,7 @@ msgstr "Nel menù principale"
 #: code:addons/website/static/src/xml/website_form_editor.xml:0
 #, python-format
 msgid "In the meantime we invite you to visit our"
-msgstr "Nel frattempo vi invitiamo a visitare il nostro"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -5576,7 +5584,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__include
 msgid "Include"
-msgstr "Includere"
+msgstr ""
 
 #. module: website
 #: code:addons/website/controllers/backend.py:0
@@ -5827,22 +5835,22 @@ msgstr "È uguale a"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_options
 msgid "Is greater than"
-msgstr "È superiore a"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_options
 msgid "Is greater than or equal to"
-msgstr "È maggiore di o uguale a"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_options
 msgid "Is less than"
-msgstr "È inferiore a"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_options
 msgid "Is less than or equal to"
-msgstr "È inferiore o uguale a"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_options
@@ -5852,7 +5860,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_options
 msgid "Is not equal to"
-msgstr "Non è uguale a"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_options
@@ -5964,7 +5972,7 @@ msgstr "Chiave"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
 msgid "Keyboards"
-msgstr "Tastiere"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -6290,7 +6298,7 @@ msgstr "Linea"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_timeline_options
 msgid "Line Color"
-msgstr "Colore linee"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -6422,7 +6430,7 @@ msgstr "Bassa"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Magazine"
-msgstr "Rivista"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -6474,7 +6482,7 @@ msgstr "Campi contrassegnati"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_google_map_options
 msgid "Marker style"
-msgstr "Stile indicatore"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
@@ -6545,7 +6553,7 @@ msgstr "Menù"
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_configurator_feature__menu_company
 msgid "Menu Company"
-msgstr "Menù Azienda"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menu_image_menu
@@ -6635,7 +6643,7 @@ msgstr "Cellulare"
 #: code:addons/website/static/src/js/editor/snippets.options.js:0
 #, python-format
 msgid "Mobile menu"
-msgstr "Menù mobile"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -6656,7 +6664,6 @@ msgid "Model"
 msgstr "Modello"
 
 #. module: website
-#: model:ir.model,name:website.model_ir_model_data
 #: model:ir.model.fields,field_description:website.field_website_page__model_data_id
 msgid "Model Data"
 msgstr "Dati modello"
@@ -6724,7 +6731,7 @@ msgstr ""
 #: code:addons/website/static/src/xml/website.pageProperties.xml:0
 #, python-format
 msgid "More than one group has been set on the view."
-msgstr "Nella vista è stato impostato più di un gruppo."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_options
@@ -6743,12 +6750,12 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
 msgid "Mouse"
-msgstr "Mouse"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Move Backward"
-msgstr "Sposta indietro"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
@@ -6939,7 +6946,7 @@ msgstr "Nuova pagina"
 #. module: website
 #: model:website.configurator.feature,name:website.feature_module_news
 msgid "News"
-msgstr "Notizie"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
@@ -6990,7 +6997,7 @@ msgstr "Nessun URL"
 #. module: website
 #: model_terms:ir.actions.act_window,help:website.website_visitors_action
 msgid "No Visitors yet!"
-msgstr "Non ci sono ancora visitatori!"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_comparisons
@@ -7158,17 +7165,17 @@ msgstr "Versione Odoo"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Off-Canvas"
-msgstr "Fuori area"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
 msgid "Office audio"
-msgstr "Audio in ufficio"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
 msgid "Office screens"
-msgstr "Schermi per ufficio"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_kanban
@@ -7246,8 +7253,6 @@ msgid ""
 "One and only one of the two fields 'page_view_id' and 'module_id' should be "
 "set"
 msgstr ""
-"Uno e solo uno dei due campi 'page_view_id' e 'module_id' dovrebbe essere "
-"impostato"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_kanban
@@ -7466,7 +7471,7 @@ msgstr "URL pagina"
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_configurator_feature__page_view_id
 msgid "Page View"
-msgstr "Visualizzazione pagina"
+msgstr ""
 
 #. module: website
 #: model:ir.actions.act_window,name:website.website_visitor_view_action
@@ -7881,7 +7886,7 @@ msgstr "Pubblica offerte di lavoro e ricevi candidature"
 #. module: website
 #: model:website.configurator.feature,description:website.feature_module_event
 msgid "Publish on-site and online events"
-msgstr "Pubblicare eventi in loco e online"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -7946,7 +7951,7 @@ msgstr "Pulsanti a selezione singola"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_gallery_options
 msgid "Re-order"
-msgstr "Riordinare"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -8059,12 +8064,12 @@ msgstr ""
 #: code:addons/website/static/src/snippets/s_chart/options.js:0
 #, python-format
 msgid "Remove Serie"
-msgstr "Rimuovere serie"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Remove Slide"
-msgstr "Rimuovere la diapositiva"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_tabs_options
@@ -8176,7 +8181,7 @@ msgstr "Menù destro"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Ripple Effect"
-msgstr "Effetto onda"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_map_options
@@ -8186,7 +8191,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_google_map_options
 msgid "RoadMap"
-msgstr "RoadMap"
+msgstr ""
 
 #. module: website
 #: code:addons/website/models/res_config_settings.py:0
@@ -8267,7 +8272,7 @@ msgstr "Ottimizzato SEO"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Same as desktop"
-msgstr "Come per il desktop"
+msgstr ""
 
 #. module: website
 #: code:addons/website/models/website_snippet_filter.py:0
@@ -8284,7 +8289,7 @@ msgstr "Icone di esempio"
 #: model_terms:ir.ui.view,arch_db:website.s_google_map_options
 #: model_terms:ir.ui.view,arch_db:website.s_map_options
 msgid "Satellite"
-msgstr "Satellite"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -8387,7 +8392,7 @@ msgstr "Reindirizzamento della ricerca"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_hybrid
 msgid "Search Results"
-msgstr "Risultati di ricerca"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_search
@@ -8416,7 +8421,7 @@ msgstr "Cerca sul tuo sito web"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.searchbar_input_snippet_options
 msgid "Search within"
-msgstr "Cerca all'interno di"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_search_box
@@ -8690,7 +8695,7 @@ msgstr "Visualizzare nel menù principale"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.view_view_qweb
 msgid "Show inactive views"
-msgstr "Mostra le viste inattive"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup_options
@@ -8762,7 +8767,7 @@ msgstr "Scorri in basso"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Slide Hover"
-msgstr "Scorri sopra"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_tabs_options
@@ -8883,7 +8888,7 @@ msgstr "Ordina per URL"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
 msgid "Sound"
-msgstr "Suono"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_media_list
@@ -8950,7 +8955,7 @@ msgstr "Normale"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_call_to_action
 msgid "Start Button"
-msgstr "Pulsante di inizio"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -9008,7 +9013,7 @@ msgstr "Stoccaggio"
 #. module: website
 #: model:website.configurator.feature,name:website.feature_module_stores_locator
 msgid "Stores Locator"
-msgstr "Store Locator"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_carousel
@@ -9076,12 +9081,12 @@ msgstr "Storie di successo"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.searchbar_input_snippet_options
 msgid "Suggestions"
-msgstr "Proposte"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_countdown_options
 msgid "Surrounded"
-msgstr "Circondato"
+msgstr ""
 
 #. module: website
 #: code:addons/website/controllers/form.py:0
@@ -9104,7 +9109,7 @@ msgstr "Magliette"
 #: code:addons/website/static/src/xml/theme_preview.xml:0
 #, python-format
 msgid "TIP: Once loaded, follow the"
-msgstr "CONSIGLIO: Una volta caricato, segui"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.user_navbar
@@ -9113,9 +9118,6 @@ msgid ""
 "                    <span class=\"o_tooltip o_tooltip_visible bottom o_animated position-relative\"/>\n"
 "                    <br/>pointer to build the perfect page in 7 steps."
 msgstr ""
-"CONSIGLIO: Una volta caricato, segui il\n"
-"<span class=\"o_tooltip o_tooltip_visible bottom o_animated position-relative\"/>\n"
-"<br/>puntatore per costruire la pagina perfetta in 7 passi."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.user_navbar
@@ -9230,7 +9232,7 @@ msgstr "Termini di servizio"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_google_map_options
 msgid "Terrain"
-msgstr "Territorio"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.view_edit_robots
@@ -9369,6 +9371,7 @@ msgid "The full URL to access the document through the website."
 msgstr "URL completo per accedere al documento dal sito web."
 
 #. module: website
+#: model:ir.model.fields,help:website.field_base_automation__website_url
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
 #: model:ir.model.fields,help:website.field_ir_cron__website_url
 msgid "The full URL to access the server action through the website."
@@ -9630,12 +9633,6 @@ msgid "This page"
 msgstr "Questa pagina"
 
 #. module: website
-#: code:addons/website/models/website_visitor.py:0
-#, python-format
-msgid "This operator is not supported"
-msgstr "L'operatore non è supportato"
-
-#. module: website
 #: model_terms:ir.ui.view,arch_db:website.page_404
 msgid ""
 "This page does not exist, but you can create it as you are editor of this "
@@ -9732,7 +9729,7 @@ msgstr ""
 #: model:digest.tip,name:website.digest_tip_website_1
 #: model_terms:digest.tip,tip_description:website.digest_tip_website_1
 msgid "Tip: Use royalty-free photos"
-msgstr "Suggerimento: usa foto libere da royalty"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -10054,7 +10051,7 @@ msgstr "Personalizzazione illimitata"
 #: code:addons/website/static/src/js/backend/button.js:0
 #, python-format
 msgid "Unpublish"
-msgstr "Non pubblicare"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -10069,7 +10066,7 @@ msgstr "Non pubblicato"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_search
 msgid "Unregistered"
-msgstr "Non registrato"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.theme_view_kanban
@@ -10134,7 +10131,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__has_default_share_image
 msgid "Use a image by default for sharing"
-msgstr "Usa un'immagine predefinita per la condivisione"
+msgstr ""
 
 #. module: website
 #. openerp-web
@@ -10566,8 +10563,6 @@ msgid ""
 "We do not currently support Do Not Track signals, as there is no industry "
 "standard for compliance."
 msgstr ""
-"Attualmente non supportiamo i segnali Do Not Track, poiché non esiste uno "
-"standard industriale per la conformità."
 
 #. module: website
 #. openerp-web
@@ -10679,7 +10674,7 @@ msgstr "Configuratore Website"
 #. module: website
 #: model:ir.model,name:website.model_website_configurator_feature
 msgid "Website Configurator Feature"
-msgstr "Funzionalità del configuratore di siti web"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__website_domain
@@ -10747,6 +10742,7 @@ msgid "Website Pages"
 msgstr "Pagine sito web"
 
 #. module: website
+#: model:ir.model.fields,field_description:website.field_base_automation__website_path
 #: model:ir.model.fields,field_description:website.field_ir_actions_server__website_path
 #: model:ir.model.fields,field_description:website.field_ir_cron__website_path
 msgid "Website Path"
@@ -10802,6 +10798,7 @@ msgid "Website URL"
 msgstr "URL sito web"
 
 #. module: website
+#: model:ir.model.fields,field_description:website.field_base_automation__website_url
 #: model:ir.model.fields,field_description:website.field_ir_actions_server__website_url
 #: model:ir.model.fields,field_description:website.field_ir_cron__website_url
 msgid "Website Url"
@@ -11117,7 +11114,6 @@ msgstr "Non hai definito il tuo dominio"
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
 msgid "You may opt-out of a third-party's use of cookies by visiting the"
 msgstr ""
-"Si può rinunciare all'uso dei cookie da parte di terzi visitando il sito"
 
 #. module: website
 #: code:addons/website/models/website.py:0
@@ -11244,7 +11240,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "Zoom In-Left"
-msgstr "Zoom In-Sinistra"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
@@ -11772,7 +11768,7 @@ msgstr "questa pagina"
 #: code:addons/website/static/src/xml/website.xml:0
 #, python-format
 msgid "to exit full screen"
-msgstr "per uscire dallo schermo intero"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
@@ -11859,7 +11855,7 @@ msgstr "⌙ Desktop"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_options
 msgid "⌙ Display"
-msgstr "⌙ Visualizzazione"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
@@ -11909,7 +11905,7 @@ msgstr "⌙ Mobile"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options
 msgid "⌙ Off-Canvas Logo"
-msgstr "⌙ Logo fuori area"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippet_options_shadow_widgets
@@ -11918,7 +11914,6 @@ msgstr "⌙ Spostamento (X, Y)"
 
 #. module: website
 #. openerp-web
-#: code:addons/website/static/src/js/editor/snippets.options.js:0
 #: code:addons/website/static/src/xml/website.editor.xml:0
 #, python-format
 msgid "⌙ Page Anchor"

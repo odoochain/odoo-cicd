@@ -4,7 +4,7 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Alina Lisnenko <alinasemeniuk1@gmail.com>, 2022
+# Alina Lisnenko <alinasemeniuk1@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:21+0000\n"
-"Last-Translator: Alina Lisnenko <alinasemeniuk1@gmail.com>, 2022\n"
+"Last-Translator: Alina Lisnenko <alinasemeniuk1@gmail.com>, 2021\n"
 "Language-Team: Ukrainian (https://www.transifex.com/odoo/teams/41243/uk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,94 +23,94 @@ msgstr ""
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_booked_template
 msgid "<b>Renter Email</b>:"
-msgstr "<b>Електронна адреса орендаря</b>:"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_booked_template
 msgid "<b>Renter Mobile</b>:"
-msgstr "<b>Мобільний орендаря</b>:"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_booked_template
 msgid "<b>Renter Name</b>:"
-msgstr "<b>Ім'я орендаря</b>:"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_booked_template
 msgid "<b>Renter Phone</b>:"
-msgstr "<b>Телефон орендаря</b>:"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_event_view_form
 msgid "<span class=\"o_stat_text\">Booths</span>"
-msgstr "<span class=\"o_stat_text\">Стенди</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_premium
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_standard
 msgid "<span class=\"text-white\">4m²</span>"
-msgstr "<span class=\"text-white\">4m²</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_vip
 msgid "<span class=\"text-white\">8m²</span>"
-msgstr "<span class=\"text-white\">8m²</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_premium
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_standard
 msgid "<span>1 Branded Booth</span>"
-msgstr "<span>1 брендований стенд</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_premium
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_standard
 msgid "<span>1 desk</span>"
-msgstr "<span>1 стіл</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_premium
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_vip
 msgid "<span>10 + 1 passes</span>"
-msgstr "<span>10 + 1 пропуск</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_vip
 msgid "<span>100 words description on website</span>"
-msgstr "<span>100 описових слів на веб-сайті</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_vip
 msgid "<span>2 Branded Booth</span>"
-msgstr "<span>2 брендовані стенди</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_vip
 msgid "<span>2 desks</span>"
-msgstr "<span>2 столи</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_vip
 msgid "<span>2 x 46\" display screens</span>"
-msgstr "<span>екрани 2 x 46\"</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_premium
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_standard
 msgid "<span>46\" display screen</span>"
-msgstr "<span>екрани 46\"</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_premium
 msgid "<span>50 words description on website</span>"
-msgstr "<span>50 описових слів на веб-сайті</span>"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_premium
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_standard
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_vip
 msgid "<span>Logo &amp; link on website</span>"
-msgstr "<span>Логотип та посилання на веб-сайт</span>"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__message_needaction
@@ -162,40 +162,40 @@ msgstr "В наявності"
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_event__event_booth_count_available
 msgid "Available Booths"
-msgstr "Доступні стенди"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_booked_template
 msgid "Booth"
-msgstr "Стенд"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_00_event_7
 #: model:event.booth,name:event_booth.event_booth_0_event_0
 msgid "Booth A1"
-msgstr "Стенд A1"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_01_event_7
 #: model:event.booth,name:event_booth.event_booth_1_event_0
 msgid "Booth A2"
-msgstr "Стенд A2"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_02_event_7
 #: model:event.booth,name:event_booth.event_booth_2_event_0
 msgid "Booth A3"
-msgstr "Стенд A3"
+msgstr ""
 
 #. module: event_booth
 #: model:mail.message.subtype,name:event_booth.mt_event_booth_booked
 msgid "Booth Booked"
-msgstr "Стенд заброньовано"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.ui.menu,name:event_booth.menu_event_booth_category
 msgid "Booth Categories"
-msgstr "Категорії стендів"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.actions.act_window,name:event_booth.event_booth_category_action
@@ -203,20 +203,19 @@ msgstr "Категорії стендів"
 #: model:ir.model.fields,field_description:event_booth.field_event_type_booth__booth_category_id
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_category_view_form
 msgid "Booth Category"
-msgstr "Категорія стенду"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,help:event_booth.field_event_event__event_booth_category_available_ids
 msgid "Booth Category for which booths are still available. Used in frontend"
 msgstr ""
-"Категорія стендів, для яких є вільні стенди. Використовується на фронтенді"
 
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_category_view_form
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_view_search
 #: model_terms:ir.ui.view,arch_db:event_booth.event_type_booth_view_search
 msgid "Booth Type"
-msgstr "Тип стенду"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.actions.act_window,help:event_booth.event_booth_category_action
@@ -224,8 +223,6 @@ msgid ""
 "Booth categories are used to represent the different types of booths you "
 "rent (Premium Booth, Table and Chairs, ...)"
 msgstr ""
-"Категорії стендів використовуються для представлення різних типів стендів, "
-"які ви орендуєте (преміум стенд, стіл і стільці, ...)"
 
 #. module: event_booth
 #: model:ir.actions.act_window,name:event_booth.event_booth_action
@@ -239,30 +236,30 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:event_booth.event_event_view_form
 #: model_terms:ir.ui.view,arch_db:event_booth.event_type_view_form
 msgid "Booths"
-msgstr "Стенди"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.actions.act_window,help:event_booth.event_booth_action
 #: model_terms:ir.actions.act_window,help:event_booth.event_booth_action_from_event
 #: model_terms:ir.actions.act_window,help:event_booth.event_type_booth_action
 msgid "Booths are the physical stands that you rent during your event."
-msgstr "Стенди – це фізичні трибуни, які ви орендуєте під час заходу."
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.actions.act_window,help:event_booth.event_booth_action
 #: model_terms:ir.actions.act_window,help:event_booth.event_booth_action_from_event
 msgid "Create a Booth"
-msgstr "Створити стенд"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.actions.act_window,help:event_booth.event_booth_category_action
 msgid "Create a Booth Category"
-msgstr "Створити категорію стенду"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.actions.act_window,help:event_booth.event_type_booth_action
 msgid "Create a Type Booth"
-msgstr "Створити тип стенду"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__create_uid
@@ -302,29 +299,29 @@ msgstr "Подія"
 #: model:ir.model,name:event_booth.model_event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_view_search
 msgid "Event Booth"
-msgstr "Стенд події"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model,name:event_booth.model_event_booth_category
 #: model:ir.model.fields,field_description:event_booth.field_event_event__event_booth_category_ids
 msgid "Event Booth Category"
-msgstr "Категорія стендів події"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_event__event_booth_category_available_ids
 msgid "Event Booth Category Available"
-msgstr "Доступні категорії стендів події"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model,name:event_booth.model_event_type_booth
 msgid "Event Booth Template"
-msgstr "Шаблон стенду події "
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__event_type_id
 #: model:ir.model.fields,field_description:event_booth.field_event_type_booth__event_type_id
 msgid "Event Category"
-msgstr "Категорія стенду"
+msgstr "Категорія події"
 
 #. module: event_booth
 #: model:ir.model,name:event_booth.model_event_type
@@ -334,14 +331,14 @@ msgstr "Шаблон події"
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_type_booth_view_form_from_type
 msgid "Event Type Booth"
-msgstr "Тип стенду події"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.actions.act_window,name:event_booth.event_type_booth_action
 #: model_terms:ir.ui.view,arch_db:event_booth.event_type_booth_view_search
 #: model_terms:ir.ui.view,arch_db:event_booth.event_type_booth_view_tree_from_type
 msgid "Event Type Booths"
-msgstr "Типи стендів події"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__message_follower_ids
@@ -356,22 +353,22 @@ msgstr "Підписники (Партнери)"
 #. module: event_booth
 #: model:ir.model.fields,help:event_booth.field_event_booth__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr "Іконка з чудовим шпифтом, напр. fa-tasks"
+msgstr "Іконка зі шрифтом Font awesome, напр. fa-tasks"
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_20_event_7
 msgid "Gold Booth 1"
-msgstr "Золотий стенд 1"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_21_event_7
 msgid "Gold Booth 2"
-msgstr "Золотий стенд 2"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_22_event_7
 msgid "Gold Booth 3"
-msgstr "Золотий стенд 3"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_view_search
@@ -547,71 +544,71 @@ msgstr "Кількість непрочитаних повідомлень"
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_10_event_7
 msgid "OpenWood Demonstrator 1"
-msgstr "OpenWood Demonstrator 1"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_11_event_7
 msgid "OpenWood Demonstrator 2"
-msgstr "OpenWood Demonstrator 2"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_12_event_7
 msgid "OpenWood Demonstrator 3"
-msgstr "OpenWood Demonstrator 3"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_premium
 msgid "Premium"
-msgstr "Преміум"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth.category,name:event_booth.event_booth_category_premium
 msgid "Premium Booth"
-msgstr "Преміумний стенд"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_3_event_0
 msgid "Premium Booth A4"
-msgstr "Преміумний стенд A4"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_2_event_2
 #: model:event.type.booth,name:event_booth.event_type_booth_demo_conference_2
 msgid "Premium Showbooth 1"
-msgstr "Преміумний виставковий стенд 1"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_3_event_2
 #: model:event.type.booth,name:event_booth.event_type_booth_demo_conference_3
 msgid "Premium Showbooth 2"
-msgstr "Преміумний виставковий стенд 2"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__partner_id
 msgid "Renter"
-msgstr "Орендар"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__contact_email
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_view_search
 msgid "Renter Email"
-msgstr "Email орендаря"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__contact_mobile
 msgid "Renter Mobile"
-msgstr "Мобільний орендаря"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__contact_name
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_view_search
 msgid "Renter Name"
-msgstr "Ім'я орендаря"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__contact_phone
 msgid "Renter Phone"
-msgstr "Телефон орендаря"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__activity_user_id
@@ -632,18 +629,18 @@ msgstr "Послідовність"
 #: model:event.booth,name:event_booth.event_booth_0_event_2
 #: model:event.type.booth,name:event_booth.event_type_booth_demo_conference_0
 msgid "Showbooth 1"
-msgstr "Виставковий стенд 1"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_1_event_2
 #: model:event.type.booth,name:event_booth.event_type_booth_demo_conference_1
 msgid "Showbooth 2"
-msgstr "Виставковий стенд 2"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,help:event_booth.field_event_booth__state
 msgid "Shows the availability of a Booth"
-msgstr "Показує доступнійсть стендів"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:event.booth.category,description:event_booth.event_booth_category_standard
@@ -653,7 +650,7 @@ msgstr "Стандарт"
 #. module: event_booth
 #: model:event.booth.category,name:event_booth.event_booth_category_standard
 msgid "Standard Booth"
-msgstr "Стандартний стенд"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__state
@@ -676,7 +673,7 @@ msgstr ""
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_event__event_booth_count
 msgid "Total Booths"
-msgstr "Усі стенди"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,help:event_booth.field_event_booth__activity_exception_decoration
@@ -687,7 +684,7 @@ msgstr "Тип дії виключення на записі."
 #: model:ir.model.fields.selection,name:event_booth.selection__event_booth__state__unavailable
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_view_search
 msgid "Unavailable"
-msgstr "Недоступний"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__message_unread
@@ -707,12 +704,12 @@ msgstr "VIP"
 #. module: event_booth
 #: model:event.booth.category,name:event_booth.event_booth_category_vip
 msgid "VIP Booth"
-msgstr "VIP стенд"
+msgstr ""
 
 #. module: event_booth
 #: model:event.booth,name:event_booth.event_booth_4_event_0
 msgid "VIP Booth A5"
-msgstr "VIP стенд A5"
+msgstr ""
 
 #. module: event_booth
 #: model:ir.model.fields,field_description:event_booth.field_event_booth__website_message_ids
@@ -729,9 +726,9 @@ msgstr "Історія бесіди на сайті"
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_view_form_quick_create
 #: model_terms:ir.ui.view,arch_db:event_booth.event_type_booth_view_form_from_type
 msgid "e.g. First Booth Alley 1"
-msgstr "e.g. Перший стенд на аллеї 1"
+msgstr ""
 
 #. module: event_booth
 #: model_terms:ir.ui.view,arch_db:event_booth.event_booth_category_view_form
 msgid "e.g. Premium Booth"
-msgstr "e.g. Преміумний стенд"
+msgstr ""

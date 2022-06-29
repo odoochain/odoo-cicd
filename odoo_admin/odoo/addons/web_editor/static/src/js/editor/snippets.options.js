@@ -25,7 +25,6 @@ const {
     applyModifications,
     removeOnImageChangeAttrs,
     isImageSupportedForProcessing,
-    isImageSupportedForStyle,
 } = require('web_editor.image_processing');
 
 var qweb = core.qweb;
@@ -3588,7 +3587,6 @@ const SnippetOptionWidget = Widget.extend({
                     // if editing the other).
                     const parts = backgroundImageCssToParts(styles['background-image']);
                     if (parts.gradient) {
-                        _restoreTransitions();
                         return parts.gradient;
                     }
                 }
@@ -4518,21 +4516,17 @@ registry.Box = SnippetOptionWidget.extend({
         if (type) {
             el.classList.add(shadowClass);
         }
-
-        let shadow = ''; // TODO in master this should be changed to 'none'
         document.body.appendChild(el);
         switch (type) {
             case 'outset': {
-                shadow = $(el).css('box-shadow');
-                break;
+                return $(el).css('box-shadow');
             }
             case 'inset': {
-                shadow = $(el).css('box-shadow') + ' inset';
-                break;
+                return $(el).css('box-shadow') + ' inset';
             }
         }
         el.remove();
-        return shadow;
+        return ''; // TODO in master this should be changed to 'none'
     }
 });
 
@@ -4723,17 +4717,17 @@ registry.ReplaceMedia = SnippetOptionWidget.extend({
     /**
      * @override
      */
-    onFocus() {
+    async start() {
         core.bus.on('activate_image_link_tool', this, this._activateLinkTool);
-        // When we start editing an image, rerender the UI to ensure the
-        // we-select that suggests the anchors is in a consistent state.
-        this.rerender = true;
+        return this._super(...arguments);
     },
     /**
      * @override
      */
-    onBlur() {
-        core.bus.off('activate_image_link_tool', this, this._activateLinkTool);
+    onFocus() {
+        // When we start editing an image, rerender the UI to ensure the
+        // we-select that suggests the anchors is in a consistent state.
+        this.rerender = true;
     },
 
     //--------------------------------------------------------------------------
@@ -4854,9 +4848,6 @@ registry.ReplaceMedia = SnippetOptionWidget.extend({
      */
     async _computeWidgetVisibility(widgetName, params) {
         if (widgetName === 'media_link_opt') {
-            if (this.$target[0].matches('img')) {
-                return isImageSupportedForStyle(this.$target[0]);
-            }
             return !this.$target[0].classList.contains('media_iframe_video');
         }
         return this._super(...arguments);
@@ -5166,12 +5157,12 @@ const ImageHandlerOption = SnippetOptionWidget.extend({
     },
     /**
      * TODO: adapt in master (used to keep ImageTools related options available
-     * for all supported images).
+     * for all images).
      *
      * @returns {Boolean}
      */
     _isAllowedOnAllImages() {
-        return isImageSupportedForStyle(this._getImg());
+        return false;
     },
 });
 
@@ -5524,10 +5515,6 @@ registry.ImageTools = ImageHandlerOption.extend({
         if (params.optionsPossibleValues.resetCrop) {
             return this._isCropped();
         }
-        // Only the 'Crop' widget is visible when image is not supported for style options.
-        if (Object.keys(params.optionsPossibleValues).some(methodName => ['transform', 'selectStyle'].includes(methodName))) {
-            return isImageSupportedForStyle(this._getImg());
-        }
         return this._super();
     },
     /**
@@ -5650,6 +5637,12 @@ registry.ImageTools = ImageHandlerOption.extend({
             await this._loadShape(img.dataset.shape);
             await this._applyShapeAndColors(true, (img.dataset.shapeColors && img.dataset.shapeColors.split(';')));
         }
+    },
+    /**
+     * @override
+     */
+    _isAllowedOnAllImages() {
+        return true;
     },
 
     //--------------------------------------------------------------------------
@@ -6817,9 +6810,7 @@ registry.ColoredLevelBackground = registry.BackgroundToggler.extend({
      * @private
      */
     _markColorLevel: function () {
-        this.options.wysiwyg.odooEditor.observerUnactive('_markColorLevel');
         this.$target.addClass('o_colored_level');
-        this.options.wysiwyg.odooEditor.observerActive('_markColorLevel');
     },
 });
 

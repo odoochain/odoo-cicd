@@ -5,7 +5,7 @@
 # Translators:
 # Chinzorita <chinzorig.o@asterisk-tech.mn>, 2021
 # baaska sh <sh.baaskash@gmail.com>, 2021
-# hish, 2021
+# Khishigbat Ganbold <khishigbat@asterisk-tech.mn>, 2021
 # Khoschuluu Khuderchuluu <khoschuluu@gmail.com>, 2021
 # BATKHUYAG Ganbold <gbatkhuyag@gmail.com>, 2021
 # tserendavaa tsogtoo <tseegii011929@gmail.com>, 2021
@@ -14,6 +14,8 @@
 # Suren Ch <oyunsuren.ch@gmail.com>, 2021
 # Ubuntu Erka <erdenebold10@gmail.com>, 2021
 # nurbakhit nurka <nurbakhit@bumanit.mn>, 2021
+# Bayarkhuu Bataa, 2021
+# Martin Trigaux, 2021
 # Otgonbayar.A <gobi.mn@gmail.com>, 2021
 # Насан-Очир <nasaaskii@gmail.com>, 2021
 # Батмөнх Ганбат <batmunkh2522@gmail.com>, 2021
@@ -22,10 +24,8 @@
 # Батболд <batbold.ts@gmail.com>, 2021
 # Munkhbaatar g <muuguu17@gmail.com>, 2021
 # tumenjargal hadbaatar <tumenjargal7903@gmail.com>, 2021
+# Baskhuu Lodoikhuu <baskhuujacara@gmail.com>, 2021
 # Sanjaajamts Badamjunai <b.sanjaajamtsfc@gmail.com>, 2021
-# Baskhuu Lodoikhuu <baskhuujacara@gmail.com>, 2022
-# Bayarkhuu Bataa, 2022
-# Martin Trigaux, 2022
 # 
 msgid ""
 msgstr ""
@@ -33,7 +33,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-11-16 13:18+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: Martin Trigaux, 2022\n"
+"Last-Translator: Sanjaajamts Badamjunai <b.sanjaajamtsfc@gmail.com>, 2021\n"
 "Language-Team: Mongolian (https://www.transifex.com/odoo/teams/41243/mn/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1926,7 +1926,7 @@ msgstr "Огноо"
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.view_move_form
 msgid "Date Processing"
-msgstr "Боловсруулалтын огноо"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_move__date_deadline
@@ -1938,7 +1938,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:stock.field_stock_move__date
 #: model_terms:ir.ui.view,arch_db:stock.view_move_form
 msgid "Date Scheduled"
-msgstr "Товлосон огноо"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_product_replenish__date_planned
@@ -2089,13 +2089,14 @@ msgstr ""
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_location__removal_strategy_id
 msgid ""
-"Defines the default method used for suggesting the exact location (shelf) where to take the products from, which lot etc. for this location. This method can be enforced at the product category level, and a fallback is made on the parent locations if none is set here.\n"
-"\n"
-"FIFO: products/lots that were stocked first will be moved out first.\n"
-"LIFO: products/lots that were stocked last will be moved out first.\n"
-"Closet location: products/lots closest to the target location will be moved out first.\n"
-"FEFO: products/lots with the closest removal date will be moved out first (the availability of this method depends on the \"Expiration Dates\" setting)."
+"Defines the default method used for suggesting the exact location (shelf) "
+"where to take the products from, which lot etc. for this location. This "
+"method can be enforced at the product category level, and a fallback is made"
+" on the parent locations if none is set here."
 msgstr ""
+"Барааг яг ямар байрлал (тавиур), цувралаас бэлтгэж гаргахыг санал болгох "
+"үндсэн аргыг тодорхойлно. Энэ арга нь барааны ангилалын түвшинд хэрэглэгдэж "
+"болох бөгөөд энд тохируулаагүй бол эцэг байрлалд тусч болно."
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_move__delay_alert_date
@@ -2459,7 +2460,7 @@ msgstr ""
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.stock_warn_insufficient_qty_scrap_form_view
 msgid "Do you confirm you want to scrap"
-msgstr "Та нөөцийн хүрэлцээгүй бараанаас дотоод зарлага хийвэл"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -3284,12 +3285,6 @@ msgstr "Даруй шилжүүлэх эсэх?"
 #: model_terms:ir.ui.view,arch_db:stock.view_immediate_transfer
 msgid "Immediate transfer?"
 msgstr "Даруй шилжүүлэх эсэх?"
-
-#. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid "Import"
-msgstr "Импортлох"
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_warehouse__in_type_id
@@ -4608,12 +4603,6 @@ msgid "No stock move found"
 msgstr "Агуулахын хөдөлгөөн олдсонгүй"
 
 #. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid "No Stock On Hand"
-msgstr ""
-
-#. module: stock
 #: model_terms:ir.actions.act_window,help:stock.action_picking_form
 #: model_terms:ir.actions.act_window,help:stock.action_picking_tree_all
 #: model_terms:ir.actions.act_window,help:stock.action_picking_tree_backorder
@@ -5287,12 +5276,12 @@ msgstr "Товлосон шилжүүлгүүд"
 #: code:addons/stock/static/src/js/stock_rescheduling_popover.js:0
 #, python-format
 msgid "Planning Issue"
-msgstr "Хоцролттой"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_internal_search
 msgid "Planning Issues"
-msgstr "Хоцролттой"
+msgstr ""
 
 #. module: stock
 #: code:addons/stock/models/stock_picking.py:0
@@ -5339,14 +5328,6 @@ msgstr "Зөвлөмжит дамжлагууд"
 #: model:ir.model.fields,help:stock.field_stock_move__route_ids
 msgid "Preferred route"
 msgstr "Зөвлөмжит дамжлага"
-
-#. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid ""
-"Press the CREATE button to define quantity for each product in your stock or"
-" import them from a spreadsheet throughout Favorites"
-msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_form
@@ -6548,8 +6529,6 @@ msgstr "Товлогдсон огноо"
 #: model:ir.model.fields,help:stock.field_stock_move__date
 msgid "Scheduled date until move is done, then date of actual move processing"
 msgstr ""
-"Хөдөлгөөн дуусах хүртэл товлосон огноо байх бөгөөд дууссан үед бодит "
-"боловсруулалтын огноо болно"
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.view_move_search
@@ -6786,13 +6765,11 @@ msgstr "Агуулахын дамжлага тохируулах"
 #. module: stock
 #: model:ir.model.fields,help:stock.field_product_category__removal_strategy_id
 msgid ""
-"Set a specific removal strategy that will be used regardless of the source location for this product category.\n"
-"\n"
-"FIFO: products/lots that were stocked first will be moved out first.\n"
-"LIFO: products/lots that were stocked last will be moved out first.\n"
-"Closet location: products/lots closest to the target location will be moved out first.\n"
-"FEFO: products/lots with the closest removal date will be moved out first (the availability of this method depends on the \"Expiration Dates\" setting)."
+"Set a specific removal strategy that will be used regardless of the source "
+"location for this product category"
 msgstr ""
+"Энэ барааны ангилалын эх байрлалаас үл хамааран хэрэглэгдэх тусгайлсан авч "
+"гаргах стратегийг тохируулах"
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -7639,7 +7616,7 @@ msgstr ""
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.stock_warn_insufficient_qty_form_view
 msgid "The product is not available in sufficient quantity"
-msgstr "Уг барааны хувьд хангалттай нөөц алга,"
+msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_quant__inventory_quantity
@@ -7651,9 +7628,14 @@ msgstr ""
 #, python-format
 msgid ""
 "The quantity done for the product \"%s\" doesn't respect the rounding "
-"precision defined on the unit of measure \"%s\". Please change the quantity "
-"done or the rounding precision of your unit of measure."
+"precision                                   defined on the unit of measure "
+"\"%s\". Please change the quantity done or the"
+"                                   rounding precision of your unit of "
+"measure."
 msgstr ""
+"\"%s\" барааг дуусгаж буй тоо хэмжээ нь \"%s\" хэмжих нэгжид тодорхойлогдсон"
+" оронгийн нарийвчлалд нийцэхгүй байна. Дуусгаж буй тоо хэмжээг өөрчлөх эсвэл"
+" хэмжих нэгжийн оронгийн нарийвчлалыг өөрчилнө үү."
 
 #. module: stock
 #: code:addons/stock/models/stock_move.py:0
@@ -7739,14 +7721,6 @@ msgstr ""
 #: model_terms:ir.actions.act_window,help:stock.stock_move_line_action
 msgid "There's no product move yet"
 msgstr "Барааны ямар нэг хөдөлгөөн одоогоор алга"
-
-#. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid ""
-"This analysis gives you an overview of the current stock level of your "
-"products."
-msgstr ""
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_rule__name
@@ -8915,7 +8889,7 @@ msgstr ""
 #: code:addons/stock/models/stock_picking.py:0
 #, python-format
 msgid "You cannot change the Scheduled Date on a done or cancelled transfer."
-msgstr "Дууссан эсвэл цуцалсан шилжүүлгийн товлосон огноог өөрчлөх боомжгүй."
+msgstr ""
 
 #. module: stock
 #: code:addons/stock/models/stock_move.py:0
@@ -9125,15 +9099,6 @@ msgid "You should update this document to reflect your T&amp;C."
 msgstr ""
 
 #. module: stock
-#: code:addons/stock/models/stock_picking.py:0
-#, python-format
-msgid ""
-"You should not use a planned internal transfer to move some products between"
-" two warehouses. Instead, use an immediate internal transfer or the resupply"
-" route."
-msgstr ""
-
-#. module: stock
 #: code:addons/stock/models/stock_warehouse.py:0
 #, python-format
 msgid "You still have ongoing operations for picking types %s in warehouse %s"
@@ -9159,12 +9124,6 @@ msgid ""
 "You'll find here smart replenishment propositions based on inventory forecasts.\n"
 "            Choose the quantity to buy or manufacture and launch orders in a click.\n"
 "            To save time in the future, set the rules as \"automated\"."
-msgstr ""
-
-#. module: stock
-#: code:addons/stock/models/stock_quant.py:0
-#, python-format
-msgid "Your stock is currently empty"
 msgstr ""
 
 #. module: stock

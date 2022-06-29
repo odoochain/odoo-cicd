@@ -3,7 +3,6 @@
 
 from odoo import api, fields, models
 from odoo.tools.float_utils import float_is_zero
-from odoo.tools.misc import groupby
 
 
 class StockQuant(models.Model):
@@ -63,13 +62,13 @@ class StockQuant(models.Model):
         return res
 
     def _apply_inventory(self):
-        for accounting_date, inventory_ids in groupby(self, key=lambda q: q.accounting_date):
-            inventories = self.env['stock.quant'].concat(*inventory_ids)
-            if accounting_date:
-                super(StockQuant, inventories.with_context(force_period_date=accounting_date))._apply_inventory()
-                inventories.accounting_date = False
-            else:
-                super(StockQuant, inventories)._apply_inventory()
+        acc_inventories = self.filtered(lambda quant: quant.accounting_date)
+        for inventory in acc_inventories:
+            super(StockQuant, self.with_context(force_period_date=inventory.accounting_date))._apply_inventory()
+            inventory.write({'accounting_date': False})
+        other_inventories = self - acc_inventories
+        if other_inventories:
+            super(StockQuant, other_inventories)._apply_inventory()
 
     @api.model
     def _get_inventory_fields_write(self):

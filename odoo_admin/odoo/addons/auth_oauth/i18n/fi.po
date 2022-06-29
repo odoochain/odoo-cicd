@@ -60,8 +60,13 @@ msgstr "Sallittu"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__auth_endpoint
-msgid "Authorization URL"
-msgstr ""
+msgid "Authentication URL"
+msgstr "Autentikointi/todennus URL"
+
+#. module: auth_oauth
+#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__body
+msgid "Body"
+msgstr "Viesti"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__css_class
@@ -96,8 +101,8 @@ msgstr "Luotu"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__data_endpoint
-msgid "Data Endpoint"
-msgstr ""
+msgid "Data URL"
+msgstr "Data URL"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__display_name
@@ -135,6 +140,11 @@ msgid "Last Updated on"
 msgstr "Viimeksi päivitetty"
 
 #. module: auth_oauth
+#: model:ir.model.fields,help:auth_oauth.field_auth_oauth_provider__body
+msgid "Link text in Login Dialog"
+msgstr "Liitä teksti kirjautumisikkunaan"
+
+#. module: auth_oauth
 #: model:auth.oauth.provider,body:auth_oauth.provider_facebook
 msgid "Log in with Facebook"
 msgstr "Facebook-kirjautuminen"
@@ -148,11 +158,6 @@ msgstr "Google-kirjautuminen"
 #: model:auth.oauth.provider,body:auth_oauth.provider_openerp
 msgid "Log in with Odoo.com"
 msgstr "Odoo.com-tunnistautuminen"
-
-#. module: auth_oauth
-#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__body
-msgid "Login button label"
-msgstr ""
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_res_users__oauth_access_token
@@ -232,14 +237,14 @@ msgid "System Parameter"
 msgstr "Järjestelmäparametri"
 
 #. module: auth_oauth
-#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__validation_endpoint
-msgid "UserInfo URL"
-msgstr ""
-
-#. module: auth_oauth
 #: model:ir.model,name:auth_oauth.model_res_users
 msgid "Users"
 msgstr "Käyttäjät"
+
+#. module: auth_oauth
+#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__validation_endpoint
+msgid "Validation URL"
+msgstr "Vahvistus URL"
 
 #. module: auth_oauth
 #: code:addons/auth_oauth/controllers/main.py:0

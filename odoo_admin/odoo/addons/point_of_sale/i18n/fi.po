@@ -9,7 +9,7 @@
 # Eino Mäkitalo <eino.makitalo@netitbe.fi>, 2021
 # Miku Laitinen <miku.laitinen@gmail.com>, 2021
 # Timo Koukkari <ti.ko@netikka.fi>, 2021
-# Johanna Valkonen <miujohanna@gmail.com>, 2021
+# Johanna Valkonen <johanna@vividi.fi>, 2021
 # Mikko Virtanen <mikko.virtanen2013@gmail.com>, 2021
 # Jussi Lehto <jussi@gulfeo.com>, 2021
 # Kari Lindgren <karisatu@gmail.com>, 2021
@@ -28,12 +28,11 @@
 # Svante Suominen <svante.suominen@web-veistamo.fi>, 2021
 # Veikko Väätäjä <veikko.vaataja@gmail.com>, 2021
 # Tuomas Lyyra <tuomas.lyyra@legenda.fi>, 2021
+# Kim Asplund <kim.asplund@gmail.com>, 2021
 # Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2021
 # Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2021
 # Martin Trigaux, 2021
 # Antti Oksman <antti.oksman@web-veistamo.fi>, 2021
-# Joakim Weckman, 2022
-# Kim Asplund <kim.asplund@gmail.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -41,7 +40,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-12-10 07:16+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
-"Last-Translator: Kim Asplund <kim.asplund@gmail.com>, 2022\n"
+"Last-Translator: Antti Oksman <antti.oksman@web-veistamo.fi>, 2021\n"
 "Language-Team: Finnish (https://www.transifex.com/odoo/teams/41243/fi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -921,7 +920,7 @@ msgstr "Käteinen"
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_cash_box_out
 msgid "Cash Box Out"
-msgstr "Kassalaatikko ulos"
+msgstr ""
 
 #. module: point_of_sale
 #. openerp-web
@@ -1675,7 +1674,7 @@ msgstr "Virheenjäljitysikkuna"
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_account_bank_statement__account_id
 msgid "Default Account"
-msgstr "Oletustili"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__account_default_pos_receivable_account_id
@@ -1730,7 +1729,7 @@ msgstr ""
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Define the smallest coinage of the currency used to pay by cash"
-msgstr "Määritä pienin rahalla maksettavan valuutan kolikko"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_payment_method__name
@@ -3274,7 +3273,6 @@ msgstr ""
 #. module: point_of_sale
 #. openerp-web
 #: code:addons/point_of_sale/static/src/js/Chrome.js:0
-#: code:addons/point_of_sale/static/src/js/Screens/ProductScreen/ProductScreen.js:0
 #, python-format
 msgid "No"
 msgstr "Ei"
@@ -4261,7 +4259,7 @@ msgstr ""
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_pos_order_line
 msgid "Point of Sale Order Lines"
-msgstr "Myyntipisteen Tilausrivit"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_pos_order
@@ -4946,7 +4944,7 @@ msgstr ""
 #: code:addons/point_of_sale/static/src/xml/Screens/PaymentScreen/PaymentScreenElectronicPayment.xml:0
 #, python-format
 msgid "Reverse"
-msgstr "Käänteinen"
+msgstr ""
 
 #. module: point_of_sale
 #. openerp-web
@@ -5202,7 +5200,7 @@ msgstr "Järjestys"
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__sequence_number
 msgid "Sequence Number"
-msgstr "Sekvenssinumero"
+msgstr ""
 
 #. module: point_of_sale
 #. openerp-web
@@ -5444,13 +5442,6 @@ msgstr ""
 
 #. module: point_of_sale
 #. openerp-web
-#: code:addons/point_of_sale/static/src/js/Screens/ProductScreen/ProductScreen.js:0
-#, python-format
-msgid "Some Serial/Lot Numbers are missing"
-msgstr ""
-
-#. module: point_of_sale
-#. openerp-web
 #: code:addons/point_of_sale/static/src/js/Chrome.js:0
 #, python-format
 msgid ""
@@ -5648,7 +5639,7 @@ msgstr "YHTEENSÄ"
 #. module: point_of_sale
 #: model:ir.actions.act_window,name:point_of_sale.action_pos_box_out
 msgid "Take Money In/Out"
-msgstr "Ota rahaa sisään/ulos"
+msgstr ""
 
 #. module: point_of_sale
 #. openerp-web
@@ -6131,13 +6122,6 @@ msgid ""
 msgstr ""
 
 #. module: point_of_sale
-#: code:addons/point_of_sale/models/account_journal.py:0
-#, python-format
-msgid ""
-"This journal is associated with a payment method. You cannot modify its type"
-msgstr ""
-
-#. module: point_of_sale
 #. openerp-web
 #: code:addons/point_of_sale/static/src/js/ChromeWidgets/DebugWidget.js:0
 #, python-format
@@ -6176,7 +6160,7 @@ msgstr ""
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__tip_product_id
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_config_view_form
 msgid "This product is used as reference on customer receipts."
-msgstr "Tätä tuotetta käytetään viitteenä asiakaskuitteissa."
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__sequence_line_id
@@ -6721,9 +6705,7 @@ msgstr ""
 
 #. module: point_of_sale
 #. openerp-web
-#: code:addons/point_of_sale/models/pos_config.py:0
 #: code:addons/point_of_sale/static/src/js/Chrome.js:0
-#: code:addons/point_of_sale/static/src/js/Screens/ProductScreen/ProductScreen.js:0
 #, python-format
 msgid "Yes"
 msgstr "Kyllä"
@@ -6741,15 +6723,6 @@ msgstr ""
 #: code:addons/point_of_sale/static/src/js/Screens/ProductScreen/ProductScreen.js:0
 #, python-format
 msgid "You are not allowed to change this quantity"
-msgstr ""
-
-#. module: point_of_sale
-#. openerp-web
-#: code:addons/point_of_sale/static/src/js/Screens/ProductScreen/ProductScreen.js:0
-#, python-format
-msgid ""
-"You are trying to sell products with serial/lot numbers, but some of them are not set.\n"
-"Would you like to proceed anyway?"
 msgstr ""
 
 #. module: point_of_sale

@@ -5,7 +5,6 @@
 # Translators:
 # Arnau Ros, 2021
 # jabelchi, 2021
-# marcescu, 2022
 # 
 msgid ""
 msgstr ""
@@ -13,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:22+0000\n"
-"Last-Translator: marcescu, 2022\n"
+"Last-Translator: jabelchi, 2021\n"
 "Language-Team: Catalan (https://www.transifex.com/odoo/teams/41243/ca/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,38 +38,38 @@ msgstr "Enrutament HTTP"
 #. module: google_recaptcha
 #: model_terms:ir.ui.view,arch_db:google_recaptcha.res_config_settings_view_form
 msgid "If no keys are provided, no checks will be done."
-msgstr "Si no es donen claus, no es faran comprovacions."
+msgstr ""
 
 #. module: google_recaptcha
 #: model:ir.model.fields,field_description:google_recaptcha.field_res_config_settings__recaptcha_min_score
 msgid "Minimum score"
-msgstr "Puntuació mínima"
+msgstr ""
 
 #. module: google_recaptcha
 #. openerp-web
 #: code:addons/google_recaptcha/static/src/js/recaptcha.js:0
 #, python-format
 msgid "No recaptcha site key set."
-msgstr "No s'ha establert la clau del lloc recaptcha."
+msgstr ""
 
 #. module: google_recaptcha
 #. openerp-web
 #: code:addons/google_recaptcha/static/src/xml/recaptcha.xml:0
 #, python-format
 msgid "Privacy Policy"
-msgstr "Política de privacitat"
+msgstr ""
 
 #. module: google_recaptcha
 #. openerp-web
 #: code:addons/google_recaptcha/static/src/xml/recaptcha.xml:0
 #, python-format
 msgid "Protected by reCAPTCHA,"
-msgstr "Protegit per reCAPTCHA,"
+msgstr ""
 
 #. module: google_recaptcha
 #: model:ir.model.fields,field_description:google_recaptcha.field_res_config_settings__recaptcha_private_key
 msgid "Secret Key"
-msgstr "Clau secreta"
+msgstr ""
 
 #. module: google_recaptcha
 #: model:ir.model.fields,help:google_recaptcha.field_res_config_settings__recaptcha_min_score
@@ -78,55 +77,53 @@ msgid ""
 "Should be between 0.0 and 1.0.\n"
 "1.0 is very likely a good interaction, 0.0 is very likely a bot"
 msgstr ""
-"Hauria d'estar entre 0.0 i 1.0.\n"
-"1.0 és molt probable que sigui una bona interacció, 0.0 és molt probable que sigui un bot"
 
 #. module: google_recaptcha
 #: model:ir.model.fields,field_description:google_recaptcha.field_res_config_settings__recaptcha_public_key
 msgid "Site Key"
-msgstr "Clau del lloc"
+msgstr ""
 
 #. module: google_recaptcha
 #. openerp-web
 #: code:addons/google_recaptcha/static/src/xml/recaptcha.xml:0
 #, python-format
 msgid "Terms of Service"
-msgstr "Condicions del servei"
+msgstr ""
 
 #. module: google_recaptcha
 #: code:addons/google_recaptcha/models/ir_http.py:0
 #, python-format
 msgid "The reCaptcha private key is invalid."
-msgstr "La clau privada de reCaptcha no és vàlida."
+msgstr ""
 
 #. module: google_recaptcha
 #: code:addons/google_recaptcha/models/ir_http.py:0
 #, python-format
 msgid "The reCaptcha token is invalid."
-msgstr "El token de reCaptcha no és vàlid."
+msgstr ""
 
 #. module: google_recaptcha
 #. openerp-web
 #: code:addons/google_recaptcha/static/src/js/recaptcha.js:0
 #, python-format
 msgid "The recaptcha site key is invalid."
-msgstr "La clau del lloc de recaptcha no és vàlida."
+msgstr ""
 
 #. module: google_recaptcha
 #: code:addons/google_recaptcha/models/ir_http.py:0
 #, python-format
 msgid "The request is invalid or malformed."
-msgstr "La sol·licitud no és vàlida o està mal formada."
+msgstr ""
 
 #. module: google_recaptcha
 #: code:addons/google_recaptcha/models/ir_http.py:0
 #, python-format
 msgid "Your request has timed out, please retry."
-msgstr "La seva sol·licitud s'ha esgotat, si us plau torneu a intentar-ho."
+msgstr ""
 
 #. module: google_recaptcha
 #. openerp-web
 #: code:addons/google_recaptcha/static/src/xml/recaptcha.xml:0
 #, python-format
 msgid "apply."
-msgstr "aplica."
+msgstr ""

@@ -14,4 +14,3 @@ from . import shell
 from . import start
 from . import populate
 from . import tsconfig
-from . import genproxytoken

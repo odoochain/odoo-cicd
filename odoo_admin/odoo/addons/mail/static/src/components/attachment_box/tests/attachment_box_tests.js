@@ -102,9 +102,9 @@ QUnit.test('base non-empty rendering', async function (assert) {
         }
     );
     await this.start({
-        async mockRPC(route) {
-            if (route.includes('/mail/thread/data')) {
-                assert.step('/mail/thread/data');
+        async mockRPC(route, args) {
+            if (route.includes('ir.attachment/search_read')) {
+                assert.step('ir.attachment/search_read');
             }
             return this._super(...arguments);
         },
@@ -115,7 +115,7 @@ QUnit.test('base non-empty rendering', async function (assert) {
     });
     await this.createAttachmentBoxComponent(thread);
     assert.verifySteps(
-        ['/mail/thread/data'],
+        ['ir.attachment/search_read'],
         "should have fetched attachments"
     );
     assert.strictEqual(

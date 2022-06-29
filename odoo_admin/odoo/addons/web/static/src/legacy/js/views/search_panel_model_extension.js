@@ -157,15 +157,12 @@
          * @override
          */
         importState(importedState) {
-            this.initialStateImport = false;
+            this.initialStateImport = Boolean(importedState && !this.state.sections);
             super.importState(...arguments);
             if (importedState) {
                 this.state.sections = new Map(this.state.sections);
                 for (const section of this.state.sections.values()) {
                     section.values = new Map(section.values);
-                    if ([...section.values.keys()].some(e => e !== false)) {
-                        this.initialStateImport = true;
-                    }
                     if (section.groups) {
                         section.groups = new Map(section.groups);
                         for (const group of section.groups.values()) {

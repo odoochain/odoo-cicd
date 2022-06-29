@@ -41,15 +41,18 @@ QUnit.module(
                     '<field name="slowField" options=\'{"lazy": true}\'/>' +
                     "</tree>",
                 mockRPC: async function (route, args) {
-                    if (route === "/web/dataset/call_kw/person/search_read") {
+                    if (route === "/web/dataset/call_kw/person/read") {
+                        const record_ids = args.args[0];
                         const fields = args.args[1];
                         const recs = [];
                         for (const d of this.data.person.records) {
-                            d["slowField"] = `${d.name} ${d.id}`;
-                            recs.push(d);
+                            if (record_ids.includes(d.id)) {
+                                d["slowField"] = `${d.name} ${d.id}`;
+                                recs.push(d);
+                            }
                         }
                         // Don't wait if it read only one record
-                        if (fields.includes("slowField")) {
+                        if (fields.includes("slowField") && record_ids.length > 1) {
                             await promiseRead;
                         }
                         return Promise.resolve(recs);
@@ -98,12 +101,8 @@ QUnit.module(
                     '<field name="slowField" options=\'{"lazy": true}\'/>' +
                     "</tree>",
                 mockRPC: async function (route, args) {
-                    if (route === "/web/dataset/call_kw/person/search_read" ||
-                        route === "/web/dataset/call_kw/person/read") {
-                        var record_ids = args.args[0];
-                        if (route === "/web/dataset/call_kw/person/search_read"){
-                            record_ids = [1, 2]
-                        } 
+                    if (route === "/web/dataset/call_kw/person/read") {
+                        const record_ids = args.args[0];
                         const fields = args.args[1];
                         const recs = [];
                         for (const d of this.data.person.records) {

@@ -39,45 +39,14 @@ const ProjectListController = ListController.extend({
         return this._super(...arguments);
     },
 
-    _countRecordsPerReccurence(recurrenceIds, resIds) {
-        return this._rpc({
-            model: 'project.task',
-            method: 'read_group',
-            args: [
-                [['recurrence_id', 'in', recurrenceIds], ['id', 'not in', resIds]],
-                ['recurrence_id'],
-                ['recurrence_id'],
-            ],
-        });
-    },
-
-    async _stopRecurrence(recurringResIds, resIds, mode) {
-        const recurrenceIdsSet = new Set();
-        for (const record of this.getSelectedRecords()) {
-            const recurrenceId = record.data.recurrence_id;
-            if (recurrenceId) {
-                recurrenceIdsSet.add(recurrenceId);
-            }
-        }
-        const recurrenceIds = Array.from(recurrenceIdsSet);
-        // list recurrences that have tasks left after deleting/archiving
-        let countsLeft = await this._countRecordsPerReccurence(recurrenceIds, recurringResIds);
-        countsLeft = countsLeft.map(rec => rec.recurrence_id[0]);
-        // so we check that no recurrence is absent, as it would mean no task is left
-        const allowContinue = recurrenceIds.every(rec => countsLeft.includes(rec));
-
+    _stopRecurrence(recurringResIds, resIds, mode) {
         let warning;
         if (resIds.length > 1) {
-            warning = allowContinue
-                    ? _t('It seems that some tasks are part of a recurrence.')
-                    : _t('It seems that some tasks are part of a recurrence. At least one of them must be kept as a model to create the next occurences.');
+            warning = _t('It seems that some tasks are part of a recurrence.');
         } else {
-            warning = allowContinue
-                    ? _t('It seems that this task is part of a recurrence.')
-                    : _t('It seems that this task is part of a recurrence. You must keep it as a model to create the next occurences.');
+            warning = _t('It seems that this task is part of a recurrence.');
         }
-
-        const dialog = new Dialog(this, {
+        return new Dialog(this, {
             buttons: [
                 {
                     classes: 'btn-primary',
@@ -98,21 +67,6 @@ const ProjectListController = ListController.extend({
                     text: _t('Stop Recurrence'),
                 },
                 {
-                    close: true,
-                    text: _t('Discard'),
-                }
-            ],
-            size: 'medium',
-            title: _t('Confirmation'),
-            $content: $('<main/>', {
-                role: 'alert',
-                text: warning,
-            }),
-        });
-
-        if (allowContinue) {
-            Dialog.buttons.splice(1, 0,
-                {
                     click: () => {
                         this._rpc({
                             model: 'project.task',
@@ -125,13 +79,22 @@ const ProjectListController = ListController.extend({
                                 this._deleteRecords(resIds);
                             }
                         });
+                    },
+                    close: true,
+                    text: _t('Continue Recurrence'),
                 },
-                close: true,
-                text: _t('Continue Recurrence'),
-            });
-        }
-
-        dialog.open();
+                {
+                    close: true,
+                    text: _t('Discard'),
+                }
+            ],
+            size: 'medium',
+            title: _t('Confirmation'),
+            $content: $('<main/>', {
+                role: 'alert',
+                text: warning,
+            }),
+        }).open();
     }
 });
 

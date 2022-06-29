@@ -257,7 +257,7 @@ class DateTimeConverter(models.AbstractModel):
 
         if options.get('time_only'):
             format_func = babel.dates.format_time
-            return pycompat.to_text(format_func(value, format=pattern, tzinfo=tzinfo, locale=locale))
+            return pycompat.to_text(format_func(value, format=pattern, locale=locale))
         if options.get('date_only'):
             format_func = babel.dates.format_date
             return pycompat.to_text(format_func(value, format=pattern, locale=locale))
@@ -451,7 +451,7 @@ class MonetaryConverter(models.AbstractModel):
         else:
             post = '\N{NO-BREAK SPACE}{symbol}'.format(symbol=display_currency.symbol or '')
 
-        if options.get('label_price') and lang.decimal_point in formatted_amount:
+        if options.get('label_price'):
             sep = lang.decimal_point
             integer_part, decimal_part = formatted_amount.split(sep)
             integer_part += sep
@@ -567,10 +567,6 @@ class DurationConverter(models.AbstractModel):
         r = round((value * factor) / round_to) * round_to
 
         sections = []
-        sign = ''
-        if value < 0:
-            r = -r
-            sign = '-'
 
         if options.get('digital'):
             for unit, label, secs_per_unit in TIMEDELTA_UNITS:
@@ -579,9 +575,14 @@ class DurationConverter(models.AbstractModel):
                 v, r = divmod(r, secs_per_unit)
                 if not v and (secs_per_unit > factor or secs_per_unit < round_to):
                     continue
-                sections.append(u"%02.0f" % int(round(v)))
-            return sign + u':'.join(sections)
+                if len(sections):
+                    sections.append(':')
+                sections.append("%02.0f" % int(round(v)))
+            return ''.join(sections)
 
+        if value < 0:
+            r = -r
+            sections.append('-')
         for unit, label, secs_per_unit in TIMEDELTA_UNITS:
             v, r = divmod(r, secs_per_unit)
             if not v:
@@ -596,9 +597,7 @@ class DurationConverter(models.AbstractModel):
             if section:
                 sections.append(section)
 
-        if sign:
-            sections.insert(0, sign)
-        return u' '.join(sections)
+        return ' '.join(sections)
 
 
 class RelativeDatetimeConverter(models.AbstractModel):

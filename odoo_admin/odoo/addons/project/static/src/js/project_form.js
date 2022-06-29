@@ -17,8 +17,9 @@ const ProjectFormController = FormController.extend({
     _onDomUpdated() {
         const $editable = this.$el.find('.note-editable');
         if ($editable.length) {
-            const minHeight = window.innerHeight - $editable.offset().top - 42;
-            $editable.css('min-height', minHeight + 'px');
+            const resizerHeight = this.$el.find('.o_wysiwyg_resizer').outerHeight();
+            const newHeight = window.innerHeight - $editable.offset().top - resizerHeight - 1;
+            $editable.outerHeight(newHeight);
         }
     },
     on_detach_callback() {
@@ -54,24 +55,8 @@ const ProjectFormController = FormController.extend({
         this._stopRecurrence(record.res_id, 'delete');
     },
 
-    _countTasks(recurrence_id) {
-        return this._rpc({
-            model: 'project.task',
-            method: 'search_count',
-            args: [[["recurrence_id", "=", recurrence_id.res_id]]],
-        });
-    },
-
-    async _stopRecurrence(resId, mode) {
-        const record = this.model.get(this.handle);
-        const recurrence_id = record.data.recurrence_id;
-        const count = await this._countTasks(recurrence_id);
-        const allowContinue = count != 1;
-
-        const alert = allowContinue
-            ? _t('It seems that this task is part of a recurrence.')
-            : _t('It seems that this task is part of a recurrence. You must keep it as a model to create the next occurences.');
-        const dialog = new Dialog(this, {
+    _stopRecurrence(resId, mode) {
+        new Dialog(this, {
             buttons: [
                 {
                     classes: 'btn-primary',
@@ -94,21 +79,6 @@ const ProjectFormController = FormController.extend({
                     text: _t('Stop Recurrence'),
                 },
                 {
-                    close: true,
-                    text: _t('Discard'),
-                }
-            ],
-            size: 'medium',
-            title: _t('Confirmation'),
-            $content: $('<main/>', {
-                role: 'alert',
-                text: alert,
-            }),
-        });
-
-        if (allowContinue) {
-            dialog.buttons.splice(1, 0,
-                {
                     click: () => {
                         this._rpc({
                             model: 'project.task',
@@ -126,10 +96,19 @@ const ProjectFormController = FormController.extend({
                     },
                     close: true,
                     text: _t('Continue Recurrence'),
-                })
-        };
-
-        dialog.open();
+                },
+                {
+                    close: true,
+                    text: _t('Discard'),
+                }
+            ],
+            size: 'medium',
+            title: _t('Confirmation'),
+            $content: $('<main/>', {
+                role: 'alert',
+                text: _t('It seems that this task is part of a recurrence.'),
+            }),
+        }).open();
     }
 });
 

@@ -2,7 +2,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models, _
-from odoo.exceptions import AccessError
 
 
 class MailChannel(models.Model):
@@ -30,9 +29,9 @@ class MailChannel(models.Model):
         """
         channel_infos = super().channel_info()
         channel_infos_dict = dict((c['id'], c) for c in channel_infos)
-        for channel in self.filtered('livechat_visitor_id'):
+        for channel in self:
             visitor = channel.livechat_visitor_id
-            try:
+            if visitor:
                 channel_infos_dict[channel.id]['visitor'] = {
                     'display_name': visitor.display_name,
                     'country_code': visitor.country_id.code.lower() if visitor.country_id else False,
@@ -44,8 +43,6 @@ class MailChannel(models.Model):
                     'lang_name': visitor.lang_id.name,
                     'partner_id': visitor.partner_id.id,
                 }
-            except AccessError:
-                pass
         return list(channel_infos_dict.values())
 
     def _get_visitor_history(self, visitor):

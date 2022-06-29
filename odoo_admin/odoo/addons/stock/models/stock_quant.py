@@ -109,7 +109,7 @@ class StockQuant(models.Model):
     inventory_date = fields.Date(
         'Scheduled Date', compute='_compute_inventory_date', store=True, readonly=False,
         help="Next date the On Hand Quantity should be counted.")
-    inventory_quantity_set = fields.Boolean(store=True, compute='_compute_inventory_quantity_set', readonly=False, default=False)
+    inventory_quantity_set = fields.Boolean(store=True, compute='_compute_inventory_quantity_set', readonly=False)
     is_outdated = fields.Boolean('Quantity has been moved since last count', compute='_compute_is_outdated')
     user_id = fields.Many2one(
         'res.users', 'Assigned To', help="User assigned to do product count.")
@@ -188,8 +188,6 @@ class StockQuant(models.Model):
             package_id = self.env['stock.quant.package'].browse(vals.get('package_id'))
             owner_id = self.env['res.partner'].browse(vals.get('owner_id'))
             quant = self._gather(product, location, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=True)
-            if lot_id:
-                quant = quant.filtered(lambda q: q.lot_id)
 
             if quant:
                 quant = quant[0].sudo()
@@ -225,16 +223,12 @@ class StockQuant(models.Model):
                 fields.append('quantity')
             if 'reserved_quantity' not in fields:
                 fields.append('reserved_quantity')
-        if 'inventory_quantity_auto_apply' in fields and 'quantity' not in fields:
-            fields.append('quantity')
         result = super(StockQuant, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
         for group in result:
             if self.env.context.get('inventory_report_mode'):
                 group['inventory_quantity'] = False
             if 'available_quantity' in fields:
                 group['available_quantity'] = group['quantity'] - group['reserved_quantity']
-            if 'inventory_quantity_auto_apply' in fields:
-                group['inventory_quantity_auto_apply'] = group['quantity']
         return result
 
     def write(self, vals):
@@ -247,6 +241,11 @@ class StockQuant(models.Model):
             if any(field for field in vals.keys() if field not in allowed_fields):
                 raise UserError(_("Quant's editing is restricted, you can't do this operation."))
             self = self.sudo()
+            res = super(StockQuant, self).write(vals)
+            if res and self.env.context.get('inventory_report_mode'):
+                # update context to prevent recursive write call
+                self.with_context({'inventory_report_mode': False}).action_apply_inventory()
+            return res
         return super(StockQuant, self).write(vals)
 
     def action_view_stock_moves(self):
@@ -290,12 +289,10 @@ class StockQuant(models.Model):
             'domain': [('location_id.usage', 'in', ['internal', 'transit'])],
             'help': """
                 <p class="o_view_nocontent_smiling_face">
-                    {}
+                    Your stock is currently empty
                 </p><p>
-                    {} <span class="fa fa-long-arrow-right"/> {}</p>
-                """.format(_('Your stock is currently empty'),
-                           _('Press the CREATE button to define quantity for each product in your stock or import them from a spreadsheet throughout Favorites'),
-                           _('Import')),
+                    Press the CREATE button to define quantity for each product in your stock or import them from a spreadsheet throughout Favorites <span class="fa fa-long-arrow-right"/> Import</p>
+                """
         }
         return action
 
@@ -453,19 +450,19 @@ class StockQuant(models.Model):
         domain = [('product_id', '=', product_id.id)]
         if not strict:
             if lot_id:
-                domain = expression.AND([['|', ('lot_id', '=', lot_id.id), ('lot_id', '=', False)], domain])
+                domain = expression.AND([[('lot_id', '=', lot_id.id)], domain])
             if package_id:
                 domain = expression.AND([[('package_id', '=', package_id.id)], domain])
             if owner_id:
                 domain = expression.AND([[('owner_id', '=', owner_id.id)], domain])
             domain = expression.AND([[('location_id', 'child_of', location_id.id)], domain])
         else:
-            domain = expression.AND([['|', ('lot_id', '=', lot_id.id), ('lot_id', '=', False)] if lot_id else [('lot_id', '=', False)], domain])
+            domain = expression.AND([[('lot_id', '=', lot_id and lot_id.id or False)], domain])
             domain = expression.AND([[('package_id', '=', package_id and package_id.id or False)], domain])
             domain = expression.AND([[('owner_id', '=', owner_id and owner_id.id or False)], domain])
             domain = expression.AND([[('location_id', '=', location_id.id)], domain])
 
-        return self.search(domain, order=removal_strategy_order).sorted(lambda q: not q.lot_id)
+        return self.search(domain, order=removal_strategy_order)
 
     @api.model
     def _get_available_quantity(self, product_id, location_id, lot_id=None, package_id=None, owner_id=None, strict=False, allow_negative=False):
@@ -613,8 +610,6 @@ class StockQuant(models.Model):
         """
         self = self.sudo()
         quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=True)
-        if lot_id and quantity > 0:
-            quants = quants.filtered(lambda q: q.lot_id)
 
         if location_id.should_bypass_reservation():
             incoming_dates = []
@@ -633,7 +628,7 @@ class StockQuant(models.Model):
         quant = None
         if quants:
             # see _acquire_one_job for explanations
-            self._cr.execute("SELECT id FROM stock_quant WHERE id IN %s ORDER BY lot_id LIMIT 1 FOR NO KEY UPDATE SKIP LOCKED", [tuple(quants.ids)])
+            self._cr.execute("SELECT id FROM stock_quant WHERE id IN %s LIMIT 1 FOR NO KEY UPDATE SKIP LOCKED", [tuple(quants.ids)])
             stock_quant_result = self._cr.fetchone()
             if stock_quant_result:
                 quant = self.browse(stock_quant_result[0])
@@ -675,7 +670,7 @@ class StockQuant(models.Model):
 
         if float_compare(quantity, 0, precision_rounding=rounding) > 0:
             # if we want to reserve
-            available_quantity = sum(quants.filtered(lambda q: float_compare(q.quantity, 0, precision_rounding=rounding) > 0).mapped('quantity')) - sum(quants.mapped('reserved_quantity'))
+            available_quantity = self._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict)
             if float_compare(quantity, available_quantity, precision_rounding=rounding) > 0:
                 raise UserError(_('It is not possible to reserve more products of %s than you have in stock.', product_id.display_name))
         elif float_compare(quantity, 0, precision_rounding=rounding) < 0:
@@ -850,8 +845,7 @@ class StockQuant(models.Model):
         :param domain: List for the domain, empty by default.
         :param extend: If True, enables form, graph and pivot views. False by default.
         """
-        if not self.env['ir.config_parameter'].sudo().get_param('stock.skip_quant_tasks'):
-            self._quant_tasks()
+        self._quant_tasks()
         ctx = dict(self.env.context or {})
         ctx['inventory_report_mode'] = True
         ctx.pop('group_by', None)
@@ -864,10 +858,10 @@ class StockQuant(models.Model):
             'context': ctx,
             'domain': domain or [],
             'help': """
-                <p class="o_view_nocontent_empty_folder">{}</p>
-                <p>{}</p>
-                """.format(_('No Stock On Hand'),
-                           _('This analysis gives you an overview of the current stock level of your products.')),
+                <p class="o_view_nocontent_empty_folder">No Stock On Hand</p>
+                <p>This analysis gives you an overview of the current stock
+                level of your products.</p>
+                """
         }
 
         target_action = self.env.ref('stock.dashboard_open_quants', False)
@@ -969,7 +963,7 @@ class QuantPackage(models.Model):
     _order = 'name'
 
     name = fields.Char(
-        'Package Reference', copy=False, index=True, required=True,
+        'Package Reference', copy=False, index=True,
         default=lambda self: self.env['ir.sequence'].next_by_code('stock.quant.package') or _('Unknown Pack'))
     quant_ids = fields.One2many('stock.quant', 'package_id', 'Bulk Content', readonly=True,
         domain=['|', ('quantity', '!=', 0), ('reserved_quantity', '!=', 0)])

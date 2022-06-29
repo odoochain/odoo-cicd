@@ -65,7 +65,7 @@ const SESSION_STORAGE_ITEM_NAME = 'websiteConfigurator' + session.website_id;
 
 class SkipButton extends Component {
     async skip() {
-        await skipConfigurator(Component.env.services);
+        await skipConfigurator();
     }
 }
 
@@ -318,7 +318,7 @@ class PaletteSelectionScreen extends Component {
             img = await svgToPNG(img);
         }
         img = img.split(',')[1];
-        const [color1, color2] = await this.rpc({
+        const [color1, color2] = await rpc.query({
             model: 'base.document.layout',
             method: 'extract_image_primary_secondary_colors',
             args: [img],
@@ -356,7 +356,7 @@ class FeaturesSelectionScreen extends Component {
             industry_id: industryId,
             palette: this.state.selectedPalette
         };
-        const themes = await this.rpc({
+        const themes = await rpc.query({
             model: 'website',
             method: 'configurator_recommended_themes',
             kwargs: params,
@@ -522,10 +522,10 @@ const actions = {
     }
 };
 
-async function getInitialState(services) {
+async function getInitialState() {
 
     // Load values from python and iap
-    var results = await services.rpc({
+    var results = await rpc.query({
         model: 'website',
         method: 'configurator_init',
     });
@@ -559,7 +559,7 @@ async function getInitialState(services) {
                 industry_id: localState.selectedIndustry.id,
                 palette: localState.selectedPalette
             };
-            themes = await services.rpc({
+            themes = await rpc.query({
                 model: 'website',
                 method: 'configurator_recommended_themes',
                 kwargs: params,
@@ -599,8 +599,8 @@ async function getInitialState(services) {
     });
 }
 
-async function skipConfigurator(services) {
-    await services.rpc({
+async function skipConfigurator() {
+    await rpc.query({
         model: 'website',
         method: 'configurator_skip',
     });
@@ -639,7 +639,7 @@ async function applyConfigurator(self, themeName) {
             website_type: WEBSITE_TYPES[self.state.selectedType].name,
             logo_attachment_id: self.state.logoAttachmentId,
         };
-        const resp = await self.rpc({
+        const resp = await rpc.query({
             model: 'website',
             method: 'configurator_apply',
             kwargs: {...data},
@@ -653,8 +653,7 @@ async function makeEnvironment() {
     const env = {};
     const router = new Router(env, ROUTES);
     await router.start();
-    const services = Component.env.services;
-    const state = await getInitialState(services);
+    const state = await getInitialState();
     const store = new Store({state, actions, getters});
     store.on("update", null, () => {
         const newState = {
@@ -680,13 +679,14 @@ async function makeEnvironment() {
     env.loader = qweb.renderToString('website.ThemePreview.Loader', {
         showTips: true
     });
+    const services = Component.env.services;
     return Object.assign(env, {router, store, qweb, services});
 }
 
 async function setup() {
     const env = await makeEnvironment();
     if (!env.store.state.industries) {
-        await skipConfigurator(env.services);
+        await skipConfigurator();
     } else {
         mount(App, {target: document.body, env});
     }

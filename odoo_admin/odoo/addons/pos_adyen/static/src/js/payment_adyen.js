@@ -12,7 +12,7 @@ var PaymentAdyen = PaymentInterface.extend({
     send_payment_request: function (cid) {
         this._super.apply(this, arguments);
         this._reset_state();
-        return this._adyen_pay(cid);
+        return this._adyen_pay();
     },
     send_payment_cancel: function (order, cid) {
         this._super.apply(this, arguments);
@@ -22,15 +22,6 @@ var PaymentAdyen = PaymentInterface.extend({
     },
     close: function () {
         this._super.apply(this, arguments);
-    },
-
-    set_most_recent_service_id(id) {
-        this.most_recent_service_id = id;
-    },
-
-    pending_adyen_line() {
-      return this.pos.get_order().paymentlines.find(
-        paymentLine => paymentLine.payment_method.use_payment_terminal === 'adyen' && (!paymentLine.is_done()));
     },
 
     // private methods
@@ -43,7 +34,7 @@ var PaymentAdyen = PaymentInterface.extend({
 
     _handle_odoo_connection_failure: function (data) {
         // handle timeout
-        var line = this.pending_adyen_line();
+        var line = this.pos.get_order().selected_paymentline;
         if (line) {
             line.set_payment_status('retry');
         }
@@ -119,7 +110,7 @@ var PaymentAdyen = PaymentInterface.extend({
         return data;
     },
 
-    _adyen_pay: function (cid) {
+    _adyen_pay: function () {
         var self = this;
         var order = this.pos.get_order();
 
@@ -134,8 +125,7 @@ var PaymentAdyen = PaymentInterface.extend({
         }
 
         var data = this._adyen_pay_data();
-        var line = order.paymentlines.find(paymentLine => paymentLine.cid === cid);
-        line.setTerminalServiceId(this.most_recent_service_id);
+
         return this._call_adyen(data).then(function (data) {
             return self._adyen_handle_response(data);
         });
@@ -214,7 +204,7 @@ var PaymentAdyen = PaymentInterface.extend({
             var notification = status.latest_response;
             var last_diagnosis_service_id = status.last_received_diagnosis_id;
             var order = self.pos.get_order();
-            var line = self.pending_adyen_line();
+            var line = order.selected_paymentline;
 
 
             if (self.last_diagnosis_service_id != last_diagnosis_service_id) {
@@ -275,14 +265,12 @@ var PaymentAdyen = PaymentInterface.extend({
                 self._show_error(_t('The connection to your payment terminal failed. Please check if it is still connected to the internet.'));
                 self._adyen_cancel();
                 resolve(false);
-            } else {
-                line.set_payment_status('waitingCard')
             }
         });
     },
 
     _adyen_handle_response: function (response) {
-        var line = this.pending_adyen_line();
+        var line = this.pos.get_order().selected_paymentline;
 
         if (response.error && response.error.status_code == 401) {
             this._show_error(_t('Authentication failed. Please check your Adyen credentials.'));
@@ -308,28 +296,25 @@ var PaymentAdyen = PaymentInterface.extend({
             return Promise.resolve();
         } else {
             line.set_payment_status('waitingCard');
-            return this.start_get_status_polling()
+
+            var self = this;
+            var res = new Promise(function (resolve, reject) {
+                // clear previous intervals just in case, otherwise
+                // it'll run forever
+                clearTimeout(self.polling);
+
+                self.polling = setInterval(function () {
+                    self._poll_for_response(resolve, reject);
+                }, 5500);
+            });
+
+            // make sure to stop polling when we're done
+            res.finally(function () {
+                self._reset_state();
+            });
+
+            return res;
         }
-    },
-
-    start_get_status_polling() {
-        var self = this;
-        var res = new Promise(function (resolve, reject) {
-            // clear previous intervals just in case, otherwise
-            // it'll run forever
-            clearTimeout(self.polling);
-            self._poll_for_response(resolve, reject);
-            self.polling = setInterval(function () {
-                self._poll_for_response(resolve, reject);
-            }, 5500);
-        });
-
-        // make sure to stop polling when we're done
-        res.finally(function () {
-            self._reset_state();
-        });
-
-        return res;
     },
 
     _show_error: function (msg, title) {

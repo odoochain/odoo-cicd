@@ -6,7 +6,6 @@ import {
     afterEach,
     afterNextRender,
     beforeEach,
-    isScrolledToBottom,
     nextAnimationFrame,
     start,
 } from '@mail/utils/test_utils';
@@ -620,9 +619,9 @@ QUnit.test('sidebar: public/private channel rendering', async function (assert) 
             }).localId
         }"]
     `);
-    assert.ok(
-        channel1.querySelectorAll(`:scope .o_ThreadIcon_channelPublic`).length,
-        "channel1 (public) should have globe icon"
+    assert.notOk(
+        channel1.querySelectorAll(`:scope .o_ThreadIcon`).length,
+        "channel1 (public) should not have any icon"
     );
     assert.strictEqual(
         channel2.querySelectorAll(`:scope .o_ThreadIcon_channelPrivate`).length,
@@ -1675,7 +1674,7 @@ QUnit.test('auto-scroll to bottom of thread', async function (assert) {
                     thread &&
                     thread.model === 'mail.channel' &&
                     thread.id === 20 &&
-                    isScrolledToBottom(messageList)
+                    scrollTop === messageList.scrollHeight - messageList.clientHeight
                 );
             },
         },
@@ -1688,8 +1687,9 @@ QUnit.test('auto-scroll to bottom of thread', async function (assert) {
         "should have 25 messages"
     );
     const messageList = document.querySelector(`.o_Discuss_thread .o_ThreadView_messageList`);
-    assert.ok(
-        isScrolledToBottom(messageList),
+    assert.strictEqual(
+        messageList.scrollTop,
+        messageList.scrollHeight - messageList.clientHeight,
         "should have scrolled to bottom of thread"
     );
 });
@@ -1721,7 +1721,7 @@ QUnit.test('load more messages from channel (auto-load on scroll)', async functi
                     thread &&
                     thread.model === 'mail.channel' &&
                     thread.id === 20 &&
-                    isScrolledToBottom(messageList)
+                    scrollTop === messageList.scrollHeight - messageList.clientHeight
                 );
             },
         },
@@ -1809,7 +1809,7 @@ QUnit.test('new messages separator [REQUIRE FOCUS]', async function (assert) {
                     thread &&
                     thread.model === 'mail.channel' &&
                     thread.id === 20 &&
-                    isScrolledToBottom(messageList)
+                    scrollTop === messageList.scrollHeight - messageList.clientHeight
                 );
             },
         },
@@ -1879,7 +1879,7 @@ QUnit.test('new messages separator [REQUIRE FOCUS]', async function (assert) {
                 thread &&
                 thread.model === 'mail.channel' &&
                 thread.id === 20 &&
-                isScrolledToBottom(messageList)
+                scrollTop === messageList.scrollHeight - messageList.clientHeight
             );
         },
     });
@@ -1949,8 +1949,9 @@ QUnit.test('restore thread scroll position', async function (assert) {
         .o_Discuss_thread
         .o_ThreadView_messageList
     `);
-    assert.ok(
-        isScrolledToBottom(initialMessageList),
+    assert.strictEqual(
+        initialMessageList.scrollTop,
+        initialMessageList.scrollHeight - initialMessageList.clientHeight,
         "should have scrolled to bottom of channel 11 initially"
     );
 
@@ -1993,7 +1994,7 @@ QUnit.test('restore thread scroll position', async function (assert) {
                 thread &&
                 thread.model === 'mail.channel' &&
                 thread.id === 12 &&
-                isScrolledToBottom(messageList)
+                scrollTop === messageList.scrollHeight - messageList.clientHeight
             );
         },
     });
@@ -2056,13 +2057,14 @@ QUnit.test('restore thread scroll position', async function (assert) {
                 thread &&
                 thread.model === 'mail.channel' &&
                 thread.id === 12 &&
-                isScrolledToBottom(messageList)
+                scrollTop === messageList.scrollHeight - messageList.clientHeight
             );
         },
     });
     const messageList = document.querySelector('.o_ThreadView_messageList');
-    assert.ok(
-        isScrolledToBottom(messageList),
+    assert.strictEqual(
+        messageList.scrollTop,
+        messageList.scrollHeight - messageList.clientHeight,
         "should have recovered scroll position of channel 12 (scroll to bottom)"
     );
 });
@@ -3596,7 +3598,7 @@ QUnit.test('all messages in "Inbox" in "History" after marked all as read', asyn
                     thread.model === 'mail.box' &&
                     thread.id === 'inbox' &&
                     orderedMessages.length === 30 &&
-                    isScrolledToBottom(messageList)
+                    scrollTop === messageList.scrollHeight - messageList.clientHeight
                 );
             },
         },
@@ -3629,7 +3631,7 @@ QUnit.test('all messages in "Inbox" in "History" after marked all as read', asyn
                 thread.model === 'mail.box' &&
                 thread.id === 'history' &&
                 orderedMessages.length === 30 &&
-                isScrolledToBottom(messageList)
+                scrollTop === messageList.scrollHeight - messageList.clientHeight
             );
         },
     });

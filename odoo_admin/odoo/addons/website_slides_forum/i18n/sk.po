@@ -4,10 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2022
-# Rastislav Brencic <rastislav.brencic@azet.sk>, 2022
-# Jan Prokop, 2022
-# Damian Brencic <brencicdamian12313@gmail.com>, 2022
-# Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022
 # 
 msgid ""
 msgstr ""
@@ -15,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:29+0000\n"
 "PO-Revision-Date: 2021-09-14 12:29+0000\n"
-"Last-Translator: Jaroslav Bosansky <jaro.bosansky@ekoenergo.sk>, 2022\n"
+"Last-Translator: Martin Trigaux, 2022\n"
 "Language-Team: Slovak (https://www.transifex.com/odoo/teams/41243/sk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,7 +23,7 @@ msgstr ""
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_2
 msgid "(The above section was adapted from Stackoverflow’s FAQ.)"
-msgstr "(Vyššie uvedená časť bola adaptovaná zo Stackoverflow-eho FAQ.)"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -52,8 +48,6 @@ msgid ""
 "<b>Answers should not comment other answers</b>. Instead add a comment on "
 "the other answers."
 msgstr ""
-"<b>Odpovede by nemali komentovať iné odpovede</b>. Namiesto toho pridajte "
-"komentár k tým iným odpovediam."
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -74,10 +68,6 @@ msgid ""
 "to include links to other questions or answers providing relevant additional"
 " information."
 msgstr ""
-"<b>Odpovede by nemali iba smerovať na ďalšie Otázky</b>. Namiesto toho "
-"pridajte komentár s otázkou \"Možný duplikát...\". Avšak, je v poriadku, ak "
-"sa pridajú odkazy na iné otázky alebo odpovede, ktoré poskytujú dôležité "
-"dodatočné informácie."
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -150,12 +140,12 @@ msgstr ""
 #. module: website_slides_forum
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_header
 msgid "<i class=\"fa fa-home\"/> Course"
-msgstr "<i class=\"fa fa-home\"/>Kurz "
+msgstr ""
 
 #. module: website_slides_forum
 #: model:forum.forum,name:website_slides_forum.forum_forum_demo_channel_0
 msgid "Basics of Gardening"
-msgstr "Základy záhradníctva"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_index
@@ -167,7 +157,7 @@ msgstr ""
 #: code:addons/website_slides_forum/static/src/xml/website_slides_forum_channel.xml:0
 #, python-format
 msgid "Communication"
-msgstr "Komunikácia"
+msgstr ""
 
 #. module: website_slides_forum
 #: model:ir.model,name:website_slides_forum.model_slide_channel
@@ -178,34 +168,34 @@ msgstr "Kurz "
 #. module: website_slides_forum
 #: model:ir.model.fields,field_description:website_slides_forum.field_slide_channel__forum_id
 msgid "Course Forum"
-msgstr "Fórum kurzu"
+msgstr ""
 
 #. module: website_slides_forum
 #: model:ir.model.fields,field_description:website_slides_forum.field_forum_forum__slide_channel_ids
 msgid "Courses"
-msgstr "Kurzy"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_index
 msgid "Courses Discussions"
-msgstr "Diskusné kurzy"
+msgstr ""
 
 #. module: website_slides_forum
 #. openerp-web
 #: code:addons/website_slides_forum/static/src/xml/website_slides_forum_channel.xml:0
 #, python-format
 msgid "Create a Forum"
-msgstr "Vytvorte fórum"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:ir.actions.act_window,help:website_slides_forum.forum_post_action_channel
 msgid "Create a new forum post"
-msgstr "Vytvorte nový príspevok na fóre"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_index
 msgid "Description"
-msgstr "Popis"
+msgstr ""
 
 #. module: website_slides_forum
 #: model:ir.model.fields,help:website_slides_forum.field_forum_forum__slide_channel_ids
@@ -232,12 +222,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_channel_inherit_view_form
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_header
 msgid "Forum"
-msgstr "Fórum"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_channel_inherit_view_form
 msgid "Forum Posts"
-msgstr "Príspevky fóra"
+msgstr ""
 
 #. module: website_slides_forum
 #: model:ir.model.fields,help:website_slides_forum.field_forum_forum__visibility
@@ -248,7 +238,7 @@ msgstr ""
 #. module: website_slides_forum
 #: model:ir.ui.menu,name:website_slides_forum.website_slides_menu_forum_forum
 msgid "Forums"
-msgstr "Fóra"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -260,7 +250,7 @@ msgstr ""
 #: model_terms:forum.forum,welcome_message:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,welcome_message:website_slides_forum.forum_forum_demo_channel_2
 msgid "Hide Intro"
-msgstr "Skryť úvod"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -283,7 +273,7 @@ msgstr ""
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_2
 msgid "More over:"
-msgstr "Viacej o:"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:ir.actions.act_window,help:website_slides_forum.forum_post_action_report
@@ -293,7 +283,7 @@ msgstr "Zatiaľ žiadne údaje!"
 #. module: website_slides_forum
 #: model:ir.model.fields,field_description:website_slides_forum.field_slide_channel__forum_total_posts
 msgid "Number of active forum posts"
-msgstr "Počet aktívnych príspevkov na fóre"
+msgstr ""
 
 #. module: website_slides_forum
 #: model:ir.model.constraint,message:website_slides_forum.constraint_slide_channel_forum_uniq
@@ -303,13 +293,13 @@ msgstr ""
 #. module: website_slides_forum
 #: model:ir.ui.menu,name:website_slides_forum.website_slides_menu_forum_post
 msgid "Posts"
-msgstr "Príspevky"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,welcome_message:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,welcome_message:website_slides_forum.forum_forum_demo_channel_2
 msgid "Register"
-msgstr "Registrovať"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_header
@@ -319,7 +309,7 @@ msgstr ""
 #. module: website_slides_forum
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.website_slides_forum_index
 msgid "See all Courses"
-msgstr "Zobraziť všetky kurzy"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -346,8 +336,6 @@ msgid ""
 "This community is for professional and enthusiast users, partners and "
 "programmers. You can ask questions about:"
 msgstr ""
-"Táto komunita je pre profesionálnych a nadšených používateľov, partnerov a "
-"programátorov. Môžete klásť otázky týkajúce sa:"
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,welcome_message:website_slides_forum.forum_forum_demo_channel_0
@@ -368,18 +356,18 @@ msgstr ""
 #. module: website_slides_forum
 #: model:forum.forum,name:website_slides_forum.forum_forum_demo_channel_2
 msgid "Trees, Wood and Gardens"
-msgstr "Stromy, drevo a záhrady"
+msgstr ""
 
 #. module: website_slides_forum
 #: model:ir.model.fields,field_description:website_slides_forum.field_forum_forum__visibility
 msgid "Visibility"
-msgstr "Viditeľnosť"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,welcome_message:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,welcome_message:website_slides_forum.forum_forum_demo_channel_2
 msgid "Welcome!"
-msgstr "Vitajte!"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -403,7 +391,7 @@ msgstr ""
 #. module: website_slides_forum
 #: model_terms:ir.ui.view,arch_db:website_slides_forum.forum_forum_view_form
 msgid "eLearning"
-msgstr "eLearning"
+msgstr ""
 
 #. module: website_slides_forum
 #: model:ir.actions.act_window,name:website_slides_forum.forum_post_action_channel
@@ -421,38 +409,37 @@ msgstr ""
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_2
 msgid "every answer is equally valid: “What’s your favorite ______?”"
-msgstr "každá odpoveď je rovnako platná \"Čo je tvoje obľúbené ______?”"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_2
 msgid "how to configure or customize Odoo to specific business needs,"
 msgstr ""
-"ako konfigurovať alebo prispôsobiť Odoo špecifickým obchodným potrebám,"
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_2
 msgid "how to develop modules for your own need,"
-msgstr "ako vyvinúťmodly pre vlastnú potrebu,"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_2
 msgid "how to install Odoo on a specific infrastructure,"
-msgstr "ako nainštalovať Odoo na špecifickej infraštruktúre,"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_2
 msgid "it is a rant disguised as a question: “______ sucks, am I right?”"
-msgstr "je chvastanie maskované ako otázka: “______ je nanič, nemám pravdu?”"
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_2
 msgid "specific questions about Odoo service offers, etc."
-msgstr "konkrétne otázky týkajúce sa ponuky služieb Odoo atď."
+msgstr ""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -461,8 +448,6 @@ msgid ""
 "there is no actual problem to be solved: “I’m curious if other people feel "
 "like I do.”"
 msgstr ""
-"nie je žiadny skutočný problém ktorý je potrebné riešiť: \"Som zvedavý, či "
-"sa ostatní ľudia cítia ako ja.\""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -471,15 +456,12 @@ msgid ""
 "we are being asked an open-ended, hypothetical question: “What if ______ "
 "happened?”"
 msgstr ""
-"sme vystavený  hypotetickú otázke s otvoreným koncom: \"Čo keby sa stalo "
-"______?\""
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_2
 msgid "what's the best way to use Odoo for a specific business need,"
 msgstr ""
-"čo je najlepší spôsob, ako využiť Odoo pre konkrétne obchodné potreby,"
 
 #. module: website_slides_forum
 #: model_terms:forum.forum,faq:website_slides_forum.forum_forum_demo_channel_0
@@ -488,5 +470,3 @@ msgid ""
 "your answer is provided along with the question, and you expect more "
 "answers: “I use ______ for ______, what do you use?”"
 msgstr ""
-"vaša odpoveď je poskytnutá spolu s otázkou, a vy očakávate viac odpovedí: "
-"\"Používam ______ pre ______, čo používate vy?\""

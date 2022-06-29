@@ -456,11 +456,6 @@ class AccountPaymentRegister(models.TransientModel):
                     "The register payment wizard should only be called on account.move or account.move.line records."
                 ))
 
-            if 'journal_id' in res and not self.env['account.journal'].browse(res['journal_id'])\
-                    .filtered_domain([('company_id', '=', lines.company_id.id), ('type', 'in', ('bank', 'cash'))]):
-                # default can be inherited from the list view, should be computed instead
-                del res['journal_id']
-
             # Keep lines having a residual amount to pay.
             available_lines = self.env['account.move.line']
             for line in lines:
@@ -565,10 +560,7 @@ class AccountPaymentRegister(models.TransientModel):
                 if payment.currency_id != lines.currency_id:
                     liquidity_lines, counterpart_lines, writeoff_lines = payment._seek_for_lines()
                     source_balance = abs(sum(lines.mapped('amount_residual')))
-                    if liquidity_lines[0].balance:
-                        payment_rate = liquidity_lines[0].amount_currency / liquidity_lines[0].balance
-                    else:
-                        payment_rate = 0.0
+                    payment_rate = liquidity_lines[0].amount_currency / liquidity_lines[0].balance
                     source_balance_converted = abs(source_balance) * payment_rate
 
                     # Translate the balance into the payment currency is order to be able to compare them.
@@ -590,11 +582,10 @@ class AccountPaymentRegister(models.TransientModel):
                     debit_lines = (liquidity_lines + counterpart_lines).filtered('debit')
                     credit_lines = (liquidity_lines + counterpart_lines).filtered('credit')
 
-                    if debit_lines and credit_lines:
-                        payment.move_id.write({'line_ids': [
-                            (1, debit_lines[0].id, {'debit': debit_lines[0].debit + delta_balance}),
-                            (1, credit_lines[0].id, {'credit': credit_lines[0].credit + delta_balance}),
-                        ]})
+                    payment.move_id.write({'line_ids': [
+                        (1, debit_lines[0].id, {'debit': debit_lines[0].debit + delta_balance}),
+                        (1, credit_lines[0].id, {'credit': credit_lines[0].credit + delta_balance}),
+                    ]})
         return payments
 
     def _post_payments(self, to_process, edit_mode=False):
@@ -622,11 +613,7 @@ class AccountPaymentRegister(models.TransientModel):
                                             to which a payment will be created (see '_get_batches').
         :param edit_mode:   Is the wizard in edition mode.
         """
-        domain = [
-            ('parent_state', '=', 'posted'),
-            ('account_internal_type', 'in', ('receivable', 'payable')),
-            ('reconciled', '=', False),
-        ]
+        domain = [('account_internal_type', 'in', ('receivable', 'payable')), ('reconciled', '=', False)]
         for vals in to_process:
             payment_lines = vals['payment'].line_ids.filtered_domain(domain)
             lines = vals['to_reconcile']

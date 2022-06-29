@@ -82,7 +82,9 @@
                                 </field>
                             </page>
                             <page name="description" string="Description">
-                                <field name="description" colspan="4" placeholder="Common tasks for a computer scientist is asking the right questions and answering questions. In this course, you'll study those topics with activities about mathematics, science and logic."/>
+                                <group>
+                                    <field name="description" colspan="4" placeholder="Common tasks for a computer scientist is asking the right questions and answering questions. In this course, you'll study those topics with activities about mathematics, science and logic."/>
+                                </group>
                             </page>
                             <page name="options" string="Options">
                                 <group>

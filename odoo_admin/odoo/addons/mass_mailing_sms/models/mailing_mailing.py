@@ -32,7 +32,7 @@ class Mailing(models.Model):
     # even when 'mass_mailing_sms' removed (see 'mailing_mailing_view_form_sms' for more details).                    
     sms_subject = fields.Char('Title', help='For an email, the subject your recipients will see in their inbox.\n'
                               'For an SMS, the internal title of the message.',
-                              related='subject', translate=False, readonly=False)
+                              related='subject', translate=True, readonly=False)
     # sms options
     body_plaintext = fields.Text('SMS Body', compute='_compute_body_plaintext', store=True, readonly=False)
     sms_template_id = fields.Many2one('sms.template', string='SMS Template', ondelete='set null')
@@ -112,7 +112,7 @@ class Mailing(models.Model):
         ])
         failed_sms.mapped('mailing_trace_ids').unlink()
         failed_sms.unlink()
-        self.action_put_in_queue()
+        self.write({'state': 'in_queue'})
 
     def action_test(self):
         if self.mailing_type == 'sms':
@@ -170,19 +170,16 @@ class Mailing(models.Model):
         if issubclass(type(target), self.pool['mail.thread.phone']):
             phone_fields = ['phone_sanitized']
         elif issubclass(type(target), self.pool['mail.thread']):
-            phone_fields = [
-                fname for fname in target._sms_get_number_fields()
-                if fname in target._fields and target._fields[fname].store
-            ]
+            phone_fields = target._sms_get_number_fields()
             partner_fields = target._sms_get_partner_fields()
         else:
             phone_fields = []
-            if 'mobile' in target._fields and target._fields['mobile'].store:
+            if 'mobile' in target._fields:
                 phone_fields.append('mobile')
-            if 'phone' in target._fields and target._fields['phone'].store:
+            if 'phone' in target._fields:
                 phone_fields.append('phone')
         partner_field = next(
-            (fname for fname in partner_fields if target._fields[fname].store and target._fields[fname].type == 'many2one'),
+            (fname for fname in partner_fields if target._fields[fname].type == 'many2one'),
             False
         )
         if not phone_fields and not partner_field:

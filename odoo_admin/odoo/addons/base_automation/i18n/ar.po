@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:20+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +27,6 @@ msgid ""
 "\"\n"
 "                (ID:"
 msgstr ""
-"\"\n"
-"                (المعرف:"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__help
@@ -108,7 +105,7 @@ msgstr "قاعدة الإجراء الأساسي: التحقق والتنفيذ"
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trigger__on_change
 msgid "Based on Form Modification"
-msgstr "بناء على تعديل النموذج "
+msgstr "حسب تعديل النموذج"
 
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trigger__on_time
@@ -123,7 +120,7 @@ msgstr "نطاق ما قبل التحديث"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__binding_model_id
 msgid "Binding Model"
-msgstr "نموذج الربط "
+msgstr "كائن الربط"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__binding_type
@@ -133,12 +130,12 @@ msgstr "نوع الربط"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__binding_view_types
 msgid "Binding View Types"
-msgstr "فرض طرق العرض "
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__child_ids
 msgid "Child Actions"
-msgstr "إجراءات فرعية "
+msgstr "إجراءات تابعة"
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__child_ids
@@ -146,8 +143,8 @@ msgid ""
 "Child server actions that will be executed. Note that the last return "
 "returned action value will be used as global return value."
 msgstr ""
-"إجراءات الخادم الفرعية التي سوف يتم تنفيذها. لاحظ أن القيمة المُعادة من "
-"إجراء الإعادة الأخير ستستخدم كقيمة معادة عامة. "
+"إجراءات السيرفر التابعة التي سيتم تنفيذها. لاحظ أن القيمة المُعادة من إجراء "
+"الإعادة الأخير ستستخدم كقيمة معادة عمومية."
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__create_uid
@@ -162,7 +159,7 @@ msgstr "أنشئ في"
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trg_date_range_type__day
 msgid "Days"
-msgstr "أيام "
+msgstr "الأيام"
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__trg_date_range
@@ -171,26 +168,26 @@ msgid ""
 "                                    You can put a negative number if you need a delay before the\n"
 "                                    trigger date, like sending a reminder 15 minutes before a meeting."
 msgstr ""
-"المهلة بعد تاريخ التشغيل\n"
+"المهلة بعد تاريخ التفعيل\n"
 "                                    يمكنك وضع قيمة سالبة إذا أردت أن تكون المهلة قبل\n"
-"                                    تاريخ التشغيل، كإرسال تذكير قبل 15 دقيقة من بداية اجتماع. "
+"                                    تاريخ التفعيل، مثل إرسال تذكير قبل 15 دقيقة من بداية اجتماع."
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__trg_date_range
 msgid "Delay after trigger date"
-msgstr "المهلة بعد تاريخ التشغيل "
+msgstr "المهلة بعد تاريخ التفعيل"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__trg_date_range_type
 msgid "Delay type"
-msgstr "نوع المهلة "
+msgstr "نوع المهلة"
 
 #. module: base_automation
 #. openerp-web
 #: code:addons/base_automation/static/src/xml/base_automation_error_dialog.xml:0
 #, python-format
 msgid "Disable Action"
-msgstr "تعطيل الإجراء "
+msgstr ""
 
 #. module: base_automation
 #. openerp-web
@@ -201,12 +198,12 @@ msgid ""
 "                but any data created after this could potentially be corrupted,\n"
 "                as you are effectively disabling a customization that may set\n"
 "                important and/or required fields."
-msgstr "المهلة بعد تاريخ التشغيل "
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__display_name
 msgid "Display Name"
-msgstr "اسم العرض "
+msgstr "الاسم المعروض"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_date_deadline_range
@@ -223,7 +220,7 @@ msgstr "نوع الاستحقاق"
 #: code:addons/base_automation/static/src/xml/base_automation_error_dialog.xml:0
 #, python-format
 msgid "Edit action"
-msgstr "تحرير الإجراء "
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__template_id
@@ -238,7 +235,7 @@ msgstr "معرف خارجي"
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__on_change_field_ids
 msgid "Fields that trigger the onchange."
-msgstr "الحقول التي تقوم بتشغيل onchange. "
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__groups_id
@@ -248,7 +245,7 @@ msgstr "المجموعات"
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trg_date_range_type__hour
 msgid "Hours"
-msgstr "ساعات "
+msgstr "الساعات"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__id
@@ -282,7 +279,7 @@ msgstr "آخر تعديل في"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__last_run
 msgid "Last Run"
-msgstr "آخر تشغيل "
+msgstr "اخر تشغيل"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__write_uid
@@ -297,27 +294,27 @@ msgstr "آخر تحديث في"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__least_delay_msg
 msgid "Least Delay Msg"
-msgstr "Least Delay Msg"
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__link_field_id
 msgid "Link Field"
-msgstr "حقل الرابط "
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trg_date_range_type__minutes
 msgid "Minutes"
-msgstr "دقائق "
+msgstr "الدقائق"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__model_id
 msgid "Model"
-msgstr "النموذج "
+msgstr "الكائن"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__model_name
 msgid "Model Name"
-msgstr "اسم النموذج "
+msgstr "اسم الكائن"
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__crud_model_id
@@ -325,13 +322,13 @@ msgid ""
 "Model for record creation / update. Set this field only to specify a "
 "different model than the base model."
 msgstr ""
-"النموذج المستخدم لإنشاء أو تحديث السجل. قم بضبط هذا الحقل فقط إذا كنت تريد "
-"نموذجاً مختلفاً عن النموذج الأساسي. "
+"الكائن المستخدم في إنشاء أو تحديث السجل. اختر قيمة لهذا الحقل فقط إذا كنت "
+"تريد كائنًا مختلفًا عن الكائن الأساسي."
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__model_id
 msgid "Model on which the server action runs."
-msgstr "النموذج الذي تجرى فيه إجراءات الخادم. "
+msgstr "الكائن الذي تجرى عليه إجراءات السيرفر."
 
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trg_date_range_type__month
@@ -341,7 +338,7 @@ msgstr "شهور"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_note
 msgid "Note"
-msgstr "ملاحظة "
+msgstr "الملاحظات"
 
 #. module: base_automation
 #: code:addons/base_automation/models/base_automation.py:0
@@ -349,13 +346,11 @@ msgstr "ملاحظة "
 msgid ""
 "Note that this action can be trigged up to %d minutes after its schedule."
 msgstr ""
-"يرجى ملاحظة أنه يمكن تشغيل هذا الإجراء بعد فترة تصل إلى %d دقيقة من وقت "
-"جدولته. "
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__on_change_field_ids
 msgid "On Change Fields Trigger"
-msgstr "التشغيل عند تغير قيمة الحقول "
+msgstr "تفعيل عند تغير قيمة الحقول"
 
 #. module: base_automation
 #: model:ir.model.fields.selection,name:base_automation.selection__base_automation__trigger__on_create
@@ -383,8 +378,8 @@ msgid ""
 "Optional help text for the users with a description of the target view, such"
 " as its usage and purpose."
 msgstr ""
-"نص مساعد اختياري للمستخدمين يشمل وصفًا للعرض المستهدف. مثال: طريقة "
-"الاستخدام، والغرض من الإنشاء. "
+"نص مساعد اختياري للمستخدمين يشمل وصفًا للعرض المرجو. مثلًا: طريقة الاستخدام،"
+" والهدف من الإنشاء."
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__link_field_id
@@ -392,8 +387,6 @@ msgid ""
 "Provide the field used to link the newly created record on the record used "
 "by the server action."
 msgstr ""
-"تقديم الحقل المستخدَم لربط السجل المُنشأ حديثاً في السجل المستخدَم من قِبَل "
-"إجراء الخادم. "
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__code
@@ -403,34 +396,35 @@ msgstr "كود بايثون"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_user_id
 msgid "Responsible"
-msgstr "المسؤول "
+msgstr "المسئول"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__sequence
 msgid "Sequence"
-msgstr "التسلسل "
+msgstr "المسلسل"
 
 #. module: base_automation
 #: model:ir.model,name:base_automation.model_ir_actions_server
 msgid "Server Action"
-msgstr "إجراء الخادم "
+msgstr "إجراء السيرفر"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__action_server_id
 msgid "Server Actions"
-msgstr "إجراءات الخادم "
+msgstr "إجراءات السيرفر"
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__binding_model_id
 msgid ""
 "Setting a value makes this action available in the sidebar for the given "
 "model."
-msgstr "عند تعيين قيمة سيكون هذا الإجراء متاحًا في الشريط الجانبي للنموذج. "
+msgstr ""
+"بتعيين قيمة سيكون هذا الإجراء متاحًا في الشريط الجانبي للنموذج المعطى."
 
 #. module: base_automation
 #: model_terms:ir.actions.act_window,help:base_automation.base_automation_act
 msgid "Setup a new automated automation"
-msgstr "ضبط عملية أتمتة آلية جديدة "
+msgstr "ضبط تشغيل آلي جديد"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__activity_summary
@@ -440,12 +434,12 @@ msgstr "الملخص"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__crud_model_id
 msgid "Target Model"
-msgstr "النموذج المستهدف "
+msgstr "الكائن المستهدف"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__crud_model_name
 msgid "Target Model Name"
-msgstr "اسم النموذج المستهدف "
+msgstr "اسم الطراز المستهدف"
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__activity_user_field_name
@@ -468,8 +462,6 @@ msgid ""
 "The action will be triggered if and only if one of these fields is "
 "updated.If empty, all fields are watched."
 msgstr ""
-"سوف يتم تشغيل الإجراء فقط إذا كانت إحدى تلك الحقول محدثة. إذا كانت فارغة، "
-"فستتم مراقبة كافة الحقول. "
 
 #. module: base_automation
 #. openerp-web
@@ -479,24 +471,22 @@ msgid ""
 "The error occurred during the execution of the automated action\n"
 "                \""
 msgstr ""
-"حدث الخطأ أثناء تنفيذ الإجراء المؤتمت\n"
-"                \""
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__trigger
 msgid "Trigger"
-msgstr "المشغّل "
+msgstr "المفعل"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__trg_date_id
 msgid "Trigger Date"
-msgstr "تاريخ التشغيل  "
+msgstr "تاريخ التفعيل"
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__trigger_field_ids
 #: model_terms:ir.ui.view,arch_db:base_automation.view_base_automation_form
 msgid "Trigger Fields"
-msgstr "تشغيل الحقول "
+msgstr ""
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__state
@@ -510,21 +500,13 @@ msgid ""
 "- 'Add Followers': add followers to a record (Discuss)\n"
 "- 'Create Next Activity': create an activity (Discuss)"
 msgstr ""
-"القيم التالية متاحة لنوع إجراء الخادم:\n"
-"- 'تنفيذ كود بايثون': سوف يتم تنفيذ كتلة كود بايثون\n"
-"- 'إنشاء': إنشاء سجل جديد بقيم جديدة\n"
-"- 'تحديث سجل': تحديث قيم سجل\n"
-"- 'تنفيذ عدة إجراءات': قم بتحديد إجراء سوف يقوم بتشغيل إجراءات خادم متعددة أخرى\n"
-"- 'إرسال بريد إلكتروني': إرسال بريد إلكتروني تلقائياً (المناقشة)\n"
-"- 'إضافة متابعين': إضافة متابعين إلى سجل (المناقشة)\n"
-"- 'إنشاء النشاط التالي': إنشاء نشاط (المناقشة) "
 
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__usage
 #: model:ir.model.fields,field_description:base_automation.field_ir_actions_server__usage
 #: model:ir.model.fields,field_description:base_automation.field_ir_cron__usage
 msgid "Usage"
-msgstr "الاستخدام "
+msgstr "استخدام"
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__activity_user_type
@@ -563,7 +545,7 @@ msgstr "اسم حقل المستخدم"
 #. module: base_automation
 #: model:ir.model.fields,field_description:base_automation.field_base_automation__fields_lines
 msgid "Value Mapping"
-msgstr "تعيين القيمة "
+msgstr "ربط القيمة"
 
 #. module: base_automation
 #: code:addons/base_automation/models/base_automation.py:0
@@ -587,8 +569,8 @@ msgid ""
 "When dealing with multiple actions, the execution order is based on the "
 "sequence. Low number means high priority."
 msgstr ""
-"عند التعامل مع عدة إجراءات، يعتمد ترتيب التنفيذ على تسلسلها. الرقم الأصغر "
-"يعني أولوية أعلى. "
+"عند التعامل مع عدة إجراءات، يعتمد ترتيب التنفيذ على تسلسلهم. الرقم الأصغر "
+"يعني أولوية أقل."
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__trg_date_id
@@ -602,7 +584,7 @@ msgstr ""
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__active
 msgid "When unchecked, the rule is hidden and will not be executed."
-msgstr "عند إلغاء التحديد، سوف يتم إخفاء هذه القاعدة ولن يتم تنفيذها. "
+msgstr "عند إلغاء تحديده، سيتم إخفاء هذه القاعدة ولن يتم تنفيذها."
 
 #. module: base_automation
 #: model:ir.model.fields,help:base_automation.field_base_automation__code
@@ -610,9 +592,8 @@ msgid ""
 "Write Python code that the action will execute. Some variables are available"
 " for use; help about python expression is given in the help tab."
 msgstr ""
-"اكتب كود بايثون سيتمكن الإجراء من تنفيذه. بعض المتغيرات متاحة للاستخدام؛ "
-"وستجد المساعدة فيما يتعلق بكيفية الكتابة بلغة بايثون في علامة تبويب "
-"المساعدة. "
+"اكتب كود بايثون الذي سينفذه الإجراء. بعض المتغيرات متاحة للاستخدام؛ وستجد "
+"مساعدة لكيفية الكتابة بلغة بايثون في تبويب مساعدة."
 
 #. module: base_automation
 #. openerp-web
@@ -620,14 +601,14 @@ msgstr ""
 #, python-format
 msgid ""
 "You can ask an administrator to disable or correct this automated action."
-msgstr "يمكنك أن تطلب من أحد المدراء تعطيل أو تصحيح هذا الإجراء المؤتمت. "
+msgstr ""
 
 #. module: base_automation
 #. openerp-web
 #: code:addons/base_automation/static/src/xml/base_automation_error_dialog.xml:0
 #, python-format
 msgid "You can disable this automated action or edit it to solve the issue."
-msgstr "بإمكانك تعطيل هذا الإجراء المؤتمت أو تحريره لحل المشكلة. "
+msgstr ""
 
 #. module: base_automation
 #: code:addons/base_automation/models/base_automation.py:0
@@ -636,5 +617,3 @@ msgid ""
 "You cannot send an email, add followers or create an activity for a deleted "
 "record.  It simply does not work."
 msgstr ""
-"لا يمكنك إرسال رسائل بريد إلكتروني أو إضافة متابعين أو إنشاء أي نشاط لسجل "
-"محذوف. إنه لا يعمل بكل بساطة. "

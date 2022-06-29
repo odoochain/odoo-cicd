@@ -4,7 +4,7 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Alina Lisnenko <alinasemeniuk1@gmail.com>, 2022
+# Alina Lisnenko <alinasemeniuk1@gmail.com>, 2021
 # 
 msgid ""
 msgstr ""
@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:29+0000\n"
 "PO-Revision-Date: 2021-09-14 12:28+0000\n"
-"Last-Translator: Alina Lisnenko <alinasemeniuk1@gmail.com>, 2022\n"
+"Last-Translator: Alina Lisnenko <alinasemeniuk1@gmail.com>, 2021\n"
 "Language-Team: Ukrainian (https://www.transifex.com/odoo/teams/41243/uk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -29,41 +29,36 @@ msgid ""
 "                        <br/>\n"
 "                        Regards."
 msgstr ""
-".\n"
-"                        <br/>\n"
-"                        Ми цінуємо вашу підтримку нашої організації.\n"
-"                        <br/>\n"
-"                        З найкращими побажаннями."
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "<b>Comment:</b>"
-msgstr "<b>Коментар:</b>"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "<b>Donation Date:</b>"
-msgstr "<b>Дата донату:</b>"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "<b>Donor Email:</b>"
-msgstr "<b>Email донора:</b>"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "<b>Donor Name:</b>"
-msgstr "<b>Ім'я донора:</b>"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "<b>Payment ID:</b>"
-msgstr "<b>ID платежу:</b>"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "<b>Payment Method:</b>"
-msgstr "<b>Метод оплати:</b>"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
@@ -77,18 +72,18 @@ msgstr ""
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
 msgid "<strong>Warning</strong> The currency is missing or incorrect."
-msgstr "<strong>Попередження</strong> Валюта відсутня або невірна."
+msgstr ""
 
 #. module: website_payment
 #: code:addons/website_payment/models/payment_transaction.py:0
 #, python-format
 msgid "A donation has been made on your website"
-msgstr "На вашому сайті було здійснено пожертвування"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
 msgid "A year of cultural awakening."
-msgstr "Рік культурного пробудження."
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
@@ -102,7 +97,7 @@ msgstr "Додайте опис тут"
 #: code:addons/website_payment/static/src/snippets/s_donation/options.js:0
 #, python-format
 msgid "Add new pre-filled option"
-msgstr "Додати новий попередньо заповнений параметр"
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
@@ -115,24 +110,24 @@ msgstr "Сума"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.payment_checkout
 msgid "Amount ("
-msgstr "Сума ("
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "Amount("
-msgstr "Сума("
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
 msgid "Caring for a baby for 1 month."
-msgstr "Догляд за дитиною протягом 1 місяця."
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
 #: code:addons/website_payment/static/src/snippets/s_donation/000.xml:0
 #, python-format
 msgid "Choose Your Amount"
-msgstr "Оберіть вашу суму"
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
@@ -147,14 +142,12 @@ msgid ""
 "Country\n"
 "                            <span class=\"s_website_form_mark\"> *</span>"
 msgstr ""
-"Країна\n"
-"                            <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_payment
 #: code:addons/website_payment/controllers/portal.py:0
 #, python-format
 msgid "Country is required."
-msgstr "Необхідна країна."
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.payment_checkout
@@ -169,7 +162,7 @@ msgstr "Країна..."
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
 #, python-format
 msgid "Custom Amount"
-msgstr "Кастомна сума"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
@@ -179,42 +172,42 @@ msgstr "Шановний"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
 msgid "Default Amount"
-msgstr "Сума за замовчуванням"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
 msgid "Display Options"
-msgstr "Відобразити параметри"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.payment_checkout
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
 msgid "Donate Now"
-msgstr "Донатьте зараз"
+msgstr ""
 
 #. module: website_payment
 #: model:mail.template,name:website_payment.mail_template_donation
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 #: model_terms:ir.ui.view,arch_db:website_payment.payment_checkout
 msgid "Donation"
-msgstr "Донати"
+msgstr ""
 
 #. module: website_payment
 #: code:addons/website_payment/controllers/portal.py:0
 #, python-format
 msgid "Donation amount must be at least %.2f."
-msgstr "Сума пожертвування має бути не менше %.2f."
+msgstr ""
 
 #. module: website_payment
 #: code:addons/website_payment/models/payment_transaction.py:0
 #, python-format
 msgid "Donation confirmation"
-msgstr "Підтвердження донату"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "Donation notification"
-msgstr "Сповіщення донату"
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
@@ -229,28 +222,26 @@ msgid ""
 "Email\n"
 "                            <span class=\"s_website_form_mark\"> *</span>"
 msgstr ""
-"Email\n"
-"                            <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_payment
 #. openerp-web
 #: code:addons/website_payment/static/src/js/website_payment_form.js:0
 #, python-format
 msgid "Email is invalid"
-msgstr "Email недійсний"
+msgstr ""
 
 #. module: website_payment
 #: code:addons/website_payment/controllers/portal.py:0
 #, python-format
 msgid "Email is required."
-msgstr "Необхідний Email."
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
 #: code:addons/website_payment/static/src/js/website_payment_form.js:0
 #, python-format
 msgid "Field '%s' is mandatory"
-msgstr "Поле '%s' є обов'язковим"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
@@ -260,23 +251,23 @@ msgstr "Надходження"
 #. module: website_payment
 #: model:ir.model.fields,field_description:website_payment.field_account_payment__is_donation
 msgid "Is Donation"
-msgstr "Донат"
+msgstr ""
 
 #. module: website_payment
 #: model:ir.model.fields,field_description:website_payment.field_payment_transaction__is_donation
 msgid "Is donation"
-msgstr "Донат"
+msgstr ""
 
 #. module: website_payment
 #: model:ir.model.fields,help:website_payment.field_account_payment__is_donation
 #: model:ir.model.fields,help:website_payment.field_payment_transaction__is_donation
 msgid "Is the payment a donation"
-msgstr "Чи є платіж донатом"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation
 msgid "Make a Donation"
-msgstr "Зробити донат"
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
@@ -291,14 +282,12 @@ msgid ""
 "Name\n"
 "                            <span class=\"s_website_form_mark\"> *</span>"
 msgstr ""
-"Ім'я\n"
-"                            <span class=\"s_website_form_mark\"> *</span>"
 
 #. module: website_payment
 #: code:addons/website_payment/controllers/portal.py:0
 #, python-format
 msgid "Name is required."
-msgstr "Ім'я обов'язкове."
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
@@ -308,12 +297,12 @@ msgstr "Немає"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
 msgid "One year in elementary school."
-msgstr "Один рік у початковій школі."
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
 msgid "One year in high school."
-msgstr "Один рік у старшій школі."
+msgstr ""
 
 #. module: website_payment
 #: model:ir.model,name:website_payment.model_payment_acquirer
@@ -323,7 +312,7 @@ msgstr "Платіжний еквайєр"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.payment_checkout
 msgid "Payment Details"
-msgstr "Деталі платежу"
+msgstr ""
 
 #. module: website_payment
 #: model:ir.model,name:website_payment.model_payment_transaction
@@ -334,7 +323,7 @@ msgstr "Платіжна операція"
 #: code:addons/website_payment/models/payment_transaction.py:0
 #, python-format
 msgid "Payment received from donation with following details:"
-msgstr "Оплата, отримана від пожертвування з наступними реквізитами:"
+msgstr ""
 
 #. module: website_payment
 #: model:ir.model,name:website_payment.model_account_payment
@@ -346,12 +335,12 @@ msgstr "Платежі"
 #: code:addons/website_payment/static/src/snippets/s_donation/000.js:0
 #, python-format
 msgid "Please select or enter an amount"
-msgstr "Оберіть або введіть суму"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
 msgid "Pre-filled Options"
-msgstr "Попередньо заповнені параметри"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
@@ -373,31 +362,31 @@ msgstr "Слайдер"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation
 msgid "Small or large, your contribution is essential."
-msgstr "Маленький чи великий, ваш внесок важливий."
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
 #: code:addons/website_payment/static/src/js/website_payment_form.js:0
 #, python-format
 msgid "Some information is missing to process your payment."
-msgstr "Для обробки вашого платежу відсутня деяка інформація."
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "Thank you for your donation of"
-msgstr "Дякуємо за ваш донат"
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
 #: code:addons/website_payment/static/src/snippets/s_donation/000.js:0
 #, python-format
 msgid "The minimum donation amount is %s%s%s"
-msgstr "Мінімальна сума донату складає %s%s%s"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_pay
 msgid "There is nothing to pay."
-msgstr "Немає нічого для оплати."
+msgstr ""
 
 #. module: website_payment
 #. openerp-web
@@ -411,7 +400,7 @@ msgstr "Помилка затвердження"
 #: code:addons/website_payment/static/src/js/website_payment_form.js:0
 #, python-format
 msgid "We could not obtain payment fees."
-msgstr "Ми не змогли отримати комісію за оплату."
+msgstr ""
 
 #. module: website_payment
 #: model:ir.model.fields,field_description:website_payment.field_payment_acquirer__website_id
@@ -421,34 +410,34 @@ msgstr "Веб-сайт"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.payment_checkout
 msgid "Write us a comment"
-msgstr "Напишіть нам коментар"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.payment_checkout
 msgid "Your comment"
-msgstr "Ваш коментар"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
 msgid "made on"
-msgstr "зроблено на"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
 msgid "⌙ Descriptions"
-msgstr "⌙ Опис"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
 msgid "⌙ Maximum"
-msgstr "⌙ Максимум"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
 msgid "⌙ Minimum"
-msgstr "⌙ Мінімум"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_options
 msgid "⌙ Step"
-msgstr "⌙ Крок"
+msgstr ""

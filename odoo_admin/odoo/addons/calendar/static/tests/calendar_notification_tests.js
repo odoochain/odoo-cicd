@@ -128,7 +128,7 @@ QUnit.module("Calendar Notification", (hooks) => {
                 start() {
                     return {
                         doAction(actionId) {
-                            assert.step(actionId.type);
+                            assert.step(actionId);
                             return Promise.resolve(true);
                         },
                         loadState(state, options) {
@@ -154,7 +154,7 @@ QUnit.module("Calendar Notification", (hooks) => {
             );
 
             await click(webClient.el.querySelectorAll(".o_notification_buttons .btn")[1]);
-            assert.verifySteps(["ir.actions.act_window"]);
+            assert.verifySteps(["calendar.action_calendar_event_notify"]);
             assert.containsNone(webClient.el, ".o_notification");
         }
     );

@@ -195,41 +195,29 @@ class MassMailCase(MailCase, MockLinkTracker):
             raise AssertionError('url %s not found in mailing %s for record %s' % (click_label, mailing, record))
 
     @classmethod
-    def _create_bounce_trace(cls, mailing, records, dt=None):
-        if dt is None:
-            dt = datetime.datetime.now() - datetime.timedelta(days=1)
-        return cls._create_traces(mailing, records, dt, trace_status='bounce')
-
-    @classmethod
-    def _create_sent_traces(cls, mailing, records, dt=None):
-        if dt is None:
-            dt = datetime.datetime.now() - datetime.timedelta(days=1)
-        return cls._create_traces(mailing, records, dt, trace_status='sent')
-
-    @classmethod
-    def _create_traces(cls, mailing, records, dt, **values):
-        if 'email_normalized' in records:
-            fname = 'email_normalized'
-        elif 'email_from' in records:
-            fname = 'email_from'
+    def _create_bounce_trace(cls, mailing, record, dt=None):
+        if 'email_normalized' in record:
+            trace_email = record.email_normalized
+        elif 'email_from' in record:
+            trace_email = record.email_from
         else:
-            fname = 'email'
+            trace_email = record.email
+        if dt is None:
+            dt = datetime.datetime.now() - datetime.timedelta(days=1)
         randomized = random.random()
         # Cursor.now() uses transaction's timestamp and not datetime lib -> freeze_time
         # is not sufficient
         with patch.object(Cursor, 'now', lambda *args, **kwargs: dt):
-            traces = cls.env['mailing.trace'].sudo().create([
-                dict({'mass_mailing_id': mailing.id,
-                      'model': record._name,
-                      'res_id': record.id,
-                      'trace_status': values.get('trace_status', 'bounce'),
-                      # TDE FIXME: improve this with a mail-enabled heuristics
-                      'email': record[fname],
-                      'message_id': '<%5f@gilbert.boitempomils>' % randomized,
-                     }, **values)
-                for record in records
-            ])
-        return traces
+            trace = cls.env['mailing.trace'].sudo().create({
+                'mass_mailing_id': mailing.id,
+                'model': record._name,
+                'res_id': record.id,
+                'trace_status': 'bounce',
+                # TDE FIXME: improve this with a mail-enabled heuristics
+                'email': trace_email,
+                'message_id': '<%5f@gilbert.boitempomils>' % randomized,
+            })
+        return trace
 
 
 class MassMailCommon(MailCommon, MassMailCase):

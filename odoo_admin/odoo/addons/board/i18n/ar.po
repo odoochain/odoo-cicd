@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:21+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,7 +24,7 @@ msgstr ""
 #: code:addons/board/static/src/add_to_board/add_to_board.js:0
 #, python-format
 msgid "\"%s\" added to dashboard"
-msgstr "تمت إضافة \"%s\" إلى لوحة البيانات "
+msgstr ""
 
 #. module: board
 #. openerp-web
@@ -36,7 +35,7 @@ msgid ""
 "                Dashboard\""
 msgstr ""
 "\"إضافة إلى\n"
-"                لوحة البيانات\" "
+"                لوحة المعلومات\""
 
 #. module: board
 #. openerp-web
@@ -50,7 +49,7 @@ msgstr "&nbsp;"
 #: code:addons/board/static/src/legacy/js/add_to_board_menu.js:0
 #, python-format
 msgid "'%s' added to dashboard"
-msgstr "تم إضافة '%s' إلى لوحة البيانات "
+msgstr "تم إضافة '%s' للوحة المعلومات"
 
 #. module: board
 #. openerp-web
@@ -66,7 +65,7 @@ msgstr "إضافة"
 #: code:addons/board/static/src/legacy/xml/board.xml:0
 #, python-format
 msgid "Add to my Dashboard"
-msgstr "إضافة إلى لوحة بياناتي "
+msgstr "إضافة إلى لوحة معلوماتي"
 
 #. module: board
 #. openerp-web
@@ -74,14 +73,14 @@ msgstr "إضافة إلى لوحة بياناتي "
 #: code:addons/board/static/src/legacy/xml/board.xml:0
 #, python-format
 msgid "Add to my dashboard"
-msgstr "إضافة إلى لوحة بياناتي "
+msgstr ""
 
 #. module: board
 #. openerp-web
 #: code:addons/board/static/src/legacy/js/board_view.js:0
 #, python-format
 msgid "Are you sure you want to remove this item?"
-msgstr "هل أنت متأكد من أنك ترغب في إزالة هذا العنصر؟ "
+msgstr "هل تريد إزالة هذا العنصر؟"
 
 #. module: board
 #. openerp-web
@@ -89,7 +88,7 @@ msgstr "هل أنت متأكد من أنك ترغب في إزالة هذا ال�
 #: model:ir.model,name:board.model_board_board
 #, python-format
 msgid "Board"
-msgstr "لوحة "
+msgstr "لوحة"
 
 #. module: board
 #. openerp-web
@@ -110,7 +109,7 @@ msgstr "تغيير المخطط..."
 #: code:addons/board/static/src/legacy/xml/board.xml:0
 #, python-format
 msgid "Choose dashboard layout"
-msgstr "اختيار مخطط لوحة البيانات "
+msgstr "اختيار مخطط لوحة المعلومات"
 
 #. module: board
 #. openerp-web
@@ -118,7 +117,7 @@ msgstr "اختيار مخطط لوحة البيانات "
 #: code:addons/board/static/src/legacy/js/add_to_board_menu.js:0
 #, python-format
 msgid "Could not add filter to dashboard"
-msgstr "تعذر إضافة عامل تصفية إلى لوحة البيانات "
+msgstr "لم يمكن إضافة الفلتر إلى لوحة المعلومات"
 
 #. module: board
 #. openerp-web
@@ -148,7 +147,7 @@ msgstr "مخطط"
 #: model_terms:ir.ui.view,arch_db:board.board_my_dash_view
 #, python-format
 msgid "My Dashboard"
-msgstr "لوحة بياناتي "
+msgstr "لوحة معلوماتي"
 
 #. module: board
 #. openerp-web
@@ -156,7 +155,7 @@ msgstr "لوحة بياناتي "
 #: code:addons/board/static/src/legacy/js/add_to_board_menu.js:0
 #, python-format
 msgid "Please refresh your browser for the changes to take effect."
-msgstr "الرجاء تحديث متصفحك حتى يتم تطبيق التغييرات. "
+msgstr "الرجاء تحديث متصفحك حتى تصبح التغييرات سارية المفعول."
 
 #. module: board
 #. openerp-web
@@ -166,8 +165,8 @@ msgid ""
 "To add your first report into this dashboard, go to any\n"
 "                menu, switch to list or graph view, and click"
 msgstr ""
-"لإضافة تقريرك الأول في لوحة البيانات هذه، اذهب إلى أي\n"
-"                قائمة، انتقل لطريقة العرض بالقائمة أو بالرسم البياني، واضغط "
+"لإضافة تقريرك الأول في لوحة المعلومات هذه، افتح أي\n"
+"                قائمة، انتقل لطريقة العرض بالقائمة أو بالرسم البياني، واضغط"
 
 #. module: board
 #. openerp-web
@@ -178,14 +177,14 @@ msgid ""
 "                dashboard using the search options."
 msgstr ""
 "يمكنك تصفية وتجميع البيانات قبل إدراجها في\n"
-"                لوحة بياناتك باستخدام خيارات البحث. "
+"                لوحة معلوماتك باستخدام خيارات البحث."
 
 #. module: board
 #. openerp-web
 #: code:addons/board/static/src/legacy/xml/board.xml:0
 #, python-format
 msgid "Your personal dashboard is empty"
-msgstr "لوحة بياناتك الخاصة فارغة "
+msgstr "لوحة معلوماتك فارغة"
 
 #. module: board
 #. openerp-web

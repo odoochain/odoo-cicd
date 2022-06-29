@@ -117,7 +117,6 @@ odoo.define('point_of_sale.InvoiceButton', function (require) {
         }
         async _onClick() {
             try {
-                this.el.style.pointerEvents = 'none';
                 await this._invoiceOrder();
             } catch (error) {
                 if (isConnectionError(error)) {
@@ -128,8 +127,6 @@ odoo.define('point_of_sale.InvoiceButton', function (require) {
                 } else {
                     throw error;
                 }
-            } finally {
-                this.el.style.pointerEvents = 'auto';
             }
         }
     }

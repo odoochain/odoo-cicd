@@ -1728,8 +1728,17 @@
                 return vnode.text;
             }
             const node = document.createElement(vnode.sel);
-            const result = patch(node, vnode);
-            return result.elm.outerHTML;
+            const elem = patch(node, vnode).elm;
+            function escapeTextNodes(node) {
+                if (node.nodeType === 3) {
+                    node.textContent = escape(node.textContent);
+                }
+                for (let n of node.childNodes) {
+                    escapeTextNodes(n);
+                }
+            }
+            escapeTextNodes(elem);
+            return elem.outerHTML;
         }
         /**
          * Force all widgets connected to this QWeb instance to rerender themselves.
@@ -5569,8 +5578,8 @@ See https://github.com/odoo/owl/blob/master/doc/reference/config.md#mode for mor
 
 
     __info__.version = '1.4.10';
-    __info__.date = '2022-04-27T09:54:49.146Z';
-    __info__.hash = 'c060490';
+    __info__.date = '2021-12-07T14:32:29.551Z';
+    __info__.hash = 'bc04f72';
     __info__.url = 'https://github.com/odoo/owl';
 
 

@@ -13,7 +13,7 @@ BoothRegistration.include({
     //--------------------------------------------------------------------------
 
     _onChangeBoothType(ev) {
-        this.categoryPrice = parseFloat($(ev.currentTarget).data('price'));
+        this.categoryPrice = parseFloat($(ev.currentTarget).data('price-reduce'));
         return this._super.apply(this, arguments);
     },
 

@@ -3,7 +3,6 @@
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-from odoo.osv.expression import AND
 from odoo.tools.float_utils import float_compare, float_is_zero, float_round
 
 class StockPickingBatch(models.Model):
@@ -76,10 +75,9 @@ class StockPickingBatch(models.Model):
                 domain_states.append('draft')
             domain = [
                 ('company_id', '=', batch.company_id.id),
+                ('immediate_transfer', '=', False),
                 ('state', 'in', domain_states),
             ]
-            if not batch.is_wave:
-                domain = AND([domain, [('immediate_transfer', '=', False)]])
             if batch.picking_type_id:
                 domain += [('picking_type_id', '=', batch.picking_type_id.id)]
             batch.allowed_picking_ids = self.env['stock.picking'].search(domain)
@@ -119,8 +117,7 @@ class StockPickingBatch(models.Model):
 
     @api.depends('picking_ids', 'picking_ids.scheduled_date')
     def _compute_scheduled_date(self):
-        for rec in self:
-            rec.scheduled_date = min(rec.picking_ids.filtered('scheduled_date').mapped('scheduled_date'), default=False)
+        self.scheduled_date = min(self.picking_ids.filtered('scheduled_date').mapped('scheduled_date'), default=False)
 
     @api.onchange('scheduled_date')
     def onchange_scheduled_date(self):
@@ -150,8 +147,6 @@ class StockPickingBatch(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
-        if not self.picking_ids and self.state == 'in_progress':
-            self.action_cancel()
         if vals.get('picking_type_id'):
             self._sanity_check()
         if vals.get('picking_ids'):

@@ -1,7 +1,5 @@
 /** @odoo-module **/
 
-// ensure component is registered beforehand.
-import '@mail/components/notification_alert/notification_alert';
 import { getMessagingComponent } from "@mail/utils/messaging_component";
 
 import { ComponentWrapper, WidgetAdapterMixin } from 'web.OwlCompatibility';

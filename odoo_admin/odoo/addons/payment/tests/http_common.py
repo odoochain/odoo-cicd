@@ -163,14 +163,13 @@ class PaymentHttpCommon(PaymentTestUtils, HttpCase):
     def portal_transaction(self, **route_kwargs):
         """/payment/transaction feedback
 
-        :return: The response to the json request
+        :returns: processing values for given route_kwargs
+        :rtype: dict
         """
         uri = '/payment/transaction'
         url = self._build_url(uri)
-        response = self._make_json_request(url, route_kwargs)
-        self.assertEqual(response.status_code, 200)  # Check the request went through.
 
-        return response
+        return self._make_json_request(url, route_kwargs)
 
     def get_processing_values(self, **route_kwargs):
         response = self.portal_transaction(**route_kwargs)

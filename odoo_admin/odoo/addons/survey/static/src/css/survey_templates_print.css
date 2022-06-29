@@ -14,7 +14,4 @@
     .js_question-wrapper {
         page-break-inside: avoid;
     }
-    html {
-        height: unset;
-    }
 }

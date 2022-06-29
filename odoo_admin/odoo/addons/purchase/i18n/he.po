@@ -14,15 +14,13 @@
 # Fishfur A Banter <fishfurbanter@gmail.com>, 2021
 # ExcaliberX <excaliberx@gmail.com>, 2021
 # Yihya Hugirat <hugirat@gmail.com>, 2021
-# hed shefer <hed@laylinetech.com>, 2021
+# hed shefetr <hed@laylinetech.com>, 2021
 # דודי מלכה <Dudimalka6@gmail.com>, 2021
 # ZVI BLONDER <ZVIBLONDER@gmail.com>, 2021
 # Ofir Blum <ofir.blum@gmail.com>, 2021
 # Lilach Gilliam <lilach@apprcase.com>, 2021
+# Lilach Gilliam <lilach.gilliam@gmail.com>, 2021
 # david danilov, 2021
-# Sagi Ahiel, 2022
-# Lilach Gilliam <lilach.gilliam@gmail.com>, 2022
-# Netta Waizer, 2022
 # 
 msgid ""
 msgstr ""
@@ -30,7 +28,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-11-16 13:18+0000\n"
 "PO-Revision-Date: 2021-09-14 12:25+0000\n"
-"Last-Translator: Netta Waizer, 2022\n"
+"Last-Translator: david danilov, 2021\n"
 "Language-Team: Hebrew (https://www.transifex.com/odoo/teams/41243/he/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -314,7 +312,7 @@ msgstr ""
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_form
 msgid "<span>Ask confirmation</span>"
-msgstr "<span>בקש אישור</span>"
+msgstr "בקש אישור"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -388,7 +386,7 @@ msgstr "<strong>כמות</strong>"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
 msgid "<strong>Receipt Date:</strong>"
-msgstr "<strong>תאריך קבלת משלוח</strong>"
+msgstr "תאריך קבלת משלוח"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -424,7 +422,7 @@ msgstr ""
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.report_purchaseorder_document
 msgid "<strong>Unit Price</strong>"
-msgstr "<strong>מחיר יחידה</strong>"
+msgstr "מחיר יחידה"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_order_portal_content
@@ -691,7 +689,7 @@ msgstr "עלות ממוצעת"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_report__avg_days_to_purchase
 msgid "Average Days to Purchase"
-msgstr "ימים ממוצעים לרכישה"
+msgstr ""
 
 #. module: purchase
 #. openerp-web
@@ -885,7 +883,7 @@ msgstr "תאריך אישור"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_search
 msgid "Confirmation Date Last Year"
-msgstr "תאריך אישור בשנה שעברה"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_lock__lock
@@ -1095,7 +1093,7 @@ msgstr "טיוטת בקשה להצעת מחיר"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 msgid "Draft RFQs"
-msgstr "בקשות להצעת מחיר בטיוטה"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__dest_address_id
@@ -1158,7 +1156,7 @@ msgstr "פעילויות עתידיות"
 #. module: purchase
 #: model:ir.model.fields.selection,name:purchase.selection__res_company__po_double_validation__two_step
 msgid "Get 2 levels of approvals to confirm a purchase order"
-msgstr "קבל 2 רמות אישורים לאישור הזמנת רכש"
+msgstr "קבל שתי רמות אישורים לאישור הזמנת רכש"
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.res_config_settings_view_form_purchase
@@ -1343,7 +1341,7 @@ msgstr "פעילויות באיחור"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 msgid "Late RFQs"
-msgstr "בקשות להצעת מחיר בחריגה"
+msgstr ""
 
 #. module: purchase
 #. openerp-web
@@ -2575,12 +2573,12 @@ msgstr ""
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_report_view_tree
 msgid "Sum of Total"
-msgstr "סך סכומי הביניים"
+msgstr ""
 
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.purchase_report_view_tree
 msgid "Sum of Untaxed Total"
-msgstr "סכום כולל ללא מע\"מ"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_res_partner__property_purchase_currency_id
@@ -2601,7 +2599,7 @@ msgstr "מס"
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__tax_country_id
 msgid "Tax Country"
-msgstr "מס לפי ארץ"
+msgstr ""
 
 #. module: purchase
 #: model:ir.model.fields,field_description:purchase.field_purchase_order__tax_totals_json
@@ -2994,7 +2992,7 @@ msgstr "חשבוניות ממתינות"
 #. module: purchase
 #: model_terms:ir.ui.view,arch_db:purchase.view_purchase_order_filter
 msgid "Waiting RFQs"
-msgstr "בקשות להצעת מחיר בהמתנה"
+msgstr ""
 
 #. module: purchase
 #: code:addons/purchase/models/purchase.py:0

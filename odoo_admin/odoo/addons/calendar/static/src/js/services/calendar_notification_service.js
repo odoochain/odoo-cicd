@@ -61,12 +61,11 @@ export const calendarNotificationService = {
                             {
                                 name: env._t("Details"),
                                 onClick: async () => {
-                                    await action.doAction({
-                                        type: 'ir.actions.act_window',
-                                        res_model: 'calendar.event',
-                                        res_id: notif.event_id,
-                                        views: [[false, 'form']],
-                                    }
+                                    await action.doAction(
+                                        "calendar.action_calendar_event_notify",
+                                        {
+                                            resId: notif.event_id,
+                                        }
                                     );
                                     notificationRemove();
                                 },

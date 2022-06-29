@@ -84,6 +84,8 @@ class ImBus(models.Model):
 
     @api.model
     def _poll(self, channels, last=0, options=None):
+        if options is None:
+            options = {}
         # first poll return the notification in the 'buffer'
         if last == 0:
             timeout_ago = datetime.datetime.utcnow()-datetime.timedelta(seconds=TIMEOUT)
@@ -106,11 +108,10 @@ class ImBus(models.Model):
 #----------------------------------------------------------
 # Dispatcher
 #----------------------------------------------------------
-class ImDispatch:
+class ImDispatch(object):
     def __init__(self):
         self.channels = {}
         self.started = False
-        self.Event = None
 
     def poll(self, dbname, channels, last, options=None, timeout=None):
         channels = [channel_with_db(dbname, channel) for channel in channels]
@@ -125,7 +126,7 @@ class ImDispatch:
             current = threading.current_thread()
             current._daemonic = True
             # rename the thread to avoid tests waiting for a longpolling
-            current.name = f"openerp.longpolling.request.{current.ident}"
+            current.setName("openerp.longpolling.request.%s" % current.ident)
 
         registry = odoo.registry(dbname)
 
@@ -198,20 +199,22 @@ class ImDispatch:
         while True:
             try:
                 self.loop()
-            except Exception:
+            except Exception as e:
                 _logger.exception("Bus.loop error, sleep and retry")
                 time.sleep(TIMEOUT)
 
     def start(self):
         if odoo.evented:
             # gevent mode
-            import gevent.event  # pylint: disable=import-outside-toplevel
+            import gevent
             self.Event = gevent.event.Event
             gevent.spawn(self.run)
         else:
             # threaded mode
             self.Event = threading.Event
-            threading.Thread(name=f"{__name__}.Bus", target=self.run, daemon=True).start()
+            t = threading.Thread(name="%s.Bus" % __name__, target=self.run)
+            t.daemon = True
+            t.start()
         self.started = True
         return self
 

@@ -3,14 +3,7 @@
 # 	* mail_plugin
 # 
 # Translators:
-# Abdul Munif Hanafi <amunifhanafi@gmail.com>, 2022
-# Gradien Foundation <gradien.co@gmail.com>, 2022
-# Ikhsanul Wirsa <iwirsa02@outlook.co.id>, 2022
-# Andhitia Rama <andhitia.r@gmail.com>, 2022
-# Altela Eleviansyah Pramardhika <altela_pramardhika@yahoo.com>, 2022
-# Ryanto The <ry.the77@gmail.com>, 2022
-# Martin Trigaux, 2022
-# Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022
+# Martin Trigaux, 2021
 # 
 msgid ""
 msgstr ""
@@ -18,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:23+0000\n"
-"Last-Translator: Wahyu Setiawan <wahyusetiaaa@gmail.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Indonesian (https://www.transifex.com/odoo/teams/41243/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -46,7 +39,7 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Address"
-msgstr "Alamat"
+msgstr ""
 
 #. module: mail_plugin
 #: model_terms:ir.ui.view,arch_db:mail_plugin.app_auth
@@ -115,14 +108,14 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Close"
-msgstr "Tutup"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Company"
-msgstr "Perusahaan"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -145,7 +138,7 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Company Type"
-msgstr "Jenis Perusahaan"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -167,14 +160,14 @@ msgstr ""
 #: model:ir.model,name:mail_plugin.model_res_partner
 #, python-format
 msgid "Contact"
-msgstr "Kontak"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Contact Details"
-msgstr "Informasi  Kontak"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -234,7 +227,7 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Create"
-msgstr "Buat"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -253,12 +246,12 @@ msgstr ""
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__create_uid
 msgid "Created by"
-msgstr "Dibuat oleh"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__create_date
 msgid "Created on"
-msgstr "Dibuat pada"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -291,12 +284,12 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Description"
-msgstr "Deskripsi"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__display_name
 msgid "Display Name"
-msgstr "Nama Tampilan"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,help:mail_plugin.field_res_partner_iap__iap_search_domain
@@ -316,7 +309,7 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Employees"
-msgstr "Karyawan"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -352,7 +345,7 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "From:"
-msgstr "Dari:"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -364,7 +357,7 @@ msgstr ""
 #. module: mail_plugin
 #: model:ir.model,name:mail_plugin.model_ir_http
 msgid "HTTP Routing"
-msgstr "HTTP routing"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner__iap_enrich_info
@@ -395,7 +388,7 @@ msgstr ""
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -423,17 +416,17 @@ msgstr ""
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap____last_update
 msgid "Last Modified on"
-msgstr "Terakhir diubah pada"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__write_uid
 msgid "Last Updated by"
-msgstr "Terakhir diperbarui oleh"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui pada"
+msgstr ""
 
 #. module: mail_plugin
 #: model_terms:ir.ui.view,arch_db:mail_plugin.app_auth
@@ -476,7 +469,7 @@ msgstr "Log masuk"
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Logout"
-msgstr "Keluar"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -600,7 +593,7 @@ msgstr ""
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner_iap__partner_id
 msgid "Partner"
-msgstr "Rekanan"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model,name:mail_plugin.model_res_partner_iap
@@ -612,14 +605,14 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Phone"
-msgstr "Telepon"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Phones"
-msgstr "Telepon"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web
@@ -661,7 +654,7 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_gmail.xml:0
 #, python-format
 msgid "Search"
-msgstr "Pencarian"
+msgstr ""
 
 #. module: mail_plugin
 #: model:ir.model.fields,field_description:mail_plugin.field_res_partner__iap_search_domain
@@ -764,7 +757,7 @@ msgstr ""
 #: code:addons/mail_plugin/static/src/to_translate/translations_outlook.xml:0
 #, python-format
 msgid "Website"
-msgstr "Situs web"
+msgstr ""
 
 #. module: mail_plugin
 #. openerp-web

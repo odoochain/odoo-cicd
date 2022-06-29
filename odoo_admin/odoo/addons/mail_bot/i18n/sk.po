@@ -30,7 +30,7 @@ msgstr ""
 #. module: mail_bot
 #: model:ir.model.fields.selection,name:mail_bot.selection__res_users__odoobot_state__disabled
 msgid "Disabled"
-msgstr "Blokovaný"
+msgstr ""
 
 #. module: mail_bot
 #: model:ir.model,name:mail_bot.model_mail_channel
@@ -40,7 +40,7 @@ msgstr "Diskusný kanál"
 #. module: mail_bot
 #: model:ir.model,name:mail_bot.model_mail_thread
 msgid "Email Thread"
-msgstr "Emailové vlákno"
+msgstr ""
 
 #. module: mail_bot
 #: code:addons/mail_bot/models/mail_bot.py:0
@@ -53,7 +53,7 @@ msgstr ""
 #. module: mail_bot
 #: model:ir.model,name:mail_bot.model_ir_http
 msgid "HTTP Routing"
-msgstr "HTTP smerovanie"
+msgstr ""
 
 #. module: mail_bot
 #: code:addons/mail_bot/models/mail_channel.py:0
@@ -96,7 +96,7 @@ msgstr ""
 #. module: mail_bot
 #: model:ir.model.fields.selection,name:mail_bot.selection__res_users__odoobot_state__idle
 msgid "Idle"
-msgstr "Nečinný"
+msgstr ""
 
 #. module: mail_bot
 #: model:ir.model,name:mail_bot.model_mail_bot
@@ -114,7 +114,7 @@ msgstr ""
 #. module: mail_bot
 #: model:ir.model.fields.selection,name:mail_bot.selection__res_users__odoobot_state__not_initialized
 msgid "Not initialized"
-msgstr "Nie je inicializovaný"
+msgstr ""
 
 #. module: mail_bot
 #: code:addons/mail_bot/models/mail_bot.py:0
@@ -128,7 +128,7 @@ msgstr ""
 #. module: mail_bot
 #: model:ir.model.fields,field_description:mail_bot.field_res_users__odoobot_state
 msgid "OdooBot Status"
-msgstr "OdooBot stav"
+msgstr ""
 
 #. module: mail_bot
 #: model:ir.model.fields,field_description:mail_bot.field_res_users__odoobot_failed
@@ -229,28 +229,28 @@ msgstr ""
 #: code:addons/mail_bot/models/mail_bot.py:0
 #, python-format
 msgid "fuck"
-msgstr "trhni si"
+msgstr ""
 
 #. module: mail_bot
 #: code:addons/mail_bot/models/mail_bot.py:0
 #, python-format
 msgid "help"
-msgstr "pomoc"
+msgstr ""
 
 #. module: mail_bot
 #: code:addons/mail_bot/models/mail_bot.py:0
 #, python-format
 msgid "i love you"
-msgstr "ľúbim ťa"
+msgstr ""
 
 #. module: mail_bot
 #: code:addons/mail_bot/models/mail_bot.py:0
 #, python-format
 msgid "love"
-msgstr "láska"
+msgstr ""
 
 #. module: mail_bot
 #: code:addons/mail_bot/models/mail_bot.py:0
 #, python-format
 msgid "start the tour"
-msgstr "začať prehliadku"
+msgstr ""

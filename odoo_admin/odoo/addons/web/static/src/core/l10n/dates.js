@@ -5,7 +5,7 @@ import { _t } from "@web/core/l10n/translation";
 import { memoize } from "@web/core/utils/functions";
 import { sprintf } from "@web/core/utils/strings";
 
-const { DateTime, Settings } = luxon;
+const { DateTime } = luxon;
 
 const SERVER_DATE_FORMAT = "yyyy-MM-dd";
 const SERVER_TIME_FORMAT = "HH:mm:ss";
@@ -174,12 +174,6 @@ export function formatDate(value, options = {}) {
  *
  *  Default=false.
  *
- * @param {string} [options.numberingSystem]
- *  Provided numbering system used to parse the input value.
- *
- * Default=the default numbering system assigned to luxon
- * @see localization_service.js
- *
  * @returns {string}
  */
 export function formatDateTime(value, options = {}) {
@@ -187,10 +181,9 @@ export function formatDateTime(value, options = {}) {
         return "";
     }
     const format = options.format || localization.dateTimeFormat;
-    const numberingSystem = options.numberingSystem || Settings.defaultNumberingSystem;
     const zone = options.timezone ? "local" : "utc";
     value = value.setZone(zone, { keepLocaltime: options.timezone });
-    return value.toFormat(format, { numberingSystem });
+    return value.toFormat(format);
 }
 
 // -----------------------------------------------------------------------------
@@ -238,17 +231,6 @@ export function parseDate(value, options = {}) {
  *
  *  Default=false.
  *
- * @param {string} [options.locale]
- *  Provided locale used to parse the input value.
- *
- * Default=the session localization locale
- *
- * @param {string} [options.numberingSystem]
- *  Provided numbering system used to parse the input value.
- *
- * Default=the default numbering system assigned to luxon
- * @see localization_service.js
- *
  * @returns {DateTime | false} Luxon DateTime object
  */
 export function parseDateTime(value, options = {}) {
@@ -261,7 +243,6 @@ export function parseDateTime(value, options = {}) {
         setZone: true,
         zone: options.timezone ? "local" : "utc",
         locale: options.locale,
-        numberingSystem: options.numberingSystem || Settings.defaultNumberingSystem,
     };
 
     let result = constrain(parseSmartDateInput(value));
@@ -303,39 +284,12 @@ export function parseDateTime(value, options = {}) {
 }
 
 /**
- * Returns a date object parsed from the given serialized string.
- * @param {string} value
- * @returns {DateTime | false}
- */
-export const deserializeDate = (value) => {
-    return parseDate(value, {
-        format: SERVER_DATE_FORMAT,
-        numberingSystem: "latn",
-    });
-};
-
-/**
- * Returns a datetime object parsed from the given serialized string.
- * @param {string} value
- * @returns {DateTime | false}
- */
-export const deserializeDateTime = (value) => {
-    return parseDateTime(value, {
-        format: `${SERVER_DATE_FORMAT} ${SERVER_TIME_FORMAT}`,
-        numberingSystem: "latn",
-    });
-};
-
-/**
  * Returns a serialized string representing the given date.
  * @param {DateTime} value
  * @returns {string}
  */
 export const serializeDate = (value) => {
-    return formatDate(value, {
-        format: SERVER_DATE_FORMAT,
-        numberingSystem: "latn",
-    });
+    return formatDate(value, { format: SERVER_DATE_FORMAT });
 };
 
 /**
@@ -344,8 +298,5 @@ export const serializeDate = (value) => {
  * @returns {string}
  */
 export const serializeDateTime = (value) => {
-    return formatDateTime(value, {
-        format: `${SERVER_DATE_FORMAT} ${SERVER_TIME_FORMAT}`,
-        numberingSystem: "latn",
-    });
+    return formatDateTime(value, { format: `${SERVER_DATE_FORMAT} ${SERVER_TIME_FORMAT}` });
 };

@@ -8,7 +8,6 @@
 # Manel Fernandez Ramirez <manelfera@outlook.com>, 2021
 # Arnau Ros, 2021
 # jabelchi, 2021
-# marcescu, 2022
 # 
 msgid ""
 msgstr ""
@@ -16,7 +15,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:29+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
-"Last-Translator: marcescu, 2022\n"
+"Last-Translator: jabelchi, 2021\n"
 "Language-Team: Catalan (https://www.transifex.com/odoo/teams/41243/ca/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -29,14 +28,14 @@ msgstr ""
 #: code:addons/portal_rating/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "#{widget.options['force_submit_url'] || '/mail/chatter_post'}"
-msgstr "#{widget.options['force_submit_url'] || '/mail/chatter_post'}"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
 #: code:addons/portal_rating/static/src/js/portal_rating_composer.js:0
 #, python-format
 msgid "Add a review"
-msgstr "Afegeix una ressenya"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
@@ -70,12 +69,12 @@ msgstr "Comentari"
 #. module: portal_rating
 #: model:ir.model.fields,field_description:portal_rating.field_rating_rating__publisher_id
 msgid "Commented by"
-msgstr "Comentat per"
+msgstr ""
 
 #. module: portal_rating
 #: model:ir.model.fields,field_description:portal_rating.field_rating_rating__publisher_datetime
 msgid "Commented on"
-msgstr "Comentat el"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
@@ -109,48 +108,48 @@ msgstr "Enrutament HTTP"
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 #, python-format
 msgid "Half a star"
-msgstr "Mitja estrella"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
 #: code:addons/portal_rating/static/src/js/portal_composer.js:0
 #, python-format
 msgid "I don't like it"
-msgstr "No m'agrada"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
 #: code:addons/portal_rating/static/src/js/portal_composer.js:0
 #, python-format
 msgid "I hate it"
-msgstr "Ho odio"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
 #: code:addons/portal_rating/static/src/js/portal_composer.js:0
 #, python-format
 msgid "I like it"
-msgstr "M'agrada"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
 #: code:addons/portal_rating/static/src/js/portal_composer.js:0
 #, python-format
 msgid "I love it"
-msgstr "M'encanta"
+msgstr ""
 
 #. module: portal_rating
 #: code:addons/portal_rating/controllers/portal_rating.py:0
 #, python-format
 msgid "Invalid rating"
-msgstr "Valoració no vàlida"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
 #: code:addons/portal_rating/static/src/js/portal_composer.js:0
 #, python-format
 msgid "It's okay"
-msgstr "Està bé"
+msgstr ""
 
 #. module: portal_rating
 #: model:ir.model,name:portal_rating.model_mail_message
@@ -164,7 +163,7 @@ msgstr "Missatge"
 #: model_terms:ir.ui.view,arch_db:portal_rating.rating_stars_static_popup_composer
 #, python-format
 msgid "Modify your review"
-msgstr "Modifica la revisió"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
@@ -172,20 +171,20 @@ msgstr "Modifica la revisió"
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 #, python-format
 msgid "One star"
-msgstr "Una estrella"
+msgstr ""
 
 #. module: portal_rating
 #: code:addons/portal_rating/models/rating.py:0
 #, python-format
 msgid "Only the publisher of the website can change the rating comment"
-msgstr "Només l'editor del lloc web pot canviar el comentari de qualificació"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
 #: code:addons/portal_rating/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Post comment"
-msgstr "Comentari de la publicació"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
@@ -193,12 +192,12 @@ msgstr "Comentari de la publicació"
 #: code:addons/portal_rating/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Published on"
-msgstr "Publicat el"
+msgstr ""
 
 #. module: portal_rating
 #: model:ir.model.fields,field_description:portal_rating.field_rating_rating__publisher_comment
 msgid "Publisher comment"
-msgstr "Comentari de l'editor"
+msgstr ""
 
 #. module: portal_rating
 #: model:ir.model,name:portal_rating.model_rating_rating
@@ -211,14 +210,14 @@ msgstr "Valoració"
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 #, python-format
 msgid "Remove Selection"
-msgstr "Suprimeix la selecció"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
 #: code:addons/portal_rating/static/src/xml/portal_chatter.xml:0
 #, python-format
 msgid "Update comment"
-msgstr "Actualitza el comentari"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
@@ -226,14 +225,14 @@ msgstr "Actualitza el comentari"
 #: model_terms:ir.ui.view,arch_db:portal_rating.rating_stars_static_popup_composer
 #, python-format
 msgid "Write a review"
-msgstr "Escriu una ressenya"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
 #: code:addons/portal_rating/static/src/js/portal_chatter.js:0
 #, python-format
 msgid "Write your comment"
-msgstr "Escriu el teu comentari"
+msgstr ""
 
 #. module: portal_rating
 #. openerp-web
@@ -248,4 +247,4 @@ msgstr "avatar"
 #: code:addons/portal_rating/static/src/xml/portal_tools.xml:0
 #, python-format
 msgid "stars"
-msgstr "estrelles"
+msgstr ""

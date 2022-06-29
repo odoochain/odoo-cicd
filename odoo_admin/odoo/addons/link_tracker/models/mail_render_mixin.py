@@ -4,8 +4,7 @@
 import re
 
 import markupsafe
-from html import unescape
-from werkzeug import urls
+from werkzeug import urls, utils
 
 from odoo import api, models, tools
 
@@ -36,29 +35,24 @@ class MailRenderMixin(models.AbstractModel):
         """
         base_url = base_url or self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         short_schema = base_url + '/r/'
-        for match in set(re.findall(tools.HTML_TAG_URL_REGEX, html)):
+        for match in re.findall(tools.HTML_TAG_URL_REGEX, html):
+            href = markupsafe.Markup(match[0])
             long_url = match[1]
-            # Don't shorten already-shortened links
-            if long_url.startswith(short_schema):
-                continue
-            # Don't shorten urls present in blacklist (aka to skip list)
-            if blacklist and any(s in long_url for s in blacklist):
-                continue
             label = (match[3] or '').strip()
 
-            create_vals = dict(link_tracker_vals, url=unescape(long_url), label=unescape(label))
-            link = self.env['link.tracker'].search_or_create(create_vals)
-            if link.short_url:
-                # `str` manipulation required to support replacing "&" characters, common in urls
-                new_href = match[0].replace(long_url, link.short_url)
-                html = html.replace(markupsafe.Markup(match[0]), markupsafe.Markup(new_href))
+            if not blacklist or not [s for s in blacklist if s in long_url] and not long_url.startswith(short_schema):
+                create_vals = dict(link_tracker_vals, url=utils.unescape(long_url), label=utils.unescape(label))
+                link = self.env['link.tracker'].search_or_create(create_vals)
+                if link.short_url:
+                    new_href = href.replace(long_url, link.short_url)
+                    html = html.replace(href, new_href)
 
         return html
 
     @api.model
     def _shorten_links_text(self, content, link_tracker_vals, blacklist=None, base_url=None):
         """ Shorten links in a string content. Works like ``_shorten_links`` but
-        targeting string content, not html.
+        targetting string content, not html.
 
         :return: updated content
         """
@@ -67,7 +61,7 @@ class MailRenderMixin(models.AbstractModel):
         base_url = base_url or self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         shortened_schema = base_url + '/r/'
         unsubscribe_schema = base_url + '/sms/'
-        for original_url in set(re.findall(tools.TEXT_URL_REGEX, content)):
+        for original_url in re.findall(tools.TEXT_URL_REGEX, content):
             # don't shorten already-shortened links or links towards unsubscribe page
             if original_url.startswith(shortened_schema) or original_url.startswith(unsubscribe_schema):
                 continue
@@ -76,10 +70,9 @@ class MailRenderMixin(models.AbstractModel):
             if blacklist and any(item in parsed.path for item in blacklist):
                 continue
 
-            create_vals = dict(link_tracker_vals, url=unescape(original_url))
+            create_vals = dict(link_tracker_vals, url= utils.unescape(original_url))
             link = self.env['link.tracker'].search_or_create(create_vals)
             if link.short_url:
-                # Ensures we only replace the same link and not a subpart of a longer one, multiple times if applicable
-                content = re.sub(re.escape(original_url) + r'(?![\w@:%.+&~#=/-])', link.short_url, content)
+                content = content.replace(original_url, link.short_url, 1)
 
         return content

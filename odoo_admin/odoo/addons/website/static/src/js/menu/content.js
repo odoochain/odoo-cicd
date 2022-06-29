@@ -132,20 +132,8 @@ var PagePropertiesDialog = weWidgets.Dialog.extend({
             });
             dep_text = dep_text.join(', ');
             self.$('#dependencies_redirect').html(qweb.render('website.show_page_dependencies', { dependencies: dependencies, dep_text: dep_text }));
-            self.$('a.o_dependencies_redirect_link').on('click', () => {
-                self.$('.o_dependencies_redirect_list_popover').popover({
-                    html: true,
-                    title: _t('Dependencies'),
-                    boundary: 'viewport',
-                    placement: 'right',
-                    trigger: 'focus',
-                    content: () => {
-                        return qweb.render('website.get_tooltip_dependencies', {
-                            dependencies: dependencies,
-                        });
-                    },
-                    template: qweb.render('website.page_dependencies_popover'),
-                }).popover('toggle');
+            self.$('#dependencies_redirect [data-toggle="popover"]').popover({
+                container: 'body',
             });
         }));
 

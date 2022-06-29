@@ -20,7 +20,7 @@ class TestMailComposer(MailCommon):
         <!--[if mso]>
             <i style="letter-spacing: 25px; mso-font-width: -100%; mso-text-raise: 30pt;">&nbsp;</i>
         <![endif]-->
-        A link for you! <!-- my favorite example -->
+        A link for you!
         <!--[if mso]>
             <i style="letter-spacing: 25px; mso-font-width: -100%;">&nbsp;</i>
         <![endif]-->
@@ -47,9 +47,14 @@ class TestMailComposer(MailCommon):
 
         values = mail_compose_message.get_mail_values(self.partner_employee.ids)
 
-        self.assertIn(self.body_html,
+        self.assertIn("""<div>
+    <h1>Hello sir!</h1>
+    <p>Here! <a href="https://www.example.com">
+        A link for you!
+    </a> Make good use of it.</p>
+</div>""",
             values[self.partner_employee.id]['body_html'],
-            'We must preserve (mso) comments in email html')
+            'We must remove comments')
 
     @users('employee')
     def test_mail_mass_mode_compose_with_mso(self):
@@ -69,6 +74,11 @@ class TestMailComposer(MailCommon):
 
         values = composer.get_mail_values(self.partner_employee.ids)
 
-        self.assertIn(self.body_html,
+        self.assertIn("""<div>
+    <h1>Hello sir!</h1>
+    <p>Here! <a href="https://www.example.com">
+        A link for you!
+    </a> Make good use of it.</p>
+</div>""",
             values[self.partner_employee.id]['body_html'],
-            'We must preserve (mso) comments in email html')
+            'We must remove comments')

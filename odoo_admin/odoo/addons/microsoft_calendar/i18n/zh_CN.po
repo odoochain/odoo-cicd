@@ -5,7 +5,6 @@
 # Translators:
 # Martin Trigaux, 2021
 # 黎伟杰 <674416404@qq.com>, 2021
-# 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -13,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:24+0000\n"
-"Last-Translator: 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2022\n"
+"Last-Translator: 黎伟杰 <674416404@qq.com>, 2021\n"
 "Language-Team: Chinese (China) (https://www.transifex.com/odoo/teams/41243/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -43,14 +42,14 @@ msgstr "%(reminder_type)s-%(duration)s分钟"
 #: code:addons/microsoft_calendar/models/calendar.py:0
 #, python-format
 msgid "%s - At time of event"
-msgstr "%s - 活动发生时"
+msgstr ""
 
 #. module: microsoft_calendar
 #. openerp-web
 #: code:addons/microsoft_calendar/static/src/xml/base_calendar.xml:0
 #, python-format
 msgid "&nbsp;Outlook"
-msgstr "&nbsp;Outlook"
+msgstr ""
 
 #. module: microsoft_calendar
 #: code:addons/microsoft_calendar/models/calendar.py:0
@@ -72,7 +71,7 @@ msgstr "启用"
 msgid ""
 "An administrator needs to configure Outlook Synchronization before you can "
 "use it!"
-msgstr "在你使用Outlook Synchronization之前，管理员需要对其进行配置!"
+msgstr ""
 
 #. module: microsoft_calendar
 #: code:addons/microsoft_calendar/models/res_users.py:0
@@ -83,7 +82,6 @@ msgid ""
 "secret on the Microsoft Azure portal or try to stop and restart your "
 "calendar synchronisation."
 msgstr ""
-"在生成令牌时发生了一个错误。你的授权码可能是无效的或已经过期[%s]。你应该在微软Azure门户上检查你的客户ID和秘密，或者尝试停止并重新启动日历同步。"
 
 #. module: microsoft_calendar
 #. openerp-web
@@ -172,7 +170,7 @@ msgstr "‎从两者中删除‎"
 #. module: microsoft_calendar
 #: model:ir.model.fields.selection,name:microsoft_calendar.selection__microsoft_calendar_account_reset__delete_policy__delete_microsoft
 msgid "Delete from the current Microsoft Calendar account"
-msgstr "从当前的微软日历账户中删除"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_microsoft_calendar_account_reset__display_name
@@ -192,9 +190,6 @@ msgid ""
 "Either update the events/attendees or archive these events %s:\n"
 "%s"
 msgstr ""
-"为了在Odoo和Outlook日历之间实现正确的同步，所有与会者必须有一个电子邮件地址。然而，有些事件并不尊重这个条件。只要事件不正确，日历就不会被同步。\n"
-"要么更新事件/与会者，要么将这些事件存档%s。\n"
-"%s"
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_microsoft_calendar_account_reset__id
@@ -232,55 +227,55 @@ msgstr "‎保持原封不动‎"
 #: model:ir.actions.act_window,name:microsoft_calendar.microsoft_calendar_reset_account_action
 #: model:ir.model,name:microsoft_calendar.model_microsoft_calendar_account_reset
 msgid "Microsoft Calendar Account Reset"
-msgstr "微软日历账户重置"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_calendar_event__microsoft_id
 msgid "Microsoft Calendar Event Id"
-msgstr "微软日历活动标识"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_microsoft_calendar_sync__microsoft_id
 msgid "Microsoft Calendar Id"
-msgstr "微软日历标识"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_calendar_recurrence__microsoft_id
 msgid "Microsoft Calendar Recurrence Id"
-msgstr "微软日历重复id"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_res_config_settings__cal_microsoft_client_id
 msgid "Microsoft Client_id"
-msgstr "微软Client_id"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_res_config_settings__cal_microsoft_client_secret
 msgid "Microsoft Client_key"
-msgstr "微软Client_key"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_res_users__microsoft_calendar_sync_token
 msgid "Microsoft Next Sync Token"
-msgstr "微软下次同步令牌"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_calendar_event__microsoft_recurrence_master_id
 msgid "Microsoft Recurrence Master Id"
-msgstr "微软的重复主标识"
+msgstr ""
 
 #. module: microsoft_calendar
 #: code:addons/microsoft_calendar/models/calendar.py:0
 #, python-format
 msgid "Modified occurrence is crossing or overlapping adjacent occurrence."
-msgstr "修改后的出现是与相邻的出现交叉或重叠的。"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_calendar_event__need_sync_m
 #: model:ir.model.fields,field_description:microsoft_calendar.field_calendar_recurrence__need_sync_m
 #: model:ir.model.fields,field_description:microsoft_calendar.field_microsoft_calendar_sync__need_sync_m
 msgid "Need Sync M"
-msgstr "需要同步M"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model_terms:ir.ui.view,arch_db:microsoft_calendar.view_users_form
@@ -303,7 +298,7 @@ msgstr "通知"
 #: code:addons/microsoft_calendar/static/src/xml/base_calendar.xml:0
 #, python-format
 msgid "Outlook"
-msgstr "微软个人邮件"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model_terms:ir.ui.view,arch_db:microsoft_calendar.view_users_form
@@ -313,14 +308,14 @@ msgstr "Outlook日历"
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_res_users__microsoft_synchronization_stopped
 msgid "Outlook Synchronization stopped"
-msgstr "Outlook同步停止"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.actions.server,name:microsoft_calendar.ir_cron_sync_all_cals_ir_actions_server
 #: model:ir.cron,cron_name:microsoft_calendar.ir_cron_sync_all_cals
 #: model:ir.cron,name:microsoft_calendar.ir_cron_sync_all_cals
 msgid "Outlook: synchronization"
-msgstr "Outlook：同步"
+msgstr ""
 
 #. module: microsoft_calendar
 #. openerp-web
@@ -342,7 +337,7 @@ msgstr "‎重置帐户‎"
 #. module: microsoft_calendar
 #: model_terms:ir.ui.view,arch_db:microsoft_calendar.microsoft_calendar_reset_account_view_form
 msgid "Reset Outlook Calendar Account"
-msgstr "重置Outlook日历账户"
+msgstr ""
 
 #. module: microsoft_calendar
 #. openerp-web
@@ -354,7 +349,7 @@ msgstr "成功"
 #. module: microsoft_calendar
 #: model:ir.model,name:microsoft_calendar.model_microsoft_calendar_sync
 msgid "Synchronize a record with Microsoft Calendar"
-msgstr "与微软日历同步的记录"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields.selection,name:microsoft_calendar.selection__microsoft_calendar_account_reset__sync_policy__all
@@ -373,20 +368,20 @@ msgstr "‎仅同步新事件‎"
 msgid ""
 "The Outlook Synchronization needs to be configured before you can use it, do"
 " you want to do it now?"
-msgstr "在使用Outlook同步功能之前，需要对其进行配置，你想现在就做吗？"
+msgstr ""
 
 #. module: microsoft_calendar
 #: code:addons/microsoft_calendar/models/res_users.py:0
 #, python-format
 msgid "The account for the Outlook Calendar service is not configured."
-msgstr "Outlook日历服务的账户没有被配置。"
+msgstr ""
 
 #. module: microsoft_calendar
 #. openerp-web
 #: code:addons/microsoft_calendar/static/src/js/microsoft_calendar.js:0
 #, python-format
 msgid "The synchronization with Outlook calendar was successfully stopped."
-msgstr "Outlook同步停止"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,help:microsoft_calendar.field_microsoft_calendar_account_reset__delete_policy
@@ -406,7 +401,7 @@ msgstr "用户"
 #. module: microsoft_calendar
 #: model_terms:ir.ui.view,arch_db:microsoft_calendar.view_users_form
 msgid "User Token"
-msgstr "用户令牌"
+msgstr ""
 
 #. module: microsoft_calendar
 #: model:ir.model.fields,field_description:microsoft_calendar.field_microsoft_calendar_account_reset__delete_policy
@@ -425,7 +420,7 @@ msgstr "用户"
 msgid ""
 "You are about to stop the synchronization of your calendar with Outlook. Are"
 " you sure you want to continue?"
-msgstr "你即将停止你的日历与Outlook的同步。你确定你要继续吗？"
+msgstr ""
 
 #. module: microsoft_calendar
 #. openerp-web
@@ -433,4 +428,4 @@ msgstr "你即将停止你的日历与Outlook的同步。你确定你要继续�
 #, python-format
 msgid ""
 "You will be redirected to Outlook to authorize the access to your calendar."
-msgstr "你将被重新引导到Outlook，以授权访问你的日历。"
+msgstr ""

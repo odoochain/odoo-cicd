@@ -7,21 +7,21 @@
 # Ladislav Tomm <tomm@helemik.cz>, 2021
 # Damian Brencic <brencicdamian12313@gmail.com>, 2021
 # Rastislav Brencic <rastislav.brencic@azet.sk>, 2021
+# karolína schusterová <karolina.schusterova@vdp.sk>, 2021
+# Martin Trigaux, 2021
 # Chris <krystof.reklamy13@gmail.com>, 2021
 # Jaroslav Helemik Nemec <nemec@helemik.cz>, 2021
 # Jan Horzinka <jan.horzinka@centrum.cz>, 2021
 # Michal Veselý <michal@veselyberanek.net>, 2021
-# karolína schusterová <karolina.schusterova@vdp.sk>, 2022
-# trendspotter <jirka.p@volny.cz>, 2022
-# Martin Trigaux, 2022
+# trendspotter <jirka.p@volny.cz>, 2021
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-24 08:20+0000\n"
+"POT-Creation-Date: 2021-10-05 10:54+0000\n"
 "PO-Revision-Date: 2021-09-14 12:27+0000\n"
-"Last-Translator: Martin Trigaux, 2022\n"
+"Last-Translator: trendspotter <jirka.p@volny.cz>, 2021\n"
 "Language-Team: Czech (https://www.transifex.com/odoo/teams/41243/cs/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -238,8 +238,6 @@ msgid ""
 "<span class=\"text-nowrap\">$ <span "
 "class=\"oe_currency_value\">11,750.00</span></span>"
 msgstr ""
-"<span class=\"text-nowrap\">$ <span "
-"class=\"oe_currency_value\">11,750.00</span></span>"
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -258,7 +256,7 @@ msgstr "<span class=\"text-nowrap\">1,500.00</span>"
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid "<span class=\"text-nowrap\">2,350.00</span>"
-msgstr "<span class=\"text-nowrap\">2,350.00</span>"
+msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -287,7 +285,7 @@ msgstr ""
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
 msgid "<span>$ <span class=\"oe_currency_value\">19,250.00</span></span>"
-msgstr "<span>$ <span class=\"oe_currency_value\">19,250.00</span></span>"
+msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.report_invoice_wizard_preview
@@ -427,13 +425,6 @@ msgstr "Chyba přístupu"
 #, python-format
 msgid "Access to all Enterprise Apps"
 msgstr "Přístup ke všem podnikovým aplikacím"
-
-#. module: web
-#. openerp-web
-#: code:addons/web/static/src/legacy/xml/base.xml:0
-#, python-format
-msgid "Action"
-msgstr "Akce"
 
 #. module: web
 #. openerp-web
@@ -581,13 +572,6 @@ msgstr "Přidat značku"
 #, python-format
 msgid "Add to Favorites"
 msgstr "Přidat k oblíbeným"
-
-#. module: web
-#. openerp-web
-#: code:addons/web/static/src/legacy/xml/base.xml:0
-#, python-format
-msgid "Additional actions"
-msgstr ""
 
 #. module: web
 #. openerp-web
@@ -2104,7 +2088,7 @@ msgstr ""
 #. module: web
 #: model:ir.model.fields,help:web.field_base_document_layout__company_details
 msgid "Header text displayed at the top of all reports."
-msgstr "Text záhlaví zobrazený v horní části všech přehledů."
+msgstr ""
 
 #. module: web
 #. openerp-web
@@ -2398,8 +2382,6 @@ msgstr "Načíst více... ("
 
 #. module: web
 #. openerp-web
-#: code:addons/web/static/src/legacy/xml/base.xml:0
-#: code:addons/web/static/src/legacy/xml/base.xml:0
 #: code:addons/web/static/src/webclient/loading_indicator/loading_indicator.xml:0
 #, python-format
 msgid "Loading"
@@ -2666,8 +2648,8 @@ msgstr "Víceřádkový text"
 #. openerp-web
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.js:0
 #, python-format
-msgid "My Odoo.com account"
-msgstr "Můj účet Odoo.com"
+msgid "My Odoo.com.account"
+msgstr ""
 
 #. module: web
 #. openerp-web
@@ -2811,7 +2793,6 @@ msgstr ""
 #. module: web
 #. openerp-web
 #: code:addons/web/static/src/legacy/js/fields/field_utils.js:0
-#: code:addons/web/static/src/legacy/js/fields/relational_fields.js:0
 #, python-format
 msgid "No records"
 msgstr "Žádné záznamy"
@@ -2829,6 +2810,13 @@ msgstr "Nenalezeny žádné záznamy!"
 #, python-format
 msgid "No results found"
 msgstr ""
+
+#. module: web
+#. openerp-web
+#: code:addons/web/static/src/legacy/js/fields/relational_fields.js:0
+#, python-format
+msgid "No results to show..."
+msgstr "Nic nenalezeno..."
 
 #. module: web
 #: code:addons/web/controllers/main.py:0
@@ -3425,13 +3413,6 @@ msgstr "Tisk"
 
 #. module: web
 #. openerp-web
-#: code:addons/web/static/src/legacy/xml/report.xml:0
-#, python-format
-msgid "Printing options"
-msgstr ""
-
-#. module: web
-#. openerp-web
 #: code:addons/web/static/src/legacy/js/fields/basic_fields.js:0
 #, python-format
 msgid "Priority"
@@ -3578,14 +3559,6 @@ msgstr ""
 #, python-format
 msgid "Red"
 msgstr "Červená"
-
-#. module: web
-#. openerp-web
-#: code:addons/web/static/src/legacy/xml/base.xml:0
-#: code:addons/web/static/src/legacy/xml/base.xml:0
-#, python-format
-msgid "Refresh"
-msgstr "Obnovit"
 
 #. module: web
 #. openerp-web
@@ -4877,12 +4850,6 @@ msgstr "Ano"
 #, python-format
 msgid "Yesterday"
 msgstr "Včera"
-
-#. module: web
-#: code:addons/web/controllers/main.py:0
-#, python-format
-msgid "You are not allowed to upload an attachment here."
-msgstr ""
 
 #. module: web
 #. openerp-web

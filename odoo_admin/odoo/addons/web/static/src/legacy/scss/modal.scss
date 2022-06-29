@@ -8,9 +8,7 @@
         }
 
         .modal-header .modal-title {
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
+            word-break: break-word;
         }
 
         .modal-body {

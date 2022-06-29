@@ -4,7 +4,6 @@
 import json
 
 import requests
-import werkzeug.http
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessDenied, UserError
@@ -24,21 +23,9 @@ class ResUsers(models.Model):
         ('uniq_users_oauth_provider_oauth_uid', 'unique(oauth_provider_id, oauth_uid)', 'OAuth UID must be unique per provider'),
     ]
 
+    @api.model
     def _auth_oauth_rpc(self, endpoint, access_token):
-        if self.env['ir.config_parameter'].sudo().get_param('auth_oauth.authorization_header'):
-            response = requests.get(endpoint, headers={'Authorization': 'Bearer %s' % access_token}, timeout=10)
-        else:
-            response = requests.get(endpoint, params={'access_token': access_token}, timeout=10)
-
-        if response.ok: # nb: could be a successful failure
-            return response.json()
-
-        auth_challenge = werkzeug.http.parse_www_authenticate_header(
-            response.headers.get('WWW-Authenticate'))
-        if auth_challenge.type == 'bearer' and 'error' in auth_challenge:
-            return dict(auth_challenge)
-
-        return {'error': 'invalid_request'}
+        return requests.get(endpoint, params={'access_token': access_token}).json()
 
     @api.model
     def _auth_oauth_validate(self, provider, access_token):
@@ -50,21 +37,6 @@ class ResUsers(models.Model):
         if oauth_provider.data_endpoint:
             data = self._auth_oauth_rpc(oauth_provider.data_endpoint, access_token)
             validation.update(data)
-        # unify subject key, pop all possible and get most sensible. When this
-        # is reworked, BC should be dropped and only the `sub` key should be
-        # used (here, in _generate_signup_values, and in _auth_oauth_signin)
-        subject = next(filter(None, [
-            validation.pop(key, None)
-            for key in [
-                'sub', # standard
-                'id', # google v1 userinfo, facebook opengraph
-                'user_id', # google tokeninfo, odoo (tokeninfo)
-            ]
-        ]), None)
-        if not subject:
-            raise AccessDenied('Missing subject identity')
-        validation['user_id'] = subject
-
         return validation
 
     @api.model
@@ -122,6 +94,13 @@ class ResUsers(models.Model):
         #   continue with the process
         access_token = params.get('access_token')
         validation = self._auth_oauth_validate(provider, access_token)
+        # required check
+        if not validation.get('user_id'):
+            # Workaround: facebook does not send 'user_id' in Open Graph Api
+            if validation.get('id'):
+                validation['user_id'] = validation['id']
+            else:
+                raise AccessDenied()
 
         # retrieve and sign in user
         login = self._auth_oauth_signin(provider, validation, params)

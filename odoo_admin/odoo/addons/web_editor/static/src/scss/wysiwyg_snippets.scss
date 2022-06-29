@@ -176,17 +176,16 @@ body.editor_enable.editor_has_snippets {
 
 %we-generic-tab-button {
     @extend %we-generic-link;
-    display: inline-flex;
+    @include o-text-overflow(inline-flex);
     flex: 1 1 auto;
     justify-content: center;
-    min-width: 0;
     border: none;
     background-color: transparent;
     color: inherit;
     font-weight: normal;
 
     > span {
-        @include o-text-overflow(inline-block);
+        display: inline-block;
         $-r: $o-we-sidebar-tabs-size-ratio;
         padding: (0.6em * $-r) (0.4em * $-r) (0.5em * $-r);
     }
@@ -272,12 +271,10 @@ body.editor_enable.editor_has_snippets {
             border-radius: 0;
             padding: 0.375rem 0.75rem;
             font-size: $o-we-font-size;
+            font-family: $o-we-font-family;
             font-weight: 400;
             line-height: 1;
 
-            &:not(.fa) {
-                font-family: $o-we-font-family;
-            }
             &.btn-primary {
                 @include button-variant($o-brand-primary, $o-brand-primary);
             }
@@ -511,7 +508,8 @@ body.editor_enable.editor_has_snippets {
             .btn {
                 @extend %we-generic-button;
                 display: flex;
-                padding: ($o-we-sidebar-content-field-height * .12) ($o-we-sidebar-content-field-button-group-button-spacing - 2);
+                padding-top: $o-we-sidebar-content-field-height * .12;
+                padding-bottom: $o-we-sidebar-content-field-height * .12;
             }
 
             we-customizeblock-option {
@@ -550,7 +548,7 @@ body.editor_enable.editor_has_snippets {
                         position: absolute !important;
                         padding: 0;
 
-                        we-button:not(.fa) {
+                        we-button {
                             text-align: left;
                             font-family: Roboto, "Montserrat", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
                             font-size: 12px;
@@ -577,7 +575,6 @@ body.editor_enable.editor_has_snippets {
             }
 
             #colorInputButtonGroup {
-                position: static;
                 grid-area: colors;
 
                 .dropdown-toggle:after {
@@ -587,7 +584,7 @@ body.editor_enable.editor_has_snippets {
                 .colorpicker-group {
                     display: flex;
                     align-items: stretch;
-                    position: static;
+                    position: initial;
                 }
 
                 #oe-text-color {
@@ -669,17 +666,12 @@ body.editor_enable.editor_has_snippets {
             }
 
             .dropdown-menu.colorpicker-menu {
-                min-width: 0;
                 max-height: none;
-                left: $o-we-sidebar-content-indent;
-                right: $o-we-sidebar-content-padding-base;
+                left: auto;
+                right: 0;
                 border: $o-we-sidebar-content-field-dropdown-border-width solid $o-we-sidebar-content-field-dropdown-border-color;
                 border-radius: $o-we-item-border-radius;
                 padding: 0;
-            }
-
-            :not(.dropup) > .dropdown-menu.colorpicker-menu {
-                top: 2em; // TODO Ugly and not precise, conflict with row-gap of grid
             }
         }
 
@@ -1752,7 +1744,6 @@ body.editor_enable.editor_has_snippets {
 
     .o_we_colorpicker_switch_pane_btn {
         @extend %we-generic-tab-button;
-        flex: 0 1 auto;
     }
     .o_colorpicker_reset {
         @extend %we-generic-button;

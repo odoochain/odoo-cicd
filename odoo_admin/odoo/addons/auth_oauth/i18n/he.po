@@ -57,8 +57,13 @@ msgstr "מותר"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__auth_endpoint
-msgid "Authorization URL"
+msgid "Authentication URL"
 msgstr ""
+
+#. module: auth_oauth
+#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__body
+msgid "Body"
+msgstr "גוף"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__css_class
@@ -93,7 +98,7 @@ msgstr "נוצר ב-"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__data_endpoint
-msgid "Data Endpoint"
+msgid "Data URL"
 msgstr ""
 
 #. module: auth_oauth
@@ -132,6 +137,11 @@ msgid "Last Updated on"
 msgstr "עדכון אחרון ב"
 
 #. module: auth_oauth
+#: model:ir.model.fields,help:auth_oauth.field_auth_oauth_provider__body
+msgid "Link text in Login Dialog"
+msgstr ""
+
+#. module: auth_oauth
 #: model:auth.oauth.provider,body:auth_oauth.provider_facebook
 msgid "Log in with Facebook"
 msgstr ""
@@ -144,11 +154,6 @@ msgstr ""
 #. module: auth_oauth
 #: model:auth.oauth.provider,body:auth_oauth.provider_openerp
 msgid "Log in with Odoo.com"
-msgstr ""
-
-#. module: auth_oauth
-#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__body
-msgid "Login button label"
 msgstr ""
 
 #. module: auth_oauth
@@ -229,14 +234,14 @@ msgid "System Parameter"
 msgstr "פרמטר מערכת"
 
 #. module: auth_oauth
-#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__validation_endpoint
-msgid "UserInfo URL"
-msgstr ""
-
-#. module: auth_oauth
 #: model:ir.model,name:auth_oauth.model_res_users
 msgid "Users"
 msgstr "משתמשים"
+
+#. module: auth_oauth
+#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__validation_endpoint
+msgid "Validation URL"
+msgstr ""
 
 #. module: auth_oauth
 #: code:addons/auth_oauth/controllers/main.py:0

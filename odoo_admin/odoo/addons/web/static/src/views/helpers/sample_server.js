@@ -3,7 +3,7 @@
 import { groupBy as arrayGroupBy, sortBy as arraySortBy } from "@web/core/utils/arrays";
 import { registry } from "@web/core/registry";
 import { ORM } from "../../core/orm_service";
-import { parseDate, serializeDate, serializeDateTime } from "@web/core/l10n/dates";
+import { parseDate } from "@web/core/l10n/dates";
 
 class UnimplementedRouteError extends Error {}
 
@@ -236,9 +236,10 @@ export class SampleServer {
                 }
                 return false;
             case "date":
-            case "datetime":
-                const datetime = this._getRandomDate();
-                return field.type === "date" ? serializeDate(datetime): serializeDateTime(datetime);
+            case "datetime": {
+                const format = field.type === "date" ? "yyyy-MM-dd" : "yyyy-MM-dd HH:mm:ss";
+                return this._getRandomDate(format);
+            }
             case "float":
                 return this._getRandomFloat(SampleServer.MAX_FLOAT);
             case "integer": {
@@ -303,11 +304,12 @@ export class SampleServer {
 
     /**
      * @private
-     * @returns {DateTime}
+     * @param {string} format
+     * @returns {moment}
      */
-    _getRandomDate() {
+    _getRandomDate(format) {
         const delta = Math.floor((Math.random() - Math.random()) * SampleServer.DATE_DELTA);
-        return luxon.DateTime.local().plus({ hours: delta });
+        return luxon.DateTime.local().plus({ hours: delta }).toFormat(format);
     }
 
     /**

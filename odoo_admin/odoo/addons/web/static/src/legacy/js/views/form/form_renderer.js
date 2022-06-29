@@ -53,9 +53,6 @@ var FormRenderer = BasicRenderer.extend({
         // display them (e.g. in Studio, in "show invisible" mode). This flag
         // allows to disable this optimization.
         this.renderInvisible = false;
-        // Keeps track of buttons that are disabled momentarily and need to be renabled.
-        // Needed to compare with buttons that have to stay disabled all the time.
-        this.manuallyDisabledButtons = new Set();
     },
     /**
      * @override
@@ -200,24 +197,16 @@ var FormRenderer = BasicRenderer.extend({
      *
      */
     disableButtons: function () {
-        const allButtons = this.$el[0].querySelectorAll('.o_statusbar_buttons button, .oe_button_box button');
-        for (const button of allButtons) {
-            if (!button.getAttribute("disabled")) {
-                this.manuallyDisabledButtons.add(button)
-                button.setAttribute("disabled", true)
-            }
-        }
+        this.$('.o_statusbar_buttons button, .oe_button_box button')
+            .attr('disabled', true);
     },
     /**
      * Enable statusbar buttons and stat buttons so they can be clicked again
      *
      */
     enableButtons: function () {
-        const allButtons = this.$el[0].querySelectorAll('.o_statusbar_buttons button, .oe_button_box button');
-        this.manuallyDisabledButtons.forEach((button) => {
-            button.removeAttribute("disabled");
-        });
-        this.manuallyDisabledButtons.clear();
+        this.$('.o_statusbar_buttons button, .oe_button_box button')
+            .removeAttr('disabled');
     },
     /**
      * Put the focus on the last activated widget.
@@ -1135,7 +1124,6 @@ var FormRenderer = BasicRenderer.extend({
         return Promise.all(defs).then(() => this.__renderView()).then(function () {
             self._postProcessLabels();
             self._updateView($form.contents());
-            self.manuallyDisabledButtons.clear();
             if (self.state.res_id in self.alertFields) {
                 self.displayTranslationAlert();
             }

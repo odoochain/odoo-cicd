@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:21+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,7 +23,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_choose_delivery_carrier__mondialrelay_brand
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_delivery_carrier__mondialrelay_brand
 msgid "Brand Code"
-msgstr "كود العملامة التجارية "
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: model:ir.model,name:delivery_mondialrelay.model_res_partner
@@ -34,12 +33,12 @@ msgstr "جهة الاتصال"
 #. module: delivery_mondialrelay
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_choose_delivery_carrier__shipping_country_code
 msgid "Country Code"
-msgstr "كود الدولة "
+msgstr "رمز الدولة"
 
 #. module: delivery_mondialrelay
 #: model:ir.model,name:delivery_mondialrelay.model_choose_delivery_carrier
 msgid "Delivery Carrier Selection Wizard"
-msgstr "مُعالِج اختيار شركة الشحن "
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_choose_delivery_carrier__is_mondialrelay
@@ -47,12 +46,12 @@ msgstr "مُعالِج اختيار شركة الشحن "
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_res_partner__is_mondialrelay
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_res_users__is_mondialrelay
 msgid "Is Mondialrelay"
-msgstr "شركة Mondialrelay "
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_choose_delivery_carrier__mondialrelay_last_selected
 msgid "Last Relay Selected"
-msgstr "آخر ترحيل تم اختياره "
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: model:delivery.carrier,name:delivery_mondialrelay.delivery_carrier_mondialrelay_be_lu
@@ -61,36 +60,36 @@ msgstr "آخر ترحيل تم اختياره "
 #: model:product.product,name:delivery_mondialrelay.product_product_delivery_mondialrelay
 #: model:product.template,name:delivery_mondialrelay.product_product_delivery_mondialrelay_product_template
 msgid "Mondial Relay"
-msgstr "Mondial Relay"
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: code:addons/delivery_mondialrelay/models/sale_order.py:0
 #, python-format
 msgid ""
 "Mondial Relay mismatching between delivery method and shipping address."
-msgstr "هناك عدم تطابق بين طريقة التوصيل وعنوان الشحن في Mondial relay "
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_choose_delivery_carrier__mondialrelay_allowed_countries
 msgid "Mondialrelay Allowed Countries"
-msgstr "الدول التي تسمح بـ Mondialrelay "
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_choose_delivery_carrier__mondialrelay_last_selected_id
 msgid "Mondialrelay Last Selected"
-msgstr "آخر Mondialrelay تم اختياره "
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_choose_delivery_carrier__mondialrelay_colLivMod
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_delivery_carrier__mondialrelay_packagetype
 msgid "Mondialrelay Packagetype"
-msgstr "نوع حزمة Mondialrelay "
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: code:addons/delivery_mondialrelay/wizard/choose_delivery_carrier.py:0
 #, python-format
 msgid "Please, choose a Parcel Point"
-msgstr "الرجاء تحديد نقطة التوصيل "
+msgstr ""
 
 #. module: delivery_mondialrelay
 #: model:ir.model,name:delivery_mondialrelay.model_sale_order
@@ -120,4 +119,4 @@ msgstr "الوحدات"
 #. module: delivery_mondialrelay
 #: model:ir.model.fields,field_description:delivery_mondialrelay.field_choose_delivery_carrier__shipping_zip
 msgid "Zip"
-msgstr "Zip"
+msgstr "الرمز البريدي"

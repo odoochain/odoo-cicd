@@ -4,7 +4,6 @@
 # 
 # Translators:
 # Martin Trigaux, 2021
-# Malaz Abuidris <msea@odoo.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -12,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-07-12 07:50+0000\n"
 "PO-Revision-Date: 2021-09-14 12:20+0000\n"
-"Last-Translator: Malaz Abuidris <msea@odoo.com>, 2022\n"
+"Last-Translator: Martin Trigaux, 2021\n"
 "Language-Team: Arabic (https://www.transifex.com/odoo/teams/41243/ar/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -36,18 +35,6 @@ msgid ""
 "        (|(mail=%s)(uid=%s))\n"
 "    "
 msgstr ""
-"    عامل تصفية يُستخدم للبحث عن حسابات المستخدمين في قاعدة بيانات LDAP. إنه عامل تصفية LDAP عشوائي في تمثيل السلسلة. سوف يتم استبدال أي عنصر نائب `%s` بمعرف (تسجيل الدخول) المقدم من قِبَل المستخدِم، يجب أن يحتوي عامل التصفية على عنصر نائب واحد على الأقل.\n"
-"\n"
-"    يجب أن ينتج عن عامل التصفية نتيجة واحدة (1) على الأقل، وإلا فلن يعد تسجيل الدخول صالحاً.\n"
-"\n"
-"    مثال: (تعتمد الخواص الفعلية على خادم ونظام LDAP):\n"
-"\n"
-"        (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s))\n"
-"\n"
-"    أو\n"
-"\n"
-"        (|(mail=%s)(uid=%s))\n"
-"    "
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__create_user
@@ -55,28 +42,27 @@ msgid ""
 "Automatically create local user accounts for new users authenticating via "
 "LDAP"
 msgstr ""
-"قم بإنشاء حسابات مستخدمين محلية تلقائيًا للمستخدمين الجدد الذين يسجلون "
-"الدخول عبر LDAP "
+"إنشاء مستخدم محلي تلقائيًا للمستخدمين الجدد الذين يسجلون الدخول عبر LDAP"
 
 #. module: auth_ldap
 #: model:ir.model,name:auth_ldap.model_res_company
 msgid "Companies"
-msgstr "الشركات "
+msgstr "شركات"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__company
 msgid "Company"
-msgstr "الشركة "
+msgstr "شركة"
 
 #. module: auth_ldap
 #: model:ir.model,name:auth_ldap.model_res_company_ldap
 msgid "Company LDAP configuration"
-msgstr "تهيئة LDAP للشركة "
+msgstr "إعدادات LDAP للشركة"
 
 #. module: auth_ldap
 #: model:ir.model,name:auth_ldap.model_res_config_settings
 msgid "Config Settings"
-msgstr "تهيئة الإعدادات "
+msgstr "ضبط الاعدادات"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__create_user
@@ -99,13 +85,11 @@ msgid ""
 "DN of the user search scope: all descendants of this base will be searched "
 "for users."
 msgstr ""
-"تفرعات نطاق بحث المستخدِم: سوف يتم البحث في كافة تفرعات هذه القاعدة من أجل "
-"المستخدِمين. "
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__display_name
 msgid "Display Name"
-msgstr "اسم العرض "
+msgstr "الاسم المعروض"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__id
@@ -116,33 +100,33 @@ msgstr "المُعرف"
 #: model_terms:ir.ui.view,arch_db:auth_ldap.res_company_ldap_view_tree
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
 msgid "LDAP Configuration"
-msgstr "تهيئة LDAP "
+msgstr "إعدادات LDAP"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company__ldaps
 #: model:ir.model.fields,field_description:auth_ldap.field_res_config_settings__ldaps
 msgid "LDAP Parameters"
-msgstr "معايير LDAP "
+msgstr "باراميترات LDAP"
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.res_config_settings_view_form
 msgid "LDAP Server"
-msgstr "خادم LDAP "
+msgstr "سيرفر LDAP"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_server
 msgid "LDAP Server address"
-msgstr "عنوان خادم LDAP "
+msgstr "عنوان سيرفر LDAP"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_server_port
 msgid "LDAP Server port"
-msgstr "منفذ خادم LDAP "
+msgstr "منفذ سيرفر LDAP"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_base
 msgid "LDAP base"
-msgstr "أساس LDAP "
+msgstr "أساس LDAP"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_binddn
@@ -152,12 +136,12 @@ msgstr "LDAP bindDN"
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_filter
 msgid "LDAP filter"
-msgstr "عامل تصفية LDAP "
+msgstr "فلتر LDAP"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_password
 msgid "LDAP password"
-msgstr "كلمة مرور LDAP "
+msgstr "كلمة مرور LDAP"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap____last_update
@@ -184,13 +168,13 @@ msgstr "بيانات تسجيل الدخول"
 #, python-format
 msgid "No local user found for LDAP login and not configured to create one"
 msgstr ""
-"لم يتم العثور على مستخدم محلي لتسجيل الدخول LDAP ولم تتم تهيئة النظام لإنشاء"
-" واحد "
+"لم نستطع إيجاد مستخدم محلي لتسجيل الدخول LDAP ولم يتم ضبط النظام لإنشاء "
+"مستخدم"
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
 msgid "Process Parameter"
-msgstr "معايير العملية "
+msgstr "باراميتر العملية"
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_tls
@@ -199,23 +183,23 @@ msgid ""
 "option requires a server with STARTTLS enabled, otherwise all authentication"
 " attempts will fail."
 msgstr ""
-"طلب تشفير TLS/SSL عند الاتصال بخادم LDAP. هذا الاختيار يتطلب أن يكون قد تم "
-"تشغيل STATTLS، وإلا فستفشل محاولات المصادقة. "
+"طلب تشفير TLS/SSL عند الاتصال بسيرفر LDAP. هذا الاختيار يتطلب أن يكون قد تم "
+"إعداد STATTLS، وإلا ستفشل محاولة المصادقة."
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__sequence
 msgid "Sequence"
-msgstr "التسلسل "
+msgstr "المسلسل"
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
 msgid "Server Information"
-msgstr "معلومات الخادم "
+msgstr "معلومات السيرفر"
 
 #. module: auth_ldap
 #: model:ir.actions.act_window,name:auth_ldap.action_ldap_installer
 msgid "Setup your LDAP Server"
-msgstr "ضبط خادم LDAP الخاص بك "
+msgstr "ضبط سيرفر LDAP الخاص بك"
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__user
@@ -227,7 +211,7 @@ msgstr "مستخدم القالب"
 msgid ""
 "The password of the user account on the LDAP server that is used to query "
 "the directory."
-msgstr "كلمة مرور حساب المستخدم في خادم LDAP المستخدمة للاستعلام من الدليل. "
+msgstr "كلمة مرور حساب المستخدم على سيرفر LDAP المستخدمة للاستعلام من الدليل."
 
 #. module: auth_ldap
 #: model:ir.model.fields,help:auth_ldap.field_res_company_ldap__ldap_binddn
@@ -235,13 +219,13 @@ msgid ""
 "The user account on the LDAP server that is used to query the directory. "
 "Leave empty to connect anonymously."
 msgstr ""
-"حساب المستخدِم في خادم LDAP المُستخدَم للاستعلام من الدليل. اتركه فارغًا "
-"ليتم الاتصال كمجهول. "
+"حساب المستخدم على سيرفر LDAP المُستخدم للاستعلام من الدليل. اتركه فارغًا "
+"ليتم الاتصال كمجهول."
 
 #. module: auth_ldap
 #: model:ir.model.fields,field_description:auth_ldap.field_res_company_ldap__ldap_tls
 msgid "Use TLS"
-msgstr "استخدم TLS "
+msgstr "استخدام TLS"
 
 #. module: auth_ldap
 #: model_terms:ir.ui.view,arch_db:auth_ldap.view_ldap_installer_form
@@ -256,4 +240,4 @@ msgstr "قالب المستخدم لنسخه عند إنشاء مستخدمين 
 #. module: auth_ldap
 #: model:ir.model,name:auth_ldap.model_res_users
 msgid "Users"
-msgstr "المستخدمين "
+msgstr "المستخدمون"

@@ -266,7 +266,7 @@ publicWidget.registry.DisableTOTPButton = publicWidget.Widget.extend({
     }
 });
 publicWidget.registry.RevokeTrustedDeviceButton = publicWidget.Widget.extend({
-    selector: '#totp_wizard_view + * .fa.fa-trash.text-danger',
+    selector: '.fa.fa-trash.text-danger',
     events: {
         click: '_onClick'
     },
@@ -276,7 +276,7 @@ publicWidget.registry.RevokeTrustedDeviceButton = publicWidget.Widget.extend({
         await handleCheckIdentity(
             this.proxy('_rpc'),
             this._rpc({
-                model: 'auth_totp.device',
+                model: 'res.users.apikeys',
                 method: 'remove',
                 args: [parseInt(this.target.id)]
             })

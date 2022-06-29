@@ -5,6 +5,7 @@
 # Translators:
 # Martin Trigaux, 2021
 # Jan Horzinka <jan.horzinka@centrum.cz>, 2021
+# Michal Veselý <michal@veselyberanek.net>, 2021
 # trendspotter <jirka.p@volny.cz>, 2021
 # karolína schusterová <karolina.schusterova@vdp.sk>, 2021
 # 
@@ -55,8 +56,13 @@ msgstr "Povoleno"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__auth_endpoint
-msgid "Authorization URL"
-msgstr ""
+msgid "Authentication URL"
+msgstr "Ověřovací URL"
+
+#. module: auth_oauth
+#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__body
+msgid "Body"
+msgstr "Tělo"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__css_class
@@ -91,8 +97,8 @@ msgstr "Vytvořeno"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__data_endpoint
-msgid "Data Endpoint"
-msgstr ""
+msgid "Data URL"
+msgstr "URL Dat"
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__display_name
@@ -130,6 +136,11 @@ msgid "Last Updated on"
 msgstr "Naposled upraveno"
 
 #. module: auth_oauth
+#: model:ir.model.fields,help:auth_oauth.field_auth_oauth_provider__body
+msgid "Link text in Login Dialog"
+msgstr "Text odkazu v přihlašovacím dialogu"
+
+#. module: auth_oauth
 #: model:auth.oauth.provider,body:auth_oauth.provider_facebook
 msgid "Log in with Facebook"
 msgstr "Přihlásit se pomocí Facebooku"
@@ -143,11 +154,6 @@ msgstr "Přihlaste se pomocí Google"
 #: model:auth.oauth.provider,body:auth_oauth.provider_openerp
 msgid "Log in with Odoo.com"
 msgstr "Přihlaste se pomocí Odoo.com"
-
-#. module: auth_oauth
-#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__body
-msgid "Login button label"
-msgstr ""
 
 #. module: auth_oauth
 #: model:ir.model.fields,field_description:auth_oauth.field_res_users__oauth_access_token
@@ -227,14 +233,14 @@ msgid "System Parameter"
 msgstr "Systémový parametr"
 
 #. module: auth_oauth
-#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__validation_endpoint
-msgid "UserInfo URL"
-msgstr ""
-
-#. module: auth_oauth
 #: model:ir.model,name:auth_oauth.model_res_users
 msgid "Users"
 msgstr "Uživatelé"
+
+#. module: auth_oauth
+#: model:ir.model.fields,field_description:auth_oauth.field_auth_oauth_provider__validation_endpoint
+msgid "Validation URL"
+msgstr "Ověření URL"
 
 #. module: auth_oauth
 #: code:addons/auth_oauth/controllers/main.py:0

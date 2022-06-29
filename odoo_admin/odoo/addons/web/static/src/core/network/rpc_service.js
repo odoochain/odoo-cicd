@@ -38,7 +38,7 @@ export function makeErrorFromResponse(reponse) {
     return error;
 }
 
-export function jsonrpc(env, rpcId, url, params, settings = {}) {
+function jsonrpc(env, rpcId, url, params, settings = {}) {
     const bus = env.bus;
     const XHR = browser.XMLHttpRequest;
     const data = {

@@ -5,7 +5,6 @@
 # Translators:
 # Martin Trigaux, 2021
 # 黎伟杰 <674416404@qq.com>, 2021
-# 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -13,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:22+0000\n"
-"Last-Translator: 山西清水欧度(QQ:54773801) <54773801@qq.com>, 2022\n"
+"Last-Translator: 黎伟杰 <674416404@qq.com>, 2021\n"
 "Language-Team: Chinese (China) (https://www.transifex.com/odoo/teams/41243/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,7 +24,7 @@ msgstr ""
 #: code:addons/google_calendar/models/google_sync.py:0
 #, python-format
 msgid "%(id)s and %(length)s following"
-msgstr "%(id)s和%(length)s以下"
+msgstr ""
 
 #. module: google_calendar
 #: code:addons/google_calendar/models/calendar.py:0
@@ -50,7 +49,7 @@ msgstr "%(reminder_type)s-%(duration)s分钟"
 #: code:addons/google_calendar/static/src/xml/base_calendar.xml:0
 #, python-format
 msgid "&nbsp;Google"
-msgstr "&nbsp;谷歌"
+msgstr ""
 
 #. module: google_calendar
 #: code:addons/google_calendar/models/calendar.py:0
@@ -83,8 +82,6 @@ msgid ""
 "secret on the Google APIs plateform or try to stop and restart your calendar"
 " synchronisation."
 msgstr ""
-"在生成令牌时发生了一个错误。您的授权码可能是无效的或已经过期[%s]。你应该在Google "
-"APIs平台上检查你的客户ID和秘密，或者尝试停止并重新启动你的日历同步。"
 
 #. module: google_calendar
 #. openerp-web
@@ -215,12 +212,12 @@ msgstr "事件重复规则"
 #: code:addons/google_calendar/static/src/xml/base_calendar.xml:0
 #, python-format
 msgid "Google"
-msgstr "Google"
+msgstr ""
 
 #. module: google_calendar
 #: model:ir.model.fields,field_description:google_calendar.field_res_users__google_cal_account_id
 msgid "Google Cal Account"
-msgstr "谷歌日历账户"
+msgstr ""
 
 #. module: google_calendar
 #: model_terms:ir.ui.view,arch_db:google_calendar.view_users_form
@@ -230,7 +227,7 @@ msgstr "Google日历"
 #. module: google_calendar
 #: model:ir.model,name:google_calendar.model_google_calendar_credentials
 msgid "Google Calendar Account Data"
-msgstr "谷歌日历账户数据"
+msgstr ""
 
 #. module: google_calendar
 #: model:ir.actions.act_window,name:google_calendar.google_calendar_reset_account_action
@@ -260,13 +257,13 @@ msgstr "Google 日历：同步"
 #: model:ir.model.fields,field_description:google_calendar.field_google_calendar_credentials__synchronization_stopped
 #: model:ir.model.fields,field_description:google_calendar.field_res_users__google_synchronization_stopped
 msgid "Google Synchronization stopped"
-msgstr "谷歌同步停止"
+msgstr ""
 
 #. module: google_calendar
 #: code:addons/google_calendar/models/google_sync.py:0
 #, python-format
 msgid "Google gave the following explanation: %s"
-msgstr "谷歌给出了以下解释。%s"
+msgstr ""
 
 #. module: google_calendar
 #: model:ir.model.fields,field_description:google_calendar.field_google_calendar_account_reset__id
@@ -402,19 +399,19 @@ msgstr "‎未配置 Google 日历服务的帐户。‎"
 msgid ""
 "The following event could not be synced with Google Calendar. </br>It will "
 "not be synced as long at it is not updated.</br>%(reason)s"
-msgstr "<br>以下事件无法与谷歌日历同步。只</br>要不更新，它就不会被同步。</br>%(reason)s"
+msgstr ""
 
 #. module: google_calendar
 #. openerp-web
 #: code:addons/google_calendar/static/src/js/google_calendar.js:0
 #, python-format
 msgid "The synchronization with Google calendar was successfully stopped."
-msgstr "与谷歌日历的同步已成功停止。"
+msgstr ""
 
 #. module: google_calendar
 #: model:ir.model.constraint,message:google_calendar.constraint_res_users_google_token_uniq
 msgid "The user has already a google account"
-msgstr "用户已经有一个谷歌账户"
+msgstr ""
 
 #. module: google_calendar
 #: model:ir.model.fields,help:google_calendar.field_google_calendar_account_reset__delete_policy
@@ -456,7 +453,7 @@ msgstr "用户"
 msgid ""
 "You are about to stop the synchronization of your calendar with Google. Are "
 "you sure you want to continue?"
-msgstr "你即将停止与谷歌的日历同步。你确定你要继续吗？"
+msgstr ""
 
 #. module: google_calendar
 #. openerp-web
@@ -470,11 +467,11 @@ msgstr "您将跳转到Google并授权Odoo访问您的日历"
 #: code:addons/google_calendar/models/google_sync.py:0
 #, python-format
 msgid "undefined time"
-msgstr "未定义的时间"
+msgstr ""
 
 #. module: google_calendar
 #: code:addons/google_calendar/models/google_sync.py:0
 #, python-format
 msgid ""
 "you don't seem to have permission to modify this event on Google Calendar"
-msgstr "你似乎没有权限在谷歌日历上修改这个事件"
+msgstr ""

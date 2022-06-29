@@ -109,9 +109,8 @@ export class Activity extends Component {
      * @param {Object} ev.detail
      * @param {mail.attachment} ev.detail.attachment
      */
-    async _onAttachmentCreated(ev) {
-        await this.activity.markAsDone({ attachments: [ev.detail.attachment] });
-        this.trigger('o-attachments-changed');
+    _onAttachmentCreated(ev) {
+        this.activity.markAsDone({ attachments: [ev.detail.attachment] });
     }
 
     /**
@@ -146,8 +145,7 @@ export class Activity extends Component {
     /**
      * @private
      */
-    _onClickDetailsButton(ev) {
-        ev.preventDefault();
+    _onClickDetailsButton() {
         this.state.areDetailsVisible = !this.state.areDetailsVisible;
     }
 

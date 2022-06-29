@@ -9,4 +9,3 @@ from . import test_calendar_recurrent_event_case2
 from . import test_event_recurrence
 from . import test_event_notifications
 from . import test_mail_activity_mixin
-from . import test_res_partner

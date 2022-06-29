@@ -74,8 +74,7 @@ class ProductTemplate(models.Model):
     @api.depends('price', 'list_price', 'base_unit_count')
     def _compute_base_unit_price(self):
         for template in self:
-            template_price = (template.price or template.list_price) if template.id else template.list_price
-            template.base_unit_price = template.base_unit_count and template_price / template.base_unit_count
+            template.base_unit_price = template.base_unit_count and (template.price or template.list_price) / template.base_unit_count
 
     @api.depends('uom_name', 'base_unit_id.name')
     def _compute_base_unit_name(self):
@@ -363,19 +362,15 @@ class ProductTemplate(models.Model):
                     ids = [value[1]]
             if attrib:
                 domains.append([('attribute_line_ids.value_ids', 'in', ids)])
-        search_fields = ['name', 'product_variant_ids.default_code']
+        search_fields = ['name']
         fetch_fields = ['id', 'name', 'website_url']
         mapping = {
             'name': {'name': 'name', 'type': 'text', 'match': True},
-            'product_variant_ids.default_code': {'name': 'product_variant_ids.default_code', 'type': 'text', 'match': True},
             'website_url': {'name': 'website_url', 'type': 'text', 'truncate': False},
         }
         if with_image:
             mapping['image_url'] = {'name': 'image_url', 'type': 'html'}
         if with_description:
-            # Internal note is not part of the rendering.
-            search_fields.append('description')
-            fetch_fields.append('description')
             search_fields.append('description_sale')
             fetch_fields.append('description_sale')
             mapping['description'] = {'name': 'description_sale', 'type': 'text', 'match': True}

@@ -2,7 +2,6 @@
 
 import { _lt } from "@web/core/l10n/translation";
 import { Domain } from "@web/core/domain";
-import { serializeDate, serializeDateTime } from "@web/core/l10n/dates";
 import { localization } from "@web/core/l10n/localization";
 
 export const DEFAULT_PERIOD = "this_month";
@@ -210,21 +209,18 @@ export function constructDateRange(params) {
         setParam.month = QUARTERS[setParam.quarter].coveredMonths[0];
         delete setParam.quarter;
     }
-    const date = referenceMoment
-        .set(setParam)
-        .plus(plusParam || {})
-        .setZone("utc", { keepLocalTime: true });
+    const date = referenceMoment.set(setParam).plus(plusParam || {});
     // compute domain
     let leftDate = date.startOf(granularity);
     let rightDate = date.endOf(granularity);
     let leftBound;
     let rightBound;
     if (fieldType === "date") {
-        leftBound = serializeDate(leftDate);
-        rightBound = serializeDate(rightDate);
+        leftBound = leftDate.toFormat("yyyy-MM-dd");
+        rightBound = rightDate.toFormat("yyyy-MM-dd");
     } else {
-        leftBound = serializeDateTime(leftDate);
-        rightBound = serializeDateTime(rightDate);
+        leftBound = leftDate.toUTC().toFormat("yyyy-MM-dd HH:mm:ss");
+        rightBound = rightDate.toUTC().toFormat("yyyy-MM-dd HH:mm:ss");
     }
     const domain = new Domain(["&", [fieldName, ">=", leftBound], [fieldName, "<=", rightBound]]);
     // compute description

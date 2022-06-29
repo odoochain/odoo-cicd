@@ -8,4 +8,3 @@ from . import test_mailing_list
 from . import test_mailing_controllers
 from . import test_mailing_mailing_schedule_date
 from . import test_mailing_ui
-from . import test_mailing_retry

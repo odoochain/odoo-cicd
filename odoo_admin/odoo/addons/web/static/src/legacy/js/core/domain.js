@@ -250,21 +250,21 @@ var Domain = collections.Tree.extend({
      */
     arrayToString: function (domain) {
         if (_.isString(domain)) return domain;
-
-        function jsToPy(p) {
-            switch (p) {
-                case null: return "None";
-                case true: return "True";
-                case false: return "False";
-                default:
-                    if (Array.isArray(p)) {
-                        return `[${p.map(jsToPy)}]`;
+        const parts = (domain || []).map(part => {
+            if (_.isArray(part)) { // e.g. ['name', 'ilike', 'foo'] or ['is_active', '=', true]
+                return "[" + part.map(c => {
+                    switch (c) {
+                        case null: return "None";
+                        case true: return "True";
+                        case false: return "False";
+                        default: return JSON.stringify(c);
                     }
-                    return JSON.stringify(p);
+                }).join(',') + "]";
+            } else { // e.g. '|' or '&'
+                return JSON.stringify(part);
             }
-        }
-
-        return `[${(domain || []).map(jsToPy)}]`;
+        });
+        return "[" + parts.join(',') + "]";
     },
     /**
      * Converts a string representation of the Python prefix-array
@@ -391,7 +391,6 @@ var Domain = collections.Tree.extend({
                 case '(string)': return node.value;
                 case '(number)': return node.value;
                 case '(constant)': return node.value === 'None' ? null : node.value === 'True' ? true : false;
-                case '(':
                 case '[': return _.map(node.first, function (node) {return astToStackValue(node);});
             }
         }

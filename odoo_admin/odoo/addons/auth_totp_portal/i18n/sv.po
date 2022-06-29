@@ -6,7 +6,6 @@
 # Martin Trigaux, 2021
 # Anders Wallenquist <anders.wallenquist@vertel.se>, 2021
 # Kim Asplund <kim.asplund@gmail.com>, 2021
-# Robin Calvin, 2022
 # 
 msgid ""
 msgstr ""
@@ -14,7 +13,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:20+0000\n"
-"Last-Translator: Robin Calvin, 2022\n"
+"Last-Translator: Kim Asplund <kim.asplund@gmail.com>, 2021\n"
 "Language-Team: Swedish (https://www.transifex.com/odoo/teams/41243/sv/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -32,7 +31,7 @@ msgstr ""
 #. module: auth_totp_portal
 #: model_terms:ir.ui.view,arch_db:auth_totp_portal.totp_portal_hook
 msgid "(Disable two-factor authentication)"
-msgstr "(Inaktivera tvåfaktorsautentisering)"
+msgstr ""
 
 #. module: auth_totp_portal
 #: model_terms:ir.ui.view,arch_db:auth_totp_portal.totp_portal_hook
@@ -40,8 +39,6 @@ msgid ""
 "<i class=\"fa fa-warning\"/>\n"
 "                        Two-factor authentication not enabled"
 msgstr ""
-"<i class=\"fa fa-warning\"/>\n"
-"                        Tvåfaktorsautentisering ej aktiverad"
 
 #. module: auth_totp_portal
 #: model_terms:ir.ui.view,arch_db:auth_totp_portal.totp_portal_hook
@@ -51,10 +48,6 @@ msgid ""
 "                        Two-factor authentication enabled\n"
 "                    </span>"
 msgstr ""
-"<span class=\"text-success\">\n"
-"                        <i class=\"fa fa-check-circle\"/>\n"
-"                        Tvåfaktorsautentisering aktiverad\n"
-"                    </span>"
 
 #. module: auth_totp_portal
 #: model_terms:ir.ui.view,arch_db:auth_totp_portal.totp_portal_hook
@@ -64,7 +57,7 @@ msgstr ""
 #. module: auth_totp_portal
 #: model_terms:ir.ui.view,arch_db:auth_totp_portal.totp_portal_hook
 msgid "<strong>Trusted Device</strong>"
-msgstr "<strong>Betrodd enhet</strong>"
+msgstr ""
 
 #. module: auth_totp_portal
 #. openerp-web
@@ -76,14 +69,14 @@ msgstr "Kopierad !"
 #. module: auth_totp_portal
 #: model_terms:ir.ui.view,arch_db:auth_totp_portal.totp_portal_hook
 msgid "Enable two-factor authentication"
-msgstr "Aktivera tvåfaktorsautentisering"
+msgstr ""
 
 #. module: auth_totp_portal
 #. openerp-web
 #: code:addons/auth_totp_portal/static/src/js/totp_frontend.js:0
 #, python-format
 msgid "Operation failed for unknown reason."
-msgstr "Operationen misslyckades av okänd anledning."
+msgstr ""
 
 #. module: auth_totp_portal
 #: model_terms:ir.ui.view,arch_db:auth_totp_portal.totp_portal_hook
@@ -93,7 +86,7 @@ msgstr "Återkalla alla"
 #. module: auth_totp_portal
 #: model_terms:ir.ui.view,arch_db:auth_totp_portal.totp_portal_hook
 msgid "Two-factor authentication"
-msgstr "Tvåfaktorsautentisering"
+msgstr ""
 
 #. module: auth_totp_portal
 #: model:ir.model,name:auth_totp_portal.model_res_users

@@ -13,9 +13,9 @@
 # Gökhan Erdoğdu <gokhan.erdogdu@mechsoft.com.tr>, 2021
 # Umur Akın <umura@projetgrup.com>, 2021
 # abc Def <hdogan1974@gmail.com>, 2021
+# Tugay Hatıl <tugayh@projetgrup.com>, 2021
 # Murat Durmuş <muratd@projetgrup.com>, 2021
 # Ozlem Cikrikci <ozlemc@eskayazilim.com.tr>, 2021
-# Tugay Hatıl <tugayh@projetgrup.com>, 2022
 # 
 msgid ""
 msgstr ""
@@ -23,7 +23,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-09-14 10:28+0000\n"
 "PO-Revision-Date: 2021-09-14 12:26+0000\n"
-"Last-Translator: Tugay Hatıl <tugayh@projetgrup.com>, 2022\n"
+"Last-Translator: Ozlem Cikrikci <ozlemc@eskayazilim.com.tr>, 2021\n"
 "Language-Team: Turkish (https://www.transifex.com/odoo/teams/41243/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -35,7 +35,7 @@ msgstr ""
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
 #, python-format
 msgid " Product cost updated from %(previous)s to %(new_cost)s."
-msgstr "Ürün maliyeti %(previous)s den  %(new_cost)s olarak güncellendi."
+msgstr ""
 
 #. module: stock_account
 #: code:addons/stock_account/models/product.py:0
@@ -43,8 +43,6 @@ msgstr "Ürün maliyeti %(previous)s den  %(new_cost)s olarak güncellendi."
 #, python-format
 msgid "%(user)s changed cost from %(previous)s to %(new_price)s - %(product)s"
 msgstr ""
-"%(user)s %(product)s ürününün maliyetini %(previous)s den %(new_price)s "
-"olarak değiştirdi."
 
 #. module: stock_account
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
@@ -54,8 +52,6 @@ msgid ""
 "%(user)s changed stock valuation from  %(previous)s to %(new_value)s - "
 "%(product)s"
 msgstr ""
-"%(user)s%(product)s ürününün stok değerlemesini %(previous)s den "
-"%(new_value)s olarak değiştirdi."
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_revaluation_form_view
@@ -63,13 +59,11 @@ msgid ""
 ")\n"
 "                            <small class=\"mx-2 font-italic\">Use a negative added value to record a decrease in the product value</small>"
 msgstr ""
-")\n"
-"                            <small class=\"mx-2 font-italic\">Ürün değerinde bir düşüş kaydetmek için negatif bir değer kullanın</small>"
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.view_category_property_form
 msgid "<b>Set other input/output accounts on specific </b>"
-msgstr "<b>Diğer girdi/çıktı hesaplarını ayarlayın </b>"
+msgstr ""
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_invoice_document
@@ -121,7 +115,7 @@ msgstr "Muhasebe Bilgisi"
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_tree
 msgid "Add Manual Valuation"
-msgstr "Manuel Değerleme Ekle"
+msgstr ""
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.res_config_settings_view_form
@@ -132,12 +126,12 @@ msgstr "Ürünün değerine ek maliyet (nakliye, gümrük, ...) ekleyin."
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_revaluation_form_view
 msgid "Added Value"
-msgstr "Eklenen Değer"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer_revaluation__added_value
 msgid "Added value"
-msgstr "Eklenen değer"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_res_config_settings__module_stock_landed_costs
@@ -152,7 +146,7 @@ msgstr ""
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_move__analytic_account_line_id
 msgid "Analytic Account Line"
-msgstr "Analitik Hesap Satırları"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields.selection,name:stock_account.selection__product_category__property_valuation__real_time
@@ -245,10 +239,6 @@ msgid ""
 "Counterpart journal items for all incoming stock moves will be posted in this account, unless there is a specific valuation account\n"
 "                set on the source location. This is the default value for all products in this category. It can also directly be set on each product."
 msgstr ""
-"Kaynak konumda ayarlanmış belirli bir değerleme hesabı olmadığı sürece, "
-"gelen tüm stok hareketlerine karşılık gelen  yevmiye kalemleri bu hesaba "
-"nakledilecektir. Bu, bu kategorideki tüm ürünler için varsayılan değerdir. "
-"Ayrıca her üründe doğrudan ayarlanabilir."
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_picking__country_code
@@ -277,7 +267,7 @@ msgstr "Para Birimi"
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer_revaluation__current_quantity_svl
 msgid "Current Quantity"
-msgstr "Mevcut Miktar"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer_revaluation__current_value_svl
@@ -441,13 +431,13 @@ msgstr "Manuel"
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
 #, python-format
 msgid "Manual Stock Valuation: %s."
-msgstr "Manuel Stok Değerleme: %s."
+msgstr ""
 
 #. module: stock_account
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
 #, python-format
 msgid "Manual Stock Valuation: No Reason Given."
-msgstr "Manuel Stok Değerlemesi: Neden Belirtilmemiştir."
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_product_category__property_valuation
@@ -465,17 +455,17 @@ msgstr ""
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer_revaluation__new_value
 msgid "New value"
-msgstr "Yeni değer"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer_revaluation__new_value_by_qty
 msgid "New value by quantity"
-msgstr "Miktara göre yeni değer"
+msgstr ""
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_account_report_product_product_replenishment
 msgid "On Hand Value"
-msgstr "Eldeki Değer"
+msgstr ""
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_form
@@ -505,7 +495,7 @@ msgstr "Ürün Hareketleri (Stok Hareket Satırları)"
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_revaluation_form_view
 #, python-format
 msgid "Product Revaluation"
-msgstr "Ürün Yeniden Değerleme"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_product_template
@@ -543,12 +533,12 @@ msgstr "Sebep"
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_stock_valuation_layer_revaluation__reason
 msgid "Reason of the revaluation"
-msgstr "Yeniden değerlemenin nedeni"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer_revaluation__product_id
 msgid "Related product"
-msgstr "İlişkili ürün"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,field_description:stock_account.field_stock_valuation_layer__remaining_qty
@@ -574,12 +564,12 @@ msgstr "Ters Transfer Satırları"
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
 #, python-format
 msgid "Revaluation of %s"
-msgstr "%s nin yeniden değerlemesi"
+msgstr ""
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_revaluation_form_view
 msgid "Revalue"
-msgstr "Yeniden Değerle"
+msgstr ""
 
 #. module: stock_account
 #: model:ir.model.fields,help:stock_account.field_stock_valuation_layer__categ_id
@@ -696,7 +686,6 @@ msgid ""
 "The Stock Input and/or Output accounts cannot be the same as the Stock "
 "Valuation account."
 msgstr ""
-"Stok Girdi ve/veya Çıktı hesapları, Stok Değerleme hesabı ile aynı olamaz."
 
 #. module: stock_account
 #: code:addons/stock_account/models/product.py:0
@@ -706,14 +695,12 @@ msgid ""
 "The action leads to the creation of a journal entry, for which you don't "
 "have the access rights."
 msgstr ""
-"Eylem, erişim haklarına sahip olmadığınız bir yevmiye kaydının "
-"oluşturulmasına yol açar."
 
 #. module: stock_account
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
 #, python-format
 msgid "The added value doesn't have any impact on the stock valuation"
-msgstr "Eklenen değerin stok değerlemesine herhangi bir etkisi yoktur."
+msgstr ""
 
 #. module: stock_account
 #: code:addons/stock_account/models/stock_move.py:0
@@ -887,19 +874,19 @@ msgstr ""
 #. module: stock_account
 #: model:ir.model,name:stock_account.model_stock_valuation_layer_revaluation
 msgid "Wizard model to reavaluate a stock inventory for a product"
-msgstr "Bir ürün için stok envanterini değerlemek için sihirbaz"
+msgstr ""
 
 #. module: stock_account
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
 #, python-format
 msgid "You cannot revalue a product with a standard cost method."
-msgstr "Bir ürünü standart maliyet yöntemiyle yeniden değerleyemezsiniz."
+msgstr ""
 
 #. module: stock_account
 #: code:addons/stock_account/wizard/stock_valuation_layer_revaluation.py:0
 #, python-format
 msgid "You cannot revalue a product with an empty or negative stock."
-msgstr "Boş veya negatif stoğu olan bir ürünü yeniden değerleyemezsiniz."
+msgstr ""
 
 #. module: stock_account
 #: code:addons/stock_account/models/product.py:0
@@ -909,8 +896,6 @@ msgid ""
 "to the creation of a journal entry, for which you don't have the access "
 "rights."
 msgstr ""
-"Erişim haklarına sahip olmadığınız bir yevmiye kaydının oluşturulmasına yol "
-"açtığı için otomatik değerlemede bir ürünün maliyetini güncelleyemezsiniz."
 
 #. module: stock_account
 #: code:addons/stock_account/models/product.py:0
@@ -929,8 +914,6 @@ msgid ""
 "You don't have any stock input account defined on your product category. You"
 " must define one before processing this operation."
 msgstr ""
-"Ürün kategorinizde tanımlı stok giriş hesabınız yok. Bu işlemi "
-"gerçekleştirmeden önce bir tane tanımlamanız gerekir."
 
 #. module: stock_account
 #: code:addons/stock_account/models/stock_move.py:0
@@ -959,7 +942,7 @@ msgstr ""
 #: code:addons/stock_account/models/product.py:0
 #, python-format
 msgid "You must set a counterpart account on your product category."
-msgstr "Ürün kategorinizde bir karşı hesap oluşturmalısınız."
+msgstr ""
 
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.stock_valuation_layer_revaluation_form_view
@@ -974,4 +957,4 @@ msgstr "için"
 #. module: stock_account
 #: model_terms:ir.ui.view,arch_db:stock_account.view_category_property_form
 msgid "locations"
-msgstr "konumlar"
+msgstr ""

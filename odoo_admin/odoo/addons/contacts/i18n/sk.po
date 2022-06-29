@@ -3,7 +3,6 @@
 # 	* contacts
 # 
 # Translators:
-# sakodoo <sak@odoo.com>, 2022
 # Martin Trigaux, 2022
 # 
 msgid ""
@@ -29,39 +28,39 @@ msgstr "Bankové účty"
 #. module: contacts
 #: model:ir.ui.menu,name:contacts.menu_action_res_bank_form
 msgid "Banks"
-msgstr "Bankové doklady"
+msgstr ""
 
 #. module: contacts
 #: model:ir.ui.menu,name:contacts.res_partner_menu_config
 msgid "Configuration"
-msgstr "Konfigurácia"
+msgstr ""
 
 #. module: contacts
 #: model:ir.ui.menu,name:contacts.menu_partner_category_form
 msgid "Contact Tags"
-msgstr "Tagy kontaktu"
+msgstr ""
 
 #. module: contacts
 #: model:ir.ui.menu,name:contacts.menu_partner_title_contact
 msgid "Contact Titles"
-msgstr "Názvy kontaktu"
+msgstr ""
 
 #. module: contacts
 #: model:ir.actions.act_window,name:contacts.action_contacts
 #: model:ir.ui.menu,name:contacts.menu_contacts
 #: model:ir.ui.menu,name:contacts.res_partner_menu_contacts
 msgid "Contacts"
-msgstr "Kontakty"
+msgstr ""
 
 #. module: contacts
 #: model:ir.ui.menu,name:contacts.menu_country_partner
 msgid "Countries"
-msgstr "Štáty"
+msgstr ""
 
 #. module: contacts
 #: model:ir.ui.menu,name:contacts.menu_country_group
 msgid "Country Group"
-msgstr "Skupina štátu"
+msgstr ""
 
 #. module: contacts
 #: model_terms:ir.actions.act_window,help:contacts.action_contacts
@@ -71,17 +70,17 @@ msgstr ""
 #. module: contacts
 #: model:ir.ui.menu,name:contacts.menu_country_state_partner
 msgid "Fed. States"
-msgstr "Fed. štáty"
+msgstr ""
 
 #. module: contacts
 #: model:ir.ui.menu,name:contacts.res_partner_industry_menu
 msgid "Industries"
-msgstr "Priemyselné odvetvia"
+msgstr ""
 
 #. module: contacts
 #: model:ir.ui.menu,name:contacts.menu_localisation
 msgid "Localization"
-msgstr "Lokalizácia"
+msgstr ""
 
 #. module: contacts
 #: model_terms:ir.actions.act_window,help:contacts.action_contacts

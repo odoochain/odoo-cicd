@@ -3,7 +3,7 @@
 
 {
     'name': 'Italy - Accounting',
-    'version': '0.3',
+    'version': '0.2',
     'depends': [
         'account',
         'base_iban',
@@ -19,7 +19,6 @@ Italian accounting chart and localization.
     'category': 'Accounting/Localizations/Account Charts',
     'website': 'http://www.odoo.com/',
     'data': [
-        'data/account_account_tag.xml',
         'data/account_chart_template.xml',
         'data/account.account.template.csv',
         'data/account_chart_template_accounts.xml',
