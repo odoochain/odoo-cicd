@@ -732,12 +732,13 @@ class GitBranch(models.Model):
         """
 
         def create_test_run(branch):
-            self.env["cicd.test.run"].create(
+            testrun = self.env["cicd.test.run"].create(
                 {
                     "branch_id": branch.id,
                     "commit_id": branch.latest_commit_id.id,
                 }
             )
+            self.apply_test_settings(testrun)
 
         for branch in self.search(
             [("state", "=", "testable"), ("is_release_branch", "=", False)]
