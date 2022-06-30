@@ -1,6 +1,5 @@
 # pylint: disable=self-cls-assignment
 # pylint: disable=R0903
-import time
 import re
 import json
 import base64
@@ -70,6 +69,7 @@ class RobotTest(models.Model):
     @contextmanager
     def get_environment_for_execute(self):
         DBNAME = "odoo"
+        breakpoint()
         with self._shell(quick=True) as shell:
             # there could be errors at install all
             dump_path = self.run_id.branch_id._ensure_dump(
@@ -96,12 +96,13 @@ class RobotTest(models.Model):
             try:
                 yield shell, {}
             finally:
-                shell.odoo("snap", "remove", self.snapname, allow_error=True)
+                shell.odoo("snap", "clear", allow_error=True)
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
                 shell.odoo("down", "-v", force=True, allow_error=True)
 
     def _execute(self, shell, runenv):
+        breakpoint()
         self._reset_fields()
 
         shell.odoo("kill")
@@ -111,11 +112,15 @@ class RobotTest(models.Model):
         shell.odoo("up", "-d", "odoo_queuejobs")
         shell.odoo("up", "-d", "odoo")
         shell.odoo("up", "-d")
+        results_file = f"results_file.{uuid.uuid4()}.json"
         cmd = [
             "robot",
             "--parallel",
             self.parallel,
+            "--keep-token-dir",
             "--output-json",
+            "--results-file",
+            results_file,
             "-p",
             "password=1",
         ]
@@ -126,16 +131,13 @@ class RobotTest(models.Model):
             *cmd,
             timeout=self.test_setting_id.timeout,
             allow_error=True,
-        )["stdout"].split("---!!!---###---")
+        )
 
-        self._grab_robot_output(shell)
+        testdata = self._eval_test_output(results_file)
+        assert len(testdata) == 1  # for one file should be one result
+        assert len(testdata[0]['testoutput']) == 1  # also only one output
 
-        if len(output) == 1:
-            raise ValidationError(
-                "Did not find marker to get json result from console output here "
-                f"in {output}"
-            )
-        testdata = self._eval_test_output(output[1])
+        self._grab_robot_output(shell, testdata[0]['testoutput'][0])
 
         excel_file = shell.sql_excel(
             ("select id, name, state, exc_info " "from queue_job")
@@ -151,27 +153,32 @@ class RobotTest(models.Model):
                 )
             )
 
-    def _eval_test_output(self, output):
+    def _eval_test_output(self, results_file):
         """
         Wodoo outputs the test results of each test in a json table
         """
-        testdata = json.loads(output)
+        breakpoint()
+        configuration = shell.odoo("config", "--full")["stdout"].splitlines()
+        host_run_dir = [x for x in configuration if "HOST_RUN_DIR:" in x]
+        host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
+        robot_out = host_run_dir / "odoo_outdir" / "robot_output" / results_file
+
+        testdata = json.loads(robot_out.read_text())
+        robot_out.unlink()
+
         self.avg_duration = testdata[0].get("avg_duration", False)
         self.max_duration = testdata[0].get("max_duration", False)
         self.min_duration = testdata[0].get("min_duration", False)
         return testdata
 
-    def _grab_robot_output(self, shell):
-        configuration = shell.odoo("config", "--full")["stdout"].splitlines()
-        host_run_dir = [x for x in configuration if "HOST_RUN_DIR:" in x]
-        host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
-
-        robot_out = host_run_dir / "odoo_outdir" / "robot_output"
+    def _grab_robot_output(self, shell, folder):
+        robot_out = Path(folder)
         robot_results_tar = shell.grab_folder_as_tar(robot_out)
         robot_results_tar = (
             base64.b64encode(robot_results_tar) if robot_results_tar else False
         )
         self.robot_output = robot_results_tar
+        shell.rm(robot_out)
 
     def robot_results(self):
         """Action for displaying the robot results per web-controller.

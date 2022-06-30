@@ -384,7 +384,7 @@ class CicdTestRunLine(models.AbstractModel):
         self.write({"queuejob_id": jobs[0], "batchids": ids_string})
 
     def _get_contexted(self):
-        batchids = ",".join(list(map(str, sorted(set(self.mapped("batchids"))))))
+        batchids = "_".join(list(map(str, sorted(set(self.mapped("batchids"))))))
         return self.with_context(testrun=f"testrun_{batchids}")
 
     def _compute_project_name(self):
@@ -412,5 +412,5 @@ class CicdTestRunLine(models.AbstractModel):
 
     @property
     def snapname(self):
-        ids_as_string = "_".join(sorted(map(str, self.ids)))
-        return f"snap_{ids_as_string}"
+        batchids = '_'.join(list(sorted(set(map(str, self.mapped('batchids'))))))
+        return f"snap_{batchids}"
