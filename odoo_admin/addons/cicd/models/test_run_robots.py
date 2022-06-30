@@ -1,5 +1,6 @@
 # pylint: disable=self-cls-assignment
 # pylint: disable=R0903
+import uuid
 import re
 import json
 import base64
@@ -69,7 +70,6 @@ class RobotTest(models.Model):
     @contextmanager
     def get_environment_for_execute(self):
         DBNAME = "odoo"
-        breakpoint()
         with self._shell(quick=True) as shell:
             # there could be errors at install all
             dump_path = self.run_id.branch_id._ensure_dump(
@@ -93,8 +93,13 @@ class RobotTest(models.Model):
             shell.odoo("snap", "save", self.snapname)
             shell.wait_for_postgres()
 
+            configuration = shell.odoo("config", "--full")["stdout"].splitlines()
+            host_run_dir = [x for x in configuration if "HOST_RUN_DIR:" in x]
+            host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
+            robot_out = host_run_dir / "odoo_outdir" / "robot_output"
+
             try:
-                yield shell, {}
+                yield shell, {'robot_out': robot_out}
             finally:
                 shell.odoo("snap", "clear", allow_error=True)
                 shell.odoo("kill", allow_error=True)
@@ -102,14 +107,12 @@ class RobotTest(models.Model):
                 shell.odoo("down", "-v", force=True, allow_error=True)
 
     def _execute(self, shell, runenv):
-        breakpoint()
         self._reset_fields()
 
         shell.odoo("kill")
         shell.odoo("snap", "restore", self.snapname)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
-        shell.odoo("up", "-d", "odoo_queuejobs")
         shell.odoo("up", "-d", "odoo")
         shell.odoo("up", "-d")
         results_file = f"results_file.{uuid.uuid4()}.json"
@@ -127,17 +130,22 @@ class RobotTest(models.Model):
         if self.tags:
             cmd += ["--tags", self.tags]
         cmd += [self.filepath]
-        output = shell.odoo(
+        shell.odoo(
             *cmd,
             timeout=self.test_setting_id.timeout,
             allow_error=True,
         )
 
-        testdata = self._eval_test_output(results_file)
-        assert len(testdata) == 1  # for one file should be one result
-        assert len(testdata[0]['testoutput']) == 1  # also only one output
+        breakpoint()
+        results_path = runenv['robot_out'] / results_file
+        testdata = json.loads(shell.get(results_path))
+        shell.rm(results_path)
+        del results_file
 
-        self._grab_robot_output(shell, testdata[0]['testoutput'][0])
+        testdata = self._eval_test_output(testdata)
+        assert len(testdata) == 1  # for one file should be one result
+
+        self._grab_robot_output(shell, testdata[0]['testoutput'])
 
         excel_file = shell.sql_excel(
             ("select id, name, state, exc_info " "from queue_job")
@@ -153,18 +161,10 @@ class RobotTest(models.Model):
                 )
             )
 
-    def _eval_test_output(self, results_file):
+    def _eval_test_output(self, testdata):
         """
         Wodoo outputs the test results of each test in a json table
         """
-        breakpoint()
-        configuration = shell.odoo("config", "--full")["stdout"].splitlines()
-        host_run_dir = [x for x in configuration if "HOST_RUN_DIR:" in x]
-        host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
-        robot_out = host_run_dir / "odoo_outdir" / "robot_output" / results_file
-
-        testdata = json.loads(robot_out.read_text())
-        robot_out.unlink()
 
         self.avg_duration = testdata[0].get("avg_duration", False)
         self.max_duration = testdata[0].get("max_duration", False)
