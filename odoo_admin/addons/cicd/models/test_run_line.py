@@ -412,5 +412,7 @@ class CicdTestRunLine(models.AbstractModel):
 
     @property
     def snapname(self):
-        batchids = '_'.join(list(sorted(set(map(str, self.mapped('batchids'))))))
+        batchids = "_".join(
+            list(sorted(set(map(str, self.mapped("batchids")))))
+        ).replace(",", "_")
         return f"snap_{batchids}"
