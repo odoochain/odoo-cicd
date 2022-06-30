@@ -130,7 +130,7 @@ class RobotTest(models.Model):
         if self.tags:
             cmd += ["--tags", self.tags]
         cmd += [self.filepath]
-        shell.odoo(
+        process = shell.odoo(
             *cmd,
             timeout=self.test_setting_id.timeout,
             allow_error=True,
@@ -138,20 +138,26 @@ class RobotTest(models.Model):
 
         breakpoint()
         results_path = runenv['robot_out'] / results_file
-        testdata = json.loads(shell.get(results_path))
-        shell.rm(results_path)
         del results_file
-
-        testdata = self._eval_test_output(testdata)
-        assert len(testdata) == 1  # for one file should be one result
-
-        self._grab_robot_output(shell, testdata[0]['testoutput'])
+        if not shell.exists(results_path):
+            testdata = []
+        else:
+            testdata = json.loads(shell.get(results_path))
+            shell.rm(results_path)
+            testdata = self._eval_test_output(testdata)
+            self._grab_robot_output(shell, testdata[0]['testoutput'])
 
         excel_file = shell.sql_excel(
             ("select id, name, state, exc_info " "from queue_job")
         )
         if excel_file:
             self.queuejob_log = base64.b64encode(excel_file)
+
+        if not testdata:
+            raise Exception(
+                f"{process['stdout']}\n"
+                f"{process['stderr']}"
+            )
 
         if not testdata[0].get("all_ok"):
             raise Exception(
