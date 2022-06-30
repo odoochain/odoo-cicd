@@ -233,6 +233,7 @@ class Branch(models.Model):
                     seconds=10,
                     ignore_retry=True,
                 )
+            raise
 
     def _is_hub_configured(self, shell):
         output = shell.odoo("config", "--full", logoutput=False)["stdout"]
@@ -683,6 +684,7 @@ class Branch(models.Model):
         self._after_build(shell=shell, **kwargs)
 
     def _compress(self, shell, compress_job_id, **kwargs):
+        breakpoint()
         self.ensure_one()
         compressor = self.env["cicd.compressor"].sudo().browse(compress_job_id)
 
@@ -873,6 +875,7 @@ for path in base.glob("*"):
                     cwd=repo_path,
                     project_name=self.project_name,
                 ) as shell:
+                    breakpoint()
                     self._reload(
                         shell,
                         project_name=self.project_name,
@@ -883,7 +886,7 @@ for path in base.glob("*"):
                     config = shell.odoo("config", "--full")["stdout"].splitlines()
                     for conf in config:
                         if conf.strip().startswith("DB_HOST:"):
-                            assert "postgres" in conf
+                            assert "DB_HOST: postgres" == conf.strip()
                     shell.odoo("regpull", "postgres", allow_error=True)
                     shell.odoo("build", "postgres")
                     shell.odoo("down", "-v", force=True, allow_error=True)
