@@ -215,12 +215,6 @@ class CicdTestRun(models.Model):
                 line.cleanup()
             logsio.info("Cleanup Testing done.")
 
-    def execute_now(self):
-        self.with_context(
-            test_queue_job_no_delay=True, DEBUG_TESTRUN=True, FORCE_TEST_RUN=True
-        ).execute()
-        return True
-
     @contextmanager
     def _logsio(self, logsio=None):
         if logsio:

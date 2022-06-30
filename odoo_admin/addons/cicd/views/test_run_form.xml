@@ -10,7 +10,6 @@
 						<field name="state" widget="statusbar" attrs="{'readonly': True}" clickable='True'/>
 						<button name="rerun" string="Re-Run" type="object" states='failed,success,omitted'/>
 						<button name="abort" string="Abort" type="object" attrs="{'invisible': [('do_abort', '=', True)]}"/>
-						<button name="execute_now" string="Execute Now" type="object" groups="base.group_no_one" />
 						<button name="refresh_jobs" string="" type="object" icon="fa-refresh"/>
 					</header>
 					<sheet>
