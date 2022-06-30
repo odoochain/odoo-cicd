@@ -147,11 +147,15 @@ class RobotTest(models.Model):
 
         self._grab_robot_output(shell, testdata[0]['testoutput'])
 
-        excel_file = shell.sql_excel(
-            ("select id, name, state, exc_info " "from queue_job")
-        )
-        if excel_file:
-            self.queuejob_log = base64.b64encode(excel_file)
+        try:
+            excel_file = shell.sql_excel(
+                ("select id, name, state, exc_info " "from queue_job")
+            )
+        except Exception as ex:
+            self.run_id.message_post(body=str(ex))
+        else:
+            if excel_file:
+                self.queuejob_log = base64.b64encode(excel_file)
 
         if not testdata[0].get("all_ok"):
             raise Exception(
