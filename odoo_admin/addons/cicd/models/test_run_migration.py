@@ -16,10 +16,42 @@ class MigrationTest(models.Model):
             filepath = (rec.path or "").split("/")[-1]
             rec.name = filepath
 
-    def _execute(self):
-        import pudb
+    @api.constrains("dump_id", "machine_id")
+    def _check_dump(self):
+        for rec in self:
+            if rec.dump_id and rec.machine_id:
+                if rec.dump_id.machine_id != rec.machine_id:
+                    raise ValidationError("Machines must match to dump")
 
-        pudb.set_trace()
+    @contextmanager
+    def get_environment_for_execute(self):
+        breakpoint()
+        DBNAME = "odoo"
+        with self._shell(quick=True) as shell:
+            settings = SETTINGS + (f"DBNAME={DBNAME}")
+
+            self._ensure_source_and_machines(
+                shell,
+                start_postgres=False,
+                settings=settings,
+            )
+            shell.odoo("down", "-v", force=True, allow_error=True)
+
+            shell.odoo("up", "-d", "postgres")
+            shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
+            shell.odoo("snap", "remove", self.snapname, allow_error=True)
+            shell.odoo("snap", "save", self.snapname)
+            shell.wait_for_postgres()
+
+            try:
+                yield shell, {}
+            finally:
+                shell.odoo("snap", "remove", self.snapname, allow_error=True)
+                shell.odoo("kill", allow_error=True)
+                shell.odoo("rm", allow_error=True)
+                shell.odoo("down", "-v", force=True, allow_error=True)
+
+    def _execute(self, shell, runenv):
         self._report(f"Restoring {self.branch_id.dump_id.name}")
 
         shell.odoo("-f", "restore", "odoo-db", self.branch_id.dump_id.name)

@@ -89,6 +89,7 @@ class queuejob(models.Model):
             "func_trigger_queuejob_state_check_at_commit",
             "-bash: line%No such file or directory",
             "could not lock config file",  # changing with git config
+            "Key POSTGRES_PORT doesn't exist",
         ]
 
         ignore_idkeys = [

@@ -180,8 +180,16 @@ class TestSettings(models.Model):
                         return False
                     return True
 
+                def adapt(fieldname, x):
+                    if isinstance(x, models.AbstractModel) and x:
+                        if self._fields[fieldname].ttype == 'many2one':
+                            return x.id
+                        else:
+                            return [[6, 0, x.ids]]
+                    return x
+
                 values = {
-                    x: line[x]
+                    x: adapt(x, line[x])
                     for x in line._fields.keys()
                     if is_transferable_value(line, x)
                 }

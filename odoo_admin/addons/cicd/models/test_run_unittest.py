@@ -54,7 +54,6 @@ class UnitTest(models.Model):
                 dbname=DBNAME,
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
-            ids_as_string = "_".join(sorted(map(str, self.ids)))
 
             settings = SETTINGS + (f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}")
             assert dump_path
