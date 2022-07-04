@@ -1,6 +1,7 @@
 import base64
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
+from contextlib import contextmanager, closing
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from .test_run import SETTINGS
 
@@ -38,7 +39,13 @@ class MigrationTest(models.Model):
             shell.odoo("down", "-v", force=True, allow_error=True)
 
             shell.odoo("up", "-d", "postgres")
-            shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
+            shell.odoo(
+                "restore",
+                "odoo-db",
+                self.dump_id.name,
+                "--no-dev-scripts",
+                force=True,
+            )
             shell.odoo("snap", "remove", self.snapname, allow_error=True)
             shell.odoo("snap", "save", self.snapname)
             shell.wait_for_postgres()
