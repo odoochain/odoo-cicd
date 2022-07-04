@@ -107,7 +107,8 @@ class Dump(models.Model):
                         self.sudo()
                         .with_context(active_test=False, prefetch_fields=False)
                         .search(
-                            [("name", "=", filepath), ("machine_id", "=", machine.id)]
+                            [("name", "=", filepath), ("machine_id", "=", machine.id)],
+                            order='id asc',
                         )
                     )
                     if not dumps:
@@ -117,6 +118,10 @@ class Dump(models.Model):
                                 "machine_id": machine.id,
                             }
                         )
+
+                    if len(dumps) > 1:
+                        dumps[1:].unlink()
+                        dumps = dumps[0]
 
                     dumps.ensure_one()
                     if (
