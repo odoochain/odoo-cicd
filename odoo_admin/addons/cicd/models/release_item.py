@@ -423,8 +423,8 @@ class ReleaseItem(models.Model):
                     line.unlink()
                     updated_line = True
                 elif line.branch_id.state == "tested":
-                    if line.latest_commit_id != line.commit_id:
-                        line.commit_id = line.latest_commit_id
+                    if line.branch_id.latest_commit_id != line.commit_id:
+                        line.commit_id = line.branch_id.latest_commit_id
                         updated_line = True
             if updated_line and self.state in [
                 "integrating",
