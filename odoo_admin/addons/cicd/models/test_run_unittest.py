@@ -121,7 +121,7 @@ class UnitTest(models.Model):
                 broken.append(path)
         if broken:
             self.broken_tests = ",".join(broken)
-            raise Exception("Broken tests: {self.broken_tests}")
+            raise Exception(f"Broken tests: {self.broken_tests}")
 
     def _compute_name(self):
         for rec in self:

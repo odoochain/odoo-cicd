@@ -165,6 +165,7 @@ class CicdTestRunLine(models.AbstractModel):
                 self.run_id.message_post(
                     body=("Exception at preparation occurred:\n" f"{msg}")
                 )
+                self.log = msg
                 self.env.cr.commit()
                 raise
 
@@ -219,6 +220,8 @@ class CicdTestRunLine(models.AbstractModel):
                 except Exception:  # pylint: disable=broad-except
                     if logfile.exists():
                         logfile.unlink()
+                    msg = traceback.format_exc()
+                    self.log = f"{msg}\n{self.log or ''}"
                     raise
 
                 finally:
