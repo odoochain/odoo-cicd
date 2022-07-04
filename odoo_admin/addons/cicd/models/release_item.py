@@ -412,8 +412,30 @@ class ReleaseItem(models.Model):
             if not self.is_done and not self.is_failed:
                 self.state = "ready"
 
+        if not self.is_done and self.state not in ["ready"]:
+            """
+            If branch was updated intermediate or blocked or removed
+            update here
+            """
+            updated_line = False
+            for line in self.branch_ids:
+                if line.branch_id.block_release:
+                    line.unlink()
+                    updated_line = True
+                elif line.branch_id.state == "tested":
+                    if line.latest_commit_id != line.commit_id:
+                        line.commit_id = line.latest_commit_id
+                        updated_line = True
+            if updated_line and self.state in [
+                "integrating",
+                "ready",
+                "collecting_merge_technical",
+            ]:
+                self.state = "collecting"
+
         if self.state in ["collecting_merge_technical"]:
             # wait for solving
+            # could bo that branches updated, then set to latest commits
             pass
 
         elif self.state in ["collecting", "collecting_merge_conflict"]:
