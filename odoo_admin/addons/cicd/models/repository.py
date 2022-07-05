@@ -26,8 +26,20 @@ class NewBranch(Exception):
 
 
 class MergeConflict(Exception):
-    def __init__(self, conflicts):
+    def __init__(self, conflicts, history):
         self.conflicts = conflicts
+        self.history = history
+
+    def represent(self):
+        res = []
+        for conflict in self.conflicts:
+            res.append(f"Commit: {conflict.name}")
+        for history in self.history:
+            res.append("----------------------------------------------")
+            res.append(history)
+            res.append("----------------------------------------------")
+
+        return "\n".join(res)
 
 
 class Repository(models.Model):
@@ -575,18 +587,23 @@ class Repository(models.Model):
                     self._technical_clone_repo(path, machine=machine, branch=branch)
 
     def _merge_commits_on_target(self, shell, target, commits):
-        conflicts, history = [], []
+        conflicts = []
+        history = []
+
         for commit in commits:
             # we use git functions to retrieve deltas, git sorting and
             # so; we want to rely on stand behaviour git.
             shell.checkout_branch(target)
-            try:
-                res = shell.X(["git-cicd", "merge", commit.name])
-                already = "Already up to date" in res["stdout"]
-                history.append({"sha": commit.name, "already": already})
-            except Exception:  # pylint: disable=broad-except
-                conflicts.append(commit)
-        return conflicts, history
+            res = shell.X(["git-cicd", "merge", commit.name], allow_error=True)
+            if res["exit_code"]:
+                msg = "\n".join([res["stdout"], res["stderr"]])
+                conflicts.append((commit, msg))
+            already = "Already up to date" in res["stdout"]
+            history.append({"sha": commit.name, "already": already})
+
+        if conflicts:
+            raise MergeConflict([x[0] for x in conflicts], [x[1] for x in conflicts])
+        return history
 
     def _recreate_branch_from_commits(
         self,
@@ -627,11 +644,9 @@ class Repository(models.Model):
                     ["git-cicd", "checkout", "--no-guess", "-b", target_branch_name]
                 )
 
-                conflicts, history = self._merge_commits_on_target(
+                history = self._merge_commits_on_target(
                     shell, target_branch_name, commits
                 )
-                if conflicts:
-                    raise MergeConflict(conflicts)
 
                 message_commit_sha = None
                 if make_info_commit_msg:

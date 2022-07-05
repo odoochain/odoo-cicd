@@ -333,7 +333,7 @@ class ReleaseItem(models.Model):
                             {"state": "conflict"}
                         )
                     self.state = "collecting_merge_conflict"
-                    self.message_post(body=(f"Merge conflict happend: {ex.conflicts}"))
+                    self.message_post(body=(f"Merge conflict happend: {ex.represent()}"))
                     self.env.cr.commit()
                 else:
                     if "collecting" in self.state and self.state != "collecting":
