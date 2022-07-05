@@ -596,7 +596,13 @@ class Repository(models.Model):
             shell.checkout_branch(target)
             res = shell.X(["git-cicd", "merge", commit.name], allow_error=True)
             if res["exit_code"]:
-                msg = "\n".join([res["stdout"], res["stderr"]])
+                msg = "\n".join(
+                    [
+                        f"Branches: " + ",".join(commit.branch_ids.mapped("name")),
+                        res["stdout"],
+                        res["stderr"],
+                    ]
+                )
                 conflicts.append((commit, msg))
             already = "Already up to date" in res["stdout"]
             history.append({"sha": commit.name, "already": already})
