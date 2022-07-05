@@ -106,6 +106,7 @@ class UnitTest(models.Model):
         shell.wait_for_postgres()
         shell.odoo("update", self.odoo_module, "--no-dangling-check")
         breakpoint()
+        logoutput = []
 
         broken = []
         for path in self.filepaths.split(","):
@@ -119,9 +120,14 @@ class UnitTest(models.Model):
             )
             if res["exit_code"]:
                 broken.append(path)
+                logoutput.append(res['stdout'])
+                logoutput.append(res['stderr'])
         if broken:
             self.broken_tests = ",".join(broken)
-            raise Exception(f"Broken tests: {self.broken_tests}")
+            raise Exception(
+                f"Broken tests: {self.broken_tests}"
+                "Consoleoutput: {'\n'.join(logoutput)}"
+                )
 
     def _compute_name(self):
         for rec in self:
