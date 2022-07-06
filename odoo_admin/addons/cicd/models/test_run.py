@@ -382,7 +382,7 @@ class CicdTestRun(models.Model):
         )
 
         timeout_minutes = int(
-            self.env.ref("cicd.test_timeout_queuejobs_testruns").value
+            self.sudo().env.ref("cicd.test_timeout_queuejobs_testruns").value
         )
         queuejobs = list(
             filter(
