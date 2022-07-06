@@ -10,7 +10,7 @@ class MigrationTest(models.Model):
     _inherit = "cicd.test.run.line"
     _name = "cicd.test.run.line.migration"
 
-    dump_id = fields.Many2one("cicd.dump", string="Dump")
+    dump_id = fields.Many2one("cicd.dump", string="Dump", required=True)
 
     def _compute_name(self):
         for rec in self:
@@ -28,6 +28,8 @@ class MigrationTest(models.Model):
     def get_environment_for_execute(self):
         breakpoint()
         DBNAME = "odoo"
+        if not self.dump_id.name:
+            raise ValidationError("Dump required!")
         with self._shell(quick=True) as shell:
             settings = SETTINGS + (f"DBNAME={DBNAME}")
 
@@ -39,6 +41,7 @@ class MigrationTest(models.Model):
             shell.odoo("down", "-v", force=True, allow_error=True)
 
             shell.odoo("up", "-d", "postgres")
+            breakpoint()
             shell.odoo(
                 "restore",
                 "odoo-db",
@@ -72,7 +75,18 @@ class TestSettingsMigrations(models.Model):
     _name = "cicd.test.settings.migrations"
     _line_model = "cicd.test.run.line.migration"
 
-    dump_id = fields.Many2one("cicd.dump", string="Dump")
+    dump_id = fields.Many2one(
+        "cicd.dump",
+        string="Dump",
+        required=True,
+        domain=lambda self: [
+            [
+                "machine_id",
+                "=",
+                self.effective_machine_id.id
+            ]
+        ],
+    )
 
     def get_name(self):
         return f"{self.id} - {self.dump_id.name}"

@@ -15,6 +15,7 @@
 						<field name="source_volume_id"/>
 						<field name="regex"/>
 						<field name="branch_id"/>
+						<field name="dump_id"/>
 						<field name="repo_id" invisible='1'/>
 						<field name="repo_short" />
 						<field name="cronjob_id" required="0"/>

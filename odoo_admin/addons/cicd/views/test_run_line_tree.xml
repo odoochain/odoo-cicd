@@ -50,6 +50,7 @@
 					<field name="dump_id"/>
 					<field name="started"/>
 					<field name="duration"/>
+					<field name="machine_id"/>
 					<field name="state"/>
 					<field name="force_success" />
 					<button name="toggle_force_success" attrs="{'invisible': [('state', 'not in', ['failed'])]}" type="object" string="Force"/>

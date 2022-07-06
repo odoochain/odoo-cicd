@@ -27,11 +27,11 @@ class Compressor(models.Model):
     branch_id = fields.Many2one(
         "cicd.git.branch", string="Use Branch for compression", required=True
     )
-    date_last_success = fields.Datetime("Date Last Success")
-    last_input_size = fields.Integer("Last Input Size")
-    last_input_size_human = fields.Char("Last Input Size")
-    last_output_size = fields.Integer("Last Input Size")
-    last_output_size_human = fields.Char("Last Output Size")
+    date_last_success = fields.Datetime("Date Last Success", readonly=True)
+    last_input_size = fields.Integer("Last Input Size", readonly=True)
+    last_input_size_human = fields.Char("Last Input Size", readonly=True)
+    last_output_size = fields.Integer("Last Input Size", readonly=True)
+    last_output_size_human = fields.Char("Last Output Size", readonly=True)
     performance = fields.Integer("Performance", compute="_compute_numbers")
     output_ids = fields.One2many(
         "cicd.compressor.output", "compressor_id", string="Output"

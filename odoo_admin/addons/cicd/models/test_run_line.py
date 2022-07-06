@@ -68,7 +68,7 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _compute_machine(self):
         for rec in self:
-            machine = rec.machine_id or rec.run_id.branch_id.repo_id.machine_id
+            machine = rec.machine_id or rec.test_setting_id.effective_machine_id
             rec.effective_machine_id = machine
 
     @contextmanager

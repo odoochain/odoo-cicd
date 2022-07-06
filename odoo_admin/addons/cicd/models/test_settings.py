@@ -36,6 +36,18 @@ class TestSettingAbstract(models.AbstractModel):
     name = fields.Char(compute="_compute_name", store=False)
     machine_id = fields.Many2one("cicd.machine", string="Machine")
     lines_per_worker = fields.Integer(string="Worker Batch", default=8)
+    effective_machine_id = fields.Many2one('cicd.machine', compute="_compute_effective_machine")
+
+    def _compute_effective_machine(self):
+        for rec in self:
+            machine = rec.machine_id
+            if not machine:
+                if hasattr(rec.parent_id, 'branch_ids'):
+                    machine = rec.parent_id.branch_ids.repo_id.machine_id
+            if not machine:
+                if hasattr(rec.parent_id, 'branch_id'):
+                    machine = rec.parent_id.branch_id.repo_id.machine_id
+            rec.effective_machine_id = machine
 
     def as_job(self, suffix, afterrun=False, eta=None):
         """Puts the execution of a line into a queuejob.
