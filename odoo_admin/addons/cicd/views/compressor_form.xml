@@ -10,7 +10,7 @@
 					<button name="show_queuejobs" string="" icon="fa-tasks" type="object" />
 				</header>
 				<sheet>
-					<group string="title" col="4">
+					<group string="Compressor Settings" col="4">
 						<field name="active" widget="boolean_toggle"/>
 						<field name="source_volume_id"/>
 						<field name="regex"/>

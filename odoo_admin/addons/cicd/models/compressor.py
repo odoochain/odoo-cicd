@@ -13,7 +13,12 @@ class Compressor(models.Model):
     regex = fields.Char("Regex", required=True, default=".*")
     active = fields.Boolean("Active", default=True)
     cronjob_id = fields.Many2one(
-        "ir.cron", string="Cronjob", required=False, ondelete="cascade", readonly=True
+        "ir.cron",
+        string="Cronjob",
+        required=False,
+        ondelete="cascade",
+        readonly=True,
+        copy=False,
     )
     repo_id = fields.Many2one("cicd.git.repo", related="branch_id.repo_id")
     repo_short = fields.Char(related="repo_id.short", string="Repo")

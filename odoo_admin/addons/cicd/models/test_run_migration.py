@@ -14,7 +14,7 @@ class MigrationTest(models.Model):
 
     def _compute_name(self):
         for rec in self:
-            filepath = (rec.path or "").split("/")[-1]
+            filepath = (rec.dump_id.name or "").split("/")[-1]
             rec.name = filepath
 
     @api.constrains("dump_id", "machine_id")

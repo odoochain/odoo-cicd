@@ -16,10 +16,10 @@ class queuejob(models.Model):
             if not rec.date_done or not rec.date_started:
                 rec.duration = 0
                 continue
-            rec.duration = (
+            duration = (
                 arrow.get(rec.date_done) - arrow.get(rec.date_started)
             ).total_seconds()
-
+            rec.duration = max(0, duration)
 
     def run_now(self):
         for self in self:

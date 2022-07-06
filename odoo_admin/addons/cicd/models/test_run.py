@@ -307,7 +307,6 @@ class CicdTestRun(models.Model):
             test_setup.as_job(test_setup.name).init_testrun(self)
 
     def _compute_success_state(self):
-        breakpoint()
         self.ensure_one()
         if self._is_success():
             self.state = "success"
@@ -351,7 +350,6 @@ class CicdTestRun(models.Model):
                 rec.date_started = False
 
     def _inform_developer(self):
-        breakpoint()
         for rec in self:
             partners = (
                 rec.commit_id.author_user_id.mapped("partner_id")

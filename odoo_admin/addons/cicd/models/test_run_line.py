@@ -47,7 +47,7 @@ class CicdTestRunLine(models.AbstractModel):
         [
             ("cicd.test.settings.unittest", "Unit Test"),
             ("cicd.test.settings.robottest", "Robot Test"),
-            ("cicd.test.settings.migration", "Migration Test"),
+            ("cicd.test.settings.migrations", "Migration Test"),
         ],
         string="Initiating Testsetting",
         required=True,

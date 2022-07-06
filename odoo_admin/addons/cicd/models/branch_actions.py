@@ -406,7 +406,6 @@ class Branch(models.Model):
     def _cron_run_open_tests(self):
         for testrun in self.env["cicd.test.run"].search([("state", "=", "open")]):
             # observed duplicate starts without eta
-            eta = arrow.utcnow().shift(seconds=10).replace(tzinfo=None).strftime(DTF)
             testrun.as_job(
                 (
                     "start-open-testrun-"
@@ -717,6 +716,7 @@ class Branch(models.Model):
             )
 
             assert shell.machine.ttype == "dev"
+            breakpoint()
 
             # change working project/directory
             with self._tempinstance(f"{self.name}{appendix}") as shell:

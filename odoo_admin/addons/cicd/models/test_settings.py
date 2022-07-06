@@ -97,7 +97,6 @@ class TestSettingAbstract(models.AbstractModel):
         self.preparation_done = True
 
     def init_testrun(self, testrun):
-        breakpoint()
         lines = self.produce_test_run_lines(testrun)
         for i in range(0, len(lines), self.lines_per_worker):
             batch = lines[i : i + self.lines_per_worker]
@@ -222,6 +221,7 @@ class TestSettings(models.Model):
         Yields:
             inherited cicd.test.setting.base: A test setting
         """
+        breakpoint()
         for field in self._get_test_run_fields():
             for line in self[field]:
                 yield line
