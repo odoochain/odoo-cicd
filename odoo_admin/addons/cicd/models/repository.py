@@ -1,4 +1,5 @@
 import traceback
+import json
 from . import pg_advisory_lock
 from odoo import registry
 import arrow
@@ -33,6 +34,7 @@ class MergeConflict(Exception):
         res = []
         for conflict in self.conflicts:
             res.append(f"Branch: {conflict['branch'].name}")
+            res.append(f"Merged Before: {json.dumps(conflict['merged'], indent=4)}")
             res.append(f"Commit: {conflict['commit'].name}")
             res.append(f"Console: {conflict['console']}")
         return "\n".join(res)
@@ -584,6 +586,7 @@ class Repository(models.Model):
     def _merge_commits_on_target(self, shell, target, commits):
         conflicts = []
         history = []
+        merged = []
 
         for commit in commits:
             # we use git functions to retrieve deltas, git sorting and
@@ -596,11 +599,13 @@ class Repository(models.Model):
                 conflicts.append({
                     'commit': commit['commit'],
                     'branch': commit['branch'],
+                    'merged': merged,
                     'console': console,
                 })
             else:
                 already = "Already up to date" in res["stdout"]
             history.append({"sha": commit.name, "already": already})
+            merged.append(commit)
 
         if conflicts:
             raise MergeConflict(conflicts)

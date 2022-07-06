@@ -20,6 +20,7 @@
 				<tr>
 					<th>Branch</th>
 					<th>Commit</th>
+					<th>Merged before</th>
 					<th>Console Out</th>
 				</tr>
 
@@ -32,12 +33,24 @@
 							<t t-esc="conflict['commit']"/>
 						</td>
 						<td>
-							<pre t-esc="conflict['console']">
-							</pre>
-						</td>
-					</tr>
-				</t>
-			</table>
-		</template>
-	</data>
+							<ul>
+								<t t-foreach="conflict['merged']" t-as="merged">
+									<li>
+									Branch: <t t-esc="merged['branch']"/>
+									<br/>
+									Commit: <t t-esc="merged['commit']"/>
+								<br/>
+							</li>
+						</t>
+					</ul>
+				</td>
+				<td>
+					<pre t-esc="conflict['console']">
+					</pre>
+				</td>
+			</tr>
+		</t>
+	</table>
+</template>
+</data>
 </odoo>
