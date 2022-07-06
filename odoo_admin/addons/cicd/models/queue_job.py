@@ -91,6 +91,7 @@ class queuejob(models.Model):
             "could not lock config file",  # changing with git config
             "Key POSTGRES_PORT doesn't exist",
             "could not connect to server: Connection refused",
+            "server closed the connection unexpectedly",
         ]
 
         ignore_idkeys = [
