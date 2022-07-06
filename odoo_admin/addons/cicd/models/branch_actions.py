@@ -745,7 +745,6 @@ class Branch(models.Model):
                             shell_dest.put(dump, dest_path)
 
                     compressor.date_last_success = fields.Datetime.now()
-<<<<<<< Updated upstream
         except Exception as ex:
             msg = traceback.format_exc()
             compressor.last_log = (
