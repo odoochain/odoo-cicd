@@ -15,6 +15,7 @@ import logging
 from .repository import InvalidBranchName
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
+from . shell_executor_base import HandledProcessOutputException
 
 current_dir = Path(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -694,16 +695,12 @@ class Branch(models.Model):
         # if the machines are the same, then just rewrite destination path
         # if machines are different then copy locally and then put it on the
         # machine
-        appendix = "_compressor"
-        if compressor.anonymize:
-            appendix += "_anonymize"
-        self = self.with_context(testrun=appendix)
+        self = self.with_context(testrun=f"compressor_{compress_job_id}")
         dest_file_path = shell.machine._get_volume("dumps") / self.project_name
 
         # release db resources:
         self.env.cr.commit()
         source_machine = compressor.source_volume_id.machine_id
-
         try:
             with source_machine._put_temporary_file_on_machine(
                 shell.logsio,
@@ -721,13 +718,18 @@ class Branch(models.Model):
                 breakpoint()
 
                 # change working project/directory
-                with self._tempinstance(f"{self.name}{appendix}") as shell:
+                with self._tempinstance(self.env.context.get('testrun')) as shell:
                     shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
                     shell.logsio.info("Clearing DB...")
-                    shell.odoo("-f", "cleardb")
+                    output = shell.odoo("-f", "cleardb", allow_error=True)
+                    if output['exit_code']:
+                        raise HandledProcessOutputException(output)
                     if compressor.anonymize:
                         shell.logsio.info("Anonymizing DB...")
-                        shell.odoo("-f", "anonymize")
+                        output = shell.odoo("-f", "anonymize", allow_error=True)
+                        if output['exit_code']:
+                            raise HandledProcessOutputException(output)
+
                     shell.logsio.info("Dumping compressed dump")
                     dump_path = shell.machine._get_volume("dumps") / self.project_name
                     shell.odoo("backup", "odoo-db", dump_path)
@@ -743,12 +745,17 @@ class Branch(models.Model):
                             shell_dest.put(dump, dest_path)
 
                     compressor.date_last_success = fields.Datetime.now()
+<<<<<<< Updated upstream
         except Exception as ex:
             msg = traceback.format_exc()
             compressor.last_log = (
                 f"{str(ex)}\n"
                 f"{msg}"
             )
+=======
+        except HandledProcessOutputException as ex:
+            compressor.last_log = ex.console
+>>>>>>> Stashed changes
             self.env.cr.commit()
             raise
 
