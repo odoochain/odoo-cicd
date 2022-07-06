@@ -178,7 +178,6 @@ class TestSettings(models.Model):
             )
 
     def _set_testsetting_ids(self):
-        breakpoint()
         for rec in self:
             # deleted?
             lines = list(rec.iterate_all_test_settings())
@@ -212,7 +211,7 @@ class TestSettings(models.Model):
 
                 def adapt(fieldname, x):
                     if isinstance(x, models.AbstractModel) and x:
-                        if line._fields[fieldname].ttype == "many2one":
+                        if line._fields[fieldname].type == "many2one":
                             return x.id
                         else:
                             return [[6, 0, x.ids]]
