@@ -19,15 +19,15 @@
 							</h1>
 						</div>
 						<group col='4'>
-							<field name="create_date"/>
-							<field name="date" />
-							<field name="commit_id"/>
-							<field name="repo_short"/>
-							<field name="branch_id"/>
+							<field name="create_date" readonly="1"/>
+							<field name="date"  readonly="1"/>
+							<field name="commit_id" readonly="1"/>
+							<field name="repo_short" readonly="1"/>
+							<field name="branch_id" readonly="1"/>
 							<field name="branch_ids" widget="many2many_tags"/>
-							<field name="duration"/>
-							<field name="success_rate"/>
-							<field name="done_rate"/>
+							<field name="duration" readonly="1"/>
+							<field name="success_rate" readonly="1"/>
+							<field name="done_rate" readonly="1"/>
 							<field name="no_reuse"/>
 						</group>
 						<notebook>
