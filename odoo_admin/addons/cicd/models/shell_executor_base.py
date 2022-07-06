@@ -21,6 +21,13 @@ DEFAULT_TIMEOUT = 6 * 3600
 def duration(d):
     return (arrow.get() - d).total_seconds()
 
+class HandledProcessOutputException(Exception):
+    """
+    Easily raise output of process.
+    """
+    def __init__(self, proc):
+        self.exit_code = proc['exit_code']
+        self.console = proc['stdout'] + "\n" + proc['stderr']
 
 class MyWriter:
     def __init__(self, ttype, logger, logoutput):
