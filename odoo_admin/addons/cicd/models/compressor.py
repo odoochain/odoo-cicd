@@ -118,12 +118,16 @@ class Compressor(models.Model):
                 .strip()
                 .splitlines()
             )
+            line = None
+            if not output:
+                raise Exception("No dump found")
 
             for line in output:
-                if line == "." or line == "..":
+                if line in (".", ".."):
                     continue
                 if re.findall(self.regex, line):
-                    return line.strip()
+                    break
             else:
                 logsio.info("No files found.")
                 return
+            return line.strip()
