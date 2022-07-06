@@ -7,7 +7,7 @@
 			<field name="description">Merge Conflict</field>
 			<field name="default" eval="True"></field>
 			<field name="internal" eval="False"></field>
-			<field name="hidden" eval="True"></field>
+			<field name="hidden" eval="False"></field>
 		</record>
 		<template id="mt_mergeconflict_template">
 			<h1>

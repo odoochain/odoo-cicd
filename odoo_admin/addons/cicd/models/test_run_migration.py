@@ -79,13 +79,7 @@ class TestSettingsMigrations(models.Model):
         "cicd.dump",
         string="Dump",
         required=True,
-        domain=lambda self: [
-            [
-                "machine_id",
-                "=",
-                self.effective_machine_id.id
-            ]
-        ],
+        domain="[('machine_id', '=', effective_machine_id)]"
     )
 
     def get_name(self):

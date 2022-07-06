@@ -36,17 +36,31 @@ class TestSettingAbstract(models.AbstractModel):
     name = fields.Char(compute="_compute_name", store=False)
     machine_id = fields.Many2one("cicd.machine", string="Machine")
     lines_per_worker = fields.Integer(string="Worker Batch", default=8)
-    effective_machine_id = fields.Many2one('cicd.machine', compute="_compute_effective_machine")
+    effective_machine_id = fields.Many2one(
+        "cicd.machine", compute="_compute_effective_machine"
+    )
+
+    @api.model
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        params = self.env.context.get('params', {})
+        parent = self.env[params.get("model")].browse(params['id'])
+        res["effective_machine_id"] = self._get_machine(parent)
+        return res
+
+    def _get_machine(self, parent):
+        machine = self.machine_id
+        if not machine:
+            if hasattr(parent, "branch_ids"):
+                machine = parent.branch_ids.repo_id.machine_id
+        if not machine:
+            if hasattr(parent, "branch_id"):
+                machine = parent.branch_id.repo_id.machine_id
+        return machine
 
     def _compute_effective_machine(self):
         for rec in self:
-            machine = rec.machine_id
-            if not machine:
-                if hasattr(rec.parent_id, 'branch_ids'):
-                    machine = rec.parent_id.branch_ids.repo_id.machine_id
-            if not machine:
-                if hasattr(rec.parent_id, 'branch_id'):
-                    machine = rec.parent_id.branch_id.repo_id.machine_id
+            machine = self._get_machine(rec.parent_id)
             rec.effective_machine_id = machine
 
     def as_job(self, suffix, afterrun=False, eta=None):
@@ -116,6 +130,7 @@ class TestSettingAbstract(models.AbstractModel):
             browse_lines = batch[0].browse(ids)
             browse_lines._create_worker_queuejob()
 
+
 class TestSettings(models.Model):
     """
     This is the container of test settings so you can configure
@@ -166,13 +181,15 @@ class TestSettings(models.Model):
             # deleted?
             lines = list(rec.iterate_all_test_settings())
             for field in self._get_test_run_fields():
-                existing = self.env[self._fields[field].comodel_name].search([
-                    ('parent_id', '=', f'{self._name},{rec.id}')])
+                existing = self.env[self._fields[field].comodel_name].search(
+                    [("parent_id", "=", f"{self._name},{rec.id}")]
+                )
                 for ex in existing:
                     if ex not in lines:
                         ex.unlink()
 
             for line in lines:
+
                 def is_transferable_value(line, field):
                     obj_field = line._fields[field]
                     if obj_field.compute and not obj_field.store:
@@ -193,7 +210,7 @@ class TestSettings(models.Model):
 
                 def adapt(fieldname, x):
                     if isinstance(x, models.AbstractModel) and x:
-                        if self._fields[fieldname].ttype == 'many2one':
+                        if self._fields[fieldname].ttype == "many2one":
                             return x.id
                         else:
                             return [[6, 0, x.ids]]
@@ -233,7 +250,6 @@ class TestSettings(models.Model):
         Yields:
             inherited cicd.test.setting.base: A test setting
         """
-        breakpoint()
         for field in self._get_test_run_fields():
             for line in self[field]:
                 yield line

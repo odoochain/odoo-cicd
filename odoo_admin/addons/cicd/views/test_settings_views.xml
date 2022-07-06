@@ -33,6 +33,7 @@
 			<field name="arch" type="xml">
 				<tree editable="bottom">
 					<field name="dump_id"/>
+					<field name="effective_machine_id"/>
 					<field name="retry_count"/>
 					<field name="timeout"/>
 					<field name="lines_per_worker"/>
