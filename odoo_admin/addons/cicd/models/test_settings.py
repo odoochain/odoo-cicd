@@ -58,6 +58,7 @@ class TestSettingAbstract(models.AbstractModel):
                 machine = parent.branch_id.repo_id.machine_id
         return machine
 
+    @api.depends("machine_id", "parent_id")
     def _compute_effective_machine(self):
         for rec in self:
             machine = self._get_machine(rec.parent_id)
@@ -177,6 +178,7 @@ class TestSettings(models.Model):
             )
 
     def _set_testsetting_ids(self):
+        breakpoint()
         for rec in self:
             # deleted?
             lines = list(rec.iterate_all_test_settings())
@@ -210,7 +212,7 @@ class TestSettings(models.Model):
 
                 def adapt(fieldname, x):
                     if isinstance(x, models.AbstractModel) and x:
-                        if self._fields[fieldname].ttype == "many2one":
+                        if line._fields[fieldname].ttype == "many2one":
                             return x.id
                         else:
                             return [[6, 0, x.ids]]
