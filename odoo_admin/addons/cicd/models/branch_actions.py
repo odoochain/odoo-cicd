@@ -751,10 +751,8 @@ class Branch(models.Model):
                 f"{str(ex)}\n"
                 f"{msg}"
             )
-=======
         except HandledProcessOutputException as ex:
             compressor.last_log = ex.console
->>>>>>> Stashed changes
             self.env.cr.commit()
             raise
 
