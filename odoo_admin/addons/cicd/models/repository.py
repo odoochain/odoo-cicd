@@ -26,21 +26,16 @@ class NewBranch(Exception):
 
 
 class MergeConflict(Exception):
-    def __init__(self, conflicts, history):
+    def __init__(self, conflicts):
         self.conflicts = conflicts
-        self.history = history
 
     def represent(self):
         res = []
         for conflict in self.conflicts:
-            res.append(f"Commit: {conflict.name}")
-        for history in self.history:
-            res.append("----------------------------------------------")
-            res.append(history)
-            res.append("----------------------------------------------")
-
+            res.append(f"Branch: {conflict['branch'].name}")
+            res.append(f"Commit: {conflict['commit'].name}")
+            res.append(f"Console: {conflict['console']}")
         return "\n".join(res)
-
 
 class Repository(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
@@ -594,21 +589,21 @@ class Repository(models.Model):
             # we use git functions to retrieve deltas, git sorting and
             # so; we want to rely on stand behaviour git.
             shell.checkout_branch(target)
-            res = shell.X(["git-cicd", "merge", commit.name], allow_error=True)
+            res = shell.X(["git-cicd", "merge", commit['commit'].name], allow_error=True)
+            already = False
             if res["exit_code"]:
-                msg = "\n".join(
-                    [
-                        f"Branches: " + ",".join(commit.branch_ids.mapped("name")),
-                        res["stdout"],
-                        res["stderr"],
-                    ]
-                )
-                conflicts.append((commit, msg))
-            already = "Already up to date" in res["stdout"]
+                console = "\n".join([ res["stdout"], res["stderr"]])
+                conflicts.append({
+                    'commit': commit['commit'],
+                    'branch': commit['branch'],
+                    'console': console,
+                })
+            else:
+                already = "Already up to date" in res["stdout"]
             history.append({"sha": commit.name, "already": already})
 
         if conflicts:
-            raise MergeConflict([x[0] for x in conflicts], [x[1] for x in conflicts])
+            raise MergeConflict(conflicts)
         return history
 
     def _recreate_branch_from_commits(
@@ -625,6 +620,8 @@ class Repository(models.Model):
 
         If merge conflicts exist, then all not mergable commits are returned.
 
+        :param commits: expects list of dict with key 'branch' and 'commit'
+
         """
         if not commits:
             return
@@ -632,7 +629,9 @@ class Repository(models.Model):
 
         # we use a working repo
         assert target_branch_name
-        assert commits._name == "cicd.git.commit"
+        assert isinstance(commits[0], dict)
+        assert isinstance(commits[0]['branch']._name, 'cicd.git.branch')
+        assert isinstance(commits[0]['commit']._name, 'cicd.git.branch')
         machine = self.machine_id
         history = []  # what was done for each commit
 

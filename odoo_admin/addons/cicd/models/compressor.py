@@ -32,6 +32,7 @@ class Compressor(models.Model):
     last_input_size_human = fields.Char("Last Input Size", readonly=True)
     last_output_size = fields.Integer("Last Input Size", readonly=True)
     last_output_size_human = fields.Char("Last Output Size", readonly=True)
+    last_log = fields.Text("Last Log")
     performance = fields.Integer("Performance", compute="_compute_numbers")
     output_ids = fields.One2many(
         "cicd.compressor.output", "compressor_id", string="Output"

@@ -1,0 +1,43 @@
+<odoo>
+	<data noupdate='0'>
+
+		<record id="mt_mergeconflict" model="mail.message.subtype">
+			<field name="res_model">cicd.release</field>
+			<field name="name">Merge Conflict</field>
+			<field name="description">Merge Conflict</field>
+			<field name="default" eval="True"></field>
+			<field name="internal" eval="False"></field>
+			<field name="hidden" eval="True"></field>
+		</record>
+		<template id="mt_mergeconflict_template">
+			<h1>
+				Merge conflict happend in release <t t-esc="self.name"/>
+			</h1>
+			<p>
+				Conflicts appeared in:
+			</p>
+			<table>
+				<tr>
+					<th>Branch</th>
+					<th>Commit</th>
+					<th>Console Out</th>
+				</tr>
+
+				<t t-foreach="conflicts" t-as="conflict">
+					<tr>
+						<td>
+							<t t-esc="conflict['branch']"/>
+						</td>
+						<td>
+							<t t-esc="conflict['commit']"/>
+						</td>
+						<td>
+							<pre t-esc="conflict['console']">
+							</pre>
+						</td>
+					</tr>
+				</t>
+			</table>
+		</template>
+	</data>
+</odoo>

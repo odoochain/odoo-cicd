@@ -1,4 +1,5 @@
 from . import pg_advisory_lock
+import traceback
 import json
 from contextlib import contextmanager
 from odoo import fields
@@ -703,44 +704,53 @@ class Branch(models.Model):
         self.env.cr.commit()
         source_machine = compressor.source_volume_id.machine_id
 
-        with source_machine._put_temporary_file_on_machine(
-            shell.logsio,
-            compressor.source_volume_id.name + "/" + filename,
-            shell.machine,
-            dest_file_path,
-        ) as effective_dest_file_path:
-            compressor.last_input_size = int(
-                shell.X(["stat", "-c", "%s", effective_dest_file_path])[
-                    "stdout"
-                ].strip()
-            )
-
-            assert shell.machine.ttype == "dev"
-            breakpoint()
-
-            # change working project/directory
-            with self._tempinstance(f"{self.name}{appendix}") as shell:
-                shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
-                shell.logsio.info("Clearing DB...")
-                shell.odoo("-f", "cleardb")
-                if compressor.anonymize:
-                    shell.logsio.info("Anonymizing DB...")
-                    shell.odoo("-f", "anonymize")
-                shell.logsio.info("Dumping compressed dump")
-                dump_path = shell.machine._get_volume("dumps") / self.project_name
-                shell.odoo("backup", "odoo-db", dump_path)
-                compressor.last_output_size = int(
-                    shell.X(["stat", "-c", "%s", dump_path])["stdout"].strip()
+        try:
+            with source_machine._put_temporary_file_on_machine(
+                shell.logsio,
+                compressor.source_volume_id.name + "/" + filename,
+                shell.machine,
+                dest_file_path,
+            ) as effective_dest_file_path:
+                compressor.last_input_size = int(
+                    shell.X(["stat", "-c", "%s", effective_dest_file_path])[
+                        "stdout"
+                    ].strip()
                 )
 
-                dump = shell.get(dump_path)
-                for output in compressor.output_ids:
-                    with output.volume_id.machine_id._shell() as shell_dest:
-                        dest_path = output.volume_id.name
-                        dest_path = dest_path + "/" + output.output_filename
-                        shell_dest.put(dump, dest_path)
+                assert shell.machine.ttype == "dev"
+                breakpoint()
 
-                compressor.date_last_success = fields.Datetime.now()
+                # change working project/directory
+                with self._tempinstance(f"{self.name}{appendix}") as shell:
+                    shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
+                    shell.logsio.info("Clearing DB...")
+                    shell.odoo("-f", "cleardb")
+                    if compressor.anonymize:
+                        shell.logsio.info("Anonymizing DB...")
+                        shell.odoo("-f", "anonymize")
+                    shell.logsio.info("Dumping compressed dump")
+                    dump_path = shell.machine._get_volume("dumps") / self.project_name
+                    shell.odoo("backup", "odoo-db", dump_path)
+                    compressor.last_output_size = int(
+                        shell.X(["stat", "-c", "%s", dump_path])["stdout"].strip()
+                    )
+
+                    dump = shell.get(dump_path)
+                    for output in compressor.output_ids:
+                        with output.volume_id.machine_id._shell() as shell_dest:
+                            dest_path = output.volume_id.name
+                            dest_path = dest_path + "/" + output.output_filename
+                            shell_dest.put(dump, dest_path)
+
+                    compressor.date_last_success = fields.Datetime.now()
+        except Exception as ex:
+            msg = traceback.format_exc()
+            compressor.last_log = (
+                f"{str(ex)}\n"
+                f"{msg}"
+            )
+            self.env.cr.commit()
+            raise
 
     def _make_sure_source_exists(self, shell):
         instance_folder = self._get_instance_folder(shell.machine)

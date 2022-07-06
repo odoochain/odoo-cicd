@@ -278,9 +278,13 @@ class ReleaseItem(models.Model):
         with self.release_id._get_logsio() as logsio:
             logsio.info((f"Merging on {target_branch_name} following commits: "))
             try:
-                branches = ", ".join(self.branch_ids.branch_id.mapped("name"))
+                branches = ", ".join(
+                    self.branch_ids.filtered(
+                        lambda x: x.state != "conflict"
+                    ).branch_id.mapped("name")
+                )
                 try:
-                    commits = self.mapped("branch_ids.commit_id")
+                    commits = self.mapped("branch_ids")
                     logsio.info((f"commits: {commits.mapped('name')}"))
                     commits_checksum = self._get_commit_checksum(commits)
                     logsio.info(f"Commits Checksum: {commits_checksum}")
@@ -290,7 +294,10 @@ class ReleaseItem(models.Model):
                     repo = self.repo_id
                     message_commit, history = repo._recreate_branch_from_commits(
                         source_branch=self.release_id.branch_id.name,
-                        commits=commits,
+                        commits=[
+                            {"branch": x.branch_id, "commit": x.commit_id}
+                            for x in commits
+                        ],
                         target_branch_name=target_branch_name,
                         logsio=logsio,
                         make_info_commit_msg=(
@@ -327,18 +334,23 @@ class ReleaseItem(models.Model):
                             )
 
                 except MergeConflict as ex:
-                    for commit in ex.conflicts:
-                        assert commit._name == "cicd.git.commit"
-                        self.branch_ids.filtered(lambda x: x.commit_id == commit).write(
-                            {"state": "conflict"}
-                        )
-                    self.state = "collecting_merge_conflict"
-                    self.message_post(body=(f"Merge conflict happend: {ex.represent()}"))
+                    for conflict in ex.conflicts:
+                        assert conflict["commit"]._name == "cicd.git.commit"
+                        assert conflict["branch"]._name == "cicd.git.branch"
+                        self.branch_ids.filtered(
+                            lambda x: x.commit_id == conflict["commit"]
+                        ).write({"state": "conflict"})
+                    self.message_post_with_view(
+                        "cicd.mt_mergeconflict_template",
+                        values={"self": self, "conflicts": ex.conflicts},
+                        subtype_id="cicd.mt_mergeconflict",
+                    )
                     self.env.cr.commit()
                 else:
-                    if "collecting" in self.state and self.state != "collecting":
-                        self.state = "collecting"
                     self.message_post(body=("Successfully merged"))
+
+                if "collecting" in self.state and self.state != "collecting":
+                    self.state = "collecting"
 
                 if self.branch_ids:
                     assert self.item_branch_id
