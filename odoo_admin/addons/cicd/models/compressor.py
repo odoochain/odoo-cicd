@@ -107,7 +107,6 @@ class Compressor(models.Model):
         }
 
     def _get_latest_dump(self, logsio):
-        breakpoint()
         self.ensure_one()
 
         logsio.info("Identifying latest dump")
