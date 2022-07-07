@@ -124,9 +124,10 @@ class UnitTest(models.Model):
                 logoutput.append(res['stderr'])
         if broken:
             self.broken_tests = ",".join(broken)
+            logoutput = '\n'.join(logoutput)
             raise Exception(
-                f"Broken tests: {self.broken_tests}"
-                "Consoleoutput: {'\n'.join(logoutput)}"
+                f"Broken tests: {self.broken_tests}\n\n"
+                f"Consoleoutput: {logoutput}"
                 )
 
     def _compute_name(self):
