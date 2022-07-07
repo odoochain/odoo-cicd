@@ -525,7 +525,7 @@ class Branch(models.Model):
                 )
 
             shell.logsio.write_text("Clean git")
-            shell.X(["git-cicd", "clean", "-xdff"])
+            shell.X(["git-cicd", "clean", "-xdff"], retry=10)
 
             shell.logsio.write_text("Updating submodules")
             shell.X(["git-cicd", "submodule", "update", "--recursive", "--init"])
@@ -737,6 +737,7 @@ class Branch(models.Model):
                     compressor.last_output_size = int(
                         shell.X(["stat", "-c", "%s", dump_path])["stdout"].strip()
                     )
+                    self.env.cr.commit()
 
                     dump = shell.get(dump_path)
                     for output in compressor.output_ids:
