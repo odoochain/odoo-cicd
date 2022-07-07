@@ -62,7 +62,7 @@ class MigrationTest(models.Model):
                 shell.odoo("down", "-v", force=True, allow_error=True)
 
     def _execute(self, shell, runenv):
-        self._report(f"Restoring {self.parent_id.branch_id.dump_id.name}")
+        self._report(f"Restoring {self.run_id.branch_id.dump_id.name}")
 
         shell.odoo("-f", "restore", "odoo-db", self.run_id.branch_id.dump_id.name)
         shell.wait_for_postgres()
