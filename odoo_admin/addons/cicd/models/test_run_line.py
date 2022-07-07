@@ -165,7 +165,7 @@ class CicdTestRunLine(models.AbstractModel):
                 self.run_id.message_post(
                     body=("Exception at preparation occurred:\n" f"{msg}")
                 )
-                self.log = msg
+                self.write({'log': msg})
                 self.env.cr.commit()
                 raise
 
