@@ -40,7 +40,7 @@
 								</group>
 
 							</page>
-							<page name="Log">
+							<page name="Log" string="Log">
 								<field name="last_log"/>
 							</page>
 
