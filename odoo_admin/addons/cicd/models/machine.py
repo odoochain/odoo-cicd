@@ -229,6 +229,7 @@ class CicdMachine(models.Model):
             machine.with_delay()._clean_temppath()
 
     def _clean_temppath(self):
+        breakpoint()
         self.ensure_one()
         if not self.active:
             return
@@ -239,7 +240,7 @@ class CicdMachine(models.Model):
                 for dirname in shell.X(["ls", "-l", vol.name])["stdout"].splitlines():
                     if ".cleanme." in dirname:
                         try:
-                            date = arrow.get(dirname.split(".")[-1])
+                            date = arrow.get(dirname.split(".")[-1], "YYYYMMDD_HHmmss")
                         except Exception:
                             date = arrow.utcnow().shift(years=-1)
 
