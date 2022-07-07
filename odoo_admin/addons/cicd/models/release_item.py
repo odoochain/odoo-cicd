@@ -284,11 +284,11 @@ class ReleaseItem(models.Model):
                     ).branch_id.mapped("name")
                 )
                 try:
-                    commits = self.mapped("branch_ids")
-                    logsio.info((f"commits: {commits.mapped('name')}"))
-                    commits_checksum = self._get_commit_checksum(commits)
+                    release_branches = self.branch_ids
+                    logsio.info((f"commits: {release_branches.commit_id.mapped('name')}"))
+                    commits_checksum = self._get_commit_checksum(release_branches)
                     logsio.info(f"Commits Checksum: {commits_checksum}")
-                    if not commits:
+                    if not release_branches:
                         self.state = "collecting"
                         return
                     repo = self.repo_id
@@ -296,7 +296,7 @@ class ReleaseItem(models.Model):
                         source_branch=self.release_id.branch_id.name,
                         commits=[
                             {"branch": x.branch_id, "commit": x.commit_id}
-                            for x in commits
+                            for x in release_branches
                         ],
                         target_branch_name=target_branch_name,
                         logsio=logsio,
