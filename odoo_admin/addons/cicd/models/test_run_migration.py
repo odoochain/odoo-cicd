@@ -64,7 +64,7 @@ class MigrationTest(models.Model):
     def _execute(self, shell, runenv):
         self._report(f"Restoring {self.parent_id.branch_id.dump_id.name}")
 
-        shell.odoo("-f", "restore", "odoo-db", self.parent_id.branch_id.dump_id.name)
+        shell.odoo("-f", "restore", "odoo-db", self.run_id.branch_id.dump_id.name)
         shell.wait_for_postgres()
         shell.odoo("update", timeout=self.timeout_migration)
         shell.wait_for_postgres()
