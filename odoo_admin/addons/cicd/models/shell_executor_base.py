@@ -1,4 +1,5 @@
 import tempfile
+import os
 import traceback
 import base64
 import arrow
@@ -211,6 +212,7 @@ class BaseShellExecutor:
             f"echo '{start_marker}'\n"
             f"touch ~/.hushlogin  # suppress motd "
             "to correctly parse git outputs\n"
+            f"logger 'CICD COMMAND: {cmd}'\n"
             f"set -e\n"
             f"{cmd} | cat -\n"
             f"echo\n"
