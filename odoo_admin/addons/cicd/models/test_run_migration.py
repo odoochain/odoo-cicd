@@ -62,9 +62,9 @@ class MigrationTest(models.Model):
                 shell.odoo("down", "-v", force=True, allow_error=True)
 
     def _execute(self, shell, runenv):
-        self._report(f"Restoring {self.branch_id.dump_id.name}")
+        self._report(f"Restoring {self.parent_id.branch_id.dump_id.name}")
 
-        shell.odoo("-f", "restore", "odoo-db", self.branch_id.dump_id.name)
+        shell.odoo("-f", "restore", "odoo-db", self.parent_id.branch_id.dump_id.name)
         shell.wait_for_postgres()
         shell.odoo("update", timeout=self.timeout_migration)
         shell.wait_for_postgres()
@@ -79,7 +79,7 @@ class TestSettingsMigrations(models.Model):
         "cicd.dump",
         string="Dump",
         required=True,
-        domain="[('machine_id', '=', effective_machine_id)]"
+        domain="[('machine_id', '=', effective_machine_id)]",
     )
 
     def get_name(self):
