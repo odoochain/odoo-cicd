@@ -721,6 +721,7 @@ class Branch(models.Model):
                 with self._tempinstance(self.env.context.get('testrun')) as shell:
                     shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
                     shell.logsio.info("Clearing DB...")
+                    breakpoint()
                     output = shell.odoo("-f", "cleardb", allow_error=True)
                     if output['exit_code']:
                         raise HandledProcessOutputException(output)
