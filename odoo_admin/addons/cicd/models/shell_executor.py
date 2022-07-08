@@ -435,3 +435,8 @@ class ShellExecutor(BaseShellExecutor):
             "stdout"
         ].strip()
         return current_branch
+
+    def file_size(self, path):
+        size = self.X(["stat", "-c", "%s", path])["stdout"].strip()
+        size = int(size or 0)
+        return size

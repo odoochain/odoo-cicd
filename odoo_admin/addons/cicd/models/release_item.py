@@ -286,7 +286,7 @@ class ReleaseItem(models.Model):
                 try:
                     release_branches = self.branch_ids
                     logsio.info((f"commits: {release_branches.commit_id.mapped('name')}"))
-                    commits_checksum = self._get_commit_checksum(release_branches)
+                    commits_checksum = self._get_commit_checksum(release_branches.commit_id)
                     logsio.info(f"Commits Checksum: {commits_checksum}")
                     if not release_branches:
                         self.state = "collecting"
