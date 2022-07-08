@@ -525,7 +525,7 @@ class Branch(models.Model):
                 )
 
             shell.logsio.write_text("Clean git")
-            shell.X(["git-cicd", "clean", "-xdff"])
+            shell.X(["git-cicd", "clean", "-xdff"], retry=10)
 
             shell.logsio.write_text("Updating submodules")
             shell.X(["git-cicd", "submodule", "update", "--recursive", "--init"])
@@ -697,6 +697,7 @@ class Branch(models.Model):
         # machine
         self = self.with_context(testrun=f"compressor_{compress_job_id}")
         dest_file_path = shell.machine._get_volume("dumps") / self.project_name
+        compressor.last_log = ""
 
         # release db resources:
         self.env.cr.commit()
@@ -721,40 +722,53 @@ class Branch(models.Model):
                 with self._tempinstance(self.env.context.get('testrun')) as shell:
                     shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
                     shell.logsio.info("Clearing DB...")
+                    breakpoint()
                     output = shell.odoo("-f", "cleardb", allow_error=True)
                     if output['exit_code']:
                         raise HandledProcessOutputException(output)
+                    compressor.last_log += f"\nMinimized DB"
                     if compressor.anonymize:
                         shell.logsio.info("Anonymizing DB...")
                         output = shell.odoo("-f", "anonymize", allow_error=True)
                         if output['exit_code']:
                             raise HandledProcessOutputException(output)
+                        compressor.last_log += f"\nAnonymized DB"
+                        self.env.cr.commit()
 
                     shell.logsio.info("Dumping compressed dump")
                     dump_path = shell.machine._get_volume("dumps") / self.project_name
                     shell.odoo("backup", "odoo-db", dump_path)
-                    compressor.last_output_size = int(
-                        shell.X(["stat", "-c", "%s", dump_path])["stdout"].strip()
-                    )
+                    compressor.last_output_size = shell.file_size(dump_path)
+                    self.env.cr.commit()
+                    compressor.last_log += f"\nDump created transferring to destinations"
 
                     dump = shell.get(dump_path)
                     for output in compressor.output_ids:
                         with output.volume_id.machine_id._shell() as shell_dest:
                             dest_path = output.volume_id.name
                             dest_path = dest_path + "/" + output.output_filename
+                            compressor.last_log += (
+                                f"\nPutting dump to {dest_path} on "
+                                f"{shell_dest.machine.name}"
+                            )
                             shell_dest.put(dump, dest_path)
 
                     compressor.date_last_success = fields.Datetime.now()
+                    self.env.cr.commit()
+
+        except HandledProcessOutputException as ex:
+            compressor.last_log += f"\n{ex.console}"
+            self.env.cr.commit()
+            raise
+
         except Exception as ex:
             msg = traceback.format_exc()
-            compressor.last_log = (
+            compressor.last_log += (
                 f"{str(ex)}\n"
                 f"{msg}"
             )
-        except HandledProcessOutputException as ex:
-            compressor.last_log = ex.console
-            self.env.cr.commit()
-            raise
+        else:
+            self.last_log = "Success - no error"
 
     def _make_sure_source_exists(self, shell):
         instance_folder = self._get_instance_folder(shell.machine)

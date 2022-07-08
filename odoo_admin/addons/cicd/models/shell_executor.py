@@ -83,10 +83,7 @@ class ShellExecutor(BaseShellExecutor):
         return self._cwd
 
     def exists(self, path):
-        try:
-            res = self._internal_execute(["stat", path], logoutput=False)
-        except Exception:
-            res = self._internal_execute(["stat", path], logoutput=False)
+        res = self._internal_execute(["test", "-e", path], logoutput=False)
         return res["exit_code"] == 0
 
     def rm(self, path):
@@ -231,14 +228,30 @@ class ShellExecutor(BaseShellExecutor):
         self.logsio and self.logsio.info("_after_checkout finished.")
 
     def X(
-        self, cmd, allow_error=False, env=None, cwd=None, logoutput=True, timeout=None
+        self,
+        cmd,
+        allow_error=False,
+        env=None,
+        cwd=None,
+        logoutput=True,
+        timeout=None,
+        retry=None,
     ):
+        retry = retry or 0
         effective_env = deepcopy(self.env)
         if env:
             effective_env.update(env)
-        res = self._internal_execute(
-            cmd, cwd=cwd, env=env, logoutput=logoutput, timeout=timeout
-        )
+        for i in range((retry or 0) + 1):
+            res = self._internal_execute(
+                cmd, cwd=cwd, env=env, logoutput=logoutput, timeout=timeout
+            )
+            if res['exit_code']:
+                if i == retry:
+                    break
+            else:
+                break
+            time.sleep(10)
+
         if not allow_error:
             if res["exit_code"] is None:
                 raise Exception("Timeout happend: {cmd}")
@@ -422,3 +435,8 @@ class ShellExecutor(BaseShellExecutor):
             "stdout"
         ].strip()
         return current_branch
+
+    def file_size(self, path):
+        size = self.X(["stat", "-c", "%s", path])["stdout"].strip()
+        size = int(size or 0)
+        return size

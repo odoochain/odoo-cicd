@@ -102,41 +102,46 @@ class CicdMachine(models.Model):
                 rec.effective_host = rec.host
 
     def _place_ssh_credentials(self):
-        self.ensure_one()
-        with self._extra_env() as machine:
-            data = machine.read(["effective_host", "ssh_key", "ssh_pubkey"])[0]
-            effective_host = data["effective_host"]
-            ssh_key = data["ssh_key"]
-            ssh_pubkey = data["ssh_pubkey"]
+        try:
+            self.ensure_one()
+            with self._extra_env() as machine:
+                data = machine.read(["effective_host", "ssh_key", "ssh_pubkey"])[0]
+                effective_host = data["effective_host"]
+                ssh_key = data["ssh_key"]
+                ssh_pubkey = data["ssh_pubkey"]
 
-        # place private keyfile
-        ssh_dir = Path(os.path.expanduser("~/.ssh"))
-        ssh_dir.mkdir(exist_ok=True)
-        os.chown(ssh_dir, pwd.getpwnam("odoo").pw_uid, grp.getgrnam("odoo").gr_gid)
-        os.chmod(ssh_dir, 0o700)
+            # place private keyfile
+            ssh_dir = Path(os.path.expanduser("~/.ssh"))
+            ssh_dir.mkdir(exist_ok=True)
+            os.chown(ssh_dir, pwd.getpwnam("odoo").pw_uid, grp.getgrnam("odoo").gr_gid)
+            os.chmod(ssh_dir, 0o700)
 
-        ssh_keyfile = ssh_dir / effective_host
-        ssh_pubkeyfile = ssh_dir / (effective_host + ".pub")
-        rights_keyfile = 0o600
-        for file in [
-            ssh_keyfile,
-            ssh_pubkeyfile,
-        ]:
-            if file.exists():
-                os.chmod(file, rights_keyfile)
+            ssh_keyfile = ssh_dir / effective_host
+            ssh_pubkeyfile = ssh_dir / (effective_host + ".pub")
+            rights_keyfile = 0o600
+            for file in [
+                ssh_keyfile,
+                ssh_pubkeyfile,
+            ]:
+                if file.exists():
+                    os.chmod(file, rights_keyfile)
 
-        def content_differs(file, content):
-            if not file.exists():
-                return True
-            return file.read_text() != content
+            def content_differs(file, content):
+                if not file.exists():
+                    return True
+                return file.read_text() != content
 
-        if content_differs(ssh_keyfile, ssh_key):
-            ssh_keyfile.write_text(ssh_key)
-        if content_differs(ssh_pubkeyfile, ssh_pubkey):
-            ssh_pubkeyfile.write_text(ssh_pubkey)
-        os.chmod(ssh_keyfile, rights_keyfile)
-        os.chmod(ssh_pubkeyfile, rights_keyfile)
-        return ssh_keyfile
+            if content_differs(ssh_keyfile, ssh_key):
+                ssh_keyfile.write_text(ssh_key)
+            if content_differs(ssh_pubkeyfile, ssh_pubkey):
+                ssh_pubkeyfile.write_text(ssh_pubkey)
+            os.chmod(ssh_keyfile, rights_keyfile)
+            os.chmod(ssh_pubkeyfile, rights_keyfile)
+            return ssh_keyfile
+        except Exception as ex:
+            raise Exception(
+                "Error at placing credentials on {self.machine_id.name}"
+            ) from ex
 
     def test_shell(self, cmd, cwd=None, env=None):
         env = env or {}
@@ -224,6 +229,7 @@ class CicdMachine(models.Model):
             machine.with_delay()._clean_temppath()
 
     def _clean_temppath(self):
+        breakpoint()
         self.ensure_one()
         if not self.active:
             return
@@ -234,7 +240,7 @@ class CicdMachine(models.Model):
                 for dirname in shell.X(["ls", "-l", vol.name])["stdout"].splitlines():
                     if ".cleanme." in dirname:
                         try:
-                            date = arrow.get(dirname.split(".")[-1])
+                            date = arrow.get(dirname.split(".")[-1], "YYYYMMDD_HHmmss")
                         except Exception:
                             date = arrow.utcnow().shift(years=-1)
 

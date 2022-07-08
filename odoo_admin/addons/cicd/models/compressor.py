@@ -38,7 +38,6 @@ class Compressor(models.Model):
         "cicd.compressor.output", "compressor_id", string="Output"
     )
 
-
     def _ensure_cronjob(self):
         for rec in self:
             if rec.active and not rec.cronjob_id:

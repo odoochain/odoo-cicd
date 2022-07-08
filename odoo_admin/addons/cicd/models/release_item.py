@@ -260,6 +260,7 @@ class ReleaseItem(models.Model):
         """
         Heavy function - takes longer and does quite some work.
         """
+        breakpoint()
         target_branch_name = self.item_branch_name
         self.ensure_one()
         commits_checksum = None
@@ -284,11 +285,11 @@ class ReleaseItem(models.Model):
                     ).branch_id.mapped("name")
                 )
                 try:
-                    commits = self.mapped("branch_ids")
-                    logsio.info((f"commits: {commits.mapped('name')}"))
-                    commits_checksum = self._get_commit_checksum(commits)
+                    release_branches = self.branch_ids
+                    logsio.info((f"commits: {release_branches.commit_id.mapped('name')}"))
+                    commits_checksum = self._get_commit_checksum(release_branches.commit_id)
                     logsio.info(f"Commits Checksum: {commits_checksum}")
-                    if not commits:
+                    if not release_branches:
                         self.state = "collecting"
                         return
                     repo = self.repo_id
@@ -296,7 +297,7 @@ class ReleaseItem(models.Model):
                         source_branch=self.release_id.branch_id.name,
                         commits=[
                             {"branch": x.branch_id, "commit": x.commit_id}
-                            for x in commits
+                            for x in release_branches
                         ],
                         target_branch_name=target_branch_name,
                         logsio=logsio,
@@ -407,6 +408,7 @@ class ReleaseItem(models.Model):
             ) from ex
 
     def cron_heartbeat(self):
+        breakpoint()
         self.ensure_one()
         self._lock()
         now = fields.Datetime.now()
@@ -457,9 +459,9 @@ class ReleaseItem(models.Model):
                 if not self.confirmed_hotfix_branches:
                     return
 
-            if (
+            if self.branch_ids and ((
                 self.needs_merge and self.needs_merge != self.merged_checksum
-            ) or not self.item_branch_id:
+            ) or not self.item_branch_id):
                 self.merge()
                 return
 
