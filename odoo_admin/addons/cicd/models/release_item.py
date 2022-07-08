@@ -260,6 +260,7 @@ class ReleaseItem(models.Model):
         """
         Heavy function - takes longer and does quite some work.
         """
+        breakpoint()
         target_branch_name = self.item_branch_name
         self.ensure_one()
         commits_checksum = None
@@ -407,6 +408,7 @@ class ReleaseItem(models.Model):
             ) from ex
 
     def cron_heartbeat(self):
+        breakpoint()
         self.ensure_one()
         self._lock()
         now = fields.Datetime.now()
@@ -457,9 +459,9 @@ class ReleaseItem(models.Model):
                 if not self.confirmed_hotfix_branches:
                     return
 
-            if (
+            if self.branch_ids and ((
                 self.needs_merge and self.needs_merge != self.merged_checksum
-            ) or not self.item_branch_id:
+            ) or not self.item_branch_id):
                 self.merge()
                 return
 

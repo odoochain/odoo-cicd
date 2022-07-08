@@ -697,7 +697,7 @@ class Branch(models.Model):
         # machine
         self = self.with_context(testrun=f"compressor_{compress_job_id}")
         dest_file_path = shell.machine._get_volume("dumps") / self.project_name
-        self.last_log = ""
+        compressor.last_log = ""
 
         # release db resources:
         self.env.cr.commit()
@@ -726,13 +726,13 @@ class Branch(models.Model):
                     output = shell.odoo("-f", "cleardb", allow_error=True)
                     if output['exit_code']:
                         raise HandledProcessOutputException(output)
-                    self.last_log += f"\nMinimized DB"
+                    compressor.last_log += f"\nMinimized DB"
                     if compressor.anonymize:
                         shell.logsio.info("Anonymizing DB...")
                         output = shell.odoo("-f", "anonymize", allow_error=True)
                         if output['exit_code']:
                             raise HandledProcessOutputException(output)
-                        self.last_log += f"\nAnonymized DB"
+                        compressor.last_log += f"\nAnonymized DB"
                         self.env.cr.commit()
 
                     shell.logsio.info("Dumping compressed dump")
@@ -740,14 +740,14 @@ class Branch(models.Model):
                     shell.odoo("backup", "odoo-db", dump_path)
                     compressor.last_output_size = shell.file_size(dump_path)
                     self.env.cr.commit()
-                    self.last_log += f"\nDump created transferring to destinations"
+                    compressor.last_log += f"\nDump created transferring to destinations"
 
                     dump = shell.get(dump_path)
                     for output in compressor.output_ids:
                         with output.volume_id.machine_id._shell() as shell_dest:
                             dest_path = output.volume_id.name
                             dest_path = dest_path + "/" + output.output_filename
-                            self.last_log += (
+                            compressor.last_log += (
                                 f"\nPutting dump to {dest_path} on "
                                 f"{shell_dest.machine.name}"
                             )
