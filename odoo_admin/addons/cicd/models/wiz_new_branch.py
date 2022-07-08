@@ -12,6 +12,8 @@ class NewBranch(models.TransientModel):
     )
     new_name = fields.Char("New Name", required=True)
     dump_id = fields.Many2one("cicd.dump", string="Dump")
+    dump_date_modified = fields.Datetime(relate="dump_id.date_modified")
+    machine_id = fields.Many2one('cicd.machine', related="repo_id.machine_id")
 
     @api.model
     def default_get(self, fields):
