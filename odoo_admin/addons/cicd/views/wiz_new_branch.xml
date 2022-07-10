@@ -22,7 +22,9 @@
 							<field name="repo_id" />
 							<field name="source_branch_id" domain="[('repo_id', '=', repo_id)]"/>
 							<field name='new_name'/>
-							<field name="dump_id"/>
+							<field name="machine_id" invisible="0" readonly='1'/>
+							<field name="dump_id" domain="[('machine_id', '=', machine_id)]"/>
+							<field name="dump_date_modified" readonly='1'/>
 						</group>
 						<group>
 							<div>After creation the branch will be displayed. It will take some time, till it is ready to use.</div>
