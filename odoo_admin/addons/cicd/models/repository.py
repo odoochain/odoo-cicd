@@ -635,8 +635,8 @@ class Repository(models.Model):
         # we use a working repo
         assert target_branch_name
         assert isinstance(commits[0], dict)
-        assert isinstance(commits[0]['branch']._name, 'cicd.git.branch')
-        assert isinstance(commits[0]['commit']._name, 'cicd.git.branch')
+        assert commits[0]['branch']._name == 'cicd.git.branch'
+        assert commits[0]['commit']._name == 'cicd.git.branch'
         machine = self.machine_id
         history = []  # what was done for each commit
 
