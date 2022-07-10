@@ -286,8 +286,13 @@ class ReleaseItem(models.Model):
                 )
                 try:
                     release_branches = self.branch_ids
-                    logsio.info((f"commits: {release_branches.commit_id.mapped('name')}"))
-                    commits_checksum = self._get_commit_checksum(release_branches.commit_id)
+                    logsio.info(
+                        (f"commits: {release_branches.commit_id.mapped('name')}")
+                    )
+                    breakpoint()
+                    commits_checksum = self._get_commit_checksum(
+                        release_branches.commit_id
+                    )
                     logsio.info(f"Commits Checksum: {commits_checksum}")
                     if not release_branches:
                         self.state = "collecting"
@@ -368,7 +373,7 @@ class ReleaseItem(models.Model):
                 logger.error(ex)
                 self.message_post(body=(f"Error: {err}"))
             else:
-                if message_commit and commits:
+                if message_commit:
                     message_commit.no_approvals = True
                     self.commit_id = message_commit
                     candidate_branch = repo.branch_ids.filtered(
@@ -459,9 +464,10 @@ class ReleaseItem(models.Model):
                 if not self.confirmed_hotfix_branches:
                     return
 
-            if self.branch_ids and ((
-                self.needs_merge and self.needs_merge != self.merged_checksum
-            ) or not self.item_branch_id):
+            if self.branch_ids and (
+                (self.needs_merge and self.needs_merge != self.merged_checksum)
+                or not self.item_branch_id
+            ):
                 self.merge()
                 return
 

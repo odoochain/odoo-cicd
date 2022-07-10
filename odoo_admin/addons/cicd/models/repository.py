@@ -604,7 +604,7 @@ class Repository(models.Model):
                 })
             else:
                 already = "Already up to date" in res["stdout"]
-            history.append({"sha": commit.name, "already": already})
+            history.append({"sha": commit['commit'].name, "already": already})
             merged.append(commit)
 
         if conflicts:
@@ -633,10 +633,11 @@ class Repository(models.Model):
         self.ensure_one()
 
         # we use a working repo
+        breakpoint()
         assert target_branch_name
         assert isinstance(commits[0], dict)
         assert commits[0]['branch']._name == 'cicd.git.branch'
-        assert commits[0]['commit']._name == 'cicd.git.branch'
+        assert commits[0]['commit']._name == 'cicd.git.commit'
         machine = self.machine_id
         history = []  # what was done for each commit
 
