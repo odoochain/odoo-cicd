@@ -39,6 +39,7 @@ class MergeConflict(Exception):
             res.append(f"Console: {conflict['console']}")
         return "\n".join(res)
 
+
 class Repository(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
     _name = "cicd.git.repo"
@@ -163,9 +164,10 @@ class Repository(models.Model):
 
     def _get_mirrored_copy(self, machine):
         with machine._gitshell(
-            self, cwd=self.machine_id.workspace,
+            self,
+            cwd=self.machine_id.workspace,
         ) as shell:
-            path = machine._get_volume('source') / (self.short + '.mirror')
+            path = machine._get_volume("source") / (self.short + ".mirror")
             if not shell.exists(path):
                 shell.X(["git-cicd", "clone", self.url, path])
             with shell.clone(cwd=path) as shell2:
@@ -179,8 +181,7 @@ class Repository(models.Model):
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
-            temppath = shell.machine._temppath(usage="clone_repo")
-            try:
+            with shell.machine._temppath(usage="clone_repo") as temppath:
                 mirror_path = self._get_mirrored_copy(machine)
                 shell.X(["git-cicd", "clone", mirror_path, temppath])
                 with shell.clone(cwd=temppath) as shell2:
@@ -203,23 +204,13 @@ class Repository(models.Model):
                     shell.remove(path)
                 shell.safe_move_directory(temppath, path)
                 shell.git_safe_directory(path)
-            finally:
-                # if something failed cleanup
-                shell.remove(temppath)
-
 
     @contextmanager
     def _temp_repo(self, machine, logsio=None, branch=None, depth=None, pull=False):
 
-        path = machine._temppath(usage="temporary_repo")
-
-        self._technical_clone_repo(path, machine, branch=branch, depth=depth)
-        try:
+        with machine._temppath(usage="temporary_repo") as path:
+            self._technical_clone_repo(path, machine, branch=branch, depth=depth)
             yield path
-
-        finally:
-            with machine._shell() as shell:
-                shell.remove(path)
 
     def _get_main_repo(self, logsio=None, machine=None):
         """
@@ -234,11 +225,11 @@ class Repository(models.Model):
 
         with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
             if not self._is_healthy_repository(shell, path):
-                temppath = shell.machine._temppath(usage="clone_repo")
-                shell.X(["git-cicd", "clone", self.url, temppath])
-                shell.safe_move_directory(temppath, path)
-                del temppath
-        return path
+                with shell.machine._temppath(usage="clone_repo") as temppath:
+                    shell.X(["git-cicd", "clone", self.url, temppath])
+                    shell.safe_move_directory(temppath, path)
+                    del temppath
+        yield path
 
     def _get_remotes(self, shell):
         remotes = shell.X(["git-cicd", "remote", "-v"])["stdout"].strip().split("\n")
@@ -271,38 +262,39 @@ class Repository(models.Model):
         with LogsIOWriter.GET(self.name, "fetch") as logsio:
             self.env.cr.commit()
             machine = self.machine_id
-            repo_path = self._get_main_repo(logsio=logsio)
-
-            with pg_advisory_lock(
-                self.env.cr,
-                self._get_lockname(machine, repo_path),
-                detailinfo=(f"create_all_branches"),
-            ):
-                with machine._gitshell(
-                    repo=self, cwd=repo_path, logsio=logsio
-                ) as shell:
-                    branches = (
-                        shell.X(["git-cicd", "branch", "-a"])["stdout"]
-                        .strip()
-                        .splitlines()
-                    )
-                    for branch in branches:
-                        branch = branch.split("/")[
-                            -1
-                        ]  # remotes/origin/isolated_unittests --> isolated_unittests
-
+            with self._get_main_repo(logsio=logsio) as repo_path:
+                with pg_advisory_lock(
+                    self.env.cr,
+                    self._get_lockname(machine, repo_path),
+                    detailinfo=(f"create_all_branches"),
+                ):
+                    with machine._gitshell(
+                        repo=self, cwd=repo_path, logsio=logsio
+                    ) as shell:
                         branches = (
-                            self.env["cicd.git.branch"]
-                            .with_context(active_test=False)
-                            .search([("name", "=", branch), ("repo_id", "=", self.id)])
+                            shell.X(["git-cicd", "branch", "-a"])["stdout"]
+                            .strip()
+                            .splitlines()
                         )
-                        if not branches:
-                            branches.create(
-                                {
-                                    "repo_id": self.id,
-                                    "name": branch,
-                                }
+                        for branch in branches:
+                            branch = branch.split("/")[
+                                -1
+                            ]  # remotes/origin/isolated_unittests --> isolated_unittests
+
+                            branches = (
+                                self.env["cicd.git.branch"]
+                                .with_context(active_test=False)
+                                .search(
+                                    [("name", "=", branch), ("repo_id", "=", self.id)]
+                                )
                             )
+                            if not branches:
+                                branches.create(
+                                    {
+                                        "repo_id": self.id,
+                                        "name": branch,
+                                    }
+                                )
 
     @api.model
     def _cron_fetch(self):
@@ -324,57 +316,58 @@ class Repository(models.Model):
             with LogsIOWriter.GET(self.name, "fetch") as logsio:
                 self.env.cr.commit()
 
-                repo_path = self._get_main_repo(logsio=logsio)
+                with self._get_main_repo(logsio=logsio) as repo_path:
+                    with self.machine_id._gitshell(
+                        repo=self, cwd=repo_path, logsio=logsio
+                    ) as shell:
+                        self.env.cr.commit()
+                        updated_branches = set()
 
-                with self.machine_id._gitshell(
-                    repo=self, cwd=repo_path, logsio=logsio
-                ) as shell:
-                    self.env.cr.commit()
-                    updated_branches = set()
+                        for remote in self._get_remotes(shell):
 
-                    for remote in self._get_remotes(shell):
+                            fetch_output = (
+                                shell.X(["git-cicd", "fetch", remote, "--dry-run"])[
+                                    "stderr"
+                                ]
+                                .strip()
+                                .split("\n")
+                            )
 
-                        fetch_output = (
-                            shell.X(["git-cicd", "fetch", remote, "--dry-run"])[
-                                "stderr"
-                            ]
-                            .strip()
-                            .split("\n")
-                        )
+                            fetch_info = list(
+                                filter(lambda x: " -> " in x, fetch_output)
+                            )
 
-                        fetch_info = list(filter(lambda x: " -> " in x, fetch_output))
+                            for fi in fetch_info:
+                                while "  " in fi:
+                                    fi = fi.replace("  ", " ")
+                                fi = fi.strip()
+                                if "[new tag]" in fi:
+                                    continue
+                                elif "[new branch]" in fi:
+                                    branch = (
+                                        fi.replace("[new branch]", "")
+                                        .split("->")[0]
+                                        .strip()
+                                    )
+                                else:
+                                    branch = fi.split("/")[-1]
+                                try:
+                                    branch = self._clear_branch_name(branch)
+                                except InvalidBranchName:
+                                    logsio.error("Invalid Branch name: {branch}")
+                                    continue
 
-                        for fi in fetch_info:
-                            while "  " in fi:
-                                fi = fi.replace("  ", " ")
-                            fi = fi.strip()
-                            if "[new tag]" in fi:
-                                continue
-                            elif "[new branch]" in fi:
-                                branch = (
-                                    fi.replace("[new branch]", "")
-                                    .split("->")[0]
-                                    .strip()
-                                )
-                            else:
-                                branch = fi.split("/")[-1]
-                            try:
-                                branch = self._clear_branch_name(branch)
-                            except InvalidBranchName:
-                                logsio.error("Invalid Branch name: {branch}")
-                                continue
+                                if not branch.startswith(self.release_tag_prefix):
+                                    updated_branches.add(branch)
 
-                            if not branch.startswith(self.release_tag_prefix):
-                                updated_branches.add(branch)
+                            del fetch_info
 
-                        del fetch_info
+                        if not updated_branches:
+                            return
 
-                    if not updated_branches:
-                        return
-
-                    for branch in set(updated_branches):
-                        self._fetch_branch(branch)
-                        del branch
+                        for branch in set(updated_branches):
+                            self._fetch_branch(branch)
+                            del branch
 
         except Exception:
             msg = traceback.format_exc()
@@ -593,19 +586,23 @@ class Repository(models.Model):
             # we use git functions to retrieve deltas, git sorting and
             # so; we want to rely on stand behaviour git.
             shell.checkout_branch(target)
-            res = shell.X(["git-cicd", "merge", commit['commit'].name], allow_error=True)
+            res = shell.X(
+                ["git-cicd", "merge", commit["commit"].name], allow_error=True
+            )
             already = False
             if res["exit_code"]:
-                console = "\n".join([ res["stdout"], res["stderr"]])
-                conflicts.append({
-                    'commit': commit['commit'],
-                    'branch': commit['branch'],
-                    'merged': merged,
-                    'console': console,
-                })
+                console = "\n".join([res["stdout"], res["stderr"]])
+                conflicts.append(
+                    {
+                        "commit": commit["commit"],
+                        "branch": commit["branch"],
+                        "merged": merged,
+                        "console": console,
+                    }
+                )
             else:
                 already = "Already up to date" in res["stdout"]
-            history.append({"sha": commit['commit'].name, "already": already})
+            history.append({"sha": commit["commit"].name, "already": already})
             merged.append(commit)
 
         if conflicts:
@@ -637,8 +634,8 @@ class Repository(models.Model):
         breakpoint()
         assert target_branch_name
         assert isinstance(commits[0], dict)
-        assert commits[0]['branch']._name == 'cicd.git.branch'
-        assert commits[0]['commit']._name == 'cicd.git.commit'
+        assert commits[0]["branch"]._name == "cicd.git.branch"
+        assert commits[0]["commit"]._name == "cicd.git.commit"
         machine = self.machine_id
         history = []  # what was done for each commit
 

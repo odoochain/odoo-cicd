@@ -217,11 +217,17 @@ class CicdMachine(models.Model):
                 raise ValidationError(_("Could not find: {}").format(ttype))
             return Path(res[0].name)
 
+    @contextmanager
     def _temppath(self, maxage={"hours": 1}, usage="common"):
         guid = str(uuid.uuid4())
         date = arrow.utcnow().shift(**maxage).strftime("%Y%m%d_%H%M%S")
         name = f"{guid}.{usage}.cleanme.{date}"
-        return self._get_volume("temp") / name
+        try:
+            path = self._get_volume("temp") / name
+            yield path
+        finally:
+            with self._shell() as shell:
+                shell.rm(path)
 
     @api.model
     def _clean_tempdirs(self):
