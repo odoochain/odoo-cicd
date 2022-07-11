@@ -418,17 +418,29 @@ class ShellExecutor(BaseShellExecutor):
                 break
 
     def safe_move_directory(self, src, dest):
-        src = str(Path(src))
-        dest = str(Path(dest))
-        if self.exists(dest):
-            self.remove(dest)
+        breakpoint()
+        src = Path(src)
+        dest = Path(dest)
+
+
+        # if on different directories, move to intermediate just before
+        # hoping to be on same disk
+        tmpdest = dest.parent / (dest.name + f".mv.{uuid.uuid4()}")
 
         # keep directory ID for running processes; probably files vanished in between,
         # then catch that error
-        self.X(["mv", src, dest], allow_error=True)
-        if self.exists(src):
-            self.X(["rsync", src + "/", dest + "/", "-ar"])
-            self.remove(src)
+        if self.exists(dest):
+            self.remove(dest)
+
+        try:
+            self.X(["mv", src, tmpdest], allow_error=True)
+            if self.exists(src):
+                self.X(["rsync", str(src) + "/", str(tmpdest) + "/", "-ar"])
+                self.remove(src)
+
+            self.X(["mv", tmpdest, dest], allow_error=True)
+        finally:
+            self.rm(tmpdest)
 
     def current_branch(self):
         current_branch = self.X(["git-cicd", "branch", "--show-current"])[
