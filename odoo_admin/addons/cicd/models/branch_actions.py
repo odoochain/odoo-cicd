@@ -757,7 +757,7 @@ class Branch(models.Model):
                     self.env.cr.commit()
 
         except HandledProcessOutputException as ex:
-            compressor.last_log += f"\n{ex.console}"
+            compressor.last_log = f"\n{ex.console}\n{compressor.last_log}"
             self.env.cr.commit()
             raise
 
