@@ -221,7 +221,7 @@ class CicdTestRunLine(models.AbstractModel):
                     if logfile.exists():
                         logfile.unlink()
                     msg = traceback.format_exc()
-                    self.log = f"{msg}\n{self.log or ''}"
+                    self.write({'log': f"{msg}\n{self.log or ''}"})
                     raise
 
                 finally:

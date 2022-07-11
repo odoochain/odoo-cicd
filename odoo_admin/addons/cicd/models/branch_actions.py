@@ -757,7 +757,7 @@ class Branch(models.Model):
                     self.env.cr.commit()
 
         except HandledProcessOutputException as ex:
-            compressor.last_log += f"\n{ex.console}"
+            compressor.last_log = f"\n{ex.console}\n{compressor.last_log}"
             self.env.cr.commit()
             raise
 
@@ -768,7 +768,7 @@ class Branch(models.Model):
                 f"{msg}"
             )
         else:
-            self.last_log = "Success - no error"
+            compressor.last_log = "Success - no error"
 
     def _make_sure_source_exists(self, shell):
         instance_folder = self._get_instance_folder(shell.machine)
