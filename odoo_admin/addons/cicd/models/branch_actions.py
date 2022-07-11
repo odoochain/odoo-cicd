@@ -768,7 +768,7 @@ class Branch(models.Model):
                 f"{msg}"
             )
         else:
-            self.last_log = "Success - no error"
+            compressor.last_log = "Success - no error"
 
     def _make_sure_source_exists(self, shell):
         instance_folder = self._get_instance_folder(shell.machine)
