@@ -212,6 +212,7 @@ class Repository(models.Model):
             self._technical_clone_repo(path, machine, branch=branch, depth=depth)
             yield path
 
+    @contextmanager
     def _get_main_repo(self, logsio=None, machine=None):
         """
         Returns path to _main folder
