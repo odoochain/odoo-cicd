@@ -165,7 +165,7 @@ class CicdTestRunLine(models.AbstractModel):
                 self.run_id.message_post(
                     body=("Exception at preparation occurred:\n" f"{msg}")
                 )
-                self.write({'log': msg})
+                self.write({"log": msg})
                 self.env.cr.commit()
                 raise
 
@@ -221,7 +221,10 @@ class CicdTestRunLine(models.AbstractModel):
                     if logfile.exists():
                         logfile.unlink()
                     msg = traceback.format_exc()
-                    self.write({'log': f"{msg}\n{self.log or ''}"})
+                    log = (
+                        ",".join(map(str, set(filter(bool, self.mapped("log")))))
+                    ) or ""
+                    self.write({"log": f"{msg}\n{log}"})
                     raise
 
                 finally:
