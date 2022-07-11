@@ -418,7 +418,6 @@ class ShellExecutor(BaseShellExecutor):
                 break
 
     def safe_move_directory(self, src, dest):
-        breakpoint()
         src = Path(src)
         dest = Path(dest)
 

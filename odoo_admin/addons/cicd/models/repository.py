@@ -161,22 +161,28 @@ class Repository(models.Model):
                 finally:
                     shell.rm(repo_path)
 
+    def _get_mirrored_copy(self, machine):
+        with machine._gitshell(
+            self, cwd=self.machine_id.workspace,
+        ) as shell:
+            path = machine._get_volume('source') / (self.short + '.mirror')
+            if not shell.exists(path):
+                shell.X(["git-cicd", "clone", self.url, path])
+            with shell.clone(cwd=path) as shell2:
+                shell2.X(["git-cicd", "remote", "update"])
+            return path
+
     def _technical_clone_repo(
         self, path, machine, logsio=None, branch=None, depth=None
     ):
+        breakpoint()
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
             temppath = shell.machine._temppath(usage="clone_repo")
             try:
-
-                # try to clone from main branch on error fetch from
-                # web
-                main_repo_path = self._get_main_repo(machine=machine)
-                cmd = ["git-cicd", "clone"]
-                del cmd
-
-                shell.X(["git-cicd", "clone", main_repo_path, temppath])
+                mirror_path = self._get_mirrored_copy(machine)
+                shell.X(["git-cicd", "clone", mirror_path, temppath])
                 with shell.clone(cwd=temppath) as shell2:
                     shell2.X(["git-cicd", "remote", "remove", "origin"])
                     shell2.X(["git-cicd", "remote", "add", "origin", self.url])
@@ -194,13 +200,13 @@ class Repository(models.Model):
                         shell2.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
 
                 if shell.exists(path):
-                    # clone may happened during that clone
                     shell.remove(path)
                 shell.safe_move_directory(temppath, path)
                 shell.git_safe_directory(path)
             finally:
                 # if something failed cleanup
                 shell.remove(temppath)
+
 
     @contextmanager
     def _temp_repo(self, machine, logsio=None, branch=None, depth=None, pull=False):
@@ -464,18 +470,13 @@ class Repository(models.Model):
         repo = self.sudo()  # may be triggered by queuejob
         # checkout latest / pull latest
         updated_branches = data["updated_branches"]
+        breakpoint()
 
         with LogsIOWriter.GET(repo.name, "fetch") as logsio:
-            repo_path = repo._get_main_repo(logsio=logsio)
             repo = repo.with_context(active_test=False)
             machine = repo.machine_id
 
-            with pg_advisory_lock(
-                self.env.cr,
-                repo._get_lockname(machine, repo_path),
-                detailinfo=(f"cron_fetch_updated_branches {updated_branches}"),
-            ):
-
+            with self._temp_repo(machine, logsio=logsio) as repo_path:
                 with repo.machine_id._gitshell(
                     repo, cwd=repo_path, logsio=logsio
                 ) as shell:

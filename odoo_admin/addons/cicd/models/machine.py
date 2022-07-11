@@ -431,7 +431,7 @@ echo "--------------------------------------------------------------------------
                 vals.pop(f)
 
     @contextmanager
-    def _gitshell(self, repo, cwd, logsio, env=None, **kwargs):
+    def _gitshell(self, repo, cwd, logsio=None, env=None, **kwargs):
         self.ensure_one()
         assert repo._name == "cicd.git.repo"
         env = env or {}
