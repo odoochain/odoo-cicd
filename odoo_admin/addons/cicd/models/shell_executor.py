@@ -148,7 +148,7 @@ class ShellExecutor(BaseShellExecutor):
                 raise Exception("\n".join(filter(bool, [res["stdout"], res["stderr"]])))
         return res
 
-    def checkout_branch(self, branch, cwd=None):
+    def checkout_branch(self, branch, cwd=None, nosubmodule_update=False):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
             if not self.branch_exists(branch):
@@ -172,7 +172,7 @@ class ShellExecutor(BaseShellExecutor):
                 ["git-cicd", "checkout", "-f", "--no-guess", branch], allow_error=False
             )
             self.logsio and self.logsio.info(f"Checked out {branch}")
-            self._after_checkout()
+            self._after_checkout(nosubmodule_update=nosubmodule_update)
 
     def checkout_commit(self, commit, cwd=None):
         cwd = cwd or self.cwd
@@ -219,11 +219,12 @@ class ShellExecutor(BaseShellExecutor):
         except Exception:  # # pylint: disable=broad-except
             return False
 
-    def _after_checkout(self):
+    def _after_checkout(self, nosubmodule_update=False):
         self.logsio and self.logsio.info("Cleaning git...")
         self.X(["git-cicd", "clean", "-xdff"])
         self.logsio and self.logsio.info("Updating submodules...")
-        self.X(["git-cicd", "submodule", "update", "--init", "--force", "--recursive"])
+        if not nosubmodule_update:
+            self.X(["git-cicd", "submodule", "update", "--init", "--force", "--recursive"])
         self.logsio and self.logsio.info("_after_checkout finished.")
 
     def X(

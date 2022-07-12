@@ -257,7 +257,7 @@ class CicdTestRun(models.Model):
                 )
 
             self.duration = (
-                arrow.utcnow() - arrow.get(self.date_started)
+                arrow.utcnow() - arrow.get(self.date_started or '1980-04-04')
             ).total_seconds()
             self.as_job("cleanup", True, eta=300)._cleanup_testruns()
 

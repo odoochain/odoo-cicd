@@ -401,16 +401,16 @@ class Repository(models.Model):
 
     def _checkout_branch_recreate_repo_on_need(self, shell, branch):
         try:
-            shell.checkout_branch(branch)
+            shell.checkout_branch(branch, nosubmodule_update=True)
         except Exception as ex:
             shell.logsio.error(ex)
 
             severity = self._exception_meaning(ex)
             if severity == "broken":
-                shell.logsio.info("Recreating workspace folder")
+                shell.logsio.info("Recreating main folder")
                 shell.rm(shell.cwd)
                 self.clone_repo(shell.machine, shell.cwd, shell.logsio)
-                shell.checkout_branch(branch)
+                shell.checkout_branch(branch, nosubmodule_update=True)
             else:
                 raise
 
@@ -425,6 +425,7 @@ class Repository(models.Model):
             shell.X(["git-cicd", "branch", "-D", branch], allow_error=True)
         shell.X(["git-cicd", "checkout", branch])
         shell.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
+        shell.X(["git-cicd", "clean", "-xdff"])
 
         # # remove existing instance folder to refetch
         # not needed; the branch tries to pull - on an error
@@ -437,9 +438,6 @@ class Repository(models.Model):
         shell.X(["git-cicd", "checkout", "-f", branch])
 
     def _prepare_pulled_branch(self, shell, branch):
-        # releases = self.env['cicd.release'].search([
-        #    ('repo_id', '=', self.id)])
-        # candidate_branch_names = releases.item_ids.mapped('item_branch_name')
         try:
             logsio = shell.logsio
             logsio.info(f"Pulling {branch}...")
@@ -447,12 +445,7 @@ class Repository(models.Model):
             logsio.info(f"pulled {branch}...")
 
             self._checkout_branch_recreate_repo_on_need(shell, branch)
-
-            # if branch in candidate_branch_names:
             self._pull_hard_reset(shell, branch)
-            # else:
-            #     self._pull(shell, branch)
-            shell.X(["git-cicd", "submodule", "update", "--init", "--recursive"])
 
         except Exception as ex:
             logger.error("error", exc_info=True)
@@ -489,7 +482,9 @@ class Repository(models.Model):
                             updated_branches.append(branch)
 
                     for branch in updated_branches:
-                        shell.checkout_branch(branch, cwd=repo_path)
+                        shell.checkout_branch(
+                            branch, cwd=repo_path, nosubmodule_update=True
+                        )
                         name = branch
                         del branch
 
@@ -507,7 +502,7 @@ class Repository(models.Model):
                             branch.flush()
                             branch.env.cr.commit()
 
-                            branch._checkout_latest(shell)
+                            branch._checkout_latest(shell, nosubmodule_update=True)
                             branch._update_git_commits(
                                 shell, force_instance_folder=repo_path
                             )
@@ -523,29 +518,24 @@ class Repository(models.Model):
                             updated_branches.append(repo.default_branch)
 
                     for branch_name in updated_branches:
+                        branch = repo.branch_ids.filtered(lambda x: x.name == branch_name)
+                        if not branch:
+                            continue
                         self._postprocess_branch_updates(
-                            shell, repo, repo_path, branch_name
+                            shell, branch,
                         )
+                    shell.checkout_branch(
+                        repo.default_branch, cwd=repo_path, nosubmodule_update=True
+                    )
 
-    def _postprocess_branch_updates(self, shell, repo, repo_path, branch_name):
+    def _postprocess_branch_updates(self, shell, branch):
         """
         If a branch was updated, then the
         """
-        if not branch_name:
-            return
-
-        assert isinstance(branch_name, str)
-
-        # for contains_commit function;
-        # clear caches tested in shell and removes
-        # all caches; method_name
-        repo.clear_caches()
-        branch = repo.branch_ids.filtered(lambda x: x.name == branch_name)
-        branch._checkout_latest(shell)
+        branch._checkout_latest(shell, nosubmodule_update=True)
         branch._update_git_commits(shell)
         branch._compute_latest_commit(shell)
         branch._trigger_rebuild_after_fetch()
-        shell.checkout_branch(repo.default_branch, cwd=repo_path)
 
     def _is_healthy_repository(self, shell, path):
         self.ensure_one()

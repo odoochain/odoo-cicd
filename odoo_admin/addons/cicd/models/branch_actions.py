@@ -439,7 +439,7 @@ class Branch(models.Model):
         with machine._shell() as shell:
             shell.remove(folder)
 
-    def _checkout_latest(self, shell, instance_folder=None, **kwargs):
+    def _checkout_latest(self, shell, instance_folder=None, nosubmodule_update=False, **kwargs):
         """
         Use this for getting source code. It updates also submodules.
 
@@ -527,8 +527,9 @@ class Branch(models.Model):
             shell.logsio.write_text("Clean git")
             shell.X(["git-cicd", "clean", "-xdff"], retry=10)
 
-            shell.logsio.write_text("Updating submodules")
-            shell.X(["git-cicd", "submodule", "update", "--recursive", "--init"])
+            if not nosubmodule_update:
+                shell.logsio.write_text("Updating submodules")
+                shell.X(["git-cicd", "submodule", "update", "--recursive", "--init"])
 
             shell.logsio.write_text("Getting current commit")
             commit = shell.X(["git-cicd", "rev-parse", "HEAD"])["stdout"].strip()
