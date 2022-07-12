@@ -152,6 +152,7 @@ class CicdTestRunLine(models.AbstractModel):
         @contextmanager
         def _get_env():
             try:
+                breakpoint()
                 with self._get_contexted().get_environment_for_execute() as (
                     shell,
                     runenv,

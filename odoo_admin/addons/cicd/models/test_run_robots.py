@@ -88,6 +88,7 @@ class RobotTest(models.Model):
             shell.odoo("down", "-v", force=True, allow_error=True)
 
             shell.odoo("up", "-d", "postgres")
+            shell.wait_for_postgres()  # wodoo bin needs to check version
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             shell.odoo("snap", "remove", self.snapname, allow_error=True)
             shell.odoo("snap", "save", self.snapname)

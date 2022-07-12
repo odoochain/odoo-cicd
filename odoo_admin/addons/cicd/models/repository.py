@@ -517,6 +517,7 @@ class Repository(models.Model):
                         if repo.default_branch:
                             updated_branches.append(repo.default_branch)
 
+                    breakpoint()
                     for branch_name in updated_branches:
                         branch = repo.branch_ids.filtered(
                             lambda x: x.name == branch_name
@@ -535,6 +536,7 @@ class Repository(models.Model):
         """
         If a branch was updated, then the
         """
+        breakpoint()
         branch._checkout_latest(shell, nosubmodule_update=True)
         branch._update_git_commits(shell)
         branch._compute_latest_commit(shell)

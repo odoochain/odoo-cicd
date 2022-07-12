@@ -76,6 +76,7 @@ class CicdVolumes(models.Model):
                         if len(stdout) > 1:
                             stdout = stdout[-1]
                         stdout = stdout.split(" ")
+                        rec = rec.sudo()
                         rec.used_percent = stdout[4].replace("%", "")
                         rec.total_size = int(stdout[1]) / 1024 / 1024
                         rec.used_size = int(stdout[2]) / 1024 / 1024
