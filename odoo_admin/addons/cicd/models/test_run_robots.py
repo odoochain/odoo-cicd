@@ -16,6 +16,7 @@ ROBOT_SETTINGS = SETTINGS + (
     "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1\n"
     "RUN_ODOO_QUEUEJOBS=0\n"
     "RUN_ODOO_CRONJOBS=0\n"
+    "RUN_PROXY_PUBLISHED=0\n"
     "RUN_ROBOT=1\n"
 )
 
@@ -77,7 +78,9 @@ class RobotTest(models.Model):
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
 
-            settings = ROBOT_SETTINGS + (f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}")
+            settings = ROBOT_SETTINGS + (
+                f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}"
+            )
             assert dump_path
 
             self._ensure_source_and_machines(
@@ -90,7 +93,8 @@ class RobotTest(models.Model):
             shell.odoo("up", "-d", "postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
-            if self.use_btrfs:
+            shell.odoo("turn-into-dev")
+            if self[0].use_btrfs:
                 shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.odoo("snap", "save", self.snapname)
             shell.wait_for_postgres()
@@ -101,9 +105,9 @@ class RobotTest(models.Model):
             robot_out = host_run_dir / "odoo_outdir" / "robot_output"
 
             try:
-                yield shell, {'robot_out': robot_out, 'dump_path': dump_path}
+                yield shell, {"robot_out": robot_out, "dump_path": dump_path}
             finally:
-                if self.use_btrfs:
+                if self[0].use_btrfs:
                     shell.odoo("snap", "clear", allow_error=True)
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
@@ -113,10 +117,17 @@ class RobotTest(models.Model):
         self._reset_fields()
 
         shell.odoo("kill")
-        if self.use_btrfs:
+        if self[0].use_btrfs:
             shell.odoo("snap", "restore", self.snapname)
         else:
-            shell.odoo("restore", "odoo-db", runenv['dump_path'], "--no-dev-scripts", force=True)
+            shell.odoo(
+                "restore",
+                "odoo-db",
+                runenv["dump_path"],
+                "--no-dev-scripts",
+                force=True,
+            )
+            shell.odoo("turn-into-dev")
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
         shell.odoo("up", "-d", "odoo")
@@ -143,7 +154,7 @@ class RobotTest(models.Model):
         )
 
         breakpoint()
-        results_path = runenv['robot_out'] / results_file
+        results_path = runenv["robot_out"] / results_file
         del results_file
         if not shell.exists(results_path):
             testdata = []
@@ -151,7 +162,7 @@ class RobotTest(models.Model):
             testdata = json.loads(shell.get(results_path))
             shell.rm(results_path)
             testdata = self._eval_test_output(testdata)
-            self._grab_robot_output(shell, testdata[0]['testoutput'])
+            self._grab_robot_output(shell, testdata[0]["testoutput"])
 
         try:
             excel_file = shell.sql_excel(
@@ -164,10 +175,7 @@ class RobotTest(models.Model):
                 self.queuejob_log = base64.b64encode(excel_file)
 
         if not testdata:
-            raise Exception(
-                f"{process['stdout']}\n"
-                f"{process['stderr']}"
-            )
+            raise Exception(f"{process['stdout']}\n" f"{process['stderr']}")
 
         if not testdata[0].get("all_ok"):
             raise Exception(
@@ -216,9 +224,7 @@ class TestSettingsRobotTests(models.Model):
     _name = "cicd.test.settings.robottest"
     _line_model = "cicd.test.run.line.robottest"
 
-    tags = fields.Char(
-        "Filter to tags (comma separated, may be empty)", default=""
-    )
+    tags = fields.Char("Filter to tags (comma separated, may be empty)", default="")
     parallel = fields.Char(
         "In Parallel",
         required=True,
