@@ -518,11 +518,14 @@ class Repository(models.Model):
                             updated_branches.append(repo.default_branch)
 
                     for branch_name in updated_branches:
-                        branch = repo.branch_ids.filtered(lambda x: x.name == branch_name)
+                        branch = repo.branch_ids.filtered(
+                            lambda x: x.name == branch_name
+                        )
                         if not branch:
                             continue
                         self._postprocess_branch_updates(
-                            shell, branch,
+                            shell,
+                            branch,
                         )
                     shell.checkout_branch(
                         repo.default_branch, cwd=repo_path, nosubmodule_update=True
