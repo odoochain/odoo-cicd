@@ -69,14 +69,16 @@ class UnitTest(models.Model):
             shell.odoo("up", "-d", "postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
-            shell.odoo("snap", "remove", self.snapname, allow_error=True)
-            shell.odoo("snap", "save", self.snapname)
+            if any(self.test_setting_id.mapped('use_btrfs')):
+                shell.odoo("snap", "remove", self.snapname, allow_error=True)
+                shell.odoo("snap", "save", self.snapname)
             shell.wait_for_postgres()
 
             try:
-                yield shell, {}
+                yield shell, {'dump_path': dump_path}
             finally:
-                shell.odoo("snap", "remove", self.snapname, allow_error=True)
+                if any(self.test_setting_id.mapped('use_btrfs')):
+                    shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
                 shell.odoo("down", "-v", force=True, allow_error=True)
@@ -103,7 +105,10 @@ class UnitTest(models.Model):
 
     def _execute_test_at_prepared_environment(self, shell, runenv):
         self._report(f"Installing module {self.odoo_module}")
-        shell.odoo("snap", "restore", self.snapname)
+        if any(self.test_setting_id.mapped('use_btrfs')):
+            shell.odoo("snap", "restore", self.snapname)
+        else:
+            shell.odoo("restore", "odoo-db", runenv['dump_path'], "--no-dev-scripts", force=True)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
         shell.odoo("update", self.odoo_module, "--no-dangling-check")
