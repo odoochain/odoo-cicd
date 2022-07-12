@@ -58,6 +58,10 @@ class CicdTestRunLine(models.AbstractModel):
     logfile_path = fields.Char("Logfilepath", compute="_compute_logfilepath")
     log = fields.Text("Log")
 
+    @property
+    def use_btrfs(self):
+        return any(lambda x: x.use_btrfs for x in self.mapped('test_setting_id'))
+
     def _reset_logfile(self):
         Path(self.logfile_path).write_text("")
 
