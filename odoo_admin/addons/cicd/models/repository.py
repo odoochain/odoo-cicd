@@ -162,17 +162,27 @@ class Repository(models.Model):
                 finally:
                     shell.rm(repo_path)
 
-    def _get_mirrored_copy(self, machine):
-        with machine._gitshell(
-            self,
-            cwd=self.machine_id.workspace,
-        ) as shell:
-            path = machine._get_volume("source") / (self.short + ".mirror")
-            if not shell.exists(path):
-                shell.X(["git-cicd", "clone", self.url, path])
-            with shell.clone(cwd=path) as shell2:
-                shell2.X(["git-cicd", "remote", "update"])
-            return path
+    @api.model
+    def _update_local_mirrors(self):
+        breakpoint()
+        for repo in self.search([]):
+            path = repo.mirror_path
+            with repo.machine_id._gitshell(
+                repo,
+                cwd=repo.machine_id.workspace,
+            ) as shell:
+                tmppath = path.parent / (path.name + ".tmp")
+                shell.remove(tmppath)
+                if not shell.exists(path):
+                    shell.X(["git-cicd", "clone", repo.url, tmppath])
+                    shell.safe_move_directory(tmppath, path)
+                with shell.clone(cwd=path) as shell2:
+                    shell2.X(["git-cicd", "remote", "update"])
+
+    @property
+    def mirror_path(self):
+        path = self.machine_id._get_volume("source") / (self.short + ".mirror")
+        return path
 
     def _technical_clone_repo(
         self, path, machine, logsio=None, branch=None, depth=None
@@ -182,8 +192,7 @@ class Repository(models.Model):
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
             with shell.machine._temppath(usage="clone_repo") as temppath:
-                mirror_path = self._get_mirrored_copy(machine)
-                shell.X(["git-cicd", "clone", mirror_path, temppath])
+                shell.X(["git-cicd", "clone", self.mirror_path, temppath])
                 with shell.clone(cwd=temppath) as shell2:
                     shell2.X(["git-cicd", "remote", "remove", "origin"])
                     shell2.X(["git-cicd", "remote", "add", "origin", self.url])
