@@ -883,6 +883,7 @@ for path in base.glob("*"):
             "RUN_POSTGRES=1\n"
             "RUN_ROBOT=0\n"
             "RUN_PROXY_PUBLISHED=0\n"
+            "POSTGRES_VERSION=14\n"
         )
 
     @contextmanager
