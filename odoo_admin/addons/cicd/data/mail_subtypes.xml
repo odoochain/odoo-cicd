@@ -17,42 +17,42 @@
 				Conflicts appeared in:
 			</p>
 			<table>
-				<tr
-					<th>Branch</th>
-				<th>Commit</th>
-				<th>Merged before</th>
-				<th>Console Out</th>
-			</tr>
-
-			<t t-foreach="conflicts" t-as="conflict">
 				<tr>
-					<td>
-						<t t-esc="conflict['branch']"/>
-					</td>
-					<td>
-						<t t-esc="conflict['commit']"/>
-					</td>
-					<td>
-						<ul>
-							<t t-foreach="conflict['merged']" t-as="merged">
-								<li>
-									<span>Branch: </span>
-									<t t-esc="merged['branch']"/>
-									<br/>
-									<span>Commit: </span>
-									<t t-esc="merged['commit']"/>
-									<br/>
-								</li>
-							</t>
-						</ul>
-					</td>
-					<td>
-						<pre t-esc="conflict['console']">
-						</pre>
-					</td>
+					<th>Branch</th>
+					<th>Commit</th>
+					<th>Merged before</th>
+					<th>Console Out</th>
 				</tr>
-			</t>
-		</table>
-	</template>
-</data>
+
+				<t t-foreach="conflicts" t-as="conflict">
+					<tr>
+						<td>
+							<t t-esc="conflict['branch']"/>
+						</td>
+						<td>
+							<t t-esc="conflict['commit']"/>
+						</td>
+						<td>
+							<ul>
+								<t t-foreach="conflict['merged']" t-as="merged">
+									<li>
+										<span>Branch: </span>
+										<t t-esc="merged['branch']"/>
+										<br/>
+										<span>Commit: </span>
+										<t t-esc="merged['commit']"/>
+										<br/>
+									</li>
+								</t>
+							</ul>
+						</td>
+						<td>
+							<pre t-esc="conflict['console']">
+							</pre>
+						</td>
+					</tr>
+				</t>
+			</table>
+		</template>
+	</data>
 </odoo>
