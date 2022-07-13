@@ -11,14 +11,7 @@ from contextlib import contextmanager, closing
 from .test_run import SETTINGS
 
 # There are tests, that put files into /tmp so better run in one container
-ROBOT_SETTINGS = SETTINGS + (
-    "\n"
-    "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1\n"
-    "RUN_ODOO_QUEUEJOBS=0\n"
-    "RUN_ODOO_CRONJOBS=0\n"
-    "RUN_PROXY_PUBLISHED=0\n"
-    "RUN_ROBOT=1\n"
-)
+ROBOT_SETTINGS = "\n" "RUN_ROBOT=1\nDEFAULT_DEV_PASSWORD=1\n"
 
 
 def safe_filename(filename):
@@ -78,8 +71,15 @@ class RobotTest(models.Model):
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
 
-            settings = ROBOT_SETTINGS + (
-                f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}"
+            breakpoint()
+            settings = self.env["cicd.git.branch"]._get_settings_isolated_run(
+                dbname=DBNAME,
+                forcesettings=(
+                    f"{SETTINGS}\n"
+                    f"{ROBOT_SETTINGS}\n"
+                    f"SERVER_WIDE_MODULES=base,web\n"
+                    f"DBNAME={DBNAME}"
+                ),
             )
             assert dump_path
 
@@ -93,9 +93,10 @@ class RobotTest(models.Model):
             shell.odoo("up", "-d", "postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
-            shell.odoo("turn-into-dev")
             if self[0].use_btrfs:
                 shell.odoo("snap", "remove", self.snapname, allow_error=True)
+                shell.wait_for_postgres()
+                shell.odoo("turn-into-dev")
                 shell.odoo("snap", "save", self.snapname)
             shell.wait_for_postgres()
 

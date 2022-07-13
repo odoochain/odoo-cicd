@@ -31,7 +31,12 @@ class MigrationTest(models.Model):
         if not self.dump_id.name:
             raise ValidationError("Dump required!")
         with self._shell(quick=True) as shell:
-            settings = SETTINGS + (f"DBNAME={DBNAME}")
+            settings = self.env["cicd.git.branch"]._get_settings_isolated_run(
+                dbname=DBNAME,
+                forcesettings=(
+                    f"{SETTINGS}\n" f"SERVER_WIDE_MODULES=base,web\n" f"DBNAME={DBNAME}"
+                ),
+            )
 
             self._ensure_source_and_machines(
                 shell,

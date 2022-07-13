@@ -55,7 +55,14 @@ class UnitTest(models.Model):
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
 
-            settings = SETTINGS + (f"\nSERVER_WIDE_MODULES=base,web\nDBNAME={DBNAME}")
+            settings = self.env["cicd.git.branch"]._get_settings_isolated_run(
+                dbname=DBNAME,
+                forcesettings=(
+                    f"{SETTINGS}\n"
+                    f"SERVER_WIDE_MODULES=base,web\n"
+                    f"DBNAME={DBNAME}"
+                ),
+            )
             assert dump_path
 
             self._ensure_source_and_machines(

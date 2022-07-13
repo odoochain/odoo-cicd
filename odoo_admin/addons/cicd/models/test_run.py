@@ -22,11 +22,6 @@ MAX_ERROR_SIZE = 100 * 1024 * 1024 * 1024
 BASE_SNAPSHOT_NAME = "basesnap"
 
 SETTINGS = (
-    "RUN_POSTGRES=1\n"
-    "DB_HOST=postgres\n"
-    "DB_PORT=5432\n"
-    "DB_USER=odoo\n"
-    "DB_PWD=odoo\n"
     "ODOO_DEMO=1\n"
     "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1\n"
     "RUN_ODOO_QUEUEJOBS=0\n"
@@ -208,6 +203,7 @@ class CicdTestRun(models.Model):
             raise AbortException("User aborted")
 
     def _cleanup_testruns(self):
+        breakpoint()
         with self._logsio(None) as logsio:
             logsio.info("Cleanup Testing started...")
 
