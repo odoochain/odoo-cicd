@@ -92,10 +92,9 @@ class ShellExecutor(BaseShellExecutor):
     def grab_folder_as_tar(self, path):
         if not self.exists(path):
             return None
-        filename = self.machine._temppath()
-        self._internal_execute(["tar", "cfz", filename, "."], cwd=path)
-        content = self.get(filename)
-        self.remove(filename)
+        with self.machine._temppath() as filename:
+            self._internal_execute(["tar", "cfz", filename, "."], cwd=path)
+            content = self.get(filename)
         return content
 
     def remove(self, path):
@@ -149,7 +148,7 @@ class ShellExecutor(BaseShellExecutor):
                 raise Exception("\n".join(filter(bool, [res["stdout"], res["stderr"]])))
         return res
 
-    def checkout_branch(self, branch, cwd=None):
+    def checkout_branch(self, branch, cwd=None, nosubmodule_update=False):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
             if not self.branch_exists(branch):
@@ -173,7 +172,7 @@ class ShellExecutor(BaseShellExecutor):
                 ["git-cicd", "checkout", "-f", "--no-guess", branch], allow_error=False
             )
             self.logsio and self.logsio.info(f"Checked out {branch}")
-            self._after_checkout()
+            self._after_checkout(nosubmodule_update=nosubmodule_update)
 
     def checkout_commit(self, commit, cwd=None):
         cwd = cwd or self.cwd
@@ -220,11 +219,12 @@ class ShellExecutor(BaseShellExecutor):
         except Exception:  # # pylint: disable=broad-except
             return False
 
-    def _after_checkout(self):
+    def _after_checkout(self, nosubmodule_update=False):
         self.logsio and self.logsio.info("Cleaning git...")
         self.X(["git-cicd", "clean", "-xdff"])
         self.logsio and self.logsio.info("Updating submodules...")
-        self.X(["git-cicd", "submodule", "update", "--init", "--force", "--recursive"])
+        if not nosubmodule_update:
+            self.X(["git-cicd", "submodule", "update", "--init", "--force", "--recursive"])
         self.logsio and self.logsio.info("_after_checkout finished.")
 
     def X(
@@ -245,7 +245,7 @@ class ShellExecutor(BaseShellExecutor):
             res = self._internal_execute(
                 cmd, cwd=cwd, env=env, logoutput=logoutput, timeout=timeout
             )
-            if res['exit_code']:
+            if res["exit_code"]:
                 if i == retry:
                     break
             else:
@@ -318,16 +318,18 @@ class ShellExecutor(BaseShellExecutor):
         assert dest_path not in ["/", "/var/"]
         assert len(Path(dest_path).parts) > 2
 
-        remote_temp_path = self.machine._temppath(usage="srcfile", maxage=dict(hours=1))
-        filename = remote_temp_path / "src.tar.gz"
-        self.X(["mkdir", "-p", remote_temp_path])
+        with self.machine._temppath(
+            usage="srcfile", maxage=dict(hours=1)
+        ) as remote_temp_path:
+            self.X(["mkdir", "-p", remote_temp_path])
+            filename = remote_temp_path / "src.tar.gz"
 
-        self.put(content, filename)
-        try:
-            temppath = self.machine._temppath(usage="srcfile", maxage=dict(hours=1))
-            self.X(["mkdir", "-p", temppath])
-            self.X(["tar", "xfz", filename], cwd=temppath)
-            try:
+            self.put(content, filename)
+            with self.machine._temppath(
+                usage="srcfile", maxage=dict(hours=1)
+            ) as temppath:
+                self.X(["mkdir", "-p", temppath])
+                self.X(["tar", "xfz", filename], cwd=temppath)
                 self.X(
                     [
                         "rsync",
@@ -337,24 +339,17 @@ class ShellExecutor(BaseShellExecutor):
                         "--delete-after",
                     ]
                 )
-            finally:
-                self.rm(temppath)
-        finally:
-            self.rm(filename)
 
     def get_zipped(self, path, excludes=None):
         excludes = excludes or []
-        filename = self.machine._temppath(usage="get_zipped")
-        zip_cmd = ["tar", "cfz", filename, "-C", path, "."]
-        for exclude in excludes:
-            zip_cmd.insert(-1, f'--exclude="{exclude}"')
-        with self.clone(cwd=path) as self2:
-            self2.X(zip_cmd)
-        try:
+        with self.machine._temppath(usage="get_zipped") as filename:
+            zip_cmd = ["tar", "cfz", filename, "-C", path, "."]
+            for exclude in excludes:
+                zip_cmd.insert(-1, f'--exclude="{exclude}"')
+            with self.clone(cwd=path) as self2:
+                self2.X(zip_cmd)
             content = self.get(filename)
-        finally:
-            self.X(["rm", filename])
-        return content
+            return content
 
     def get_snapshots(self):
         snaps = self.odoo("snap", "list")["stdout"].splitlines()[2:]
@@ -418,10 +413,8 @@ class ShellExecutor(BaseShellExecutor):
                 break
 
     def safe_move_directory(self, src, dest):
-        breakpoint()
         src = Path(src)
         dest = Path(dest)
-
 
         # if on different directories, move to intermediate just before
         # hoping to be on same disk

@@ -307,7 +307,7 @@ class GitBranch(models.Model):
 
     def _compute_latest_commit(self, shell):
         for rec in self:
-            shell.checkout_branch(rec.name)
+            shell.checkout_branch(rec.name, nosubmodule_update=True)
 
             latest_commit = (
                 shell.X(["git-cicd", "log", "-n1", "--pretty=%H"])["stdout"]

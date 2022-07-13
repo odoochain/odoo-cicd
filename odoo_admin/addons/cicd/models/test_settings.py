@@ -39,6 +39,15 @@ class TestSettingAbstract(models.AbstractModel):
     effective_machine_id = fields.Many2one(
         "cicd.machine", compute="_compute_effective_machine"
     )
+    use_btrfs = fields.Boolean(compute="_compute_use_btrfs")
+
+    def _compute_use_btrfs(self):
+        for rec in self:
+            vols = rec.effective_machine_id.volume_ids.filtered(lambda x: x.ttype == 'source')
+            if not vols:
+                rec.use_btrfs = False
+            else:
+                rec.use_btrfs = vols[0].btrfs_available
 
     @api.model
     def default_get(self, fields):

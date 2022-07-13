@@ -439,7 +439,7 @@ class Branch(models.Model):
         with machine._shell() as shell:
             shell.remove(folder)
 
-    def _checkout_latest(self, shell, instance_folder=None, **kwargs):
+    def _checkout_latest(self, shell, instance_folder=None, nosubmodule_update=False, **kwargs):
         """
         Use this for getting source code. It updates also submodules.
 
@@ -448,26 +448,26 @@ class Branch(models.Model):
 
         def _clone_instance_folder(machine, instance_folder):
             # be atomic
-            path = shell.machine._temppath(usage="clone_repo_at_checkout_latest")
-            self.repo_id._technical_clone_repo(
-                path=path,
-                branch=my_name,
-                machine=machine,
-            )
-            with shell.clone(cwd=path.parent, project_name=None) as shell2:
-                # if work in progress happening in instance_folder;
-                # unlink does not delete the folder, just unlinks, so running processes
-                # still work
-                # path2 will be deleted within two hours by cronjob
-                path2 = shell.machine._temppath(
-                    usage="replace_main_folder", maxage=dict(hours=2)
+            with shell.machine._temppath(usage="clone_repo_at_checkout_latest") as path:
+                self.repo_id._technical_clone_repo(
+                    path=path,
+                    branch=my_name,
+                    machine=machine,
                 )
-                if shell2.exists(instance_folder):
-                    shell2.safe_move_directory(instance_folder, path2)
-                shell2.safe_move_directory(path, instance_folder)
-                self.with_delay(
-                    eta=arrow.utcnow().shift(hours=3).strftime(DTF)
-                ).delete_folder_deferred(shell2.machine, str(path2))
+                with shell.clone(cwd=path.parent, project_name=None) as shell2:
+                    # if work in progress happening in instance_folder;
+                    # unlink does not delete the folder, just unlinks, so running processes
+                    # still work
+                    # path2 will be deleted within two hours by cronjob
+                    with shell.machine._temppath(
+                        usage="replace_main_folder", maxage=dict(hours=2)
+                    ) as path2:
+                        if shell2.exists(instance_folder):
+                            shell2.safe_move_directory(instance_folder, path2)
+                        shell2.safe_move_directory(path, instance_folder)
+                        self.with_delay(
+                            eta=arrow.utcnow().shift(hours=3).strftime(DTF)
+                        ).delete_folder_deferred(shell2.machine, str(path2))
 
         machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
@@ -527,8 +527,9 @@ class Branch(models.Model):
             shell.logsio.write_text("Clean git")
             shell.X(["git-cicd", "clean", "-xdff"], retry=10)
 
-            shell.logsio.write_text("Updating submodules")
-            shell.X(["git-cicd", "submodule", "update", "--recursive", "--init"])
+            if not nosubmodule_update:
+                shell.logsio.write_text("Updating submodules")
+                shell.X(["git-cicd", "submodule", "update", "--recursive", "--init"])
 
             shell.logsio.write_text("Getting current commit")
             commit = shell.X(["git-cicd", "rev-parse", "HEAD"])["stdout"].strip()
@@ -870,7 +871,8 @@ for path in base.glob("*"):
         )
         return action
 
-    def _get_settings_isolated_run(self, dbname="odoo"):
+    @api.model
+    def _get_settings_isolated_run(self, dbname="odoo", forcesettings=""):
         return (
             "RUN_POSTGRES=1\n"
             "DB_HOST=postgres\n"
@@ -883,6 +885,8 @@ for path in base.glob("*"):
             "RUN_POSTGRES=1\n"
             "RUN_ROBOT=0\n"
             "RUN_PROXY_PUBLISHED=0\n"
+            "POSTGRES_VERSION=14\n"
+            f"{forcesettings or ''}\n\n"
         )
 
     @contextmanager

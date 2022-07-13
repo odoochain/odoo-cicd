@@ -32,6 +32,7 @@ class CicdVolumes(models.Model):
     free_size = fields.Float("Free Size")
     total_size = fields.Float("Total Size")
     used_percent = fields.Float("Used %", compute="_compute_numbers")
+    btrfs_available = fields.Boolean("BTRFS available (speeds up testing)")
 
     @api.constrains("name")
     def _check_name(self):
@@ -76,6 +77,7 @@ class CicdVolumes(models.Model):
                         if len(stdout) > 1:
                             stdout = stdout[-1]
                         stdout = stdout.split(" ")
+                        rec = rec.sudo()
                         rec.used_percent = stdout[4].replace("%", "")
                         rec.total_size = int(stdout[1]) / 1024 / 1024
                         rec.used_size = int(stdout[2]) / 1024 / 1024
