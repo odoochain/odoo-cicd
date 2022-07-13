@@ -870,7 +870,8 @@ for path in base.glob("*"):
         )
         return action
 
-    def _get_settings_isolated_run(self, dbname="odoo"):
+    @api.model
+    def _get_settings_isolated_run(self, dbname="odoo", forcesettings=""):
         return (
             "RUN_POSTGRES=1\n"
             "DB_HOST=postgres\n"
@@ -884,6 +885,7 @@ for path in base.glob("*"):
             "RUN_ROBOT=0\n"
             "RUN_PROXY_PUBLISHED=0\n"
             "POSTGRES_VERSION=14\n"
+            f"{forcesettings or ''}\n\n"
         )
 
     @contextmanager
