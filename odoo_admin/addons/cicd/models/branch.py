@@ -613,6 +613,9 @@ class GitBranch(models.Model):
 
         ok, msg = test_request()
         if ok:
+            if self.repo_id.update_ribbon_in_instance:
+                with self.shell(logs_title="set-ribbon") as shell:
+                    shell.odoo("set-ribbon", "--quick", self.name)
             return
 
         if self.task_ids.filtered(lambda x: not x.is_done and x.state):
