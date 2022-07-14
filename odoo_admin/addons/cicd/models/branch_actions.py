@@ -1012,7 +1012,7 @@ for path in base.glob("*"):
     def _create_testrun(self, force_commit=None):
         testrun = self.test_run_ids.create(
             {
-                "commit_id": force_commit or self.latest_commit_id.id,
+                "commit_id": force_commit and force_commit.id or self.latest_commit_id.id,
                 "branch_id": self.id,
             }
         )
