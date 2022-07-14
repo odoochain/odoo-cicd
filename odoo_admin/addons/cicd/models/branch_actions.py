@@ -705,6 +705,7 @@ class Branch(models.Model):
         self.env.cr.commit()
         source_machine = compressor.source_volume_id.machine_id
         try:
+            breakpoint()
             with source_machine._put_temporary_file_on_machine(
                 shell.logsio,
                 compressor.source_volume_id.name + "/" + filename,
@@ -718,23 +719,23 @@ class Branch(models.Model):
                 )
 
                 assert shell.machine.ttype == "dev"
-                breakpoint()
 
                 # change working project/directory
-                with self._tempinstance(self.env.context.get('testrun')) as shell:
+                commit = compressor.branch_id.latest_commit_id.name
+                with self._tempinstance(self.env.context.get('testrun'), commit=commit) as shell:
                     shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
                     shell.logsio.info("Clearing DB...")
                     breakpoint()
                     output = shell.odoo("-f", "cleardb", allow_error=True)
                     if output['exit_code']:
                         raise HandledProcessOutputException(output)
-                    compressor.last_log += f"\nMinimized DB"
+                    compressor.last_log += "\nMinimized DB"
                     if compressor.anonymize:
                         shell.logsio.info("Anonymizing DB...")
                         output = shell.odoo("-f", "anonymize", allow_error=True)
                         if output['exit_code']:
                             raise HandledProcessOutputException(output)
-                        compressor.last_log += f"\nAnonymized DB"
+                        compressor.last_log += "\nAnonymized DB"
                         self.env.cr.commit()
 
                     shell.logsio.info("Dumping compressed dump")
