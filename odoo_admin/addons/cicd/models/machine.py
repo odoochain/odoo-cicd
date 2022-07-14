@@ -241,8 +241,6 @@ class CicdMachine(models.Model):
             return
         with self._shell() as shell:
             for vol in self.volume_ids.filtered(lambda x: x.ttype == "temp"):
-                if not shell.exists(vol.name):
-                    continue
                 for dirname in shell.X(["ls", "-l", vol.name])["stdout"].splitlines():
                     if ".cleanme." in dirname:
                         try:

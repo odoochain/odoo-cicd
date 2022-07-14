@@ -723,7 +723,6 @@ class Branch(models.Model):
                 assert shell.machine.ttype == "dev"
 
                 # change working project/directory
-                breakpoint()
                 commit = self.latest_commit_id.name
                 assert commit
                 with self._tempinstance(
