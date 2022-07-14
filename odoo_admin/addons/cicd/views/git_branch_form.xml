@@ -63,6 +63,7 @@
 							<field name="assignee_id"/>
 							<field name="last_snapshot" attrs="{'invisible': [('enable_snapshots', '=', False)]}"/>
 							<field name="update_i18n"/>
+							<field name="test_at_new_commit"/>
 						</group>
 						<group string="Enduser Summary">
 							<field name="enduser_summary" nolabel='1'/>

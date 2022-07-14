@@ -15,7 +15,7 @@ import logging
 from .repository import InvalidBranchName
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
-from . shell_executor_base import HandledProcessOutputException
+from .shell_executor_base import HandledProcessOutputException
 
 current_dir = Path(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -440,7 +440,9 @@ class Branch(models.Model):
         with machine._shell() as shell:
             shell.remove(folder)
 
-    def _checkout_latest(self, shell, instance_folder=None, nosubmodule_update=False, **kwargs):
+    def _checkout_latest(
+        self, shell, instance_folder=None, nosubmodule_update=False, **kwargs
+    ):
         """
         Use this for getting source code. It updates also submodules.
 
@@ -724,18 +726,20 @@ class Branch(models.Model):
                 breakpoint()
                 commit = self.latest_commit_id.name
                 assert commit
-                with self._tempinstance(self.env.context.get('testrun'), commit=commit) as shell:
+                with self._tempinstance(
+                    self.env.context.get("testrun"), commit=commit
+                ) as shell:
                     shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
                     shell.logsio.info("Clearing DB...")
                     breakpoint()
                     output = shell.odoo("-f", "cleardb", allow_error=True)
-                    if output['exit_code']:
+                    if output["exit_code"]:
                         raise HandledProcessOutputException(output)
                     compressor.last_log += "\nMinimized DB"
                     if compressor.anonymize:
                         shell.logsio.info("Anonymizing DB...")
                         output = shell.odoo("-f", "anonymize", allow_error=True)
-                        if output['exit_code']:
+                        if output["exit_code"]:
                             raise HandledProcessOutputException(output)
                         compressor.last_log += "\nAnonymized DB"
                         self.env.cr.commit()
@@ -745,7 +749,9 @@ class Branch(models.Model):
                     shell.odoo("backup", "odoo-db", dump_path)
                     compressor.last_output_size = shell.file_size(dump_path)
                     self.env.cr.commit()
-                    compressor.last_log += f"\nDump created transferring to destinations"
+                    compressor.last_log += (
+                        f"\nDump created transferring to destinations"
+                    )
 
                     dump = shell.get(dump_path)
                     for output in compressor.output_ids:
@@ -768,10 +774,7 @@ class Branch(models.Model):
 
         except Exception as ex:
             msg = traceback.format_exc()
-            compressor.last_log += (
-                f"{str(ex)}\n"
-                f"{msg}"
-            )
+            compressor.last_log += f"{str(ex)}\n" f"{msg}"
         else:
             compressor.last_log = "Success - no error"
 
@@ -962,7 +965,7 @@ for path in base.glob("*"):
             shell.logsio.info(f"Dumping to {dest_path}")
             if ttype == "full":
                 shell.odoo("update", timeout=60 * 30)
-                shell.odoo('turn-into-dev')
+                shell.odoo("turn-into-dev")
                 shell.wait_for_postgres()
             params = ["backup", "odoo-db", dest_path]
             if dumptype:
@@ -982,7 +985,7 @@ for path in base.glob("*"):
         ) as shell:
             path = Path(shell.machine._get_volume("dumps"))
 
-            if ttype in ['base']:
+            if ttype in ["base"]:
                 self._checkout_latest(shell)
                 self._reload(
                     shell,
@@ -1009,10 +1012,10 @@ for path in base.glob("*"):
             dest_path = path / dump_name
             return dest_path
 
-    def _create_testrun(self):
+    def _create_testrun(self, force_commit=None):
         testrun = self.test_run_ids.create(
             {
-                "commit_id": self.latest_commit_id.id,
+                "commit_id": force_commit or self.latest_commit_id.id,
                 "branch_id": self.id,
             }
         )
