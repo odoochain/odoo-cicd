@@ -39,6 +39,7 @@ class GitBranch(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
     _name = "cicd.git.branch"
 
+    test_at_new_commit = fields.Boolean("Test at new commit")
     update_i18n = fields.Boolean("Update I18N at updates")
     force_prepare_dump = fields.Boolean("Force prepare Dump")
     is_release_branch = fields.Boolean(
