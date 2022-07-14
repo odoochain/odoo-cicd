@@ -721,7 +721,9 @@ class Branch(models.Model):
                 assert shell.machine.ttype == "dev"
 
                 # change working project/directory
-                commit = compressor.branch_id.latest_commit_id.name
+                breakpoint()
+                commit = self.latest_commit_id.name
+                assert commit
                 with self._tempinstance(self.env.context.get('testrun'), commit=commit) as shell:
                     shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
                     shell.logsio.info("Clearing DB...")
@@ -923,6 +925,7 @@ for path in base.glob("*"):
                             assert "DB_HOST: postgres" == conf.strip()
                     shell.odoo("regpull", "postgres", allow_error=True)
                     shell.odoo("build", "postgres")
+                    shell.odoo("build")
                     shell.odoo("down", "-v", force=True, allow_error=True)
                     shell.odoo("up", "-d", "postgres")
                     shell.wait_for_postgres()
