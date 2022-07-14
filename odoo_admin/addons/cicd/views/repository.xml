@@ -42,6 +42,7 @@
 							<field name="registry_id"/>
 							<field name="revive_branch_on_push"/>
 							<field name="update_i18n"/>
+							<field name="update_ribbon_in_instance"/>
 						</group>
 						<group string="Webhooks">
 							<div>http://host/trigger/repo/webhook_id/webhook_secret</div>

@@ -427,7 +427,8 @@ class Branch(models.Model):
 
         external_url = self.machine_id.external_url
         shell.odoo("update-setting", "web.base.url", external_url)
-        shell.odoo("set-ribbon", self.name)
+        if self.repo_id.update_ribbon_in_instance:
+            shell.odoo("set-ribbon", self.name)
         shell.odoo("prolong")
         shell.odoo("restore-web-icons")
 

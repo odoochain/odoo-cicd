@@ -48,6 +48,7 @@ class Repository(models.Model):
     short = fields.Char(compute="_compute_shortname", string="Name", compute_sudo=True)
     webhook_id = fields.Char("Webhook ID", help="/trigger/repo/<this id>")
     webhook_secret = fields.Char("Webhook Secret")
+    update_ribbon_in_instance = fields.Boolean("Update Ribbon after restore", default=True)
     machine_id = fields.Many2one(
         "cicd.machine",
         string="Development Machine",
