@@ -32,6 +32,7 @@ class PostgresServer(models.Model):
         string="Type",
         required=True,
     )
+    btrfs = fields.Boolean("BTRFS available (snapshotting)")
 
     def _compute_size(self):
         for rec in self:

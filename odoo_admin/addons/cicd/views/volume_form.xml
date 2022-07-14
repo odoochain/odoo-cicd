@@ -12,7 +12,6 @@
 						<field name="name" />
 						<field name="machine_id"/>
 						<field name="ttype"/>
-						<field name="btrfs_available"/>
 						<field name="used_size_human"/>
 						<field name="free_size_human"/>
 						<field name="total_size_human"/>

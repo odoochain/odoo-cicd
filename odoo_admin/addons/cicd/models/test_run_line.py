@@ -58,19 +58,6 @@ class CicdTestRunLine(models.AbstractModel):
     logfile_path = fields.Char("Logfilepath", compute="_compute_logfilepath")
     log = fields.Text("Log")
 
-    use_btrfs = fields.Boolean(compute="_compute_use_btrfs")
-
-    def _compute_use_btrfs(self):
-        for rec in self:
-            test_settings = list(set(rec.mapped('test_setting_id')))
-            machines = list(map(lambda x: x.effective_machine_id, test_settings))
-            machines = self.env['cicd.machine'].union(*machines)
-            volumes = machines.mapped('volume_ids').filtered(lambda x: x.ttype == 'source')
-            if not volumes:
-                rec.use_btrfs = False
-            else:
-                rec.use_btrfs = volumes[0].btrfs_available
-
     def _reset_logfile(self):
         Path(self.logfile_path).write_text("")
 

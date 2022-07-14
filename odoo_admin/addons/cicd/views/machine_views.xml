@@ -56,7 +56,6 @@
 											<field name="free_size_human"/>
 											<field name="used_percent"/>
 											<field name="ttype"/>
-											<field name="btrfs_available"/>
 										</tree>
 									</field>
 								</group>

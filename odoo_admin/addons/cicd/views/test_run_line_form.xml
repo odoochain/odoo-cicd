@@ -12,6 +12,7 @@
 							<field name="state"/>
 							<field name="started"/>
 							<field name="duration"/>
+							<field name="hash" readonly="1"/>
 							<field name="force_success" attrs="{'invisible': [('state', '=', 'success')]}"/>
 						</group>
 						<separator string="Exception Info" colspan="4"/>

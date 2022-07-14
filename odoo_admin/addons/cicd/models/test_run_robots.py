@@ -93,7 +93,7 @@ class RobotTest(models.Model):
             shell.odoo("up", "-d", "postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
-            if self[0].use_btrfs:
+            if self.test_setting_id.use_btrfs:
                 shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.wait_for_postgres()
                 shell.odoo("turn-into-dev")
@@ -108,7 +108,7 @@ class RobotTest(models.Model):
             try:
                 yield shell, {"robot_out": robot_out, "dump_path": dump_path}
             finally:
-                if self[0].use_btrfs:
+                if self.test_setting_id.use_btrfs:
                     shell.odoo("snap", "clear", allow_error=True)
                 shell.odoo("kill", allow_error=True)
                 shell.odoo("rm", allow_error=True)
@@ -118,7 +118,7 @@ class RobotTest(models.Model):
         self._reset_fields()
 
         shell.odoo("kill")
-        if self[0].use_btrfs:
+        if self.test_setting_id.use_btrfs:
             shell.odoo("snap", "restore", self.snapname)
         else:
             shell.odoo(
