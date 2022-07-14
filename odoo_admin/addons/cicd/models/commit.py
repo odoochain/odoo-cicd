@@ -156,7 +156,10 @@ class GitCommit(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
-        self._evaluate_message()
+        res._evaluate_message()
+        for branch in res.branch_ids:
+            if branch.test_at_new_commit:
+                branch._create_testrun(force_commit=res)
         return res
 
     def _evaluate_message(self):
@@ -164,7 +167,7 @@ class GitCommit(models.Model):
             if ":REVIEW:" in rec.text:
                 rec.approval_state = "check"
             if ":TEST:" in rec.text:
-                rec.branch_id.run_tests()
+                rec._create_testrun(force_commit=rec)
             if ":RESET:" in rec.text:
                 rec.branch_id.with_user(self.author_user_id.id)._make_task(
                     "_prepare_a_new_instance"
