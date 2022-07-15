@@ -235,13 +235,12 @@ class CicdMachine(models.Model):
             machine.with_delay()._clean_temppath()
 
     def _clean_temppath(self):
-        breakpoint()
         self.ensure_one()
         if not self.active:
             return
         with self._shell() as shell:
             for vol in self.volume_ids.filtered(lambda x: x.ttype == "temp"):
-                for dirname in shell.X(["ls", "-l", vol.name])["stdout"].splitlines():
+                for dirname in shell.X(["ls", "-A", vol.name])["stdout"].splitlines():
                     if ".cleanme." in dirname:
                         try:
                             date = arrow.get(dirname.split(".")[-1], "YYYYMMDD_HHmmss")
