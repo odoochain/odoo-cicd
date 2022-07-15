@@ -995,7 +995,7 @@ for path in base.glob("*"):
 
             def _get_dumpfile_name():
                 if ttype == "base":
-                    output = shell.odoo("list-deps", "base")["stdout"].split("---", 1)[
+                    output = shell.odoo("list-deps", "base", force=True)["stdout"].split("---", 1)[
                         1
                     ]
                     deps = json.loads(output)

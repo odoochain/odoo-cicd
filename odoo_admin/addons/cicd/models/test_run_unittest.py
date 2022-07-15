@@ -310,7 +310,7 @@ class TestSettingsUnittest(models.Model):
 
     @api.model
     def _get_hash_for_module(self, shell, module_path):
-        res = shell.odoo("list-deps", module_path)
+        res = shell.odoo("list-deps", module_path, force=True)
         stdout = res["stdout"]
         deps = json.loads(stdout.split("---", 1)[1])
         return deps["hash"]
