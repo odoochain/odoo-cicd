@@ -22,7 +22,7 @@ class Release(models.Model):
     repo_short = fields.Char(related="repo_id.short")
     branch_id = fields.Many2one("cicd.git.branch", string="Branch", required=True)
     item_ids = fields.One2many("cicd.release.item", "release_id", string="Release")
-    auto_release = fields.Boolean("Auto Release")
+    auto_release = fields.Boolean("Auto Release", default=True)
     sequence_id = fields.Many2one(
         "ir.sequence", string="Version Sequence", required=True
     )
