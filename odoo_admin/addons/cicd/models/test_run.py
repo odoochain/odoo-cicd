@@ -258,7 +258,6 @@ class CicdTestRun(models.Model):
             self.as_job("cleanup", True, eta=300)._cleanup_testruns()
 
             self.as_job("compute_success_state", True)._compute_success_state()
-            self.as_job("inform_developer", True)._inform_developer()
 
         except RetryableJobError:
             raise
@@ -309,6 +308,7 @@ class CicdTestRun(models.Model):
         else:
             self.state = "failed"
         self.branch_id._compute_state()
+        self.as_job("inform_developer", True)._inform_developer()
 
     def _compute_name(self):
         for rec in self:
