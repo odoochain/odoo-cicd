@@ -12,10 +12,14 @@
 				</tr>
 				<tr>
 					<th>Success-Rate</th>
-					<td>
+					<td t-if="obj.any_testing">
 						<t t-esc="obj.success_rate"/>
 						<span>%</span>
 					</td>
+					<td t-else="">
+						No tests were configured or results from previous tests could be reused.
+					</td>
+
 				</tr>
 				<tr>
 					<th>Duration</th>

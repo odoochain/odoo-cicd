@@ -7,6 +7,7 @@
 			<field name="arch" type="xml">
 				<kanban default_group_by="state">
 					<field name="name"/>
+					<field name="state"/>
 					<templates>
 
 						<t t-name="kanban-box">
@@ -36,9 +37,13 @@
 									<strong>Branches:</strong>
 									<field name="branch_ids"/>
 								</div>
-								<div>
+								<div t-if="state != 'success'">
 									<strong>Success-Rate:</strong>
 									<field name="success_rate"/><span>%</span>
+								</div>
+								<div t-if="state not in ('success', 'failed')">
+									<strong>Done:</strong>
+									<field name="done_rate"/><span>%</span>
 								</div>
 								<div>
 									<strong>Repository:</strong>

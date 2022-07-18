@@ -57,6 +57,7 @@ class CicdTestRun(models.Model):
         required=True,
         tracking=True,
     )
+    any_testing = fields.Boolean(compute="_compute_any_testing", store=False)
     date_started = fields.Datetime("Date Started")
     commit_id = fields.Many2one("cicd.git.commit", "Commit", required=True)
     commit_id_short = fields.Char(related="commit_id.short", store=True)
@@ -113,6 +114,11 @@ class CicdTestRun(models.Model):
                 rec.done_rate = 0
             else:
                 rec.done_rate = 100 * (alllines - openlines) / alllines
+
+
+    def _compute_any_testing(self):
+        for rec in self:
+            rec.any_testing = bool(list(rec.iterate_testlines()))
 
     def iterate_testlines(self):
         """returns the lines for robottests, unittests, migration tests inherting
