@@ -91,6 +91,7 @@ class queuejob(models.Model):
             "could not lock config file",  # changing with git config
             "could not connect to server: Connection refused",
             "server closed the connection unexpectedly",
+            "ssh_exchange_identification: read: Connection reset by peer",
         ]
 
         ignore_idkeys = [
