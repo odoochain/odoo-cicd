@@ -174,6 +174,7 @@ class Branch(models.Model):
         shell.machine.sudo().postgres_server_id.with_delay().update_databases()
 
     def _docker_start(self, shell, **kwargs):
+        shell.odoo("kill")
         shell.odoo("up", "-d")
         self.machine_id._fetch_psaux_docker_containers()
 
