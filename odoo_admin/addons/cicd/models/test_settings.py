@@ -127,7 +127,7 @@ class TestSettingAbstract(models.AbstractModel):
 
     def init_testrun(self, testrun):
         lines = self.produce_test_run_lines(testrun)
-        for i in range(0, len(lines), self.lines_per_worker):
+        for i in range(0, len(lines or []), self.lines_per_worker):
             batch = lines[i : i + self.lines_per_worker]
             ids = [x.id for x in batch]
             browse_lines = batch[0].browse(ids)
