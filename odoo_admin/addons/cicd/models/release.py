@@ -22,7 +22,7 @@ class Release(models.Model):
     repo_short = fields.Char(related="repo_id.short")
     branch_id = fields.Many2one("cicd.git.branch", string="Branch", required=True)
     item_ids = fields.One2many("cicd.release.item", "release_id", string="Release")
-    auto_release = fields.Boolean("Auto Release")
+    auto_release = fields.Boolean("Auto Release", default=True)
     sequence_id = fields.Many2one(
         "ir.sequence", string="Version Sequence", required=True
     )
@@ -156,8 +156,16 @@ class Release(models.Model):
             or last_item.is_done
         ):
 
+            def as_naive_date(x):
+                if not x:
+                    x = arrow.get("1980-04-04")
+                return arrow.get(arrow.get(x).strftime(DTF)).datetime
+
             planned_date = self.compute_next_date(
-                max(last_item.planned_maximum_finish_date, fields.Datetime.now())
+                max(
+                    as_naive_date(last_item.planned_maximum_finish_date),
+                    as_naive_date(fields.Datetime.now()),
+                )
             )
 
             self.item_ids = [

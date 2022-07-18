@@ -38,6 +38,7 @@ class JobEncoder(json.JSONEncoder):
 class GitBranch(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
     _name = "cicd.git.branch"
+    _order = 'latest_commit_date desc'
 
     test_at_new_commit = fields.Boolean("Test at new commit")
     update_i18n = fields.Boolean("Update I18N at updates")
@@ -165,6 +166,7 @@ class GitBranch(models.Model):
         compute="_compute_allowed_machines",
     )
     latest_commit_id = fields.Many2one("cicd.git.commit")
+    latest_commit_date = fields.Datetime(related="latest_commit_id.date", store=True)
 
     approval_state = fields.Selection(
         related="latest_commit_id.approval_state", tracking=True
