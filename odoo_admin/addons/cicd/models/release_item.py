@@ -349,7 +349,7 @@ class ReleaseItem(models.Model):
                     self.message_post_with_view(
                         "cicd.mt_mergeconflict_template",
                         values={"self": self, "conflicts": ex.conflicts},
-                        subtype_id="cicd.mt_mergeconflict",
+                        subtype_id=self.env.ref("cicd.mt_mergeconflict").id,
                     )
                     self.env.cr.commit()
                 else:

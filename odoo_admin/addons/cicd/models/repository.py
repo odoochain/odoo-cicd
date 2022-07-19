@@ -338,7 +338,7 @@ class Repository(models.Model):
                         for remote in self._get_remotes(shell):
 
                             fetch_output = (
-                                shell.X(["git-cicd", "fetch", remote, "--dry-run"])[
+                                shell.X(["git-cicd", "fetch", remote])[
                                     "stderr"
                                 ]
                                 .strip()
@@ -379,12 +379,8 @@ class Repository(models.Model):
 
                         for branch in set(updated_branches):
                             self._fetch_branch(branch)
-                            shell.X(["git-cicd", "checkout", "-f", branch])
-                            shell.X(["git-cicd", "clean", "-xdff"])
-                            shell.X(["git-cicd", "pull", "origin", branch])
                             del branch
 
-                        self._update_local_mirrors()
 
         except Exception:
             msg = traceback.format_exc()
@@ -477,6 +473,7 @@ class Repository(models.Model):
 
         with LogsIOWriter.GET(repo.name, "fetch") as logsio:
             repo = repo.with_context(active_test=False)
+            repo._update_local_mirrors()
             machine = repo.machine_id
 
             with self._temp_repo(machine, logsio=logsio) as repo_path:
