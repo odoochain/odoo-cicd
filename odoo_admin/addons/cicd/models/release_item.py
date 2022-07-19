@@ -625,6 +625,9 @@ class ReleaseItem(models.Model):
             if rec.state == "failed_technically":
                 rec.state = "ready"
                 rec.planned_date = fields.Datetime.now()
+            elif rec.state in "failed_merge_master":
+                rec.state = "integrating"
+                rec.planned_date = fields.Datetime.now()
 
             elif rec.state in [
                 "collecting_merge_conflict",
