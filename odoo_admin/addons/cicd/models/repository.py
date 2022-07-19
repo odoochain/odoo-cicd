@@ -778,6 +778,7 @@ class Repository(models.Model):
                     ]
                 )
                 shell.logsio.info("Pushing ")
+                shell.X(["git-cicd", "pull"])
                 shell.X(["git-cicd", "push"])
                 mergecommitid = shell.X(["git-cicd", "log", "-n1", "--format=%H"])[
                     "stdout"
