@@ -329,7 +329,6 @@ class Branch(models.Model):
                             "--pretty=format:%ct",
                         ],
                         logoutput=False,
-                        cwd=instance_folder,
                         env=env,
                     )["stdout"]
                     .strip()
@@ -357,7 +356,6 @@ class Branch(models.Model):
                         "-n1",
                     ],
                     logoutput=False,
-                    cwd=instance_folder,
                     env=env,
                 )["stdout"]
                 .strip()
