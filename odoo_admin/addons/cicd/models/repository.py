@@ -380,9 +380,9 @@ class Repository(models.Model):
                         for branch in set(updated_branches):
                             self._fetch_branch(branch)
                             self.env.cr.commit()
-                            shell.X("git-cicd", "checkout", "-f", branch)
-                            shell.X("git-cicd", "clean", "-xdff")
-                            shell.X("git-cicd", "pull", "origin", branch)
+                            shell.X(["git-cicd", "checkout", "-f", branch])
+                            shell.X(["git-cicd", "clean", "-xdff"])
+                            shell.X(["git-cicd", "pull", "origin", branch])
                             del branch
 
         except Exception:
