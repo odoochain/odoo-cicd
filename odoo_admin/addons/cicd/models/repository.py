@@ -709,9 +709,7 @@ class Repository(models.Model):
                     )
                 if not target_branch.active:
                     target_branch.active = True
-                target_branch._update_git_commits(
-                    shell, force_instance_folder=repo_path
-                )
+                target_branch._update_git_commits(shell)
                 target_branch._compute_latest_commit(shell)
                 if message_commit_sha:
                     message_commit = target_branch.commit_ids.filtered(

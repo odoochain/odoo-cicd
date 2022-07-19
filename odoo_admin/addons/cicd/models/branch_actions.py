@@ -269,13 +269,10 @@ class Branch(models.Model):
         # to avoid serialize access erros which may occur
         machine.with_delay().update_dumps()
 
-    def _update_git_commits(self, shell, force_instance_folder=None, **kwargs):
+    def _update_git_commits(self, shell, **kwargs):
 
         self.ensure_one()
         shell.logsio.info(f"Updating commits for {self.project_name}")
-        instance_folder = force_instance_folder or self._get_instance_folder(
-            self.machine_id
-        )
 
         def _extract_commits():
             # removing the 4 months filter:
@@ -294,7 +291,6 @@ class Branch(models.Model):
                             # "--since='last 4 months'",
                         ],
                         logoutput=False,
-                        cwd=instance_folder,
                     )["stdout"]
                     .strip()
                     .split("\n"),
