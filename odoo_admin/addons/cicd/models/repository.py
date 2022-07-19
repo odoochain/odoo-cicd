@@ -167,7 +167,7 @@ class Repository(models.Model):
     @api.model
     def _update_local_mirrors(self):
         breakpoint()
-        for repo in self.search([]):
+        for repo in (self or self.search([])):
             path = repo.mirror_path
             with repo.machine_id._gitshell(
                 repo,
@@ -379,11 +379,12 @@ class Repository(models.Model):
 
                         for branch in set(updated_branches):
                             self._fetch_branch(branch)
-                            self.env.cr.commit()
                             shell.X(["git-cicd", "checkout", "-f", branch])
                             shell.X(["git-cicd", "clean", "-xdff"])
                             shell.X(["git-cicd", "pull", "origin", branch])
                             del branch
+
+                        self._update_local_mirrors()
 
         except Exception:
             msg = traceback.format_exc()
