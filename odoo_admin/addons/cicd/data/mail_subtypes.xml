@@ -27,20 +27,20 @@
 				<t t-foreach="conflicts" t-as="conflict">
 					<tr>
 						<td>
-							<t t-esc="conflict['branch']"/>
+							<t t-esc="conflict['branch'].name"/>
 						</td>
 						<td>
-							<t t-esc="conflict['commit']"/>
+							<t t-esc="conflict['commit'].name"/>
 						</td>
 						<td>
 							<ul>
 								<t t-foreach="conflict['merged']" t-as="merged">
 									<li>
 										<span>Branch: </span>
-										<t t-esc="merged['branch']"/>
+										<t t-esc="merged['branch'].name"/>
 										<br/>
 										<span>Commit: </span>
-										<t t-esc="merged['commit']"/>
+										<t t-esc="merged['commit'].name"/>
 										<br/>
 									</li>
 								</t>
