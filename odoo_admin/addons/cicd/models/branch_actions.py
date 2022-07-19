@@ -67,6 +67,7 @@ class Branch(models.Model):
         if commit:
             try:
                 shell.logsio.info("Updating")
+                shell.odoo("kill", allow_error=True)
                 self._clone_instance_folder(shell)
                 result = shell.odoo(
                     "update",
