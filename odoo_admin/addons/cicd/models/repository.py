@@ -379,6 +379,10 @@ class Repository(models.Model):
 
                         for branch in set(updated_branches):
                             self._fetch_branch(branch)
+                            self.env.cr.commit()
+                            shell.X("git-cicd", "checkout", "-f", branch)
+                            shell.X("git-cicd", "clean", "-xdff")
+                            shell.X("git-cicd", "pull", "origin", branch)
                             del branch
 
         except Exception:
@@ -510,19 +514,13 @@ class Repository(models.Model):
                                     "repo_id": repo.id,
                                 }
                             )
-                            branch.flush()
-                            branch.env.cr.commit()
-
-                            branch._checkout_latest(shell, nosubmodule_update=True)
-                            branch._update_git_commits(
-                                shell, force_instance_folder=repo_path
-                            )
 
                         if not branch.active and repo.revive_branch_on_push:
                             branch.active = True
 
                         shell.checkout_branch(repo.default_branch, cwd=repo_path)
                         del name
+                        branch.env.cr.commit()
 
                     if not repo.branch_ids and not updated_branches:
                         if repo.default_branch:
@@ -548,7 +546,7 @@ class Repository(models.Model):
         If a branch was updated, then the
         """
         breakpoint()
-        branch._checkout_latest(shell, nosubmodule_update=True)
+        branch._checkout_latest(shell, instance_folder=shell.cwd, nosubmodule_update=True)
         branch._update_git_commits(shell)
         branch._compute_latest_commit(shell)
         branch._trigger_rebuild_after_fetch()

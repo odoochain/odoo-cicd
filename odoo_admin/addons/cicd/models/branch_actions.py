@@ -34,8 +34,9 @@ logger = logging.getLogger(__name__)
 class Branch(models.Model):
     _inherit = "cicd.git.branch"
 
-    def _prepare_a_new_instance(self, shell, **kwargs):
+    def _prepare_a_new_instance(self, shell, checkout=False, **kwargs):
         dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
+        self._clone_instance_folder(shell)
         if not dump:
             self._reset_db(shell, **kwargs)
         else:
@@ -47,7 +48,7 @@ class Branch(models.Model):
             self._reset_db(shell, **kwargs)
         self._update_all_modules(shell, **kwargs)
 
-    def _update_odoo(self, shell, **kwargs):
+    def _update_odoo(self, shell, checkout=False, **kwargs):
         if (
             self.block_updates_until
             and self.block_updates_until > fields.Datetime.now()
@@ -66,6 +67,7 @@ class Branch(models.Model):
         if commit:
             try:
                 shell.logsio.info("Updating")
+                self._clone_instance_folder(shell)
                 result = shell.odoo(
                     "update",
                     "--since-git-sha",
@@ -441,6 +443,33 @@ class Branch(models.Model):
         with machine._shell() as shell:
             shell.remove(folder)
 
+    def _clone_instance_folder(self, shell):
+        """
+
+        """
+        # be atomic
+        with shell.machine._temppath(usage="clone_repo_at_checkout_latest") as path:
+            self.repo_id._technical_clone_repo(
+                path=path,
+                branch=self.name,
+                machine=shell.machine,
+            )
+            with shell.clone(cwd=path.parent, project_name=None) as shell2:
+                # if work in progress happening in instance_folder;
+                # unlink does not delete the folder, just unlinks, so running processes
+                # still work
+                # path2 will be deleted within two hours by cronjob
+                with shell.machine._temppath(
+                    usage="replace_main_folder", maxage=dict(hours=2)
+                ) as path2:
+                    if shell2.exists(instance_folder):
+                        shell2.safe_move_directory(instance_folder, path2)
+                    shell2.safe_move_directory(path, instance_folder)
+                    self.with_delay(
+                        eta=arrow.utcnow().shift(hours=3).strftime(DTF)
+                    ).delete_folder_deferred(shell2.machine, str(path2))
+
+
     def _checkout_latest(
         self, shell, instance_folder=None, nosubmodule_update=False, **kwargs
     ):
@@ -448,41 +477,20 @@ class Branch(models.Model):
         Use this for getting source code. It updates also submodules.
 
         """
-        my_name = self._unblocked("name")
-
-        def _clone_instance_folder(machine, instance_folder):
-            # be atomic
-            with shell.machine._temppath(usage="clone_repo_at_checkout_latest") as path:
-                self.repo_id._technical_clone_repo(
-                    path=path,
-                    branch=my_name,
-                    machine=machine,
-                )
-                with shell.clone(cwd=path.parent, project_name=None) as shell2:
-                    # if work in progress happening in instance_folder;
-                    # unlink does not delete the folder, just unlinks, so running processes
-                    # still work
-                    # path2 will be deleted within two hours by cronjob
-                    with shell.machine._temppath(
-                        usage="replace_main_folder", maxage=dict(hours=2)
-                    ) as path2:
-                        if shell2.exists(instance_folder):
-                            shell2.safe_move_directory(instance_folder, path2)
-                        shell2.safe_move_directory(path, instance_folder)
-                        self.with_delay(
-                            eta=arrow.utcnow().shift(hours=3).strftime(DTF)
-                        ).delete_folder_deferred(shell2.machine, str(path2))
-
         machine = shell.machine
         instance_folder = instance_folder or self._get_instance_folder(machine)
-        shell.logsio.write_text(f"Updating instance folder {my_name}")
-        _clone_instance_folder(machine, instance_folder)
-        shell.logsio.write_text(f"Cloning {my_name} to {instance_folder}")
+        shell.logsio.write_text(f"Updating instance folder {self.name}")
+
+        if not shell.exists(instance_folder):
+            with shell.clone(cwd=instance_folder) as instance_shell:
+                self._clone_instance_folder(instance_shell)
+        shell.logsio.write_text(f"Cloning {self.name} to {instance_folder}")
 
         with shell.clone(cwd=instance_folder) as shell:
-            shell.logsio.write_text(f"Checking out {my_name}")
+            shell.logsio.write_text(f"Checking out {self.name}")
             try:
-                shell.X(["git-cicd", "checkout", "-f", my_name])
+                shell.X(["git-cicd", "checkout", "-f", self.name])
+                shell.X(["git-cicd", "pull"])
             except Exception as ex:
                 shell.logsio.error(ex)
                 shell.rm(instance_folder)
@@ -491,21 +499,12 @@ class Branch(models.Model):
                     ignore_retry=True,
                 ) from ex
 
-            try:
-                shell.X(["git-cicd", "pull"])
-            except Exception as ex:  # pylint: disable=broad-except
-                shell.logsio.error(
-                    ("Error at pulling," f"cloning path {instance_folder} again:\n{ex}")
-                )
-                shell.rm(instance_folder)
-                _clone_instance_folder(machine, instance_folder)
-
             # delete all other branches:
             res = shell.X(["git-cicd", "branch"])["stdout"].strip().split("\n")
             for branch in list(filter(lambda x: "* " not in x, res)):
                 branch = self.repo_id._clear_branch_name(branch)
 
-                if branch == my_name:
+                if branch == self.name:
                     continue
 
                 shell.X(["git-cicd", "branch", "-D", branch])
@@ -518,13 +517,12 @@ class Branch(models.Model):
                 branch_in_dir = self.repo_id._clear_branch_name(current_branch)
             except InvalidBranchName:
                 branch_in_dir = None
-            if branch_in_dir != my_name:
+            if branch_in_dir != self.name:
                 shell.rm(instance_folder)
-
                 raise Exception(
                     (
                         f"Branch could not be checked out!"
-                        f"Was {branch_in_dir} - but should be {my_name}"
+                        f"Was {branch_in_dir} - but should be {self.name}"
                     )
                 )
 

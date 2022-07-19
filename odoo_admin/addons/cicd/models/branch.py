@@ -763,15 +763,10 @@ class GitBranch(models.Model):
             if (
                 not rec.database_size and rec.repo_id.initialize_new_branches
             ) or rec.force_prepare_dump:
-                rec._make_task("_prepare_a_new_instance")
+                rec._make_task("_prepare_a_new_instance", checkout=True)
                 rec.force_prepare_dump = False
             elif rec.database_size:
-                if rec.latest_commit_id and ":RESTART:" in (
-                    rec.latest_commit_id.text or ""
-                ):
-                    rec._make_task("_restart")
-                else:
-                    rec._make_task("_update_odoo")
+                rec._make_task("_update_odoo", checkout=True)
 
     def contains_commit(self, commit):
         return commit in self.mapped("commit_ids")
