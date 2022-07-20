@@ -232,7 +232,7 @@ class CicdTestRun(models.Model):
 
     def _wait_for_finish(self):
         self.ensure_one()
-        if self.env.context.get("test_queue_job_no_delay"):
+        if self.env.context.get("test_queue_job_no_delay") or os.getenv("TEST_QUEUE_JOB_NO_DELAY") == "1":
             return
         try:
             if not self.exists():
@@ -294,15 +294,6 @@ class CicdTestRun(models.Model):
         self.date_started = fields.Datetime.now()
         self._switch_to_running_state()
         self.env.cr.commit()
-
-        with self._logsio(None) as logsio:
-            if not self.any_testing:
-                logsio.info("No testing - so done")
-                self.success_rate = 100
-                self.state = "success"
-                return
-
-            logsio.info(f"Started Testrun {self.name}")
 
         for test_setup in self.iterate_all_test_settings():
             test_setup.as_job(test_setup.name).init_testrun(self)
