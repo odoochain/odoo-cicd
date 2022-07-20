@@ -346,9 +346,15 @@ class ReleaseItem(models.Model):
                         self.branch_ids.filtered(
                             lambda x: x.commit_id == conflict["commit"]
                         ).write({"state": "conflict"})
+                    values = {"self": self, "conflicts": ex.conflicts}
                     self.message_post_with_view(
                         "cicd.mt_mergeconflict_template",
-                        values={"self": self, "conflicts": ex.conflicts},
+                        values=values,
+                        subtype_id=self.env.ref("cicd.mt_mergeconflict").id,
+                    )
+                    self.release_id.message_post_with_view(
+                        "cicd.mt_mergeconflict_template",
+                        values=values,
                         subtype_id=self.env.ref("cicd.mt_mergeconflict").id,
                     )
                     self.env.cr.commit()
