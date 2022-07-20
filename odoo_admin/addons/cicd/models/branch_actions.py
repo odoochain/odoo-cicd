@@ -219,6 +219,8 @@ class Branch(models.Model):
                 self._collect_all_files_by_their_checksum(shell)
                 if commit and not no_checkout:
                     shell.checkout_commit(commit)
+                if not no_checkout:
+                    shell.X(["git", "submodule", "update", "--init", "--recursive"])
                 params = []
                 if no_update_images:
                     params += ["--no-update-images"]

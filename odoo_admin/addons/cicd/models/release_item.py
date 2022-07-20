@@ -565,6 +565,7 @@ class ReleaseItem(models.Model):
     def _collect(self):
         for rec in self:
             ignored_branch_names = rec._get_ignored_branch_names()
+
             branches = self.env["cicd.git.branch"].search(
                 [
                     ("repo_id", "=", rec.repo_id.id),
@@ -575,9 +576,25 @@ class ReleaseItem(models.Model):
                         "in",
                         ["tested", "candidate", "merge_conflict"],
                     ),  # CODE review: merge_conflict!
-                    ("target_release_ids", "=", rec.release_id.id),
                 ]
             )
+            count_releases = rec.release_id.search_count(
+                [("repo_id", "=", rec.release_id.repo_id.id)]
+            )
+            if count_releases <= 1:
+                branches = branches.filtered_domain(
+                    [
+                        "|",
+                        ("target_release_ids", "=", rec.release_id.id),
+                        ("target_release_ids", "=", False),
+                    ]
+                )
+            else:
+                branches = branches.filtered_domain(
+                    [
+                        ("target_release_ids", "=", rec.release_id.id),
+                    ]
+                )
 
             def _keep_undeployed_commits(branch):
                 done_items = self.release_id.item_ids.filtered(lambda x: x.is_done)
