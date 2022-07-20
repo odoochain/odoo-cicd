@@ -550,7 +550,7 @@ echo "--------------------------------------------------------------------------
             self.env.cr.commit()
 
             self.env["cicd.dump"].with_delay(
-                identity_key=f"dump-udpate-{machine.id}"
+                identity_key=f"dump-update-{machine.id}"
             )._update_dumps(machine)
             self.env.cr.commit()
 
