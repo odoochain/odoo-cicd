@@ -1,4 +1,6 @@
 import tempfile
+import os
+import arrow
 import base64
 from pathlib import Path
 from odoo import _, api, fields, models, SUPERUSER_ID
@@ -14,6 +16,25 @@ class DataLoader(models.AbstractModel):
     _name = 'robot.data.loader'
 
     @api.model
+    def get_latest_file_in_folder(self, parent_dir, glob, younger_than, wait_until_exists):
+        younger_than = arrow.get(younger_than)
+        started = arrow.get()
+        while (arrow.get() - started).total_seconds() < 20:
+
+            files = list(sorted(Path(parent_dir).glob(glob or "**/*"), key=lambda x: x.stat().st_mtime))
+            files = [x for x in files if arrow.get(x.stat().st_mtime) > younger_than]
+            if files:
+                file = files[-1]
+                return {
+                    "filename": file.name,
+                    "filepath": str(file),
+                    "content": base64.b64encode(file.read_bytes()).decode('ascii')
+                }
+            if not wait_until_exists: 
+                break
+        return {}
+
+    @api.model
     def put_file(self, filecontent, dest_path):
         content = base64.b64decode(filecontent)
         dest_path = Path(dest_path)
@@ -23,6 +44,8 @@ class DataLoader(models.AbstractModel):
 
     @api.model
     def execute_sql(self, sql):
+        if os.getenv("DEVMODE") != "1":
+            raise Exception("Requires devmode")
         self.env.cr.execute(sql)
         return True
 
