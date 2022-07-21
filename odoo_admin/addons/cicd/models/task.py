@@ -284,8 +284,8 @@ class Task(models.Model):
             task._compute_state()
 
     def unlink(self):
-        for rec in self:
-            if rec.state in [STARTED, ENQUEUED]:
-                raise ValidationError("Cannot delete running tasks.")
+        #for rec in self:
+        #    if rec.state in [STARTED, ENQUEUED]:
+        #        raise ValidationError("Cannot delete running tasks.")
 
         return super().unlink()
