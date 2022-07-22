@@ -26,19 +26,6 @@ class NewBranch(Exception):
     pass
 
 
-class MergeConflict(Exception):
-    def __init__(self, conflicts):
-        self.conflicts = conflicts
-
-    def represent(self):
-        res = []
-        for conflict in self.conflicts:
-            res.append(f"Branch: {conflict['branch'].name}")
-            res.append(f"Merged Before: {json.dumps(conflict['merged'], indent=4)}")
-            res.append(f"Commit: {conflict['commit'].name}")
-            res.append(f"Console: {conflict['console']}")
-        return "\n".join(res)
-
 
 class Repository(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
@@ -49,7 +36,9 @@ class Repository(models.Model):
     short = fields.Char(compute="_compute_shortname", string="Name", compute_sudo=True)
     webhook_id = fields.Char("Webhook ID", help="/trigger/repo/<this id>")
     webhook_secret = fields.Char("Webhook Secret")
-    update_ribbon_in_instance = fields.Boolean("Update Ribbon after restore", default=True)
+    update_ribbon_in_instance = fields.Boolean(
+        "Update Ribbon after restore", default=True
+    )
     machine_id = fields.Many2one(
         "cicd.machine",
         string="Development Machine",
@@ -167,7 +156,7 @@ class Repository(models.Model):
     @api.model
     def _update_local_mirrors(self):
         breakpoint()
-        for repo in (self or self.search([])):
+        for repo in self or self.search([]):
             path = repo.mirror_path
             with repo.machine_id._gitshell(
                 repo,
@@ -189,7 +178,6 @@ class Repository(models.Model):
     def _technical_clone_repo(
         self, path, machine, logsio=None, branch=None, depth=None
     ):
-        breakpoint()
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
@@ -338,9 +326,7 @@ class Repository(models.Model):
                         for remote in self._get_remotes(shell):
 
                             fetch_output = (
-                                shell.X(["git-cicd", "fetch", remote])[
-                                    "stderr"
-                                ]
+                                shell.X(["git-cicd", "fetch", remote])["stderr"]
                                 .strip()
                                 .split("\n")
                             )
@@ -380,7 +366,6 @@ class Repository(models.Model):
                         for branch in set(updated_branches):
                             self._fetch_branch(branch)
                             del branch
-
 
         except Exception:
             msg = traceback.format_exc()
@@ -544,7 +529,9 @@ class Repository(models.Model):
         If a branch was updated, then the
         """
         breakpoint()
-        branch._checkout_latest(shell, instance_folder=shell.cwd, nosubmodule_update=True)
+        branch._checkout_latest(
+            shell, instance_folder=shell.cwd, nosubmodule_update=True
+        )
         branch._update_git_commits(shell)
         branch._compute_latest_commit(shell)
         branch._trigger_rebuild_after_fetch()
@@ -603,14 +590,21 @@ class Repository(models.Model):
                         "console": console,
                     }
                 )
+                shell.X(["git", "checkout", "-f"])
+                shell.X(["git", "clean", "-xdff"])
             else:
                 already = "Already up to date" in res["stdout"]
-            history.append({"sha": commit["commit"].name, "already": already})
+            history.append(
+                {
+                    "sha": commit["commit"].name,
+                    "already": already,
+                    "branch": commit["branch"],
+                    "commit": commit["commit"],
+                }
+            )
             merged.append(commit)
 
-        if conflicts:
-            raise MergeConflict(conflicts)
-        return history
+        return history, conflicts
 
     def _recreate_branch_from_commits(
         self,
@@ -634,13 +628,13 @@ class Repository(models.Model):
         self.ensure_one()
 
         # we use a working repo
-        breakpoint()
         assert target_branch_name
         assert isinstance(commits[0], dict)
         assert commits[0]["branch"]._name == "cicd.git.branch"
         assert commits[0]["commit"]._name == "cicd.git.commit"
         machine = self.machine_id
         history = []  # what was done for each commit
+        conflicts = []
 
         with self._temp_repo(machine=self.machine_id) as repo_path:
             self = self.with_context(active_test=False)
@@ -656,12 +650,20 @@ class Repository(models.Model):
                     ["git-cicd", "checkout", "--no-guess", "-b", target_branch_name]
                 )
 
-                history = self._merge_commits_on_target(
+                history, conflicts = self._merge_commits_on_target(
                     shell, target_branch_name, commits
                 )
 
                 message_commit_sha = None
+                breakpoint()
                 if make_info_commit_msg:
+                    merged_branches = ','.join(map(lambda x: x['branch'].name, history))
+                    if not merged_branches:
+                        merged_branches = "No branches merged"
+                    make_info_commit_msg = make_info_commit_msg.replace(
+                        "__branches__", merged_branches
+                    )
+
                     shell.X(
                         [
                             "git-cicd",
@@ -717,7 +719,7 @@ class Repository(models.Model):
                     )
                     message_commit.ensure_one()
 
-        return message_commit, history
+        return message_commit, history, conflicts
 
     def _merge(self, source, dest, set_tags, logsio=None):
         assert source._name in ["cicd.git.branch", "cicd.git.commit"]

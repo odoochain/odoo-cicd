@@ -6,8 +6,6 @@ import arrow
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from odoo.addons.queue_job.exception import RetryableJobError
-from ..tools.logsio_writer import LogsIOWriter
-from .repository import MergeConflict
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 import logging
 
@@ -260,8 +258,6 @@ class ReleaseItem(models.Model):
         """
         Heavy function - takes longer and does quite some work.
         """
-        breakpoint()
-        target_branch_name = self.item_branch_name
         self.ensure_one()
         commits_checksum = None
 
@@ -273,96 +269,31 @@ class ReleaseItem(models.Model):
                 f"{','.join(self.branch_ids.branch_id.mapped('name'))}"
             )
         )
-        self.env.cr.commit()
         message_commit = None
+        breakpoint()
 
         with self.release_id._get_logsio() as logsio:
-            logsio.info((f"Merging on {target_branch_name} following commits: "))
+            logsio.info((f"Merging on {self.item_branch_name} following commits: "))
             try:
-                branches = ", ".join(
-                    self.branch_ids.filtered(
-                        lambda x: x.state != "conflict"
-                    ).branch_id.mapped("name")
+                logsio.info(
+                    (f"commits: {self.branch_ids.commit_id.mapped('name')}")
                 )
-                try:
-                    release_branches = self.branch_ids
-                    logsio.info(
-                        (f"commits: {release_branches.commit_id.mapped('name')}")
-                    )
-                    breakpoint()
-                    commits_checksum = self._get_commit_checksum(
-                        release_branches.commit_id
-                    )
-                    logsio.info(f"Commits Checksum: {commits_checksum}")
-                    if not release_branches:
-                        self.state = "collecting"
-                        return
-                    repo = self.repo_id
-                    message_commit, history = repo._recreate_branch_from_commits(
-                        source_branch=self.release_id.branch_id.name,
-                        commits=[
-                            {"branch": x.branch_id, "commit": x.commit_id}
-                            for x in release_branches
-                        ],
-                        target_branch_name=target_branch_name,
-                        logsio=logsio,
-                        make_info_commit_msg=(
-                            f"Release Item {self.id}\n"
-                            "Includes latest commits from:\n"
-                            f"{branches}"
-                        ),
-                    )
-                    logsio.info(f"Message commit: {message_commit}")
-                    if message_commit:
-                        item_branch = message_commit.branch_ids.filtered(
-                            lambda x: x.name == self.item_branch_name
-                        )
-                        self.item_branch_id = item_branch
+                breakpoint()
+                commits_checksum = self._get_commit_checksum(
+                    self.branch_ids.commit_id
+                )
+                logsio.info(f"Commits Checksum: {commits_checksum}")
+                if not self.branch_ids:
+                    self.state = "collecting"
+                    return
 
-                        for branchitem in self.branch_ids:
-                            history_item = [
-                                x
-                                for x in history
-                                if x["sha"] == branchitem.commit_id.name
-                            ]
-                            if not history_item:
-                                raise Exception(
-                                    (
-                                        "No history item found for "
-                                        f"{branchitem.commit_id.name}"
-                                    )
-                                )
-                            history_item = history_item[0]
-                            branchitem.state = (
-                                "already_merged"
-                                if history_item["already"]
-                                else "merged"
-                            )
-
-                except MergeConflict as ex:
-                    for conflict in ex.conflicts:
-                        assert conflict["commit"]._name == "cicd.git.commit"
-                        assert conflict["branch"]._name == "cicd.git.branch"
-                        self.branch_ids.filtered(
-                            lambda x: x.commit_id == conflict["commit"]
-                        ).write({"state": "conflict"})
-                    values = {"self": self, "conflicts": ex.conflicts}
-                    self.message_post_with_view(
-                        "cicd.mt_mergeconflict_template",
-                        values=values,
-                        subtype_id=self.env.ref("cicd.mt_mergeconflict").id,
-                    )
-                    self.release_id.message_post_with_view(
-                        "cicd.mt_mergeconflict_template",
-                        values=values,
-                        subtype_id=self.env.ref("cicd.mt_mergeconflict").id,
-                    )
-                    self.env.cr.commit()
+                message_commit, conflicts = self._merge_recreate_item_branch(logsio)
+                if conflicts:
+                    self._handle_conflicts(conflicts)
                 else:
                     self.message_post(body=("Successfully merged"))
-
-                if "collecting" in self.state and self.state != "collecting":
-                    self.state = "collecting"
+                    if "collecting" in self.state and self.state != "collecting":
+                        self.state = "collecting"
 
                 if self.branch_ids:
                     assert self.item_branch_id
@@ -379,22 +310,96 @@ class ReleaseItem(models.Model):
                 logger.error(ex)
                 self.message_post(body=(f"Error: {err}"))
             else:
-                if message_commit:
-                    message_commit.no_approvals = True
-                    self.commit_id = message_commit
-                    candidate_branch = repo.branch_ids.filtered(
-                        lambda x: x.name == self.item_branch_name
-                    )
-                    candidate_branch.ensure_one()
-                    self.item_branch_id = candidate_branch
-                    candidate_branch._compute_state()
-
-                self.mapped("branch_ids.branch_id")._compute_state()
+                self._merged_no_exceptions(message_commit)
 
         if commits_checksum:
             self.merged_checksum = commits_checksum
 
         self.env.cr.commit()
+
+    def _merged_no_exceptions(self, message_commit):
+        if message_commit:
+            message_commit.no_approvals = True
+            self.commit_id = message_commit
+            candidate_branch = self.repo_id.branch_ids.filtered(
+                lambda x: x.name == self.item_branch_name
+            )
+            candidate_branch.ensure_one()
+            self.item_branch_id = candidate_branch
+            candidate_branch._compute_state()
+
+        self.mapped("branch_ids.branch_id")._compute_state()
+
+    def _merge_recreate_item_branch(self, logsio):
+        branches = ", ".join(
+            self.branch_ids.filtered(
+                lambda x: x.state != "conflict"
+            ).branch_id.mapped("name")
+        )
+        message_commit, history, conflicts = self.repo_id._recreate_branch_from_commits(
+            source_branch=self.release_id.branch_id.name,
+            commits=[
+                {"branch": x.branch_id, "commit": x.commit_id}
+                for x in self.branch_ids
+            ],
+            target_branch_name=self.item_branch_name,
+            logsio=logsio,
+            make_info_commit_msg=(
+                f"Release Item {self.id}\n"
+                "Includes latest commits from:\n"
+                f"__branches__"
+            ),
+        )
+
+        logsio.info(f"Message commit: {message_commit}")
+        if message_commit:
+            item_branch = message_commit.branch_ids.filtered(
+                lambda x: x.name == self.item_branch_name
+            )
+            self.item_branch_id = item_branch
+
+            for branchitem in self.branch_ids:
+                history_item = [
+                    x
+                    for x in history
+                    if x["sha"] == branchitem.commit_id.name
+                ]
+                if not history_item:
+                    raise Exception(
+                        (
+                            "No history item found for "
+                            f"{branchitem.commit_id.name}"
+                        )
+                    )
+                history_item = history_item[0]
+                branchitem.state = (
+                    "already_merged"
+                    if history_item["already"]
+                    else "merged"
+                )
+        return message_commit, conflicts
+
+    def _handle_conflicts(self, conflicts):
+        breakpoint()
+        self.state = 'collecting_merge_conflict'
+        for conflict in conflicts:
+            assert conflict["commit"]._name == "cicd.git.commit"
+            assert conflict["branch"]._name == "cicd.git.branch"
+            self.branch_ids.filtered(
+                lambda x: x.commit_id == conflict["commit"]
+            ).write({"state": "conflict"})
+
+        values = {"self": self, "conflicts": conflicts}
+        self.message_post_with_view(
+            "cicd.mt_mergeconflict_template",
+            values=values,
+            subtype_id=self.env.ref("cicd.mt_mergeconflict").id,
+        )
+        self.release_id.message_post_with_view(
+            "cicd.mt_mergeconflict_template",
+            values=values,
+            subtype_id=self.env.ref("cicd.mt_mergeconflict").id,
+        )
 
     def abort(self):
         for rec in self:
