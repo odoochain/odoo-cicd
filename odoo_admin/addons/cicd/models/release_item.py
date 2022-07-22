@@ -275,13 +275,9 @@ class ReleaseItem(models.Model):
         with self.release_id._get_logsio() as logsio:
             logsio.info((f"Merging on {self.item_branch_name} following commits: "))
             try:
-                logsio.info(
-                    (f"commits: {self.branch_ids.commit_id.mapped('name')}")
-                )
+                logsio.info((f"commits: {self.branch_ids.commit_id.mapped('name')}"))
                 breakpoint()
-                commits_checksum = self._get_commit_checksum(
-                    self.branch_ids.commit_id
-                )
+                commits_checksum = self._get_commit_checksum(self.branch_ids.commit_id)
                 logsio.info(f"Commits Checksum: {commits_checksum}")
                 if not self.branch_ids:
                     self.state = "collecting"
@@ -332,15 +328,14 @@ class ReleaseItem(models.Model):
 
     def _merge_recreate_item_branch(self, logsio):
         branches = ", ".join(
-            self.branch_ids.filtered(
-                lambda x: x.state != "conflict"
-            ).branch_id.mapped("name")
+            self.branch_ids.filtered(lambda x: x.state != "conflict").branch_id.mapped(
+                "name"
+            )
         )
         message_commit, history, conflicts = self.repo_id._recreate_branch_from_commits(
             source_branch=self.release_id.branch_id.name,
             commits=[
-                {"branch": x.branch_id, "commit": x.commit_id}
-                for x in self.branch_ids
+                {"branch": x.branch_id, "commit": x.commit_id} for x in self.branch_ids
             ],
             target_branch_name=self.item_branch_name,
             logsio=logsio,
@@ -360,34 +355,27 @@ class ReleaseItem(models.Model):
 
             for branchitem in self.branch_ids:
                 history_item = [
-                    x
-                    for x in history
-                    if x["sha"] == branchitem.commit_id.name
+                    x for x in history if x["sha"] == branchitem.commit_id.name
                 ]
                 if not history_item:
                     raise Exception(
-                        (
-                            "No history item found for "
-                            f"{branchitem.commit_id.name}"
-                        )
+                        ("No history item found for " f"{branchitem.commit_id.name}")
                     )
                 history_item = history_item[0]
                 branchitem.state = (
-                    "already_merged"
-                    if history_item["already"]
-                    else "merged"
+                    "already_merged" if history_item["already"] else "merged"
                 )
         return message_commit, conflicts
 
     def _handle_conflicts(self, conflicts):
         breakpoint()
-        self.state = 'collecting_merge_conflict'
+        self.state = "collecting_merge_conflict"
         for conflict in conflicts:
             assert conflict["commit"]._name == "cicd.git.commit"
             assert conflict["branch"]._name == "cicd.git.branch"
-            self.branch_ids.filtered(
-                lambda x: x.commit_id == conflict["commit"]
-            ).write({"state": "conflict"})
+            self.branch_ids.filtered(lambda x: x.commit_id == conflict["commit"]).write(
+                {"state": "conflict"}
+            )
 
         values = {"self": self, "conflicts": conflicts}
         self.message_post_with_view(
@@ -489,7 +477,12 @@ class ReleaseItem(models.Model):
                     states = self.branch_ids.mapped("state")
                     if "candidate" in states and "conflict" not in states:
                         self.state = "failed_too_late"
-                    elif not all(x.is_merged for x in self.branch_ids):
+                    elif not all(
+                        x.is_merged
+                        for x in self.branch_ids.filtered(
+                            lambda x: x.state != "conflict"
+                        )
+                    ):
                         self.state = "failed_merge"
                     else:
                         self.state = "integrating"
