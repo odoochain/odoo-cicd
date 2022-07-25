@@ -38,7 +38,7 @@ class JobEncoder(json.JSONEncoder):
 class GitBranch(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
     _name = "cicd.git.branch"
-    _order = 'latest_commit_date desc'
+    _order = "latest_commit_date desc"
 
     test_at_new_commit = fields.Boolean("Test at new commit")
     update_i18n = fields.Boolean("Update I18N at updates")
@@ -338,7 +338,7 @@ class GitBranch(models.Model):
 
         res.repo_id.apply_test_settings(res)
 
-        if 'update_i18n' not in vals:
+        if "update_i18n" not in vals:
             res.update_i18n = res.repo_id.update_i18n
 
         return res
@@ -512,7 +512,9 @@ class GitBranch(models.Model):
             last_done_item = release.with_context(
                 prefetch_fields=False
             ).item_ids.filtered(
-                lambda x: x.is_done and self.latest_commit_id in x.branch_ids.commit_id
+                lambda x: x.is_done
+                and x.state not in ["conflict"]
+                and self.latest_commit_id in x.branch_ids.commit_id
             )
 
             merge_conflict = "conflict" in last_item.branch_ids.filtered(
@@ -995,4 +997,3 @@ class GitBranch(models.Model):
                 )
             else:
                 rec.ticket_system_ref_effective = rec.ticket_sytem_ref
-
