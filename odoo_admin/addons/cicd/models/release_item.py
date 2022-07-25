@@ -327,11 +327,6 @@ class ReleaseItem(models.Model):
         self.mapped("branch_ids.branch_id")._compute_state()
 
     def _merge_recreate_item_branch(self, logsio):
-        branches = ", ".join(
-            self.branch_ids.filtered(lambda x: x.state != "conflict").branch_id.mapped(
-                "name"
-            )
-        )
         message_commit, history, conflicts = self.repo_id._recreate_branch_from_commits(
             source_branch=self.release_id.branch_id.name,
             commits=[
@@ -726,3 +721,14 @@ class ReleaseItem(models.Model):
                 folder = rec.item_branch_id._get_instance_folder(machine)
                 if shell.exists(folder):
                     shell.remove(folder)
+
+    def _event_new_commit(self, commit):
+        for rec in self:
+            if rec.is_done:
+                continue
+            if rec.is_failed:
+                continue
+
+            if not rec.state.startswith("collecting_"):
+                continue
+            rec.retry()

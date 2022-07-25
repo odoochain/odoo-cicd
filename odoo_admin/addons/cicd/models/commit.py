@@ -166,16 +166,14 @@ class GitCommit(models.Model):
         If a new commit is pushed to a branch which is in a conflict state, then
         try to retry this release item.
         """
+        breakpoint()
         for rec in self:
             for rec in rec.env["cicd.release.item"].search(
                 [
-                    ("is_done", "=", False),
-                    ("is_failed", "=", False),
-                    ("state", "=", "collecting_merge_conflict"),
                     ("branch_ids.branch_id", "in", rec.branch_ids.ids),
                 ]
             ):
-                rec.retry()
+                rec._event_new_commit(self)
 
     def _evaluate_message(self):
         for rec in self:
