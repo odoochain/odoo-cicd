@@ -157,7 +157,25 @@ class GitCommit(models.Model):
     def create(self, vals):
         res = super().create(vals)
         res._evaluate_message()
+        res._continue_mergeconflicts_at_releases()
         return res
+
+    def _continue_mergeconflicts_at_releases(self):
+        """
+        A release item may hang because of a merge conflict.
+        If a new commit is pushed to a branch which is in a conflict state, then
+        try to retry this release item.
+        """
+        for rec in self:
+            for rec in rec.env["cicd.release.item"].search(
+                [
+                    ("is_done", "=", False),
+                    ("is_failed", "=", False),
+                    ("state", "=", "collecting_merge_conflict"),
+                    ("branch_ids.branch_id", "in", rec.branch_ids.ids),
+                ]
+            ):
+                rec.retry()
 
     def _evaluate_message(self):
         for rec in self:
