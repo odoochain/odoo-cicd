@@ -755,7 +755,8 @@ class GitBranch(models.Model):
             tests = self.env["cicd.test.run"].union(*list(tests))
             if not tests:
                 continue
-            tests[1:].write({"state": "omitted"})
+            if not branch.test_at_new_commit:
+                tests[1:].write({"state": "omitted"})
 
     def _trigger_rebuild_after_fetch(self):
         """
@@ -983,11 +984,13 @@ class GitBranch(models.Model):
             rec.machine_id = rec.repo_id.machine_id
 
     @api.recordchange("latest_commit_id")
-    def _onchange_latest_commit_update_author(self):
+    def _onchange_latest_commit(self):
         for rec in self:
             if rec.latest_commit_id.author_user_id:
                 if not rec.author_id:
                     rec.author_id = rec.latest_commit_id.author_user_id
+            if rec.test_at_new_commit:
+                rec._create_testrun(force_commit=rec.latest_commit_id)
 
     def _compute_ticket_system_ref_effective(self):
         for rec in self:

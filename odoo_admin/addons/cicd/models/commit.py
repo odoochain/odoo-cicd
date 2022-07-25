@@ -157,9 +157,6 @@ class GitCommit(models.Model):
     def create(self, vals):
         res = super().create(vals)
         res._evaluate_message()
-        for branch in res.branch_ids:
-            if branch.test_at_new_commit:
-                branch._create_testrun(force_commit=res)
         return res
 
     def _evaluate_message(self):
