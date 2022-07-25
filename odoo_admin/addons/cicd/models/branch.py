@@ -134,6 +134,7 @@ class GitBranch(models.Model):
         "release_id",
         string="Target Releases",
         tracking=True,
+        domain="[('repo_id', '=', repo_id)]"
     )
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
 
