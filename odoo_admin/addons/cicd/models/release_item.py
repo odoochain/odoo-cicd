@@ -147,9 +147,9 @@ class ReleaseItem(models.Model):
         """
         Prepares data for the patch notes.
         """
-        branches = self.branch_ids.branch_id.sorted(
-            lambda x: (x.epic_id.sequence, x.type_id.sequence)
-        )
+        branches = self.branch_ids.filtered(
+            lambda x: x.state not in ["conflict"]
+        ).branch_id.sorted(lambda x: (x.epic_id.sequence, x.type_id.sequence))
         data = []
 
         for epic, branches in groupby(branches, lambda x: x.epic_id):
@@ -682,7 +682,7 @@ class ReleaseItem(models.Model):
         machines = self.release_id.action_ids.machine_id
         s_machines = ",".join(machines.mapped("name"))
         msg = (msg or "deployed on {machine}").format(machine=s_machines)
-        for branch in self.branch_ids.filtered(lambda x: x.state not in ('conflict')):
+        for branch in self.branch_ids.filtered(lambda x: x.state not in ("conflict")):
             branch.branch_id._report_comment_to_ticketsystem(msg)
 
     def confirm_hotfix(self):
