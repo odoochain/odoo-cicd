@@ -45,7 +45,7 @@ class TestSettingAbstract(models.AbstractModel):
     def default_get(self, fields):
         res = super().default_get(fields)
         params = self.env.context.get('params', {})
-        if params:
+        if params and params.get('id'):
             parent = self.env[params.get("model")].browse(params['id'])
             res["effective_machine_id"] = self._get_machine(parent)
         return res
