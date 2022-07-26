@@ -44,7 +44,7 @@ class CicdTestRun(models.Model):
     _log_access = False
     _inherit = ["mail.thread", "cicd.open.window.mixin", "cicd.test.settings"]
     _name = "cicd.test.run"
-    _order = "id desc"
+    _order = "write_date desc"
 
     name = fields.Char(compute="_compute_name")
     do_abort = fields.Boolean("Abort when possible", tracking=True)
