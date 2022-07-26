@@ -26,14 +26,15 @@ class NewBranch(Exception):
     pass
 
 
-
 class Repository(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
     _name = "cicd.git.repo"
     _rec_name = "short"
 
     registry_id = fields.Many2one("cicd.registry", string="Docker Registry")
-    short = fields.Char(compute="_compute_shortname", string="Name", compute_sudo=True)
+    short = fields.Char(
+        compute="_compute_shortname", string="Name", compute_sudo=True, store=True
+    )
     webhook_id = fields.Char("Webhook ID", help="/trigger/repo/<this id>")
     webhook_secret = fields.Char("Webhook Secret")
     update_ribbon_in_instance = fields.Boolean(
@@ -117,6 +118,7 @@ class Repository(models.Model):
                     _("Please use the login username instead of email address")
                 )
 
+    @api.depends("name")
     def _compute_shortname(self):
         for rec in self:
             short = rec.name.split("/")[-1]
@@ -657,7 +659,7 @@ class Repository(models.Model):
                 message_commit_sha = None
                 breakpoint()
                 if make_info_commit_msg:
-                    merged_branches = ','.join(map(lambda x: x['branch'].name, history))
+                    merged_branches = ",".join(map(lambda x: x["branch"].name, history))
                     if not merged_branches:
                         merged_branches = "No branches merged"
                     make_info_commit_msg = make_info_commit_msg.replace(
