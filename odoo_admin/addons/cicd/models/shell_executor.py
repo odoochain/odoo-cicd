@@ -1,10 +1,7 @@
 import tempfile
-import configparser
 import base64
-import arrow
 import uuid
 from contextlib import contextmanager
-import threading
 from sarge import Capture, run
 from odoo.exceptions import UserError
 import time
@@ -224,7 +221,9 @@ class ShellExecutor(BaseShellExecutor):
         self.X(["git-cicd", "clean", "-xdff"])
         self.logsio and self.logsio.info("Updating submodules...")
         if not nosubmodule_update:
-            self.X(["git-cicd", "submodule", "update", "--init", "--force", "--recursive"])
+            self.X(
+                ["git-cicd", "submodule", "update", "--init", "--force", "--recursive"]
+            )
         self.logsio and self.logsio.info("_after_checkout finished.")
 
     def X(
@@ -360,33 +359,8 @@ class ShellExecutor(BaseShellExecutor):
         path = "~/.odoo/run/{self.project_name}/docker-compose.yml"
         return self.exists(path)
 
-    def wait_for_postgres(self, timeout=300):
-        started = arrow.get()
-        deadline = started.shift(seconds=timeout)
-
-        while True:
-            try:
-                self.odoo(
-                    "psql",
-                    "--non-interactive",
-                    "--sql",
-                    "select * from information_schema.tables limit 1;",
-                    timeout=timeout,
-                )
-            except Exception:
-                diff = arrow.get() - started
-                msg = (
-                    f"Waiting for postgres {diff.total_seconds()} in "
-                    f"{self.cwd} with project name {self.project_name}"
-                    "..."
-                )
-                logger.info(msg)
-                if arrow.get() < deadline:
-                    time.sleep(0.5)
-                else:
-                    raise
-            else:
-                break
+    def wait_for_postgres(self, timeout=1800):
+        self.odoo("docker", "wait-for-container-postgres")
 
     def git_is_dirty(self):
         return bool(self.X(["git-cicd", "status", "-s"])["stdout"].strip())
