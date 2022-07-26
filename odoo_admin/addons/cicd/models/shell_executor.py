@@ -1,4 +1,6 @@
 import tempfile
+import arrow
+import random
 import base64
 import uuid
 from contextlib import contextmanager
@@ -366,7 +368,10 @@ class ShellExecutor(BaseShellExecutor):
         return bool(self.X(["git-cicd", "status", "-s"])["stdout"].strip())
 
     def git_safe_directory(self, path):
-        while True:
+        deadline = arrow.get().shift(seconds=60)
+        last_ex = None
+        done = False
+        while not done and arrow.get() < deadline:
             try:
                 self.X(
                     [
@@ -379,12 +384,12 @@ class ShellExecutor(BaseShellExecutor):
                     ]
                 )
             except Exception as ex:
-                if ".gitconfig: File exists" in str(ex):
-                    time.sleep(3)
-                else:
-                    raise
+                last_ex = ex
+                time.sleep(random.randint(3, 10))
             else:
-                break
+                done = True
+        if not done:
+            raise Exception(f"Could not set safe directory.\n\n{last_ex}")
 
     def safe_move_directory(self, src, dest):
         src = Path(src)

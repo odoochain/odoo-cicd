@@ -92,6 +92,7 @@ class RobotTest(models.Model):
 
             shell.odoo("up", "-d", "postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
+            breakpoint()
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             if self[0].test_setting_id.use_btrfs:
                 shell.odoo("snap", "remove", self.snapname, allow_error=True)
@@ -118,6 +119,7 @@ class RobotTest(models.Model):
         self._reset_fields()
 
         shell.odoo("kill")
+        breakpoint()
         if self[0].test_setting_id.use_btrfs:
             shell.odoo("snap", "restore", self.snapname)
         else:
