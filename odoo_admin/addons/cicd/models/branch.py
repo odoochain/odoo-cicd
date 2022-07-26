@@ -78,7 +78,7 @@ class GitBranch(models.Model):
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one(
-        "cicd.git.repo", string="Repository", required=True, ondelete="cascade"
+        "cicd.git.repo", string="Repository", required=True, ondelete="cascade", 
     )
     repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True, tracking=True)
