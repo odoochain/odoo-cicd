@@ -29,7 +29,7 @@ repos:
   path: odoo_admin/addons_robot
   sha: 6402b681bf39c47edd7f4fd38ba8631b75097c62
   type: integrated
-  url: https://github.com/marcwimmer/odoo-robot_utils
+  url: git@github.com:marcwimmer/odoo-robot_utils
 - branch: 15.0
   path: odoo_admin/addons/odoo_visualize_queries
   sha: 85051fd8ff4fe06b69acd656495d4b5bdfb978e0
