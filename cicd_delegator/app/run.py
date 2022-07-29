@@ -24,6 +24,8 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 def ignore_case_get(dict, key):
     keys = list(dict.keys())
     lkeys = [x.lower() for x in keys]
+    if key.lower() not in lkeys:
+        return None
     idx = lkeys.index(key.lower())
     if idx >= 0:
         return dict[keys[idx]]
@@ -219,22 +221,25 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_error(404, "error trying to proxy")
 
     def _fix_redirects_https_scheme(self, req_header, resp):
-        if str(resp.status_code).startswith("3"):
-            referer = ignore_case_get(req_header, "referer")
-            if referer:
-                referer = urlparse(referer)
-                if referer.scheme == "https":
-                    location = urlparse(resp.headers["location"])
-                    if (
-                        location.netloc == referer.netloc
-                        and location.scheme != "https"
-                    ):
-                        resp.headers["location"] = resp.headers[
-                            "location"
-                        ].replace(
-                            f"http://{location.netloc}",
-                            f"https://{location.netloc}",
-                        )
+        if not str(resp.status_code).startswith("3"):
+            return
+        referer = ignore_case_get(req_header, "referer")
+        if not referer:
+            return
+        referer = urlparse(referer)
+        if referer.scheme != "https":
+            return
+        location = urlparse(resp.headers["location"])
+        if (
+            location.netloc == referer.netloc
+            and location.scheme != "https"
+        ):
+            resp.headers["location"] = resp.headers[
+                "location"
+            ].replace(
+                f"http://{location.netloc}",
+                f"https://{location.netloc}",
+            )
 
     def do_POST(self, body=True):
         req_header, cookies = self.parse_headers()
