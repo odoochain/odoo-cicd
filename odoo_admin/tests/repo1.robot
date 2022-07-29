@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation     Repo setup a repository
-Resource          keywords/odoo_15_cs.robot
-Resource          keywords/tools.robot
+Resource          ../addons_robot/robot_utils/keywords/odoo_community.robot
+Resource          ../addons_robot/robot_utils/keywords/tools.robot
 Library           OperatingSystem
 
 Test Setup        Setup Test
