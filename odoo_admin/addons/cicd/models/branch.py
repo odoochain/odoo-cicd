@@ -38,7 +38,7 @@ class JobEncoder(json.JSONEncoder):
 class GitBranch(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
     _name = "cicd.git.branch"
-    _order = 'latest_commit_date desc'
+    _order = "latest_commit_date desc"
 
     test_at_new_commit = fields.Boolean("Test at new commit")
     update_i18n = fields.Boolean("Update I18N at updates")
@@ -78,7 +78,7 @@ class GitBranch(models.Model):
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one(
-        "cicd.git.repo", string="Repository", required=True, ondelete="cascade"
+        "cicd.git.repo", string="Repository", required=True, ondelete="cascade", 
     )
     repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True, tracking=True)
@@ -134,6 +134,7 @@ class GitBranch(models.Model):
         "release_id",
         string="Target Releases",
         tracking=True,
+        domain="[('repo_id', '=', repo_id)]"
     )
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
 
@@ -338,7 +339,7 @@ class GitBranch(models.Model):
 
         res.repo_id.apply_test_settings(res)
 
-        if 'update_i18n' not in vals:
+        if "update_i18n" not in vals:
             res.update_i18n = res.repo_id.update_i18n
 
         return res
@@ -512,7 +513,9 @@ class GitBranch(models.Model):
             last_done_item = release.with_context(
                 prefetch_fields=False
             ).item_ids.filtered(
-                lambda x: x.is_done and self.latest_commit_id in x.branch_ids.commit_id
+                lambda x: x.is_done
+                and x.state not in ["conflict"]
+                and self.latest_commit_id in x.branch_ids.commit_id
             )
 
             merge_conflict = "conflict" in last_item.branch_ids.filtered(
@@ -753,7 +756,8 @@ class GitBranch(models.Model):
             tests = self.env["cicd.test.run"].union(*list(tests))
             if not tests:
                 continue
-            tests[1:].write({"state": "omitted"})
+            if not branch.test_at_new_commit:
+                tests[1:].write({"state": "omitted"})
 
     def _trigger_rebuild_after_fetch(self):
         """
@@ -981,11 +985,13 @@ class GitBranch(models.Model):
             rec.machine_id = rec.repo_id.machine_id
 
     @api.recordchange("latest_commit_id")
-    def _onchange_latest_commit_update_author(self):
+    def _onchange_latest_commit(self):
         for rec in self:
             if rec.latest_commit_id.author_user_id:
                 if not rec.author_id:
                     rec.author_id = rec.latest_commit_id.author_user_id
+            if rec.test_at_new_commit:
+                rec._create_testrun(force_commit=rec.latest_commit_id)
 
     def _compute_ticket_system_ref_effective(self):
         for rec in self:
@@ -995,4 +1001,3 @@ class GitBranch(models.Model):
                 )
             else:
                 rec.ticket_system_ref_effective = rec.ticket_sytem_ref
-

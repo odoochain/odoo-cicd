@@ -7,7 +7,7 @@
 		<field name="arch" type="xml">
 			<form>
 				<header>
-					<button string="view_changes" name="view_changes" type="object"/>
+					<button string="View Changes" name="view_changes" type="object"/>
 				</header>
 				<sheet>
 					<div class="oe_button_box" name="button_box">
@@ -29,7 +29,7 @@
 						<field name="date" readonly='1' />
 						<field name="date_registered" readonly='1'/>
 						<field name="author" readonly='1' />
-						<field name="branch_ids" widget="many2many_tags" readonly='1'/>
+						<field name="branch_ids"  readonly='1'/>
 					</group>
 					<group>
 						<field name="approval_state"/>

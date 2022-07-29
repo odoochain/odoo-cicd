@@ -67,6 +67,7 @@ class Branch(models.Model):
         if commit:
             try:
                 shell.logsio.info("Updating")
+                shell.odoo("kill", allow_error=True)
                 self._clone_instance_folder(shell)
                 result = shell.odoo(
                     "update",
@@ -218,6 +219,8 @@ class Branch(models.Model):
                 self._collect_all_files_by_their_checksum(shell)
                 if commit and not no_checkout:
                     shell.checkout_commit(commit)
+                if not no_checkout:
+                    shell.X(["git", "submodule", "update", "--init", "--recursive"])
                 params = []
                 if no_update_images:
                     params += ["--no-update-images"]
@@ -269,13 +272,10 @@ class Branch(models.Model):
         # to avoid serialize access erros which may occur
         machine.with_delay().update_dumps()
 
-    def _update_git_commits(self, shell, force_instance_folder=None, **kwargs):
+    def _update_git_commits(self, shell, **kwargs):
 
         self.ensure_one()
         shell.logsio.info(f"Updating commits for {self.project_name}")
-        instance_folder = force_instance_folder or self._get_instance_folder(
-            self.machine_id
-        )
 
         def _extract_commits():
             # removing the 4 months filter:
@@ -294,7 +294,6 @@ class Branch(models.Model):
                             # "--since='last 4 months'",
                         ],
                         logoutput=False,
-                        cwd=instance_folder,
                     )["stdout"]
                     .strip()
                     .split("\n"),
@@ -333,7 +332,6 @@ class Branch(models.Model):
                             "--pretty=format:%ct",
                         ],
                         logoutput=False,
-                        cwd=instance_folder,
                         env=env,
                     )["stdout"]
                     .strip()
@@ -361,7 +359,6 @@ class Branch(models.Model):
                         "-n1",
                     ],
                     logoutput=False,
-                    cwd=instance_folder,
                     env=env,
                 )["stdout"]
                 .strip()
@@ -444,9 +441,7 @@ class Branch(models.Model):
             shell.remove(folder)
 
     def _clone_instance_folder(self, shell):
-        """
-
-        """
+        """ """
         # be atomic
         with shell.machine._temppath(usage="clone_repo_at_checkout_latest") as path:
             self.repo_id._technical_clone_repo(
@@ -462,13 +457,12 @@ class Branch(models.Model):
                 with shell.machine._temppath(
                     usage="replace_main_folder", maxage=dict(hours=2)
                 ) as path2:
-                    if shell2.exists(instance_folder):
-                        shell2.safe_move_directory(instance_folder, path2)
-                    shell2.safe_move_directory(path, instance_folder)
+                    if shell2.exists(shell.cwd):
+                        shell2.safe_move_directory(shell.cwd, path2)
+                    shell2.safe_move_directory(path, shell.cwd)
                     self.with_delay(
                         eta=arrow.utcnow().shift(hours=3).strftime(DTF)
                     ).delete_folder_deferred(shell2.machine, str(path2))
-
 
     def _checkout_latest(
         self, shell, instance_folder=None, nosubmodule_update=False, **kwargs
@@ -994,9 +988,9 @@ for path in base.glob("*"):
 
             def _get_dumpfile_name():
                 if ttype == "base":
-                    output = shell.odoo("list-deps", "base", force=True)["stdout"].split("---", 1)[
-                        1
-                    ]
+                    output = shell.odoo("list-deps", "base", force=True)[
+                        "stdout"
+                    ].split("---", 1)[1]
                     deps = json.loads(output)
                     hash = deps["hash"]
                     return f"base_dump_{dumptype}_{self.repo_id.short}_{hash}"
@@ -1013,7 +1007,9 @@ for path in base.glob("*"):
     def _create_testrun(self, force_commit=None):
         testrun = self.test_run_ids.create(
             {
-                "commit_id": force_commit and force_commit.id or self.latest_commit_id.id,
+                "commit_id": force_commit
+                and force_commit.id
+                or self.latest_commit_id.id,
                 "branch_id": self.id,
             }
         )

@@ -18,35 +18,39 @@
 			</p>
 			<table>
 				<tr>
-					<th>Branch</th>
-					<th>Commit</th>
+					<th>Branch/Commit</th>
 					<th>Merged before</th>
-					<th>Console Out</th>
 				</tr>
 
 				<t t-foreach="conflicts" t-as="conflict">
 					<tr>
 						<td>
-							<t t-esc="conflict['branch']"/>
-						</td>
-						<td>
-							<t t-esc="conflict['commit']"/>
+							<t t-esc="conflict['branch'].name"/>
+							<br/>
+							<t t-esc="conflict['commit'].name"/>
+							<br/>
+							<span>Commit's Author:</span>
+							<br/>
+							<t t-esc="conflict['commit'].author"/>
 						</td>
 						<td>
 							<ul>
 								<t t-foreach="conflict['merged']" t-as="merged">
 									<li>
 										<span>Branch: </span>
-										<t t-esc="merged['branch']"/>
+										<t t-esc="merged['branch'].name"/>
 										<br/>
 										<span>Commit: </span>
-										<t t-esc="merged['commit']"/>
+										<t t-esc="merged['commit'].name"/>
 										<br/>
 									</li>
 								</t>
 							</ul>
 						</td>
-						<td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<h2>Console Output</h2>
 							<pre t-esc="conflict['console']">
 							</pre>
 						</td>

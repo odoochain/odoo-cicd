@@ -66,14 +66,15 @@ class CicdReleaseAction(models.Model):
 
         with LogsIOWriter.GET(branch_name, "release") as logsio:
             try:
-                actions._exec_shellscripts(logsio, "before")
+                if actions:
+                    actions._exec_shellscripts(logsio, "before")
 
-                actions._upload_settings_file(logsio, release_item, commit_sha)
-                actions._load_images_to_registry(logsio, release_item, commit_sha)
-                actions._update_sourcecode(logsio, release_item, commit_sha)
-                actions._update_images(logsio)
-                actions._stop_odoo(logsio)
-                actions[0]._run_update(logsio)
+                    actions._upload_settings_file(logsio, release_item, commit_sha)
+                    actions._load_images_to_registry(logsio, release_item, commit_sha)
+                    actions._update_sourcecode(logsio, release_item, commit_sha)
+                    actions._update_images(logsio)
+                    actions._stop_odoo(logsio)
+                    actions[0]._run_update(logsio)
 
             except Exception:  # pylint: disable=broad-except
                 errors.append(traceback.format_exc())

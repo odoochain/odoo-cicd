@@ -240,7 +240,10 @@ class CicdMachine(models.Model):
             return
         with self._shell() as shell:
             for vol in self.volume_ids.filtered(lambda x: x.ttype == "temp"):
-                for dirname in shell.X(["ls", "-A", vol.name])["stdout"].splitlines():
+                res = shell.X(["ls", "-A", vol.name], allow_error=True)
+                if res['exit_code']:
+                    continue
+                for dirname in res["stdout"].splitlines():
                     if ".cleanme." in dirname:
                         try:
                             date = arrow.get(dirname.split(".")[-1], "YYYYMMDD_HHmmss")
@@ -547,7 +550,7 @@ echo "--------------------------------------------------------------------------
             self.env.cr.commit()
 
             self.env["cicd.dump"].with_delay(
-                identity_key=f"dump-udpate-{machine.id}"
+                identity_key=f"dump-update-{machine.id}"
             )._update_dumps(machine)
             self.env.cr.commit()
 
