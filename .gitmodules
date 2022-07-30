@@ -1,4 +1,0 @@
-[submodule "odoo_admin/addons_robot/robot_utils_common"]
-	path = odoo_admin/addons_robot/robot_utils_common
-	url = https://github.com/marcwimmer/odoo-robot_utils_common
-	branch = main
