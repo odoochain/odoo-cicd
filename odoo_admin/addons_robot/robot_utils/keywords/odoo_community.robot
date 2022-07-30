@@ -4,8 +4,8 @@ Documentation   Odoo 13 backend keywords.
 Library         ../library/browser.py
 Library         SeleniumLibrary
 Library         ../library/tools.py
-Resource        ./odoo_client.robot
-Resource        ./styling.robot
+Resource        ../../robot_utils_common/keywords/odoo_client.robot
+Resource        ../../robot_utils_common/keywords/styling.robot
 
 *** Keywords ***
 

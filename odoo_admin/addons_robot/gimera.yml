@@ -1,6 +1,6 @@
 repos:
 - branch: main
   path: robot_utils_common
-  sha: 95168760199107cfc8d691b1f220e93602dd31f3
+  sha: 1d174fc8c56672dfb4d9edbb8d69ef18a23bf187
   type: submodule
   url: https://github.com/marcwimmer/odoo-robot_utils_common
