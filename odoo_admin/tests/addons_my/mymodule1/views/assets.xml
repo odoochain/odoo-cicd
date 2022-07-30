@@ -1,0 +1,12 @@
+<odoo>
+	<data>
+        <!--
+		<template id="assets_backend" name="mymodule1 assets" inherit_id="web.assets_backend">
+			<xpath expr="." position="inside">
+				<script type="text/javascript" src="/mymodule1/static/src/js/mymodule1.js"></script>
+                <link rel="stylesheet" href="/mymodule1/static/src/css/mymodule1.css"/>
+			</xpath>
+		</template>
+        -->
+	</data>
+</odoo>

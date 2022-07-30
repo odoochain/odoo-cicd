@@ -9,3 +9,4 @@ docker-compose.override.yml
 .debug
 robot_output
 tests/git-cicd/log.txt
+geckodriver.log

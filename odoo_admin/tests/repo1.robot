@@ -1,8 +1,9 @@
 *** Settings ***
 Documentation     Repo setup a repository
 Resource          ../addons_robot/robot_utils/keywords/odoo_community.robot
-Resource          ../addons_robot/robot_utils/keywords/tools.robot
+Resource          ../addons_robot/robot_utils_common/keywords/tools.robot
 Library           OperatingSystem
+Library           ./cicd.py
 
 Test Setup        Setup Test
 
@@ -10,6 +11,7 @@ Test Setup        Setup Test
 *** Test Cases ***
 Setup Repository
     ${postgres}=                     Make Postgres
+    CICD.Make Odoo Repo              /opt/out_dir/cicdrobottest  15.0
     ${repo}=                         Make Repo  ${postgres}
 
 *** Keywords ***
