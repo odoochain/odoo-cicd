@@ -21,6 +21,16 @@ class cicd(object):
     def _get_MANIFEST(self, version):
         return {
             "version": version,
+            "install": [
+                "moda",
+                "modb",
+                "mymodule1",
+            ],
+            "addons_paths": [
+                "odoo/odoo/addons",
+                "odoo/addons",
+                "addons_my",
+            ],
         }
 
     def assert_configuration(self):
@@ -126,6 +136,8 @@ class cicd(object):
                 }
             ),
         )
+        cicd_home = BuiltIn().get_variable_value("${CICD_HOME}")
+        self._sshcmd(f"rsync '{cicd_home}/odoo_admin/tests/addons_my' '{path}' -ar")
         self._sshcmd("git init .; git add .; git commit -am 'init'", cwd=path)
         self._sshcmd("gimera apply odoo", cwd=path)
         tmppath = path.parent / f"{path.name}.tmp"

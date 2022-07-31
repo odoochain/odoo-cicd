@@ -26,6 +26,22 @@ Test Fetch All Branches
     ${main_count}=                  Odoo Search    cicd.git.branch  domain=[['name', '=', 'main']]  count=True
     Should Be Equal As Strings      ${main_count}  1
 
+Test Run Unittest
+    ${main_branch}=                 Odoo Search    cicd.git.branch  domain=[['name', '=', 'main']]
+    ${commits}=                     Odoo Search    cicd.git.commit  domain=[['branch_ids', '=', ${main_branch}]]  count=True
+    Should Be Equal As Strings      ${commits}  1
+    Log To Console                  Configuring a test setting
+    ${values}=                      Create Dictionary  unittest_ids=${{[[0, 0, {}]]}}
+    Odoo Write                      cicd.git.branch  ids=${main_branch}  values=${values}
+
+    cicd.Cicdodoo                   up  -d  odoo_queuejobs
+    Odoo Execute                    cicd.git.branch  method=_create_testrun  ids=${main_branch}
+    ${testruns}=                    Odoo Search    cicd.test.run  domain=[['branch_id', '=', ${main_branch}]]  count=True
+    Should Be Equal As Strings      ${testruns}  1
+    Odoo Execute                    robot.data.loader  method=wait_sqlcondition  "select count(*) from cicd_test_run where state not in ('done')"
+
+
+
 *** Keywords ***
 Setup Test
     ${CICD_DB_HOST}=                Get Environment Variable    CICD_DB_HOST
