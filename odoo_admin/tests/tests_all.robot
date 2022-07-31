@@ -18,7 +18,7 @@ Setup Repository
     ${repo}=                        Make Repo  ${machine}
 
 Test Fetch All Branches
-    ${repo}=                        Odoo Search    domain=[]  limit=1
+    ${repo}=                        Odoo Search    cicd.git.repo  domain=[]  limit=1
     Odoo Execute                    cicd.git.repo  method=create_all_branches  ids=${repo}
     ${main_count}=                  Odoo Search    cicd.git.branch  domain=[['name', '=', 'main']]  count=True
     Should Be Equal As Strings      ${main_count}  1
@@ -42,9 +42,15 @@ Setup Test
     ${ROBOTTEST_SSH_KEY}=           cicd.Get IdRsa
     Set Global Variable             ${ROBOTTEST_SSH_PUBKEY}
     Set Global Variable             ${ROBOTTEST_SSH_KEY}
+    Set Global Variable             ${DUMPS_PATH}  /tmp/cicd_test_dumps
+    Set Global Variable             ${CICD_WORKSPACE}  /tmp/cicd_workspace
 
     cicd.Assert Configuration
-                                    cicd.Cicdodoo   kill  odoo_queuejobs  odoo_cronjobs
+    cicd.Cicdodoo                   kill  odoo_queuejobs  odoo_cronjobs
+    cicd._Sshcmd                    rm -Rf ${CICD_WORKSPACE}
+    cicd._Sshcmd                    mkdir -p ${CICD_WORKSPACE}
+    cicd._Sshcmd                    mkdir -p ${DUMPS_PATH}
+    cicd._Sshcmd                    rm -Rf ${CICD_WORKSPACE}/*
 
     Login
 
@@ -76,6 +82,18 @@ Make Machine
                                         ...   postgres_server_id=${postgres}
     ${machine}=                     Odoo Create   cicd.machine  ${values}
                                     Odoo Execute  cicd.machine  method=test_ssh_connection  ids=${machine}
+
+    ${values}=                      Create Dictionary
+                                    ...       ttype=source
+                                    ...       name=${CICD_WORKSPACE}
+                                    ...       machine_id=${machine}
+    Odoo Create                     cicd.machine.volume  ${values}
+
+    ${values}=                      Create Dictionary
+                                    ...       ttype=dumps
+                                    ...       name=${DUMPS_PATH}
+                                    ...       machine_id=${machine}
+    Odoo Create                     cicd.machine.volume  ${values}
     [return]                        ${machine}
 
 Make Repo

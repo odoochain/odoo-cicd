@@ -31,6 +31,9 @@ class cicd(object):
         assert "RUN_ODOO_QUEUEJOBS: '1'" in output, "RUN_ODOO_QUEUEJOBS=1 required"
         assert "RUN_ODOO_CRONJOBS: '1'" in output, "RUN_ODOO_CRONJOBS=1 required"
 
+        dumps_path = BuiltIn().get_variable_value("${DUMPS_PATH}")
+        assert f"DUMPS_PATH: {dumps_path}" in output, f"Dumps path must point to ${dumps_path}"
+
     def cicdodoo(self, *params, output=False):
         path = Path(BuiltIn().get_variable_value("${CICD_HOME}"))
         cmd = "./cicd " + " ".join(map(lambda x: f"'{x}'", params))
