@@ -331,6 +331,8 @@ class GitBranch(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
+        if '*' in res.name:
+            raise ValidationError("* not allowed in branch name")
 
         if "remove_web_assets_after_restore" not in vals:
             res.remove_web_assets_after_restore = (

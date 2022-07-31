@@ -262,6 +262,7 @@ class Repository(models.Model):
         return True
 
     def create_all_branches(self):
+        breakpoint()
         self.ensure_one()
         with LogsIOWriter.GET(self.name, "fetch") as logsio:
             self.env.cr.commit()
@@ -284,6 +285,7 @@ class Repository(models.Model):
                             branch = branch.split("/")[
                                 -1
                             ]  # remotes/origin/isolated_unittests --> isolated_unittests
+                            branch = self._clear_branch_name(branch)
 
                             branches = (
                                 self.env["cicd.git.branch"]
@@ -340,6 +342,7 @@ class Repository(models.Model):
                             fetch_info = list(
                                 filter(lambda x: " -> " in x, fetch_output)
                             )
+                            breakpoint()
 
                             for fi in fetch_info:
                                 while "  " in fi:
