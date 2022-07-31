@@ -22,6 +22,8 @@ Setup Test
     Set Global Variable              ${CICD_DB_PORT}
     Set Global Variable              ${WORKSPACE}  /home/cicd/cicdtest_workspace
     Set Global Variable              ${SRC_REPO}  ${WORKSPACE}/odoo1
+    ${ROBOTTEST_REPO_URL}=           Convert To String file://${SRC_REPO}
+    Set Global Variable              ${ROBOTTEST_REPO_URL}
     Set Global Variable              ${ODOO_VERSION}  15.0
     Set Global Variable              ${CICD_DB_HOST}  ${CICD_DB_HOST}
     Set Global Variable              ${CICD_DB_PORT}  ${CICD_DB_PORT}
@@ -65,7 +67,7 @@ Make Repo
     [Arguments]                      ${machine}
     ${uuid}=                         Get Guid
     ${date}=                         Get Now As String
-    ${name}=                         Get Environment Variable  ROBOTTEST_REPO_URL
+    ${name}=                         ${ROBOTTEST_REPO_URL}
 
     ${values}=                       Create Dictionary
                                      ...    name=${name}
