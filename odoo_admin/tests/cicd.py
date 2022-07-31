@@ -23,6 +23,19 @@ class cicd(object):
             "version": version,
         }
 
+    def assert_configuration(self):
+        output = self.cicdodoo("config", "--full", output=True)
+        assert (
+            "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1" not in output
+        ), "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1 not allowed"
+        assert "RUN_ODOO_QUEUEJOBS: '1'" in output, "RUN_ODOO_QUEUEJOBS=1 required"
+        assert "RUN_ODOO_CRONJOBS: '1'" in output, "RUN_ODOO_CRONJOBS=1 required"
+
+    def cicdodoo(self, *params, output=False):
+        path = Path(BuiltIn().get_variable_value("${CICD_HOME}"))
+        cmd = "./cicd " + " ".join(map(lambda x: f"'{x}'", params))
+        return self._sshcmd(cmd, cwd=path, output=output)
+
     def get_sshuser(self):
         sshuser = BuiltIn().get_variable_value("${ROBOTTEST_SSH_USER}")
         return sshuser
@@ -73,7 +86,7 @@ class cicd(object):
         if not output:
             res = check_call(cmd)
         else:
-            res = check_output(cmd)
+            res = check_output(cmd, encoding="utf8")
             return res
 
     def _prepare_git(self):

@@ -7,30 +7,35 @@ Library           ./cicd.py
 
 Test Setup        Setup Test
 
+*** Variables ***
 
 *** Test Cases ***
 Setup Repository
-    cicd.Make Odoo Repo              ${SRC_REPO}  ${ODOO_VERSION}
-    ${postgres}=                     Make Postgres
-    ${repo}=                         Make Repo  ${postgres}
+    cicd.Make Odoo Repo             ${SRC_REPO}  ${ODOO_VERSION}
+    ${postgres}=                    Make Postgres
+    ${repo}=                        Make Repo  ${postgres}
 
 *** Keywords ***
 Setup Test
-    ${CICD_DB_HOST}=                 Get Environment Variable    CICD_DB_HOST
-    ${CICD_DB_PORT}=                 Get Environment Variable    CICD_DB_PORT
-    Set Global Variable              ${CICD_DB_HOST}
-    Set Global Variable              ${CICD_DB_PORT}
-    Set Global Variable              ${WORKSPACE}  /home/cicd/cicdtest_workspace
-    Set Global Variable              ${SRC_REPO}  ${WORKSPACE}/odoo1
-    ${ROBOTTEST_REPO_URL}=           Convert To String      file://${SRC_REPO}
-    Set Global Variable              ${ROBOTTEST_REPO_URL}
-    Set Global Variable              ${ODOO_VERSION}  15.0
-    Set Global Variable              ${CICD_DB_HOST}  ${CICD_DB_HOST}
-    Set Global Variable              ${CICD_DB_PORT}  ${CICD_DB_PORT}
+    ${CICD_DB_HOST}=                Get Environment Variable    CICD_DB_HOST
+    ${CICD_DB_PORT}=                Get Environment Variable    CICD_DB_PORT
+    Set Global Variable             ${CICD_HOME}  /home/cicd/cicd_app
+    Set Global Variable             ${CICD_DB_HOST}
+    Set Global Variable             ${CICD_DB_PORT}
+    Set Global Variable             ${WORKSPACE}  /home/cicd/cicdtest_workspace
+    Set Global Variable             ${SRC_REPO}  ${WORKSPACE}/odoo1
+    ${ROBOTTEST_REPO_URL}=          Convert To String      file://${SRC_REPO}
+    Set Global Variable             ${ROBOTTEST_REPO_URL}
+    Set Global Variable             ${ODOO_VERSION}  15.0
+    Set Global Variable             ${CICD_DB_HOST}  ${CICD_DB_HOST}
+    Set Global Variable             ${CICD_DB_PORT}  ${CICD_DB_PORT}
     # user on host
-    Set Global variable              ${ROBOTTEST_SSH_USER}  cicd
-    ${ROBOTTEST_SSH_PUBKEY}=         cicd.Get Pubkey
-    ${ROBOTTEST_SSH_KEY}=            cicd.Get IdRsa
+    Set Global variable             ${ROBOTTEST_SSH_USER}  cicd
+    ${ROBOTTEST_SSH_PUBKEY}=        cicd.Get Pubkey
+    ${ROBOTTEST_SSH_KEY}=           cicd.Get IdRsa
+
+    cicd.Assert Configuration
+                                    cicd.Cicdodoo   kill  odoo_queuejobs  odoo_cronjobs
 
     Login
 
