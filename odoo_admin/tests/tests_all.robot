@@ -5,15 +5,22 @@ Resource          ../addons_robot/robot_utils_common/keywords/tools.robot
 Library           OperatingSystem
 Library           ./cicd.py
 
-Test Setup        Setup Test
+# Test Setup        Setup Test
 
 *** Variables ***
 
 *** Test Cases ***
 Setup Repository
+    Setup Test
     cicd.Make Odoo Repo             ${SRC_REPO}  ${ODOO_VERSION}
     ${postgres}=                    Make Postgres
-    ${repo}=                        Make Repo  ${postgres}
+    ${machine}=                     Make Machine  ${postgres}
+    ${repo}=                        Make Repo  ${machine}
+    Odoo Execute                    cicd.git.repo  method=create_all_branches  id=${repo}
+    ${main_count}=                  Odoo Search  cicd.git.branch  domain=[['name', '=', 'main']]  count=True
+    Should Be Equal As Strings      ${main_count}  1
+
+Test Fetch All Branches
 
 *** Keywords ***
 Setup Test
@@ -24,8 +31,7 @@ Setup Test
     Set Global Variable             ${CICD_DB_PORT}
     Set Global Variable             ${WORKSPACE}  /home/cicd/cicdtest_workspace
     Set Global Variable             ${SRC_REPO}  ${WORKSPACE}/odoo1
-    ${ROBOTTEST_REPO_URL}=          Convert To String      file://${SRC_REPO}
-    Set Global Variable             ${ROBOTTEST_REPO_URL}
+    Set Global Variable             ${ROBOTTEST_REPO_URL}  file://${SRC_REPO}
     Set Global Variable             ${ODOO_VERSION}  15.0
     Set Global Variable             ${CICD_DB_HOST}  ${CICD_DB_HOST}
     Set Global Variable             ${CICD_DB_PORT}  ${CICD_DB_PORT}
@@ -33,6 +39,8 @@ Setup Test
     Set Global variable             ${ROBOTTEST_SSH_USER}  cicd
     ${ROBOTTEST_SSH_PUBKEY}=        cicd.Get Pubkey
     ${ROBOTTEST_SSH_KEY}=           cicd.Get IdRsa
+    Set Global Variable             ${ROBOTTEST_SSH_PUBKEY}
+    Set Global Variable             ${ROBOTTEST_SSH_KEY}
 
     cicd.Assert Configuration
                                     cicd.Cicdodoo   kill  odoo_queuejobs  odoo_cronjobs
@@ -53,7 +61,7 @@ Make Machine
     [Arguments]                     ${postgres}
     ${uuid}=                        Get Guid
     ${date}=                        Get Now As String
-    ${name}=                        Set Variable ${{$date + '-' + $uuid}}
+    ${name}=                        Set Variable  ${{$date + '-' + $uuid}}
 
 
     ${values}=                      Create Dictionary
@@ -73,14 +81,15 @@ Make Repo
     [Arguments]                     ${machine}
     ${uuid}=                        Get Guid
     ${date}=                        Get Now As String
-    ${name}=                        ${ROBOTTEST_REPO_URL}
+    Log To Console                  Url to repository is ${ROBOTTEST_REPO_URL}
 
     ${values}=                      Create Dictionary
-                                    ...    name=${name}
+                                    ...    name=${ROBOTTEST_REPO_URL}
                                     ...    default_branch=master
                                     ...    skip_paths=/release/
                                     ...    initialize_new_branches=True
                                     ...    release_tag_prefix=release-
+                                    ...    login_type=nothing
+                                    ...    machine_id=${machine}
     ${repo}=                        Odoo Create   cicd.git.repo  ${values}
-                                    Odoo Execute  cicd.git.repo  method=create_all_branches  id=${repo}
     [return]                        ${repo}
