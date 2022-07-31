@@ -10,11 +10,11 @@ Test Setup        Setup Test
 *** Variables ***
 
 *** Test Cases ***
-# Setup Repository
-#     cicd.Make Odoo Repo             ${SRC_REPO}  ${ODOO_VERSION}
-#     ${postgres}=                    Make Postgres
-#     ${machine}=                     Make Machine  ${postgres}
-#     ${repo}=                        Make Repo  ${machine}
+Setup Repository
+    cicd.Make Odoo Repo             ${SRC_REPO}  ${ODOO_VERSION}
+    ${postgres}=                    Make Postgres
+    ${machine}=                     Make Machine  ${postgres}
+    ${repo}=                        Make Repo  ${machine}
 
 Test Fetch All Branches
     ${repo}=                        Odoo Search    cicd.git.repo  domain=[]  limit=1
