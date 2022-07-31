@@ -25,11 +25,14 @@ Test Fetch All Branches
     Wait Queuejobs Done
     ${main_count}=                  Odoo Search    cicd.git.branch  domain=[['name', '=', 'main']]  count=True
     Should Be Equal As Strings      ${main_count}  1
+    ${main_branch}=                 Odoo Search    cicd.git.branch  domain=[['name', '=', 'main']]
+    Odoo Execute                    cicd.git.branch  method=update_git_commits  ids=${main_branch}
+    Wait Queuejobs Done
+    ${commits}=                     Odoo Search    cicd.git.commit  domain=[['branch_ids', '=', ${main_branch}]]  count=True
+    Should Be Equal As Strings      ${commits}  1
 
 Test Run Unittest
     ${main_branch}=                 Odoo Search    cicd.git.branch  domain=[['name', '=', 'main']]
-    ${commits}=                     Odoo Search    cicd.git.commit  domain=[['branch_ids', '=', ${main_branch}]]  count=True
-    Should Be Equal As Strings      ${commits}  1
     Log To Console                  Configuring a test setting
     ${values}=                      Create Dictionary  unittest_ids=${{[[0, 0, {}]]}}
     Odoo Write                      cicd.git.branch  ids=${main_branch}  values=${values}
