@@ -32,26 +32,26 @@ Setup Test
     ${ROBOTTEST_SSH_PUBKEY}=         cicd.Get Pubkey
     ${ROBOTTEST_SSH_KEY}=            cicd.Get IdRsa
 
-    # Login
+    Login
 
 Make Postgres
-    ${uuid}=                         Get Guid
-    ${date}=                         Get Now As String
-    ${name}=                         Set Variable  ${{$date + '-' + $uuid}}
+    ${uuid}=                        Get Guid
+    ${date}=                        Get Now As String
+    ${name}=                        Set Variable  ${{$date + '-' + $uuid}}
 
-    ${values}=                       Create Dictionary  name=${name}  ttype=dev  db_port=${CICD_DB_PORT}  db_host=${CICD_DB_HOST}
-    ${postgres}=                     Odoo Create   cicd.postgres  ${values}
-                                     Odoo Execute  cicd.postgres  method=update_databases  ids=${postgres}
-    [return]                         ${postgres}
+    ${values}=                      Create Dictionary  name=${name}  ttype=dev  db_port=${CICD_DB_PORT}  db_host=${CICD_DB_HOST}
+    ${postgres}=                    Odoo Create   cicd.postgres  ${values}
+                                    Odoo Execute  cicd.postgres  method=update_databases  ids=${postgres}
+    [return]                        ${postgres}
 
 Make Machine
-    [Arguments]                      ${postgres}
-    ${uuid}=                         Get Guid
-    ${date}=                         Get Now As String
-    ${name}=                         Set Variable ${{$date + '-' + $uuid}}
+    [Arguments]                     ${postgres}
+    ${uuid}=                        Get Guid
+    ${date}=                        Get Now As String
+    ${name}=                        Set Variable ${{$date + '-' + $uuid}}
 
 
-    ${values}=                       Create Dictionary
+    ${values}=                      Create Dictionary
                                         ...   name=${name}
                                         ...   is_docker_host=True
                                         ...   external_url=http://testsite
@@ -60,20 +60,22 @@ Make Machine
                                         ...   ssh_pubkey=${ROBOTTEST_SSH_PUBKEY}
                                         ...   ssh_key=${ROBOTTEST_SSH_KEY}
                                         ...   postgres_server_id=${postgres}
-    ${machine}=                      Odoo Create   cicd.machine  ${values}
-    [return]                         ${machine}
+    ${machine}=                     Odoo Create   cicd.machine  ${values}
+                                    Odoo Execute  cicd.machine  method=test_ssh_connection  id=${machine}
+    [return]                        ${machine}
 
 Make Repo
-    [Arguments]                      ${machine}
-    ${uuid}=                         Get Guid
-    ${date}=                         Get Now As String
-    ${name}=                         ${ROBOTTEST_REPO_URL}
+    [Arguments]                     ${machine}
+    ${uuid}=                        Get Guid
+    ${date}=                        Get Now As String
+    ${name}=                        ${ROBOTTEST_REPO_URL}
 
-    ${values}=                       Create Dictionary
-                                     ...    name=${name}
-                                     ...    default_branch=master
-                                     ...    skip_paths=/release/
-                                     ...    initialize_new_branches=True
-                                     ...    release_tag_prefix=release-
-    ${postgres}=                     Odoo Create   cicd.git.repo  ${values}
-    [return]                         ${postgres}
+    ${values}=                      Create Dictionary
+                                    ...    name=${name}
+                                    ...    default_branch=master
+                                    ...    skip_paths=/release/
+                                    ...    initialize_new_branches=True
+                                    ...    release_tag_prefix=release-
+    ${repo}=                        Odoo Create   cicd.git.repo  ${values}
+                                    Odoo Execute  cicd.git.repo  method=create_all_branches  id=${repo}
+    [return]                        ${repo}

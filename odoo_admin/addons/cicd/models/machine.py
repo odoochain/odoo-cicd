@@ -540,6 +540,7 @@ echo "--------------------------------------------------------------------------
                 print(i, value)
                 if value:
                     raise Exception("should exist")
+        return True
 
     def _cron_update_dumps(self):
         for machine in self.search([]):
