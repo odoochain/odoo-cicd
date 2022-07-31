@@ -10,13 +10,18 @@ Test Setup        Setup Test
 
 *** Test Cases ***
 Setup Repository
+    cicd.Make Odoo Repo              ${SRC_REPO}  ${ODOO_VERSION}
     ${postgres}=                     Make Postgres
-    CICD.Make Odoo Repo              /opt/out_dir/cicdrobottest  15.0
     ${repo}=                         Make Repo  ${postgres}
 
 *** Keywords ***
 Setup Test
-    Login
+    Set Suite Variable               ${WORKSPACE}  /home/cicd/cicdtest_workspace
+    Set Suite Variable               ${SRC_REPO}  ${WORKSPACE}/odoo1
+    Set Suite Variable               ${ODOO_VERSION}  15.0
+    # user on host
+    Set Suite Variable               ${SSH_USER}   cicd
+    # Login
 
 Make Postgres
     ${uuid}=                         Get Guid
