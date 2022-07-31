@@ -36,7 +36,7 @@ class cicd(object):
 
     def cicdodoo(self, *params, output=False):
         path = Path(BuiltIn().get_variable_value("${CICD_HOME}"))
-        cmd = "./cicd " + " ".join(map(lambda x: f"'{x}'", params))
+        cmd = "./cicd " + " ".join(map(lambda x: f"'{x}'", filter(bool, params)))
         return self._sshcmd(cmd, cwd=path, output=output)
 
     def get_sshuser(self):
@@ -73,6 +73,9 @@ class cicd(object):
             ]
         )
         file.unlink()
+
+    def sshcmd(self, stringcommand, output=False, cwd=None):
+        return self._sshcmd(stringcommand, output=output, cwd=cwd)
 
     def _sshcmd(self, stringcommand, output=False, cwd=None):
         if cwd:

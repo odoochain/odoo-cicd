@@ -257,7 +257,9 @@ class Repository(models.Model):
         return branch
 
     def fetch(self):
+        breakpoint()
         self._cron_fetch()
+        return True
 
     def create_all_branches(self):
         self.ensure_one()
@@ -297,6 +299,7 @@ class Repository(models.Model):
                                         "name": branch,
                                     }
                                 )
+        return True
 
     @api.model
     def _cron_fetch(self):
@@ -310,6 +313,7 @@ class Repository(models.Model):
             )._queuejob_fetch()
 
     def _queuejob_fetch(self):
+        breakpoint()
         self.ensure_one()
         logsio = None
         try:

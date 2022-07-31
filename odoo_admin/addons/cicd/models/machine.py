@@ -224,6 +224,9 @@ class CicdMachine(models.Model):
         name = f"{guid}.{usage}.cleanme.{date}"
         try:
             path = self._get_volume("temp") / name
+            with self._shell() as shell:
+                if not shell.exists(path.parent):
+                    shell.X(["mkdir", "-p", path.parent])
             yield path
         finally:
             with self._shell() as shell:

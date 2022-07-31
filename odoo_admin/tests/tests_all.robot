@@ -5,21 +5,24 @@ Resource          ../addons_robot/robot_utils_common/keywords/tools.robot
 Library           OperatingSystem
 Library           ./cicd.py
 
-# Test Setup        Setup Test
+Test Setup        Setup Test
 
 *** Variables ***
 
 *** Test Cases ***
-Setup Repository
-    Setup Test
-    cicd.Make Odoo Repo             ${SRC_REPO}  ${ODOO_VERSION}
-    ${postgres}=                    Make Postgres
-    ${machine}=                     Make Machine  ${postgres}
-    ${repo}=                        Make Repo  ${machine}
+# Setup Repository
+#     cicd.Make Odoo Repo             ${SRC_REPO}  ${ODOO_VERSION}
+#     ${postgres}=                    Make Postgres
+#     ${machine}=                     Make Machine  ${postgres}
+#     ${repo}=                        Make Repo  ${machine}
 
 Test Fetch All Branches
     ${repo}=                        Odoo Search    cicd.git.repo  domain=[]  limit=1
+    cicd.Cicdodoo                   up  -d  odoo_queuejobs
+    Odoo Execute                    cicd.git.repo  method=fetch  ids=${repo}
+    Wait Queuejobs Done
     Odoo Execute                    cicd.git.repo  method=create_all_branches  ids=${repo}
+    Wait Queuejobs Done
     ${main_count}=                  Odoo Search    cicd.git.branch  domain=[['name', '=', 'main']]  count=True
     Should Be Equal As Strings      ${main_count}  1
 
@@ -46,13 +49,17 @@ Setup Test
     Set Global Variable             ${CICD_WORKSPACE}  /tmp/cicd_workspace
 
     cicd.Assert Configuration
+    Log To Console                  Kill Cronjobs and Queuejobs
     cicd.Cicdodoo                   kill  odoo_queuejobs  odoo_cronjobs
-    cicd._Sshcmd                    rm -Rf ${CICD_WORKSPACE}
-    cicd._Sshcmd                    mkdir -p ${CICD_WORKSPACE}
-    cicd._Sshcmd                    mkdir -p ${DUMPS_PATH}
-    cicd._Sshcmd                    rm -Rf ${CICD_WORKSPACE}/*
+    cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}
+    cicd.Sshcmd                     mkdir -p ${CICD_WORKSPACE}
+    cicd.Sshcmd                     mkdir -p ${DUMPS_PATH}
+    cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}/*
 
     Login
+
+Wait Queuejobs Done
+    Odoo Execute                    robot.data.loader  method=wait_queuejobs
 
 Make Postgres
     ${uuid}=                        Get Guid
@@ -61,7 +68,7 @@ Make Postgres
 
     ${values}=                      Create Dictionary  name=${name}  ttype=dev  db_port=${CICD_DB_PORT}  db_host=${CICD_DB_HOST}
     ${postgres}=                    Odoo Create   cicd.postgres  ${values}
-                                    Odoo Execute  cicd.postgres  method=update_databases  ids=${postgres}
+    Wait Until Keyword Succeeds     5x  10 sec  Odoo Execute  cicd.postgres  method=update_databases  ids=${postgres}
     [return]                        ${postgres}
 
 Make Machine
