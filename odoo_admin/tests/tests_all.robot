@@ -16,11 +16,12 @@ Setup Repository
     ${postgres}=                    Make Postgres
     ${machine}=                     Make Machine  ${postgres}
     ${repo}=                        Make Repo  ${machine}
-    Odoo Execute                    cicd.git.repo  method=create_all_branches  id=${repo}
-    ${main_count}=                  Odoo Search  cicd.git.branch  domain=[['name', '=', 'main']]  count=True
-    Should Be Equal As Strings      ${main_count}  1
 
 Test Fetch All Branches
+    ${repo}=                        Odoo Search    domain=[]  limit=1
+    Odoo Execute                    cicd.git.repo  method=create_all_branches  ids=${repo}
+    ${main_count}=                  Odoo Search    cicd.git.branch  domain=[['name', '=', 'main']]  count=True
+    Should Be Equal As Strings      ${main_count}  1
 
 *** Keywords ***
 Setup Test
@@ -74,7 +75,7 @@ Make Machine
                                         ...   ssh_key=${ROBOTTEST_SSH_KEY}
                                         ...   postgres_server_id=${postgres}
     ${machine}=                     Odoo Create   cicd.machine  ${values}
-                                    Odoo Execute  cicd.machine  method=test_ssh_connection  id=${machine}
+                                    Odoo Execute  cicd.machine  method=test_ssh_connection  ids=${machine}
     [return]                        ${machine}
 
 Make Repo
