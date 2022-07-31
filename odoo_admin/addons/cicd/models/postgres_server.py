@@ -141,3 +141,4 @@ class PostgresServer(models.Model):
                         rec.env.cr.commit()
 
                 rec._compute_size()
+        return True

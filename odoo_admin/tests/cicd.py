@@ -14,6 +14,7 @@ current_dir = Path(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 )
 rsa_file = current_dir / "res" / "id_rsa"
+rsa_file_pub = current_dir / "res" / "id_rsa.pub"
 
 
 class cicd(object):
@@ -22,18 +23,27 @@ class cicd(object):
             "version": version,
         }
 
+    def get_sshuser(self):
+        sshuser = BuiltIn().get_variable_value("${ROBOTTEST_SSH_USER}")
+        return sshuser
+
+    def get_pubkey(self):
+        return rsa_file_pub.read_text()
+
+    def get_idrsa(self):
+        return rsa_file.read_text()
+
     def _get_hostkey(self):
         path = Path("/tmp/key")
         path.mkdir(exist_ok=True)
         shutil.copy(rsa_file, path / "id_rsa")
-        shutil.copy(rsa_file.parent / 'id_rsa.pub', path / "id_rsa.pub")
+        shutil.copy(rsa_file_pub, path / "id_rsa.pub")
         check_call(["chmod", "500", path])
         check_call(["chmod", "400", path / "id_rsa"])
-        check_call(["chmod", "400", path / "id_rsa"])
+        check_call(["chmod", "400", path / "id_rsa.pub"])
         return path / "id_rsa"
 
     def _writefile(self, path, content):
-        sshuser = BuiltIn().get_variable_value("${SSH_USER}")
         file = Path(tempfile.mktemp(suffix="."))
         file.write_text(content)
         rsa_file = self._get_hostkey()
@@ -43,13 +53,12 @@ class cicd(object):
                 "-e",
                 f"ssh -i {rsa_file} -o StrictHostKeyChecking=no",
                 file,
-                f"{sshuser}@host.docker.internal:{path}",
+                f"{self.get_sshuser()}@host.docker.internal:{path}",
             ]
         )
         file.unlink()
 
     def _sshcmd(self, stringcommand, output=False, cwd=None):
-        sshuser = BuiltIn().get_variable_value("${SSH_USER}")
         if cwd:
             stringcommand = f"cd '{cwd}' || exit -1;" f"{stringcommand}"
         cmd = [
@@ -58,7 +67,7 @@ class cicd(object):
             "StrictHostKeyChecking=no",
             "-i",
             self._get_hostkey(),
-            f"{sshuser}@host.docker.internal",
+            f"{self.get_sshuser()}@host.docker.internal",
             f"{stringcommand}",
         ]
         if not output:
@@ -78,7 +87,7 @@ class cicd(object):
             shutil.rmtree(path)
         self._prepare_git()
 
-        self._sshcmd(f"[ -f '{path}' ] && rm -Rf '{path}' || true")
+        self._sshcmd(f"[ -e '{path}' ] && rm -Rf '{path}' || true")
         self._sshcmd(f"mkdir -p '{path}'")
         self._writefile(
             path / "MANIFEST", json.dumps(self._get_MANIFEST(version), indent=4)
@@ -100,6 +109,8 @@ class cicd(object):
         )
         self._sshcmd("git init .; git add .; git commit -am 'init'", cwd=path)
         self._sshcmd("gimera apply odoo", cwd=path)
-        self._sshcmd(f"mv '{path}' '{path}.tmp'")
+        tmppath = path.parent / f"{path.name}.tmp"
+        self._sshcmd(f"rm -Rf '{tmppath}'")
+        self._sshcmd(f"mv '{path}' '{tmppath}'")
         self._sshcmd(f"git clone --bare 'file://{path}.tmp' '{path}'")
         self._sshcmd(f"rm -Rf '{path}.tmp'")

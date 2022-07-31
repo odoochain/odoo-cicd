@@ -16,19 +16,26 @@ Setup Repository
 
 *** Keywords ***
 Setup Test
-    Set Suite Variable               ${WORKSPACE}  /home/cicd/cicdtest_workspace
-    Set Suite Variable               ${SRC_REPO}  ${WORKSPACE}/odoo1
-    Set Suite Variable               ${ODOO_VERSION}  15.0
+    ${CICD_DB_HOST}=                 Get Environment Variable    CICD_DB_HOST
+    ${CICD_DB_PORT}=                 Get Environment Variable    CICD_DB_PORT
+    Set Global Variable              ${CICD_DB_HOST}
+    Set Global Variable              ${CICD_DB_PORT}
+    Set Global Variable              ${WORKSPACE}  /home/cicd/cicdtest_workspace
+    Set Global Variable              ${SRC_REPO}  ${WORKSPACE}/odoo1
+    Set Global Variable              ${ODOO_VERSION}  15.0
+    Set Global Variable              ${CICD_DB_HOST}  ${CICD_DB_HOST}
+    Set Global Variable              ${CICD_DB_PORT}  ${CICD_DB_PORT}
     # user on host
-    Set Suite Variable               ${SSH_USER}   cicd
+    Set Global variable              ${ROBOTTEST_SSH_USER}  cicd
+    ${ROBOTTEST_SSH_PUBKEY}=         cicd.Get Pubkey
+    ${ROBOTTEST_SSH_KEY}=            cicd.Get IdRsa
+
     # Login
 
 Make Postgres
     ${uuid}=                         Get Guid
     ${date}=                         Get Now As String
     ${name}=                         Set Variable  ${{$date + '-' + $uuid}}
-    ${CICD_DB_HOST}=                 Get Environment Variable    CICD_DB_HOST
-    ${CICD_DB_PORT}=                 Get Environment Variable    CICD_DB_PORT
 
     ${values}=                       Create Dictionary  name=${name}  ttype=dev  db_port=${CICD_DB_PORT}  db_host=${CICD_DB_HOST}
     ${postgres}=                     Odoo Create   cicd.postgres  ${values}
@@ -41,9 +48,6 @@ Make Machine
     ${date}=                         Get Now As String
     ${name}=                         Set Variable ${{$date + '-' + $uuid}}
 
-    ${ROBOTTEST_SSH_USER}            Get Environment Variable  ROBOTTEST_SSH_USER
-    ${ROBOTTEST_SSH_PUBKEY}          Get Environment Variable  ROBOTTEST_SSH_PUBKEY
-    ${ROBOTTEST_SSH_KEY}             Get Environment Variable  ROBOTTEST_SSH_KEY
 
     ${values}=                       Create Dictionary
                                         ...   name=${name}
