@@ -312,6 +312,7 @@ class Branch(models.Model):
 
 
     def _update_git_commits_put_into_db(self, commits, shell):
+        breakpoint()
         commits = [list(x.split("___")) for x in commits]
         for commit in commits:
             commit[1] = arrow.get(int(commit[1]))
@@ -322,6 +323,7 @@ class Branch(models.Model):
         all_commits = dict((x.name, x) for x in all_commits)
 
         for icommit, commit in enumerate(commits):
+
             sha, date = commit
             if sha in all_commits:
                 cicd_commit = all_commits[sha]
@@ -400,6 +402,11 @@ class Branch(models.Model):
                     },
                 ]
             ]
+
+        if commits:
+            latest_commit = self.commit_ids.filtered(lambda x: x.name == commits[0][0])
+            if self.latest_commit_id != latest_commit:
+                self.latest_commit_id = latest_commit
 
     def _remove_web_assets(self, shell, **kwargs):
         shell.logsio.info("Killing...")

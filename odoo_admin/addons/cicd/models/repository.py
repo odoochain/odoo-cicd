@@ -157,7 +157,6 @@ class Repository(models.Model):
 
     @api.model
     def _update_local_mirrors(self):
-        breakpoint()
         for repo in self or self.search([]):
             path = repo.mirror_path
             with repo.machine_id._gitshell(
@@ -190,7 +189,6 @@ class Repository(models.Model):
     def _technical_clone_repo(
         self, path, machine, logsio=None, branch=None, depth=None
     ):
-        breakpoint()
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
@@ -269,12 +267,10 @@ class Repository(models.Model):
         return branch
 
     def fetch(self):
-        breakpoint()
         self._cron_fetch()
         return True
 
     def create_all_branches(self):
-        breakpoint()
         self.ensure_one()
         with LogsIOWriter.GET(self.name, "fetch") as logsio:
             self.env.cr.commit()
@@ -327,7 +323,6 @@ class Repository(models.Model):
             )._queuejob_fetch()
 
     def _queuejob_fetch(self):
-        breakpoint()
         self.ensure_one()
         logsio = None
         try:
@@ -354,7 +349,6 @@ class Repository(models.Model):
                             fetch_info = list(
                                 filter(lambda x: " -> " in x, fetch_output)
                             )
-                            breakpoint()
 
                             for fi in fetch_info:
                                 while "  " in fi:
@@ -475,7 +469,6 @@ class Repository(models.Model):
         repo = self.sudo()  # may be triggered by queuejob
         # checkout latest / pull latest
         updated_branches = data["updated_branches"]
-        breakpoint()
 
         with LogsIOWriter.GET(repo.name, "fetch") as logsio:
             repo = repo.with_context(active_test=False)
@@ -530,7 +523,6 @@ class Repository(models.Model):
                         if repo.default_branch:
                             updated_branches.append(repo.default_branch)
 
-                    breakpoint()
                     for branch_name in updated_branches:
                         branch = repo.branch_ids.filtered(
                             lambda x: x.name == branch_name
@@ -549,12 +541,10 @@ class Repository(models.Model):
         """
         If a branch was updated, then the
         """
-        breakpoint()
         branch._checkout_latest(
             shell, instance_folder=shell.cwd, nosubmodule_update=True
         )
         branch._update_git_commits(shell)
-        branch._compute_latest_commit(shell)
         branch._trigger_rebuild_after_fetch()
 
     def _is_healthy_repository(self, shell, path):
@@ -676,7 +666,6 @@ class Repository(models.Model):
                 )
 
                 message_commit_sha = None
-                breakpoint()
                 if make_info_commit_msg:
                     merged_branches = ",".join(map(lambda x: x["branch"].name, history))
                     if not merged_branches:
@@ -733,7 +722,6 @@ class Repository(models.Model):
                 if not target_branch.active:
                     target_branch.active = True
                 target_branch._update_git_commits(shell)
-                target_branch._compute_latest_commit(shell)
                 if message_commit_sha:
                     message_commit = target_branch.commit_ids.filtered(
                         lambda x: x.name == message_commit_sha
@@ -971,7 +959,6 @@ class Repository(models.Model):
 
     @api.model
     def _intelligent_springclean(self, days=3):
-        breakpoint()
         active_branches = self.env["cicd.git.branch"].search(
             [("active", "=", True)]
         ).mapped('technical_branch_name')

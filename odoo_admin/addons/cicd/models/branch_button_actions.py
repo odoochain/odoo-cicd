@@ -103,6 +103,7 @@ class Branch(models.Model):
         )
         if not test_run:
             self._create_testrun()
+        return True
 
     def start(self):
         return {

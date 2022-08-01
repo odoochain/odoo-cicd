@@ -309,25 +309,6 @@ class GitBranch(models.Model):
         # return all possible states, in order
         return [key for key, val in type(self).state.selection]
 
-    def _compute_latest_commit(self, shell):
-        for rec in self:
-            shell.checkout_branch(rec.name, nosubmodule_update=True)
-
-            latest_commit = (
-                shell.X(["git-cicd", "log", "-n1", "--pretty=%H"])["stdout"]
-                .strip()
-                .split("\n")[0]
-            )
-
-            commit = rec.commit_ids.filtered(lambda x: x.name == latest_commit)
-            if not commit:
-                raise RetryableJobError(
-                    f"Could not find {latest_commit}", ignore_retry=True, seconds=120
-                )
-            commit.ensure_one()
-            if rec.latest_commit_id != commit:
-                rec.latest_commit_id = commit
-
     @api.model
     def create(self, vals):
         res = super().create(vals)
