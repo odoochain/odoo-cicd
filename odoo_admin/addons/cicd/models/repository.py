@@ -177,34 +177,46 @@ class Repository(models.Model):
         path = self.machine_id._get_volume("source") / (self.short + ".mirror")
         return path
 
+    @contextmanager
+    def _ensure_mirror_path(self):
+        path = self.mirror_path
+        assert bool(path), "A mirror path must be set"
+        with self.machine_id._shell() as shell:
+            if not shell.exists(path):
+                self._update_local_mirrors()
+
+        yield
+
     def _technical_clone_repo(
         self, path, machine, logsio=None, branch=None, depth=None
     ):
+        breakpoint()
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
             with shell.machine._temppath(usage="clone_repo") as temppath:
-                shell.X(["git-cicd", "clone", self.mirror_path, temppath])
-                with shell.clone(cwd=temppath) as shell2:
-                    shell2.X(["git-cicd", "remote", "remove", "origin"])
-                    shell2.X(["git-cicd", "remote", "add", "origin", self.url])
-                    shell2.X(["git-cicd", "fetch"])
-                    if branch:
-                        shell2.X(["git-cicd", "checkout", "-f", branch])
-                        shell2.X(
-                            [
-                                "git-cicd",
-                                "branch",
-                                f"--set-upstream-to=origin/{branch}",
-                                branch,
-                            ]
-                        )
-                        shell2.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
+                with self._ensure_mirror_path():
+                    shell.X(["git-cicd", "clone", self.mirror_path, temppath])
+                    with shell.clone(cwd=temppath) as shell2:
+                        shell2.X(["git-cicd", "remote", "remove", "origin"])
+                        shell2.X(["git-cicd", "remote", "add", "origin", self.url])
+                        shell2.X(["git-cicd", "fetch"])
+                        if branch:
+                            shell2.X(["git-cicd", "checkout", "-f", branch])
+                            shell2.X(
+                                [
+                                    "git-cicd",
+                                    "branch",
+                                    f"--set-upstream-to=origin/{branch}",
+                                    branch,
+                                ]
+                            )
+                            shell2.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
 
-                if shell.exists(path):
-                    shell.remove(path)
-                shell.safe_move_directory(temppath, path)
-                shell.git_safe_directory(path)
+                    if shell.exists(path):
+                        shell.remove(path)
+                    shell.safe_move_directory(temppath, path)
+                    shell.git_safe_directory(path)
 
     @contextmanager
     def _temp_repo(self, machine, logsio=None, branch=None, depth=None, pull=False):

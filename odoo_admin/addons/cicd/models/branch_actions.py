@@ -300,6 +300,7 @@ class Branch(models.Model):
                 )
             )
 
+        breakpoint()
         if shell.exists(shell.cwd):
             commits = _extract_commits(shell)
         else:
