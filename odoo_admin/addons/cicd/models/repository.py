@@ -959,50 +959,55 @@ class Repository(models.Model):
 
     @api.model
     def _intelligent_springclean(self, days=3):
-        active_branches = self.env["cicd.git.branch"].search(
-            [("active", "=", True)]
-        ).mapped('technical_branch_name')
+        active_branches = list(
+            filter(
+                bool,
+                self.env["cicd.git.branch"]
+                .search([("active", "=", True)])
+                .mapped("technical_branch_name"),
+            )
+        )
+        release_branches = (
+            self.env["cicd.release.item"].search([]).mapped("item_branch_id.name")
+        )
         for repo in self.search([]):
             machine = repo.machine_id
             srcfolder = machine._get_volume("source")
             with machine._shell(cwd=srcfolder) as shell:
-                for item in shell.X(
-                    [
-                        "find",
-                        ".",
-                        "-maxdepth",
-                        "1",
-                        "-type",
-                        "d",
-                        "-mtime",
-                        f"+{days}",
-                        "-name",
-                        "testrun*",
-                    ]
-                )["stdout"].splitlines():
+
+                all_folders = list(
+                    map(
+                        lambda x: x.split("/")[-1],
+                        shell.X(
+                            [
+                                "find",
+                                ".",
+                                "-maxdepth",
+                                "1",
+                                "-type",
+                                "d",
+                                "-mtime",
+                                f"+{days}",
+                            ]
+                        )["stdout"].splitlines(),
+                    )
+                )
+
+                for item in filter(lambda x: x.startswith("testrun"), all_folders):
                     shell.remove(item)
                 for branch in self.env["cicd.git.branch"].search(
                     [("active", "=", False), ("repo_id", "=", repo.id)]
                 ):
                     if not branch.technical_branch_name:
                         continue
-                    path = srcfolder / branch.technical_branch_name
-                    if shell.exists(path):
-                        shell.remove(path)
+                    if branch.technical_branch_name in all_folders:
+                        shell.remove(srcfolder / branch.technical_branch_name)
 
-                for item in shell.X(
-                    [
-                        "find",
-                        ".",
-                        "-maxdepth",
-                        "1",
-                        "-type",
-                        "d",
-                        "-mtime",
-                        f"+{days}",
-                        "-name",
-                        "prj*",
-                    ]
-                )["stdout"].splitlines():
+                for item in release_branches:
+                    if [x for x in release_branches if item in x]:
+                        shell.remove(srcfolder / item)
+
+                for item in filter(lambda x: x.startswith("prj"), all_folders):
                     if item not in active_branches:
-                        shell.remove(item)
+                        shell.remove(srcfolder / item)
+
