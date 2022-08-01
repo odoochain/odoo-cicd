@@ -5,6 +5,7 @@ Resource          ../addons_robot/robot_utils_common/keywords/tools.robot
 Library           OperatingSystem
 Library           ./cicd.py
 
+Suite Setup       Setup Suite
 Test Setup        Setup Test
 
 *** Variables ***
@@ -41,12 +42,15 @@ Test Run Unittest
     Odoo Execute                    cicd.git.branch  method=run_tests  ids=${main_branch}
     ${testruns}=                    Odoo Search    cicd.test.run  domain=[['branch_id', '=', ${main_branch}]]  count=True
     Should Be Equal As Strings      ${testruns}  1
-    Odoo Execute                    robot.data.loader  method=wait_sqlcondition  params=${{["select count(*) from cicd_test_run where state not in ('done')"]}}
+    Odoo Execute                    robot.data.loader  method=wait_sqlcondition  params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
 
 
 
 *** Keywords ***
 Setup Test
+    Login
+
+Setup Suite
     ${CICD_DB_HOST}=                Get Environment Variable    CICD_DB_HOST
     ${CICD_DB_PORT}=                Get Environment Variable    CICD_DB_PORT
     Set Global Variable             ${CICD_HOME}  /home/cicd/cicd_app
@@ -76,7 +80,6 @@ Setup Test
     cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}/*
 
     Odoo Load Data                  res/security.xml  robobase
-    Login
 
 Wait Queuejobs Done
     Odoo Execute                    robot.data.loader  method=wait_queuejobs
