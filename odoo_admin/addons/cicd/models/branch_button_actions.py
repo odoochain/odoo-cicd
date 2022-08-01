@@ -209,9 +209,3 @@ class Branch(models.Model):
 
     def fetch(self):
         self.repo_id._fetch_branch(self.name)
-
-    def task1(self):
-        self._make_task("_task1")
-
-    def task2(self):
-        self._make_task("_task2")

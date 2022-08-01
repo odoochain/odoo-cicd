@@ -277,7 +277,7 @@ class Branch(models.Model):
         self.ensure_one()
         shell.logsio.info(f"Updating commits for {self.project_name}")
 
-        def _extract_commits():
+        def _extract_commits(shell):
             # removing the 4 months filter:
             # old branches get stuck and stuck other branches because
             # latest commit # cannot be found, if that filter is active.
@@ -300,7 +300,13 @@ class Branch(models.Model):
                 )
             )
 
-        commits = _extract_commits()
+        if shell.exists(shell.cwd):
+            commits = _extract_commits(shell)
+        else:
+            with self.repo_id._temp_repo(self.repo_id.machine_id, branch=self.name) as path:
+                with self.repo_id.machine_id._shell(cwd=path) as shell2:
+                    commits = _extract_commits(shell2)
+
         commits = [list(x.split("___")) for x in commits]
         for commit in commits:
             commit[1] = arrow.get(int(commit[1]))

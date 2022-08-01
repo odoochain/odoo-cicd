@@ -122,8 +122,6 @@
 									<button name="garbage_collect" string="Garbage Collect" type="object" />
 									<button name="update_all_modules" string="Update All Modules" type="object" />
 									<button name="update_installed_modules" string="Update Installed Modules" type="object" />
-									<button name="task1" string="Task1" type="object"  groups="base.group_no_one"/>
-									<button name="task2" string="Task2" type="object"  groups="base.group_no_one"/>
 								</group>
 							</page>
 							<page name="backup" string="Backup/Restore">
