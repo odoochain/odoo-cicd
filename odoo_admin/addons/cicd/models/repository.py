@@ -26,7 +26,6 @@ class NewBranch(Exception):
     pass
 
 
-
 class Repository(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
     _name = "cicd.git.repo"
@@ -657,7 +656,7 @@ class Repository(models.Model):
                 message_commit_sha = None
                 breakpoint()
                 if make_info_commit_msg:
-                    merged_branches = ','.join(map(lambda x: x['branch'].name, history))
+                    merged_branches = ",".join(map(lambda x: x["branch"].name, history))
                     if not merged_branches:
                         merged_branches = "No branches merged"
                     make_info_commit_msg = make_info_commit_msg.replace(
@@ -947,3 +946,54 @@ class Repository(models.Model):
         for rec in self:
             for branch in rec.branch_ids:
                 rec.apply_test_settings(branch)
+
+    @api.model
+    def _intelligent_springclean(self, days=3):
+        breakpoint()
+        active_branches = self.env["cicd.git.branch"].search(
+            [("active", "=", True)]
+        ).mapped('technical_branch_name')
+        for repo in self.search([]):
+            machine = repo.machine_id
+            srcfolder = machine._get_volume("source")
+            with machine._shell(cwd=srcfolder) as shell:
+                for item in shell.X(
+                    [
+                        "find",
+                        ".",
+                        "-maxdepth",
+                        "1",
+                        "-type",
+                        "d",
+                        "-mtime",
+                        f"+{days}",
+                        "-name",
+                        "testrun*",
+                    ]
+                )["stdout"].splitlines():
+                    shell.remove(item)
+                for branch in self.env["cicd.git.branch"].search(
+                    [("active", "=", False), ("repo_id", "=", repo.id)]
+                ):
+                    if not branch.technical_branch_name:
+                        continue
+                    path = srcfolder / branch.technical_branch_name
+                    if shell.exists(path):
+                        shell.remove(path)
+
+                for item in shell.X(
+                    [
+                        "find",
+                        ".",
+                        "-maxdepth",
+                        "1",
+                        "-type",
+                        "d",
+                        "-mtime",
+                        f"+{days}",
+                        "-name",
+                        "prj*",
+                    ]
+                )["stdout"].splitlines():
+                    if item not in active_branches:
+                        shell.remove(item)

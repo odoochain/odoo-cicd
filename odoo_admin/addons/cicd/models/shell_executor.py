@@ -100,16 +100,16 @@ class ShellExecutor(BaseShellExecutor):
         if self.exists(path):
             if self.logsio:
                 self.logsio.info(f"Path {path} exists and is erased now.")
-            self._internal_execute(["rm", "-Rf", path])
-            if self.exists(path):
-                self._internal_execute(["sudo", "rm", "-Rf", path])
+            path = Path(path)
+            tmp = path.parent / (path.name + f'.tmp.{uuid.uuid4()}')
+            self._internal_execute(["mv", path, tmp])
+            self._internal_execute(["rm", "-Rf", tmp])
+
+            if self.exists(tmp):
+                self._internal_execute(["sudo", "rm", "-Rf", tmp])
 
             if self.exists(path):
-                raise UserError(f"Removing of {path} failed.")
-        else:
-            if self.logsio:
-                if not str(path).startswith("/tmp"):
-                    self.logsio.info(f"Path {path} did not exist - not erased")
+                raise UserError(f"Removing of {tmp} failed.")
 
     def _get_home_dir(self):
         if not self.machine.homedir:
