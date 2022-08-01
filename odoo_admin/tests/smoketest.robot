@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation     Smoketest
-Resource          keywords/odoo_15_cs.robot
+Resource          ../addons_robot/robot_utils/keywords/odoo_community.robot
 Test Setup        Setup Smoketest
 
 

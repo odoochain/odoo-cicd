@@ -78,7 +78,7 @@ class GitBranch(models.Model):
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one(
-        "cicd.git.repo", string="Repository", required=True, ondelete="cascade"
+        "cicd.git.repo", string="Repository", required=True, ondelete="cascade", 
     )
     repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True, tracking=True)
@@ -331,6 +331,8 @@ class GitBranch(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
+        if '*' in res.name:
+            raise ValidationError("* not allowed in branch name")
 
         if "remove_web_assets_after_restore" not in vals:
             res.remove_web_assets_after_restore = (

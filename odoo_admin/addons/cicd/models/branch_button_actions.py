@@ -113,6 +113,7 @@ class Branch(models.Model):
 
     def update_git_commits(self):
         self._make_task("_update_git_commits", no_repo=True)
+        return True
 
     def transform_input_dump(self):
         self._make_task("_transform_input_dump")
@@ -208,9 +209,3 @@ class Branch(models.Model):
 
     def fetch(self):
         self.repo_id._fetch_branch(self.name)
-
-    def task1(self):
-        self._make_task("_task1")
-
-    def task2(self):
-        self._make_task("_task2")

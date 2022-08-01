@@ -27,9 +27,9 @@ repos:
   url: https://github.com/OCA/web.git
 - branch: 15.0
   path: odoo_admin/addons_robot
-  sha: 10441fe65640b9be0cd71b28c389c6466dc3b2be
+  sha: 0369f97e9eaba3cd00fe0a0b31acc3520edb1568
   type: integrated
-  url: https://github.com/marcwimmer/odoo-robot_utils
+  url: git@github.com:marcwimmer/odoo-robot_utils
 - branch: 15.0
   path: odoo_admin/addons/odoo_visualize_queries
   sha: 85051fd8ff4fe06b69acd656495d4b5bdfb978e0

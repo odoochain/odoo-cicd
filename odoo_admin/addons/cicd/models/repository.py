@@ -32,7 +32,9 @@ class Repository(models.Model):
     _rec_name = "short"
 
     registry_id = fields.Many2one("cicd.registry", string="Docker Registry")
-    short = fields.Char(compute="_compute_shortname", string="Name", compute_sudo=True)
+    short = fields.Char(
+        compute="_compute_shortname", string="Name", compute_sudo=True, store=True
+    )
     webhook_id = fields.Char("Webhook ID", help="/trigger/repo/<this id>")
     webhook_secret = fields.Char("Webhook Secret")
     update_ribbon_in_instance = fields.Boolean(
@@ -116,6 +118,7 @@ class Repository(models.Model):
                     _("Please use the login username instead of email address")
                 )
 
+    @api.depends("name")
     def _compute_shortname(self):
         for rec in self:
             short = rec.name.split("/")[-1]
@@ -174,34 +177,46 @@ class Repository(models.Model):
         path = self.machine_id._get_volume("source") / (self.short + ".mirror")
         return path
 
+    @contextmanager
+    def _ensure_mirror_path(self):
+        path = self.mirror_path
+        assert bool(path), "A mirror path must be set"
+        with self.machine_id._shell() as shell:
+            if not shell.exists(path):
+                self._update_local_mirrors()
+
+        yield
+
     def _technical_clone_repo(
         self, path, machine, logsio=None, branch=None, depth=None
     ):
+        breakpoint()
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
             with shell.machine._temppath(usage="clone_repo") as temppath:
-                shell.X(["git-cicd", "clone", self.mirror_path, temppath])
-                with shell.clone(cwd=temppath) as shell2:
-                    shell2.X(["git-cicd", "remote", "remove", "origin"])
-                    shell2.X(["git-cicd", "remote", "add", "origin", self.url])
-                    shell2.X(["git-cicd", "fetch"])
-                    if branch:
-                        shell2.X(["git-cicd", "checkout", "-f", branch])
-                        shell2.X(
-                            [
-                                "git-cicd",
-                                "branch",
-                                f"--set-upstream-to=origin/{branch}",
-                                branch,
-                            ]
-                        )
-                        shell2.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
+                with self._ensure_mirror_path():
+                    shell.X(["git-cicd", "clone", self.mirror_path, temppath])
+                    with shell.clone(cwd=temppath) as shell2:
+                        shell2.X(["git-cicd", "remote", "remove", "origin"])
+                        shell2.X(["git-cicd", "remote", "add", "origin", self.url])
+                        shell2.X(["git-cicd", "fetch"])
+                        if branch:
+                            shell2.X(["git-cicd", "checkout", "-f", branch])
+                            shell2.X(
+                                [
+                                    "git-cicd",
+                                    "branch",
+                                    f"--set-upstream-to=origin/{branch}",
+                                    branch,
+                                ]
+                            )
+                            shell2.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
 
-                if shell.exists(path):
-                    shell.remove(path)
-                shell.safe_move_directory(temppath, path)
-                shell.git_safe_directory(path)
+                    if shell.exists(path):
+                        shell.remove(path)
+                    shell.safe_move_directory(temppath, path)
+                    shell.git_safe_directory(path)
 
     @contextmanager
     def _temp_repo(self, machine, logsio=None, branch=None, depth=None, pull=False):
@@ -254,9 +269,12 @@ class Repository(models.Model):
         return branch
 
     def fetch(self):
+        breakpoint()
         self._cron_fetch()
+        return True
 
     def create_all_branches(self):
+        breakpoint()
         self.ensure_one()
         with LogsIOWriter.GET(self.name, "fetch") as logsio:
             self.env.cr.commit()
@@ -279,6 +297,7 @@ class Repository(models.Model):
                             branch = branch.split("/")[
                                 -1
                             ]  # remotes/origin/isolated_unittests --> isolated_unittests
+                            branch = self._clear_branch_name(branch)
 
                             branches = (
                                 self.env["cicd.git.branch"]
@@ -294,6 +313,7 @@ class Repository(models.Model):
                                         "name": branch,
                                     }
                                 )
+        return True
 
     @api.model
     def _cron_fetch(self):
@@ -307,6 +327,7 @@ class Repository(models.Model):
             )._queuejob_fetch()
 
     def _queuejob_fetch(self):
+        breakpoint()
         self.ensure_one()
         logsio = None
         try:
@@ -333,6 +354,7 @@ class Repository(models.Model):
                             fetch_info = list(
                                 filter(lambda x: " -> " in x, fetch_output)
                             )
+                            breakpoint()
 
                             for fi in fetch_info:
                                 while "  " in fi:
