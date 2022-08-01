@@ -950,9 +950,14 @@ class Repository(models.Model):
     @api.model
     def _intelligent_springclean(self, days=3):
         breakpoint()
-        active_branches = self.env["cicd.git.branch"].search(
-            [("active", "=", True)]
-        ).mapped('technical_branch_name')
+        active_branches = list(
+            filter(
+                bool,
+                self.env["cicd.git.branch"]
+                .search([("active", "=", True)])
+                .mapped("technical_branch_name"),
+            )
+        )
         for repo in self.search([]):
             machine = repo.machine_id
             srcfolder = machine._get_volume("source")
