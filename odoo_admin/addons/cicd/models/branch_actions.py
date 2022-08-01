@@ -303,11 +303,15 @@ class Branch(models.Model):
         breakpoint()
         if shell.exists(shell.cwd):
             commits = _extract_commits(shell)
+            self._build_commits(commits, shell)
         else:
             with self.repo_id._temp_repo(self.repo_id.machine_id, branch=self.name) as path:
                 with self.repo_id.machine_id._shell(cwd=path) as shell2:
                     commits = _extract_commits(shell2)
+                    self._build_commits(commits, shell2)
 
+
+    def _update_git_commits_put_into_db(self, commits, shell):
         commits = [list(x.split("___")) for x in commits]
         for commit in commits:
             commit[1] = arrow.get(int(commit[1]))
