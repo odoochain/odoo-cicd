@@ -29,7 +29,7 @@ Test Fetch All Branches
     Odoo Execute                    cicd.git.branch  method=update_git_commits  ids=${main_branch}
     Wait Queuejobs Done
     ${commits}=                     Odoo Search    cicd.git.commit  domain=[['branch_ids', '=', ${main_branch}]]  count=True
-    Should Be Equal As Strings      ${commits}  1
+    Should Be Equal As Strings      ${commits}  3
 
 Test Run Unittest
     ${main_branch}=                 Odoo Search    cicd.git.branch  domain=[['name', '=', 'main']]

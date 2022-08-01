@@ -1025,3 +1025,4 @@ for path in base.glob("*"):
             }
         )
         self.apply_test_settings(testrun)
+        return True
