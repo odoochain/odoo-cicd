@@ -1,6 +1,7 @@
 *** Settings ***
 
 Documentation   Odoo 13 backend keywords.
+<<<<<<< HEAD
 Library         ../../robot_utils_common/library/browser.py
 Library         SeleniumLibrary
 Resource        ../../robot_utils_common/keywords/odoo_client.robot
@@ -8,6 +9,13 @@ Resource        ../../robot_utils_common/keywords/tools.robot
 Library         ../../robot_utils_common/library/tools.py
 Resource        ../../robot_utils_common/keywords/styling.robot
 Library         String  # example Random String
+=======
+Library         ../library/browser.py
+Library         SeleniumLibrary
+Library         ../library/tools.py
+Resource        ../../robot_utils_common/keywords/odoo_client.robot
+Resource        ../../robot_utils_common/keywords/styling.robot
+>>>>>>> 19e91f84b1ffe3d25f527f57971cca7f5cb132b7
 
 *** Keywords ***
 
@@ -27,8 +35,13 @@ Login   [Arguments]     ${user}=${ODOO_USER}    ${password}=${ODOO_PASSWORD}    
     Capture Page Screenshot
     Wait Until Element is Visible           name=login
     Log To Console                          Input is visible, now entering credentials for user ${user} with password ${password} 
+<<<<<<< HEAD
     Input Text                              xpath=//input[@name='login'][1]    ${user}
     Input Text                              xpath=//input[@name='password'][1]    ${password}
+=======
+    Execute Javascript                      $("input[name=login]").val('${user}');
+    Execute Javascript                      $("input[name=password]").val('${password}');
+>>>>>>> 19e91f84b1ffe3d25f527f57971cca7f5cb132b7
     Log To Console                          Clicking Login
     Capture Page Screenshot
     Click Button                            xpath=//form[@class='oe_login_form']//button[@type='submit']

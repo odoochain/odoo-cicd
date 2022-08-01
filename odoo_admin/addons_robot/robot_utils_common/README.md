@@ -59,6 +59,7 @@ BaseTest
     Odoo Make Same Passwords
     Login                user=purchase1
 ```
+<<<<<<< HEAD
 
 
 ## Parallel executed test, wait till preparation is done
@@ -72,3 +73,5 @@ END
 
 Wait For Marker  products_on_stock
 ```
+=======
+>>>>>>> 19e91f84b1ffe3d25f527f57971cca7f5cb132b7

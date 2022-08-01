@@ -80,6 +80,7 @@ class tools(object):
         return self.get_res_id(
             server, db, user, password, model=model, module=module, name=name
         )
+<<<<<<< HEAD
 
     def internal_set_wait_marker(self, server, db, user, password, name):
         odoo, uid = self._odoo(server, db, "admin", password)
@@ -129,3 +130,5 @@ class tools(object):
             time.sleep(1)
         else:
             raise Exception("Timeout")
+=======
+>>>>>>> 19e91f84b1ffe3d25f527f57971cca7f5cb132b7

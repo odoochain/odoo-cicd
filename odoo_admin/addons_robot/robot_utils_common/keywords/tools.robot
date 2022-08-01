@@ -1,7 +1,10 @@
 *** Settings ***
 Documentation                Some Tools
 Library                      ../library/odoo.py
+<<<<<<< HEAD
 Library                      ../library/tools.py
+=======
+>>>>>>> 19e91f84b1ffe3d25f527f57971cca7f5cb132b7
 Library                      Collections
 
 
@@ -38,6 +41,7 @@ Odoo Sql            [Arguments]
 Output Source  [Arguments]
     ${myHtml} =    Get Source
     Log To Console  ${myHtml}
+<<<<<<< HEAD
 
 
 # For Stresstests suitable
@@ -58,3 +62,5 @@ Set Wait Marker     [Arguments]
                     ...        ${user}=${ODOO_USER}
                     ...        ${pwd}=${ODOO_PASSWORD}
   tools.Internal Set Wait Marker  ${host}  ${dbname}  ${user}  ${pwd}  ${TEST_NAME}${appendix}
+=======
+>>>>>>> 19e91f84b1ffe3d25f527f57971cca7f5cb132b7
