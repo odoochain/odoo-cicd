@@ -11,6 +11,7 @@ Smoketest
 *** Keywords ***
 Setup Smoketest
     Login
+    Odoo Load Data                  res/security.xml
 
 Search for the admin
     Odoo Search                     model=res.users  domain=[]  count=False

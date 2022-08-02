@@ -79,7 +79,7 @@ Setup Suite
     cicd.Sshcmd                     mkdir -p ${DUMPS_PATH}
     cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}/*
 
-    Odoo Load Data                  res/security.xml  robobase
+    Odoo Load Data                  res/security.xml
 
 Wait Queuejobs Done
     Odoo Execute                    robot.data.loader  method=wait_queuejobs
