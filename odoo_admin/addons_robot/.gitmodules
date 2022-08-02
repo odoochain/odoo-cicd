@@ -1,0 +1,4 @@
+[submodule "robot_utils_common"]
+	path = robot_utils_common
+	url = https://github.com/marcwimmer/odoo-robot_utils_common
+	branch = main
