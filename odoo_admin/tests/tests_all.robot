@@ -35,7 +35,7 @@ Test Fetch All Branches
 Test Run Unittest
     ${main_branch}=               Odoo Search                   cicd.git.branch                       domain=[['name', '=', 'main']]
     Log To Console                Configuring a test setting
-    ${values}=                    Create Dictionary             unittest_ids=${{[[0, 0, dict()]]}}    robottest_ids=${{[[0, 0, dict()]]}}
+    ${values}=                    Create Dictionary             unittest_ids=${{[[0, 0, {}]]}}    robottest_ids=${{[[0, 0, {}]]}}
     Odoo Write                    cicd.git.branch               ids=${main_branch}                    values=${values}
     cicd.Cicdodoo                 up                            -d                                    odoo_queuejobs                                                                              odoo_cronjobs
     Odoo Execute                  cicd.git.branch               method=run_tests                      ids=${main_branch}
