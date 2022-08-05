@@ -12,6 +12,7 @@ from odoo.tests import common
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 from odoo.exceptions import UserError, RedirectWarning, ValidationError, AccessError
+from pathlib import Path
 
 
 class Test(common.TransactionCase):
@@ -20,4 +21,5 @@ class Test(common.TransactionCase):
         super().setUp()
 
     def test_A(self):
-        raise Exception("Error")
+        if Path("/opt/src/failtest").exists():
+            raise Exception("Error")

@@ -33,15 +33,35 @@ Test Fetch All Branches
     Should Be Equal As Strings    ${commits}         3
 
 Test Run Unittest
-    ${main_branch}=               Odoo Search                   cicd.git.branch                       domain=[['name', '=', 'main']]
+    ${main_branch}=               Odoo Search                   cicd.git.branch                   domain=[['name', '=', 'main']]
     Log To Console                Configuring a test setting
     ${values}=                    Create Dictionary             unittest_ids=${{[[0, 0, {}]]}}    robottest_ids=${{[[0, 0, {}]]}}
-    Odoo Write                    cicd.git.branch               ids=${main_branch}                    values=${values}
-    cicd.Cicdodoo                 up                            -d                                    odoo_queuejobs                                                                              odoo_cronjobs
-    Odoo Execute                  cicd.git.branch               method=run_tests                      ids=${main_branch}
-    ${testruns}=                  Odoo Search                   cicd.test.run                         domain=[['branch_id', '=', ${main_branch}]]                                                 count=True
+    Odoo Write                    cicd.git.branch               ids=${main_branch}                values=${values}
+    cicd.Cicdodoo                 up                            -d                                odoo_queuejobs                                                                              odoo_cronjobs
+    Odoo Execute                  cicd.git.branch               method=run_tests                  ids=${main_branch}
+    ${testruns}=                  Odoo Search                   cicd.test.run                     domain=[['branch_id', '=', ${main_branch}]]                                                 count=True
     Should Be Equal As Strings    ${testruns}                   1
-    Odoo Execute                  robot.data.loader             method=wait_sqlcondition              params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
+    Odoo Execute                  robot.data.loader             method=wait_sqlcondition          params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
+
+    Log To Console     Now fail the test and make sure that test run is failed
+    ${commit_name}=    failtest added
+    cicd.Sshcmd        git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
+    cicd.Sshcmd        touch '${CICD_WORKSPACE}/tempedit/failtest'
+    cicd.Sshcmd        git add tempedit; git commit -am '${commit_name}'          cwd=${CICD_WORKSPACE}/tempedit
+    cicd.Sshcmd        git push
+
+    Log To Console                 Wait till commit arrives
+    Wait Until Keyword Succeeds    5x                          10 sec    Wait For Commit    ${commit_name}
+
+    Odoo Execute                  cicd.git.branch                   method=run_tests            ids=${main_branch}
+    ${testruns}=                  Odoo Search                       cicd.test.run               domain=[['branch_id', '=', ${main_branch}]]                                                 count=True
+    Should Be Equal As Strings    ${testruns}                       2
+    Odoo Execute                  robot.data.loader                 method=wait_sqlcondition    params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
+    ${testrun_id}=                Odoo Search                       cicd.test.run               domain=[['branch_id', '=', ${main_branch}]]                                                 limit=1       order=id desc
+    ${testrun_state} =            Odoo Read Field                   cicd.test.run               ${testrun_id}                                                                               state
+    IF                            "${testrun_state}" != "failed"
+    FAIL                          testrun should be failed
+    END
 
 Test Run Release
     Log To Console    Todo
@@ -144,3 +164,10 @@ Make Repo
     ...           machine_id=${machine}
     ${repo}=      Odoo Create                     cicd.git.repo    ${values}
     [return]      ${repo}
+
+Wait For Commit
+    [Arguments]    ${commit_name}
+    ${count}=      Odoo Search           model=cicd.git.commit    domain=[('text', 'like', '${commit_name}')]    count=True
+    IF             "${count}"" == "0"
+    FAIL           Commit not here
+    END
