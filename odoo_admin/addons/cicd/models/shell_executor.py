@@ -165,7 +165,13 @@ class ShellExecutor(BaseShellExecutor):
                     ],
                     allow_error=True,
                 )
-
+            
+            #ensure branch is tracked with upstream - master isn't by default tracked
+            self.X([
+                "git-cicd",
+                "branch",
+                f"--set-upstream-to=origin/{branch}"
+            ])
             self.logsio and self.logsio.info(f"Checking out {branch} regularly")
             self.X(
                 ["git-cicd", "checkout", "-f", "--no-guess", branch], allow_error=False
