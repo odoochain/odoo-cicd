@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from copy import deepcopy
 from robot.api import logger
+from robot.libraries.BuiltIn import BuiltIn
 
 DEFAULT_LANG = 'en_US'
 
@@ -47,7 +48,10 @@ def convert_args(method):
 
 class odoo(object):
 
-    def technical_testname(self, testname):
+    def technical_testname(self):
+        testname = BuiltIn().get_variable_value("${TEST NAME}")
+        if not testname:
+            testname = BuiltIn().get_variable_value("${SUITE NAME}")
         testname = testname.lower().replace(" ", "_")
         return testname
 
@@ -172,7 +176,7 @@ class odoo(object):
         obj = db['robot.data.loader']
         return obj.put_file(content, dest_path_on_odoo_container)
 
-    def load_file(self, host, dbname, user, pwd, filepath, module_name, test_name):
+    def load_file(self, host, dbname, user, pwd, filepath, module_name):
         filepath = Path(filepath).absolute()
         logger.debug(f"FilePath: {filepath}, cwd: {os.getcwd()}")
         db = self.get_conn(host, dbname, user, pwd)
@@ -182,7 +186,7 @@ class odoo(object):
         suffix = filepath.suffix
 
         # replace some environment variables:
-        test_name = self.technical_testname(test_name)
+        test_name = self.technical_testname()
         content = content.replace("${CURRENT_TEST}", test_name)
 
         module_name = module_name.lower()

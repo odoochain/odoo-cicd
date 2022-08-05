@@ -1,0 +1,9 @@
+repos:
+  - path: odoo
+    type: integrated
+    url: https://github.com/odoo/odoo
+    branch: __VERSION__
+  - branch: __VERSION__
+    path: addons_robot
+    type: integrated
+    url: https://github.com/marcwimmer/odoo-robot_utils

@@ -13,25 +13,16 @@ from robot.libraries.BuiltIn import BuiltIn
 current_dir = Path(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 )
+MANIFEST_FILE = current_dir / "res" / "MANIFEST"
+gimera_file = current_dir / "res" / "gimera.yml"
 rsa_file = current_dir / "res" / "id_rsa"
 rsa_file_pub = current_dir / "res" / "id_rsa.pub"
+smoketest_robot = current_dir / "res" / "smoketest.robot"
 
 
 class cicd(object):
     def _get_MANIFEST(self, version):
-        return {
-            "version": version,
-            "install": [
-                "moda",
-                "modb",
-                "mymodule1",
-            ],
-            "addons_paths": [
-                "odoo/odoo/addons",
-                "odoo/addons",
-                "addons_my",
-            ],
-        }
+        return self.replace_vars(MANIFEST_FILE.read_text())
 
     def assert_configuration(self):
         output = self.cicdodoo("config", "--full", output=True)
@@ -42,7 +33,9 @@ class cicd(object):
         assert "RUN_ODOO_CRONJOBS: '1'" in output, "RUN_ODOO_CRONJOBS=1 required"
 
         dumps_path = BuiltIn().get_variable_value("${DUMPS_PATH}")
-        assert f"DUMPS_PATH: {dumps_path}" in output, f"Dumps path must point to ${dumps_path}"
+        assert (
+            f"DUMPS_PATH: {dumps_path}" in output
+        ), f"Dumps path must point to ${dumps_path}"
 
     def cicdodoo(self, *params, output=False):
         path = Path(BuiltIn().get_variable_value("${CICD_HOME}"))
@@ -118,24 +111,12 @@ class cicd(object):
 
         self._sshcmd(f"[ -e '{path}' ] && rm -Rf '{path}' || true")
         self._sshcmd(f"mkdir -p '{path}'")
+        self._sshcmd(f"mkdir -p '{path}/tests'")
         self._writefile(
             path / "MANIFEST", json.dumps(self._get_MANIFEST(version), indent=4)
         )
-        self._writefile(
-            path / "gimera.yml",
-            yaml.dump(
-                {
-                    "repos": [
-                        {
-                            "path": "odoo",
-                            "type": "integrated",
-                            "url": "https://github.com/odoo/odoo",
-                            "branch": version,
-                        }
-                    ]
-                }
-            ),
-        )
+        self._writefile(path / "tests" / "smoketest.robot", smoketest_robot.read_text())
+        self._writefile(path / "gimera.yml", self.replace_vars(gimera_file.read_text()))
         cicd_home = BuiltIn().get_variable_value("${CICD_HOME}")
         self._sshcmd(f"rsync '{cicd_home}/odoo_admin/tests/addons_my' '{path}' -ar")
         self._sshcmd("git init .; git add .; git commit -am 'init'", cwd=path)
@@ -145,3 +126,8 @@ class cicd(object):
         self._sshcmd(f"mv '{path}' '{tmppath}'")
         self._sshcmd(f"git clone --bare 'file://{path}.tmp' '{path}'")
         self._sshcmd(f"rm -Rf '{path}.tmp'")
+
+    def replace_vars(self, text):
+        version = BuiltIn().get_variable_value("${ODOO_VERSION}")
+        text = text.replace("__VERSION__", version)
+        return text

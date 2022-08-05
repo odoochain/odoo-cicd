@@ -72,12 +72,12 @@ Odoo Search Read Records  [Arguments]
 
 Odoo Load Data  [Arguments]
                 ...           ${filepath}
-                ...          ${module_name}
+                ...           ${module_name}=robobase
                 ...           ${dbname}=${ODOO_DB}
                 ...           ${host}=${ODOO_URL}
                 ...           ${user}=${ODOO_USER}
                 ...           ${pwd}=${ODOO_PASSWORD}
-    odoo.Load File            ${host}  ${dbname}  ${user}  ${pwd}  ${filepath}  ${module_name}  ${TEST NAME}
+    odoo.Load File            ${host}  ${dbname}  ${user}  ${pwd}  ${filepath}  ${module_name}
 
 Odoo Put File           [Arguments]
                         ...      ${file_path}
