@@ -38,10 +38,11 @@ Test Run Unittest
     ${values}=                    Create Dictionary             unittest_ids=${{[[0, 0, {}]]}}    robottest_ids=${{[[0, 0, {}]]}}
     Odoo Write                    cicd.git.branch               ids=${main_branch}                values=${values}
     cicd.Cicdodoo                 up                            -d                                odoo_queuejobs                                                                              odoo_cronjobs
+    Remove File                   /opt/src/failtest
     Odoo Execute                  cicd.git.branch               method=run_tests                  ids=${main_branch}
     ${testruns}=                  Odoo Search                   cicd.test.run                     domain=[['branch_id', '=', ${main_branch}]]                                                 count=True
     Should Be Equal As Strings    ${testruns}                   1
-    Odoo Execute                  robot.data.loader             method=wait_sqlcondition          params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
+    Wait Testruns Done
 
     Log To Console     Now fail the test and make sure that test run is failed
     ${commit_name}=    failtest added
@@ -53,15 +54,17 @@ Test Run Unittest
     Log To Console                 Wait till commit arrives
     Wait Until Keyword Succeeds    5x                          10 sec    Wait For Commit    ${commit_name}
 
-    Odoo Execute                  cicd.git.branch                   method=run_tests            ids=${main_branch}
-    ${testruns}=                  Odoo Search                       cicd.test.run               domain=[['branch_id', '=', ${main_branch}]]                                                 count=True
+    Append To File                /opt/src/failtest                 1
+    Odoo Execute                  cicd.git.branch                   method=run_tests    ids=${main_branch}
+    ${testruns}=                  Odoo Search                       cicd.test.run       domain=[['branch_id', '=', ${main_branch}]]    count=True
     Should Be Equal As Strings    ${testruns}                       2
-    Odoo Execute                  robot.data.loader                 method=wait_sqlcondition    params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
-    ${testrun_id}=                Odoo Search                       cicd.test.run               domain=[['branch_id', '=', ${main_branch}]]                                                 limit=1       order=id desc
-    ${testrun_state} =            Odoo Read Field                   cicd.test.run               ${testrun_id}                                                                               state
+    Wait Testruns Done
+    ${testrun_id}=                Odoo Search                       cicd.test.run       domain=[['branch_id', '=', ${main_branch}]]    limit=1       order=id desc
+    ${testrun_state} =            Odoo Read Field                   cicd.test.run       ${testrun_id}                                  state
     IF                            "${testrun_state}" != "failed"
     FAIL                          testrun should be failed
     END
+    Remove File                   /opt/src/failtest
 
 Test Run Release
     Log To Console    Todo
@@ -102,6 +105,9 @@ Setup Suite
     cicd.Sshcmd                  rm -Rf ${CICD_WORKSPACE}/*
 
     Odoo Load Data    res/security.xml
+
+Wait Testruns Done
+    Odoo Execute    robot.data.loader    method=wait_sqlcondition    params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
 
 Wait Queuejobs Done
     Odoo Execute    robot.data.loader    method=wait_queuejobs
