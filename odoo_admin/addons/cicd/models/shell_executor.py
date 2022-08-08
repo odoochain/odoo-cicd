@@ -150,6 +150,7 @@ class ShellExecutor(BaseShellExecutor):
     def checkout_branch(self, branch, cwd=None, nosubmodule_update=False):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
+            remote_branch = f"origin/{branch}"
             if not self.branch_exists(branch):
                 self.logsio and self.logsio.info(
                     f"Tracking remote branch and checking out {branch}"
@@ -161,7 +162,7 @@ class ShellExecutor(BaseShellExecutor):
                         "-b",
                         branch,
                         "--track",
-                        "origin/" + branch,
+                        remote_branch
                     ],
                     allow_error=True,
                 )
@@ -170,6 +171,14 @@ class ShellExecutor(BaseShellExecutor):
             self.X(
                 ["git-cicd", "checkout", "-f", "--no-guess", branch], allow_error=False
             )
+
+            #ensure branch is tracked with upstream - master isn't by default tracked
+            if self.branch_exists(remote_branch, remote=True):
+                self.X([
+                    "git-cicd",
+                    "branch",
+                    f"--set-upstream-to={remote_branch}"
+                ])
             self.logsio and self.logsio.info(f"Checked out {branch}")
             self._after_checkout(nosubmodule_update=nosubmodule_update)
 
@@ -185,9 +194,12 @@ class ShellExecutor(BaseShellExecutor):
                 raise Exception(("Somehow checking out " f"{commit} in {cwd} failed"))
             self._after_checkout()
 
-    def branch_exists(self, branch, cwd=None):
+    def branch_exists(self, branch, cwd=None, remote=False):
+        cmd = ["git-cicd", "branch", "--no-color"]
+        if remote:
+            cmd += ["-r"]
         res = (
-            self.X(["git-cicd", "branch", "--no-color"], cwd=cwd)["stdout"]
+            self.X(cmd, cwd=cwd)["stdout"]
             .strip()
             .split("\n")
         )
