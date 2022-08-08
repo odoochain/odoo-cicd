@@ -3,6 +3,8 @@ import re
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from odoo.addons.queue_job.job import Job
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 
 
 class queuejob(models.Model):
@@ -102,11 +104,13 @@ class queuejob(models.Model):
             "update_databases",
         ]
         idkeys = set()
+        crit_date = arrow.utcnow().shift(days=-1).strftime(DTF)
 
         for reason in reasons:
             for job in self.search(
                 [
                     ("state", "=", "failed"),
+                    ('date_created', '>', crit_date),
                     "|",
                     ("exc_info", "ilike", reason),
                     ("result", "ilike", reason),

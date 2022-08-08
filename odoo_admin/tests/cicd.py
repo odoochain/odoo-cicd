@@ -22,7 +22,7 @@ smoketest_robot = current_dir / "res" / "smoketest.robot"
 
 class cicd(object):
     def _get_MANIFEST(self, version):
-        return self.replace_vars(MANIFEST_FILE.read_text())
+        return eval(self.replace_vars(MANIFEST_FILE.read_text()))
 
     def assert_configuration(self):
         output = self.cicdodoo("config", "--full", output=True)
