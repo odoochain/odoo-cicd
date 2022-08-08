@@ -13,11 +13,10 @@ from robot.libraries.BuiltIn import BuiltIn
 current_dir = Path(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 )
-MANIFEST_FILE = current_dir / "res" / "MANIFEST"
-gimera_file = current_dir / "res" / "gimera.yml"
+MANIFEST_FILE = current_dir / "res" / 'dirstruct' / "MANIFEST"
+gimera_file = current_dir / "res" / 'dirstruct' / "gimera.yml"
 rsa_file = current_dir / "res" / "id_rsa"
 rsa_file_pub = current_dir / "res" / "id_rsa.pub"
-smoketest_robot = current_dir / "res" / "smoketest.robot"
 
 
 class cicd(object):
@@ -80,6 +79,17 @@ class cicd(object):
     def sshcmd(self, stringcommand, output=False, cwd=None):
         return self._sshcmd(stringcommand, output=output, cwd=cwd)
 
+    def _transfer_tree(self, src, dest):
+        cmd = [
+            "/usr/bin/rsync ",
+            "-e "
+            f"'ssh -o StrictHostKeyChecking=no -i {self._get_hostkey()}' "
+            f"{src}/ "
+            f"{dest}/ "
+            "-arP"
+        ]
+        check_call(cmd)
+
     def _sshcmd(self, stringcommand, output=False, cwd=None):
         if cwd:
             stringcommand = f"cd '{cwd}' || exit -1;" f"{stringcommand}"
@@ -111,11 +121,12 @@ class cicd(object):
 
         self._sshcmd(f"[ -e '{path}' ] && rm -Rf '{path}' || true")
         self._sshcmd(f"mkdir -p '{path}'")
-        self._sshcmd(f"mkdir -p '{path}/tests'")
+        file = tempfile.mktemp(suffix=".")
+        self._transfer_tree(current_dir / "res" / "dirstruct", path)
+        self._sshcmd
         self._writefile(
             path / "MANIFEST", json.dumps(self._get_MANIFEST(version), indent=4)
         )
-        self._writefile(path / "tests" / "smoketest.robot", smoketest_robot.read_text())
         self._writefile(path / "gimera.yml", self.replace_vars(gimera_file.read_text()))
         cicd_home = BuiltIn().get_variable_value("${CICD_HOME}")
         self._sshcmd(f"rsync '{cicd_home}/odoo_admin/tests/addons_my' '{path}' -ar")
