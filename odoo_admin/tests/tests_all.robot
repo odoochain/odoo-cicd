@@ -67,9 +67,9 @@ Test Run Unittest
     Remove File                   /opt/src/failtest
 
 Test Run Release
-    ${repo}=          Odoo Search     cicd.git.repo         domain=[]      limit=1
-    ${machine_id}=    Make Machine    ${postgres}  source_dir=${DIR_RELEASED_VERSION}
-    ${release}=       Make Release    repo_id=${repo[0]}    branch=main    ${machine_id[0]}
+    ${repo}=          Odoo Search     cicd.git.repo         domain=[]                             limit=1
+    ${machine_id}=    Make Machine    ${postgres}           source_dir=${DIR_RELEASED_VERSION}
+    ${release}=       Make Release    repo_id=${repo[0]}    branch=main                           ${machine_id[0]}
     Odoo Execute      cicd.release    _cron_heartbeat
     Odoo Execute      cicd.release    _cron_heartbeat
     Odoo Execute      cicd.release    _cron_heartbeat
@@ -102,12 +102,13 @@ Setup Suite
     Set Global Variable         ${DIR_RELEASED_VERSION}     /tmp/cicd_release1
 
     cicd.Assert Configuration
-    Log To Console               Kill Cronjobs and Queuejobs
-    cicd.Cicdodoo                kill                           odoo_queuejobs    odoo_cronjobs
-    cicd.Sshcmd                  rm -Rf ${CICD_WORKSPACE}
-    cicd.Sshcmd                  mkdir -p ${CICD_WORKSPACE}
-    cicd.Sshcmd                  mkdir -p ${DUMPS_PATH}
-    cicd.Sshcmd                  rm -Rf ${CICD_WORKSPACE}/*
+    Log To Console                  Kill Cronjobs and Queuejobs
+    cicd.Cicdodoo                   kill                           odoo_queuejobs                   odoo_cronjobs
+    Run keyword and ignore error    cicd.Sshcmd                    sudo rm -Rf ${CICD_WORKSPACE}
+    cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}
+    cicd.Sshcmd                     mkdir -p ${CICD_WORKSPACE}
+    cicd.Sshcmd                     mkdir -p ${DUMPS_PATH}
+    cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}/*
 
     Odoo Load Data    res/security.xml
 
@@ -184,7 +185,7 @@ Wait For Commit
     END
 
 Make Release
-    [Arguments]            repo_id                               branch                                  machine_id
+    [Arguments]            ${repo_id}                            ${branch}                               ${machine_id}
     ${sequence_id}         Odoo Create                           ir.sequence                             name=releaseseq            code=releaseseq
     ${branch_id}=          Odoo Search                           cicd.git.branch                         [['name', '=', branch]]
     ${action_ids}=         Set Variable                          ${{ [[0,0, {'machine_id': machine_id    }}

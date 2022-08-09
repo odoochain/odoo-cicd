@@ -55,6 +55,7 @@
 											<field name="total_size_human"/>
 											<field name="free_size_human"/>
 											<field name="used_percent"/>
+											<field name="warn_percent"/>
 											<field name="ttype"/>
 										</tree>
 									</field>
