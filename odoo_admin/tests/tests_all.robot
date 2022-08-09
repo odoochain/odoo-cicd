@@ -14,7 +14,7 @@ Test Setup     Setup Test
 Setup Repository
     cicd.Make Odoo Repo    ${SRC_REPO}      ${ODOO_VERSION}
     ${postgres}=           Make Postgres
-    ${machine}=            Make Machine     ${postgres}
+    ${machine}=            Make Machine     ${postgres}        source_dir=${CICD_WORKSPACE}
     ${repo}=               Make Repo        ${machine}
 
 Test Fetch All Branches
@@ -37,15 +37,15 @@ Test Run Unittest
     Log To Console                Configuring a test setting
     ${values}=                    Create Dictionary             unittest_ids=${{[[0, 0, {}]]}}    robottest_ids=${{[[0, 0, {}]]}}
     Odoo Write                    cicd.git.branch               ids=${main_branch}                values=${values}
-    cicd.Cicdodoo                 up                            -d                                odoo_queuejobs                                                                              odoo_cronjobs
+    cicd.Cicdodoo                 up                            -d                                odoo_queuejobs                                 odoo_cronjobs
     Remove File                   /opt/src/failtest
     Odoo Execute                  cicd.git.branch               method=run_tests                  ids=${main_branch}
-    ${testruns}=                  Odoo Search                   cicd.test.run                     domain=[['branch_id', '=', ${main_branch}]]                                                 count=True
+    ${testruns}=                  Odoo Search                   cicd.test.run                     domain=[['branch_id', '=', ${main_branch}]]    count=True
     Should Be Equal As Strings    ${testruns}                   1
     Wait Testruns Done
 
     Log To Console     Now fail the test and make sure that test run is failed
-    ${commit_name}=    Set Variable  failtest added
+    ${commit_name}=    Set Variable                                               failtest added
     cicd.Sshcmd        git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd        touch '${CICD_WORKSPACE}/tempedit/failtest'
     cicd.Sshcmd        git add tempedit; git commit -am '${commit_name}'          cwd=${CICD_WORKSPACE}/tempedit
@@ -67,7 +67,12 @@ Test Run Unittest
     Remove File                   /opt/src/failtest
 
 Test Run Release
-    Log To Console    Todo
+    ${repo}=          Odoo Search     cicd.git.repo         domain=[]      limit=1
+    ${machine_id}=    Make Machine    ${postgres}  source_dir=${DIR_RELEASED_VERSION}
+    ${release}=       Make Release    repo_id=${repo[0]}    branch=main    ${machine_id[0]}
+    Odoo Execute      cicd.release    _cron_heartbeat
+    Odoo Execute      cicd.release    _cron_heartbeat
+    Odoo Execute      cicd.release    _cron_heartbeat
 
 
 
@@ -81,8 +86,7 @@ Setup Suite
     Set Global Variable         ${CICD_HOME}                /home/cicd/cicd_app
     Set Global Variable         ${CICD_DB_HOST}
     Set Global Variable         ${CICD_DB_PORT}
-    Set Global Variable         ${WORKSPACE}                /home/cicd/cicdtest_workspace
-    Set Global Variable         ${SRC_REPO}                 ${WORKSPACE}/odoo1
+    Set Global Variable         ${SRC_REPO}                 /tmp/odoo1
     Set Global Variable         ${ROBOTTEST_REPO_URL}       file://${SRC_REPO}
     Set Global Variable         ${ODOO_VERSION}             15.0
     Set Global Variable         ${CICD_DB_HOST}             ${CICD_DB_HOST}
@@ -95,6 +99,7 @@ Setup Suite
     Set Global Variable         ${ROBOTTEST_SSH_KEY}
     Set Global Variable         ${DUMPS_PATH}               /tmp/cicd_test_dumps
     Set Global Variable         ${CICD_WORKSPACE}           /tmp/cicd_workspace
+    Set Global Variable         ${DIR_RELEASED_VERSION}     /tmp/cicd_release1
 
     cicd.Assert Configuration
     Log To Console               Kill Cronjobs and Queuejobs
@@ -123,7 +128,7 @@ Make Postgres
     [return]                       ${postgres}
 
 Make Machine
-    [Arguments]    ${postgres}
+    [Arguments]    ${postgres}          ${source_dir}
     ${uuid}=       Get Guid
     ${date}=       Get Now As String
     ${name}=       Set Variable         ${{$date + '-' + $uuid}}
@@ -143,9 +148,9 @@ Make Machine
 
     ${values}=     Create Dictionary
     ...            ttype=source
-    ...            name=${CICD_WORKSPACE}
+    ...            name=${source_dir}
     ...            machine_id=${machine}
-    Odoo Create    cicd.machine.volume       ${values}
+    Odoo Create    cicd.machine.volume      ${values}
 
     ${values}=     Create Dictionary
     ...            ttype=dumps
@@ -177,3 +182,21 @@ Wait For Commit
     IF             "${count}"" == "0"
     FAIL           Commit not here
     END
+
+Make Release
+    [Arguments]            repo_id                               branch                                  machine_id
+    ${sequence_id}         Odoo Create                           ir.sequence                             name=releaseseq            code=releaseseq
+    ${branch_id}=          Odoo Search                           cicd.git.branch                         [['name', '=', branch]]
+    ${action_ids}=         Set Variable                          ${{ [[0,0, {'machine_id': machine_id    }}
+    ${common_settings}=    SEPARATOR=
+    ...                    RUN_POSTGRES=1\\n
+    ${values}=             Create Dictionary
+    ...                    name=release
+    ...                    repo_id=${repo_id}
+    ...                    project_name=odoorelease
+    ...                    branch_id=${branch_id[0]}
+    ...                    auto_release=True
+    ...                    action_ids=${action_ids}
+    ...                    common_settings=${common_settings}
+    ${release}=            Odoo Create                           cicd.release                            ${values}
+    [return]               ${release}
