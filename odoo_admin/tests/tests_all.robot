@@ -45,7 +45,7 @@ Test Run Unittest
     Wait Testruns Done
 
     Log To Console     Now fail the test and make sure that test run is failed
-    ${commit_name}=    failtest added
+    ${commit_name}=    Set Variable  failtest added
     cicd.Sshcmd        git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd        touch '${CICD_WORKSPACE}/tempedit/failtest'
     cicd.Sshcmd        git add tempedit; git commit -am '${commit_name}'          cwd=${CICD_WORKSPACE}/tempedit

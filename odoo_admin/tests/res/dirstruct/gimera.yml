@@ -4,7 +4,7 @@ repos:
     url: https://github.com/odoo/odoo
     branch: __VERSION__
     patches:
-      - odoo.patches
+      - odoo.patches.__VERSION__
   - branch: __VERSION__
     path: addons_robot
     type: integrated

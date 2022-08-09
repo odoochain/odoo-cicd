@@ -81,12 +81,12 @@ class cicd(object):
 
     def _transfer_tree(self, src, dest):
         cmd = [
-            "/usr/bin/rsync ",
-            "-e "
-            f"'ssh -o StrictHostKeyChecking=no -i {self._get_hostkey()}' "
-            f"{src}/ "
-            f"{dest}/ "
-            "-arP"
+            "/usr/bin/rsync",
+            "-e",
+            f"ssh -o StrictHostKeyChecking=no -i {self._get_hostkey()}",
+            f"{src}/",
+            f"{self.get_sshuser()}@host.docker.internal:{dest}/",
+            "-arP",
         ]
         check_call(cmd)
 
@@ -121,9 +121,7 @@ class cicd(object):
 
         self._sshcmd(f"[ -e '{path}' ] && rm -Rf '{path}' || true")
         self._sshcmd(f"mkdir -p '{path}'")
-        file = tempfile.mktemp(suffix=".")
         self._transfer_tree(current_dir / "res" / "dirstruct", path)
-        self._sshcmd
         self._writefile(
             path / "MANIFEST", json.dumps(self._get_MANIFEST(version), indent=4)
         )
