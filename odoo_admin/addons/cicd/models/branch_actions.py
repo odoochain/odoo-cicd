@@ -305,11 +305,12 @@ class Branch(models.Model):
             commits = _extract_commits(shell)
             self._update_git_commits_put_into_db(commits, shell)
         else:
-            with self.repo_id._temp_repo(self.repo_id.machine_id, branch=self.name) as path:
+            with self.repo_id._temp_repo(
+                self.repo_id.machine_id, branch=self.name
+            ) as path:
                 with self.repo_id.machine_id._shell(cwd=path) as shell2:
                     commits = _extract_commits(shell2)
                     self._update_git_commits_put_into_db(commits, shell2)
-
 
     def _update_git_commits_put_into_db(self, commits, shell):
         breakpoint()
@@ -963,8 +964,8 @@ for path in base.glob("*"):
         dest_path = self._ensure_dump_get_dest_path(ttype, commit, dumptype)
 
         with self.machine_id._shell() as shell:
-            if shell.exists(dest_path):
-                return dest_path
+            if dest_paths := shell.exists(dest_path, glob=True):
+                return dest_paths[0]
 
         with self._tempinstance("ensuredump", commit=commit, dbname=dbname) as shell:
             shell.logsio.info(f"Creating dump file {dest_path}")
@@ -977,6 +978,9 @@ for path in base.glob("*"):
                 shell.odoo("update", timeout=60 * 30)
                 shell.odoo("turn-into-dev")
                 shell.wait_for_postgres()
+            dest_path = dest_path.parent / self.env[
+                "cicd.machine"
+            ]._append_cleanme_notation(dest_path.name, maxage={"hours": 24 * 4})
             params = ["backup", "odoo-db", dest_path]
             if dumptype:
                 params += ["--dumptype", dumptype]
@@ -993,7 +997,7 @@ for path in base.glob("*"):
             cwd=instance_folder,
             project_name=self.project_name,
         ) as shell:
-            path = Path(shell.machine._get_volume("dumps"))
+            path = Path(shell.machine._get_volume("temp"))
 
             if ttype in ["base"]:
                 self._checkout_latest(shell)

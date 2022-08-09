@@ -81,9 +81,12 @@ class ShellExecutor(BaseShellExecutor):
     def cwd(self):
         return self._cwd
 
-    def exists(self, path):
-        res = self._internal_execute(["test", "-e", path], logoutput=False)
-        return res["exit_code"] == 0
+    def exists(self, path, glob=False):
+        if not glob:
+            res = self._internal_execute(["test", "-e", path], logoutput=False)
+            return res["exit_code"] == 0
+        res = self._internal_execute(["ls", path], logoutput=False)
+        return res['stdout'].strip().splitlines()
 
     def rm(self, path):
         return self.remove(path)

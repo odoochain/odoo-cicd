@@ -220,8 +220,7 @@ class CicdMachine(models.Model):
     @contextmanager
     def _temppath(self, maxage={"hours": 1}, usage="common"):
         guid = str(uuid.uuid4())
-        date = arrow.utcnow().shift(**maxage).strftime("%Y%m%d_%H%M%S")
-        name = f"{guid}.{usage}.cleanme.{date}"
+        name = self._append_cleanme_notation(f"{guid}.{usage}", maxage)
         try:
             path = self._get_volume("temp") / name
             with self._shell() as shell:
@@ -231,6 +230,12 @@ class CicdMachine(models.Model):
         finally:
             with self._shell() as shell:
                 shell.rm(path)
+
+    @api.model
+    def _append_cleanme_notation(self, name, maxage):
+        date = arrow.utcnow().shift(**maxage).strftime("%Y%m%d_%H%M%S")
+        name = f"{name}.cleanme.{date}"
+        return name
 
     @api.model
     def _clean_tempdirs(self):
