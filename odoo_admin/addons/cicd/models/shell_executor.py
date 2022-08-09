@@ -101,7 +101,7 @@ class ShellExecutor(BaseShellExecutor):
             if self.logsio:
                 self.logsio.info(f"Path {path} exists and is erased now.")
             path = Path(path)
-            tmp = path.parent / (path.name + f'.tmp.{uuid.uuid4()}')
+            tmp = path.parent / (path.name + f".tmp.{uuid.uuid4()}")
             self._internal_execute(["mv", path, tmp])
             self._internal_execute(["rm", "-Rf", tmp])
 
@@ -166,19 +166,15 @@ class ShellExecutor(BaseShellExecutor):
                     ],
                     allow_error=True,
                 )
-            
+
             self.logsio and self.logsio.info(f"Checking out {branch} regularly")
             self.X(
                 ["git-cicd", "checkout", "-f", "--no-guess", branch], allow_error=False
             )
-            #ensure branch is tracked with upstream - master isn't by default tracked
+            # ensure branch is tracked with upstream - master isn't by default tracked
             if self.branch_exists(remote_branch, remote=True):
                 breakpoint()
-                self.X([
-                    "git-cicd",
-                    "branch",
-                    f"--set-upstream-to={remote_branch}"
-                ])
+                self.X(["git-cicd", "branch", f"--set-upstream-to={remote_branch}"])
             self.logsio and self.logsio.info(f"Checked out {branch}")
             self._after_checkout(nosubmodule_update=nosubmodule_update)
 
@@ -198,11 +194,7 @@ class ShellExecutor(BaseShellExecutor):
         git_cmd = ["git-cicd", "branch", "--no-color"]
         if remote:
             git_cmd += ["-r"]
-        res = (
-            self.X(git_cmd, cwd=cwd)["stdout"]
-            .strip()
-            .split("\n")
-        )
+        res = self.X(git_cmd, cwd=cwd)["stdout"].strip().splitlines()
 
         def reformat(x):
             x = x.replace("* ", "")
@@ -211,7 +203,7 @@ class ShellExecutor(BaseShellExecutor):
 
         res = [reformat(x) for x in res]
         return branch in res
-    
+
     def current_branch_contains_commit(self, commit, cwd=None):
         assert isinstance(commit, str)
         try:
