@@ -162,18 +162,18 @@ class ShellExecutor(BaseShellExecutor):
                         "-b",
                         branch,
                         "--track",
-                        remote_branch
+                        remote_branch,
                     ],
                     allow_error=True,
                 )
-
+            
             self.logsio and self.logsio.info(f"Checking out {branch} regularly")
             self.X(
                 ["git-cicd", "checkout", "-f", "--no-guess", branch], allow_error=False
             )
-
             #ensure branch is tracked with upstream - master isn't by default tracked
             if self.branch_exists(remote_branch, remote=True):
+                breakpoint()
                 self.X([
                     "git-cicd",
                     "branch",
@@ -195,11 +195,11 @@ class ShellExecutor(BaseShellExecutor):
             self._after_checkout()
 
     def branch_exists(self, branch, cwd=None, remote=False):
-        cmd = ["git-cicd", "branch", "--no-color"]
+        git_cmd = ["git-cicd", "branch", "--no-color"]
         if remote:
-            cmd += ["-r"]
+            git_cmd += ["-r"]
         res = (
-            self.X(cmd, cwd=cwd)["stdout"]
+            self.X(git_cmd, cwd=cwd)["stdout"]
             .strip()
             .split("\n")
         )
@@ -211,7 +211,7 @@ class ShellExecutor(BaseShellExecutor):
 
         res = [reformat(x) for x in res]
         return branch in res
-
+    
     def current_branch_contains_commit(self, commit, cwd=None):
         assert isinstance(commit, str)
         try:
