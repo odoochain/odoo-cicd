@@ -5,7 +5,7 @@ import re
 import json
 import base64
 from pathlib import Path
-from odoo import fields, models
+from odoo import fields, models, api
 from odoo.exceptions import ValidationError
 from contextlib import contextmanager, closing
 from .test_run import SETTINGS
@@ -36,6 +36,7 @@ class RobotTest(models.Model):
 
     filepath = fields.Char("Filepath")
     robot_output = fields.Binary("Robot Output", attachment=True)
+    robot_output_len = fields.Integer("Robot Output Len", compute="_compute_robot_output_len", store=True)
     parallel = fields.Char("In Parallel")
     avg_duration = fields.Float("Avg Duration [s]")
     min_duration = fields.Float("Min Duration [s]")
@@ -43,6 +44,12 @@ class RobotTest(models.Model):
     queuejob_log = fields.Binary("Queuejob Log")
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
     tags = fields.Char("Tags")
+
+    @api.depends("robot_output")
+    def _compute_robot_output_len(self):
+        for rec in self:
+            breakpoint()
+            rec.robot_output_len = len(rec.with_context(prefetch_fields=False).robot_output or '')
 
     def _queuejob_log_filename(self):
         for rec in self:
