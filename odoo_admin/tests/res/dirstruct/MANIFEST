@@ -1,0 +1,13 @@
+{
+            "version": __VERSION__,
+            "install": [
+                "moda",
+                "modb",
+                "mymodule1",
+            ],
+            "addons_paths": [
+                "odoo/odoo/addons",
+                "odoo/addons",
+                "addons_my",
+            ],
+        }

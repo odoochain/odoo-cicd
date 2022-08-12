@@ -1,5 +1,30 @@
 <odoo>
 	<data noupdate='0'>
+		<template id="cicd.mail_volume_space">
+			<h1 t-esc="obj.name"></h1>
+			<table>
+				<tr>
+					<th>Used</th>
+					<td t-esc="obj.used_size_human"/>
+				</tr>
+				<tr>
+					<th>Free</th>
+					<td t-esc="obj.free_size_human"/>
+				</tr>
+				<tr>
+					<th>
+						Total
+					</th>
+					<td t-esc="obj.total_size_human"></td>
+				</tr>
+				<tr>
+					<th>
+						Used [%]
+					</th>
+					<td t-esc="obj.used_percent"></td>
+				</tr>
+			</table>
+		</template>
 
 		<template id="cicd.mail_testrun_result">
 			<h1>TESTRUN RESULT</h1>

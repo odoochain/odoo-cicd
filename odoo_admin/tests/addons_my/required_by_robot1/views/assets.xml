@@ -1,0 +1,12 @@
+<odoo>
+	<data>
+        <!--
+		<template id="assets_backend" name="required_by_robot1 assets" inherit_id="web.assets_backend">
+			<xpath expr="." position="inside">
+				<script type="text/javascript" src="/required_by_robot1/static/src/js/required_by_robot1.js"></script>
+                <link rel="stylesheet" href="/required_by_robot1/static/src/css/required_by_robot1.css"/>
+			</xpath>
+		</template>
+        -->
+	</data>
+</odoo>

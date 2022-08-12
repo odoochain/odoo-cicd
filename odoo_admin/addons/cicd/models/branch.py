@@ -78,7 +78,7 @@ class GitBranch(models.Model):
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one(
-        "cicd.git.repo", string="Repository", required=True, ondelete="cascade"
+        "cicd.git.repo", string="Repository", required=True, ondelete="cascade", 
     )
     repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True, tracking=True)
@@ -309,28 +309,11 @@ class GitBranch(models.Model):
         # return all possible states, in order
         return [key for key, val in type(self).state.selection]
 
-    def _compute_latest_commit(self, shell):
-        for rec in self:
-            shell.checkout_branch(rec.name, nosubmodule_update=True)
-
-            latest_commit = (
-                shell.X(["git-cicd", "log", "-n1", "--pretty=%H"])["stdout"]
-                .strip()
-                .split("\n")[0]
-            )
-
-            commit = rec.commit_ids.filtered(lambda x: x.name == latest_commit)
-            if not commit:
-                raise RetryableJobError(
-                    f"Could not find {latest_commit}", ignore_retry=True, seconds=120
-                )
-            commit.ensure_one()
-            if rec.latest_commit_id != commit:
-                rec.latest_commit_id = commit
-
     @api.model
     def create(self, vals):
         res = super().create(vals)
+        if '*' in res.name:
+            raise ValidationError("* not allowed in branch name")
 
         if "remove_web_assets_after_restore" not in vals:
             res.remove_web_assets_after_restore = (

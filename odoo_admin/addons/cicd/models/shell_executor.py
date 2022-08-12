@@ -81,9 +81,12 @@ class ShellExecutor(BaseShellExecutor):
     def cwd(self):
         return self._cwd
 
-    def exists(self, path):
-        res = self._internal_execute(["test", "-e", path], logoutput=False)
-        return res["exit_code"] == 0
+    def exists(self, path, glob=False):
+        if not glob:
+            res = self._internal_execute(["test", "-e", path], logoutput=False)
+            return res["exit_code"] == 0
+        res = self._internal_execute(["ls", path], logoutput=False)
+        return res['stdout'].strip().splitlines()
 
     def rm(self, path):
         return self.remove(path)
@@ -100,16 +103,16 @@ class ShellExecutor(BaseShellExecutor):
         if self.exists(path):
             if self.logsio:
                 self.logsio.info(f"Path {path} exists and is erased now.")
-            self._internal_execute(["rm", "-Rf", path])
-            if self.exists(path):
-                self._internal_execute(["sudo", "rm", "-Rf", path])
+            path = Path(path)
+            tmp = path.parent / (path.name + f".tmp.{uuid.uuid4()}")
+            self._internal_execute(["mv", path, tmp])
+            self._internal_execute(["rm", "-Rf", tmp])
+
+            if self.exists(tmp):
+                self._internal_execute(["sudo", "rm", "-Rf", tmp])
 
             if self.exists(path):
-                raise UserError(f"Removing of {path} failed.")
-        else:
-            if self.logsio:
-                if not str(path).startswith("/tmp"):
-                    self.logsio.info(f"Path {path} did not exist - not erased")
+                raise UserError(f"Removing of {tmp} failed.")
 
     def _get_home_dir(self):
         if not self.machine.homedir:
@@ -150,6 +153,7 @@ class ShellExecutor(BaseShellExecutor):
     def checkout_branch(self, branch, cwd=None, nosubmodule_update=False):
         cwd = cwd or self.cwd
         with self.clone(cwd=cwd) as self:
+            remote_branch = f"origin/{branch}"
             if not self.branch_exists(branch):
                 self.logsio and self.logsio.info(
                     f"Tracking remote branch and checking out {branch}"
@@ -161,7 +165,7 @@ class ShellExecutor(BaseShellExecutor):
                         "-b",
                         branch,
                         "--track",
-                        "origin/" + branch,
+                        remote_branch,
                     ],
                     allow_error=True,
                 )
@@ -170,6 +174,10 @@ class ShellExecutor(BaseShellExecutor):
             self.X(
                 ["git-cicd", "checkout", "-f", "--no-guess", branch], allow_error=False
             )
+            # ensure branch is tracked with upstream - master isn't by default tracked
+            if self.branch_exists(remote_branch, remote=True):
+                breakpoint()
+                self.X(["git-cicd", "branch", f"--set-upstream-to={remote_branch}"])
             self.logsio and self.logsio.info(f"Checked out {branch}")
             self._after_checkout(nosubmodule_update=nosubmodule_update)
 
@@ -185,12 +193,11 @@ class ShellExecutor(BaseShellExecutor):
                 raise Exception(("Somehow checking out " f"{commit} in {cwd} failed"))
             self._after_checkout()
 
-    def branch_exists(self, branch, cwd=None):
-        res = (
-            self.X(["git-cicd", "branch", "--no-color"], cwd=cwd)["stdout"]
-            .strip()
-            .split("\n")
-        )
+    def branch_exists(self, branch, cwd=None, remote=False):
+        git_cmd = ["git-cicd", "branch", "--no-color"]
+        if remote:
+            git_cmd += ["-r"]
+        res = self.X(git_cmd, cwd=cwd)["stdout"].strip().splitlines()
 
         def reformat(x):
             x = x.replace("* ", "")

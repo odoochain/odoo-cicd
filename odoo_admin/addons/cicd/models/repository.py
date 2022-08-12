@@ -26,14 +26,15 @@ class NewBranch(Exception):
     pass
 
 
-
 class Repository(models.Model):
     _inherit = ["mail.thread", "cicd.test.settings"]
     _name = "cicd.git.repo"
     _rec_name = "short"
 
     registry_id = fields.Many2one("cicd.registry", string="Docker Registry")
-    short = fields.Char(compute="_compute_shortname", string="Name", compute_sudo=True)
+    short = fields.Char(
+        compute="_compute_shortname", string="Name", compute_sudo=True, store=True
+    )
     webhook_id = fields.Char("Webhook ID", help="/trigger/repo/<this id>")
     webhook_secret = fields.Char("Webhook Secret")
     update_ribbon_in_instance = fields.Boolean(
@@ -117,6 +118,7 @@ class Repository(models.Model):
                     _("Please use the login username instead of email address")
                 )
 
+    @api.depends("name")
     def _compute_shortname(self):
         for rec in self:
             short = rec.name.split("/")[-1]
@@ -155,7 +157,6 @@ class Repository(models.Model):
 
     @api.model
     def _update_local_mirrors(self):
-        breakpoint()
         for repo in self or self.search([]):
             path = repo.mirror_path
             with repo.machine_id._gitshell(
@@ -169,11 +170,22 @@ class Repository(models.Model):
                     shell.safe_move_directory(tmppath, path)
                 with shell.clone(cwd=path) as shell2:
                     shell2.X(["git-cicd", "remote", "update"])
+                    shell2.X(["git-cicd", "pull", "--all", "--no-edit"])
 
     @property
     def mirror_path(self):
         path = self.machine_id._get_volume("source") / (self.short + ".mirror")
         return path
+
+    @contextmanager
+    def _ensure_mirror_path(self):
+        path = self.mirror_path
+        assert bool(path), "A mirror path must be set"
+        with self.machine_id._shell() as shell:
+            if not shell.exists(path):
+                self._update_local_mirrors()
+
+        yield
 
     def _technical_clone_repo(
         self, path, machine, logsio=None, branch=None, depth=None
@@ -182,27 +194,28 @@ class Repository(models.Model):
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
             with shell.machine._temppath(usage="clone_repo") as temppath:
-                shell.X(["git-cicd", "clone", self.mirror_path, temppath])
-                with shell.clone(cwd=temppath) as shell2:
-                    shell2.X(["git-cicd", "remote", "remove", "origin"])
-                    shell2.X(["git-cicd", "remote", "add", "origin", self.url])
-                    shell2.X(["git-cicd", "fetch"])
-                    if branch:
-                        shell2.X(["git-cicd", "checkout", "-f", branch])
-                        shell2.X(
-                            [
-                                "git-cicd",
-                                "branch",
-                                f"--set-upstream-to=origin/{branch}",
-                                branch,
-                            ]
-                        )
-                        shell2.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
+                with self._ensure_mirror_path():
+                    shell.X(["git-cicd", "clone", self.mirror_path, temppath])
+                    with shell.clone(cwd=temppath) as shell2:
+                        shell2.X(["git-cicd", "remote", "remove", "origin"])
+                        shell2.X(["git-cicd", "remote", "add", "origin", self.url])
+                        shell2.X(["git-cicd", "fetch"])
+                        if branch:
+                            shell2.X(["git-cicd", "checkout", "-f", branch])
+                            shell2.X(
+                                [
+                                    "git-cicd",
+                                    "branch",
+                                    f"--set-upstream-to=origin/{branch}",
+                                    branch,
+                                ]
+                            )
+                            shell2.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
 
-                if shell.exists(path):
-                    shell.remove(path)
-                shell.safe_move_directory(temppath, path)
-                shell.git_safe_directory(path)
+                    if shell.exists(path):
+                        shell.remove(path)
+                    shell.safe_move_directory(temppath, path)
+                    shell.git_safe_directory(path)
 
     @contextmanager
     def _temp_repo(self, machine, logsio=None, branch=None, depth=None, pull=False):
@@ -256,6 +269,7 @@ class Repository(models.Model):
 
     def fetch(self):
         self._cron_fetch()
+        return True
 
     def create_all_branches(self):
         self.ensure_one()
@@ -280,6 +294,7 @@ class Repository(models.Model):
                             branch = branch.split("/")[
                                 -1
                             ]  # remotes/origin/isolated_unittests --> isolated_unittests
+                            branch = self._clear_branch_name(branch)
 
                             branches = (
                                 self.env["cicd.git.branch"]
@@ -295,6 +310,7 @@ class Repository(models.Model):
                                         "name": branch,
                                     }
                                 )
+        return True
 
     @api.model
     def _cron_fetch(self):
@@ -454,7 +470,6 @@ class Repository(models.Model):
         repo = self.sudo()  # may be triggered by queuejob
         # checkout latest / pull latest
         updated_branches = data["updated_branches"]
-        breakpoint()
 
         with LogsIOWriter.GET(repo.name, "fetch") as logsio:
             repo = repo.with_context(active_test=False)
@@ -509,7 +524,6 @@ class Repository(models.Model):
                         if repo.default_branch:
                             updated_branches.append(repo.default_branch)
 
-                    breakpoint()
                     for branch_name in updated_branches:
                         branch = repo.branch_ids.filtered(
                             lambda x: x.name == branch_name
@@ -528,12 +542,10 @@ class Repository(models.Model):
         """
         If a branch was updated, then the
         """
-        breakpoint()
         branch._checkout_latest(
             shell, instance_folder=shell.cwd, nosubmodule_update=True
         )
         branch._update_git_commits(shell)
-        branch._compute_latest_commit(shell)
         branch._trigger_rebuild_after_fetch()
 
     def _is_healthy_repository(self, shell, path):
@@ -655,9 +667,8 @@ class Repository(models.Model):
                 )
 
                 message_commit_sha = None
-                breakpoint()
                 if make_info_commit_msg:
-                    merged_branches = ','.join(map(lambda x: x['branch'].name, history))
+                    merged_branches = ",".join(map(lambda x: x["branch"].name, history))
                     if not merged_branches:
                         merged_branches = "No branches merged"
                     make_info_commit_msg = make_info_commit_msg.replace(
@@ -712,7 +723,6 @@ class Repository(models.Model):
                 if not target_branch.active:
                     target_branch.active = True
                 target_branch._update_git_commits(shell)
-                target_branch._compute_latest_commit(shell)
                 if message_commit_sha:
                     message_commit = target_branch.commit_ids.filtered(
                         lambda x: x.name == message_commit_sha
@@ -947,3 +957,58 @@ class Repository(models.Model):
         for rec in self:
             for branch in rec.branch_ids:
                 rec.apply_test_settings(branch)
+
+    @api.model
+    def _intelligent_springclean(self, days=3):
+        active_branches = list(
+            filter(
+                bool,
+                self.env["cicd.git.branch"]
+                .search([("active", "=", True)])
+                .mapped("technical_branch_name"),
+            )
+        )
+        release_branches = (
+            self.env["cicd.release.item"].search([]).mapped("item_branch_id.name")
+        )
+        for repo in self.search([]):
+            machine = repo.machine_id
+            srcfolder = machine._get_volume("source")
+            with machine._shell(cwd=srcfolder) as shell:
+
+                all_folders = list(
+                    map(
+                        lambda x: x.split("/")[-1],
+                        shell.X(
+                            [
+                                "find",
+                                ".",
+                                "-maxdepth",
+                                "1",
+                                "-type",
+                                "d",
+                                "-mtime",
+                                f"+{days}",
+                            ]
+                        )["stdout"].splitlines(),
+                    )
+                )
+
+                for item in filter(lambda x: x.startswith("testrun"), all_folders):
+                    shell.remove(item)
+                for branch in self.env["cicd.git.branch"].search(
+                    [("active", "=", False), ("repo_id", "=", repo.id)]
+                ):
+                    if not branch.technical_branch_name:
+                        continue
+                    if branch.technical_branch_name in all_folders:
+                        shell.remove(srcfolder / branch.technical_branch_name)
+
+                for item in release_branches:
+                    if [x for x in release_branches if item in x]:
+                        shell.remove(srcfolder / item)
+
+                for item in filter(lambda x: x.startswith("prj"), all_folders):
+                    if item not in active_branches:
+                        shell.remove(srcfolder / item)
+

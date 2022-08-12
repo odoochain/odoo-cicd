@@ -1,12 +1,14 @@
 *** Settings ***
 
 Documentation   Odoo 13 backend keywords.
-Library         ../library/browser.py
+Library         ../../robot_utils_common/library/browser.py
 Library         SeleniumLibrary
-Library         ../library/tools.py
-Resource        ./odoo_client.robot
-Resource        ./styling.robot
-Resource        ./tools.robot
+Resource        ../../robot_utils_common/keywords/odoo_client.robot
+Resource        ../../robot_utils_common/keywords/tools.robot
+Library         ../../robot_utils_common/library/tools.py
+Resource        ../../robot_utils_common/keywords/styling.robot
+Library         String  # example Random String
+
 
 *** Keywords ***
 
@@ -27,8 +29,8 @@ Login   [Arguments]     ${user}=${ODOO_USER}    ${password}=${ODOO_PASSWORD}    
     Wait Until Element is Visible           name=login
     Log To Console                          Input is visible, now entering credentials for user ${user} with password ${password} 
     Wait Until Page Contains Element        xpath=//input[@name='login']	timeout=10 sec
-    Execute Javascript                      $("input[name=login]").val('${user}');
-    Execute Javascript                      $("input[name=password]").val('${password}');
+    Input Text                              xpath=//input[@name='login'][1]    ${user}
+    Input Text                              xpath=//input[@name='password'][1]    ${password}
     Log To Console                          Clicking Login
     Capture Page Screenshot
     Click Button                            xpath=//form[@class='oe_login_form']//button[@type='submit']

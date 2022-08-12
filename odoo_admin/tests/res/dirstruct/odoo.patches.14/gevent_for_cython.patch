@@ -1,0 +1,27 @@
+From b5a274853d9fa3e0bf8a918b95beb4a372e3df1c Mon Sep 17 00:00:00 2001
+From: cicd <cicd>
+Date: Sun, 7 Aug 2022 23:49:38 +0200
+Subject: [PATCH] for patch
+
+---
+ requirements.txt | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/requirements.txt b/requirements.txt
+index b02b28639..88e865481 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -6,9 +6,8 @@ ebaysdk==2.1.5
+ freezegun==0.3.11; python_version < '3.8'
+ freezegun==0.3.15; python_version >= '3.8'
+ gevent==1.5.0 ; python_version == '3.7'
+-gevent==20.9.0 ; python_version >= '3.8'
+-greenlet==0.4.15 ; python_version == '3.7'
+-greenlet==0.4.17 ; python_version > '3.7'
++gevent==21.12.0 ; python_version >= '3.8'
++greenlet ; python_version > '3.7'
+ idna==2.8
+ Jinja2==2.10.1; python_version < '3.8'
+ # bullseye version, focal patched 2.10
+-- 
+2.34.1
