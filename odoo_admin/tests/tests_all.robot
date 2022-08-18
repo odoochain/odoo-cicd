@@ -48,7 +48,7 @@ Test Run Unittest
     ${commit_name}=    Set Variable                                               failtest added
     cicd.Sshcmd        git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd        touch '${CICD_WORKSPACE}/tempedit/failtest'
-    cicd.Sshcmd        git add tempedit; git commit -am '${commit_name}'          cwd=${CICD_WORKSPACE}/tempedit
+    cicd.Sshcmd        git add failtest; git commit -am '${commit_name}'          cwd=${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd        git push
 
     Log To Console                 Wait till commit arrives
@@ -83,7 +83,6 @@ Setup Test
 Setup Suite
     ${CICD_DB_HOST}=            Get Environment Variable    CICD_DB_HOST
     ${CICD_DB_PORT}=            Get Environment Variable    CICD_DB_PORT
-    Set Global Variable         ${CICD_HOME}                /home/cicd/cicd_app
     Set Global Variable         ${CICD_DB_HOST}
     Set Global Variable         ${CICD_DB_PORT}
     Set Global Variable         ${SRC_REPO}                 /tmp/odoo1
@@ -92,7 +91,6 @@ Setup Suite
     Set Global Variable         ${CICD_DB_HOST}             ${CICD_DB_HOST}
     Set Global Variable         ${CICD_DB_PORT}             ${CICD_DB_PORT}
     # user on host
-    Set Global variable         ${ROBOTTEST_SSH_USER}       cicd
     ${ROBOTTEST_SSH_PUBKEY}=    cicd.Get Pubkey
     ${ROBOTTEST_SSH_KEY}=       cicd.Get IdRsa
     Set Global Variable         ${ROBOTTEST_SSH_PUBKEY}
