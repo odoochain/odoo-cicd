@@ -11,6 +11,8 @@ services:
   cronjobshell:
     networks:
       - internal
+    volumes:
+      - ${CUSTOMS_DIR}/..:${CUSTOMS_DIR}/..
 
   postgres:
     networks:
@@ -19,6 +21,8 @@ services:
   cronjobs:
     networks:
       - internal
+    volumes:
+      - ${CUSTOMS_DIR}/..:${CUSTOMS_DIR}/..
 
 
 
