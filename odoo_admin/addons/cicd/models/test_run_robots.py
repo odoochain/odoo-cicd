@@ -36,7 +36,9 @@ class RobotTest(models.Model):
 
     filepath = fields.Char("Filepath")
     robot_output = fields.Binary("Robot Output", attachment=True)
-    robot_output_len = fields.Integer("Robot Output Len", compute="_compute_robot_output_len", store=True)
+    robot_output_len = fields.Integer(
+        "Robot Output Len", compute="_compute_robot_output_len", store=True
+    )
     parallel = fields.Char("In Parallel")
     avg_duration = fields.Float("Avg Duration [s]")
     min_duration = fields.Float("Min Duration [s]")
@@ -49,7 +51,9 @@ class RobotTest(models.Model):
     def _compute_robot_output_len(self):
         for rec in self:
             breakpoint()
-            rec.robot_output_len = len(rec.with_context(prefetch_fields=False).robot_output or '')
+            rec.robot_output_len = len(
+                rec.with_context(prefetch_fields=False).robot_output or ""
+            )
 
     def _queuejob_log_filename(self):
         for rec in self:
@@ -95,13 +99,18 @@ class RobotTest(models.Model):
                 start_postgres=False,
                 settings=settings,
             )
+            shell.logsio.info("Resetting containers")
             shell.odoo("down", "-v", force=True, allow_error=True)
 
+            shell.logsio.info("Starting Postgres")
             shell.odoo("up", "-d", "postgres")
+            shell.logsio.info("Waiting for postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
             breakpoint()
+            shell.logsio.info("Restoring dump")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             if self[0].test_setting_id.use_btrfs:
+                shell.logsio.info("Makeing Snapshot")
                 shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.wait_for_postgres()
                 shell.odoo("turn-into-dev")
@@ -169,9 +178,12 @@ class RobotTest(models.Model):
         if not shell.exists(results_path):
             testdata = []
         else:
+            breakpoint()
             testdata = json.loads(shell.get(results_path))
             shell.rm(results_path)
             testdata = self._eval_test_output(testdata)
+            if "testoutput" not in testdata[0]:
+                raise Exception(f"Missing testoutput in {testdata[0]}")
             self._grab_robot_output(shell, testdata[0]["testoutput"])
 
         try:

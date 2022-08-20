@@ -38,6 +38,7 @@
 									<field name="external_url"/>
 									<field name="test_timeout_web_login"/>
 									<field name="homedir"/>
+									<field name="odoocmd"/>
 								</group>
 							</page>
 							<page name="credentials" string="Credentials">

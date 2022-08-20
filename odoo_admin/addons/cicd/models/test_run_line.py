@@ -152,7 +152,6 @@ class CicdTestRunLine(models.AbstractModel):
         @contextmanager
         def _get_env():
             try:
-                breakpoint()
                 with self._get_contexted().get_environment_for_execute() as (
                     shell,
                     runenv,
@@ -307,7 +306,7 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _get_source_path(self, machine):
         path = Path(machine._get_volume("source"))
-        batchids = ",".join(list(set(self.mapped("batchids"))))
+        batchids = ",".join(list(set(filter(bool, self.mapped("batchids")))))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
         # 22.06.2022 too many problems - directory missing in tests

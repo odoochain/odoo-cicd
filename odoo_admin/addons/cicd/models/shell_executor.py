@@ -85,7 +85,8 @@ class ShellExecutor(BaseShellExecutor):
         if not glob:
             res = self._internal_execute(["test", "-e", path], logoutput=False)
             return res["exit_code"] == 0
-        res = self._internal_execute(["ls", path], logoutput=False)
+        path = path.replace(" ", "\ ")
+        res = self._internal_execute(f"ls {path}", logoutput=False)
         return res['stdout'].strip().splitlines()
 
     def rm(self, path):
@@ -134,7 +135,8 @@ class ShellExecutor(BaseShellExecutor):
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
 
-        cmd = ["odoo", "--project-name", self.project_name] + list(cmd)
+        odoocmd = self.machine.odoocmd or 'odoo'
+        cmd = [odoocmd, "--project-name", self.project_name] + list(cmd)
         if force:
             cmd.insert(1, "-f")
         res = self.X(

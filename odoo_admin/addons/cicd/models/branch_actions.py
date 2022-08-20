@@ -949,9 +949,9 @@ for path in base.glob("*"):
                         yield shell
                     finally:
                         shell.odoo("down", "-v", allow_error=True, force=True)
-                        repo_path and len(repo_path.parts) > 2 and shell.rm(
-                            repo_path
-                        )  # make sure to avoid rm /
+                        if repo_path and len(repo_path.parts) > 2:
+                            # make sure to avoid rm /
+                            shell.rm(repo_path)
 
     def _ensure_dump(self, ttype, commit, dumptype=None, dbname="odoo"):
         """
@@ -964,7 +964,9 @@ for path in base.glob("*"):
         dest_path = self._ensure_dump_get_dest_path(ttype, commit, dumptype)
 
         with self.machine_id._shell() as shell:
-            if dest_paths := shell.exists(dest_path, glob=True):
+            # as in temp path contains the full_wodoobin_odoo_deb66496b4f54a85d086743f0f532a0583090df8.cleanme.20220823_155750
+            # cleanme appendix
+            if dest_paths := shell.exists(str(dest_path) + "*", glob=True):
                 return dest_paths[0]
 
         with self._tempinstance("ensuredump", commit=commit, dbname=dbname) as shell:

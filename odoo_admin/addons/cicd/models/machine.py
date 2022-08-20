@@ -41,6 +41,7 @@ class CicdMachine(models.Model):
     dump_ids = fields.One2many("cicd.dump", "machine_id", string="Dumps")
     effective_host = fields.Char(compute="_compute_effective_host", store=False)
     workspace = fields.Char("Workspace", compute="_compute_workspace")
+    odoocmd = fields.Char("Odoo Command", default="odoo")
     ttype = fields.Selection(
         [
             ("dev", "Development-Machine"),
