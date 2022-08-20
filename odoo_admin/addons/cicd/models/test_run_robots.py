@@ -298,3 +298,10 @@ class TestSettingsRobotTests(models.Model):
                     )
                 )
         return res
+
+    # @api.model
+    # def create(self, vals):
+    #     res = super().create(vals)
+    #     if len(res.run_id.line_robottest_ids):
+    #         raise Exception("second line wrong")
+    #     return res

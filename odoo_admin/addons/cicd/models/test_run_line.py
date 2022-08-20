@@ -145,6 +145,7 @@ class CicdTestRunLine(models.AbstractModel):
 
     def execute(self):
         self.run_id._switch_to_running_state()
+        breakpoint()
         logfile = Path(self[0].logfile_path)
         self.write({"state": "running"})
         self.env.cr.commit()
@@ -159,7 +160,7 @@ class CicdTestRunLine(models.AbstractModel):
                     yield shell, runenv
             except RetryableJobError:
                 raise
-            except Exception as ex:
+            except Exception:
                 msg = traceback.format_exc()
                 self.filtered(lambda x: x.state == "running").write({"state": "failed"})
                 self.run_id.message_post(
