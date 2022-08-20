@@ -276,6 +276,9 @@ class TestSettingsRobotTests(models.Model):
         """
         res = []
         super().produce_test_run_lines(testrun)
+        if not self:
+            return res
+
         with self.parent_id._get_source_for_analysis() as shell:
             files = shell.odoo("list-robot-test-files")["stdout"].strip()
             files = list(filter(bool, files.split("!!!")[1].split("\n")))
