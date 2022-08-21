@@ -135,7 +135,7 @@ class Branch(models.Model):
                 tmux_session_name = tmux_session_name.replace(c, "_")
             rec.tmux_session_name = f"{self._tmux_session_prefix}{tmux_session_name}"
 
-    def _shell_url(self, cmd, machine=None, tmux=None):
+    def _shell_url(self, appendix, cmd, machine=None, tmux=None):
         """
         tmux: -A create or append, -s name of session"
         """
@@ -148,7 +148,7 @@ class Branch(models.Model):
             cmd = base64.encodebytes(cmd.encode("utf-8")).decode("utf-8").strip()
             if " " in cmd:
                 raise Exception("should not contain a space")
-            session_name = self.tmux_session_name
+            session_name = self.tmux_session_name + appendix
             if " " in session_name:
                 raise Exception("should not contain a space")
             cmd = [
@@ -176,16 +176,16 @@ class Branch(models.Model):
         return {"type": "ir.actions.act_url", "url": shell_url, "target": "new"}
 
     def pgcli(self):
-        return self._shell_url(["odoo pgcli"], tmux="pgcli")
+        return self._shell_url("pgcli", ["odoo pgcli"], tmux="pgcli")
 
     def open_odoo_shell(self):
-        return self._shell_url(["odoo shell"], tmux="odoo_shell")
+        return self._shell_url("odooshell", ["odoo shell"], tmux="odoo_shell")
 
     def debug_webcontainer(self):
-        return self._shell_url(["odoo debug odoo"], tmux="debug_odoo")
+        return self._shell_url("debugweb", ["odoo debug odoo"], tmux="debug_odoo")
 
     def open_shell(self):
-        return self._shell_url([], tmux="_shell")
+        return self._shell_url("shell", [], tmux="_shell")
 
     def start_logs(self):
         with self.shell("show_logs") as shell:
@@ -197,7 +197,7 @@ class Branch(models.Model):
             containers += ["odoo_queuejobs"]
         if cronjobs:
             containers += ["odoo_cronjobs"]
-        return self._shell_url(["odoo logs -f"] + containers)
+        return self._shell_url("logs", ["odoo logs -f"] + containers)
 
     def refresh_tasks(self):
         return True

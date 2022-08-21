@@ -240,7 +240,7 @@ class Branch(models.Model):
                     ),
                     seconds=10,
                     ignore_retry=True,
-                )
+                ) from ex
             raise
 
     def _is_hub_configured(self, shell):
