@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class CicdVolumes(models.Model):
-    _inherit = ["cicd.mixin.size"]
+    _inherit = ["cicd.mixin.size", 'mail.thread']
     _name = "cicd.machine.volume"
 
     name = fields.Char("Path")
@@ -32,6 +32,7 @@ class CicdVolumes(models.Model):
     free_size = fields.Float("Free Size")
     total_size = fields.Float("Total Size")
     used_percent = fields.Float("Used %", compute="_compute_numbers")
+    warn_percent = fields.Float("Warn below percent", default=10)
 
     @api.constrains("name")
     def _check_name(self):
@@ -82,3 +83,15 @@ class CicdVolumes(models.Model):
                         rec.used_size = int(stdout[2]) / 1024 / 1024
                         rec.free_size = int(stdout[3]) / 1024 / 1024
                         self.env.cr.commit()
+
+    @api.model
+    def send_warn_message(self):
+        for rec in self.search([]):
+            if rec.warn_percent and rec.used_percent < rec.warn_percent:
+                rec.message_post_with_view(
+                    "cicd.mail_volume_space",
+                    subtype_id=self.env.ref("mail.mt_note").id,
+                    values={
+                        "obj": rec,
+                    },
+                )

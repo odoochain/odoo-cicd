@@ -7,6 +7,10 @@ from odoo import http
 from odoo.http import content_disposition, request
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 import logging
+import inspect
+import os
+from pathlib import Path
+current_dir = Path(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
 
 logger = logging.getLogger(__name__)
 
@@ -157,9 +161,10 @@ class Controller(http.Controller):
     @http.route(
         [
             "/robot_output/<model('cicd.test.run.line.robottest'):line>",
+            "/robot_output/<model('cicd.test.run.line.robottest'):line>/indexfile/<indexfile>",
         ]
     )
-    def robot_output(self, line, **kwargs):
+    def robot_output(self, line, indexfile=None, **kwargs):
         line = line.sudo()
         if not line.robot_output:
             return "no data"
@@ -174,16 +179,28 @@ class Controller(http.Controller):
 
             subprocess.check_call(["tar", "xfz", filename], cwd=path)
 
-            html = list(path.glob("**/log.html"))
-            if html:
-                html = html[0].read_text()
-                html = html.replace('src=\\"', f'src=\\"{line.id}/')
-                html = html.replace('href=\\"', f'href=\\"{line.id}/')
+            if indexfile:
+                html = (path / indexfile.replace("_", "/")).read_text()
+                html = self._adapt_robot_links(line, html)
                 return html
+            else:
+                if line.parallel == '1':
+                    html = list(path.glob("**/log.html"))
+                    if html:
+                        html = html[0].read_text()
+                        html = self._adapt_robot_links(line, html)
+                        return html
+                else:
+                    return self._get_multiparallel_robot_index(line, path)
 
         finally:
             if filename.exists():
                 filename.unlink()
+
+    def _adapt_robot_links(self, line, html):
+        html = html.replace('src=\\"', f'src=\\"{line.id}/')
+        html = html.replace('href=\\"', f'href=\\"{line.id}/')
+        return html
 
     @http.route(
         [
@@ -210,3 +227,32 @@ class Controller(http.Controller):
                     ("Content-Type", "image/png"),
                 ],
             )
+
+    def _get_multiparallel_robot_index(self, line, path):
+        files = []
+        for file in list(path.glob("report.html")):
+            files += [("Index", file)]
+        for i, file in enumerate(list(path.glob("**/log.html"))):
+            files += [(f"{i + 1}", file)]
+        css = (current_dir / 'styles.css').read_text()
+        html = (
+            "<html>"
+            "<body>"
+            f"<style>{css}</style>"
+            "<ul>"
+        )
+        for (name, file) in files:
+            link = str(file.relative_to(path)).replace("/", "_")
+            html += (
+                f"<a href='/robot_output/{line.id}/indexfile/{link}'>"
+                "<div>"
+                f"{name}"
+                "</div>"
+                "</a>"
+            )
+
+        html += (
+            "</ul>"
+            "</body></html>"
+        )
+        return html

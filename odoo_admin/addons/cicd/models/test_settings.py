@@ -44,9 +44,9 @@ class TestSettingAbstract(models.AbstractModel):
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)
-        params = self.env.context.get('params', {})
-        if params and params.get('id'):
-            parent = self.env[params.get("model")].browse(params['id'])
+        params = self.env.context.get("params", {})
+        if params and params.get("id"):
+            parent = self.env[params.get("model")].browse(params["id"])
             res["effective_machine_id"] = self._get_machine(parent)
         return res
 
@@ -126,7 +126,9 @@ class TestSettingAbstract(models.AbstractModel):
         self.preparation_done = True
 
     def init_testrun(self, testrun):
-        lines = self.produce_test_run_lines(testrun)
+        lines = self.filtered(lambda x: not x.preparation_done).produce_test_run_lines(
+            testrun
+        )
         for i in range(0, len(lines or []), self.lines_per_worker):
             batch = lines[i : i + self.lines_per_worker]
             ids = [x.id for x in batch]

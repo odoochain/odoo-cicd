@@ -122,6 +122,7 @@
 									<button name="garbage_collect" string="Garbage Collect" type="object" />
 									<button name="update_all_modules" string="Update All Modules" type="object" />
 									<button name="update_installed_modules" string="Update Installed Modules" type="object" />
+									<button name="update_git_commits" string="Update Commits" type="object" />
 								</group>
 							</page>
 							<page name="backup" string="Backup/Restore">

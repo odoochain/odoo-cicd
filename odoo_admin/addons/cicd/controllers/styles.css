@@ -1,0 +1,15 @@
+div {
+	width: 40%;
+	text-align: center;
+	border: 1px solid #333;
+	padding: 8px;
+	background-color: rgb(38, 90, 186);
+}
+div:hover {
+	background-color: rgb(1, 0, 81);
+	cursor: pointer;
+}
+a {
+  color: white;
+  text-decoration: none; /* no underline */
+}

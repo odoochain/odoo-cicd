@@ -8,6 +8,10 @@ Test Setup       Setup Smoketest
 Smoketest
     Search for the admin
     Capture Page Screenshot
+Smoketest1
+    [Tags]                     donow
+    Search for the admin
+    Capture Page Screenshot
 
 *** Keywords ***
 Setup Smoketest

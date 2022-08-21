@@ -109,7 +109,8 @@ class BaseShellExecutor:
                 x = str(x)
             return x
 
-        cmd = list(map(convert_path, filter(bool, cmd)))
+        if not isinstance(cmd, str):
+            cmd = list(map(convert_path, filter(bool, cmd)))
 
         if isinstance(cmd, (tuple, list)):
             cmd = f"{cmd[0]} " + " ".join(map(lambda x: f'"{x}"', cmd[1:]))

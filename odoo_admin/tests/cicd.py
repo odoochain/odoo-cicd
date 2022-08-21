@@ -1,4 +1,5 @@
 from subprocess import check_output, check_call
+import time
 import tempfile
 import json
 import yaml
@@ -13,11 +14,10 @@ from robot.libraries.BuiltIn import BuiltIn
 current_dir = Path(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 )
-MANIFEST_FILE = current_dir / "res" / "MANIFEST"
-gimera_file = current_dir / "res" / "gimera.yml"
+MANIFEST_FILE = current_dir / "res" / "dirstruct" / "MANIFEST"
+gimera_file = current_dir / "res" / "dirstruct" / "gimera.yml"
 rsa_file = current_dir / "res" / "id_rsa"
 rsa_file_pub = current_dir / "res" / "id_rsa.pub"
-smoketest_robot = current_dir / "res" / "smoketest.robot"
 
 
 class cicd(object):
@@ -35,7 +35,7 @@ class cicd(object):
         dumps_path = BuiltIn().get_variable_value("${DUMPS_PATH}")
         assert (
             f"DUMPS_PATH: {dumps_path}" in output
-        ), f"Dumps path must point to ${dumps_path}"
+        ), f"Dumps path must point to {dumps_path}"
 
     def cicdodoo(self, *params, output=False):
         path = Path(BuiltIn().get_variable_value("${CICD_HOME}"))
@@ -54,6 +54,8 @@ class cicd(object):
 
     def _get_hostkey(self):
         path = Path("/tmp/key")
+        if path.exists():
+            check_call(["sudo", "rm", "-Rf", path])
         path.mkdir(exist_ok=True)
         shutil.copy(rsa_file, path / "id_rsa")
         shutil.copy(rsa_file_pub, path / "id_rsa.pub")
@@ -79,6 +81,17 @@ class cicd(object):
 
     def sshcmd(self, stringcommand, output=False, cwd=None):
         return self._sshcmd(stringcommand, output=output, cwd=cwd)
+
+    def _transfer_tree(self, src, dest):
+        cmd = [
+            "/usr/bin/rsync",
+            "-e",
+            f"ssh -o StrictHostKeyChecking=no -i {self._get_hostkey()}",
+            f"{src}/",
+            f"{self.get_sshuser()}@host.docker.internal:{dest}/",
+            "-arP",
+        ]
+        check_call(cmd)
 
     def _sshcmd(self, stringcommand, output=False, cwd=None):
         if cwd:
@@ -111,16 +124,15 @@ class cicd(object):
 
         self._sshcmd(f"[ -e '{path}' ] && rm -Rf '{path}' || true")
         self._sshcmd(f"mkdir -p '{path}'")
-        self._sshcmd(f"mkdir -p '{path}/tests'")
+        self._transfer_tree(current_dir / "res" / "dirstruct", path)
         self._writefile(
             path / "MANIFEST", json.dumps(self._get_MANIFEST(version), indent=4)
         )
-        self._writefile(path / "tests" / "smoketest.robot", smoketest_robot.read_text())
         self._writefile(path / "gimera.yml", self.replace_vars(gimera_file.read_text()))
         cicd_home = BuiltIn().get_variable_value("${CICD_HOME}")
         self._sshcmd(f"rsync '{cicd_home}/odoo_admin/tests/addons_my' '{path}' -ar")
         self._sshcmd("git init .; git add .; git commit -am 'init'", cwd=path)
-        self._sshcmd("gimera apply odoo", cwd=path)
+        self._sshcmd("~/.local/bin/gimera apply odoo", cwd=path)
         tmppath = path.parent / f"{path.name}.tmp"
         self._sshcmd(f"rm -Rf '{tmppath}'")
         self._sshcmd(f"mv '{path}' '{tmppath}'")

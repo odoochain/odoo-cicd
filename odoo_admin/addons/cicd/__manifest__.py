@@ -11,6 +11,7 @@
                 'data/cronjobs_repo.xml',
                 'data/cronjobs_tasks.xml',
                 'data/cronjobs_testruns.xml',
+                'data/cronjobs_volumes.xml',
                 'data/data.xml',
                 'data/initial_branch_types.xml',
                 'data/mail_layouts.xml',

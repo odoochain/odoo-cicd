@@ -12,6 +12,7 @@ services:
     networks:
       - internal
     volumes:
+      # needed for odoo backup odoo-db to work
       - ${CUSTOMS_DIR}/..:${CUSTOMS_DIR}/..
 
   postgres:
@@ -22,6 +23,7 @@ services:
     networks:
       - internal
     volumes:
+      # needed for odoo backup odoo-db to work
       - ${CUSTOMS_DIR}/..:${CUSTOMS_DIR}/..
 
 

@@ -3,6 +3,14 @@ set -e
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd $SCRIPT_DIR
 
+if [[ -e ~/.local/sudobin/odoo ]]; then
+	odoocmd=~/.local/sudobin/odoo
+elif [[ -e ~/.local/bin/odoo ]]; then
+	odoocmd=~/.local/sudobin/odoo
+else
+	odoocmd=odoo
+fi
+
 cd odoo_admin
-odoo -xs ~/.cicd/settings -xd ~/.cicd/docker-compose.yml "$@"
+$odoocmd -xs ~/.cicd/settings -xd ~/.cicd/docker-compose.yml "$@"
 

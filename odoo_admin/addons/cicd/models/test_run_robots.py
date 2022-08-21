@@ -5,7 +5,7 @@ import re
 import json
 import base64
 from pathlib import Path
-from odoo import fields, models
+from odoo import fields, models, api
 from odoo.exceptions import ValidationError
 from contextlib import contextmanager, closing
 from .test_run import SETTINGS
@@ -36,6 +36,9 @@ class RobotTest(models.Model):
 
     filepath = fields.Char("Filepath")
     robot_output = fields.Binary("Robot Output", attachment=True)
+    robot_output_len = fields.Integer(
+        "Robot Output Len", compute="_compute_robot_output_len", store=True
+    )
     parallel = fields.Char("In Parallel")
     avg_duration = fields.Float("Avg Duration [s]")
     min_duration = fields.Float("Min Duration [s]")
@@ -43,6 +46,14 @@ class RobotTest(models.Model):
     queuejob_log = fields.Binary("Queuejob Log")
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
     tags = fields.Char("Tags")
+
+    @api.depends("robot_output")
+    def _compute_robot_output_len(self):
+        for rec in self:
+            breakpoint()
+            rec.robot_output_len = len(
+                rec.with_context(prefetch_fields=False).robot_output or ""
+            )
 
     def _queuejob_log_filename(self):
         for rec in self:
@@ -88,13 +99,18 @@ class RobotTest(models.Model):
                 start_postgres=False,
                 settings=settings,
             )
+            shell.logsio.info("Resetting containers")
             shell.odoo("down", "-v", force=True, allow_error=True)
 
+            shell.logsio.info("Starting Postgres")
             shell.odoo("up", "-d", "postgres")
+            shell.logsio.info("Waiting for postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
             breakpoint()
+            shell.logsio.info("Restoring dump")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             if self[0].test_setting_id.use_btrfs:
+                shell.logsio.info("Makeing Snapshot")
                 shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.wait_for_postgres()
                 shell.odoo("turn-into-dev")
@@ -162,9 +178,12 @@ class RobotTest(models.Model):
         if not shell.exists(results_path):
             testdata = []
         else:
+            breakpoint()
             testdata = json.loads(shell.get(results_path))
             shell.rm(results_path)
             testdata = self._eval_test_output(testdata)
+            if "testoutput" not in testdata[0]:
+                raise Exception(f"Missing testoutput in {testdata[0]}")
             self._grab_robot_output(shell, testdata[0]["testoutput"])
 
         try:
@@ -257,6 +276,9 @@ class TestSettingsRobotTests(models.Model):
         """
         res = []
         super().produce_test_run_lines(testrun)
+        if not self:
+            return res
+
         with self.parent_id._get_source_for_analysis() as shell:
             files = shell.odoo("list-robot-test-files")["stdout"].strip()
             files = list(filter(bool, files.split("!!!")[1].split("\n")))
@@ -279,3 +301,10 @@ class TestSettingsRobotTests(models.Model):
                     )
                 )
         return res
+
+    # @api.model
+    # def create(self, vals):
+    #     res = super().create(vals)
+    #     if len(res.run_id.line_robottest_ids):
+    #         raise Exception("second line wrong")
+    #     return res

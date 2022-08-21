@@ -41,6 +41,7 @@ class CicdMachine(models.Model):
     dump_ids = fields.One2many("cicd.dump", "machine_id", string="Dumps")
     effective_host = fields.Char(compute="_compute_effective_host", store=False)
     workspace = fields.Char("Workspace", compute="_compute_workspace")
+    odoocmd = fields.Char("Odoo Command", default="odoo")
     ttype = fields.Selection(
         [
             ("dev", "Development-Machine"),
@@ -220,8 +221,7 @@ class CicdMachine(models.Model):
     @contextmanager
     def _temppath(self, maxage={"hours": 1}, usage="common"):
         guid = str(uuid.uuid4())
-        date = arrow.utcnow().shift(**maxage).strftime("%Y%m%d_%H%M%S")
-        name = f"{guid}.{usage}.cleanme.{date}"
+        name = self._append_cleanme_notation(f"{guid}.{usage}", maxage)
         try:
             path = self._get_volume("temp") / name
             with self._shell() as shell:
@@ -231,6 +231,12 @@ class CicdMachine(models.Model):
         finally:
             with self._shell() as shell:
                 shell.rm(path)
+
+    @api.model
+    def _append_cleanme_notation(self, name, maxage):
+        date = arrow.utcnow().shift(**maxage).strftime("%Y%m%d_%H%M%S")
+        name = f"{name}.cleanme.{date}"
+        return name
 
     @api.model
     def _clean_tempdirs(self):

@@ -24,7 +24,7 @@
 			<field name="arch" type="xml">
 				<tree decoration-danger="state == 'failed'" decoration-success="state == 'success'" create="0" delete="0">
 					<button name="retry" string="Retry" type="object" />
-					<button name="robot_results" string="" icon="fa-search" type="object" attrs="{'invisible': [('robot_output', '=', False)]}"/>
+					<button name="robot_results" string="" icon="fa-search" type="object" attrs="{'invisible': [('robot_output_len', '=', 0)]}"/>
 					<field name="filepath"/>
 					<field name="parallel"/>
 					<field name="started"/>
@@ -37,7 +37,7 @@
 					<button name="toggle_force_success" attrs="{'invisible': [('state', 'not in', ['failed'])]}" type="object" string="Force"/>
 					<field name="reused"/>
 					<field name="try_count" groups="base.group_no_one"/>
-					<field name="robot_output" invisible='1'/>
+					<field name="robot_output_len" invisible='1'/>
 					<field name="project_name" groups="base.group_no_one"/>
 				</tree>
 			</field>

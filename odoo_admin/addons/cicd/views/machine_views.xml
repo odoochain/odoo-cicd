@@ -38,6 +38,7 @@
 									<field name="external_url"/>
 									<field name="test_timeout_web_login"/>
 									<field name="homedir"/>
+									<field name="odoocmd"/>
 								</group>
 							</page>
 							<page name="credentials" string="Credentials">
@@ -55,6 +56,7 @@
 											<field name="total_size_human"/>
 											<field name="free_size_human"/>
 											<field name="used_percent"/>
+											<field name="warn_percent"/>
 											<field name="ttype"/>
 										</tree>
 									</field>

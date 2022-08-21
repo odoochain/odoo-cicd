@@ -145,6 +145,7 @@ class CicdTestRunLine(models.AbstractModel):
 
     def execute(self):
         self.run_id._switch_to_running_state()
+        breakpoint()
         logfile = Path(self[0].logfile_path)
         self.write({"state": "running"})
         self.env.cr.commit()
@@ -152,7 +153,6 @@ class CicdTestRunLine(models.AbstractModel):
         @contextmanager
         def _get_env():
             try:
-                breakpoint()
                 with self._get_contexted().get_environment_for_execute() as (
                     shell,
                     runenv,
@@ -160,7 +160,7 @@ class CicdTestRunLine(models.AbstractModel):
                     yield shell, runenv
             except RetryableJobError:
                 raise
-            except Exception as ex:
+            except Exception:
                 msg = traceback.format_exc()
                 self.filtered(lambda x: x.state == "running").write({"state": "failed"})
                 self.run_id.message_post(
@@ -307,7 +307,7 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _get_source_path(self, machine):
         path = Path(machine._get_volume("source"))
-        batchids = ",".join(list(set(self.mapped("batchids"))))
+        batchids = ",".join(list(set(filter(bool, self.mapped("batchids")))))
         # one source directory for all tests; to have common .dirhashes
         # and save disk space
         # 22.06.2022 too many problems - directory missing in tests
