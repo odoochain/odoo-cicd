@@ -314,8 +314,6 @@ class TestSettings(models.Model):
                 cwd=folder,
                 project_name=project_name,
             ) as shell:
+                breakpoint()
                 shell.checkout_commit(self.commit_id.name)
-                # happend: projectname was used, but checkout to temporary directory
-                # then docker-compose became outdated
-                shell.odoo("reload")
                 yield shell
