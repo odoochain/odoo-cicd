@@ -957,6 +957,7 @@ for path in base.glob("*"):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
+        breakpoint()
         assert ttype in ["full", "base"]
         assert isinstance(commit, str)
         self.ensure_one()
@@ -969,7 +970,15 @@ for path in base.glob("*"):
             if dest_paths := shell.exists(str(dest_path) + "*", glob=True):
                 return dest_paths[0]
 
-        with self._tempinstance("ensuredump", commit=commit, dbname=dbname) as shell:
+        # identified as bottleneck:
+        # if there are many tests waiting, then
+        # ensure dump shall run in parallel to prepare the base dumps
+        # before it was just 'ensuredump' and blocked a lot of processes
+        unique_id = (
+            f"ensure_dump_{ttype}_commit_{commit}_dumptype_{dumptype}"
+        )
+
+        with self._tempinstance(unique_id, commit=commit, dbname=dbname) as shell:
             shell.logsio.info(f"Creating dump file {dest_path}")
             shell.odoo("up", "-d", "postgres")
             shell.wait_for_postgres()

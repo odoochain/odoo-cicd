@@ -5,6 +5,7 @@
 			<field name="arch" type="xml">
 				<tree decoration-danger="state == 'failed'" decoration-success="state == 'success'" create="0" delete="0">
 					<button name="retry" string="Retry" type="object" />
+					<field name="id" groups="base.group_no_one"/>
 					<field name="odoo_module"/>
 					<field name="display_filepaths"/>
 					<field name="started"/>
@@ -23,6 +24,7 @@
 			<field name="model">cicd.test.run.line.robottest</field>
 			<field name="arch" type="xml">
 				<tree decoration-danger="state == 'failed'" decoration-success="state == 'success'" create="0" delete="0">
+					<field name="id" groups="base.group_no_one"/>
 					<button name="retry" string="Retry" type="object" />
 					<button name="robot_results" string="" icon="fa-search" type="object" attrs="{'invisible': [('robot_output_len', '=', 0)]}"/>
 					<field name="filepath"/>
@@ -46,6 +48,7 @@
 			<field name="model">cicd.test.run.line.migration</field>
 			<field name="arch" type="xml">
 				<tree decoration-danger="state == 'failed'" decoration-success="state == 'success'" create="0" delete="0">
+					<field name="id" groups="base.group_no_one"/>
 					<button name="retry" string="Retry" type="object" />
 					<field name="dump_id"/>
 					<field name="started"/>
