@@ -126,6 +126,7 @@ class TestSettingAbstract(models.AbstractModel):
         self.preparation_done = True
 
     def init_testrun(self, testrun):
+        breakpoint()
         lines = self.filtered(lambda x: not x.preparation_done).produce_test_run_lines(
             testrun
         )
@@ -314,4 +315,7 @@ class TestSettings(models.Model):
                 project_name=project_name,
             ) as shell:
                 shell.checkout_commit(self.commit_id.name)
+                # happend: projectname was used, but checkout to temporary directory
+                # then docker-compose became outdated
+                shell.odoo("reload")
                 yield shell
