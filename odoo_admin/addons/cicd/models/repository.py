@@ -210,7 +210,9 @@ class Repository(models.Model):
                                     branch,
                                 ]
                             )
-                            shell2.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
+                            shell2.X(
+                                ["git-cicd", "reset", "--hard", f"origin/{branch}"]
+                            )
 
                     if shell.exists(path):
                         shell.remove(path)
@@ -972,7 +974,8 @@ class Repository(models.Model):
         release_branches = (
             self.env["cicd.release.item"].search([]).mapped("item_branch_id.name")
         )
-        for repo in self.search([]):
+        all_repos = self.search([])
+        for repo in all_repos:
             machine = repo.machine_id
             srcfolder = machine._get_volume("source")
             with machine._shell(cwd=srcfolder) as shell:
@@ -995,8 +998,15 @@ class Repository(models.Model):
                     )
                 )
 
-                for item in filter(lambda x: x.startswith("testrun"), all_folders):
-                    shell.remove(item)
+                for item in filter(
+                    lambda x: not x.startswith("_main_")
+                    and not ".mirror" in x
+                    and (x.startswith("testrun") or ".tmp" in x),
+                    all_folders,
+                ):
+                    shell.remove(srcfolder / item)
+
+                breakpoint()
                 for branch in self.env["cicd.git.branch"].search(
                     [("active", "=", False), ("repo_id", "=", repo.id)]
                 ):
@@ -1007,9 +1017,10 @@ class Repository(models.Model):
 
                 for item in release_branches:
                     if [x for x in release_branches if item in x]:
-                        shell.remove(srcfolder / item)
+                        folder = [x for x in all_folders if item in x]
+                        if folder:
+                            shell.remove(folder[0])
 
                 for item in filter(lambda x: x.startswith("prj"), all_folders):
                     if item not in active_branches:
                         shell.remove(srcfolder / item)
-

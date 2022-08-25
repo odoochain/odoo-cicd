@@ -423,3 +423,49 @@ class CicdTestRunLine(models.AbstractModel):
             list(sorted(set(map(str, self.mapped("batchids")))))
         ).replace(",", "_")
         return f"snap_{batchids}"
+
+    @api.model
+    def _clean_old_testdirs(self, days=3):
+        breakpoint()
+        for repo in self.search([]):
+            machine = repo.machine_id
+            srcfolder = machine._get_volume("source")
+            with machine._shell(cwd=srcfolder) as shell:
+
+                all_folders = list(
+                    map(
+                        lambda x: x.split("/")[-1],
+                        shell.X(
+                            [
+                                "find",
+                                ".",
+                                "-maxdepth",
+                                "1",
+                                "-type",
+                                "d",
+                                "-mtime",
+                                f"+{days}",
+                            ]
+                        )["stdout"].splitlines(),
+                    )
+                )
+
+                for item in filter(lambda x: x.startswith("testrun"), all_folders):
+                    shell.remove(item)
+                for branch in self.env["cicd.git.branch"].search(
+                    [("active", "=", False), ("repo_id", "=", repo.id)]
+                ):
+                    if not branch.technical_branch_name:
+                        continue
+                    if branch.technical_branch_name in all_folders:
+                        shell.remove(srcfolder / branch.technical_branch_name)
+
+                for item in release_branches:
+                    if [x for x in release_branches if item in x]:
+                        shell.remove(srcfolder / item)
+
+                for item in filter(lambda x: x.startswith("prj"), all_folders):
+                    if item not in active_branches:
+                        shell.remove(srcfolder / item)
+
+
