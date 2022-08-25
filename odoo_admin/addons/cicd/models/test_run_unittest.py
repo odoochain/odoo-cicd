@@ -47,14 +47,6 @@ class UnitTest(models.Model):
         breakpoint()
         DBNAME = "odoo"
         with self._shell(quick=True) as shell:
-            dump_path = self.run_id.branch_id._ensure_dump(
-                "base",
-                commit=self.run_id.commit_id.name,
-                dumptype="wodoobin",
-                dbname=DBNAME,
-            )
-            self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
-
             settings = self.env["cicd.git.branch"]._get_settings_isolated_run(
                 dbname=DBNAME,
                 forcesettings=(
@@ -63,26 +55,24 @@ class UnitTest(models.Model):
                     f"DBNAME={DBNAME}"
                 ),
             )
-            assert dump_path
-
             self._ensure_source_and_machines(
                 shell,
                 start_postgres=False,
                 settings=settings,
             )
             shell.odoo("down", "-v", force=True, allow_error=True)
-            breakpoint()
-
             shell.odoo("up", "-d", "postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
-            shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             if self[0].test_setting_id.use_btrfs:
+                shell.odoo("update", "base", "--no-dangling-check")
                 shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.odoo("snap", "save", self.snapname)
-            shell.wait_for_postgres()
+                shell.wait_for_postgres()
 
             try:
-                yield shell, {'dump_path': dump_path}
+                yield shell, {
+                    "settings": settings,
+                }
             finally:
                 if self[0].test_setting_id.use_btrfs:
                     shell.odoo("snap", "remove", self.snapname, allow_error=True)
@@ -114,10 +104,14 @@ class UnitTest(models.Model):
         self._report(f"Installing module {self.odoo_module}")
         if self[0].test_setting_id.use_btrfs:
             shell.odoo("snap", "restore", self.snapname)
+            shell.odoo("up", "-d", "postgres")
+            shell.wait_for_postgres()
+
         else:
-            shell.odoo("restore", "odoo-db", runenv['dump_path'], "--no-dev-scripts", force=True)
-        shell.odoo("up", "-d", "postgres")
-        shell.wait_for_postgres()
+            shell.odoo("up", "-d", "postgres")
+            shell.wait_for_postgres()
+            shell.odoo("update", "base", "--no-dangling-check")
+
         shell.odoo("update", self.odoo_module, "--no-dangling-check")
         breakpoint()
         logoutput = []
