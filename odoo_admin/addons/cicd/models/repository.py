@@ -959,7 +959,8 @@ class Repository(models.Model):
                 rec.apply_test_settings(branch)
 
     @api.model
-    def _intelligent_springclean(self, days=3):
+    def _intelligent_springclean(self, days=1):
+        breakpoint()
         active_branches = list(
             filter(
                 bool,
