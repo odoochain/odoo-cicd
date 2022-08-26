@@ -1022,5 +1022,7 @@ class Repository(models.Model):
                             shell.remove(folder[0])
 
                 for item in filter(lambda x: x.startswith("prj"), all_folders):
+                    if item == 'prjf62c53fdcaaed4b326a1ae25817c4832':
+                        breakpoint()
                     if item not in active_branches:
                         shell.remove(srcfolder / item)

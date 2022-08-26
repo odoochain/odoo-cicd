@@ -58,13 +58,7 @@ class MigrationTest(models.Model):
             shell.odoo("snap", "save", self.snapname)
             shell.wait_for_postgres()
 
-            try:
-                yield shell, {}
-            finally:
-                shell.odoo("snap", "remove", self.snapname, allow_error=True)
-                shell.odoo("kill", allow_error=True)
-                shell.odoo("rm", allow_error=True)
-                shell.odoo("down", "-v", force=True, allow_error=True)
+            yield shell, {}
 
     def _execute(self, shell, runenv):
         self._report(f"Restoring {self.run_id.branch_id.dump_id.name}")

@@ -13,6 +13,7 @@ from .test_run import SETTINGS
 # There are tests, that put files into /tmp so better run in one container
 ROBOT_SETTINGS = "\n" "RUN_ROBOT=1\nDEFAULT_DEV_PASSWORD=1\n"
 
+class RoboTestFailed(Exception): pass
 
 def safe_filename(filename):
     """removes invalid filesystem characters.
@@ -122,14 +123,7 @@ class RobotTest(models.Model):
             host_run_dir = Path(host_run_dir[0].split(":")[1].strip())
             robot_out = host_run_dir / "odoo_outdir" / "robot_output"
 
-            try:
-                yield shell, {"robot_out": robot_out, "dump_path": dump_path}
-            finally:
-                if self[0].test_setting_id.use_btrfs:
-                    shell.odoo("snap", "clear", allow_error=True)
-                shell.odoo("kill", allow_error=True)
-                shell.odoo("rm", allow_error=True)
-                shell.odoo("down", "-v", force=True, allow_error=True)
+            yield shell, {"robot_out": robot_out, "dump_path": dump_path}
 
     def _execute(self, shell, runenv):
         self._reset_fields()
@@ -183,12 +177,12 @@ class RobotTest(models.Model):
             shell.rm(results_path)
             testdata = self._eval_test_output(testdata)
             if "testoutput" not in testdata[0]:
-                raise Exception(f"Missing testoutput in {testdata[0]}")
+                raise RoboTestFailed(f"Missing testoutput in {testdata[0]}")
             self._grab_robot_output(shell, testdata[0]["testoutput"])
 
         try:
             excel_file = shell.sql_excel(
-                ("select id, name, state, exc_info " "from queue_job")
+                ("select id, name, state, exc_info from queue_job")
             )
         except Exception as ex:
             self.run_id.message_post(body=str(ex))
@@ -197,10 +191,10 @@ class RobotTest(models.Model):
                 self.queuejob_log = base64.b64encode(excel_file)
 
         if not testdata:
-            raise Exception(f"{process['stdout']}\n" f"{process['stderr']}")
+            raise RoboTestFailed(f"{process['stdout']}\n{process['stderr']}")
 
         if not testdata[0].get("all_ok"):
-            raise Exception(
+            raise RoboTestFailed(
                 (
                     "Tests failed - not ok from console call\n"
                     f"Data:\n{json.dumps(testdata, indent=4)}"

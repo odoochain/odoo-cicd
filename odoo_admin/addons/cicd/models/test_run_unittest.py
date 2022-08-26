@@ -17,6 +17,10 @@ CONCURRENT_HASH_THREADS = 8  # minimum system load observed
 GRAB_OTHERS = 5
 
 
+class BrokenUnittest(Exception):
+    pass
+
+
 class UnitTest(models.Model):
     _inherit = "cicd.test.run.line"
     _name = "cicd.test.run.line.unittest"
@@ -50,9 +54,7 @@ class UnitTest(models.Model):
             settings = self.env["cicd.git.branch"]._get_settings_isolated_run(
                 dbname=DBNAME,
                 forcesettings=(
-                    f"{SETTINGS}\n"
-                    f"SERVER_WIDE_MODULES=base,web\n"
-                    f"DBNAME={DBNAME}"
+                    f"{SETTINGS}\n" f"SERVER_WIDE_MODULES=base,web\n" f"DBNAME={DBNAME}"
                 ),
             )
             self._ensure_source_and_machines(
@@ -69,16 +71,9 @@ class UnitTest(models.Model):
                 shell.odoo("snap", "save", self.snapname)
                 shell.wait_for_postgres()
 
-            try:
-                yield shell, {
-                    "settings": settings,
-                }
-            finally:
-                if self[0].test_setting_id.use_btrfs:
-                    shell.odoo("snap", "remove", self.snapname, allow_error=True)
-                shell.odoo("kill", allow_error=True)
-                shell.odoo("rm", allow_error=True)
-                shell.odoo("down", "-v", force=True, allow_error=True)
+            yield shell, {
+                "settings": settings,
+            }
 
     def _execute(self, shell, runenv):
         breakpoint()
@@ -87,12 +82,13 @@ class UnitTest(models.Model):
         self._ensure_hash(shell)
         self.env.cr.commit()
 
-        if not self.run_id.no_reuse:
-            if self.test_setting_id.check_if_test_already_succeeded(
-                self.run_id, odoo_module=self.odoo_module, hash=self.hash
-            ):
-                self.reused = True
-                return
+        test_already_succeeded = self.test_setting_id.check_if_test_already_succeeded(
+            self.run_id, odoo_module=self.odoo_module, hash=self.hash
+        )
+
+        if not self.run_id.no_reuse and test_already_succeeded:
+            self.reused = True
+            return
 
         try:
             self._execute_test_at_prepared_environment(shell, runenv)
@@ -128,15 +124,14 @@ class UnitTest(models.Model):
             )
             if res["exit_code"]:
                 broken.append(path)
-                logoutput.append(res['stdout'])
-                logoutput.append(res['stderr'])
+                logoutput.append(res["stdout"])
+                logoutput.append(res["stderr"])
         if broken:
             self.broken_tests = ",".join(broken)
-            logoutput = '\n'.join(logoutput)
-            raise Exception(
-                f"Broken tests: {self.broken_tests}\n\n"
-                f"Consoleoutput: {logoutput}"
-                )
+            logoutput = "\n".join(logoutput)
+            raise BrokenUnittest(
+                f"Broken tests: {self.broken_tests}\n\nConsoleoutput: {logoutput}"
+            )
 
     def _compute_name(self):
         for rec in self:

@@ -157,7 +157,16 @@ class CicdTestRunLine(models.AbstractModel):
                     shell,
                     runenv,
                 ):
-                    yield shell, runenv
+                    try:
+                        yield shell, runenv
+                    finally:
+                        if self[0].test_setting_id.use_btrfs:
+                            shell.odoo("snap", "remove", self[0].snapname, allow_error=True)
+                        shell.odoo("kill", allow_error=True)
+                        shell.odoo("rm", allow_error=True)
+                        shell.odoo("down", "-v", force=True, allow_error=True)
+                        shell.remove(shell.cwd)
+
             except RetryableJobError:
                 raise
             except Exception:
