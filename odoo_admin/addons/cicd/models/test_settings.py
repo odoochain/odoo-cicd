@@ -126,8 +126,10 @@ class TestSettingAbstract(models.AbstractModel):
         self.preparation_done = True
 
     def init_testrun(self, testrun):
-        breakpoint()
-        lines = self.filtered(lambda x: not x.preparation_done).produce_test_run_lines(
+        unprepared = self.filtered(lambda x: not x.preparation_done)
+        if not unprepared:
+            return
+        lines = unprepared.produce_test_run_lines(
             testrun
         )
         for i in range(0, len(lines or []), self.lines_per_worker):
