@@ -801,7 +801,7 @@ class Repository(models.Model):
                 return count_lines, mergecommitid
 
     @api.model
-    def _cron_cleanup(self):
+    def _cron_inactivate_branches(self):
         for repo in self.search(
             [
                 ("never_cleanup", "=", False),
@@ -819,7 +819,7 @@ class Repository(models.Model):
                         arrow.get(x.last_access or x.date_registered)
                         .replace(tzinfo=None)
                         .datetime,
-                        arrow.get(x.date_reactivated or arrow.get().shift(weeks=-10))
+                        arrow.get(x.date_reactivated or arrow.utcnow().shift(weeks=-10))
                         .replace(tzinfo=None)
                         .datetime,
                     ]
@@ -827,7 +827,7 @@ class Repository(models.Model):
                 < dt
             )
 
-            # keep release branches
+            # dont touch release branches
             releases = self.env["cicd.release"].search([("repo_id", "=", repo.id)])
             names = list(releases.mapped("branch_id.name"))
             names += list(releases.mapped("item_ids.item_branch_id.name"))
