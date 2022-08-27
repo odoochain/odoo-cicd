@@ -82,7 +82,7 @@ class Branch(models.Model):
                 if it_issue.raw['fields'].get('parent'):
                     if it_issue.raw['fields']['parent']['fields']['issuetype']['name'] == 'Epic':
                         epic = it_issue.raw['fields']['parent']['fields']['summary']
-                        self.epic_id = self.env['cicd.branch.epic'].ensure_exists(epic)
+                        self.epic_id = self.env['cicd.branch.epic'].sudo().ensure_exists(epic)
                         break
                     else:
                         it_issue = self._get_jira_issue(it_issue.raw[
@@ -99,7 +99,7 @@ class Branch(models.Model):
             ttype = False
         else:
             if ttype:
-                self.type_id = self.env['cicd.branch.type'].ensure_exists(
+                self.type_id = self.env['cicd.branch.type'].sudo().ensure_exists(
                     ttype)
             else:
                 self.type_id = False
