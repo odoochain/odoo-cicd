@@ -330,6 +330,7 @@ class CicdTestRun(models.Model):
 
         self = self.sudo()
         self.state = "open"
+        self.do_abort = False
         for line in self.iterate_all_test_settings():
             line.reset_at_testrun()
         for line in self.iterate_testlines():
