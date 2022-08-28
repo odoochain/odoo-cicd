@@ -54,6 +54,7 @@ class CicdTestRunLine(models.AbstractModel):
     )
     reused = fields.Boolean("Reused", readonly=True)
     started = fields.Datetime("Started", default=lambda self: fields.Datetime.now())
+    date_finished = fields.Datetime("Date Finished")
     effective_machine_id = fields.Many2one("cicd.machine", compute="_compute_machine")
     logfile_path = fields.Char("Logfilepath", compute="_compute_logfilepath")
     log = fields.Text("Log")
@@ -212,9 +213,9 @@ class CicdTestRunLine(models.AbstractModel):
                                 # e.g. robottests return state from run
                                 rec.state = "success"
                                 rec.exc_info = False
-                        end = arrow.get()
+                        rec.date_finished = fields.Datetime.now()
                         rec.duration = (
-                            end - arrow.get(rec.started or arrow.utcnow())
+                            arrow.get(rec.date_finished) - arrow.get(rec.started or arrow.utcnow())
                         ).total_seconds()
                         if rec.state == "success":
                             break
