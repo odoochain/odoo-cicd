@@ -122,6 +122,7 @@ class cicd(object):
             shutil.rmtree(path)
         self._prepare_git()
 
+        assert path
         self._sshcmd(f"[ -e '{path}' ] && rm -Rf '{path}' || true")
         self._sshcmd(f"mkdir -p '{path}'")
         self._transfer_tree(current_dir / "res" / "dirstruct", path)

@@ -106,7 +106,11 @@ Setup Suite
     cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}
     cicd.Sshcmd                     mkdir -p ${CICD_WORKSPACE}
     cicd.Sshcmd                     mkdir -p ${DUMPS_PATH}
-    cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}/*
+    IF                              "${CICD_WORKSPACE}" == ""
+    FAIL                            requires CICD_WORKSPACE set
+    END
+    cicd.Sshcmd                     mkdir -p "${CICD_WORKSPACE}"
+    cicd.Sshcmd                     rm -Rf "${CICD_WORKSPACE}/*"
 
     Odoo Load Data    res/security.xml
 

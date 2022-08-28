@@ -1,4 +1,12 @@
 #!/bin/bash
+
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+echo DO NOT RUN ON PRODUCTION SYSTEM
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+read -p "Press any key to continue"
+
 CICD_USER=$(whoami)
 CICD_HOME=$(pwd)
 

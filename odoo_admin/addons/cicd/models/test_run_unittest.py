@@ -76,7 +76,6 @@ class UnitTest(models.Model):
             }
 
     def _execute(self, shell, runenv):
-        breakpoint()
         self.broken_tests = False
 
         self._ensure_hash(shell)
@@ -109,7 +108,6 @@ class UnitTest(models.Model):
             shell.odoo("update", "base", "--no-dangling-check")
 
         shell.odoo("update", self.odoo_module, "--no-dangling-check")
-        breakpoint()
         logoutput = []
 
         broken = []
