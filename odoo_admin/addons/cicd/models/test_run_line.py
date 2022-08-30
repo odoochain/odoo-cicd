@@ -424,6 +424,7 @@ class CicdTestRunLine(models.AbstractModel):
     def retry(self):
         for rec in self:
             rec.state = "open"
+            rec.run_id.do_abort = False
             rec._create_worker_queuejob()
 
     @property
