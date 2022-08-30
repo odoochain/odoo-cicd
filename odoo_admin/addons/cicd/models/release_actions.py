@@ -13,6 +13,7 @@ class CicdReleaseAction(models.Model):
     machine_id = fields.Many2one("cicd.machine", string="Machine")
     shell_script_before_update = fields.Text("Shell Script Before Update")
     shell_script_at_end = fields.Text("Shell Script At End (finally)")
+    shell_script_on_update_fail = fields.Text("Shell Script at Update Fail")
     settings = fields.Text("Settings")
     effective_settings = fields.Text(compute="_compute_effective_settings")
 
@@ -48,14 +49,17 @@ class CicdReleaseAction(models.Model):
             if not script:
                 return
 
-            filepath = tempfile.mktemp(suffix=".")
+            rec._exec_shellscript(logsio, script)
 
-            with rec._contact_machine(logsio) as shell:
-                shell.put(script, filepath)
-                try:
-                    shell.X(["/bin/bash", filepath])
-                finally:
-                    shell.rm(filepath)
+    def _exec_shellscript(self, logsio, script):
+        self.ensure_one()
+        filepath = tempfile.mktemp(suffix=".")
+        with self._contact_machine(logsio) as shell:
+            shell.put(script, filepath)
+            try:
+                shell.X(["/bin/bash", filepath])
+            finally:
+                shell.rm(filepath)
 
     def run_action_set(self, release_item, commit_sha):
         actions = self
@@ -74,7 +78,16 @@ class CicdReleaseAction(models.Model):
                     actions._update_sourcecode(logsio, release_item, commit_sha)
                     actions._update_images(logsio)
                     actions._stop_odoo(logsio)
-                    actions[0]._run_update(logsio)
+                    try:
+                        actions[0]._run_update(logsio)
+                    except Exception:
+                        if not actions[0].shell_script_on_update_fail:
+                            raise
+                        else:
+                            actions[0]._exec_shellscript(
+                                logsio, actions[0].shell_script_on_update_fail
+                            )
+                            actions[0]._run_update(logsio)
 
             except Exception:  # pylint: disable=broad-except
                 errors.append(traceback.format_exc())

@@ -72,6 +72,7 @@
 										<field name="machine_id"/>
 										<field name="shell_script_before_update"/>
 										<field name="shell_script_at_end"/>
+										<field name="shell_script_on_update_fail"/>
 									</tree>
 								</field>
 							</page>
