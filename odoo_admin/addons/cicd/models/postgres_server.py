@@ -13,6 +13,8 @@ import logging
 _logger = logging.getLogger(__name__)
 
 PREFIX_TODELETE = "_to_delete_"
+PREFIX_TODELETE_TIMEFORMAT = "%Y%m%d"
+PREFIX_TODELETE_DATELEN = 8
 
 
 class PostgresServer(models.Model):
@@ -38,7 +40,7 @@ class PostgresServer(models.Model):
     btrfs = fields.Boolean("BTRFS/ZFS volumes (snapshotting)")
     keep_days = fields.Integer(
         "Keep to delete databases for days",
-        default=15,
+        default=20,
         required=True,
         help=(
             "Databases are not deleted at once; "
@@ -157,10 +159,13 @@ class PostgresServer(models.Model):
 
     @api.model
     def _cleanup(self):
+        breakpoint()
         for postgres in (
             self.env["cicd.git.repo"].search([]).machine_id.postgres_server_id
         ):
             for db in postgres.database_ids:
+                if db.name in ['postgres', 'template0', 'template1']:
+                    continue
                 if "_restoring" in db.name:
                     continue
                 if db.name.startswith(PREFIX_TODELETE):
@@ -171,15 +176,15 @@ class PostgresServer(models.Model):
 
                 if not db.matching_branch_ids:
                     # TODO please activate after review
-                    deadline = (
+                    date = (
                         arrow.utcnow()
-                        .shift(days=postgres.keep_days)
-                        .strftime("%Y-%m-%d")
+                        .strftime(PREFIX_TODELETE_TIMEFORMAT)
                     )
-                    db.rename((f"{PREFIX_TODELETE}_{db.name}_{deadline}"))
+                    db.rename((f"{PREFIX_TODELETE}_{db.name}_{date}"))
 
     def _parse_name(self, name):
         name = name or ""
         if name.startswith(PREFIX_TODELETE):
-            date = arrow.get(name[:-10]).replace(tzinfo=None)
+            date = arrow.get(name[:-PREFIX_TODELETE_DATELEN]).replace(tzinfo=None)
+            date.shift(days=self.keep_days)
             return date
