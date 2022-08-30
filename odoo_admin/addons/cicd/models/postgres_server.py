@@ -1,4 +1,5 @@
 import psycopg2
+import arrow
 from pathlib import Path
 import json
 from . import pg_advisory_xact_lock
@@ -10,6 +11,8 @@ from odoo import registry
 import logging
 
 _logger = logging.getLogger(__name__)
+
+PREFIX_TODELETE = "_to_delete_"
 
 
 class PostgresServer(models.Model):
@@ -33,6 +36,15 @@ class PostgresServer(models.Model):
         required=True,
     )
     btrfs = fields.Boolean("BTRFS/ZFS volumes (snapshotting)")
+    keep_days = fields.Integer(
+        "Keep to delete databases for days",
+        default=15,
+        required=True,
+        help=(
+            "Databases are not deleted at once; "
+            "they are renamed to '_delete_dbname_<data>'"
+        ),
+    )
 
     def _compute_size(self):
         for rec in self:
@@ -142,3 +154,32 @@ class PostgresServer(models.Model):
 
                 rec._compute_size()
         return True
+
+    @api.model
+    def _cleanup(self):
+        for postgres in (
+            self.env["cicd.git.repo"].search([]).machine_id.postgres_server_id
+        ):
+            for db in postgres.database_ids:
+                if "_restoring" in db.name:
+                    continue
+                if db.name.startswith(PREFIX_TODELETE):
+                    deadline = postgres._parse_name(db.name)
+                    if arrow.utcnow() > deadline:
+                        db.delete_db()
+                    del deadline
+
+                if not db.matching_branch_ids:
+                    # TODO please activate after review
+                    deadline = (
+                        arrow.utcnow()
+                        .shift(days=postgres.keep_days)
+                        .strftime("%Y-%m-%d")
+                    )
+                    db.rename((f"{PREFIX_TODELETE}_{db.name}_{deadline}"))
+
+    def _parse_name(self, name):
+        name = name or ""
+        if name.startswith(PREFIX_TODELETE):
+            date = arrow.get(name[:-10]).replace(tzinfo=None)
+            return date

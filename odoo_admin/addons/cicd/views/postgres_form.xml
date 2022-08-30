@@ -18,6 +18,7 @@
 							<field name="ttype" />
 							<field name="size_human"/>
 							<field name="btrfs"/>
+							<field name="keep_days"/>
 						</group>
 						<notebook>
 							<page name="databases" string="Databases">

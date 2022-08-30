@@ -35,27 +35,32 @@ class Database(models.Model):
         for rec in self:
             rec.display_name = f"{rec.name} [{rec.size_human}]"
 
+    @contextmanager
+    def _dropconnections(self):
+        self.ensure_one()
+        with self.server_id._get_conn() as cr:
+            cr.execute(
+                (
+                    f"UPDATE pg_database SET "
+                    f"datallowconn = 'false' WHERE datname = '{self.name}'; \n"
+                    f"SELECT pg_terminate_backend(pid) "
+                    f"FROM pg_stat_activity WHERE datname = '{self.name}'; \n"
+                )
+            )
+            cr.connection.autocommit = True
+            yield cr
+
+    def rename(self, newname):
+        self.ensure_one()
+        for rec in self:
+            with rec._dropconnections() as cr:
+                cr.execute((f"ALTER DATABASE {rec.name} RENAME TO {newname}"))
+            rec.sudo().name = newname
+
     def delete_db(self):
         for rec in self:
-            try:
-                raise Exception("be compatible")
-                with self.server_id._get_conn() as cr:
-                    # requires postgres >= 13
-                    cr.execute("drop database %s WITH (FORCE);", (rec.name,))
-
-            except Exception:
-                with self.server_id._get_conn() as cr:
-                    # requires postgres >= 13
-                    cr.execute(
-                        (
-                            f"UPDATE pg_database SET "
-                            f"datallowconn = 'false' WHERE datname = '{rec.name}'; \n"
-                            f"SELECT pg_terminate_backend(pid) "
-                            f"FROM pg_stat_activity WHERE datname = '{rec.name}'; \n"
-                        )
-                    )
-                    cr.connection.autocommit = True
-                    cr.execute((f"DROP DATABASE IF EXISTS {rec.name}"))
+            with rec._dropconnections() as cr:
+                cr.execute((f"DROP DATABASE IF EXISTS {rec.name}"))
             rec.sudo().unlink()
 
     @api.model
