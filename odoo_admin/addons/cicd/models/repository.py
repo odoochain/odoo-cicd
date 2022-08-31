@@ -1021,8 +1021,9 @@ class Repository(models.Model):
                     lines = [
                         x
                         for x in self.env[model].browse(ids)
-                        if x.exists() and x.state not in ["done", "failed"]
+                        if x.exists() and x.state not in ["success", "failed"]
                     ]
+                    breakpoint()
                     if not lines:
                         shell.remove(srcfolder / folder)
 
