@@ -433,3 +433,10 @@ class ShellExecutor(BaseShellExecutor):
         size = self.X(["stat", "-c", "%s", path])["stdout"].strip()
         size = int(size or 0)
         return size
+
+    def get_date_modified(self, path):
+        seconds = int(self.X(["stat", "-c", "%Y", path])["stdout"].strip())
+        return arrow.get(seconds)
+
+    def get_age_hours(self, path):
+        return (arrow.get() - self.get_date_modified(path)).total_seconds() / 3600

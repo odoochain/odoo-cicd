@@ -322,7 +322,8 @@ class CicdTestRunLine(models.AbstractModel):
         # 22.06.2022 too many problems - directory missing in tests
         # back again
         # better structure with prepare environment
-        path = path / f"testrun_{batchids}"
+        name = self._name.replace(".", "_")
+        path = path / f"testrun_{name}_{batchids}"
         return path
 
     def _checkout_source_code(self, machine, batchids):
@@ -392,7 +393,7 @@ class CicdTestRunLine(models.AbstractModel):
     def _create_worker_queuejob(self):
         ids_string = ",".join(map(str, sorted(self.ids)))
         names = ",".join(self.mapped("name"))
-        idkey = f"testrunline-{ids_string}-{names}"
+        idkey = f"testrunline-{self._name}-{ids_string}-{names}"
         job = self.as_job(suffix=idkey).execute()
         jobs = self.env["queue.job"].search([("uuid", "=", job.uuid)])
         if not jobs:
@@ -401,7 +402,7 @@ class CicdTestRunLine(models.AbstractModel):
 
     def _get_contexted(self):
         batchids = "_".join(list(map(str, sorted(set(self.mapped("batchids"))))))
-        return self.with_context(testrun=f"testrun_{batchids}")
+        return self.with_context(testrun=f"testrun_{self._name}_{batchids}")
 
     def _compute_project_name(self):
         for rec in self:

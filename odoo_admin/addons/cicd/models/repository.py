@@ -1,4 +1,5 @@
 import traceback
+import re
 import json
 from . import pg_advisory_lock
 from odoo import registry
@@ -961,7 +962,7 @@ class Repository(models.Model):
                 rec.apply_test_settings(branch)
 
     @api.model
-    def _intelligent_springclean(self, days=1):
+    def _intelligent_springclean(self, hours=8):
         breakpoint()
         active_branches = list(
             filter(
@@ -991,22 +992,40 @@ class Repository(models.Model):
                                 "1",
                                 "-type",
                                 "d",
-                                "-mtime",
-                                f"+{days}",
                             ]
                         )["stdout"].splitlines(),
                     )
                 )
+                breakpoint()
 
+                # remove all tmpfolders and testruns
                 for item in filter(
                     lambda x: not x.startswith("_main_")
                     and not ".mirror" in x
                     and (x.startswith("testrun") or ".tmp" in x),
                     all_folders,
                 ):
-                    shell.remove(srcfolder / item)
+                    item = srcfolder / item
+                    if shell.get_age_hours(item) > hours:
+                        shell.remove(srcfolder / item)
 
-                breakpoint()
+                for folder in all_folders:
+                    if not folder.startswith("testrun"):
+                        continue
+                    # testrun_cicd.9998,10002,10004,10006,10008.tmp.3d0d23b6-19ab-43e9-8890-1
+                    match = re.findall("testrun_([^\d]*)_\d", folder)
+                    if not match:
+                        continue
+                    model = match[0].replace("_", ".")
+                    ids = list(map(int, re.findall("\d+", folder)))
+                    lines = [
+                        x
+                        for x in self.env[model].browse(ids)
+                        if x.exists() and x.state not in ["done", "failed"]
+                    ]
+                    if not lines:
+                        shell.remove(srcfolder / folder)
+
                 for branch in self.env["cicd.git.branch"].search(
                     [("active", "=", False), ("repo_id", "=", repo.id)]
                 ):
@@ -1022,7 +1041,6 @@ class Repository(models.Model):
                             shell.remove(folder[0])
 
                 for item in filter(lambda x: x.startswith("prj"), all_folders):
-                    if item == 'prjf62c53fdcaaed4b326a1ae25817c4832':
-                        breakpoint()
+                    if item == "prjf62c53fdcaaed4b326a1ae25817c4832":
                     if item not in active_branches:
                         shell.remove(srcfolder / item)
