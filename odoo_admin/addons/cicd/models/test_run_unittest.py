@@ -107,29 +107,12 @@ class UnitTest(models.Model):
             shell.wait_for_postgres()
             shell.odoo("update", "base", "--no-dangling-check")
 
-        shell.odoo("update", self.odoo_module, "--no-dangling-check")
-        logoutput = []
-
-        broken = []
-        for path in self.filepaths.split(","):
-            self._report(f"Starting Unittest {path}")
-            res = shell.odoo(
-                "unittest",
-                path,
-                "--non-interactive",
-                timeout=self.test_setting_id.timeout,
-                allow_error=True,
-            )
-            if res["exit_code"]:
-                broken.append(path)
-                logoutput.append(res["stdout"])
-                logoutput.append(res["stderr"])
-        if broken:
-            self.broken_tests = ",".join(broken)
-            logoutput = "\n".join(logoutput)
-            raise BrokenUnittest(
-                f"Broken tests: {self.broken_tests}\n\nConsoleoutput: {logoutput}"
-            )
+        shell.odoo(
+            "update",
+            self.odoo_module,
+            "--no-dangling-check",
+            f"--test-tags=at_install/{self.odoo_module},post_install/{self.odoo_module},standard",
+        )
 
     def _compute_name(self):
         for rec in self:
@@ -141,7 +124,7 @@ class TestSettingsUnittest(models.Model):
     _inherit = "cicd.test.settings.base"
     _name = "cicd.test.settings.unittest"
 
-    tags = fields.Char("Filter to tags (comma separated, may be empty)")
+    # tags = fields.Char("Filter to tags (comma separated, may be empty)")
     regex = fields.Char("Regex", default=".*")
     precalc_hashes = fields.Boolean("Pre-Calculate Hashes")
 
@@ -320,6 +303,8 @@ class TestSettingsUnittest(models.Model):
                 ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
                 ("state", "in", ["success", "failed"]),
-            ], order="date_finished desc, id desc", limit=1
+            ],
+            order="date_finished desc, id desc",
+            limit=1,
         )
         return tests and tests.state == "success"
