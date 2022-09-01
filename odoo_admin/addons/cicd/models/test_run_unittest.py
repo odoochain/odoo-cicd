@@ -313,13 +313,13 @@ class TestSettingsUnittest(models.Model):
         Compares the hash of the module with an existing
         previous run with same hash.
         """
-        res = self.env["cicd.test.run.line.unittest"].search_count(
+        tests = self.env["cicd.test.run.line.unittest"].search(
             [
                 ("run_id.branch_ids.repo_id", "=", testrun.branch_ids.repo_id.id),
                 ("reused", "=", False),
                 ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
-                ("state", "=", "success"),
-            ]
+                ("state", "in", ["success", "failed"]),
+            ], order="date_finished desc, id desc", limit=1
         )
-        return bool(res)
+        return tests and tests.state == "success"
