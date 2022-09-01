@@ -969,11 +969,19 @@ class Repository(models.Model):
                 bool,
                 self.env["cicd.git.branch"]
                 .search([("active", "=", True)])
-                .mapped("technical_branch_name"),
+                .mapped("project_name"),
+            )
+        )
+        inactive_branches = list(
+            filter(
+                bool,
+                self.env["cicd.git.branch"]
+                .search([("active", "=", False)])
+                .mapped("project_name"),
             )
         )
         release_branches = (
-            self.env["cicd.release.item"].search([]).mapped("item_branch_id.name")
+            self.env["cicd.release.item"].search([]).mapped("item_branch_id.project_name")
         )
         all_repos = self.search([])
         for repo in all_repos:
@@ -1023,24 +1031,13 @@ class Repository(models.Model):
                         for x in self.env[model].browse(ids)
                         if x.exists() and x.state not in ["success", "failed"]
                     ]
-                    breakpoint()
                     if not lines:
                         shell.remove(srcfolder / folder)
 
-                for branch in self.env["cicd.git.branch"].search(
-                    [("active", "=", False), ("repo_id", "=", repo.id)]
-                ):
-                    if not branch.technical_branch_name:
-                        continue
-                    if branch.technical_branch_name in all_folders:
-                        shell.remove(srcfolder / branch.technical_branch_name)
+                for folder in all_folders:
+                    if folder in inactive_branches:
+                        shell.remove(srcfolder / folder)
 
-                for item in release_branches:
-                    if [x for x in release_branches if item in x]:
-                        folder = [x for x in all_folders if item in x]
-                        if folder:
-                            shell.remove(folder[0])
-
-                for item in filter(lambda x: x.startswith("prj"), all_folders):
-                    if item not in active_branches:
-                        shell.remove(srcfolder / item)
+                for folder in all_folders:
+                    if folder in release_branches:
+                        shell.remove(srcfolder / folder)
