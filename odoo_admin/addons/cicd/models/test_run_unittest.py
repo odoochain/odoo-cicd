@@ -127,7 +127,11 @@ class TestSettingsUnittest(models.Model):
     tags = fields.Char(
         "Filter to tags (comma separated, may be empty)",
         required=True,
-        default="post_install/{module}",
+        default=(
+            "-at_install,-standard,"
+            "at_install/{module},post_install/{module},"
+            "standard/{module}"
+        ),
     )
     regex = fields.Char("Regex", default=".*")
     precalc_hashes = fields.Boolean("Pre-Calculate Hashes")
