@@ -107,12 +107,11 @@ class UnitTest(models.Model):
             shell.wait_for_postgres()
             shell.odoo("update", "base", "--no-dangling-check")
 
-        tags = self.tags.format(module=self.module)
         shell.odoo(
             "update",
             self.odoo_module,
             "--no-dangling-check",
-            f"--test-tags={tags}",
+            f"--test-tags={self.tags}",
         )
 
     def _compute_name(self):
@@ -164,6 +163,7 @@ class TestSettingsUnittest(models.Model):
 
             for module, info in modules.items():
                 hash_value = info["hash"]
+                tags = self.tags.format(module=module)
 
                 res.append(
                     self.env["cicd.test.run.line.unittest"].create(
@@ -172,7 +172,7 @@ class TestSettingsUnittest(models.Model):
                             {
                                 "odoo_module": module,
                                 "hash": hash_value,
-                                "tags": info['tags']
+                                "tags": tags,
                             },
                         )
                     )
@@ -187,10 +187,11 @@ class TestSettingsUnittest(models.Model):
 
         class HashThread(threading.Thread):
             def __init__(self, module, testrun, result, thread_limiter):
-                super().__init__(thread_limiter=thread_limiter)
+                super().__init__()
                 self.module = module
                 self.testrun = testrun
                 self.result = result
+                self.thread_limiter = thread_limiter
 
             def run(self):
                 self.thread_limiter.acquire()
@@ -227,6 +228,8 @@ class TestSettingsUnittest(models.Model):
             if self.regex:
                 if not re.findall(self.regex, module):
                     continue
+            if not module:
+                continue
             yield module
 
     def _get_modules_to_test(self, shell, precalc):

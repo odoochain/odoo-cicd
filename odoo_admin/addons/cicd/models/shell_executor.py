@@ -131,6 +131,7 @@ class ShellExecutor(BaseShellExecutor):
             "DOCKER_CLIENT_TIMEOUT": "600",
             "COMPOSE_HTTP_TIMEOUT": "600",
             "PSYCOPG_TIMEOUT": "120",
+            "PYTHONBREAKPOINT": "",
         }
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
