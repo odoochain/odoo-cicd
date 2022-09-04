@@ -20,7 +20,6 @@
 					<header>
 						<button name="fetch" string="Fetch" type="object" />
 						<button name="new_branch" string="New Branch" type="object" />
-						<button name="purge_old_sources" string="Purge Old Instance Folders" type="object" />
 						<button name="create_all_branches" string="Fetch all Branches" type="object" />
 						<button name="apply_test_settings_to_all_branches" string="Apply Test Settings to all branches" type="object"/>
 					</header>
