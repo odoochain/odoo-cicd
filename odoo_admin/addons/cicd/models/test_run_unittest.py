@@ -107,11 +107,12 @@ class UnitTest(models.Model):
             shell.wait_for_postgres()
             shell.odoo("update", "base", "--no-dangling-check")
 
+        tags = self.tags.format(module=self.module)
         shell.odoo(
             "update",
             self.odoo_module,
             "--no-dangling-check",
-            f"--test-tags=post_install/{self.odoo_module},standard/{self.odoo_module}",
+            f"--test-tags={tags}",
         )
 
     def _compute_name(self):
@@ -124,7 +125,11 @@ class TestSettingsUnittest(models.Model):
     _inherit = "cicd.test.settings.base"
     _name = "cicd.test.settings.unittest"
 
-    # tags = fields.Char("Filter to tags (comma separated, may be empty)")
+    tags = fields.Char(
+        "Filter to tags (comma separated, may be empty)",
+        required=True,
+        default="post_install/{module}",
+    )
     regex = fields.Char("Regex", default=".*")
     precalc_hashes = fields.Boolean("Pre-Calculate Hashes")
 
@@ -167,6 +172,7 @@ class TestSettingsUnittest(models.Model):
                             {
                                 "odoo_module": module,
                                 "hash": hash_value,
+                                "tags": info['tags']
                             },
                         )
                     )
