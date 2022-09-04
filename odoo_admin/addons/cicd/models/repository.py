@@ -959,7 +959,7 @@ class Repository(models.Model):
         breakpoint()
         branch_by_projectname = dict(
             (x.project_name, x)
-            for x in self.env["cicd.git.branch"].search([("repo_id", "=", self.id)])
+            for x in self.env["cicd.git.branch"].search([])
         )
         inactive_branches = list(
             filter(
@@ -1028,13 +1028,13 @@ class Repository(models.Model):
                 for folder in all_folders:
                     for project_name in inactive_branches:
                         if folder == project_name:
-                            branch_by_projectname[project_name].with_delay(
-                                identity_key=f"purge_{folder}"
-                            ).purge_instance_folder()
+                            branch_by_projectname[
+                                project_name
+                            ].with_delay(identity_key=f"purge_{folder}").purge_instance_folder()
 
                 for folder in all_folders:
                     for project_name in release_branches:
                         if folder == project_name:
-                            branch_by_projectname[project_name].with_delay(
-                                identity_key=f"purge_{folder}"
-                            ).purge_instance_folder()
+                            branch_by_projectname[
+                                project_name
+                            ].with_delay(identity_key=f"purge_{folder}").purge_instance_folder()
