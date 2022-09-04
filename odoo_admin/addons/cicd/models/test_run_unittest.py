@@ -111,7 +111,7 @@ class UnitTest(models.Model):
             "update",
             self.odoo_module,
             "--no-dangling-check",
-            f"--test-tags=at_install/{self.odoo_module},post_install/{self.odoo_module},standard",
+            f"--test-tags=post_install/{self.odoo_module},standard/{self.odoo_module}",
         )
 
     def _compute_name(self):
