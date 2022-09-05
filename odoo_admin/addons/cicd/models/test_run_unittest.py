@@ -82,7 +82,7 @@ class UnitTest(models.Model):
         self.env.cr.commit()
 
         test_already_succeeded = self.test_setting_id.check_if_test_already_succeeded(
-            self.run_id, odoo_module=self.odoo_module, hash=self.hash
+            self.run_id, odoo_module=self.odoo_module, hash=self.hash, tags=self.tags
         )
 
         if not self.run_id.no_reuse and test_already_succeeded:
@@ -167,7 +167,7 @@ class TestSettingsUnittest(models.Model):
 
             for module, info in modules.items():
                 hash_value = info["hash"]
-                tags = self.tags.format(module=module)
+                tags = self._get_tags(module)
 
                 res.append(
                     self.env["cicd.test.run.line.unittest"].create(
@@ -183,6 +183,10 @@ class TestSettingsUnittest(models.Model):
                 )
                 del module
         return res
+
+    def _get_tags(self, module):
+        tags = self.tags.format(module=module)
+        return tags
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
@@ -254,8 +258,9 @@ class TestSettingsUnittest(models.Model):
             if not hash:
                 test_already_succeeded = False
             else:
+                tags = self._get_tags(module)
                 test_already_succeeded = self.check_if_test_already_succeeded(
-                    self.parent_id, odoo_module=module, hash=hash
+                    self.parent_id, odoo_module=module, hash=hash, tags=tags,
                 )
 
             if self.parent_id.no_reuse or not test_already_succeeded:
@@ -275,7 +280,7 @@ class TestSettingsUnittest(models.Model):
         return deps["hash"]
 
     @api.model
-    def check_if_test_already_succeeded(self, testrun, odoo_module, hash):
+    def check_if_test_already_succeeded(self, testrun, odoo_module, hash, tags):
         """
         Compares the hash of the module with an existing
         previous run with same hash.
@@ -287,6 +292,7 @@ class TestSettingsUnittest(models.Model):
                 ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
                 ("state", "in", ["success", "failed"]),
+                ('tags', =', tags),
             ],
             order="date_finished desc, id desc",
             limit=1,
