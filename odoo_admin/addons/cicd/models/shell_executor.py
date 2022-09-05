@@ -356,6 +356,7 @@ class ShellExecutor(BaseShellExecutor):
                         self2.X(zip_cmd)
                     except Exception:
                         # one time got message files changed during zipping; so retrying
+                        # although it was in an own temp folder
                         counter += 1
                         if counter > 5:
                             raise
