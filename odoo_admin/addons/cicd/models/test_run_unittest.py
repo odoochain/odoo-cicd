@@ -291,7 +291,7 @@ class TestSettingsUnittest(models.Model):
                 ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
                 ("state", "in", ["success", "failed"]),
-                ('tags', =', tags),
+                ('tags', ''=', tags),
             ],
             order="date_finished desc, id desc",
             limit=1,
