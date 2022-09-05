@@ -128,7 +128,6 @@ class TestSettingsUnittest(models.Model):
         "Filter to tags (comma separated, may be empty)",
         required=True,
         default=(
-            "-at_install,-standard,"
             "at_install/{module},post_install/{module},"
             "standard/{module}"
         ),
