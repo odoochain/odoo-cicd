@@ -8,7 +8,7 @@
 					<header>
 						<button string="Make Hotfix" name="make_hotfix" type="object"/>
 						<button string="Build and Deploy" name="make_build_and_deploy" type="object"/>
-						<field name="state" widget="statusbar"  states='failed_technically,collecting_merge_conflict'/>
+						<field name="state" widget="statusbar" states='failed_technically,collecting_merge_conflict'/>
 					</header>
 					<sheet>
 						<div class="oe_button_box" name="button_box">
@@ -16,21 +16,23 @@
 							<button type="object" class="oe_stat_button" icon="fa-times" name="toggle_active" string="Disable" attrs="{'invisible': [('active', '=', False)]}"/>
 							<button type="object" class="oe_stat_button" icon="fa-check" name="toggle_active" string="Activate" attrs="{'invisible': [('active', '=', True)]}"/>
 						</div>
-						<group string="Release" col="2">
-							<field name="name" />
-							<field name="repo_id"/>
-							<field name="project_name"/>
-							<field name="branch_id" domain="[('repo_id', '=', repo_id)]"/>
-							<field name="sequence_id"/>
-							<field name="send_pre_release_information"/>
-							<field name="update_i18n"/>
-						</group>
-						<group string="Continuous Deployment">
-							<field name="countdown_minutes"/>
-							<field name="minutes_to_release"/>
-							<field name="auto_release"/>
-							<field name="deploy_git"/>
-							<field name="schedule_line_ids" widget="many2many_tags"/>
+						<group>
+							<group string="Release" col="2">
+								<field name="name" />
+								<field name="repo_id"/>
+								<field name="project_name"/>
+								<field name="branch_id" domain="[('repo_id', '=', repo_id)]"/>
+								<field name="sequence_id"/>
+								<field name="send_pre_release_information"/>
+								<field name="update_i18n"/>
+							</group>
+							<group string="Continuous Deployment">
+								<field name="countdown_minutes"/>
+								<field name="minutes_to_release"/>
+								<field name="auto_release"/>
+								<field name="deploy_git"/>
+								<field name="schedule_line_ids" widget="many2many_tags"/>
+							</group>
 						</group>
 						<group string="Release Message">
 							<field name="message_to_ticketsystem" nolabel="1" placeholder="This feature/bug was just deployed to {machine}"/>

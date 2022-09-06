@@ -1,3 +1,4 @@
+from multiprocessing import ProcessError
 import tempfile
 import arrow
 import random
@@ -257,9 +258,9 @@ class ShellExecutor(BaseShellExecutor):
 
         if not allow_error:
             if res["exit_code"] is None:
-                raise Exception("Timeout happend: {cmd}")
+                raise TimeoutError("Timeout happend: {cmd}")
             if res["exit_code"]:
-                raise Exception(
+                raise RuntimeError(
                     f"Error happened: {res['exit_code']}:\n"
                     f"{res['stderr']}\n"
                     f"{res['stdout']}"
@@ -354,13 +355,14 @@ class ShellExecutor(BaseShellExecutor):
                 while True:
                     try:
                         self2.X(zip_cmd)
-                    except Exception:
-                        # one time got message files changed during zipping; so retrying
-                        # although it was in an own temp folder
-                        counter += 1
-                        if counter > 5:
+                    except RuntimeError as ex:
+                        if 'file changed as we read it' in str(ex):
+                            time.sleep(counter * 5)
+                            counter += 1
+                            if counter > 10:
+                                raise
+                        else:
                             raise
-                        time.sleep(2)
                     else:
                         break
             content = self.get(filename)
