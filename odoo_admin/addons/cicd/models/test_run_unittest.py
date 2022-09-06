@@ -82,7 +82,7 @@ class UnitTest(models.Model):
         self.env.cr.commit()
 
         test_already_succeeded = self.test_setting_id.check_if_test_already_succeeded(
-            self.run_id, odoo_module=self.odoo_module, hash=self.hash
+            self.run_id, odoo_module=self.odoo_module, hash=self.hash, tags=self.tags
         )
 
         if not self.run_id.no_reuse and test_already_succeeded:
@@ -107,29 +107,12 @@ class UnitTest(models.Model):
             shell.wait_for_postgres()
             shell.odoo("update", "base", "--no-dangling-check")
 
-        shell.odoo("update", self.odoo_module, "--no-dangling-check")
-        logoutput = []
-
-        broken = []
-        for path in self.filepaths.split(","):
-            self._report(f"Starting Unittest {path}")
-            res = shell.odoo(
-                "unittest",
-                path,
-                "--non-interactive",
-                timeout=self.test_setting_id.timeout,
-                allow_error=True,
-            )
-            if res["exit_code"]:
-                broken.append(path)
-                logoutput.append(res["stdout"])
-                logoutput.append(res["stderr"])
-        if broken:
-            self.broken_tests = ",".join(broken)
-            logoutput = "\n".join(logoutput)
-            raise BrokenUnittest(
-                f"Broken tests: {self.broken_tests}\n\nConsoleoutput: {logoutput}"
-            )
+        shell.odoo(
+            "update",
+            self.odoo_module,
+            "--no-dangling-check",
+            f"--test-tags={self.tags}",
+        )
 
     def _compute_name(self):
         for rec in self:
@@ -141,7 +124,14 @@ class TestSettingsUnittest(models.Model):
     _inherit = "cicd.test.settings.base"
     _name = "cicd.test.settings.unittest"
 
-    tags = fields.Char("Filter to tags (comma separated, may be empty)")
+    tags = fields.Char(
+        "Filter to tags (comma separated, may be empty)",
+        required=True,
+        default=(
+            "at_install/{module},post_install/{module},"
+            "standard/{module}"
+        ),
+    )
     regex = fields.Char("Regex", default=".*")
     precalc_hashes = fields.Boolean("Pre-Calculate Hashes")
 
@@ -168,25 +158,15 @@ class TestSettingsUnittest(models.Model):
         with self.parent_id._logsio() as logsio:
             logsio.info("Hashing Modules / Preparing UnitTests")
             with self.parent_id._get_source_for_analysis() as shell:
-                unittests_to_run = self._get_unit_tests_to_run(
-                    shell, precalc=self.precalc_hashes
-                )
+                modules = self._get_modules_to_test(shell, precalc=self.precalc_hashes)
 
             logsio.info("Hashing Modules / Preparing UnitTests Done")
-            if not unittests_to_run:
+            if not modules:
                 return
 
-            for module, tests in unittests_to_run.items():
-                hash_value = tests["hash"]
-                tests = tests["tests"]
-
-                used_tests = []
-                for test in tests:
-                    if self.regex:
-                        if not re.findall(self.regex, test):
-                            continue
-                    used_tests.append(test)
-                    del test
+            for module, info in modules.items():
+                hash_value = info["hash"]
+                tags = self._get_tags(module)
 
                 res.append(
                     self.env["cicd.test.run.line.unittest"].create(
@@ -194,15 +174,18 @@ class TestSettingsUnittest(models.Model):
                             testrun,
                             {
                                 "odoo_module": module,
-                                "filepaths": ",".join(sorted(used_tests)),
                                 "hash": hash_value,
+                                "tags": tags,
                             },
                         )
                     )
                 )
                 del module
-                del tests
         return res
+
+    def _get_tags(self, module):
+        tags = self.tags.format(module=module)
+        return tags
 
     def _get_unittest_hashes(self, shell, modules):
         result = {}
@@ -210,6 +193,13 @@ class TestSettingsUnittest(models.Model):
         thread_limiter = threading.BoundedSemaphore(CONCURRENT_HASH_THREADS)
 
         class HashThread(threading.Thread):
+            def __init__(self, module, testrun, result, thread_limiter):
+                super().__init__()
+                self.module = module
+                self.testrun = testrun
+                self.result = result
+                self.thread_limiter = thread_limiter
+
             def run(self):
                 self.thread_limiter.acquire()
                 try:
@@ -218,82 +208,68 @@ class TestSettingsUnittest(models.Model):
                     self.thread_limiter.release()
 
             def run_me(self):
-                global result
                 hash = self.testrun._get_hash_for_module(shell, self.module)
                 self.result[self.module] = hash
 
         threads = []
-        for mod in modules:
+        for module in modules:
             # ensure mod exists in result
-            result[mod] = False
-            t = HashThread()
-            t.module = mod
-            t.testrun = self
-            t.result = result
-            t.thread_limiter = thread_limiter
-            threads.append(t)
-            t.start()
+            result[module] = False
+            threads.append(
+                HashThread(
+                    module=module,
+                    testrun=self,
+                    result=result,
+                    thread_limiter=thread_limiter,
+                )
+            )
+            del module
 
+        [x.start() for x in threads]  # pylint: disable=W0106
         [x.join() for x in threads]  # pylint: disable=W0106
         return result
 
-    def _get_unit_tests_to_run(self, shell, precalc):
-        breakpoint()
+    def _get_all_modules(self, shell):
+        res = shell.odoo("list-modules")
+        for module in res["stdout"].strip().split("---")[1].splitlines():
+            if self.regex:
+                if not re.findall(self.regex, module):
+                    continue
+            if not module:
+                continue
+            yield module
+
+    def _get_modules_to_test(self, shell, precalc):
         self.ensure_one()
-        unittests = self._get_unit_tests(shell)
-        unittests_by_module = self._get_unit_tests_by_modules(unittests)
-        _unittests_by_module = {}
+        modules = list(self._get_all_modules(shell))
 
         def _setdefault(d, m):
             return d.setdefault(m, {"tests": [], "hash": None})
 
         hashes = {}
+        module_infos = {}
         if precalc and not self.parent_id.no_reuse:
-            hashes = self._get_unittest_hashes(shell, unittests_by_module.keys())
+            hashes = self._get_unittest_hashes(shell, modules)
 
         shell.logsio.info("Analyzing following unittests if to run:")
-        for module, tests in unittests_by_module.items():
-            shell.logsio.info(f"Module: {module}")
-            for test in tests:
-                shell.logsio.info(f"  - {test}")
-                del test
-
-        for module, tests in unittests_by_module.items():
+        for module in modules:
             hash = hashes.get(module)
             if not hash:
                 test_already_succeeded = False
             else:
+                tags = self._get_tags(module)
                 test_already_succeeded = self.check_if_test_already_succeeded(
-                    self.parent_id, odoo_module=module, hash=hash
+                    self.parent_id, odoo_module=module, hash=hash, tags=tags,
                 )
 
             if self.parent_id.no_reuse or not test_already_succeeded:
-                for test in tests:
-                    val = _setdefault(_unittests_by_module, module)
-                    val["hash"] = hash
-                    val["tests"].append(test)
-                    del val
+                val = _setdefault(module_infos, module)
+                val["hash"] = hash
+                del val
             del hash
             del module
 
-        return _unittests_by_module
-
-    def _get_unit_tests(self, shell):
-        self.ensure_one()
-        cmd = ["list-unit-test-files"]
-        files = shell.odoo(*cmd)["stdout"].strip()
-        return list(filter(bool, files.split("!!!")[1].splitlines()))
-
-    def _get_unit_tests_by_modules(self, files):
-        tests_by_module = {}
-        for fpath in files:
-            f = Path(fpath)
-            # TODO perhaps check for manifest; framework would have that info
-            module = str(f.parent.parent.name)
-            tests_by_module.setdefault(module, [])
-            if fpath not in tests_by_module[module]:
-                tests_by_module[module].append(fpath)
-        return tests_by_module
+        return module_infos
 
     @api.model
     def _get_hash_for_module(self, shell, module_path):
@@ -302,13 +278,8 @@ class TestSettingsUnittest(models.Model):
         deps = json.loads(stdout.split("---", 1)[1])
         return deps["hash"]
 
-    def _unittest_name_callback(self, f):
-        p = Path(f)
-        # TODO checking: 3 mal parent
-        return str(p.relative_to(p.parent.parent.parent))
-
     @api.model
-    def check_if_test_already_succeeded(self, testrun, odoo_module, hash):
+    def check_if_test_already_succeeded(self, testrun, odoo_module, hash, tags):
         """
         Compares the hash of the module with an existing
         previous run with same hash.
@@ -320,6 +291,9 @@ class TestSettingsUnittest(models.Model):
                 ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
                 ("state", "in", ["success", "failed"]),
-            ], order="date_finished desc, id desc", limit=1
+                ('tags', '=', tags),
+            ],
+            order="date_finished desc, id desc",
+            limit=1,
         )
         return tests and tests.state == "success"

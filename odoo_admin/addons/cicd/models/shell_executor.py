@@ -92,14 +92,6 @@ class ShellExecutor(BaseShellExecutor):
     def rm(self, path):
         return self.remove(path)
 
-    def grab_folder_as_tar(self, path):
-        if not self.exists(path):
-            return None
-        with self.machine._temppath() as filename:
-            self._internal_execute(["tar", "cfz", filename, "."], cwd=path)
-            content = self.get(filename)
-        return content
-
     def remove(self, path):
         if self.exists(path):
             if self.logsio:
@@ -131,6 +123,7 @@ class ShellExecutor(BaseShellExecutor):
             "DOCKER_CLIENT_TIMEOUT": "600",
             "COMPOSE_HTTP_TIMEOUT": "600",
             "PSYCOPG_TIMEOUT": "120",
+            "PYTHONBREAKPOINT": "",
         }
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
@@ -357,7 +350,19 @@ class ShellExecutor(BaseShellExecutor):
             for exclude in excludes:
                 zip_cmd.insert(-1, f'--exclude="{exclude}"')
             with self.clone(cwd=path) as self2:
-                self2.X(zip_cmd)
+                counter = 0
+                while True:
+                    try:
+                        self2.X(zip_cmd)
+                    except Exception:
+                        # one time got message files changed during zipping; so retrying
+                        # although it was in an own temp folder
+                        counter += 1
+                        if counter > 5:
+                            raise
+                        time.sleep(2)
+                    else:
+                        break
             content = self.get(filename)
             return content
 
