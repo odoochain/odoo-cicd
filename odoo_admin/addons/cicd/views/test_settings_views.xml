@@ -5,9 +5,9 @@
 			<field name="model">cicd.test.settings.unittest</field>
 			<field name="arch" type="xml">
 				<tree editable="bottom">
-					<field name="tags"/>
 					<field name="precalc_hashes"/>
 					<field name="regex"/>
+					<field name="tags"/>
 					<field name="retry_count"/>
 					<field name="timeout"/>
 					<field name="lines_per_worker"/>

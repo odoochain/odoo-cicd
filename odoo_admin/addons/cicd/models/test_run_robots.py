@@ -213,7 +213,7 @@ class RobotTest(models.Model):
 
     def _grab_robot_output(self, shell, folder):
         robot_out = Path(folder)
-        robot_results_tar = shell.grab_folder_as_tar(robot_out)
+        robot_results_tar = shell.get_zipped(robot_out)
         robot_results_tar = (
             base64.b64encode(robot_results_tar) if robot_results_tar else False
         )

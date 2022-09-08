@@ -933,13 +933,6 @@ class Repository(models.Model):
             return "hangs_not_broken"
         return "broken"
 
-    def purge_old_sources(self):
-        for rec in self:
-            for branch in self.env["cicd.git.branch"].search(
-                [("repo_id", "=", rec.id), ("active", "=", False)]
-            ):
-                branch.with_delay().purge_instance_folder()
-
     def _has_rights_for_password(self):
         return self.env.user.has_group("cicd.group_manager") or self.env.user.has_group(
             "base.group_system"
@@ -964,24 +957,21 @@ class Repository(models.Model):
     @api.model
     def _intelligent_springclean(self, hours=8):
         breakpoint()
-        active_branches = list(
-            filter(
-                bool,
-                self.env["cicd.git.branch"]
-                .search([("active", "=", True)])
-                .mapped("project_name"),
-            )
+        branch_by_projectname = dict(
+            (x.project_name, x) for x in self.env["cicd.git.branch"].search([])
         )
         inactive_branches = list(
             filter(
                 bool,
                 self.env["cicd.git.branch"]
-                .search([("active", "=", False)])
+                .search([("active", "=", False), ("repo_id", "=", self.id)])
                 .mapped("project_name"),
             )
         )
         release_branches = (
-            self.env["cicd.release.item"].search([]).mapped("item_branch_id.project_name")
+            self.env["cicd.release.item"]
+            .search([])
+            .mapped("item_branch_id.project_name")
         )
         all_repos = self.search([])
         for repo in all_repos:
@@ -1035,16 +1025,24 @@ class Repository(models.Model):
                         shell.remove(srcfolder / folder)
 
                 for folder in all_folders:
-                    if folder in inactive_branches:
+                    for project_name in inactive_branches:
+                        if folder == project_name:
+                            branch_by_projectname[project_name].with_delay(
+                                identity_key=f"purge_{folder}"
+                            ).purge_instance_folder()
+
+                for folder in all_folders:
+                    if ".tmp." not in folder:
+                        continue
+                    if shell.get_age_hours(srcfolder / item) > hours:
                         shell.remove(srcfolder / folder)
 
                 for folder in all_folders:
                     if folder in release_branches:
                         shell.remove(srcfolder / folder)
 
-                breakpoint()
-                for folder in all_folders:
-                    if '.tmp.' not in folder:
-                        continue
-                    if shell.get_age_hours(srcfolder / item) > hours:
-                        shell.remove(srcfolder / folder)
+                    for project_name in release_branches:
+                        if folder == project_name:
+                            branch_by_projectname[project_name].with_delay(
+                                identity_key=f"purge_{folder}"
+                            ).purge_instance_folder()

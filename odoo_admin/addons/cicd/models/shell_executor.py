@@ -1,3 +1,4 @@
+from multiprocessing import ProcessError
 import tempfile
 import arrow
 import random
@@ -92,14 +93,6 @@ class ShellExecutor(BaseShellExecutor):
     def rm(self, path):
         return self.remove(path)
 
-    def grab_folder_as_tar(self, path):
-        if not self.exists(path):
-            return None
-        with self.machine._temppath() as filename:
-            self._internal_execute(["tar", "cfz", filename, "."], cwd=path)
-            content = self.get(filename)
-        return content
-
     def remove(self, path):
         if self.exists(path):
             if self.logsio:
@@ -131,6 +124,7 @@ class ShellExecutor(BaseShellExecutor):
             "DOCKER_CLIENT_TIMEOUT": "600",
             "COMPOSE_HTTP_TIMEOUT": "600",
             "PSYCOPG_TIMEOUT": "120",
+            "PYTHONBREAKPOINT": "",
         }
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
@@ -264,9 +258,9 @@ class ShellExecutor(BaseShellExecutor):
 
         if not allow_error:
             if res["exit_code"] is None:
-                raise Exception("Timeout happend: {cmd}")
+                raise TimeoutError("Timeout happend: {cmd}")
             if res["exit_code"]:
-                raise Exception(
+                raise RuntimeError(
                     f"Error happened: {res['exit_code']}:\n"
                     f"{res['stderr']}\n"
                     f"{res['stdout']}"
@@ -357,7 +351,20 @@ class ShellExecutor(BaseShellExecutor):
             for exclude in excludes:
                 zip_cmd.insert(-1, f'--exclude="{exclude}"')
             with self.clone(cwd=path) as self2:
-                self2.X(zip_cmd)
+                counter = 0
+                while True:
+                    try:
+                        self2.X(zip_cmd)
+                    except RuntimeError as ex:
+                        if 'file changed as we read it' in str(ex):
+                            time.sleep(counter * 5)
+                            counter += 1
+                            if counter > 10:
+                                raise
+                        else:
+                            raise
+                    else:
+                        break
             content = self.get(filename)
             return content
 
