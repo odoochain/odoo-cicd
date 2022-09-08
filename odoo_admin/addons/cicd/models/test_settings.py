@@ -319,5 +319,7 @@ class TestSettings(models.Model):
                 breakpoint()
                 shell.checkout_commit(self.commit_id.name)
                 # required python version for hash for example
+                # TODO which odoo python version to take? from branch?
+                # from release? if several releases which release?
                 shell.odoo("reload")
                 yield shell
