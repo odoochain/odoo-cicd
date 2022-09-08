@@ -318,4 +318,6 @@ class TestSettings(models.Model):
             ) as shell:
                 breakpoint()
                 shell.checkout_commit(self.commit_id.name)
+                # required python version for hash for example
+                shell.odoo("reload")
                 yield shell
