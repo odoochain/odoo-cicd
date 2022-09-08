@@ -1041,3 +1041,10 @@ class Repository(models.Model):
                 for folder in all_folders:
                     if folder in release_branches:
                         shell.remove(srcfolder / folder)
+
+                breakpoint()
+                for folder in all_folders:
+                    if '.tmp.' not in folder:
+                        continue
+                    if shell.get_age_hours(srcfolder / item) > hours:
+                        shell.remove(srcfolder / folder)
