@@ -424,3 +424,9 @@ class CicdTestRun(models.Model):
 
         queuejobs = list(filter(_filter, queuejobs))
         return queuejobs
+
+    @api.constrains("state")
+    def _check_success(self):
+        for rec in self:
+            if rec.state == 'success' and rec.do_abort:
+                rec.state = 'failed'
