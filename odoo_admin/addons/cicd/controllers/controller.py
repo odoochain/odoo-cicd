@@ -204,7 +204,7 @@ class Controller(http.Controller):
 
     @http.route(
         [
-            "/robot_output/<model('cicd.test.run.line'):line>/<filepath>",
+            "/robot_output/<model('cicd.test.run.line.robottest'):line>/<filepath>",
         ]
     )
     def robot_output_resource(self, line, filepath, **kwargs):

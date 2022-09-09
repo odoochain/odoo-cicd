@@ -307,7 +307,7 @@ class CicdTestRunLine(models.AbstractModel):
             lambda self: self._checkout_source_code(shell.machine, selfone.batchids),
             "checkout source",
         )
-        settings += self.test_setting_id._get_runtime_settings()
+        settings += self[0].test_setting_id._get_runtime_settings()
 
         lo = partial(selfone._lo, shell)
         self.run_id._reload(shell, settings, shell.cwd)
