@@ -58,6 +58,7 @@ class CicdTestRunLine(models.AbstractModel):
     effective_machine_id = fields.Many2one("cicd.machine", compute="_compute_machine")
     logfile_path = fields.Char("Logfilepath", compute="_compute_logfilepath")
     log = fields.Text("Log")
+    python_version = fields.Char("Python Version", default="3.8.3")
 
     def _reset_logfile(self):
         Path(self.logfile_path).write_text("")
@@ -162,7 +163,9 @@ class CicdTestRunLine(models.AbstractModel):
                         yield shell, runenv
                     finally:
                         if self[0].test_setting_id.use_btrfs:
-                            shell.odoo("snap", "remove", self[0].snapname, allow_error=True)
+                            shell.odoo(
+                                "snap", "remove", self[0].snapname, allow_error=True
+                            )
                         shell.odoo("kill", allow_error=True)
                         shell.odoo("rm", allow_error=True)
                         shell.odoo("down", "-v", force=True, allow_error=True)
@@ -215,7 +218,8 @@ class CicdTestRunLine(models.AbstractModel):
                                 rec.exc_info = False
                         rec.date_finished = fields.Datetime.now()
                         rec.duration = (
-                            arrow.get(rec.date_finished) - arrow.get(rec.started or arrow.utcnow())
+                            arrow.get(rec.date_finished)
+                            - arrow.get(rec.started or arrow.utcnow())
                         ).total_seconds()
                         if rec.state == "success":
                             break
@@ -303,6 +307,7 @@ class CicdTestRunLine(models.AbstractModel):
             lambda self: self._checkout_source_code(shell.machine, selfone.batchids),
             "checkout source",
         )
+        settings += self.test_setting_id._get_runtime_settings()
 
         lo = partial(selfone._lo, shell)
         self.run_id._reload(shell, settings, shell.cwd)

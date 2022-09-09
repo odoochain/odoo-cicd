@@ -1021,6 +1021,10 @@ for path in base.glob("*"):
 
             def _get_dumpfile_name():
                 if ttype == "base":
+                    raise NotImplementedError(
+                        "base is not supported anymore as getting the base hash is "
+                        "not fast anymore in wodoo and on the other installing an empty "
+                        "fresh db is even faster and probably safer")
                     output = shell.odoo("list-deps", "base", force=True)[
                         "stdout"
                     ].split("---", 1)[1]

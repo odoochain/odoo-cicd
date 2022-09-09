@@ -40,6 +40,7 @@ class TestSettingAbstract(models.AbstractModel):
         "cicd.machine", compute="_compute_effective_machine"
     )
     use_btrfs = fields.Boolean(related="effective_machine_id.postgres_server_id.btrfs")
+    python_version = fields.Char("Python Version", default="3.8.3")
 
     @api.model
     def default_get(self, fields):
@@ -110,6 +111,7 @@ class TestSettingAbstract(models.AbstractModel):
         vals.update(
             {
                 "test_setting_id": f"{self._name},{self.id}",
+                "python_version": self.python_version,
                 "run_id": testrun.id,
                 "machine_id": self.machine_id.id
                 or self.parent_id.branch_id.repo_id.machine_id.id,
@@ -129,15 +131,16 @@ class TestSettingAbstract(models.AbstractModel):
         unprepared = self.filtered(lambda x: not x.preparation_done)
         if not unprepared:
             return
-        lines = unprepared.produce_test_run_lines(
-            testrun
-        )
+        lines = unprepared.produce_test_run_lines(testrun)
         for i in range(0, len(lines or []), self.lines_per_worker):
             batch = lines[i : i + self.lines_per_worker]
             ids = [x.id for x in batch]
             browse_lines = batch[0].browse(ids)
             browse_lines._create_worker_queuejob()
 
+    def _get_runtime_settings(self):
+        settings = f"\nODOO_PYTHON_VERSION={self.python_version}"
+        return settings
 
 class TestSettings(models.Model):
     """
@@ -301,7 +304,7 @@ class TestSettings(models.Model):
         return True
 
     @contextmanager
-    def _get_source_for_analysis(self):
+    def _get_source_for_analysis(self, test_setting):
         repo = self.branch_ids.repo_id
         machine = repo.machine_id
         if self._name != "cicd.test.run":
@@ -316,10 +319,9 @@ class TestSettings(models.Model):
                 cwd=folder,
                 project_name=project_name,
             ) as shell:
-                breakpoint()
+                runtime_settings = test_setting._get_runtime_settings().replace(
+                    "\n", ";"
+                ).lstrip(";")
                 shell.checkout_commit(self.commit_id.name)
-                # required python version for hash for example
-                # TODO which odoo python version to take? from branch?
-                # from release? if several releases which release?
-                shell.odoo("reload")
+                shell.odoo("reload", f"-cR={runtime_settings}")
                 yield shell

@@ -18,6 +18,7 @@
 					<field name="try_count" groups="base.group_no_one"/>
 					<field name="hash" groups="base.group_no_one"/>
 					<field name="project_name" groups="base.group_no_one"/>
+					<field name="python_version" groups="base.group_no_one"/>
 				</tree>
 			</field>
 		</record>
@@ -42,6 +43,7 @@
 					<field name="try_count" groups="base.group_no_one"/>
 					<field name="robot_output_len" invisible='1'/>
 					<field name="project_name" groups="base.group_no_one"/>
+					<field name="python_version" groups="base.group_no_one"/>
 				</tree>
 			</field>
 		</record>
@@ -61,6 +63,7 @@
 					<field name="reused"/>
 					<field name="try_count" groups="base.group_no_one"/>
 					<field name="project_name" groups="base.group_no_one"/>
+					<field name="python_version" groups="base.group_no_one"/>
 				</tree>
 			</field>
 		</record>

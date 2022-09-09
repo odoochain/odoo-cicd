@@ -11,6 +11,7 @@
 					<field name="retry_count"/>
 					<field name="timeout"/>
 					<field name="lines_per_worker"/>
+					<field name="python_version"/>
 				</tree>
 			</field>
 		</record>
@@ -25,6 +26,7 @@
 					<field name="retry_count"/>
 					<field name="timeout"/>
 					<field name="lines_per_worker"/>
+					<field name="python_version"/>
 				</tree>
 			</field>
 		</record>
@@ -38,6 +40,7 @@
 					<field name="retry_count"/>
 					<field name="timeout"/>
 					<field name="lines_per_worker"/>
+					<field name="python_version"/>
 				</tree>
 			</field>
 		</record>

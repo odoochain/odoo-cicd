@@ -82,7 +82,11 @@ class UnitTest(models.Model):
         self.env.cr.commit()
 
         test_already_succeeded = self.test_setting_id.check_if_test_already_succeeded(
-            self.run_id, odoo_module=self.odoo_module, hash=self.hash, tags=self.tags
+            self.run_id,
+            odoo_module=self.odoo_module,
+            hash=self.hash,
+            tags=self.tags,
+            python_version=self.python_version,
         )
 
         if not self.run_id.no_reuse and test_already_succeeded:
@@ -127,10 +131,7 @@ class TestSettingsUnittest(models.Model):
     tags = fields.Char(
         "Filter to tags (comma separated, may be empty)",
         required=True,
-        default=(
-            "at_install/{module},post_install/{module},"
-            "standard/{module}"
-        ),
+        default=("at_install/{module},post_install/{module}," "standard/{module}"),
     )
     regex = fields.Char("Regex", default=".*")
     precalc_hashes = fields.Boolean("Pre-Calculate Hashes")
@@ -157,7 +158,7 @@ class TestSettingsUnittest(models.Model):
         super().produce_test_run_lines(testrun)
         with self.parent_id._logsio() as logsio:
             logsio.info("Hashing Modules / Preparing UnitTests")
-            with self.parent_id._get_source_for_analysis() as shell:
+            with self.parent_id._get_source_for_analysis(self) as shell:
                 modules = self._get_modules_to_test(shell, precalc=self.precalc_hashes)
 
             logsio.info("Hashing Modules / Preparing UnitTests Done")
@@ -259,7 +260,11 @@ class TestSettingsUnittest(models.Model):
             else:
                 tags = self._get_tags(module)
                 test_already_succeeded = self.check_if_test_already_succeeded(
-                    self.parent_id, odoo_module=module, hash=hash, tags=tags,
+                    self.parent_id,
+                    odoo_module=module,
+                    hash=hash,
+                    tags=tags,
+                    python_version=self.python_version,
                 )
 
             if self.parent_id.no_reuse or not test_already_succeeded:
@@ -279,7 +284,9 @@ class TestSettingsUnittest(models.Model):
         return deps["hash"]
 
     @api.model
-    def check_if_test_already_succeeded(self, testrun, odoo_module, hash, tags):
+    def check_if_test_already_succeeded(
+        self, testrun, odoo_module, hash, tags, python_version
+    ):
         """
         Compares the hash of the module with an existing
         previous run with same hash.
@@ -291,7 +298,8 @@ class TestSettingsUnittest(models.Model):
                 ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
                 ("state", "in", ["success", "failed"]),
-                ('tags', '=', tags),
+                ("tags", "=", tags),
+                ("python_version", "=", python_version),
             ],
             order="date_finished desc, id desc",
             limit=1,
