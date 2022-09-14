@@ -111,7 +111,7 @@ class RobotTest(models.Model):
             shell.logsio.info("Restoring dump")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             if self[0].test_setting_id.use_btrfs:
-                shell.logsio.info("Makeing Snapshot")
+                shell.logsio.info("Making Snapshot")
                 shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.wait_for_postgres()
                 shell.odoo("turn-into-dev")
