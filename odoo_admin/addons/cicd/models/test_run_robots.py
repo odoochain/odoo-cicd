@@ -13,7 +13,10 @@ from .test_run import SETTINGS
 # There are tests, that put files into /tmp so better run in one container
 ROBOT_SETTINGS = "\n" "RUN_ROBOT=1\nDEFAULT_DEV_PASSWORD=1\n"
 
-class RoboTestFailed(Exception): pass
+
+class RoboTestFailed(Exception):
+    pass
+
 
 def safe_filename(filename):
     """removes invalid filesystem characters.

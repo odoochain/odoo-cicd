@@ -421,7 +421,7 @@ class Branch(models.Model):
         shell.odoo("cleardb")
 
     def _anonymize(self, shell, **kwargs):
-        shell.odoo("update", "anonymize")
+        shell.odoo("update", "anonymize", "--log=error")
         shell.odoo("anonymize")
 
     def _cron_run_open_tests(self):
@@ -692,7 +692,7 @@ class Branch(models.Model):
         self._reload(shell)
         self._internal_build(shell)
         shell.odoo("-f", "db", "reset")
-        shell.odoo("update", "--no-dangling-check")
+        shell.odoo("update", "--no-dangling-check", "--log=error")
         try:
             shell.odoo("turn-into-dev")  # why commented?
         except Exception:  # pylint: disable=broad-except
@@ -986,7 +986,7 @@ for path in base.glob("*"):
             shell.wait_for_postgres()
             shell.logsio.info(f"Dumping to {dest_path}")
             if ttype == "full":
-                shell.odoo("update", timeout=60 * 30)
+                shell.odoo("update", "--log=error", timeout=60 * 30)
                 shell.odoo("turn-into-dev")
                 shell.wait_for_postgres()
             dest_path = dest_path.parent / self.env[

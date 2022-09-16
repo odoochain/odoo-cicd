@@ -115,7 +115,6 @@ class CicdTestRun(models.Model):
             else:
                 rec.done_rate = 100 * (alllines - openlines) / alllines
 
-
     def _compute_any_testing(self):
         for rec in self:
             rec.any_testing = bool(list(rec.iterate_testlines()))
@@ -232,7 +231,10 @@ class CicdTestRun(models.Model):
 
     def _wait_for_finish(self):
         self.ensure_one()
-        if self.env.context.get("test_queue_job_no_delay") or os.getenv("TEST_QUEUE_JOB_NO_DELAY") == "1":
+        if (
+            self.env.context.get("test_queue_job_no_delay")
+            or os.getenv("TEST_QUEUE_JOB_NO_DELAY") == "1"
+        ):
             return
         try:
             if not self.exists():
@@ -259,7 +261,7 @@ class CicdTestRun(models.Model):
                 )
 
             self.duration = (
-                arrow.utcnow() - arrow.get(self.date_started or '1980-04-04')
+                arrow.utcnow() - arrow.get(self.date_started or "1980-04-04")
             ).total_seconds()
             self.as_job("cleanup", True, eta=300)._cleanup_testruns()
 
@@ -428,5 +430,5 @@ class CicdTestRun(models.Model):
     @api.constrains("state")
     def _check_success(self):
         for rec in self:
-            if rec.state == 'success' and rec.do_abort:
-                rec.state = 'failed'
+            if rec.state == "success" and rec.do_abort:
+                rec.state = "failed"

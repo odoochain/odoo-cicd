@@ -64,9 +64,10 @@ class UnitTest(models.Model):
             )
             shell.odoo("down", "-v", force=True, allow_error=True)
             shell.odoo("up", "-d", "postgres")
-            shell.wait_for_postgres()  # wodoo bin needs to check version
+            shell.wait_for_postgres()
+            shell.odoo("db", "reset", "-C", force=True)  # force C collation
             if self[0].test_setting_id.use_btrfs:
-                shell.odoo("update", "base", "--no-dangling-check")
+                shell.odoo("update", "base", "--no-dangling-check", "--log=error")
                 shell.odoo("snap", "remove", self.snapname, allow_error=True)
                 shell.odoo("snap", "save", self.snapname)
                 shell.wait_for_postgres()
@@ -109,7 +110,7 @@ class UnitTest(models.Model):
         else:
             shell.odoo("up", "-d", "postgres")
             shell.wait_for_postgres()
-            shell.odoo("update", "base", "--no-dangling-check")
+            shell.odoo("update", "base", "--no-dangling-check", "--log=error")
 
         shell.odoo(
             "update",
