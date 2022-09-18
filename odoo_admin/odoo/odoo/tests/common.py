@@ -1529,10 +1529,10 @@ class HttpCase(TransactionCase):
         # An alternative would be to set the cookie to None (unsetting it
         # completely) or clear-ing session.cookies.
         self.opener = Opener(self.cr)
-        self.opener.cookies['admin_session_id'] = session.sid
+        self.opener.cookies['session_id'] = session.sid
         if self.browser:
             self._logger.info('Setting session cookie in browser')
-            self.browser.set_cookie('admin_session_id', session.sid, '/', HOST)
+            self.browser.set_cookie('session_id', session.sid, '/', HOST)
 
         return session
 
@@ -1590,7 +1590,7 @@ class HttpCase(TransactionCase):
         finally:
             # clear browser to make it stop sending requests, in case we call
             # the method several times in a test method
-            self.browser.delete_cookie('admin_session_id', domain=HOST)
+            self.browser.delete_cookie('session_id', domain=HOST)
             self.browser.clear()
             self._wait_remaining_requests()
 
