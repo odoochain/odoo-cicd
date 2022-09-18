@@ -691,7 +691,7 @@ class Branch(models.Model):
     def _reset_db(self, shell, **kwargs):
         self._reload(shell)
         self._internal_build(shell)
-        shell.odoo("-f", "db", "reset")
+        shell.odoo("db", "reset", force=True)
         shell.odoo("update", "--no-dangling-check", "--log=error")
         try:
             shell.odoo("turn-into-dev")  # why commented?

@@ -94,13 +94,7 @@ class UnitTest(models.Model):
 
     def _execute_test_at_prepared_environment(self, shell, runenv):
         self._report(f"Installing module {self.odoo_module}")
-        # if self[0].test_setting_id.use_btrfs:
-        #     shell.odoo("snap", "restore", self.snapname)
-        #     shell.odoo("up", "-d", "postgres")
-        #     shell.wait_for_postgres()
-
-        # else:
-        shell.odoo("db", "reset", "--do-not-install-base", "-C", force=True)
+        shell.odoo("down", force=True)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
 
