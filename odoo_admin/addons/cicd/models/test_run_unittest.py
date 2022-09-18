@@ -63,14 +63,6 @@ class UnitTest(models.Model):
                 settings=settings,
             )
             shell.odoo("down", "-v", force=True, allow_error=True)
-            shell.odoo("up", "-d", "postgres")
-            shell.wait_for_postgres()
-            shell.odoo("db", "reset", "-C", force=True)  # force C collation
-            if self[0].test_setting_id.use_btrfs:
-                shell.odoo("update", "base", "--no-dangling-check", "--log=error")
-                shell.odoo("snap", "remove", self.snapname, allow_error=True)
-                shell.odoo("snap", "save", self.snapname)
-                shell.wait_for_postgres()
 
             yield shell, {
                 "settings": settings,
@@ -102,21 +94,22 @@ class UnitTest(models.Model):
 
     def _execute_test_at_prepared_environment(self, shell, runenv):
         self._report(f"Installing module {self.odoo_module}")
-        if self[0].test_setting_id.use_btrfs:
-            shell.odoo("snap", "restore", self.snapname)
-            shell.odoo("up", "-d", "postgres")
-            shell.wait_for_postgres()
+        # if self[0].test_setting_id.use_btrfs:
+        #     shell.odoo("snap", "restore", self.snapname)
+        #     shell.odoo("up", "-d", "postgres")
+        #     shell.wait_for_postgres()
 
-        else:
-            shell.odoo("up", "-d", "postgres")
-            shell.wait_for_postgres()
-            shell.odoo("update", "base", "--no-dangling-check", "--log=error")
+        # else:
+        shell.odoo("db", "reset", "--do-not-install-base", "-C", force=True)
+        shell.odoo("up", "-d", "postgres")
+        shell.wait_for_postgres()
 
         shell.odoo(
             "update",
             self.odoo_module,
             "--no-dangling-check",
             f"--test-tags={self.tags}",
+            "--log=error",
         )
 
     def _compute_name(self):
