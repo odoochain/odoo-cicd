@@ -82,7 +82,7 @@ Test Run Release
 Setup Test
     Login
     Log To Console    Reducing wait time for finished queuejobs
-    Odoo Sql          update ir_config_parameter set value = '2' where name='test.timeout.failed.queuejobs.minutes';
+    Odoo Sql          update ir_config_parameter set value = '2' where key='test.timeout.failed.queuejobs.minutes';
 
 Setup Suite
     ${CICD_DB_HOST}=            Get Environment Variable    CICD_DB_HOST
