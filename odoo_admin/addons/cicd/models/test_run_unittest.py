@@ -97,6 +97,8 @@ class UnitTest(models.Model):
         shell.odoo("down", force=True)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
+        if self.odoo_module != "base":
+            shell.odoo("update", "base", "--log=error", "--no-dangling-check")
 
         shell.odoo(
             "update",
