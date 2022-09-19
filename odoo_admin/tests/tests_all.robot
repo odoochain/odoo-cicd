@@ -49,7 +49,7 @@ Test Run Unittest
     cicd.Sshcmd        git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd        touch '${CICD_WORKSPACE}/tempedit/failtest'
     cicd.Sshcmd        git add failtest; git commit -am '${commit_name}'          cwd=${CICD_WORKSPACE}/tempedit
-    cicd.Sshcmd        git push
+    cicd.Sshcmd        git push                                                   cwd=${CICD_WORKSPACE}/tempedit
 
     Log To Console                 Wait till commit arrives
     Wait Until Keyword Succeeds    5x                          10 sec    Wait For Commit    ${commit_name}
@@ -101,8 +101,8 @@ Setup Suite
 
     cicd.Assert Configuration
     Log To Console                  Kill Cronjobs and Queuejobs
-    cicd.Cicdodoo                   kill                           odoo_queuejobs                   odoo_cronjobs
-    Run keyword and ignore error    cicd.Sshcmd                    sudo rm -Rf ${CICD_WORKSPACE}
+    cicd.Cicdodoo                   kill                            odoo_queuejobs                   odoo_cronjobs
+    Run keyword and ignore error    cicd.Sshcmd                     sudo rm -Rf ${CICD_WORKSPACE}
     cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}
     cicd.Sshcmd                     mkdir -p ${CICD_WORKSPACE}
     cicd.Sshcmd                     mkdir -p ${DUMPS_PATH}
