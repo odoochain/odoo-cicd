@@ -10,3 +10,4 @@ docker-compose.override.yml
 robot_output
 tests/git-cicd/log.txt
 geckodriver.log
+odooamin/results

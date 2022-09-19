@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 5.0.1 (Python 3.10.7 on linux)" generated="20220919 09:35:25.131" rpa="false" schemaversion="3">
+<suite id="s1" name="Cicd App" source="/zfs_pool1/home/projects/cicd_app">
+<suite id="s1-s1" name="Odoo Admin" source="/zfs_pool1/home/projects/cicd_app/odoo_admin">
+<suite id="s1-s1-s1" name="Tests" source="/zfs_pool1/home/projects/cicd_app/odoo_admin/tests">
+<suite id="s1-s1-s1-s1" name="Tests All" source="/zfs_pool1/home/projects/cicd_app/odoo_admin/tests/tests_all.robot">
+<kw name="Setup Suite" type="SETUP">
+<kw name="Get Environment Variable" library="OperatingSystem">
+<var>${CICD_DB_HOST}</var>
+<arg>CICD_DB_HOST</arg>
+<doc>Returns the value of an environment variable with the given name.</doc>
+<msg timestamp="20220919 09:35:25.275" level="FAIL">Environment variable 'CICD_DB_HOST' does not exist.</msg>
+<status status="FAIL" starttime="20220919 09:35:25.275" endtime="20220919 09:35:25.277"/>
+</kw>
+<kw name="Get Environment Variable" library="OperatingSystem">
+<var>${CICD_DB_PORT}</var>
+<arg>CICD_DB_PORT</arg>
+<doc>Returns the value of an environment variable with the given name.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.277" endtime="20220919 09:35:25.277"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${CICD_DB_HOST}</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.277" endtime="20220919 09:35:25.278"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${CICD_DB_PORT}</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.278" endtime="20220919 09:35:25.278"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${SRC_REPO}</arg>
+<arg>/tmp/odoo1</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.278" endtime="20220919 09:35:25.278"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${ROBOTTEST_REPO_URL}</arg>
+<arg>file://${SRC_REPO}</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.278" endtime="20220919 09:35:25.278"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${ODOO_VERSION}</arg>
+<arg>15.0</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.278" endtime="20220919 09:35:25.279"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${CICD_DB_HOST}</arg>
+<arg>${CICD_DB_HOST}</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.279" endtime="20220919 09:35:25.279"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${CICD_DB_PORT}</arg>
+<arg>${CICD_DB_PORT}</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.279" endtime="20220919 09:35:25.279"/>
+</kw>
+<kw name="Get Pubkey" library="cicd">
+<var>${ROBOTTEST_SSH_PUBKEY}</var>
+<status status="NOT RUN" starttime="20220919 09:35:25.279" endtime="20220919 09:35:25.279"/>
+</kw>
+<kw name="Get Idrsa" library="cicd">
+<var>${ROBOTTEST_SSH_KEY}</var>
+<status status="NOT RUN" starttime="20220919 09:35:25.280" endtime="20220919 09:35:25.280"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${ROBOTTEST_SSH_PUBKEY}</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.280" endtime="20220919 09:35:25.280"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${ROBOTTEST_SSH_KEY}</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.280" endtime="20220919 09:35:25.280"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${DUMPS_PATH}</arg>
+<arg>/tmp/cicd_test_dumps</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.280" endtime="20220919 09:35:25.280"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${CICD_WORKSPACE}</arg>
+<arg>/tmp/cicd_workspace</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.280" endtime="20220919 09:35:25.281"/>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<arg>${DIR_RELEASED_VERSION}</arg>
+<arg>/tmp/cicd_release1</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.281" endtime="20220919 09:35:25.281"/>
+</kw>
+<kw name="Assert Configuration" library="cicd">
+<status status="NOT RUN" starttime="20220919 09:35:25.281" endtime="20220919 09:35:25.281"/>
+</kw>
+<kw name="Log To Console" library="BuiltIn">
+<arg>Kill Cronjobs and Queuejobs</arg>
+<doc>Logs the given message to the console.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.281" endtime="20220919 09:35:25.281"/>
+</kw>
+<kw name="Cicdodoo" library="cicd">
+<arg>kill</arg>
+<arg>odoo_queuejobs</arg>
+<arg>odoo_cronjobs</arg>
+<status status="NOT RUN" starttime="20220919 09:35:25.281" endtime="20220919 09:35:25.282"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" library="BuiltIn">
+<arg>cicd.Sshcmd</arg>
+<arg>sudo rm -Rf ${CICD_WORKSPACE}</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.282" endtime="20220919 09:35:25.282"/>
+</kw>
+<kw name="Sshcmd" library="cicd">
+<arg>rm -Rf ${CICD_WORKSPACE}</arg>
+<status status="NOT RUN" starttime="20220919 09:35:25.282" endtime="20220919 09:35:25.282"/>
+</kw>
+<kw name="Sshcmd" library="cicd">
+<arg>mkdir -p ${CICD_WORKSPACE}</arg>
+<status status="NOT RUN" starttime="20220919 09:35:25.282" endtime="20220919 09:35:25.282"/>
+</kw>
+<kw name="Sshcmd" library="cicd">
+<arg>mkdir -p ${DUMPS_PATH}</arg>
+<status status="NOT RUN" starttime="20220919 09:35:25.282" endtime="20220919 09:35:25.283"/>
+</kw>
+<if>
+<branch type="IF" condition="&quot;${CICD_WORKSPACE}&quot; == &quot;&quot;">
+<kw name="Fail" library="BuiltIn">
+<arg>requires CICD_WORKSPACE set</arg>
+<doc>Fails the test with the given message and optionally alters its tags.</doc>
+<status status="NOT RUN" starttime="20220919 09:35:25.283" endtime="20220919 09:35:25.283"/>
+</kw>
+<status status="NOT RUN" starttime="20220919 09:35:25.283" endtime="20220919 09:35:25.283"/>
+</branch>
+<status status="NOT RUN" starttime="20220919 09:35:25.283" endtime="20220919 09:35:25.283"/>
+</if>
+<kw name="Sshcmd" library="cicd">
+<arg>mkdir -p "${CICD_WORKSPACE}"</arg>
+<status status="NOT RUN" starttime="20220919 09:35:25.283" endtime="20220919 09:35:25.283"/>
+</kw>
+<kw name="Sshcmd" library="cicd">
+<arg>rm -Rf "${CICD_WORKSPACE}/*"</arg>
+<status status="NOT RUN" starttime="20220919 09:35:25.284" endtime="20220919 09:35:25.284"/>
+</kw>
+<kw name="Odoo Load Data" library="odoo_client">
+<arg>res/security.xml</arg>
+<status status="NOT RUN" starttime="20220919 09:35:25.284" endtime="20220919 09:35:25.284"/>
+</kw>
+<status status="FAIL" starttime="20220919 09:35:25.274" endtime="20220919 09:35:25.284"/>
+</kw>
+<test id="s1-s1-s1-s1-t1" name="Setup Repository" line="14">
+<status status="FAIL" starttime="20220919 09:35:25.285" endtime="20220919 09:35:25.286">Parent suite setup failed:
+Environment variable 'CICD_DB_HOST' does not exist.</status>
+</test>
+<doc>Repo setup a repository</doc>
+<status status="FAIL" starttime="20220919 09:35:25.218" endtime="20220919 09:35:25.286">Suite setup failed:
+Environment variable 'CICD_DB_HOST' does not exist.</status>
+</suite>
+<status status="FAIL" starttime="20220919 09:35:25.216" endtime="20220919 09:35:25.287"/>
+</suite>
+<status status="FAIL" starttime="20220919 09:35:25.215" endtime="20220919 09:35:25.288"/>
+</suite>
+<status status="FAIL" starttime="20220919 09:35:25.202" endtime="20220919 09:35:25.289"/>
+</suite>
+<statistics>
+<total>
+<stat pass="0" fail="1" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat pass="0" fail="1" skip="0" id="s1" name="Cicd App">Cicd App</stat>
+<stat pass="0" fail="1" skip="0" id="s1-s1" name="Odoo Admin">Cicd App.Odoo Admin</stat>
+<stat pass="0" fail="1" skip="0" id="s1-s1-s1" name="Tests">Cicd App.Odoo Admin.Tests</stat>
+<stat pass="0" fail="1" skip="0" id="s1-s1-s1-s1" name="Tests All">Cicd App.Odoo Admin.Tests.Tests All</stat>
+</suite>
+</statistics>
+<errors>
+<msg timestamp="20220919 09:35:25.236" level="ERROR">Error in file '/zfs_pool1/home/projects/cicd_app/odoo_admin/addons_robot/robot_utils/keywords/odoo_community.robot' on line 4: Importing library '/zfs_pool1/home/projects/cicd_app/odoo_admin/addons_robot/robot_utils_common/library/browser.py' failed: ModuleNotFoundError: No module named 'selenium'
+Traceback (most recent call last):
+  File "/zfs_pool1/home/projects/cicd_app/odoo_admin/addons_robot/robot_utils_common/library/browser.py", line 1, in &lt;module&gt;
+    from selenium import webdriver
+PYTHONPATH:
+  /zfs_pool1/home/projects/cicd_app/odoo_admin/addons_robot/robot_utils_common/library
+  /zfs_pool1/home/projects/cicd_app/lib
+  /zfs_pool1/home/projects/cicd_app/resources
+  /usr/lib/python310.zip
+  /usr/lib/python3.10
+  /usr/lib/python3.10/lib-dynload
+  /home/marc/.local/lib/python3.10/site-packages
+  /usr/lib/python3.10/site-packages
+  /home/marc/.vscode/extensions/d-biehl.robotcode-0.12.1</msg>
+<msg timestamp="20220919 09:35:25.237" level="ERROR">Error in file '/zfs_pool1/home/projects/cicd_app/odoo_admin/addons_robot/robot_utils/keywords/odoo_community.robot' on line 5: Importing library 'SeleniumLibrary' failed: ModuleNotFoundError: No module named 'SeleniumLibrary'
+Traceback (most recent call last):
+  None
+PYTHONPATH:
+  /zfs_pool1/home/projects/cicd_app/lib
+  /zfs_pool1/home/projects/cicd_app/resources
+  /usr/lib/python310.zip
+  /usr/lib/python3.10
+  /usr/lib/python3.10/lib-dynload
+  /home/marc/.local/lib/python3.10/site-packages
+  /usr/lib/python3.10/site-packages
+  /home/marc/.vscode/extensions/d-biehl.robotcode-0.12.1</msg>
+</errors>
+</robot>
