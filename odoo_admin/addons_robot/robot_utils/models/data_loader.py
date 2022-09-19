@@ -108,5 +108,7 @@ class DataLoader(models.AbstractModel):
 
     @api.model
     def wait_queuejobs(self):
-        self.wait_sqlcondition("select count(*) from queue_job where state not in ('done', 'failed');")
+        self.wait_sqlcondition(
+            "select count(*) from queue_job where state not in ('done', 'failed');"
+        )
         return True
