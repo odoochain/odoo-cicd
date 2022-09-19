@@ -182,7 +182,7 @@ Make Repo
 Wait For Commit
     [Arguments]    ${commit_name}
     ${count}=      Odoo Search           model=cicd.git.commit    domain=[('text', 'like', '${commit_name}')]    count=True
-    IF             "${count}"" == "0"
+    IF             "${count}" == "0"
     FAIL           Commit not here
     END
 
