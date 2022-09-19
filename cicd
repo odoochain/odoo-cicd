@@ -6,7 +6,7 @@ cd $SCRIPT_DIR
 if [[ -e ~/.local/sudobin/odoo ]]; then
 	odoocmd=~/.local/sudobin/odoo
 elif [[ -e ~/.local/bin/odoo ]]; then
-	odoocmd=~/.local/sudobin/odoo
+	odoocmd=~/.local/bin/odoo
 else
 	odoocmd=odoo
 fi

@@ -45,7 +45,7 @@ psycopg2==2.7.7; sys_platform != 'win32' and python_version < '3.8'
 psycopg2==2.8.6; sys_platform == 'win32' or python_version >= '3.8'
 pudb
 pydot==1.4.1
-pyopenssl
+pyopenssl==22.0.0
 pypiwin32 ; sys_platform == 'win32'
 pyserial==3.4
 pytest
