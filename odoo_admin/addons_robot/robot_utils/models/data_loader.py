@@ -108,7 +108,31 @@ class DataLoader(models.AbstractModel):
 
     @api.model
     def wait_queuejobs(self):
-        self.wait_sqlcondition(
-            "select count(*) from queue_job where state not in ('done', 'failed');"
-        )
+        def _get_enqueued_job():
+            self.env.cr.execute(
+                "select id from queue_job where state not in ('done', 'failed') "
+                "and date_enqueued >= (select now() at time zone 'utc') "
+                "order by date_enqueued limit 1"
+            )
+            ids = [x[0] for x in self.env.cr.fetchall()]
+            if ids:
+                return ids[0]
+
+        while True:
+            self.wait_sqlcondition(
+                "select count(*) from queue_job where "
+                "state not in ('done', 'failed') and "
+                "date_enqueued < (select now() at time zone 'utc');"
+            )
+
+            job_id = _get_enqueued_job()
+            if not job_id:
+                break
+    
+            self.execute_sql(
+                "update queue_job "
+                "set date_enqueued = (select now() at time zone 'utc') "
+                f"where id={job_id}"
+            )
+            self.env.cr.commit()
         return True

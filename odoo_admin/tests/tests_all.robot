@@ -30,7 +30,7 @@ Test Fetch All Branches
     Odoo Execute                  cicd.git.branch    method=update_git_commits     ids=${main_branch}
     Wait Queuejobs Done
     ${commits}=                   Odoo Search        cicd.git.commit               domain=[['branch_ids', '=', ${main_branch}]]    count=True
-    Should Be Equal As Strings    ${commits}         3
+    Should Be Equal As Strings    ${commits}         4
 
 Test Run Unittest
     ${main_branch}=               Odoo Search                   cicd.git.branch                   domain=[['name', '=', 'main']]
@@ -52,9 +52,12 @@ Test Run Unittest
     cicd.Sshcmd        git push                                                   cwd=${CICD_WORKSPACE}/tempedit
 
     Log To Console                 Wait till commit arrives
-    Odoo Execute                   cicd.git.repo               method=fetch    ids=${repo}
-    Wait Queuejobs Done
-    Wait Until Keyword Succeeds    5x                          10 sec          Wait For Commit    ${commit_name}
+    ${repo}=                       Odoo Search                 cicd.git.repo    domain=[]          limit=1
+    Log To Console                 Fetching from Repo
+    Odoo Execute                   cicd.git.repo               method=fetch     ids=${repo}
+    Log To Console                 Waiting Queuejobs Done
+    Wait Queuejobs Done            
+    Wait Until Keyword Succeeds    5x                          10 sec           Wait For Commit    ${commit_name}
 
     Append To File                /opt/src/failtest                 1
     Odoo Execute                  cicd.git.branch                   method=run_tests    ids=${main_branch}
@@ -122,7 +125,7 @@ Wait Testruns Done
     Odoo Execute    robot.data.loader    method=wait_sqlcondition    params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
 
 Wait Queuejobs Done
-    Odoo Execute    robot.data.loader    method=wait_queuejobs
+    Odoo Execute    robot.data.loader    method=wait_queuejobs    
 
 Make Postgres
     ${uuid}=    Get Guid
@@ -174,7 +177,7 @@ Make Repo
 
     ${values}=    Create Dictionary
     ...           name=${ROBOTTEST_REPO_URL}
-    ...           default_branch=master
+    ...           default_branch=main
     ...           skip_paths=/release/
     ...           initialize_new_branches=True
     ...           release_tag_prefix=release-
