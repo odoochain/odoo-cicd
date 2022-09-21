@@ -25,7 +25,8 @@ class cicd(object):
         return eval(self.replace_vars(MANIFEST_FILE.read_text()))
 
     def assert_configuration(self):
-        output = self.cicdodoo("config", "--full", output=True)
+        output = self.cicdodoo("config", "--full", output=True) or ""
+        assert output, "Could not load output of ./cicd config --full"
         assert (
             "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1" not in output
         ), "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1 not allowed"
@@ -38,7 +39,9 @@ class cicd(object):
         ), f"Dumps path must point to {dumps_path}"
 
     def cicdodoo(self, *params, output=False):
-        path = Path(BuiltIn().get_variable_value("${CICD_HOME}"))
+        CICD_HOME = BuiltIn().get_variable_value("${CICD_HOME}")
+        assert CICD_HOME, "Variable CICD_HOME not set"
+        path = Path(CICD_HOME)
         cmd = "./cicd " + " ".join(map(lambda x: f"'{x}'", filter(bool, params)))
         return self._sshcmd(cmd, cwd=path, output=output)
 
