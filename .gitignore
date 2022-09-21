@@ -11,3 +11,5 @@ robot_output
 tests/git-cicd/log.txt
 geckodriver.log
 odooamin/results
+output.xml
+interactive_console_output.xml

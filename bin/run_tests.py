@@ -15,7 +15,7 @@ SEP = 80 * "!"
 subprocess.check_call("./cicd reload", shell=True)
 config = subprocess.check_output("./cicd config --full", encoding="utf8", shell=True)
 
-if not "DEVMODE: '1'" in config:
+if "DEVMODE: '1'" not in config:
     click.secho(
         f"{SEP}\n" f"{SEP}\n" "DO NOT RUN ON PRODUCTION SYSTEM\n" f"{SEP}\n" f"{SEP}\n",
         fg="red",
