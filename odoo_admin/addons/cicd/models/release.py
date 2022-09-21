@@ -146,6 +146,7 @@ class Release(models.Model):
             rec.with_delay(
                 identity_key=(f"release-heartbeat-{rec.name}#{rec.id}")
             )._heartbeat()
+        return True
 
     def _heartbeat(self):
         self.ensure_one()
