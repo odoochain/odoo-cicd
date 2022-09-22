@@ -139,7 +139,7 @@ Make Release
     ...    cicd.git.branch
     ...    [['name', '=', '${branch}']]
     ${action_ids}=    Set Variable    ${{ [[0,0, {'machine_id': ${machine_id}}]] }}
-    ${common_settings}=    Set Variable    RUN_POSTGRES=1\\n
+    ${common_settings}=    Set Variable    RUN_POSTGRES=1\nRUN_ODOO_QUEUEJOBS=0\nRUN_ODOO_CRONJOBS=0
 
     ${values}=    Create Dictionary    name=release
     ...    project_name=odoorelease
@@ -151,3 +151,33 @@ Make Release
     ...    action_ids=${action_ids}
     ${release}=    Odoo Create    cicd.release    ${values}
     RETURN    ${release}
+
+Wait Until Commit Arrives  [Arguments]  ${commit_name}
+    Log To Console    Wait till commit arrives
+    ${repo}=    Odoo Search    cicd.git.repo    domain=[]    limit=1
+    Log To Console    Fetching from Repo
+    Odoo Execute    cicd.git.repo    method=fetch    ids=${repo}
+    Log To Console    Waiting Queuejobs Done
+    Wait Queuejobs Done
+    Wait Until Keyword Succeeds    5x    10 sec    Wait For Commit    ${commit_name}
+
+Fetch All Branches
+    ${repo}=                      Odoo Search        cicd.git.repo                 domain=[]                                       limit=1
+    cicd.Cicdodoo                 up                 -d                            odoo_queuejobs
+    Odoo Execute                  cicd.git.repo      method=fetch                  ids=${repo}
+    Wait Queuejobs Done
+    Odoo Execute                  cicd.git.repo      method=create_all_branches    ids=${repo}
+    Wait Queuejobs Done
+    ${main_count}=                Odoo Search        cicd.git.branch               domain=[['name', '=', 'main']]                  count=True
+    Should Be Equal As Strings    ${main_count}      1
+    ${main_branch}=               Odoo Search        cicd.git.branch               domain=[['name', '=', 'main']]
+    Odoo Execute                  cicd.git.branch    method=update_git_commits     ids=${main_branch}
+    Wait Queuejobs Done
+    ${commits}=                   Odoo Search        cicd.git.commit               domain=[['branch_ids', '=', ${main_branch}]]    count=True
+    Should Be Equal As Strings    ${commits}         4
+
+Setup Repository
+    cicd.Make Odoo Repo    ${SRC_REPO}      ${ODOO_VERSION}
+    ${postgres}=           Make Postgres
+    ${machine}=            Make Machine     ${postgres}        source_dir=${CICD_WORKSPACE}
+    ${repo}=               Make Repo        ${machine}
