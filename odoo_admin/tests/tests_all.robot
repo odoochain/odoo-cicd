@@ -49,10 +49,12 @@ Test Run Unittest
     cicd.Sshcmd        git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd        touch '${CICD_WORKSPACE}/tempedit/failtest'
     cicd.Sshcmd        git add failtest; git commit -am '${commit_name}'          cwd=${CICD_WORKSPACE}/tempedit
-    cicd.Sshcmd        git push
+    cicd.Sshcmd        git push                                                   cwd=${CICD_WORKSPACE}/tempedit
 
     Log To Console                 Wait till commit arrives
-    Wait Until Keyword Succeeds    5x                          10 sec    Wait For Commit    ${commit_name}
+    Odoo Execute                   cicd.git.repo               method=fetch    ids=${repo}
+    Wait Queuejobs Done
+    Wait Until Keyword Succeeds    5x                          10 sec          Wait For Commit    ${commit_name}
 
     Append To File                /opt/src/failtest                 1
     Odoo Execute                  cicd.git.branch                   method=run_tests    ids=${main_branch}
@@ -79,6 +81,8 @@ Test Run Release
 *** Keywords ***
 Setup Test
     Login
+    Log To Console    Reducing wait time for finished queuejobs
+    Odoo Sql          update ir_config_parameter set value = '2' where key='test.timeout.failed.queuejobs.minutes';
 
 Setup Suite
     ${CICD_DB_HOST}=            Get Environment Variable    CICD_DB_HOST
@@ -101,8 +105,8 @@ Setup Suite
 
     cicd.Assert Configuration
     Log To Console                  Kill Cronjobs and Queuejobs
-    cicd.Cicdodoo                   kill                           odoo_queuejobs                   odoo_cronjobs
-    Run keyword and ignore error    cicd.Sshcmd                    sudo rm -Rf ${CICD_WORKSPACE}
+    cicd.Cicdodoo                   kill                            odoo_queuejobs                   odoo_cronjobs
+    Run keyword and ignore error    cicd.Sshcmd                     sudo rm -Rf ${CICD_WORKSPACE}
     cicd.Sshcmd                     rm -Rf ${CICD_WORKSPACE}
     cicd.Sshcmd                     mkdir -p ${CICD_WORKSPACE}
     cicd.Sshcmd                     mkdir -p ${DUMPS_PATH}
@@ -181,8 +185,8 @@ Make Repo
 
 Wait For Commit
     [Arguments]    ${commit_name}
-    ${count}=      Odoo Search           model=cicd.git.commit    domain=[('text', 'like', '${commit_name}')]    count=True
-    IF             "${count}"" == "0"
+    ${count}=      Odoo Search          model=cicd.git.commit    domain=[('text', 'like', '${commit_name}')]    count=True
+    IF             "${count}" == "0"
     FAIL           Commit not here
     END
 

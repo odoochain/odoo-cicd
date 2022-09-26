@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+"""
+Put odoo and git-cicd to /usr/bin because not found in path otherwise?!? 
+"""
 import sys
 import time
 import os
