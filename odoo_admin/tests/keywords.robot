@@ -181,3 +181,6 @@ Setup Repository
     ${postgres}=           Make Postgres
     ${machine}=            Make Machine     ${postgres}        source_dir=${CICD_WORKSPACE}
     ${repo}=               Make Repo        ${machine}
+
+Release Heartbeat
+    Odoo Execute    cicd.release    cron_heartbeat

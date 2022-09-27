@@ -33,6 +33,13 @@ Test Run Release
     Wait Until Commit Arrives    ${commit_name}
     ${branch_count}=    Odoo Search    cicd.git.branch    [('name', '=', 'feature1')]    count=True
     Should Be Equal As Strings    ${branch_count}    1
-    Odoo Execute    cicd.release    cron_heartbeat
-    Odoo Execute    cicd.release    cron_heartbeat
-    Odoo Execute    cicd.release    cron_heartbeat
+    Repeat Keyword    5 times    Release Heartbeat
+
+    ${branch_id}=    Odoo Search    cicd.git.branch    [('name', '=', 'feature1')]
+    Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch_id}
+    Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch_id}
+
+    ${release_item_id}=    Odoo Search    cicd.release.item    []    limit=1
+    ${branches}=    Odoo Read Field    cicd.release.item    ${release_item_id}    branch_ids
+
+    Should Be Equal As Strings    ${{len(branches)}}    1
