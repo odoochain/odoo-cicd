@@ -94,6 +94,7 @@ class queuejob(models.Model):
             "could not connect to server: Connection refused",
             "server closed the connection unexpectedly",
             "ssh_exchange_identification: read: Connection reset by peer",
+            "Connection timed out",
         ]
 
         ignore_idkeys = [
@@ -110,7 +111,7 @@ class queuejob(models.Model):
             for job in self.search(
                 [
                     ("state", "=", "failed"),
-                    ('date_created', '>', crit_date),
+                    ("date_created", ">", crit_date),
                     "|",
                     ("exc_info", "ilike", reason),
                     ("result", "ilike", reason),
