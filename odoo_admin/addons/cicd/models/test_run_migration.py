@@ -44,29 +44,16 @@ class MigrationTest(models.Model):
                 settings=settings,
             )
             shell.odoo("down", "-v", force=True, allow_error=True)
-
             shell.odoo("up", "-d", "postgres")
-            breakpoint()
-            shell.odoo(
-                "restore",
-                "odoo-db",
-                self.dump_id.name,
-                "--no-dev-scripts",
-                force=True,
-            )
-            shell.odoo("snap", "remove", self.snapname, allow_error=True)
-            shell.odoo("snap", "save", self.snapname)
+            dump_name = self.dump_id.name
+            self._report(f"Restoring {dump_name}")
+            shell.odoo("-f", "restore", "odoo-db", dump_name)
             shell.wait_for_postgres()
 
             yield shell, {}
 
     def _execute(self, shell, runenv):
-        self._report(f"Restoring {self.run_id.branch_id.dump_id.name}")
-
-        shell.odoo("-f", "restore", "odoo-db", self.test_setting_id.dump_id.name)
-        shell.wait_for_postgres()
         shell.odoo("update", timeout=self.test_setting_id.timeout)
-        shell.wait_for_postgres()
 
 
 class TestSettingsMigrations(models.Model):
