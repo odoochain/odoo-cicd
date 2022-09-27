@@ -94,6 +94,7 @@ class queuejob(models.Model):
             "could not connect to server: Connection refused",
             "server closed the connection unexpectedly",
             "ssh_exchange_identification: read: Connection reset by peer",
+            # git pull timeout
             "Connection timed out",
         ]
 
