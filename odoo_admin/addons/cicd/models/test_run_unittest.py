@@ -97,15 +97,16 @@ class UnitTest(models.Model):
         shell.odoo("down", "-v", force=True)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
+        loglevel = 'info'  # with error MRP tests fail in odoo14 - they check what is reported
         if self.odoo_module != "base":
-            shell.odoo("update", "base", "--log=error", "--no-dangling-check")
+            shell.odoo("update", "base", f"--log={loglevel}", "--no-dangling-check")
 
         shell.odoo(
             "update",
             self.odoo_module,
             "--no-dangling-check",
             f"--test-tags={self.tags}",
-            "--log=error",
+            f"--log={loglevel}",
         )
 
     def _compute_name(self):
