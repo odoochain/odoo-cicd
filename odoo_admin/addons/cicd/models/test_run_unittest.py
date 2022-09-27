@@ -97,6 +97,8 @@ class UnitTest(models.Model):
         shell.odoo("down", "-v", force=True)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
+        # also good: you get more detailed info about failing test; so really required
+        # and good to use
         loglevel = 'info'  # with error MRP tests fail in odoo14 - they check what is reported
         if self.odoo_module != "base":
             shell.odoo("update", "base", f"--log={loglevel}", "--no-dangling-check")
