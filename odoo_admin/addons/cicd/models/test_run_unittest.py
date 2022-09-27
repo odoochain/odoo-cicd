@@ -94,7 +94,7 @@ class UnitTest(models.Model):
 
     def _execute_test_at_prepared_environment(self, shell, runenv):
         self._report(f"Installing module {self.odoo_module}")
-        shell.odoo("down", force=True)
+        shell.odoo("down", "-v", force=True)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
         if self.odoo_module != "base":
