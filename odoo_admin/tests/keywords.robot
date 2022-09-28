@@ -152,7 +152,7 @@ Make Release
     ${release}=    Odoo Create    cicd.release    ${values}
     RETURN    ${release}
 
-Wait Until Commit Arrives  [Arguments]  ${commit_name}
+Wait Until Commit Arrives    [Arguments]    ${commit_name}
     Log To Console    Wait till commit arrives
     ${repo}=    Odoo Search    cicd.git.repo    domain=[]    limit=1
     Log To Console    Fetching from Repo
@@ -162,25 +162,43 @@ Wait Until Commit Arrives  [Arguments]  ${commit_name}
     Wait Until Keyword Succeeds    5x    10 sec    Wait For Commit    ${commit_name}
 
 Fetch All Branches
-    ${repo}=                      Odoo Search        cicd.git.repo                 domain=[]                                       limit=1
-    cicd.Cicdodoo                 up                 -d                            odoo_queuejobs
-    Odoo Execute                  cicd.git.repo      method=fetch                  ids=${repo}
+    ${repo}=    Odoo Search
+    ...    cicd.git.repo
+    ...    domain=[]
+    ...    limit=1
+    cicd.Cicdodoo    up    -d    odoo_queuejobs
+    Odoo Execute    cicd.git.repo    method=fetch    ids=${repo}
     Wait Queuejobs Done
-    Odoo Execute                  cicd.git.repo      method=create_all_branches    ids=${repo}
+    Odoo Execute    cicd.git.repo    method=create_all_branches    ids=${repo}
     Wait Queuejobs Done
-    ${main_count}=                Odoo Search        cicd.git.branch               domain=[['name', '=', 'main']]                  count=True
-    Should Be Equal As Strings    ${main_count}      1
-    ${main_branch}=               Odoo Search        cicd.git.branch               domain=[['name', '=', 'main']]
-    Odoo Execute                  cicd.git.branch    method=update_git_commits     ids=${main_branch}
+    ${main_count}=    Odoo Search
+    ...    cicd.git.branch
+    ...    domain=[['name', '=', 'main']]
+    ...    count=True
+    Should Be Equal As Strings    ${main_count}    1
+    ${main_branch}=    Odoo Search    cicd.git.branch    domain=[['name', '=', 'main']]
+    Odoo Execute    cicd.git.branch    method=update_git_commits    ids=${main_branch}
     Wait Queuejobs Done
-    ${commits}=                   Odoo Search        cicd.git.commit               domain=[['branch_ids', '=', ${main_branch}]]    count=True
-    Should Be Equal As Strings    ${commits}         4
+    ${commits}=    Odoo Search
+    ...    cicd.git.commit
+    ...    domain=[['branch_ids', '=', ${main_branch}]]
+    ...    count=True
+    Should Be Equal As Strings    ${commits}    4
 
 Setup Repository
-    cicd.Make Odoo Repo    ${SRC_REPO}      ${ODOO_VERSION}
-    ${postgres}=           Make Postgres
-    ${machine}=            Make Machine     ${postgres}        source_dir=${CICD_WORKSPACE}
-    ${repo}=               Make Repo        ${machine}
+    cicd.Make Odoo Repo    ${SRC_REPO}    ${ODOO_VERSION}
+    ${postgres}=    Make Postgres
+    ${machine}=    Make Machine    ${postgres}    source_dir=${CICD_WORKSPACE}
+    ${repo}=    Make Repo    ${machine}
 
 Release Heartbeat
+    ${date}=    Get Now As String
+    # Log To Console  FREE HAND for some hours
+    # Sleep  10000s
+
+    Log To Console    Release Heartbeat ${date}
+    Wait Queuejobs Done
     Odoo Execute    cicd.release    cron_heartbeat
+    Sleep    5s
+    Wait Queuejobs Done
+    Log To Console    Release Heartbeat Finished ${date}
