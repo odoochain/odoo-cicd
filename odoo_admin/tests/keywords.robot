@@ -13,6 +13,7 @@ ${ODOO_VERSION}                     15.0
 ${DUMPS_PATH}                       /tmp/cicd_test_dumps
 ${CICD_WORKSPACE}                   /tmp/cicd_workspace
 ${DIR_RELEASED_VERSION}             /tmp/cicd_release1
+${DIR_TMP_RELEASE}                  /tmp/cicd_tmp_release
 ${ROBOTTEST_RELEASE_SSH_USER}       cicdrelease
 
 
@@ -42,8 +43,11 @@ Setup Suite
     cicd.Cicdodoo    kill    odoo_queuejobs    odoo_cronjobs
     Run keyword and ignore error    cicd.Sshcmd    sudo rm -Rf ${CICD_WORKSPACE}
     cicd.Sshcmd    rm -Rf ${CICD_WORKSPACE}
-    cicd.Sshcmd    mkdir -p ${CICD_WORKSPACE}
+    cicd.Sshcmd    mkdir -p "${CICD_WORKSPACE}"
+    cicd.Sshcmd    chmod a+rw "${CICD_WORKSPACE}"
     cicd.Sshcmd    mkdir -p ${DUMPS_PATH}
+    cicd.Sshcmd    mkdir -p ${DIR_TMP_RELEASE}
+    cicd.Sshcmd    chmod a+rw "${DIR_TMP_RELEASE}"
     IF    "${CICD_WORKSPACE}" == ""    FAIL    requires CICD_WORKSPACE set
     cicd.Sshcmd    mkdir -p "${CICD_WORKSPACE}"
     cicd.Sshcmd    rm -Rf "${CICD_WORKSPACE}/*"
@@ -77,7 +81,10 @@ Make Postgres
     RETURN    ${postgres}
 
 Make Machine
-    [Arguments]    ${prefix}    ${postgres}    ${source_dir}    ${ttype}=dev    ${ssh_user}=${ROBOTTEST_SSH_USER}
+    [Arguments]    ${prefix}
+    ...    ${postgres}    ${source_dir}    ${ttype}=dev
+    ...    ${ssh_user}=${ROBOTTEST_SSH_USER}    ${tempdir}=${{ None }}
+
     ${uuid}=    Get Guid
     ${date}=    Get Now As String
     ${name}=    Set Variable    ${{$date + '-' + $uuid}}
@@ -105,6 +112,14 @@ Make Machine
     ...    name=${DUMPS_PATH}
     ...    machine_id=${machine}
     Odoo Create    cicd.machine.volume    ${values}
+
+    IF    ${tempdir}
+        ${volume_id}=    Odoo Search    cicd.machine.volume
+        ...    [('machine_id', '=', ${machine}), ('ttype', '=', 'temp')]
+
+        Odoo Write    cicd.machine.volume    ${volume_id}    ${{ {'name': '${DIR_TMP_RELEASE}'} }}
+    END
+
     RETURN    ${machine}
 
 Make Repo
@@ -191,7 +206,7 @@ Fetch All Branches
 Setup Repository
     cicd.Make Odoo Repo    ${SRC_REPO}    ${ODOO_VERSION}
     ${postgres}=    Make Postgres
-    ${machine}=    Make Machine    dev  ${postgres}    source_dir=${CICD_WORKSPACE}
+    ${machine}=    Make Machine    dev    ${postgres}    source_dir=${CICD_WORKSPACE}
     ${repo}=    Make Repo    ${machine}
 
 Release Heartbeat
