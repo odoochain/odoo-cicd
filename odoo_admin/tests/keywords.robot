@@ -80,10 +80,10 @@ Make Machine
     [Arguments]    ${prefix}    ${postgres}    ${source_dir}    ${ttype}=dev    ${ssh_user}=${ROBOTTEST_SSH_USER}
     ${uuid}=    Get Guid
     ${date}=    Get Now As String
-    ${name}=    Set Variable    ${{${prefix} + "_" + $date + '-' + $uuid}}
+    ${name}=    Set Variable    ${{$date + '-' + $uuid}}
 
     ${values}=    Create Dictionary
-    ...    name=${name}
+    ...    name=${prefix}${name}
     ...    is_docker_host=True
     ...    external_url=http://testsite
     ...    ttype=${ttype}
