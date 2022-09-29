@@ -58,7 +58,7 @@ Wait Testruns Done
     ...    params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
 
 Make Postgres
-    [Arguments]  ${ttype}=dev  ${db_port}=${CICD_DB_PORT}  ${db_host}=${CICD_DB_HOST}
+    [Arguments]    ${ttype}=dev    ${db_port}=${CICD_DB_PORT}    ${db_host}=${CICD_DB_HOST}
     ${uuid}=    Get Guid
     ${date}=    Get Now As String
     ${name}=    Set Variable    ${{$date + '-' + $uuid}}
@@ -77,10 +77,10 @@ Make Postgres
     RETURN    ${postgres}
 
 Make Machine
-    [Arguments]    ${postgres}    ${source_dir}    ${ttype}=dev    ${ssh_user}=${ROBOTTEST_SSH_USER}
+    [Arguments]    ${prefix}    ${postgres}    ${source_dir}    ${ttype}=dev    ${ssh_user}=${ROBOTTEST_SSH_USER}
     ${uuid}=    Get Guid
     ${date}=    Get Now As String
-    ${name}=    Set Variable    ${{$date + '-' + $uuid}}
+    ${name}=    Set Variable    ${{${prefix} + "_" + $date + '-' + $uuid}}
 
     ${values}=    Create Dictionary
     ...    name=${name}
@@ -191,7 +191,7 @@ Fetch All Branches
 Setup Repository
     cicd.Make Odoo Repo    ${SRC_REPO}    ${ODOO_VERSION}
     ${postgres}=    Make Postgres
-    ${machine}=    Make Machine    ${postgres}    source_dir=${CICD_WORKSPACE}
+    ${machine}=    Make Machine    dev  ${postgres}    source_dir=${CICD_WORKSPACE}
     ${repo}=    Make Repo    ${machine}
 
 Release Heartbeat

@@ -17,9 +17,14 @@ Test Run Release
     Fetch All Branches
 
     ${repo}=    Odoo Search    cicd.git.repo    domain=[]    limit=1
-    Log To Console  Configure postgres which runs as docker container
-    ${postgres}=    Make Postgres  prodrelease  ttype=prod  db_host=postgres  db_port=5432
-    ${machine_id}=    Make Machine    ${postgres[0]}    ssh_user=${ROBOTTEST_RELEASE_SSH_USER}  source_dir=${DIR_RELEASED_VERSION}    type=prod
+    Log To Console    Configure postgres which runs as docker container
+    ${postgres}=    Make Postgres    ttype=production    db_host=postgres    db_port=5432
+    ${machine_id}=    Make Machine
+    ...    prod
+    ...    ${postgres}
+    ...    ssh_user=${ROBOTTEST_RELEASE_SSH_USER}
+    ...    source_dir=${DIR_RELEASED_VERSION}
+    ...    ttype=prod
     ${release}=    Make Release    repo_id=${repo[0]}    branch=main    machine_id=${machine_id}
 
     Log To Console    Make a new featurebranch
