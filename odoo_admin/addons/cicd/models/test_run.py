@@ -27,6 +27,7 @@ SETTINGS = (
     "RUN_ODOO_QUEUEJOBS=0\n"
     "RUN_ODOO_CRONJOBS=0\n"
     "ODOO_LOG_LEVEL=warn\n"
+    # "RUNNING_ENV=prod\n"
 )
 
 logger = logging.getLogger(__name__)

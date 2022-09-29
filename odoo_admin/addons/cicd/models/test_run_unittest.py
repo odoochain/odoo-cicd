@@ -51,10 +51,15 @@ class UnitTest(models.Model):
         breakpoint()
         DBNAME = "odoo"
         with self._shell(quick=True) as shell:
+            # minimize use of server widemodules with settings
             settings = self.env["cicd.git.branch"]._get_settings_isolated_run(
                 dbname=DBNAME,
                 forcesettings=(
-                    f"{SETTINGS}\n" f"SERVER_WIDE_MODULES=base,web\n" f"DBNAME={DBNAME}"
+                    f"{SETTINGS}\n"
+                    "SERVER_WIDE_MODULES=base,web\n"
+                    "ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=0\n"
+                    "RUN_ODOO_QUEUEJOBS=0\n"
+                    f"DBNAME={DBNAME}"
                 ),
             )
             self._ensure_source_and_machines(
@@ -97,9 +102,13 @@ class UnitTest(models.Model):
         shell.odoo("down", "-v", force=True)
         shell.odoo("up", "-d", "postgres")
         shell.wait_for_postgres()
-        loglevel = 'info'  # with error MRP tests fail in odoo14 - they check what is reported
-        if self.odoo_module != "base":
-            shell.odoo("update", "base", f"--log={loglevel}", "--no-dangling-check")
+        loglevel = (
+            "info"  # with error MRP tests fail in odoo14 - they check what is reported
+        )
+        if self.odoo_module == "base":
+            shell.odoo("reset", "db", "-C", "--do-not-install-base")
+        else:
+            shell.odoo("reset", "db", "-C")  # base module installed
 
         shell.odoo(
             "update",
