@@ -209,6 +209,7 @@ class ReleaseItem(models.Model):
             rec.computed_summary = "\n".join(summary)
 
     def _do_release(self):
+        breakpoint()
         try:
             with self.release_id._get_logsio() as logsio:
                 if self.release_type == "build_and_deploy":
@@ -407,7 +408,6 @@ class ReleaseItem(models.Model):
             ) from ex
 
     def cron_heartbeat(self):
-        breakpoint()
         self.ensure_one()
         self._lock()
         now = fields.Datetime.now()
@@ -665,6 +665,7 @@ class ReleaseItem(models.Model):
             raise ValidationError("Invalid state to switch from.")
         self.planned_date = fields.Datetime.now()
         self.state = "collecting"
+        return True
 
     def resend_release_mail(self):
         self._send_release_mail()

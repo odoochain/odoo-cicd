@@ -6,13 +6,14 @@ Library     ./cicd.py
 
 
 *** Variables ***
-${CICD_WORKSPACE}           /tmp/cicd_workspace
-${SRC_REPO}                 /tmp/odoo1
-${ROBOTTEST_REPO_URL}       file://${SRC_REPO}
-${ODOO_VERSION}             15.0
-${DUMPS_PATH}               /tmp/cicd_test_dumps
-${CICD_WORKSPACE}           /tmp/cicd_workspace
-${DIR_RELEASED_VERSION}     /tmp/cicd_release1
+${CICD_WORKSPACE}                   /tmp/cicd_workspace
+${SRC_REPO}                         /tmp/odoo1
+${ROBOTTEST_REPO_URL}               file://${SRC_REPO}
+${ODOO_VERSION}                     15.0
+${DUMPS_PATH}                       /tmp/cicd_test_dumps
+${CICD_WORKSPACE}                   /tmp/cicd_workspace
+${DIR_RELEASED_VERSION}             /tmp/cicd_release1
+${ROBOTTEST_RELEASE_SSH_USER}       cicdrelease
 
 
 *** Keywords ***
@@ -46,6 +47,7 @@ Setup Suite
     IF    "${CICD_WORKSPACE}" == ""    FAIL    requires CICD_WORKSPACE set
     cicd.Sshcmd    mkdir -p "${CICD_WORKSPACE}"
     cicd.Sshcmd    rm -Rf "${CICD_WORKSPACE}/*"
+    cicd.Sshcmd    mkdir -p "${DIR_RELEASED_VERSION}"
 
     Odoo Load Data    res/security.xml
 
@@ -56,13 +58,14 @@ Wait Testruns Done
     ...    params=${{["select count(*) from cicd_test_run where state not in ('done', 'failed')"]}}
 
 Make Postgres
+    [Arguments]  ${ttype}=dev  ${db_port}=${CICD_DB_PORT}  ${db_host}=${CICD_DB_HOST}
     ${uuid}=    Get Guid
     ${date}=    Get Now As String
     ${name}=    Set Variable    ${{$date + '-' + $uuid}}
 
     ${values}=    Create Dictionary
     ...    name=${name}
-    ...    ttype=dev    db_port=${CICD_DB_PORT}    db_host=${CICD_DB_HOST}
+    ...    ttype=${ttype}    db_port=${db_port}    db_host=${db_host}
     ${postgres}=    Odoo Create    cicd.postgres    ${values}
     Wait Until Keyword Succeeds
     ...    5x
@@ -74,7 +77,7 @@ Make Postgres
     RETURN    ${postgres}
 
 Make Machine
-    [Arguments]    ${postgres}    ${source_dir}
+    [Arguments]    ${postgres}    ${source_dir}    ${ttype}=dev    ${ssh_user}=${ROBOTTEST_SSH_USER}
     ${uuid}=    Get Guid
     ${date}=    Get Now As String
     ${name}=    Set Variable    ${{$date + '-' + $uuid}}
@@ -83,8 +86,8 @@ Make Machine
     ...    name=${name}
     ...    is_docker_host=True
     ...    external_url=http://testsite
-    ...    ttype=dev
-    ...    ssh_user=${ROBOTTEST_SSH_USER}
+    ...    ttype=${ttype}
+    ...    ssh_user=${ssh_user}
     ...    ssh_pubkey=${ROBOTTEST_SSH_PUBKEY}
     ...    ssh_key=${ROBOTTEST_SSH_KEY}
     ...    postgres_server_id=${postgres}
@@ -193,8 +196,8 @@ Setup Repository
 
 Release Heartbeat
     ${date}=    Get Now As String
-    # Log To Console  FREE HAND for some hours
-    # Sleep  10000s
+    # Log To Console    FREE HAND for some hours
+    # Sleep    10000s
 
     Log To Console    Release Heartbeat ${date}
     Wait Queuejobs Done

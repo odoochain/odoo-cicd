@@ -176,7 +176,7 @@ class CicdReleaseAction(models.Model):
                 with rec._contact_machine(logsio) as shell:
                     settings = rec.effective_settings
                     settings = f"DOCKER_IMAGE_TAG={commit_sha}\n" f"{settings}"
-                    shell.put(settings, "~/.odoo/settings")
+                    shell.put(settings, "~/.odoo/settings.{rec.release_id.project_name}")
 
     def _remove_setting(self, settings, key):
         def _do():
