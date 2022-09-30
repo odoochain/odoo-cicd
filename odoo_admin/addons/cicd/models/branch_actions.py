@@ -424,7 +424,8 @@ class Branch(models.Model):
         shell.odoo("update", "anonymize", "--log=error")
         shell.odoo("anonymize")
 
-    def _cron_run_open_tests(self):
+    @api.model
+    def cron_run_open_tests(self):
         for testrun in self.env["cicd.test.run"].search([("state", "=", "open")]):
             # observed duplicate starts without eta
             testrun.as_job(
@@ -436,6 +437,7 @@ class Branch(models.Model):
                 ),
                 eta=1,
             ).execute()
+        return True
 
     def _after_build(self, shell, **kwargs):
         self.last_access = fields.Datetime.now()  # to avoid cycle down

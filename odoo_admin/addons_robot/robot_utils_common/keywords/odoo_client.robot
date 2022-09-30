@@ -182,6 +182,7 @@ Odoo Ref
     [return]          ${result}
 
 Odoo Execute
+    [Documentation]  To execute @api.model function dont pass ids
     [Arguments]
     ...            ${model}
     ...            ${method}

@@ -850,12 +850,14 @@ class GitBranch(models.Model):
             self.latest_commit_id.approval_state = "approved"
         else:
             self.latest_commit_id.code_review_state = "approved"
+        return True
 
     def set_declined(self):
         if self.latest_commit_id.approval_state not in ["approved", "declined"]:
             self.latest_commit_id.approval_state = "declined"
         else:
             self.latest_commit_id.code_review_state = "declined"
+        return True
 
     def ticketsystem_set_state(self, state):
         assert state in ["done", "in progress"]

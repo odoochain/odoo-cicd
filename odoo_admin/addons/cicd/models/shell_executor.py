@@ -333,13 +333,13 @@ class ShellExecutor(BaseShellExecutor):
                 usage="srcfile", maxage=dict(hours=1)
             ) as temppath:
                 self.X(["mkdir", "-p", temppath])
-                self.X(["tar", "xfz", filename], cwd=temppath)
+                self.X(["tar", "xfz", filename, "--no-same-owner"], cwd=temppath)
                 self.X(
                     [
                         "rsync",
                         str(temppath) + "/",
                         str(dest_path) + "/",
-                        "-ar",
+                        "-r",
                         "--delete-after",
                     ]
                 )

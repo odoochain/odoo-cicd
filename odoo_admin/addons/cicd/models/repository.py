@@ -152,6 +152,7 @@ class Repository(models.Model):
                     excludes = []
                     if not with_git:
                         excludes.append(".git")
+                    shell.put(commit, ".sha")
                     return shell.get_zipped(repo_path, excludes)
                 finally:
                     shell.rm(repo_path)
