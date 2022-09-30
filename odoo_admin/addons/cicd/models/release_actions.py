@@ -143,6 +143,7 @@ class CicdReleaseAction(models.Model):
                 shell.extract_zip(zip_content, shell.cwd)
 
     def _update_images(self, logsio):
+        breakpoint()
         logsio.info("Updating ~/.odoo/images")
         with self._extra_env() as x_self:
             machine = x_self.release_id.repo_id.machine_id
@@ -204,7 +205,6 @@ class CicdReleaseAction(models.Model):
         """
         Builds with given configuration and uploads to registry
         """
-        breakpoint()
         with self._extra_env() as x_self:
             logsio.info("Preparing updating docker registry")
             for rec in x_self:

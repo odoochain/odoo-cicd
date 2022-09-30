@@ -123,8 +123,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
 
         path = (self.path or "").split("?")[0]
         if not delegator_path:
-            # if self.path.endswith("/web"):
-            #    import pudb;pudb.set_trace()
             path = self.path
             url = f"{cicd_index_url}{path}"
         elif path.startswith("/mailer/") and delegator_path:
