@@ -12,53 +12,35 @@ Test Setup          Setup Test
 
 
 *** Test Cases ***
-Test Run Release
-    Setup Repository
-    Fetch All Branches
+Test Run Release 1
+    [Documentation]    Normal release
+    Test Run Release    deploy_git=${True}
 
-    ${repo}=    Odoo Search    cicd.git.repo    domain=[]    limit=1
-    Log To Console    Configure postgres which runs as docker container
-    ${postgres}=    Make Postgres    ttype=production    db_host=postgres    db_port=5432
-    ${machine_id}=    Make Machine
-    ...    prod
-    ...    ${postgres}
-    ...    ssh_user=${ROBOTTEST_RELEASE_SSH_USER}
-    ...    source_dir=${DIR_RELEASED_VERSION}
-    ...    tempdir=${DIR_TMP_RELEASE}
-    ...    ttype=prod
-    ${release}=    Make Release    repo_id=${repo[0]}    branch=main    machine_id=${machine_id}
+Test Run Release 2
+    [Documentation]    Not deploying git directory
+    Test Run Release    deploy_git=${False}
 
-    Log To Console    Make a new featurebranch
-    ${commit_name}=    Set Variable    New Feature1
-    cicd.Sshcmd    git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
-    cicd.Sshcmd    git checkout -b feature1    cwd=${CICD_WORKSPACE}/tempedit
-    cicd.Sshcmd    touch '${CICD_WORKSPACE}/tempedit/feature1'
-    cicd.Sshcmd    git add feature1    cwd=${CICD_WORKSPACE}/tempedit
-    cicd.Sshcmd    git commit -am '${commit_name}'    cwd=${CICD_WORKSPACE}/tempedit
-    cicd.Sshcmd    git push --set-upstream origin feature1    cwd=${CICD_WORKSPACE}/tempedit
-
-    Wait Until Commit Arrives    ${commit_name}
-    ${branch_count}=    Odoo Search    cicd.git.branch    [('name', '=', 'feature1')]    count=True
-    Should Be Equal As Strings    ${branch_count}    1
-
+Test Block Deployment
+    ${release_item_id}=    Prepare Release
+    Log To Console    The branch should be now already in the deployment; and now
+    ...    it is decided to block it in last second; so check if
+    ...    deployment is stopped
     ${branch_id}=    Odoo Search    cicd.git.branch    [('name', '=', 'feature1')]
-    Odoo Write    cicd.git.branch    ${branch_id}    ${{ {'enduser_summary': "summary1"} }}
-    Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch_id}
-    Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch_id}
-    Repeat Keyword    5 times    Release Heartbeat
+    Odoo Write    cicd.git.branch    ${branch_id}    ${{ {'block_release': True } }}
+    Release    release_item_id=${release_item_id}
 
-    ${release_item_id}=    Odoo Search    cicd.release.item    []    limit=1
-    ${branches}=    Odoo Read Field    cicd.release.item    ${release_item_id}    branch_ids
+Test Merge Conflict
+    [Documentation]  Checks if albeit merge conflicts a release happens
 
-    Should Be Equal As Strings    ${{str(len(${branches}))}}    1
+    ${release_item_id}=  Prepare Release
+    # Change the same file like in feature1 so that a conflict happens
+    Make New Featurebranch
+    ...    name=feature2
+    ...    commit_name=New Feature2
+    ...    filetotouch=feature1
+    ...    filecontent=something_else
 
-    Odoo Execute    cicd.release.item    release_now    ${release_item_id}
-    Repeat Keyword    5 times    Release Heartbeat
-
-    Odoo Execute    cicd.git.branch    cron_run_open_tests
-    Wait Queuejobs Done
-
-    Repeat Keyword    5 times    Release Heartbeat
-
-    ${state}=    Odoo Read Field    cicd.release.item    ${release_item_id}    state
-    Should Be Equal As Strings    ${state}    done
+    Release  release_item_id=${release_item_id}
+    ${branch_ids}=  Odoo Read Field  cicd.release.item  ${release_item_id}  branch_ids
+    ${branches}=  Odoo Read  cicd.release.item.branch  ${branch_ids}  state
+    Should Be True  'conflict' in [x['state'] for x in branches]
