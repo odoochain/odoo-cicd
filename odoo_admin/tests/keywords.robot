@@ -15,6 +15,11 @@ ${CICD_WORKSPACE}                   /tmp/cicd_workspace
 ${DIR_RELEASED_VERSION}             /tmp/cicd_release1
 ${DIR_TMP_RELEASE}                  /tmp/cicd_tmp_release
 ${ROBOTTEST_RELEASE_SSH_USER}       cicdrelease
+${RELEASE_SETTINGS}=                SEPARATOR=\n
+...                                 RUN_POSTGRES=1
+...                                 RUN_ODOO_QUEUEJOBS=0
+...                                 RUN_ODOO_CRONJOBS=0
+...                                 ODOO_PYTHON_VERSION=3.9.12
 
 
 *** Keywords ***
@@ -25,7 +30,9 @@ Setup Test
 
 Setup Suite
     IF    "${CICD_WORKSPACE}" == ""    FAIL    requires CICD_WORKSPACE set
-    IF    "${CICD_HOME}" == ""    FAIL    requires CICD_HOME set point to root folder of this project
+    IF    "${CICD_HOME}" == ""
+        FAIL    requires CICD_HOME set point to root folder of this project
+    END
     IF    "${ROBOTTEST_SSH_USER}" == ""    FAIL    user for executing commands
 
     ${CICD_DB_HOST}=    Get Environment Variable    CICD_DB_HOST
@@ -163,15 +170,13 @@ Make Release
     ...    cicd.git.branch
     ...    [['name', '=', '${branch}']]
     ${action_ids}=    Set Variable    ${{ [[0,0, {'machine_id': ${machine_id}}]] }}
-    ${common_settings}=    Set Variable    RUN_POSTGRES=1\nRUN_ODOO_QUEUEJOBS=0\nRUN_ODOO_CRONJOBS=0
-
     ${values}=    Create Dictionary    name=release
     ...    project_name=odoorelease
     ...    branch_id=${branch_id[0]}
     ...    auto_release=True
     ...    repo_id=${repo_id}
     ...    sequence_id=${sequence_id}
-    ...    common_settings=${common_settings}
+    ...    common_settings=${RELEASE_SETTINGS}
     ...    action_ids=${action_ids}
     ${release}=    Odoo Create    cicd.release    ${values}
     RETURN    ${release}

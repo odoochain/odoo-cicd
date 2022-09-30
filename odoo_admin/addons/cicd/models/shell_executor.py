@@ -339,7 +339,7 @@ class ShellExecutor(BaseShellExecutor):
                         "rsync",
                         str(temppath) + "/",
                         str(dest_path) + "/",
-                        "-ar",
+                        "-r",
                         "--delete-after",
                     ]
                 )

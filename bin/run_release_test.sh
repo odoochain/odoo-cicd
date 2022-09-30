@@ -4,6 +4,9 @@
 # * add /home/<user>/.ssh/environment with:
 #   PATH=/usr/local/sbin:/usr/local/bin:/usr/bin:/home/cicdrelease/.local/sudobin:/home/cicdrelease/.local/bin
 
+# One time prep:
+# copy git-cicd to release user ~/.local/bin
+
 set -ex
 ./cicd down -v
 ./cicd up -d postgres
