@@ -26,7 +26,6 @@ Test Run Release
     ...    source_dir=${DIR_RELEASED_VERSION}
     ...    tempdir=${DIR_TMP_RELEASE}
     ...    ttype=prod
-    Odoo Write  cicd.machine  ${machine_id}  ${{ {'odoocmd': "${CICDRELEASE_ODOOCMD}"} }}
     ${release}=    Make Release    repo_id=${repo[0]}    branch=main    machine_id=${machine_id}
 
     Log To Console    Make a new featurebranch

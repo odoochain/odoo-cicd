@@ -24,6 +24,10 @@ Setup Test
     Odoo Sql    update ir_config_parameter set value = '2' where key='test.timeout.failed.queuejobs.minutes';
 
 Setup Suite
+    IF    "${CICD_WORKSPACE}" == ""    FAIL    requires CICD_WORKSPACE set
+    IF    "${CICD_HOME}" == ""    FAIL    requires CICD_HOME set point to root folder of this project
+    IF    "${ROBOTTEST_SSH_USER}" == ""    FAIL    user for executing commands
+
     ${CICD_DB_HOST}=    Get Environment Variable    CICD_DB_HOST
     ${CICD_DB_PORT}=    Get Environment Variable    CICD_DB_PORT
     # TODO: whats this?
@@ -42,16 +46,18 @@ Setup Suite
     Log To Console    Kill Cronjobs and Queuejobs
     cicd.Cicdodoo    kill    odoo_queuejobs    odoo_cronjobs
     Run keyword and ignore error    cicd.Sshcmd    sudo rm -Rf ${CICD_WORKSPACE}
-    cicd.Sshcmd    rm -Rf ${CICD_WORKSPACE}
+    cicd.Sshcmd    rm -Rf "${CICD_WORKSPACE}"
     cicd.Sshcmd    mkdir -p "${CICD_WORKSPACE}"
     cicd.Sshcmd    chmod a+rw "${CICD_WORKSPACE}"
-    cicd.Sshcmd    mkdir -p ${DUMPS_PATH}
-    cicd.Sshcmd    mkdir -p ${DIR_TMP_RELEASE}
-    cicd.Sshcmd    chmod a+rw "${DIR_TMP_RELEASE}"
-    IF    "${CICD_WORKSPACE}" == ""    FAIL    requires CICD_WORKSPACE set
+    cicd.Sshcmd    mkdir -p "${DUMPS_PATH}"
     cicd.Sshcmd    mkdir -p "${CICD_WORKSPACE}"
     cicd.Sshcmd    rm -Rf "${CICD_WORKSPACE}/*"
+
+    # for release user
     cicd.Sshcmd    mkdir -p "${DIR_RELEASED_VERSION}"
+    cicd.Sshcmd    mkdir -p "${DIR_TMP_RELEASE}"
+    cicd.Sshcmd    chmod a+rw "${DIR_TMP_RELEASE}"
+    cicd.Sshcmd    chmod a+rw "${DIR_RELEASED_VERSION}"
 
     Odoo Load Data    res/security.xml
 
@@ -83,7 +89,7 @@ Make Postgres
 Make Machine
     [Arguments]    ${prefix}
     ...    ${postgres}    ${source_dir}    ${ttype}=dev
-    ...    ${ssh_user}=${ROBOTTEST_SSH_USER}    ${tempdir}=${{ None }}
+    ...    ${ssh_user}=${ROBOTTEST_SSH_USER}    ${tempdir}=${{ "" }}
 
     ${uuid}=    Get Guid
     ${date}=    Get Now As String
@@ -113,7 +119,7 @@ Make Machine
     ...    machine_id=${machine}
     Odoo Create    cicd.machine.volume    ${values}
 
-    IF    ${tempdir}
+    IF    "${tempdir}" != ""
         ${volume_id}=    Odoo Search    cicd.machine.volume
         ...    [('machine_id', '=', ${machine}), ('ttype', '=', 'temp')]
 
