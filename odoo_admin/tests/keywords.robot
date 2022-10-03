@@ -291,12 +291,3 @@ Release
 
     ${state}=    Odoo Read Field    cicd.release.item    ${release_item_id}    state
     Should Be Equal As Strings    ${state}    done
-
-Test Run Release
-    [Arguments]    ${deploy_git}=${FALSE}
-    ${release_item_id}=    Prepare Release    deploy_git=${deploy_git}
-    ${branches}=    Odoo Read Field    cicd.release.item    ${release_item_id}    branch_ids
-
-    Should Be Equal As Strings    ${{str(len(${branches}))}}    1
-
-    Release    ${release_item_id}
