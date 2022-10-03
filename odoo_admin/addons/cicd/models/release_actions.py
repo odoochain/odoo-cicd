@@ -62,7 +62,6 @@ class CicdReleaseAction(models.Model):
                 shell.rm(filepath)
 
     def run_action_set(self, release_item, commit_sha):
-        breakpoint()
         actions = self
         errors = []
 
@@ -117,10 +116,6 @@ class CicdReleaseAction(models.Model):
         with self.machine_id._shell(
             cwd=path, logsio=logsio, project_name=project_name
         ) as shell:
-            if not shell.exists(path):
-                raise Exception(
-                    (f"Path {path} does not exist. " "Please setup an odoo before.")
-                )
             yield shell
 
     def _stop_odoo(self, logsio):
@@ -140,7 +135,12 @@ class CicdReleaseAction(models.Model):
 
         for rec in self:
             with rec._contact_machine(logsio) as shell:
-                shell.extract_zip(zip_content, shell.cwd)
+                path = shell.cwd
+                home_dir = shell._get_home_dir()
+                breakpoint()
+                # dest path not required to exist
+                with shell.clone(cwd=home_dir) as shell2:
+                    shell2.extract_zip(zip_content, path)
 
     def _update_images(self, logsio):
         breakpoint()
@@ -269,6 +269,8 @@ class CicdReleaseAction(models.Model):
             shell.odoo(*cmd)
 
     def _start_odoo(self, logsio):
+        breakpoint()
         for self in self:
             with self._contact_machine(logsio) as shell:
-                shell.odoo("up", "-d")
+                if shell.exists(shell.cwd):
+                    shell.odoo("up", "-d")

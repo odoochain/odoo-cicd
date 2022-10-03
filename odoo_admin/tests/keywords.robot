@@ -61,6 +61,8 @@ Setup Suite
     cicd.Sshcmd    rm -Rf "${CICD_WORKSPACE}/*"
 
     # for release user
+    cicd.Sshcmd    rm -Rf "${DIR_RELEASED_VERSION}"
+    cicd.Sshcmd    rm -Rf "${DIR_TMP_RELEASE}"
     cicd.Sshcmd    mkdir -p "${DIR_RELEASED_VERSION}"
     cicd.Sshcmd    mkdir -p "${DIR_TMP_RELEASE}"
     cicd.Sshcmd    chmod a+rw "${DIR_TMP_RELEASE}"
@@ -233,11 +235,11 @@ Release Heartbeat
     Log To Console    Release Heartbeat Finished ${date}
 
 Make New Featurebranch
-    [Arguments]  ${name}  ${commit_name}  ${filetotouch}  ${filecontent}="Something"
+    [Arguments]  ${name}  ${commit_name}  ${filetotouch}=${{ "" }}  ${filecontent}="Something"
     Log To Console    Make a new featurebranch
     cicd.Sshcmd    git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git checkout -b ${name}    cwd=${CICD_WORKSPACE}/tempedit
-    cicd.Sshcmd    touch '${CICD_WORKSPACE}/tempedit/${{ filetotouch or name }}'
+    cicd.Sshcmd    touch '${CICD_WORKSPACE}/tempedit/${{ '${filetotouch}' or '${name}' }}'
     cicd.Sshcmd    git add ${name}    cwd=${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git commit -am '${commit_name}'    cwd=${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git push --set-upstream origin ${name}    cwd=${CICD_WORKSPACE}/tempedit
@@ -262,7 +264,7 @@ Prepare Release
     ...    tempdir=${DIR_TMP_RELEASE}
     ...    ttype=prod
     ${release}=    Make Release    repo_id=${repo[0]}    branch=main    machine_id=${machine_id}
-    Odoo Write    cicd.release    ${release}    ${{ {'deploy_git': ${deploy_git} }}
+    Odoo Write    cicd.release    ${release}    ${{ {'deploy_git': ${deploy_git} }}}
 
     Make New Featurebranch
     ...    name=feature1
