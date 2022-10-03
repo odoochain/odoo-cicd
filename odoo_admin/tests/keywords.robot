@@ -61,12 +61,12 @@ Setup Suite
     cicd.Sshcmd    rm -Rf "${CICD_WORKSPACE}/*"
 
     # for release user
-    cicd.Sshcmd    rm -Rf "${DIR_RELEASED_VERSION}"
-    cicd.Sshcmd    rm -Rf "${DIR_TMP_RELEASE}"
-    cicd.Sshcmd    mkdir -p "${DIR_RELEASED_VERSION}"
-    cicd.Sshcmd    mkdir -p "${DIR_TMP_RELEASE}"
-    cicd.Sshcmd    chmod a+rw "${DIR_TMP_RELEASE}"
-    cicd.Sshcmd    chmod a+rw "${DIR_RELEASED_VERSION}"
+    cicd.Sshcmd    rm -Rf "${DIR_RELEASED_VERSION}"    user=${ROBOTTEST_RELEASE_SSH_USER}
+    cicd.Sshcmd    rm -Rf "${DIR_TMP_RELEASE}"    user=${ROBOTTEST_RELEASE_SSH_USER}
+    cicd.Sshcmd    mkdir -p "${DIR_RELEASED_VERSION}"    user=${ROBOTTEST_RELEASE_SSH_USER}
+    cicd.Sshcmd    mkdir -p "${DIR_TMP_RELEASE}"    user=${ROBOTTEST_RELEASE_SSH_USER}
+    cicd.Sshcmd    chmod a+rw "${DIR_TMP_RELEASE}"    user=${ROBOTTEST_RELEASE_SSH_USER}
+    cicd.Sshcmd    chmod a+rw "${DIR_RELEASED_VERSION}"    user=${ROBOTTEST_RELEASE_SSH_USER}
 
     Odoo Load Data    res/security.xml
 
@@ -235,7 +235,7 @@ Release Heartbeat
     Log To Console    Release Heartbeat Finished ${date}
 
 Make New Featurebranch
-    [Arguments]  ${name}  ${commit_name}  ${filetotouch}=${{ "" }}  ${filecontent}="Something"
+    [Arguments]    ${name}    ${commit_name}    ${filetotouch}=${{ "" }}    ${filecontent}="Something"
     Log To Console    Make a new featurebranch
     cicd.Sshcmd    git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git checkout -b ${name}    cwd=${CICD_WORKSPACE}/tempedit

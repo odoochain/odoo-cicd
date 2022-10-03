@@ -82,8 +82,8 @@ class cicd(object):
         )
         file.unlink()
 
-    def sshcmd(self, stringcommand, output=False, cwd=None):
-        return self._sshcmd(stringcommand, output=output, cwd=cwd)
+    def sshcmd(self, stringcommand, output=False, cwd=None, user=None):
+        return self._sshcmd(stringcommand, output=output, cwd=cwd, user=user)
 
     def _transfer_tree(self, src, dest):
         cmd = [
@@ -96,16 +96,17 @@ class cicd(object):
         ]
         check_call(cmd)
 
-    def _sshcmd(self, stringcommand, output=False, cwd=None):
+    def _sshcmd(self, stringcommand, output=False, cwd=None, user=None):
         if cwd:
             stringcommand = f"cd '{cwd}' || exit -1;" f"{stringcommand}"
+        user = user or self.get_sshuser()
         cmd = [
             "ssh",
             "-o",
             "StrictHostKeyChecking=no",
             "-i",
             self._get_hostkey(),
-            f"{self.get_sshuser()}@host.docker.internal",
+            f"{user}@host.docker.internal",
             f"{stringcommand}",
         ]
         if not output:
