@@ -750,7 +750,8 @@ class GitBranch(models.Model):
             if (
                 not rec.database_size and rec.repo_id.initialize_new_branches
             ) or rec.force_prepare_dump:
-                rec._make_task("_prepare_a_new_instance", checkout=True)
+                if rec.is_release_branch:
+                    rec._make_task("_prepare_a_new_instance", checkout=True)
                 rec.force_prepare_dump = False
             elif rec.database_size:
                 rec._make_task("_update_odoo", checkout=True)
