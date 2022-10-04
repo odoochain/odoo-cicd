@@ -35,18 +35,21 @@ class Branch(models.Model):
     _inherit = "cicd.git.branch"
 
     def _prepare_a_new_instance(self, shell, checkout=False, **kwargs):
-        dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
-        self._clone_instance_folder(shell)
-        if not dump:
-            self._reset_db(shell, **kwargs)
-        else:
-            self.backup_machine_id = dump.machine_id
-            self.dump_id = dump
-        if self.dump_id:
-            self._restore_dump(shell, dump=dump, **kwargs)
-        else:
-            self._reset_db(shell, **kwargs)
-        self._update_all_modules(shell, **kwargs)
+        for self in self:
+            if self.is_release_branch:
+                continue
+            dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
+            self._clone_instance_folder(shell)
+            if not dump:
+                self._reset_db(shell, **kwargs)
+            else:
+                self.backup_machine_id = dump.machine_id
+                self.dump_id = dump
+            if self.dump_id:
+                self._restore_dump(shell, dump=dump, **kwargs)
+            else:
+                self._reset_db(shell, **kwargs)
+            self._update_all_modules(shell, **kwargs)
 
     def _update_odoo(self, shell, checkout=False, **kwargs):
         if (
