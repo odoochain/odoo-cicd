@@ -22,7 +22,7 @@ Test Run Release 1
 Test Run Release 2
     [Documentation]    Not deploying git directory
     ${release_id}=    Odoo Search    cicd.release    []    limit=1
-    Odoo Write    cicd.release    write    ${release_id}    ${{ {'deploy_id': False }}
+    Odoo Write    cicd.release    ${release_id[0]}    ${{ {'deploy_git': False} }}
     Make New Featurebranch
     ...    name=feature2
     ...    commit_name=New Feature2
