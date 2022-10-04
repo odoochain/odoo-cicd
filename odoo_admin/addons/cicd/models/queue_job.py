@@ -99,6 +99,7 @@ class queuejob(models.Model):
             # at test release the pull in odoo_main1 failed because feature1
             # cannot be overriden? perhaps analyze - redoing it works without prob
             "The following untracked working tree files would be overwritten by merge",
+            "error: could not fetch origin",
         ]
 
         ignore_idkeys = [
