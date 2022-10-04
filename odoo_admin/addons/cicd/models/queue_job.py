@@ -96,6 +96,9 @@ class queuejob(models.Model):
             "ssh_exchange_identification: read: Connection reset by peer",
             # git pull timeout
             "Connection timed out",
+            # at test release the pull in odoo_main1 failed because feature1
+            # cannot be overriden? perhaps analyze - redoing it works without prob
+            "The following untracked working tree files would be overwritten by merge",
         ]
 
         ignore_idkeys = [
