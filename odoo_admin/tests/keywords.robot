@@ -27,6 +27,8 @@ Setup Test
     Login
     Log To Console    Reducing wait time for finished queuejobs
     Odoo Sql    update ir_config_parameter set value = '2' where key='test.timeout.failed.queuejobs.minutes';
+    # some retryable errors like git.index lock always may occur
+    Odoo Sql    update ir_cron set active=true, interval_type='seconds', interval_number=10 where ir_actions_server_id in (select id from ir_act_server where name ilike '%reschedule_failed_jobs%');
 
 Setup Suite
     IF    "${CICD_WORKSPACE}" == ""    FAIL    requires CICD_WORKSPACE set
@@ -69,6 +71,7 @@ Setup Suite
     cicd.Sshcmd    chmod a+rw "${DIR_RELEASED_VERSION}"    user=${ROBOTTEST_RELEASE_SSH_USER}
 
     Odoo Load Data    res/security.xml
+    cicd.Cicdodoo    up    -d    odoo_cronjobs
 
 Wait Testruns Done
     Odoo Execute
@@ -237,6 +240,7 @@ Release Heartbeat
 Make New Featurebranch
     [Arguments]    ${name}    ${commit_name}    ${filetotouch}=${{ "" }}    ${filecontent}="Something"
     Log To Console    Make a new featurebranch
+    cicd.Sshcmd    rm -Rf "${CICD_WORKSPACE}/tempedit" || true
     cicd.Sshcmd    git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git checkout -b ${name}    cwd=${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    touch '${CICD_WORKSPACE}/tempedit/${{ '${filetotouch}' or '${name}' }}'
@@ -270,14 +274,12 @@ Prepare Release
     ...    name=feature1
     ...    commit_name=New Feature1
 
-    ${branch_id}=    Odoo Search    cicd.git.branch    [('name', '=', 'feature1')]
-    Odoo Write    cicd.git.branch    ${branch_id}    ${{ {'enduser_summary': "summary1"} }}
-    Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch_id}
-    Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch_id}
-    Repeat Keyword    5 times    Release Heartbeat
-
+    Repeat Keyword    2 times    Release Heartbeat
+    Wait Queuejobs Done
+    Repeat Keyword    2 times    Release Heartbeat
+    Wait Queuejobs Done
     ${release_item_id}=    Odoo Search    cicd.release.item    []    limit=1
-    RETURN    ${release_item_id}
+    RETURN    ${release_item_id[0]}
 
 Release
     [Arguments]    ${release_item_id}
