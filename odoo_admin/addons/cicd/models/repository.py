@@ -442,7 +442,7 @@ class Repository(models.Model):
         shell.X(["git-cicd", "checkout", self.default_branch, "-f"])
         if shell.branch_exists(branch):
             shell.X(["git-cicd", "branch", "-D", branch], allow_error=True)
-        shell.X(["git-cicd", "checkout", branch])
+        shell.X(["git-cicd", "checkout", branch, "--"])
         shell.X(["git-cicd", "reset", "--hard", f"origin/{branch}"])
         shell.X(["git-cicd", "clean", "-xdff"])
 

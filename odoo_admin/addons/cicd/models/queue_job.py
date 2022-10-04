@@ -102,6 +102,7 @@ class queuejob(models.Model):
             "error: could not fetch origin",
             "FATAL: the database system is shutting down",
             "error: cannot lock ref",
+            "Your configuration specifies to merge with the ref",
         ]
 
         ignore_idkeys = [
