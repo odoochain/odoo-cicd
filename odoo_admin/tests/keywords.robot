@@ -282,7 +282,7 @@ Prepare Release
     RETURN    ${release_item_id[0]}
 
 Release
-    [Arguments]    ${release_item_id}
+    [Arguments]    ${release_item_id}  ${expected_state}=done
     Odoo Execute    cicd.release.item    release_now    ${release_item_id}
     Repeat Keyword    5 times    Release Heartbeat
 
@@ -292,4 +292,4 @@ Release
     Repeat Keyword    5 times    Release Heartbeat
 
     ${state}=    Odoo Read Field    cicd.release.item    ${release_item_id}    state
-    Should Be Equal As Strings    ${state}    done
+    Should Be Equal As Strings    ${state}    ${expected_state}

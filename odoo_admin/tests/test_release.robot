@@ -58,7 +58,7 @@ Test Block Deployment
     ...    deployment is stopped
     ${branch_id}=    Odoo Search    cicd.git.branch    [('name', '=', 'blocked1')]
     Odoo Write    cicd.git.branch    ${branch_id}    ${{ {'block_release': True } }}
-    Release    release_item_id=${release_item_id}
+    Release    release_item_id=${release_item_id}  expected_state=done_nothing_todo
 
 Test Merge Conflict
     [Documentation]    Checks if albeit merge conflicts a release happens
