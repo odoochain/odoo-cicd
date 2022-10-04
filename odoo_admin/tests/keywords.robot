@@ -243,7 +243,7 @@ Make New Featurebranch
     cicd.Sshcmd    rm -Rf "${CICD_WORKSPACE}/tempedit" || true
     cicd.Sshcmd    git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git checkout -b ${name}    cwd=${CICD_WORKSPACE}/tempedit
-    cicd.Sshcmd    touch '${CICD_WORKSPACE}/tempedit/${{ '${filetotouch}' or '${name}' }}'
+    cicd.Sshcmd    echo "${filecontent}" > '${CICD_WORKSPACE}/tempedit/${{ '${filetotouch}' or '${name}' }}'
     cicd.Sshcmd    git add ${name}    cwd=${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git commit -am '${commit_name}'    cwd=${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git push --set-upstream origin ${name}    cwd=${CICD_WORKSPACE}/tempedit
