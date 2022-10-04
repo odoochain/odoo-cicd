@@ -172,7 +172,9 @@ class Repository(models.Model):
                     shell.safe_move_directory(tmppath, path)
                 with shell.clone(cwd=path) as shell2:
                     shell2.X(["git-cicd", "remote", "update"])
-                    shell2.X(["git-cicd", "pull", "--all", "--no-edit"])
+                    # --force needed for robottest release: feature1 file existed there and 
+                    # so no pull happened; in any case this directory should be clean
+                    shell2.X(["git-cicd", "pull", "--force", "--all", "--no-edit"])
 
     @property
     def mirror_path(self):
