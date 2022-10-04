@@ -100,6 +100,7 @@ class queuejob(models.Model):
             # cannot be overriden? perhaps analyze - redoing it works without prob
             "The following untracked working tree files would be overwritten by merge",
             "error: could not fetch origin",
+            "FATAL: the database system is shutting down",
         ]
 
         ignore_idkeys = [
