@@ -85,6 +85,7 @@ Test Merge Conflict
     Odoo Write    cicd.git.branch    ${branch3}    ${{ {'enduser_summary': "summary2"} }}
     Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch3}
     Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch3}
+    Sleep  3s
     Odoo Write    cicd.git.branch    ${branch4}    ${{ {'enduser_summary': "summary3"} }}
     Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch4}
     Odoo Execute    cicd.git.branch    method=set_approved    ids=${branch4}
@@ -92,3 +93,6 @@ Test Merge Conflict
 
     ${state}=  Odoo Read Field    cicd.release.item    ${release_item_id}    state
     Should Be Equal As Strings    ${state}    collecting_merge_conflict
+
+
+    FAIL  check that feature3 is really online

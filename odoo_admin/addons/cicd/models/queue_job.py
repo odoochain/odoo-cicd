@@ -106,6 +106,7 @@ class queuejob(models.Model):
             "FATAL:%the database system is starting up",
             "FATAL:%the database system is shutting down",
             "TimeoutError:",
+            "failed to create LLB definition",
         ]
 
         ignore_idkeys = [
