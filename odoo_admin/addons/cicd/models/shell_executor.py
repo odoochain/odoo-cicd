@@ -88,7 +88,7 @@ class ShellExecutor(BaseShellExecutor):
             return res["exit_code"] == 0
         path = path.replace(" ", "\ ")
         res = self._internal_execute(f"ls {path}", logoutput=False)
-        return res['stdout'].strip().splitlines()
+        return res["stdout"].strip().splitlines()
 
     def rm(self, path):
         return self.remove(path)
@@ -129,7 +129,7 @@ class ShellExecutor(BaseShellExecutor):
         if not self.project_name:
             raise Exception("Requires project_name for odoo execution")
 
-        odoocmd = self.machine.odoocmd or 'odoo'
+        odoocmd = self.machine.odoocmd or "odoo"
         cmd = [odoocmd, "--project-name", self.project_name] + list(cmd)
         if force:
             cmd.insert(1, "-f")
@@ -346,41 +346,29 @@ class ShellExecutor(BaseShellExecutor):
 
     def get_zipped(self, path, excludes=None):
         excludes = excludes or []
-        while True:
-            try:
-                with self.machine._temppath(usage="get_zipped") as filename:
-                    zip_cmd = ["tar", "cfz", filename, "-C", path, "."]
-                    for exclude in excludes:
-                        zip_cmd.insert(-1, f'--exclude="{exclude}"')
-                    with self.clone(cwd=path) as self2:
-                        counter = 0
-                        while True:
-                            try:
-                                self2.X(zip_cmd)
-                            except RuntimeError as ex:
-                                if 'file changed as we read it' in str(ex):
-                                    time.sleep(counter * 5)
-                                    counter += 1
-                                    if counter > 10:
-                                        raise
-                                else:
-                                    raise
-                            else:
-                                break
-                    content = self.get(filename)
-                    return content
-            except Exception as ex:
-                if "file changed as we read it" in str(ex):
-                    logger.info(
-                        "At making zip: File changed at creation - "
-                        f"waiting and then retrying: {path} "
-                    )
-                    time.sleep(10)
-                    pass
-                else:
-                    raise
-            else:
-                break
+        with self.machine._temppath(usage="get_zipped") as filename:
+            zip_cmd = ["tar", "cfz", filename, "-C", path, "."]
+            for exclude in excludes:
+                zip_cmd.insert(-1, f'--exclude="{exclude}"')
+            with self.clone(cwd=path) as self2:
+                counter = 0
+                while True:
+                    try:
+                        self2.X(zip_cmd)
+                    except RuntimeError as ex:
+                        if "file changed as we read it" in str(ex):
+                            time.sleep(counter * 5)
+                            counter += 1
+                            if counter > 20:
+                                raise Exception(
+                                    f"Timeout trying to zip {path} for {counter} tries."
+                                ) from ex
+                        else:
+                            raise
+                    else:
+                        break
+            content = self.get(filename)
+            return content
 
     def get_snapshots(self):
         snaps = self.odoo("snap", "list")["stdout"].splitlines()[2:]
