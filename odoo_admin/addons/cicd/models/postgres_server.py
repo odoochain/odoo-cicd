@@ -173,6 +173,7 @@ class PostgresServer(models.Model):
                     if arrow.utcnow() > deadline:
                         db.delete_db()
                     del deadline
+                    continue
 
                 if not db.matching_branch_ids:
                     # TODO please activate after review
@@ -184,7 +185,8 @@ class PostgresServer(models.Model):
 
     def _parse_name(self, name):
         name = name or ""
+        breakpoint()
         if name.startswith(PREFIX_TODELETE):
-            date = arrow.get(name[:-PREFIX_TODELETE_DATELEN]).replace(tzinfo=None)
+            date = arrow.get(name.split("_")[-1]).replace(tzinfo=None)
             date.shift(days=self.keep_days)
             return date
