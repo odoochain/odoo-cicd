@@ -239,18 +239,21 @@ Release Heartbeat
 
 Make New Featurebranch
     [Arguments]    ${name}    ${commit_name}    ${filetotouch}=${{ "" }}    ${filecontent}="Something"
+    ${filename}=  Set Variable  ${{ '${filetotouch}' or '${name}' }}
     Log To Console    Make a new featurebranch
     cicd.Sshcmd    rm -Rf "${CICD_WORKSPACE}/tempedit" || true
     cicd.Sshcmd    git clone ${SRC_REPO} ${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git checkout -b ${name}    cwd=${CICD_WORKSPACE}/tempedit
-    cicd.Sshcmd    echo "${filecontent}" > '${CICD_WORKSPACE}/tempedit/${{ '${filetotouch}' or '${name}' }}'
-    cicd.Sshcmd    git add ${name}    cwd=${CICD_WORKSPACE}/tempedit
+    cicd.Sshcmd    echo "${filecontent}" > '${CICD_WORKSPACE}/tempedit/${filename}'
+    cicd.Sshcmd    git add ${filename}    cwd=${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git commit -am '${commit_name}'    cwd=${CICD_WORKSPACE}/tempedit
     cicd.Sshcmd    git push --set-upstream origin ${name}    cwd=${CICD_WORKSPACE}/tempedit
 
     Wait Until Commit Arrives    ${commit_name}
     ${branch_count}=    Odoo Search    cicd.git.branch    [('name', '=', '${name}')]    count=True
     Should Be Equal As Strings    ${branch_count}    1
+    ${branch_id}=    Odoo Search    cicd.git.branch    [('name', '=', '${name}')]   limit=1
+    [Return]  ${branch_id[0]}
 
 Prepare Release
     [Arguments]    ${deploy_git}=${FALSE}
@@ -269,10 +272,6 @@ Prepare Release
     ...    ttype=prod
     ${release}=    Make Release    repo_id=${repo[0]}    branch=main    machine_id=${machine_id}
     Odoo Write    cicd.release    ${release}    ${{ {'deploy_git': ${deploy_git} }}}
-
-    Make New Featurebranch
-    ...    name=feature1
-    ...    commit_name=New Feature1
 
     Repeat Keyword    2 times    Release Heartbeat
     Wait Queuejobs Done
