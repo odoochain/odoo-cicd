@@ -103,6 +103,8 @@ class queuejob(models.Model):
             "FATAL: the database system is shutting down",
             "error: cannot lock ref",
             "Your configuration specifies to merge with the ref",
+            "FATAL:%the database system is starting up",
+            "FATAL:%the database system is shutting down",
         ]
 
         ignore_idkeys = [
