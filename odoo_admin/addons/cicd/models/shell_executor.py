@@ -357,12 +357,12 @@ class ShellExecutor(BaseShellExecutor):
                         self2.X(zip_cmd)
                     except RuntimeError as ex:
                         if "file changed as we read it" in str(ex):
-                            time.sleep(counter * 5)
                             counter += 1
                             if counter > 20:
                                 raise Exception(
                                     f"Timeout trying to zip {path} for {counter} tries."
                                 ) from ex
+                            time.sleep(counter * 5)
                         else:
                             raise
                     else:
