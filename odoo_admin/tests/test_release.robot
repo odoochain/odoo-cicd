@@ -74,7 +74,7 @@ Test Merge Conflict
     ...    filetotouch=feature1
     ...    filecontent=something_else
 
-    Release    release_item_id=${release_item_id}
+    Release    release_item_id=${release_item_id}  expected_state=done_nothing_todo
     ${branch_ids}=    Odoo Read Field    cicd.release.item    ${release_item_id}    branch_ids
     ${branches}=    Odoo Read    cicd.release.item.branch    ${branch_ids}    state
-    Should Be True    'conflict' in [x['state'] for x in branches]
+    Should Be True    ${{ 'conflict' in [x['state'] for x in ${branches}] }}
