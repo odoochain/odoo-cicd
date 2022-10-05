@@ -101,7 +101,7 @@ class queuejob(models.Model):
             "The following untracked working tree files would be overwritten by merge",
             "error: could not fetch origin",
             "FATAL: the database system is shutting down",
-            "error: cannot lock ref",
+            "FATAL: the database system is starting up",
         ]
 
         ignore_idkeys = [
