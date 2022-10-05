@@ -105,6 +105,7 @@ class queuejob(models.Model):
             "Your configuration specifies to merge with the ref",
             "FATAL:%the database system is starting up",
             "FATAL:%the database system is shutting down",
+            "TimeoutError:",
         ]
 
         ignore_idkeys = [
