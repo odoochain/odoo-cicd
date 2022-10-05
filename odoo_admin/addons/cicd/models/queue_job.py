@@ -102,6 +102,8 @@ class queuejob(models.Model):
             "error: could not fetch origin",
             "FATAL: the database system is shutting down",
             "FATAL: the database system is starting up",
+            "FATAL:  the database system is shutting down",
+            "FATAL:  the database system is starting up",
         ]
 
         ignore_idkeys = [
