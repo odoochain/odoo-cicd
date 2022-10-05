@@ -258,7 +258,7 @@ class ShellExecutor(BaseShellExecutor):
 
         if not allow_error:
             if res["exit_code"] is None:
-                raise TimeoutError("Timeout happend: {cmd}")
+                raise TimeoutError(f"Timeout happend: {cmd}")
             if res["exit_code"]:
                 raise RuntimeError(
                     f"Error happened: {res['exit_code']}:\n"
