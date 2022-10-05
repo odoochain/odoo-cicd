@@ -377,6 +377,8 @@ class ShellExecutor(BaseShellExecutor):
                     )
                     time.sleep(10)
                     pass
+                else:
+                    raise
             else:
                 break
 
