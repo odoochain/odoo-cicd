@@ -55,7 +55,12 @@ class MigrationTest(models.Model):
             yield shell, {}
 
     def _execute(self, shell, runenv):
-        shell.odoo("update", "--non-interactive", timeout=self.test_setting_id.timeout)
+        shell.odoo(
+            "update",
+            "--recover-view-error",
+            "--non-interactive",
+            timeout=self.test_setting_id.timeout,
+        )
 
 
 class TestSettingsMigrations(models.Model):

@@ -78,6 +78,7 @@ class Branch(models.Model):
                     commit,
                     "--no-dangling-check",
                     "--non-interactive",
+                    "--recover-view-error",
                     "--i18n" if self.update_i18n else "",
                 )
 
@@ -106,6 +107,7 @@ class Branch(models.Model):
             "update",
             "--no-dangling-check",
             "--non-interactive",
+            "--recover-view-error",
             "--i18n" if self.update_i18n else "",
         )
         shell.logsio.info("Upping")
@@ -233,6 +235,7 @@ class Branch(models.Model):
                             "submodule",
                             "update",
                             "--non-interactive",
+                            "--recover-view-error",
                             "--init",
                             "--recursive",
                         ]
@@ -437,7 +440,14 @@ class Branch(models.Model):
         shell.odoo("cleardb")
 
     def _anonymize(self, shell, **kwargs):
-        shell.odoo("update", "anonymize", "--non-interactive", "--log=error")
+
+        shell.odoo(
+            "update",
+            "anonymize",
+            "--recover-view-error",
+            "--non-interactive",
+            "--log=error",
+        )
         shell.odoo("anonymize")
 
     @api.model
@@ -567,6 +577,7 @@ class Branch(models.Model):
                         "git-cicd",
                         "submodule",
                         "update",
+                        "--recover-view-error",
                         "--non-interactive",
                         "--recursive",
                         "--init",
@@ -1011,7 +1022,9 @@ for path in base.glob("*"):
             shell.wait_for_postgres()
             shell.logsio.info(f"Dumping to {dest_path}")
             if ttype == "full":
-                shell.odoo("update", "--log=error", timeout=60 * 30)
+                shell.odoo(
+                    "update", "--non-interactive", "--log=error", timeout=60 * 30
+                )
                 shell.odoo("turn-into-dev")
                 shell.wait_for_postgres()
             dest_path = dest_path.parent / self.env[
