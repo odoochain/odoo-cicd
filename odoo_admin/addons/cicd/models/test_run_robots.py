@@ -53,7 +53,7 @@ class RobotTest(models.Model):
     dump_id = fields.Many2one(
         "cicd.dump",
         string="Dump",
-        required=True,
+        required=False,
         ondelete="set null",
         help="If set, then robottest is not executed on an empty db.",
     )

@@ -11,7 +11,7 @@ class MigrationTest(models.Model):
     _name = "cicd.test.run.line.migration"
 
     dump_id = fields.Many2one(
-        "cicd.dump", string="Dump", required=True, ondelete="set null"
+        "cicd.dump", string="Dump", required=False, ondelete="set null"
     )
 
     def _compute_name(self):
