@@ -36,6 +36,7 @@ class CicdTestRunLine(models.AbstractModel):
             ("success", "Success"),
             ("failed", "Failed"),
             ("running", "Running"),
+            ("abort", "Aborted"),
         ],
         default="open",
         required=True,
@@ -424,7 +425,7 @@ class CicdTestRunLine(models.AbstractModel):
                 raise RetryableJobError(
                     "Line is open - have to wait.", ignore_retry=True, seconds=30
                 )
-            if rec.state == "failed" and not rec.force_success:
+            if rec.state in ["failed", "abort"] and not rec.force_success:
                 return False
         return True
 

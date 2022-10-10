@@ -153,10 +153,16 @@ class CicdTestRun(models.Model):
                 ("update queue_job set state = 'done' " "where id=%s "), (qj["id"],)
             )
         self.do_abort = True
+        for line in self.iterate_testlines():
+            if line.state == 'open':
+                line.state = 'abort'
+                line.exc_info = "Aborted by User"
+
         self.state = "failed"
         for field in self._get_test_run_fields():
             for test_setup in self[field]:
                 test_setup.reset_at_testrun()
+
 
     def _reload(self, shell, settings, instance_folder):
         def reload():

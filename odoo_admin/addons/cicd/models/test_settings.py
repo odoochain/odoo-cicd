@@ -142,6 +142,7 @@ class TestSettingAbstract(models.AbstractModel):
         settings = f"\nODOO_PYTHON_VERSION={self.python_version}"
         return settings
 
+
 class TestSettings(models.Model):
     """
     This is the container of test settings so you can configure
@@ -319,9 +320,9 @@ class TestSettings(models.Model):
                 cwd=folder,
                 project_name=project_name,
             ) as shell:
-                runtime_settings = test_setting._get_runtime_settings().replace(
-                    "\n", ";"
-                ).lstrip(";")
+                runtime_settings = (
+                    test_setting._get_runtime_settings().replace("\n", ";").lstrip(";")
+                )
                 shell.checkout_commit(self.commit_id.name)
                 shell.odoo("reload", f"-cR={runtime_settings}")
                 yield shell

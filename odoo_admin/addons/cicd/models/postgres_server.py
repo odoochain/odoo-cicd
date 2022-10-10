@@ -185,7 +185,6 @@ class PostgresServer(models.Model):
 
     def _parse_name(self, name):
         name = name or ""
-        breakpoint()
         if name.startswith(PREFIX_TODELETE):
             date = arrow.get(name.split("_")[-1]).replace(tzinfo=None)
             date.shift(days=self.keep_days)
