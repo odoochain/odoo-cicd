@@ -69,7 +69,7 @@
 							</page>
 							<page name="dumps" string="Dumps">
 								<group string="Database Connection">
-									<field name="postgres_server_id" attrs="{'required': [('ttype', '=', 'dev')]}"/>
+									<field name="postgres_server_id" />
 								</group>
 								<group string="Dumps">
 									<group>
