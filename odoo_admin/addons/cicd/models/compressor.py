@@ -124,6 +124,8 @@ class Compressor(models.Model):
             for line in output:
                 if line in (".", ".."):
                     continue
+                if line.startswith("."):
+                    continue
                 if re.findall(self.regex, line):
                     break
             else:
