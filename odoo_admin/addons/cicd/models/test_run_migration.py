@@ -10,7 +10,9 @@ class MigrationTest(models.Model):
     _inherit = "cicd.test.run.line"
     _name = "cicd.test.run.line.migration"
 
-    dump_id = fields.Many2one("cicd.dump", string="Dump", required=True)
+    dump_id = fields.Many2one(
+        "cicd.dump", string="Dump", required=True, ondelete="set null"
+    )
 
     def _compute_name(self):
         for rec in self:

@@ -50,6 +50,13 @@ class RobotTest(models.Model):
     queuejob_log = fields.Binary("Queuejob Log")
     queuejob_log_filename = fields.Char(compute="_queuejob_log_filename")
     tags = fields.Char("Tags")
+    dump_id = fields.Many2one(
+        "cicd.dump",
+        string="Dump",
+        required=True,
+        ondelete="set null",
+        help="If set, then robottest is not executed on an empty db.",
+    )
 
     @api.depends("robot_output")
     def _compute_robot_output_len(self):
