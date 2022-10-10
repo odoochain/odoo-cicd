@@ -114,6 +114,7 @@ class UnitTest(models.Model):
             "update",
             self.odoo_module,
             "--no-dangling-check",
+            "--non-interactive",
             f"--test-tags={self.tags}",
             f"--log={loglevel}",
         )

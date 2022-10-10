@@ -266,6 +266,7 @@ class CicdReleaseAction(models.Model):
             cmd = ["update"]
             if self.release_id.update_i18n:
                 cmd += ["--i18n"]
+            cmd += "--non-interactive"
             shell.odoo(*cmd)
 
     def _start_odoo(self, logsio):

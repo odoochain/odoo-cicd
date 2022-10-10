@@ -77,6 +77,7 @@ class Branch(models.Model):
                     "--since-git-sha",
                     commit,
                     "--no-dangling-check",
+                    "--non-interactive",
                     "--i18n" if self.update_i18n else "",
                 )
 
@@ -102,7 +103,10 @@ class Branch(models.Model):
         self._internal_build(shell)
         shell.logsio.info("Updating")
         shell.odoo(
-            "update", "--no-dangling-check", "--i18n" if self.update_i18n else ""
+            "update",
+            "--no-dangling-check",
+            "--non-interactive",
+            "--i18n" if self.update_i18n else "",
         )
         shell.logsio.info("Upping")
         shell.odoo("up", "-d")
@@ -223,7 +227,16 @@ class Branch(models.Model):
                 if commit and not no_checkout:
                     shell.checkout_commit(commit)
                 if not no_checkout:
-                    shell.X(["git", "submodule", "update", "--init", "--recursive"])
+                    shell.X(
+                        [
+                            "git",
+                            "submodule",
+                            "update",
+                            "--non-interactive",
+                            "--init",
+                            "--recursive",
+                        ]
+                    )
                 params = []
                 if no_update_images:
                     params += ["--no-update-images"]
@@ -424,7 +437,7 @@ class Branch(models.Model):
         shell.odoo("cleardb")
 
     def _anonymize(self, shell, **kwargs):
-        shell.odoo("update", "anonymize", "--log=error")
+        shell.odoo("update", "anonymize", "--non-interactive", "--log=error")
         shell.odoo("anonymize")
 
     @api.model
@@ -549,7 +562,16 @@ class Branch(models.Model):
 
             if not nosubmodule_update:
                 shell.logsio.write_text("Updating submodules")
-                shell.X(["git-cicd", "submodule", "update", "--recursive", "--init"])
+                shell.X(
+                    [
+                        "git-cicd",
+                        "submodule",
+                        "update",
+                        "--non-interactive",
+                        "--recursive",
+                        "--init",
+                    ]
+                )
 
             shell.logsio.write_text("Getting current commit")
             commit = shell.X(["git-cicd", "rev-parse", "HEAD"])["stdout"].strip()
@@ -697,7 +719,7 @@ class Branch(models.Model):
         self._reload(shell)
         self._internal_build(shell)
         shell.odoo("db", "reset", force=True)
-        shell.odoo("update", "--no-dangling-check", "--log=error")
+        shell.odoo("update", "--non-interactive", "--no-dangling-check", "--log=error")
         try:
             shell.odoo("turn-into-dev")  # why commented?
         except Exception:  # pylint: disable=broad-except
@@ -979,9 +1001,7 @@ for path in base.glob("*"):
         # if there are many tests waiting, then
         # ensure dump shall run in parallel to prepare the base dumps
         # before it was just 'ensuredump' and blocked a lot of processes
-        unique_id = (
-            f"ensure_dump_{ttype}_commit_{commit}_dumptype_{dumptype}"
-        )
+        unique_id = f"ensure_dump_{ttype}_commit_{commit}_dumptype_{dumptype}"
 
         with self._tempinstance(unique_id, commit=commit, dbname=dbname) as shell:
             shell.logsio.info(f"Creating dump file {dest_path}")
@@ -1029,7 +1049,8 @@ for path in base.glob("*"):
                     raise NotImplementedError(
                         "base is not supported anymore as getting the base hash is "
                         "not fast anymore in wodoo and on the other installing an empty "
-                        "fresh db is even faster and probably safer")
+                        "fresh db is even faster and probably safer"
+                    )
                     output = shell.odoo("list-deps", "base", force=True)[
                         "stdout"
                     ].split("---", 1)[1]
