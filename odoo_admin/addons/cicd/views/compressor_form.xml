@@ -25,6 +25,7 @@
 							<field name="performance"/>
 							<field name="machine_id" invisible='0'/>
 							<field name="exclude_tables"/>
+							<field name="timeout_hours"/>
 						</group>
 						<notebook>
 							<page name="output" string="Output">
