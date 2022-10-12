@@ -13,8 +13,7 @@ from contextlib import contextmanager, closing
 
 _logger = logging.getLogger()
 
-CONCURRENT_HASH_THREADS = 8  # minimum system load observed
-GRAB_OTHERS = 5
+CONCURRENT_HASH_THREADS = 25  # minimum system load observed
 
 
 class BrokenUnittest(Exception):
@@ -98,6 +97,8 @@ class UnitTest(models.Model):
             self._report("Unittest finished")
 
     def _execute_test_at_prepared_environment(self, shell, runenv):
+        if self.reused:
+            return
         self._report(f"Installing module {self.odoo_module}")
         shell.odoo("down", "-v", force=True)
         shell.odoo("up", "-d", "postgres")
