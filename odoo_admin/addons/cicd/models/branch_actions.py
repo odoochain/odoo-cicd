@@ -778,7 +778,11 @@ class Branch(models.Model):
                 with self._tempinstance(
                     self.env.context.get("testrun"), commit=commit
                 ) as shell:
-                    shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path)
+                    params = []
+                    if compressor.exclude_tables:
+                        params.append("-X")
+                        params.append(compressor.exclude_tables)
+                    shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path, *params)
                     shell.logsio.info("Clearing DB...")
                     breakpoint()
                     output = shell.odoo("-f", "cleardb", allow_error=True)

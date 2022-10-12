@@ -24,6 +24,7 @@
 							<field name="last_output_size_human"/>
 							<field name="performance"/>
 							<field name="machine_id" invisible='0'/>
+							<field name="exclude_tables"/>
 						</group>
 						<notebook>
 							<page name="output" string="Output">
