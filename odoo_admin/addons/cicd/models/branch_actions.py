@@ -234,7 +234,6 @@ class Branch(models.Model):
                             "git",
                             "submodule",
                             "update",
-                            "--non-interactive",
                             "--init",
                             "--recursive",
                         ]
