@@ -154,15 +154,14 @@ class CicdTestRun(models.Model):
             )
         self.do_abort = True
         for line in self.iterate_testlines():
-            if line.state == 'open':
-                line.state = 'abort'
+            if line.state == "open":
+                line.state = "abort"
                 line.exc_info = "Aborted by User"
 
         self.state = "failed"
         for field in self._get_test_run_fields():
             for test_setup in self[field]:
                 test_setup.reset_at_testrun()
-
 
     def _reload(self, shell, settings, instance_folder):
         def reload():
@@ -216,6 +215,10 @@ class CicdTestRun(models.Model):
 
     def _cleanup_testruns(self):
         breakpoint()
+        if not self._basically_all_not_after_queuejobs_done():
+            raise RetryableJobError(
+                "Not all jobs done - retrying later.", seconds=60, ignore_retry=True
+            )
         with self._logsio(None) as logsio:
             logsio.info("Cleanup Testing started...")
 
@@ -270,7 +273,7 @@ class CicdTestRun(models.Model):
             self.duration = (
                 arrow.utcnow() - arrow.get(self.date_started or "1980-04-04")
             ).total_seconds()
-            self.as_job("cleanup", True, eta=300)._cleanup_testruns()
+            self.as_job("cleanup", True)._cleanup_testruns()
 
             self.as_job("compute_success_state", True)._compute_success_state()
 
@@ -397,6 +400,13 @@ class CicdTestRun(models.Model):
 
         # these queuejobs are considered as fully dead
         return queuejobs
+
+    def _basically_all_not_after_queuejobs_done(self):
+        self.ensure_one()
+        jobs = self._get_queuejobs("active", include_wait_for_finish=False)
+        marker = self._get_qj_marker("", False)
+        jobs = list(filter(lambda job: marker not in (job["identity_key"] or ""), jobs))
+        return not jobs
 
     def _get_queuejobs(self, ttype, include_wait_for_finish=False):
         assert ttype in ["active", "all"]
