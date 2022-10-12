@@ -575,8 +575,6 @@ class Branch(models.Model):
                         "git-cicd",
                         "submodule",
                         "update",
-                        "--recover-view-error",
-                        "--non-interactive",
                         "--recursive",
                         "--init",
                     ]
