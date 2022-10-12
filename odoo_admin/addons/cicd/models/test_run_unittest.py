@@ -189,10 +189,8 @@ class TestSettingsUnittest(models.Model):
         return tags
 
     def _get_unittest_hashes(self, shell, modules):
-        result = self.testrun._get_hash_for_modules(shell)
+        result = self._get_hash_for_modules(shell)
         return result
-
-        return hashes
 
     def _get_all_modules(self, shell):
         res = shell.odoo("list-modules")
