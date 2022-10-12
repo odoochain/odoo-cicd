@@ -235,7 +235,6 @@ class Branch(models.Model):
                             "submodule",
                             "update",
                             "--non-interactive",
-                            "--recover-view-error",
                             "--init",
                             "--recursive",
                         ]
