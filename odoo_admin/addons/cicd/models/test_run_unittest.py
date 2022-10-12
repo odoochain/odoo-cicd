@@ -13,8 +13,6 @@ from contextlib import contextmanager, closing
 
 _logger = logging.getLogger()
 
-CONCURRENT_HASH_THREADS = 25  # minimum system load observed
-
 
 class BrokenUnittest(Exception):
     pass
@@ -41,7 +39,7 @@ class UnitTest(models.Model):
 
     def _ensure_hash(self, shell):
         if not self.hash:
-            self.hash = self.test_setting_id._get_hash_for_module(
+            self.hash = self.test_setting_id._get_hash_for_modules(
                 shell, self.odoo_module
             )
 
@@ -191,46 +189,10 @@ class TestSettingsUnittest(models.Model):
         return tags
 
     def _get_unittest_hashes(self, shell, modules):
-        result = {}
-
-        thread_limiter = threading.BoundedSemaphore(CONCURRENT_HASH_THREADS)
-
-        class HashThread(threading.Thread):
-            def __init__(self, module, testrun, result, thread_limiter):
-                super().__init__()
-                self.module = module
-                self.testrun = testrun
-                self.result = result
-                self.thread_limiter = thread_limiter
-
-            def run(self):
-                self.thread_limiter.acquire()
-                try:
-                    self.run_me()
-                finally:
-                    self.thread_limiter.release()
-
-            def run_me(self):
-                hash = self.testrun._get_hash_for_module(shell, self.module)
-                self.result[self.module] = hash
-
-        threads = []
-        for module in modules:
-            # ensure mod exists in result
-            result[module] = False
-            threads.append(
-                HashThread(
-                    module=module,
-                    testrun=self,
-                    result=result,
-                    thread_limiter=thread_limiter,
-                )
-            )
-            del module
-
-        [x.start() for x in threads]  # pylint: disable=W0106
-        [x.join() for x in threads]  # pylint: disable=W0106
+        result = self.testrun._get_hash_for_modules(shell)
         return result
+
+        return hashes
 
     def _get_all_modules(self, shell):
         res = shell.odoo("list-modules")
@@ -279,11 +241,17 @@ class TestSettingsUnittest(models.Model):
         return module_infos
 
     @api.model
-    def _get_hash_for_module(self, shell, module_path):
-        res = shell.odoo("list-deps", module_path, force=True)
+    def _get_hash_for_modules(self, shell, module="all"):
+        res = shell.odoo("list-deps", module, force=True)
         stdout = res["stdout"]
         deps = json.loads(stdout.split("---", 1)[1])
-        return deps["hash"]
+        result = {}
+        if module == "all":
+            for k in deps.keys():
+                result[k] = deps[k]['hash']
+        else:
+            result = deps['hash']
+        return result
 
     @api.model
     def check_if_test_already_succeeded(
