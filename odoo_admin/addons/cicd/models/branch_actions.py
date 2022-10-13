@@ -772,13 +772,16 @@ class Branch(models.Model):
                 commit = self.latest_commit_id.name
                 assert commit
                 with self._tempinstance(
-                    self.env.context.get("testrun"), commit=commit
+                    self.env.context.get("testrun"), commit=commit,
+                    maxage={"hours": compressor.timeout_hours or 24},
                 ) as shell:
                     params = []
                     if compressor.exclude_tables:
                         params.append("-X")
                         params.append(compressor.exclude_tables)
-                    shell.odoo("-f", "restore", "odoo-db", effective_dest_file_path, *params)
+                    shell.odoo(
+                        "-f", "restore", "odoo-db", effective_dest_file_path, *params
+                    )
                     shell.logsio.info("Clearing DB...")
                     breakpoint()
                     output = shell.odoo("-f", "cleardb", allow_error=True)
@@ -945,7 +948,7 @@ for path in base.glob("*"):
         )
 
     @contextmanager
-    def _tempinstance(self, uniqueappendix, commit=None, dbname="odoo"):
+    def _tempinstance(self, uniqueappendix, commit=None, dbname="odoo", maxage=None):
         settings = self._get_settings_isolated_run(dbname=dbname)
         machine = self.machine_id
         assert machine.ttype == "dev"
@@ -958,7 +961,7 @@ for path in base.glob("*"):
                 f"temporary instance testrun={uniqueappendix}"
             ),
         ):
-            with self.repo_id._temp_repo(machine=machine) as repo_path:
+            with self.repo_id._temp_repo(machine=machine, maxage=maxage) as repo_path:
                 with machine._shell(
                     cwd=repo_path,
                     project_name=self.project_name,

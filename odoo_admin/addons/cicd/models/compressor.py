@@ -38,6 +38,7 @@ class Compressor(models.Model):
     output_ids = fields.One2many(
         "cicd.compressor.output", "compressor_id", string="Output"
     )
+    timeout_hours = fields.Integer("Timeout Hours", default=24)
 
     def _ensure_cronjob(self):
         for rec in self:

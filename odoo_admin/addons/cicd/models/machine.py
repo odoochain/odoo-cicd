@@ -219,7 +219,9 @@ class CicdMachine(models.Model):
             return Path(res[0].name)
 
     @contextmanager
-    def _temppath(self, maxage={"hours": 8}, usage="common"):
+    def _temppath(self, maxage=None, usage="common"):
+        if maxage is None:
+            maxage = {"hours": 8}
         guid = str(uuid.uuid4())
         name = self._append_cleanme_notation(f"{guid}.{usage}", maxage)
         try:
