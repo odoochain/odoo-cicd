@@ -13,3 +13,4 @@ geckodriver.log
 odooamin/results
 output.xml
 interactive_console_output.xml
+.idea
