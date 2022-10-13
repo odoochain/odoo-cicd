@@ -28,6 +28,7 @@ class Compressor(models.Model):
         "cicd.git.branch", string="Use Branch for compression", required=True
     )
     date_last_success = fields.Datetime("Date Last Success", readonly=True)
+    exclude_tables = fields.Char("Exclude Tables (comma separated list)")
     last_input_size = fields.Integer("Last Input Size", readonly=True)
     last_input_size_human = fields.Char("Last Input Size", readonly=True)
     last_output_size = fields.Integer("Last Input Size", readonly=True)
@@ -37,6 +38,7 @@ class Compressor(models.Model):
     output_ids = fields.One2many(
         "cicd.compressor.output", "compressor_id", string="Output"
     )
+    timeout_hours = fields.Integer("Timeout Hours", default=24)
 
     def _ensure_cronjob(self):
         for rec in self:
