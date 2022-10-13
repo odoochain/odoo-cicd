@@ -172,7 +172,7 @@ class Repository(models.Model):
                     shell.safe_move_directory(tmppath, path)
                 with shell.clone(cwd=path) as shell2:
                     shell2.X(["git-cicd", "remote", "update"])
-                    # --force needed for robottest release: feature1 file existed there and 
+                    # --force needed for robottest release: feature1 file existed there and
                     # so no pull happened; in any case this directory should be clean
                     shell2.X(["git-cicd", "pull", "--force", "--all", "--no-edit"])
 
@@ -224,10 +224,14 @@ class Repository(models.Model):
                     shell.git_safe_directory(path)
 
     @contextmanager
-    def _temp_repo(self, machine, logsio=None, branch=None, depth=None, pull=False):
+    def _temp_repo(
+        self, machine, logsio=None, branch=None, depth=None, pull=False, maxage=None
+    ):
 
         with machine._temppath(usage="temporary_repo") as path:
-            self._technical_clone_repo(path, machine, branch=branch, depth=depth)
+            self._technical_clone_repo(
+                path, machine, branch=branch, depth=depth, maxage=maxage
+            )
             yield path
 
     @contextmanager
