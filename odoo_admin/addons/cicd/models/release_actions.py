@@ -239,6 +239,7 @@ class CicdReleaseAction(models.Model):
                         )
                         shell.X(["git-cicd", "checkout", commit_sha])
                         shell.odoo("-xs", settings_file, "reload")
+                        breakpoint()
                         logsio.info("Pulling images for only-images services")
                         shell.odoo("docker", "pull")
                         logsio.info("Building Docker Images")
@@ -266,7 +267,7 @@ class CicdReleaseAction(models.Model):
             cmd = ["update"]
             if self.release_id.update_i18n:
                 cmd += ["--i18n"]
-            cmd += "--non-interactive"
+            cmd += ["--non-interactive"]
             shell.odoo(*cmd)
 
     def _start_odoo(self, logsio):
