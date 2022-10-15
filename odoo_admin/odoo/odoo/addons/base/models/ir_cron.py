@@ -31,6 +31,7 @@ _intervalTypes = {
     'weeks': lambda interval: relativedelta(days=7*interval),
     'months': lambda interval: relativedelta(months=interval),
     'minutes': lambda interval: relativedelta(minutes=interval),
+    'seconds': lambda interval: relativedelta(seconds=interval),
 }
 
 
@@ -54,7 +55,8 @@ class ir_cron(models.Model):
     user_id = fields.Many2one('res.users', string='Scheduler User', default=lambda self: self.env.user, required=True)
     active = fields.Boolean(default=True)
     interval_number = fields.Integer(default=1, help="Repeat every x.")
-    interval_type = fields.Selection([('minutes', 'Minutes'),
+    interval_type = fields.Selection([('seconds', 'Seconds'),
+                                      ('minutes', 'Minutes'),
                                       ('hours', 'Hours'),
                                       ('days', 'Days'),
                                       ('weeks', 'Weeks'),
