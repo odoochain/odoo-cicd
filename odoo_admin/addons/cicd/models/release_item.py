@@ -50,6 +50,8 @@ class ReleaseItem(models.Model):
             ("ready", "Ready"),
             ("done", "Done"),
             ("done_nothing_todo", "Nothing todo"),
+            ("waiting_for_manual_release", "Waiting for Manual Release"),
+            ("releasing", "Releasing"),
         ],
         string="State",
         default="collecting",
@@ -209,7 +211,8 @@ class ReleaseItem(models.Model):
             rec.computed_summary = "\n".join(summary)
 
     def _do_release(self):
-        breakpoint()
+        self.state = 'releasing'
+        self.env.cr.commit()
         try:
             with self.release_id._get_logsio() as logsio:
                 if self.release_type == "build_and_deploy":
@@ -226,6 +229,8 @@ class ReleaseItem(models.Model):
                 self._on_done()
 
         except RetryableJobError:
+            self.state = 'ready'
+            self.env.cr.commit()
             raise
 
         except Exception:
@@ -408,6 +413,7 @@ class ReleaseItem(models.Model):
             ) from ex
 
     def cron_heartbeat(self):
+        breakpoint()
         self.ensure_one()
         self._lock()
         now = fields.Datetime.now()
@@ -508,12 +514,14 @@ class ReleaseItem(models.Model):
                     self.exc_info = str(ex)
                     self.state = "failed_merge_master"
                 else:
-                    self.state = "ready"
+                    if self.release_id.auto_release:
+                        self.state = "ready"
+                    else:
+                        self.state = "waiting_for_manual_release"
 
         elif self.state == "ready":
             if self.planned_date and now > self.planned_date:
-                if self.release_id.auto_release:
-                    self._do_release()
+                self._do_release()
 
         elif self.is_done or self.is_failed:
             pass
@@ -667,7 +675,14 @@ class ReleaseItem(models.Model):
         if self.state not in ["collecting", "ready", "failed_too_late"]:
             raise ValidationError("Invalid state to switch from.")
         self.planned_date = fields.Datetime.now()
-        self.state = "collecting"
+        if self.state == "waiting_for_manual_release":
+            self.state = "ready"
+        if self.state != "ready":
+            if not self.release_id.auto_release:
+                if self.release_type == 'build_and_deploy':
+                    self.state = 'ready'
+            else:
+                self.state = "collecting"
         return True
 
     def resend_release_mail(self):

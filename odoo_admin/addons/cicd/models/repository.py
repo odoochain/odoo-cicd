@@ -192,12 +192,12 @@ class Repository(models.Model):
         yield
 
     def _technical_clone_repo(
-        self, path, machine, logsio=None, branch=None, depth=None
+        self, path, machine, logsio=None, branch=None, depth=None, maxage=None,
     ):
         with machine._gitshell(
             self, cwd=self.machine_id.workspace, logsio=logsio
         ) as shell:
-            with shell.machine._temppath(usage="clone_repo") as temppath:
+            with shell.machine._temppath(usage="clone_repo", maxage=maxage) as temppath:
                 with self._ensure_mirror_path():
                     shell.X(["git-cicd", "clone", self.mirror_path, temppath])
                     with shell.clone(cwd=temppath) as shell2:
