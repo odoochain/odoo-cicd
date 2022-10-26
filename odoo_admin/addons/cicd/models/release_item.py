@@ -51,6 +51,7 @@ class ReleaseItem(models.Model):
             ("done", "Done"),
             ("done_nothing_todo", "Nothing todo"),
             ("waiting_for_manual_release", "Waiting for Manual Release"),
+            ("releasing", "Releasing"),
         ],
         string="State",
         default="collecting",
@@ -210,7 +211,7 @@ class ReleaseItem(models.Model):
             rec.computed_summary = "\n".join(summary)
 
     def _do_release(self):
-        breakpoint()
+        self.state = 'releasing'
         try:
             with self.release_id._get_logsio() as logsio:
                 if self.release_type == "build_and_deploy":
