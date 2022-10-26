@@ -212,6 +212,7 @@ class ReleaseItem(models.Model):
 
     def _do_release(self):
         self.state = 'releasing'
+        self.env.cr.commit()
         try:
             with self.release_id._get_logsio() as logsio:
                 if self.release_type == "build_and_deploy":
@@ -228,6 +229,8 @@ class ReleaseItem(models.Model):
                 self._on_done()
 
         except RetryableJobError:
+            self.state = 'ready'
+            self.env.cr.commit()
             raise
 
         except Exception:
