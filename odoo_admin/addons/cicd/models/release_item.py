@@ -461,6 +461,9 @@ class ReleaseItem(models.Model):
         elif self.state in ["collecting", "collecting_merge_conflict"]:
             if self.release_type == "standard":
                 self._collect()
+            elif self.release_type == "build_and_deploy" and not self.branch_ids:
+                self.state = 'ready'
+                return
             else:
                 if not self.confirmed_hotfix_branches:
                     return
@@ -523,6 +526,9 @@ class ReleaseItem(models.Model):
         elif self.state == "ready":
             if self.planned_date and now > self.planned_date:
                 self._do_release()
+
+        elif self.state == 'releasing':
+            pass
 
         elif self.is_done or self.is_failed:
             pass
@@ -673,7 +679,7 @@ class ReleaseItem(models.Model):
             rec.branch_branch_ids = rec.branch_ids.mapped("branch_id")
 
     def release_now(self):
-        if self.state not in ["collecting", "ready", "failed_too_late"]:
+        if self.state not in ["collecting", "ready", "failed_too_late", "releasing"]:
             raise ValidationError("Invalid state to switch from.")
         self.planned_date = fields.Datetime.now()
         if self.state != "ready":
