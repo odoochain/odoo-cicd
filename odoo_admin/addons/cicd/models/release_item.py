@@ -50,7 +50,7 @@ class ReleaseItem(models.Model):
             ("ready", "Ready"),
             ("done", "Done"),
             ("done_nothing_todo", "Nothing todo"),
-            ("waiting_for_manual_release", "Waiting for Manual Release"),
+            # ("waiting_for_manual_release", "Waiting for Manual Release"),
             ("releasing", "Releasing"),
         ],
         string="State",
@@ -518,10 +518,7 @@ class ReleaseItem(models.Model):
                     self.exc_info = str(ex)
                     self.state = "failed_merge_master"
                 else:
-                    if self.release_id.auto_release:
-                        self.state = "ready"
-                    else:
-                        self.state = "waiting_for_manual_release"
+                    self.state = "ready"
 
         elif self.state == "ready":
             if self.planned_date and now > self.planned_date:
@@ -679,12 +676,9 @@ class ReleaseItem(models.Model):
         if self.state not in ["collecting", "ready", "failed_too_late"]:
             raise ValidationError("Invalid state to switch from.")
         self.planned_date = fields.Datetime.now()
-        if self.state == "waiting_for_manual_release":
-            self.state = "ready"
         if self.state != "ready":
-            if not self.release_id.auto_release:
-                if self.release_type == 'build_and_deploy':
-                    self.state = 'ready'
+            if self.release_type == 'build_and_deploy':
+                self.state = 'ready'
             else:
                 self.state = "collecting"
         return True

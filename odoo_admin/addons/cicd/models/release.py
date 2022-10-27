@@ -1,3 +1,11 @@
+"""
+
+Autorelease:
+if activated, then release items are created automatically.
+Otherwise with hotfix or build and deploy option they need to be created.
+
+
+"""
 from contextlib import contextmanager
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 import arrow
@@ -128,7 +136,7 @@ class Release(models.Model):
     def _heartbeat(self):
         self.ensure_one()
         last_item = self.last_item_id
-        if (
+        if self.auto_release and (
             last_item.state in [False, "ready"]
             or last_item.is_failed
             or last_item.is_done
