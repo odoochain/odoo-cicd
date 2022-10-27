@@ -473,7 +473,10 @@ class ReleaseItem(models.Model):
                 return
 
             if self.stop_collecting_at and self.stop_collecting_at < now:
-                if not self.branch_ids:
+                if self.release_type == 'build_and_deploy':
+                    self.state = "done"
+
+                elif not self.branch_ids:
                     self.state = "done_nothing_todo"
                 else:
                     states = self.branch_ids.mapped("state")
