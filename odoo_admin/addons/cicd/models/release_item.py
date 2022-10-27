@@ -429,7 +429,8 @@ class ReleaseItem(models.Model):
 
         if self.release_type == "build_and_deploy":
             if not self.is_done and not self.is_failed:
-                self.state = "ready"
+                if self.state not in ['ready', 'releasing']:
+                    self.state = "ready"
 
         if not self.is_done and self.state not in ["ready"]:
             """
