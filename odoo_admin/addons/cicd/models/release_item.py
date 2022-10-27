@@ -210,6 +210,8 @@ class ReleaseItem(models.Model):
             rec.computed_summary = "\n".join(summary)
 
     def _do_release(self):
+        if self.is_done or self.is_failed:
+            return
         self.state = "releasing"
         self.env.cr.commit()
         try:
