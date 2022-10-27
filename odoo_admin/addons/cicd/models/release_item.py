@@ -463,6 +463,8 @@ class ReleaseItem(models.Model):
             elif self.release_type == "build_and_deploy" and not self.branch_ids:
                 self.state = 'ready'
                 return
+            elif self.release_type == "build_and_deploy" and self.branch_ids:
+                raise Exception("Strange case: build and deploy with branches?!?")
             else:
                 if not self.confirmed_hotfix_branches:
                     return
