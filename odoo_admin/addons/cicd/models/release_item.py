@@ -50,7 +50,6 @@ class ReleaseItem(models.Model):
             ("ready", "Ready"),
             ("done", "Done"),
             ("done_nothing_todo", "Nothing todo"),
-            # ("waiting_for_manual_release", "Waiting for Manual Release"),
             ("releasing", "Releasing"),
         ],
         string="State",
