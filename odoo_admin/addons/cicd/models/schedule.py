@@ -5,6 +5,7 @@ from cron_descriptor import get_description
 
 class CicdSchedule(models.Model):
     _name = "cicd.schedule"
+    _rec_name = 'human_name'
 
     name = fields.Char("Name", required=True)
     schedule = fields.Char(
