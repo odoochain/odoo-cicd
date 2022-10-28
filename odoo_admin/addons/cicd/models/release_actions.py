@@ -173,7 +173,7 @@ class CicdReleaseAction(models.Model):
         logsio.info("Uploading settings file")
         with self._extra_env() as x_self:
             for rec in x_self:
-                if not rec.settings and not rec.release_id.common_settings:
+                if not rec.effective_settings:
                     continue
                 with rec._contact_machine(logsio) as shell:
                     settings = rec.effective_settings

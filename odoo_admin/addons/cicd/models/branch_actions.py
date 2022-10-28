@@ -37,17 +37,17 @@ class Branch(models.Model):
     def _prepare_a_new_instance(self, shell, checkout=False, **kwargs):
         breakpoint()
         for self in self:
-            if self.is_release_branch:
-                continue
             dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
-            self._clone_instance_folder(shell)
+            self._make_task("_checkout_latest")
             if not dump:
                 self._make_task("reset_db")
             else:
                 self.backup_machine_id = dump.machine_id
                 self.dump_id = dump
-                self._make_task("_restore_dump", dump=self.dump_id)
+                self._make_task("_restore_dump", dump=self.dump_id.id)
+            self.env.cr.commit()
             self._make_task("_update_all_modules")
+            self.env.cr.commit()
 
     def _update_odoo(self, shell, checkout=False, **kwargs):
         if (

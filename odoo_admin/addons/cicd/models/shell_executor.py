@@ -240,6 +240,7 @@ class ShellExecutor(BaseShellExecutor):
         logoutput=True,
         timeout=None,
         retry=None,
+        retry_wait=10,
     ):
         retry = retry or 0
         effective_env = deepcopy(self.env)
@@ -254,7 +255,7 @@ class ShellExecutor(BaseShellExecutor):
                     break
             else:
                 break
-            time.sleep(10)
+            time.sleep(retry_wait)
 
         if not allow_error:
             if res["exit_code"] is None:
