@@ -35,21 +35,19 @@ class Branch(models.Model):
     _inherit = "cicd.git.branch"
 
     def _prepare_a_new_instance(self, shell, checkout=False, **kwargs):
+        breakpoint()
         for self in self:
-            if self.is_release_branch:
-                continue
             dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
-            self._clone_instance_folder(shell)
+            self._make_task("_checkout_latest")
             if not dump:
-                self._reset_db(shell, **kwargs)
+                self._make_task("reset_db")
             else:
                 self.backup_machine_id = dump.machine_id
                 self.dump_id = dump
-            if self.dump_id:
-                self._restore_dump(shell, dump=dump, **kwargs)
-            else:
-                self._reset_db(shell, **kwargs)
-            self._update_all_modules(shell, **kwargs)
+                self._make_task("_restore_dump", dump=self.dump_id.id)
+            self.env.cr.commit()
+            self._make_task("_update_all_modules")
+            self.env.cr.commit()
 
     def _update_odoo(self, shell, checkout=False, **kwargs):
         if (
@@ -329,6 +327,7 @@ class Branch(models.Model):
             commits = _extract_commits(shell)
             self._update_git_commits_put_into_db(commits, shell)
         else:
+            breakpoint()
             with self.repo_id._temp_repo(
                 self.repo_id.machine_id, branch=self.name
             ) as path:

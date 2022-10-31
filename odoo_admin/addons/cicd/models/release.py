@@ -1,3 +1,11 @@
+"""
+
+Autorelease:
+if activated, then release items are created automatically.
+Otherwise with hotfix or build and deploy option they need to be created.
+
+
+"""
 from contextlib import contextmanager
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 import arrow
@@ -93,29 +101,6 @@ class Release(models.Model):
                     if items[1].state == "ready":
                         rec.next_to_finish_item_id = items[1]
 
-    @api.constrains("branch_id")
-    def _check_branches(self):
-        for rec in self:
-            for field in [
-                "branch_id",
-            ]:
-                if not self[field]:
-                    continue
-                if self.search_count(
-                    [
-                        ("id", "!=", rec.id),
-                        ("repo_id", "=", rec.repo_id.id),
-                        (
-                            field,
-                            "=",
-                            rec[field]
-                            if isinstance(rec[field], (bool, str))
-                            else rec[field].id,
-                        ),
-                    ]
-                ):
-                    raise ValidationError("Branches must be unique per release!")
-
     @contextmanager
     def _get_logsio(self):
         with self._extra_env() as self2:
@@ -142,7 +127,7 @@ class Release(models.Model):
     @api.model
     def cron_heartbeat(self):
         breakpoint()
-        for rec in self.search([("auto_release", "=", True)]):
+        for rec in self.search([]):
             rec.with_delay(
                 identity_key=(f"release-heartbeat-{rec.name}#{rec.id}")
             )._heartbeat()
@@ -151,7 +136,7 @@ class Release(models.Model):
     def _heartbeat(self):
         self.ensure_one()
         last_item = self.last_item_id
-        if (
+        if self.auto_release and (
             last_item.state in [False, "ready"]
             or last_item.is_failed
             or last_item.is_done

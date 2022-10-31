@@ -50,7 +50,6 @@ class ReleaseItem(models.Model):
             ("ready", "Ready"),
             ("done", "Done"),
             ("done_nothing_todo", "Nothing todo"),
-            ("waiting_for_manual_release", "Waiting for Manual Release"),
             ("releasing", "Releasing"),
         ],
         string="State",
@@ -211,7 +210,9 @@ class ReleaseItem(models.Model):
             rec.computed_summary = "\n".join(summary)
 
     def _do_release(self):
-        self.state = 'releasing'
+        if self.is_done or self.is_failed:
+            return
+        self.state = "releasing"
         self.env.cr.commit()
         try:
             with self.release_id._get_logsio() as logsio:
@@ -229,7 +230,7 @@ class ReleaseItem(models.Model):
                 self._on_done()
 
         except RetryableJobError:
-            self.state = 'ready'
+            self.state = "ready"
             self.env.cr.commit()
             raise
 
@@ -427,10 +428,6 @@ class ReleaseItem(models.Model):
                     self.state = "done_nothing_todo"
                 return
 
-        if self.release_type == "build_and_deploy":
-            if not self.is_done and not self.is_failed:
-                self.state = "ready"
-
         if not self.is_done and self.state not in ["ready"]:
             """
             If branch was updated intermediate or blocked or removed
@@ -460,6 +457,11 @@ class ReleaseItem(models.Model):
         elif self.state in ["collecting", "collecting_merge_conflict"]:
             if self.release_type == "standard":
                 self._collect()
+            elif self.release_type == "build_and_deploy":
+                if self.branch_ids:
+                    self.branch_ids.unlink()
+                self.state = "ready"
+                return
             else:
                 if not self.confirmed_hotfix_branches:
                     return
@@ -514,14 +516,11 @@ class ReleaseItem(models.Model):
                     self.exc_info = str(ex)
                     self.state = "failed_merge_master"
                 else:
-                    if self.release_id.auto_release:
-                        self.state = "ready"
-                    else:
-                        self.state = "waiting_for_manual_release"
+                    self.state = "ready"
 
-        elif self.state == "ready":
+        elif self.state in ["ready", "releasing"]:
             if self.planned_date and now > self.planned_date:
-                self._do_release()
+                self.with_delay(identity_key=f"do_release_{self.id}")._do_release()
 
         elif self.is_done or self.is_failed:
             pass
@@ -672,15 +671,12 @@ class ReleaseItem(models.Model):
             rec.branch_branch_ids = rec.branch_ids.mapped("branch_id")
 
     def release_now(self):
-        if self.state not in ["collecting", "ready", "failed_too_late"]:
+        if self.state not in ["collecting", "ready", "failed_too_late", "releasing"]:
             raise ValidationError("Invalid state to switch from.")
         self.planned_date = fields.Datetime.now()
-        if self.state == "waiting_for_manual_release":
-            self.state = "ready"
         if self.state != "ready":
-            if not self.release_id.auto_release:
-                if self.release_type == 'build_and_deploy':
-                    self.state = 'ready'
+            if self.release_type == "build_and_deploy":
+                self.state = "ready"
             else:
                 self.state = "collecting"
         return True
