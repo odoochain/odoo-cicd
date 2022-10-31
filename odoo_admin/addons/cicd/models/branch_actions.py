@@ -170,7 +170,14 @@ class Branch(models.Model):
                 "Cannot restore wodoobin dump on cicd (everything would be lost)"
             )
         shell.logsio.info(f"Restoring {dump_name}")
-        shell.odoo("-f", "restore", "odoo-db", "--no-remove-webassets", dump_name)
+        shell.odoo(
+            "-f",
+            "restore",
+            "odoo-db",
+            "--no-remove-webassets",
+            dump_name,
+            timeout=48 * 3600,
+        )
         if self.remove_web_assets_after_restore:
             shell.odoo("-f", "remove-web-assets")
         self.last_restore_dump_name = dump_name
@@ -772,7 +779,8 @@ class Branch(models.Model):
                 commit = self.latest_commit_id.name
                 assert commit
                 with self._tempinstance(
-                    self.env.context.get("testrun"), commit=commit,
+                    self.env.context.get("testrun"),
+                    commit=commit,
                     maxage={"hours": compressor.timeout_hours or 24},
                 ) as shell:
                     params = []

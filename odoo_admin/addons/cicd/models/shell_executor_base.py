@@ -16,7 +16,7 @@ from odoo.addons.queue_job.exception import RetryableJobError
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = 6 * 3600
+DEFAULT_TIMEOUT = 24 * 3600
 
 
 def duration(d):
