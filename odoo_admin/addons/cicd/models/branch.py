@@ -286,6 +286,10 @@ class GitBranch(models.Model):
             if not file.exists():
                 rec.last_access = False
             else:
+                data = file.read_text().strip()
+                if not data:
+                    rec.last_access = False
+                    continue
                 date = arrow.get(file.read_text())
                 rec.last_access = date.strftime("%Y-%m-%d %H:%M:%S")
 
