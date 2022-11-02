@@ -117,7 +117,6 @@ class RobotTest(models.Model):
             shell.odoo("up", "-d", "postgres")
             shell.logsio.info("Waiting for postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
-            breakpoint()
             shell.logsio.info("Restoring dump")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             if self[0].test_setting_id.use_btrfs:
