@@ -78,7 +78,10 @@ class GitBranch(models.Model):
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one(
-        "cicd.git.repo", string="Repository", required=True, ondelete="cascade", 
+        "cicd.git.repo",
+        string="Repository",
+        required=True,
+        ondelete="cascade",
     )
     repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True, tracking=True)
@@ -134,7 +137,7 @@ class GitBranch(models.Model):
         "release_id",
         string="Target Releases",
         tracking=True,
-        domain="[('repo_id', '=', repo_id)]"
+        domain="[('repo_id', '=', repo_id)]",
     )
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
 
@@ -316,7 +319,7 @@ class GitBranch(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
-        if '*' in res.name:
+        if "*" in res.name:
             raise ValidationError("* not allowed in branch name")
 
         if "remove_web_assets_after_restore" not in vals:
@@ -818,16 +821,20 @@ class GitBranch(models.Model):
             )
 
     def _search_project_name(self, operator, value):
-        assert operator == "="
+        assert operator in ["=", "ilike", "like"]
 
-        if not value:
+        if not value and operator == "=":
             return [("id", "=", 0)]
 
-        ids = (
-            self.search([])
-            .filtered(lambda x: x.project_name.lower() == value.lower())
-            .ids
-        )
+        branches = self.with_context(active_test=False).search([])
+        if operator == "=":
+            ids = branches.filtered(
+                lambda x: x.project_name.lower() == value.lower()
+            ).ids
+        elif operator in ['ilike', 'like']:
+            ids = branches.filtered(
+                lambda x: value.lower() in  x.project_name.lower()
+            ).ids
         return [("id", "in", ids)]
 
     @api.model

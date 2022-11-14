@@ -4,7 +4,7 @@
 			<field name="model">cicd.git.branch</field>
 			<field name="arch" type="xml">
 				<search string="Branches">
-					<field name="name"/>
+					<field name="name" filter_domain="['|', ('name', 'ilike', self), ('project_name', 'ilike', self)]"/>
 					<field name="repo_id" filter_domain="[('repo_id.short', 'ilike', self)]"/>
 					<filter name="assigned_to_me" string="Assigned To Me" domain="[('assignee_id', '=', uid)]"/>
 					<filter name="active" string="Active" domain="[('active', '=', True)]" />
