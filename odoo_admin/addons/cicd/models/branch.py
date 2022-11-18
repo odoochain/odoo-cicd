@@ -753,6 +753,7 @@ class GitBranch(models.Model):
         """
         After new source is fetched then the instance is rebuilt.
         """
+        breakpoint()
         for rec in self:
             if (
                 not rec.database_size and rec.repo_id.initialize_new_branches
@@ -935,6 +936,7 @@ class GitBranch(models.Model):
                     raise
 
     def _compute_is_release_branch(self):
+        breakpoint()
         for rec in self:
             rec.is_release_branch = self.env["cicd.release.item"].search_count(
                 [
