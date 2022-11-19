@@ -226,6 +226,11 @@ class CicdTestRun(models.Model):
                 line.cleanup()
             logsio.info("Cleanup Testing done.")
 
+    def _any_line_forced_success(self):
+        for line in self.iterate_testlines():
+            if line.force_success:
+                return True
+
     @contextmanager
     def _logsio(self, logsio=None):
         if logsio:
@@ -311,6 +316,7 @@ class CicdTestRun(models.Model):
             test_setup.as_job(test_setup.name).init_testrun(self)
 
     def _compute_success_state(self):
+        breakpoint()
         self.ensure_one()
         if self._is_success():
             self.state = "success"
@@ -448,4 +454,5 @@ class CicdTestRun(models.Model):
     def _check_success(self):
         for rec in self:
             if rec.state == "success" and rec.do_abort:
-                rec.state = "failed"
+                if not rec._any_line_forced_success:
+                    rec.state = "failed"
