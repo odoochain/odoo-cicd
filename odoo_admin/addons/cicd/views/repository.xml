@@ -42,7 +42,9 @@
 							</page>
 							<page string="Webhooks">
 								<group>
-									<div>http://host/trigger/repo/webhook_id/webhook_secret</div>
+									<div style="margin-bottom: 35px;">
+									<h2>http://host/trigger/repo/webhook_id/webhook_secret</h2>
+									</div>
 									<field name="webhook_id"/>
 									<field name="webhook_secret"/>
 								</group>
