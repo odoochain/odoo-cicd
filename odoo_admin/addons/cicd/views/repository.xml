@@ -29,7 +29,7 @@
 						</group>
 						<notebook>
 							<page name="setup" string="Setup">
-								<group col="2">
+								<group col="4">
 									<field name="machine_id" invisible="0"/>
 									<field name="initialize_new_branches"/>
 									<field name="default_simulate_install_id_dump_id" domain="[('machine_id', '=', machine_id)]"/>
