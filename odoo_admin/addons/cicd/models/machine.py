@@ -284,6 +284,7 @@ class CicdMachine(models.Model):
 
                 command_file = "/tmp/commands.cicd"
                 homedir = "/home/" + rec.ssh_user_cicdlogin
+                homedir_original_user = "/home/" + rec.ssh_user
                 test_file_if_required = homedir + "/.setup_login_done.v6"
                 user_upper = rec.ssh_user_cicdlogin.upper()
                 cicd_user_upper = rec.ssh_user.upper()
@@ -297,7 +298,7 @@ set -e
 # adding sudoer command for restricted user to odoo framework
 
 tee "/etc/sudoers.d/{rec.ssh_user_cicdlogin}_odoo" <<EOF
-Cmnd_Alias ODOO_COMMANDS_{user_upper} = {homedir}/.local/sudobin/odoo *
+Cmnd_Alias ODOO_COMMANDS_{user_upper} = {homedir_original_user}/.local/sudobin/odoo *
 {rec.ssh_user_cicdlogin} ALL=({rec.ssh_user}) NOPASSWD:SETENV: ODOO_COMMANDS_{user_upper}
 EOF
 
@@ -374,7 +375,7 @@ echo -e "{rec.ssh_user_cicdlogin_password}\n{rec.ssh_user_cicdlogin_password}" |
 # adding wrapper for calling odoo framework in that instance directory
 #!/bin/bash
 tee "{homedir}/programs/odoo" <<EOF
-sudo -u {rec.ssh_user} {homedir}/.local/sudobin/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" -p "\$PROJECT_NAME" "\$@"
+sudo -u {rec.ssh_user} {homedir_original_user}/.local/sudobin/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" -p "\$PROJECT_NAME" "\$@"
 EOF
 chmod a+x "{homedir}/programs/odoo"
 
