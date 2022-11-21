@@ -290,7 +290,7 @@ class Branch(models.Model):
 
         if "/" in filename:
             raise ValidationError("Filename mustn't contain slashses!")
-        shell.odoo("backup", "odoo-db", str(volume / filename))
+        shell.odoo("backup", "all", str(volume / filename))
         # to avoid serialize access erros which may occur
         machine.with_delay().update_dumps()
 
@@ -805,7 +805,7 @@ class Branch(models.Model):
 
                     shell.logsio.info("Dumping compressed dump")
                     dump_path = shell.machine._get_volume("dumps") / self.project_name
-                    shell.odoo("backup", "odoo-db", dump_path)
+                    shell.odoo("backup", "all", dump_path)
                     compressor.last_output_size = shell.file_size(dump_path)
                     self.env.cr.commit()
                     compressor.last_log += (
@@ -1040,7 +1040,7 @@ for path in base.glob("*"):
             dest_path = dest_path.parent / self.env[
                 "cicd.machine"
             ]._append_cleanme_notation(dest_path.name, maxage={"hours": 24 * 4})
-            params = ["backup", "odoo-db", dest_path]
+            params = ["backup", "all", dest_path]
             if dumptype:
                 params += ["--dumptype", dumptype]
             shell.odoo(*params)
