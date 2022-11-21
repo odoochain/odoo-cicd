@@ -234,6 +234,18 @@ class Repository(models.Model):
             )
             yield path
 
+    @api.model
+    def _sshenv_pullclone(self, defaults=None):
+        defaults = defaults or {}
+        env = {}
+        env.update(defaults)
+        env.update({
+            "GIT_ASK_YESNO": "false",
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_SSH_COMMAND": "ssh -o Batchmode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no",
+        })
+        return env
+
     @contextmanager
     def _get_main_repo(self, logsio=None, machine=None):
         """
@@ -249,7 +261,7 @@ class Repository(models.Model):
         with machine._shell(cwd=self.machine_id.workspace, logsio=logsio) as shell:
             if not self._is_healthy_repository(shell, path):
                 with shell.machine._temppath(usage="clone_repo") as temppath:
-                    shell.X(["git-cicd", "clone", self.url, temppath])
+                    shell.X(["git-cicd", "clone", self.url, temppath], env=self._sshenv_pullclone())
                     shell.safe_move_directory(temppath, path)
                     del temppath
         yield path
@@ -457,14 +469,14 @@ class Repository(models.Model):
     def _pull(self, shell, branch):
         # option P makes .git --> .git/
         shell.X(["ls -pA |grep -v \\.git\\/ |xargs rm -Rf"])
-        shell.X(["git-cicd", "pull"])
+        shell.X(["git-cicd", "pull"], env=self._sshenv_pullclone())
         shell.X(["git-cicd", "checkout", "-f", branch])
 
     def _prepare_pulled_branch(self, shell, branch):
         try:
             logsio = shell.logsio
             logsio.info(f"Pulling {branch}...")
-            shell.X(["git-cicd", "fetch", "origin", branch])
+            shell.X(["git-cicd", "fetch", "origin", branch], env=self._sshenv_pullclone())
             logsio.info(f"pulled {branch}...")
 
             self._checkout_branch_recreate_repo_on_need(shell, branch)
@@ -703,7 +715,7 @@ class Repository(models.Model):
                 shell.X(["git-cicd", "gc", "--prune=now"])
                 shell.X(["git-cicd", "remote", "add", "origin", self.url])
                 shell.X(["git-cicd", "config", "push.default", "current"])
-                shell.X(["git-cicd", "fetch", "origin"])
+                shell.X(["git-cicd", "fetch", "origin"], env=self._sshenv_pullclone())
                 try:
                     shell.X(["git-cicd", "pull"])
                 except Exception as ex:  # pylint: disable=broad-except
@@ -716,7 +728,7 @@ class Repository(models.Model):
                         "--set-upstream",
                         "origin",
                         target_branch_name,
-                    ]
+                    ], env=self._sshenv_pullclone()
                 )
 
                 if not (

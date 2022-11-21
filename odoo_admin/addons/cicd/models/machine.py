@@ -76,7 +76,9 @@ class CicdMachine(models.Model):
     @api.depends("ssh_user")
     def _compute_ssh_user_cicd_login(self):
         for rec in self:
-            rec.ssh_user_cicdlogin = (rec.ssh_user or "") + "_restricted_cicdlogin"
+            rec.ssh_user_cicdlogin = (rec.ssh_user or "") + "_min"
+            if len(rec.ssh_user_cicdlogin) > 32:
+                raise ValidationError("Maximum length of username is restricted to 32 chars in linux")
             if not rec.ssh_user_cicdlogin_password_salt:
                 rec.ssh_user_cicdlogin_password_salt = str(arrow.get())
             ho = hashlib.md5(
@@ -289,6 +291,7 @@ class CicdMachine(models.Model):
                 # allow per sudo execution of just the odoo script
                 commands = """
 #!/bin/bash
+set -e
 
 #------------------------------------------------------------------------------
 # adding sudoer command for restricted user to odoo framework
@@ -453,13 +456,7 @@ echo "--------------------------------------------------------------------------
         self.ensure_one()
         assert repo._name == "cicd.git.repo"
         env = env or {}
-        env.update(
-            {
-                "GIT_ASK_YESNO": "false",
-                "GIT_TERMINAL_PROMPT": "0",
-                "GIT_SSH_COMMAND": "ssh -o Batchmode=yes -o StrictHostKeyChecking=no",
-            }
-        )
+        env = self.env['cicd.git.repository']._sshenv_pullclone()
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix="."))
             try:
