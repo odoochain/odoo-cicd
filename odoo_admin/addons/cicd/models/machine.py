@@ -457,7 +457,7 @@ echo "--------------------------------------------------------------------------
         self.ensure_one()
         assert repo._name == "cicd.git.repo"
         env = env or {}
-        env = self.env['cicd.git.repository']._sshenv_pullclone()
+        env = self.env['cicd.git.repo']._sshenv_pullclone()
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix="."))
             try:
