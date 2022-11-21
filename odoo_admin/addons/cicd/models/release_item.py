@@ -25,7 +25,7 @@ class ReleaseItem(models.Model):
     branch_branch_ids = fields.Many2many(
         "cicd.git.branch", compute="_compute_branch_branch_ids"
     )
-    item_branch_name = fields.Char(compute="_compute_item_branch_name")
+    item_branch_name = fields.Char(compute="_compute_item_branch_name", store=True)
     item_branch_id = fields.Many2one("cicd.git.branch", string="Release Branch")
     release_id = fields.Many2one(
         "cicd.release", string="Release", required=True, ondelete="cascade"
@@ -629,6 +629,7 @@ class ReleaseItem(models.Model):
                     existing.unlink()
                     rec._set_needs_merge()
 
+    @api.depends("release_id", "release_id.branch_id", "release_id.branch_id.name")
     def _compute_item_branch_name(self):
         for rec in self:
             rec.item_branch_name = (

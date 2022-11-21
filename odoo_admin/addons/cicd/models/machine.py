@@ -242,16 +242,17 @@ class CicdMachine(models.Model):
 
     @api.model
     def _clean_tempdirs(self):
-        for machine in self.search([('active', '=', True)]):
-            machine.with_delay()._clean_temppath()
+        for machine in self.search([('active', '=', True), ('ttype', '=', 'dev')]):
+            machine.with_delay(identity_key=f"clean_tempdir_{machine.id}")._clean_temppath()
 
     def _clean_temppath(self):
+        breakpoint()
         self.ensure_one()
         if not self.active:
             return
         with self._shell() as shell:
             for vol in self.volume_ids.filtered(lambda x: x.ttype == "temp"):
-                res = shell.X(["ls", "-A", vol.name], allow_error=True)
+                res = shell.X(["ls", "-A", vol.name], allow_error=True, timeout=20)
                 if res['exit_code']:
                     continue
                 for dirname in res["stdout"].splitlines():

@@ -51,7 +51,6 @@ class queuejob(models.Model):
 
     @api.model
     def requeue_jobs(self):
-
         delete = [
             "docker-containers-",
             "machine-update-vol-sizes",
@@ -108,6 +107,7 @@ class queuejob(models.Model):
             "TimeoutError:",
             "failed to create LLB definition",
             "the remote end hung up unexpectedly",
+            "Permission denied, please try again",
         ]
 
         ignore_idkeys = [
@@ -118,13 +118,13 @@ class queuejob(models.Model):
             "update_databases",
         ]
         idkeys = set()
-        crit_date = arrow.utcnow().shift(days=-1).strftime(DTF)
+        crit_date = arrow.utcnow().shift(hours=-1).strftime(DTF)
 
         for reason in reasons:
             for job in self.search(
                 [
                     ("state", "=", "failed"),
-                    ("date_created", ">", crit_date),
+                    ("date_created", "<=", crit_date),
                     "|",
                     ("exc_info", "ilike", reason),
                     ("result", "ilike", reason),
@@ -132,6 +132,7 @@ class queuejob(models.Model):
             ):
                 for ignore in ignore_idkeys:
                     if ignore in (job.identity_key or ""):
+                        job.unlink()
                         break
                 else:
                     if job.identity_key:
