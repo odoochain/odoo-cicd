@@ -8,6 +8,11 @@ from pathlib import Path
 from contextlib import contextmanager, closing
 from odoo import registry
 
+def lstrip(x, y):
+    if x.startswith(y):
+        x = x[y.length:]
+    return x
+
 
 class Database(models.Model):
     _inherit = ["cicd.mixin.size"]
@@ -70,6 +75,7 @@ class Database(models.Model):
             rec.sudo().unlink()
 
     def revive(self):
+        breakpoint()
         from . postgres_server import PREFIX_TODELETE
         for rec in self:
             with rec._dropconnections() as cr:
@@ -102,9 +108,11 @@ class Database(models.Model):
             rec.matching_branch_ids = self.env["cicd.git.branch"]
             for repo in self.env["cicd.git.repo"].search([]):
                 name = rec.name.lower()
-                name = name.lstrip(project_name.lower().replace("-", "_"))
+                name = lstrip(name, project_name.lower().replace("-", "_"))
                 name = name.lstrip("_")
-                name = name.lstrip(repo.short.lower().replace("-", "_"))
+                name = lstrip(name, repo.short.lower().replace("-", "_"))
+                if not name:
+                    continue
                 for branch in repo.branch_ids:
                     if branch.name == name or branch.technical_branch_name == name:
                         rec.matching_branch_ids = [[6, 0, branch.ids]]
