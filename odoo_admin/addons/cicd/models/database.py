@@ -21,6 +21,7 @@ class Database(models.Model):
     matching_branch_ids = fields.Many2many(
         "cicd.git.branch", string="Matching Branches", compute="_compute_branches"
     )
+    show_revive = fields.Boolean(compute="_compute_show_revive")
 
     _sql_constraints = [
         (
@@ -29,6 +30,11 @@ class Database(models.Model):
             _("Only one unique entry allowed."),
         ),
     ]
+
+    def _compute_show_revive(self):
+        from . postgres_server import PREFIX_TODELETE
+        for rec in self:
+            rec.show_revive = PREFIX_TODELETE in rec.name
 
     @api.depends("name", "size_human")
     def _compute_display_name(self):
@@ -63,6 +69,16 @@ class Database(models.Model):
                 cr.execute((f"DROP DATABASE IF EXISTS {rec.name}"))
             rec.sudo().unlink()
 
+    def revive(self):
+        from . postgres_server import PREFIX_TODELETE
+        for rec in self:
+            with rec._dropconnections() as cr:
+                original_name = rec.name.strip(PREFIX_TODELETE)
+                # remove the _20220101
+                original_name = "".join(reversed(("".join(reversed(original_name))).split("_", 1)[1]))
+                cr.execute((f"ALTER DATABASE {rec.name} RENAME TO {original_name}"))
+                rec.sudo().name = original_name
+
     @api.model
     def _cron_update(self):
         for machine in self.env["cicd.machine"].sudo().search([]):
@@ -81,16 +97,15 @@ class Database(models.Model):
     def _compute_branches(self):
         breakpoint()
         for rec in self:
+            breakpoint()
             project_name = os.getenv("PROJECT_NAME", "")
             rec.matching_branch_ids = self.env["cicd.git.branch"]
             for repo in self.env["cicd.git.repo"].search([]):
                 name = rec.name.lower()
-                name = name.replace(project_name.lower(), "")
-                name = name.replace(repo.short.lower(), "")
-                while name.startswith("_"):
-                    name = name[1:]
-                name = name.replace("_", ".*")
+                name = name.lstrip(project_name.lower().replace("-", "_"))
+                name = name.lstrip("_")
+                name = name.lstrip(repo.short.lower().replace("-", "_"))
                 for branch in repo.branch_ids:
-                    for f in ["name", "technical_branch_name"]:
-                        if re.findall(name, (branch[f] or "").lower()):
-                            rec.matching_branch_ids += branch
+                    if branch.name == name or branch.technical_branch_name == name:
+                        rec.matching_branch_ids = [[6, 0, branch.ids]]
+                    

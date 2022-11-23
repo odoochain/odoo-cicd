@@ -117,6 +117,7 @@ class PostgresServer(models.Model):
 
     def update_databases(self):
         for rec in self:
+            rec = rec.sudo()
             if not rec.filedbsizes.exists():
                 continue
             try:
