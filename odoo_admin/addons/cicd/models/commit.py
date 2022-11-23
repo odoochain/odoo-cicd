@@ -111,6 +111,8 @@ class GitCommit(models.Model):
         for rec in self:
             if rec.force_approved:
                 continue
+            if not rec.branch_ids.repo_id.needs_codereview:
+                continue
             for approver in ["code_reviewer_id", "approver_id"]:
                 if rec[approver] and rec[approver] == rec.author_user_id:
                     if not self.env.user.has_group("cicd.group_override_approve"):

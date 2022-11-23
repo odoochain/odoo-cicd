@@ -33,6 +33,7 @@ class Repository(models.Model):
     _rec_name = "short"
 
     registry_id = fields.Many2one("cicd.registry", string="Docker Registry")
+    needs_codereview = fields.Boolean("Needs Codereview", default=True)
     short = fields.Char(
         compute="_compute_shortname", string="Name", compute_sudo=True, store=True
     )
