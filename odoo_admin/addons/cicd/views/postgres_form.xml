@@ -26,7 +26,7 @@
 									<field name="database_ids" nolabel="1">
 										<tree>
 											<button name="delete_db" string="Purge" type="object" confirm="Cannot be undone. Continue?" />
-											<button name="revive_db" string="Revive" type="object" attrs="{'invisible': [('show_revive', '=', False)]}"/>
+											<button name="revive" string="Revive" type="object" attrs="{'invisible': [('show_revive', '=', False)]}"/>
 											<field name="show_revive" invisible="1"/>
 											<field name="name" />
 											<field name="size_human" />

@@ -74,9 +74,10 @@ class Database(models.Model):
         for rec in self:
             with rec._dropconnections() as cr:
                 original_name = rec.name.strip(PREFIX_TODELETE)
+                # remove the _20220101
+                original_name = "".join(reversed(("".join(reversed(original_name))).split("_", 1)[1]))
                 cr.execute((f"ALTER DATABASE {rec.name} RENAME TO {original_name}"))
-                rec.name = original_name
-            rec.sudo().unlink()
+                rec.sudo().name = original_name
 
     @api.model
     def _cron_update(self):
