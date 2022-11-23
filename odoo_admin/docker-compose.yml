@@ -59,8 +59,8 @@ services:
       odoo_framework.apply_env: 0
     environment:
         INDEX_HOST: http://${PROJECT_NAME}_proxy:80
-    ports:
-      - "5555:80"
+    # ports:
+    #   - "5555:80"
     volumes:
         - ${CUSTOMS_DIR}/../cicd_delegator/app:/usr/src/app
 
