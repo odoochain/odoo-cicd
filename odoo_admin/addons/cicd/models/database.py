@@ -97,6 +97,7 @@ class Database(models.Model):
     def _compute_branches(self):
         breakpoint()
         for rec in self:
+            breakpoint()
             project_name = os.getenv("PROJECT_NAME", "")
             rec.matching_branch_ids = self.env["cicd.git.branch"]
             for repo in self.env["cicd.git.repo"].search([]):
@@ -105,5 +106,6 @@ class Database(models.Model):
                 name = name.lstrip("_")
                 name = name.lstrip(repo.short.lower().replace("-", "_"))
                 for branch in repo.branch_ids:
-                    if branch.name == name:
-                        rec.matching_branch_ids += branch
+                    if branch.name == name or branch.technical_branch_name == name:
+                        rec.matching_branch_ids = [[6, 0, branch.ids]]
+                    
