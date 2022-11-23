@@ -21,6 +21,7 @@ class Database(models.Model):
     matching_branch_ids = fields.Many2many(
         "cicd.git.branch", string="Matching Branches", compute="_compute_branches"
     )
+    show_revive = fields.Boolean(compute="_compute_show_revive")
 
     _sql_constraints = [
         (
@@ -29,6 +30,11 @@ class Database(models.Model):
             _("Only one unique entry allowed."),
         ),
     ]
+
+    def _compute_show_revive(self):
+        from . postgres_server import PREFIX_TODELETE
+        for rec in self:
+            rec.show_revive = PREFIX_TODELETE in rec.name
 
     @api.depends("name", "size_human")
     def _compute_display_name(self):
@@ -63,6 +69,15 @@ class Database(models.Model):
                 cr.execute((f"DROP DATABASE IF EXISTS {rec.name}"))
             rec.sudo().unlink()
 
+    def revive(self):
+        from . postgres_server import PREFIX_TODELETE
+        for rec in self:
+            with rec._dropconnections() as cr:
+                original_name = rec.name.strip(PREFIX_TODELETE)
+                cr.execute((f"ALTER DATABASE {rec.name} RENAME TO {original_name}"))
+                rec.name = original_name
+            rec.sudo().unlink()
+
     @api.model
     def _cron_update(self):
         for machine in self.env["cicd.machine"].sudo().search([]):
@@ -79,7 +94,6 @@ class Database(models.Model):
             rec.machine_id = machines[0] if machines else False
 
     def _compute_branches(self):
-        breakpoint()
         for rec in self:
             project_name = os.getenv("PROJECT_NAME", "")
             rec.matching_branch_ids = self.env["cicd.git.branch"]
