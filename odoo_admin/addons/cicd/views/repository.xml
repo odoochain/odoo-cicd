@@ -38,6 +38,7 @@
 									<field name="default_branch" placeholder="master"/>
 									<field name="ticketsystem_id"/>
 									<field name="autofetch"/>
+									<field name="needs_codereview"/>
 								</group>
 							</page>
 							<page string="Webhooks">

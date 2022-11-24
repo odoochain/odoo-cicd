@@ -76,7 +76,9 @@ class CicdMachine(models.Model):
     @api.depends("ssh_user")
     def _compute_ssh_user_cicd_login(self):
         for rec in self:
-            rec.ssh_user_cicdlogin = (rec.ssh_user or "") + "_restricted_cicdlogin"
+            rec.ssh_user_cicdlogin = (rec.ssh_user or "") + "_min"
+            if len(rec.ssh_user_cicdlogin) > 32:
+                raise ValidationError("Maximum length of username is restricted to 32 chars in linux")
             if not rec.ssh_user_cicdlogin_password_salt:
                 rec.ssh_user_cicdlogin_password_salt = str(arrow.get())
             ho = hashlib.md5(
@@ -282,6 +284,7 @@ class CicdMachine(models.Model):
 
                 command_file = "/tmp/commands.cicd"
                 homedir = "/home/" + rec.ssh_user_cicdlogin
+                homedir_original_user = "/home/" + rec.ssh_user
                 test_file_if_required = homedir + "/.setup_login_done.v6"
                 user_upper = rec.ssh_user_cicdlogin.upper()
                 cicd_user_upper = rec.ssh_user.upper()
@@ -289,12 +292,13 @@ class CicdMachine(models.Model):
                 # allow per sudo execution of just the odoo script
                 commands = """
 #!/bin/bash
+set -e
 
 #------------------------------------------------------------------------------
 # adding sudoer command for restricted user to odoo framework
 
 tee "/etc/sudoers.d/{rec.ssh_user_cicdlogin}_odoo" <<EOF
-Cmnd_Alias ODOO_COMMANDS_{user_upper} = {homedir}/.local/sudobin/odoo *
+Cmnd_Alias ODOO_COMMANDS_{user_upper} = {homedir_original_user}/.local/sudobin/odoo *
 {rec.ssh_user_cicdlogin} ALL=({rec.ssh_user}) NOPASSWD:SETENV: ODOO_COMMANDS_{user_upper}
 EOF
 
@@ -371,7 +375,7 @@ echo -e "{rec.ssh_user_cicdlogin_password}\n{rec.ssh_user_cicdlogin_password}" |
 # adding wrapper for calling odoo framework in that instance directory
 #!/bin/bash
 tee "{homedir}/programs/odoo" <<EOF
-sudo -u {rec.ssh_user} {homedir}/.local/sudobin/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" -p "\$PROJECT_NAME" "\$@"
+sudo -u {rec.ssh_user} {homedir_original_user}/.local/sudobin/odoo --chdir "\$CICD_WORKSPACE/\$PROJECT_NAME" -p "\$PROJECT_NAME" "\$@"
 EOF
 chmod a+x "{homedir}/programs/odoo"
 
@@ -453,13 +457,7 @@ echo "--------------------------------------------------------------------------
         self.ensure_one()
         assert repo._name == "cicd.git.repo"
         env = env or {}
-        env.update(
-            {
-                "GIT_ASK_YESNO": "false",
-                "GIT_TERMINAL_PROMPT": "0",
-                "GIT_SSH_COMMAND": "ssh -o Batchmode=yes -o StrictHostKeyChecking=no",
-            }
-        )
+        env = self.env['cicd.git.repo']._sshenv_pullclone()
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix="."))
             try:
