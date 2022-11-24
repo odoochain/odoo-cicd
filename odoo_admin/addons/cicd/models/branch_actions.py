@@ -410,7 +410,7 @@ class Branch(models.Model):
             def _get_body():
                 for i, line in enumerate(info):
                     if not line:
-                        return info[i + 1 :]
+                        return info[i + 1:]
 
             text = ("\n".join(_get_body())).strip()
             self.commit_ids = [
@@ -805,12 +805,10 @@ class Branch(models.Model):
 
                     shell.logsio.info("Dumping compressed dump")
                     dump_path = shell.machine._get_volume("dumps") / self.project_name
-                    shell.odoo("backup", "all", dump_path)
+                    shell.odoo("backup", "odoo-db", dump_path)
                     compressor.last_output_size = shell.file_size(dump_path)
                     self.env.cr.commit()
-                    compressor.last_log += (
-                        f"\nDump created transferring to destinations"
-                    )
+                    compressor.last_log += "\nDump created transferring to destinations"
 
                     dump = shell.get(dump_path)
                     for output in compressor.output_ids:
@@ -1001,7 +999,7 @@ for path in base.glob("*"):
                             # make sure to avoid rm /
                             shell.rm(repo_path)
 
-    def _ensure_dump(self, ttype, commit, dumptype=None, dbname="odoo"):
+    def _ensure_dump(self, ttype, commit, dbname="odoo"):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
@@ -1010,7 +1008,7 @@ for path in base.glob("*"):
         assert isinstance(commit, str)
         self.ensure_one()
 
-        dest_path = self._ensure_dump_get_dest_path(ttype, commit, dumptype)
+        dest_path = self._ensure_dump_get_dest_path(ttype, commit)
 
         with self.machine_id._shell() as shell:
             # as in temp path contains the full_wodoobin_odoo_deb66496b4f54a85d086743f0f532a0583090df8.cleanme.20220823_155750
@@ -1022,7 +1020,7 @@ for path in base.glob("*"):
         # if there are many tests waiting, then
         # ensure dump shall run in parallel to prepare the base dumps
         # before it was just 'ensuredump' and blocked a lot of processes
-        unique_id = f"ensure_dump_{ttype}_commit_{commit}_dumptype_{dumptype}"
+        unique_id = f"ensure_dump_{ttype}_commit_{commit}"
 
         with self._tempinstance(unique_id, commit=commit, dbname=dbname) as shell:
             shell.logsio.info(f"Creating dump file {dest_path}")
@@ -1041,12 +1039,10 @@ for path in base.glob("*"):
                 "cicd.machine"
             ]._append_cleanme_notation(dest_path.name, maxage={"hours": 24 * 4})
             params = ["backup", "all", dest_path]
-            if dumptype:
-                params += ["--dumptype", dumptype]
             shell.odoo(*params)
         return dest_path
 
-    def _ensure_dump_get_dest_path(self, ttype, commit, dumptype):
+    def _ensure_dump_get_dest_path(self, ttype, commit):
         if commit:
             assert isinstance(commit, str)
         machine = self.machine_id
@@ -1079,10 +1075,10 @@ for path in base.glob("*"):
                     ].split("---", 1)[1]
                     deps = json.loads(output)
                     hash = deps["hash"]
-                    return f"base_dump_{dumptype}_{self.repo_id.short}_{hash}"
+                    return f"base_dump_{self.repo_id.short}_{hash}"
 
                 elif ttype == "full":
-                    return f"full_{dumptype}_{self.repo_id.short}_{commit}"
+                    return f"full_{self.repo_id.short}_{commit}"
 
                 raise NotImplementedError(ttype)
 

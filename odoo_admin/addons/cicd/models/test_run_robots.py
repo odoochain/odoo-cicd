@@ -89,7 +89,7 @@ class RobotTest(models.Model):
         with self._shell(quick=True) as shell:
             # there could be errors at install all
             dump_path = self.run_id.branch_id._ensure_dump(
-                "full", self.run_id.commit_id.name, dumptype="wodoobin", dbname=DBNAME
+                "full", self.run_id.commit_id.name, dbname=DBNAME
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
 
