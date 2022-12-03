@@ -37,6 +37,7 @@ class RobotTest(models.Model):
 
     _inherit = "cicd.test.run.line"
     _name = "cicd.test.run.line.robottest"
+    _order = "filepath"
 
     filepath = fields.Char("Filepath")
     robot_output = fields.Binary("Robot Output", attachment=True)
