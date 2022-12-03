@@ -8,9 +8,10 @@ from pathlib import Path
 from contextlib import contextmanager, closing
 from odoo import registry
 
+
 def lstrip(x, y):
     if x.startswith(y):
-        x = x[y.length:]
+        x = x[len(y) :]
     return x
 
 
@@ -37,7 +38,8 @@ class Database(models.Model):
     ]
 
     def _compute_show_revive(self):
-        from . postgres_server import PREFIX_TODELETE
+        from .postgres_server import PREFIX_TODELETE
+
         for rec in self:
             rec.show_revive = PREFIX_TODELETE in rec.name
 
@@ -76,12 +78,15 @@ class Database(models.Model):
 
     def revive(self):
         breakpoint()
-        from . postgres_server import PREFIX_TODELETE
+        from .postgres_server import PREFIX_TODELETE
+
         for rec in self:
             with rec._dropconnections() as cr:
                 original_name = rec.name.strip(PREFIX_TODELETE)
                 # remove the _20220101
-                original_name = "".join(reversed(("".join(reversed(original_name))).split("_", 1)[1]))
+                original_name = "".join(
+                    reversed(("".join(reversed(original_name))).split("_", 1)[1])
+                )
                 cr.execute((f"ALTER DATABASE {rec.name} RENAME TO {original_name}"))
                 rec.sudo().name = original_name
 
@@ -116,4 +121,3 @@ class Database(models.Model):
                 for branch in repo.branch_ids:
                     if branch.name == name or branch.technical_branch_name == name:
                         rec.matching_branch_ids = [[6, 0, branch.ids]]
-                    
