@@ -498,14 +498,9 @@ class ReleaseItem(models.Model):
         elif self.state == "integrating":
             # check if test done
             runs = self.item_branch_id.latest_commit_id.test_run_ids
-            open_runs = runs.filtered(lambda x: x.state not in ["failed", "success"])
             success = "success" in runs.mapped("state")
 
-            if (
-                not success
-                and not open_runs
-                and not self.item_branch_id.latest_commit_id.test_run_ids
-            ):
+            if not runs:
                 self.release_id.apply_test_settings(self.item_branch_id)
                 self.item_branch_id.with_delay().run_tests()
 
