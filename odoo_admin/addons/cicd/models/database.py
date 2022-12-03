@@ -106,18 +106,29 @@ class Database(models.Model):
             rec.machine_id = machines[0] if machines else False
 
     def _compute_branches(self):
-        breakpoint()
+        def formatname(x):
+            x = (x or '').replace("-", "_").lower()
+            return x
+
         for rec in self:
-            breakpoint()
             project_name = os.getenv("PROJECT_NAME", "")
             rec.matching_branch_ids = self.env["cicd.git.branch"]
             for repo in self.env["cicd.git.repo"].search([]):
                 name = rec.name.lower()
-                name = lstrip(name, project_name.lower().replace("-", "_"))
+                if 'fsc' in name:
+                    breakpoint()
+                name = lstrip(name, formatname(project_name))
                 name = name.lstrip("_")
-                name = lstrip(name, repo.short.lower().replace("-", "_"))
+                name = lstrip(name, formatname(repo.short))
+                name = name.lstrip("_")
                 if not name:
                     continue
                 for branch in repo.branch_ids:
-                    if branch.name == name or branch.technical_branch_name == name:
+                    branch_name = formatname(branch.name)
+                    if 'fsc' in branch_name:
+                        breakpoint()
+                    if (
+                        branch_name == name
+                        or branch.technical_branch_name.lower() == name
+                    ):
                         rec.matching_branch_ids = [[6, 0, branch.ids]]
