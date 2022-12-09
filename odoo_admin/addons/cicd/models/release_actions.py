@@ -62,50 +62,46 @@ class CicdReleaseAction(models.Model):
             finally:
                 shell.rm(filepath)
 
-    def run_action_set(self, release_item, commit_sha):
+    def run_action_set(self, release_item, commit_sha, logsio):
         actions = self
         errors = []
 
-        with release_item._extra_env() as unblocked_item:
-            branch_name = unblocked_item.release_id.branch_id.name
+        try:
+            if actions:
+                actions._exec_shellscripts(logsio, "before")
 
-        with LogsIOWriter.GET(branch_name, "release") as logsio:
-            try:
-                if actions:
-                    actions._exec_shellscripts(logsio, "before")
-
-                    actions._upload_settings_file(logsio, release_item, commit_sha)
-                    actions._load_images_to_registry(logsio, release_item, commit_sha)
-                    actions._update_sourcecode(logsio, release_item, commit_sha)
-                    actions._update_images(logsio)
-                    actions._stop_odoo(logsio)
-                    try:
+                actions._upload_settings_file(logsio, release_item, commit_sha)
+                actions._load_images_to_registry(logsio, release_item, commit_sha)
+                actions._update_sourcecode(logsio, release_item, commit_sha)
+                actions._update_images(logsio)
+                actions._stop_odoo(logsio)
+                try:
+                    actions[0]._run_update(logsio)
+                except Exception:
+                    if not actions[0].shell_script_on_update_fail:
+                        raise
+                    else:
+                        actions[0]._exec_shellscript(
+                            logsio, actions[0].shell_script_on_update_fail
+                        )
                         actions[0]._run_update(logsio)
-                    except Exception:
-                        if not actions[0].shell_script_on_update_fail:
-                            raise
-                        else:
-                            actions[0]._exec_shellscript(
-                                logsio, actions[0].shell_script_on_update_fail
-                            )
-                            actions[0]._run_update(logsio)
 
-            except Exception:  # pylint: disable=broad-except
-                errors.append(traceback.format_exc())
+        except Exception:  # pylint: disable=broad-except
+            errors.append(traceback.format_exc())
 
-            finally:
-                for action in actions:
-                    try:
-                        action._start_odoo(logsio=logsio)
-                    except Exception:  # pylint: disable=broad-except
-                        errors.append(traceback.format_exc())
+        finally:
+            for action in actions:
+                try:
+                    action._start_odoo(logsio=logsio)
+                except Exception:  # pylint: disable=broad-except
+                    errors.append(traceback.format_exc())
 
-                for action in actions:
-                    try:
-                        action._exec_shellscripts(logsio, "after")
-                    except Exception:  # pylint: disable=broad-except
-                        errors.append(traceback.format_exc())
-            return errors
+            for action in actions:
+                try:
+                    action._exec_shellscripts(logsio, "after")
+                except Exception:  # pylint: disable=broad-except
+                    errors.append(traceback.format_exc())
+        return errors
 
     @contextmanager
     def _contact_machine(self, logsio):
