@@ -1,4 +1,5 @@
 import traceback
+import uuid
 from odoo import _, api, fields, models, SUPERUSER_ID
 import tempfile
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -137,10 +138,18 @@ class CicdReleaseAction(models.Model):
             with rec._contact_machine(logsio) as shell:
                 path = shell.cwd
                 home_dir = shell._get_home_dir()
-                breakpoint()
                 # dest path not required to exist
                 with shell.clone(cwd=home_dir) as shell2:
-                    shell2.extract_zip(zip_content, path)
+                    temppath = path.parent / (path.name + ('.' + str(uuid.uuid4())))
+                    oldpath = path.parent / (path.name + ('.' + str(uuid.uuid4())) + ".old")
+                    try:
+                        shell2.extract_zip(zip_content, temppath)
+                        shell2.safe_move_directory(path, oldpath)
+                        shell2.safe_move_directory(temppath, path)
+                        shell2.remove(oldpath)
+                    finally:
+                        shell2.remove(temppath)
+
 
     def _update_images(self, logsio):
         breakpoint()
