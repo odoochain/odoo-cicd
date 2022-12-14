@@ -285,6 +285,9 @@ class ShellExecutor(BaseShellExecutor):
                 filename.unlink()
 
     def put(self, content, dest):
+        if "~" in str(dest):
+            dest = str(dest).replace("~", self._get_home_dir())
+        dest = self.cwd / Path(dest)
         filename = Path(tempfile.mktemp(suffix="."))
         if isinstance(content, str):
             content = content.encode("utf-8")
@@ -340,7 +343,8 @@ class ShellExecutor(BaseShellExecutor):
                         "rsync",
                         str(temppath) + "/",
                         str(dest_path) + "/",
-                        "-r",
+                        # a requierd; otherwise some files were missed to transfer
+                        "-ar",
                         "--delete-after",
                     ]
                 )

@@ -136,16 +136,24 @@ class CicdReleaseAction(models.Model):
                 home_dir = shell._get_home_dir()
                 # dest path not required to exist
                 with shell.clone(cwd=home_dir) as shell2:
-                    temppath = path.parent / (path.name + ('.' + str(uuid.uuid4())))
-                    oldpath = path.parent / (path.name + ('.' + str(uuid.uuid4())) + ".old")
+                    temppath = path.parent / (path.name + ("." + str(uuid.uuid4())))
+                    oldpath = path.parent / (
+                        path.name + ("." + str(uuid.uuid4())) + ".old"
+                    )
                     try:
+                        breakpoint()
                         shell2.extract_zip(zip_content, temppath)
+                        with shell2.clone(cwd=temppath) as shell3:
+                            if shell3.git_is_dirty():
+                                stdout = shell3.X(["git", "status"])["stdout"]
+                                raise Exception(
+                                    f"Unzipped zip should not be dirty: {stdout}"
+                                )
                         shell2.safe_move_directory(path, oldpath)
                         shell2.safe_move_directory(temppath, path)
                         shell2.remove(oldpath)
                     finally:
                         shell2.remove(temppath)
-
 
     def _update_images(self, logsio):
         breakpoint()

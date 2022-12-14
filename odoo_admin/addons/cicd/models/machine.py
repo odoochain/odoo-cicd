@@ -1,3 +1,4 @@
+import odoo
 import base64
 import time
 import uuid
@@ -78,7 +79,9 @@ class CicdMachine(models.Model):
         for rec in self:
             rec.ssh_user_cicdlogin = (rec.ssh_user or "") + "_min"
             if len(rec.ssh_user_cicdlogin) > 32:
-                raise ValidationError("Maximum length of username is restricted to 32 chars in linux")
+                raise ValidationError(
+                    "Maximum length of username is restricted to 32 chars in linux"
+                )
             if not rec.ssh_user_cicdlogin_password_salt:
                 rec.ssh_user_cicdlogin_password_salt = str(arrow.get())
             ho = hashlib.md5(
@@ -244,8 +247,10 @@ class CicdMachine(models.Model):
 
     @api.model
     def _clean_tempdirs(self):
-        for machine in self.search([('active', '=', True), ('ttype', '=', 'dev')]):
-            machine.with_delay(identity_key=f"clean_tempdir_{machine.id}")._clean_temppath()
+        for machine in self.search([("active", "=", True), ("ttype", "=", "dev")]):
+            machine.with_delay(
+                identity_key=f"clean_tempdir_{machine.id}"
+            )._clean_temppath()
 
     def _clean_temppath(self):
         breakpoint()
@@ -255,12 +260,14 @@ class CicdMachine(models.Model):
         with self._shell() as shell:
             for vol in self.volume_ids.filtered(lambda x: x.ttype == "temp"):
                 res = shell.X(["ls", "-A", vol.name], allow_error=True, timeout=20)
-                if res['exit_code']:
+                if res["exit_code"]:
                     continue
                 for dirname in res["stdout"].splitlines():
                     if ".cleanme." in dirname:
                         try:
-                            date = arrow.get(dirname.split(".")[-1], "YYYYMMDD_HHmmss", tzinfo="UTC")
+                            date = arrow.get(
+                                dirname.split(".")[-1], "YYYYMMDD_HHmmss", tzinfo="UTC"
+                            )
                         except Exception:
                             date = arrow.utcnow().shift(years=-1)
 
@@ -457,7 +464,7 @@ echo "--------------------------------------------------------------------------
         self.ensure_one()
         assert repo._name == "cicd.git.repo"
         env = env or {}
-        env = self.env['cicd.git.repo']._sshenv_pullclone()
+        env = self.env["cicd.git.repo"]._sshenv_pullclone()
         with self._shell(cwd=cwd, logsio=logsio, env=env) as shell:
             file = Path(tempfile.mktemp(suffix="."))
             try:
@@ -485,7 +492,7 @@ echo "--------------------------------------------------------------------------
         if self == dest_machine:
             yield source_path
         else:
-            filename = tempfile.mktemp(suffix=".") #locally
+            filename = tempfile.mktemp(suffix=".")  # locally
             ssh_keyfile = self._place_ssh_credentials()
             ssh_cmd_base = f"ssh -o Batchmode=yes -o StrictHostKeyChecking=no -i"
             subprocess.run(
@@ -521,10 +528,12 @@ echo "--------------------------------------------------------------------------
                             break
                         time.sleep(5)
                     else:
-                        raise Exception((
-                            "After rsync file was "
-                            f"not found on {dest_machine.name}:{dest_path}"
-                        ))
+                        raise Exception(
+                            (
+                                "After rsync file was "
+                                f"not found on {dest_machine.name}:{dest_path}"
+                            )
+                        )
                 try:
                     yield dest_path
 
@@ -647,3 +656,21 @@ echo "--------------------------------------------------------------------------
         for rec in self:
             if not rec.volume_ids.filtered(lambda x: x.ttype == "temp"):
                 rec.volume_ids = [[0, 0, {"ttype": "temp", "name": "/tmp/cicd"}]]
+
+    def test_multilogin(self, count=1):
+        import threading
+
+        def test(dbname, id):
+            # try nicht unbedingt notwendig; bei __exit__ wird ein close aufgerufen
+            with odoo.registry(dbname).cursor() as cr:
+                env = odoo.api.Environment(cr, odoo.SUPERUSER_ID, {})
+                machine = env['cicd.machine'].browse(id)
+                with machine._shell() as shell:
+                    output = shell.X(["find"])
+
+        threads = []
+        for i in range(count):
+            threads.append(threading.Thread(target=test, args=(self.env.cr.dbname, self.id,)))
+
+        [x.start() for x in threads]
+        [x.join() for x in threads]
