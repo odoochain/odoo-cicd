@@ -97,7 +97,7 @@ class GitCommit(models.Model):
         for rec in self:
             if rec.force_approved:
                 continue
-            if rec.approval_state in ["approved", "declined"]:
+            if rec.approval_state in ["approved"]:
                 self.approver_id = self.env.user
                 if (
                     self.author_user_id
