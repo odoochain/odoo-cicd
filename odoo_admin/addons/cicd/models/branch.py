@@ -78,7 +78,10 @@ class GitBranch(models.Model):
     date_registered = fields.Datetime("Date registered")
     date = fields.Datetime("Date")
     repo_id = fields.Many2one(
-        "cicd.git.repo", string="Repository", required=True, ondelete="cascade", 
+        "cicd.git.repo",
+        string="Repository",
+        required=True,
+        ondelete="cascade",
     )
     repo_short = fields.Char(related="repo_id.short")
     active = fields.Boolean("Active", default=True, tracking=True)
@@ -134,7 +137,7 @@ class GitBranch(models.Model):
         "release_id",
         string="Target Releases",
         tracking=True,
-        domain="[('repo_id', '=', repo_id)]"
+        domain="[('repo_id', '=', repo_id)]",
     )
     release_ids = fields.One2many("cicd.release", "branch_id", string="Releases")
 
@@ -286,6 +289,10 @@ class GitBranch(models.Model):
             if not file.exists():
                 rec.last_access = False
             else:
+                data = file.read_text().strip()
+                if not data:
+                    rec.last_access = False
+                    continue
                 date = arrow.get(file.read_text())
                 rec.last_access = date.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -312,7 +319,7 @@ class GitBranch(models.Model):
     @api.model
     def create(self, vals):
         res = super().create(vals)
-        if '*' in res.name:
+        if "*" in res.name:
             raise ValidationError("* not allowed in branch name")
 
         if "remove_web_assets_after_restore" not in vals:
@@ -746,11 +753,12 @@ class GitBranch(models.Model):
         """
         After new source is fetched then the instance is rebuilt.
         """
+        breakpoint()
         for rec in self:
             if (
                 not rec.database_size and rec.repo_id.initialize_new_branches
             ) or rec.force_prepare_dump:
-                if rec.is_release_branch:
+                if not rec.is_release_branch:
                     rec._make_task("_prepare_a_new_instance", checkout=True)
                 rec.force_prepare_dump = False
             elif rec.database_size:
@@ -814,16 +822,20 @@ class GitBranch(models.Model):
             )
 
     def _search_project_name(self, operator, value):
-        assert operator == "="
+        assert operator in ["=", "ilike", "like"]
 
-        if not value:
+        if not value and operator == "=":
             return [("id", "=", 0)]
 
-        ids = (
-            self.search([])
-            .filtered(lambda x: x.project_name.lower() == value.lower())
-            .ids
-        )
+        branches = self.with_context(active_test=False).search([])
+        if operator == "=":
+            ids = branches.filtered(
+                lambda x: x.project_name.lower() == value.lower()
+            ).ids
+        elif operator in ['ilike', 'like']:
+            ids = branches.filtered(
+                lambda x: value.lower() in  x.project_name.lower()
+            ).ids
         return [("id", "in", ids)]
 
     @api.model
@@ -924,6 +936,7 @@ class GitBranch(models.Model):
                     raise
 
     def _compute_is_release_branch(self):
+        breakpoint()
         for rec in self:
             rec.is_release_branch = self.env["cicd.release.item"].search_count(
                 [

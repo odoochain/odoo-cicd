@@ -24,33 +24,35 @@
 						<button name="apply_test_settings_to_all_branches" string="Apply Test Settings to all branches" type="object"/>
 					</header>
 					<sheet>
-						<group>
+						<group col='4'>
 							<field name="name"/>
-							<field name="skip_paths" placeholder='/release/'/>
-							<field name="default_branch" placeholder="master"/>
-							<field name="initialize_new_branches"/>
-							<field name="machine_id" invisible="0"/>
-							<field name="default_simulate_install_id_dump_id" domain="[('machine_id', '=', machine_id)]"/>
-							<field name="ticketsystem_id"/>
-							<field name="autofetch"/>
-							<field name="garbage_collect"/>
-							<field name="release_tag_prefix"/>
-							<field name="remove_web_assets_after_restore"/>
-							<field name="ttype"/>
-							<field name="analyze_last_n_commits"/>
-							<field name="registry_id"/>
-							<field name="revive_branch_on_push"/>
-							<field name="update_i18n"/>
-							<field name="update_ribbon_in_instance"/>
-						</group>
-						<group string="Webhooks">
-							<div>http://host/trigger/repo/webhook_id/webhook_secret</div>
-							<field name="webhook_id"/>
-							<field name="webhook_secret"/>
 						</group>
 						<notebook>
+							<page name="setup" string="Setup">
+								<group col="4">
+									<field name="machine_id" invisible="0"/>
+									<field name="initialize_new_branches"/>
+									<field name="default_simulate_install_id_dump_id" domain="[('machine_id', '=', machine_id)]"/>
+									<field name="ttype"/>
+									<field name="registry_id"/>
+									<field name="default_branch" placeholder="master"/>
+									<field name="ticketsystem_id"/>
+									<field name="autofetch"/>
+									<field name="needs_codereview"/>
+								</group>
+							</page>
+							<page string="Webhooks">
+								<group>
+									<div style="margin-bottom: 35px;">
+									<h2>http://host/trigger/repo/webhook_id/webhook_secret</h2>
+									</div>
+									<field name="webhook_id"/>
+									<field name="webhook_secret"/>
+								</group>
+							</page>
 							<page name="cleanup" string="Cleanup">
 								<group>
+									<field name="garbage_collect"/>
 									<field name="never_cleanup"/>
 									<field name="cleanup_untouched" attrs="{'invisible': [('never_cleanup', '=', True)]}"/>
 								</group>
@@ -82,6 +84,17 @@
 								</group>
 								<group string="Migrations">
 									<field nolabel="1" name="migration_ids" context="{'tree_view_ref': 'cicd.migrationtest_settings_tree'}"/>
+								</group>
+							</page>
+							<page name="details" string="Details">
+								<group col='4'>
+									<field name="skip_paths" placeholder='/release/'/>
+									<field name="analyze_last_n_commits"/>
+									<field name="revive_branch_on_push"/>
+									<field name="update_i18n"/>
+									<field name="update_ribbon_in_instance"/>
+									<field name="remove_web_assets_after_restore"/>
+									<field name="release_tag_prefix"/>
 								</group>
 							</page>
 						</notebook>

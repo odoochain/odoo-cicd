@@ -22,7 +22,7 @@ FAILED = "failed"
 class Task(models.Model):
     _inherit = ['mixin.queuejob.semaphore']
     _name = 'cicd.task'
-    _order = 'date desc'
+    _order = 'date desc, id desc'
 
     model = fields.Char("Model")
     res_id = fields.Integer("ID")

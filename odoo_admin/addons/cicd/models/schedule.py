@@ -6,7 +6,7 @@ from cron_descriptor import get_description
 class CicdSchedule(models.Model):
     _name = "cicd.schedule"
 
-    name = fields.Char("Name", required=True)
+    name = fields.Char(compute="_compute_human")
     schedule = fields.Char(
         "Schedule",
         required=True,
@@ -16,7 +16,6 @@ class CicdSchedule(models.Model):
             "* * * * * */10 => every 10 seconds"
         ),
     )
-    human_name = fields.Char(compute="_compute_human")
 
     @api.depends("schedule")
     def _compute_human(self):
@@ -24,7 +23,7 @@ class CicdSchedule(models.Model):
             text = False
             if rec.schedule:
                 text = get_description(rec.schedule)
-            rec.human_name = text
+            rec.name = text
 
     @api.model
     def _get_next(self, schedule, start_from=None):

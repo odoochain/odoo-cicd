@@ -35,21 +35,19 @@ class Branch(models.Model):
     _inherit = "cicd.git.branch"
 
     def _prepare_a_new_instance(self, shell, checkout=False, **kwargs):
+        breakpoint()
         for self in self:
-            if self.is_release_branch:
-                continue
             dump = self.dump_id or self.repo_id.default_simulate_install_id_dump_id
-            self._clone_instance_folder(shell)
+            self._make_task("_checkout_latest")
             if not dump:
-                self._reset_db(shell, **kwargs)
+                self._make_task("reset_db")
             else:
                 self.backup_machine_id = dump.machine_id
                 self.dump_id = dump
-            if self.dump_id:
-                self._restore_dump(shell, dump=dump, **kwargs)
-            else:
-                self._reset_db(shell, **kwargs)
-            self._update_all_modules(shell, **kwargs)
+                self._make_task("_restore_dump", dump=self.dump_id.id)
+            self.env.cr.commit()
+            self._make_task("_update_all_modules")
+            self.env.cr.commit()
 
     def _update_odoo(self, shell, checkout=False, **kwargs):
         if (
@@ -170,7 +168,14 @@ class Branch(models.Model):
                 "Cannot restore wodoobin dump on cicd (everything would be lost)"
             )
         shell.logsio.info(f"Restoring {dump_name}")
-        shell.odoo("-f", "restore", "odoo-db", "--no-remove-webassets", dump_name)
+        shell.odoo(
+            "-f",
+            "restore",
+            "odoo-db",
+            "--no-remove-webassets",
+            dump_name,
+            timeout=48 * 3600,
+        )
         if self.remove_web_assets_after_restore:
             shell.odoo("-f", "remove-web-assets")
         self.last_restore_dump_name = dump_name
@@ -285,7 +290,7 @@ class Branch(models.Model):
 
         if "/" in filename:
             raise ValidationError("Filename mustn't contain slashses!")
-        shell.odoo("backup", "odoo-db", str(volume / filename))
+        shell.odoo("backup", "all", str(volume / filename))
         # to avoid serialize access erros which may occur
         machine.with_delay().update_dumps()
 
@@ -322,6 +327,7 @@ class Branch(models.Model):
             commits = _extract_commits(shell)
             self._update_git_commits_put_into_db(commits, shell)
         else:
+            breakpoint()
             with self.repo_id._temp_repo(
                 self.repo_id.machine_id, branch=self.name
             ) as path:
@@ -404,7 +410,7 @@ class Branch(models.Model):
             def _get_body():
                 for i, line in enumerate(info):
                     if not line:
-                        return info[i + 1 :]
+                        return info[i + 1:]
 
             text = ("\n".join(_get_body())).strip()
             self.commit_ids = [
@@ -772,7 +778,8 @@ class Branch(models.Model):
                 commit = self.latest_commit_id.name
                 assert commit
                 with self._tempinstance(
-                    self.env.context.get("testrun"), commit=commit,
+                    self.env.context.get("testrun"),
+                    commit=commit,
                     maxage={"hours": compressor.timeout_hours or 24},
                 ) as shell:
                     params = []
@@ -801,9 +808,7 @@ class Branch(models.Model):
                     shell.odoo("backup", "odoo-db", dump_path)
                     compressor.last_output_size = shell.file_size(dump_path)
                     self.env.cr.commit()
-                    compressor.last_log += (
-                        f"\nDump created transferring to destinations"
-                    )
+                    compressor.last_log += "\nDump created transferring to destinations"
 
                     dump = shell.get(dump_path)
                     for output in compressor.output_ids:
@@ -994,7 +999,7 @@ for path in base.glob("*"):
                             # make sure to avoid rm /
                             shell.rm(repo_path)
 
-    def _ensure_dump(self, ttype, commit, dumptype=None, dbname="odoo"):
+    def _ensure_dump(self, ttype, commit, dbname="odoo"):
         """
         Makes sure that a dump for installation of base/web module exists.
         """
@@ -1003,7 +1008,7 @@ for path in base.glob("*"):
         assert isinstance(commit, str)
         self.ensure_one()
 
-        dest_path = self._ensure_dump_get_dest_path(ttype, commit, dumptype)
+        dest_path = self._ensure_dump_get_dest_path(ttype, commit)
 
         with self.machine_id._shell() as shell:
             # as in temp path contains the full_wodoobin_odoo_deb66496b4f54a85d086743f0f532a0583090df8.cleanme.20220823_155750
@@ -1015,7 +1020,7 @@ for path in base.glob("*"):
         # if there are many tests waiting, then
         # ensure dump shall run in parallel to prepare the base dumps
         # before it was just 'ensuredump' and blocked a lot of processes
-        unique_id = f"ensure_dump_{ttype}_commit_{commit}_dumptype_{dumptype}"
+        unique_id = f"ensure_dump_{ttype}_commit_{commit}"
 
         with self._tempinstance(unique_id, commit=commit, dbname=dbname) as shell:
             shell.logsio.info(f"Creating dump file {dest_path}")
@@ -1033,13 +1038,11 @@ for path in base.glob("*"):
             dest_path = dest_path.parent / self.env[
                 "cicd.machine"
             ]._append_cleanme_notation(dest_path.name, maxage={"hours": 24 * 4})
-            params = ["backup", "odoo-db", dest_path]
-            if dumptype:
-                params += ["--dumptype", dumptype]
+            params = ["backup", "all", dest_path]
             shell.odoo(*params)
         return dest_path
 
-    def _ensure_dump_get_dest_path(self, ttype, commit, dumptype):
+    def _ensure_dump_get_dest_path(self, ttype, commit):
         if commit:
             assert isinstance(commit, str)
         machine = self.machine_id
@@ -1072,10 +1075,10 @@ for path in base.glob("*"):
                     ].split("---", 1)[1]
                     deps = json.loads(output)
                     hash = deps["hash"]
-                    return f"base_dump_{dumptype}_{self.repo_id.short}_{hash}"
+                    return f"base_dump_{self.repo_id.short}_{hash}"
 
                 elif ttype == "full":
-                    return f"full_{dumptype}_{self.repo_id.short}_{commit}"
+                    return f"full_{self.repo_id.short}_{commit}"
 
                 raise NotImplementedError(ttype)
 
