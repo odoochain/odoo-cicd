@@ -37,6 +37,7 @@ class RobotTest(models.Model):
 
     _inherit = "cicd.test.run.line"
     _name = "cicd.test.run.line.robottest"
+    _order = "filepath"
 
     filepath = fields.Char("Filepath")
     robot_output = fields.Binary("Robot Output", attachment=True)
@@ -89,7 +90,7 @@ class RobotTest(models.Model):
         with self._shell(quick=True) as shell:
             # there could be errors at install all
             dump_path = self.run_id.branch_id._ensure_dump(
-                "full", self.run_id.commit_id.name, dumptype="wodoobin", dbname=DBNAME
+                "full", self.run_id.commit_id.name, dbname=DBNAME
             )
             self.env.cr.commit()  # publish the dump; there is a cache instruction on the branch
 
@@ -117,7 +118,6 @@ class RobotTest(models.Model):
             shell.odoo("up", "-d", "postgres")
             shell.logsio.info("Waiting for postgres")
             shell.wait_for_postgres()  # wodoo bin needs to check version
-            breakpoint()
             shell.logsio.info("Restoring dump")
             shell.odoo("restore", "odoo-db", dump_path, "--no-dev-scripts", force=True)
             if self[0].test_setting_id.use_btrfs:

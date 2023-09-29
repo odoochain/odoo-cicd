@@ -97,7 +97,7 @@ class GitCommit(models.Model):
         for rec in self:
             if rec.force_approved:
                 continue
-            if rec.approval_state in ["approved", "declined"]:
+            if rec.approval_state in ["approved"]:
                 self.approver_id = self.env.user
                 if (
                     self.author_user_id
@@ -110,6 +110,8 @@ class GitCommit(models.Model):
     def _check_approver_codereviewer(self):
         for rec in self:
             if rec.force_approved:
+                continue
+            if not rec.branch_ids.repo_id.needs_codereview:
                 continue
             for approver in ["code_reviewer_id", "approver_id"]:
                 if rec[approver] and rec[approver] == rec.author_user_id:

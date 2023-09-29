@@ -21,6 +21,7 @@ class BrokenUnittest(Exception):
 class UnitTest(models.Model):
     _inherit = "cicd.test.run.line"
     _name = "cicd.test.run.line.unittest"
+    _order = "odoo_module"
 
     odoo_module = fields.Char("Odoo Module")
     filepaths = fields.Char("Filepath")
@@ -265,7 +266,7 @@ class TestSettingsUnittest(models.Model):
                 ("reused", "=", False),
                 ("odoo_module", "=", odoo_module),
                 ("hash", "=", hash),
-                ("state", "in", ["success", "failed"]),
+                ("state", "=", "success"),
                 ("tags", "=", tags),
                 ("python_version", "=", python_version),
             ],

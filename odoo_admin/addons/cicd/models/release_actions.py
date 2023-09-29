@@ -1,4 +1,5 @@
 import traceback
+import uuid
 from odoo import _, api, fields, models, SUPERUSER_ID
 import tempfile
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
@@ -61,50 +62,46 @@ class CicdReleaseAction(models.Model):
             finally:
                 shell.rm(filepath)
 
-    def run_action_set(self, release_item, commit_sha):
+    def run_action_set(self, release_item, commit_sha, logsio):
         actions = self
         errors = []
 
-        with release_item._extra_env() as unblocked_item:
-            branch_name = unblocked_item.release_id.branch_id.name
+        try:
+            if actions:
+                actions._exec_shellscripts(logsio, "before")
 
-        with LogsIOWriter.GET(branch_name, "release") as logsio:
-            try:
-                if actions:
-                    actions._exec_shellscripts(logsio, "before")
-
-                    actions._upload_settings_file(logsio, release_item, commit_sha)
-                    actions._load_images_to_registry(logsio, release_item, commit_sha)
-                    actions._update_sourcecode(logsio, release_item, commit_sha)
-                    actions._update_images(logsio)
-                    actions._stop_odoo(logsio)
-                    try:
+                actions._upload_settings_file(logsio, release_item, commit_sha)
+                actions._load_images_to_registry(logsio, release_item, commit_sha)
+                actions._update_sourcecode(logsio, release_item, commit_sha)
+                actions._update_images(logsio)
+                actions._stop_odoo(logsio)
+                try:
+                    actions[0]._run_update(logsio)
+                except Exception:
+                    if not actions[0].shell_script_on_update_fail:
+                        raise
+                    else:
+                        actions[0]._exec_shellscript(
+                            logsio, actions[0].shell_script_on_update_fail
+                        )
                         actions[0]._run_update(logsio)
-                    except Exception:
-                        if not actions[0].shell_script_on_update_fail:
-                            raise
-                        else:
-                            actions[0]._exec_shellscript(
-                                logsio, actions[0].shell_script_on_update_fail
-                            )
-                            actions[0]._run_update(logsio)
 
-            except Exception:  # pylint: disable=broad-except
-                errors.append(traceback.format_exc())
+        except Exception:  # pylint: disable=broad-except
+            errors.append(traceback.format_exc())
 
-            finally:
-                for action in actions:
-                    try:
-                        action._start_odoo(logsio=logsio)
-                    except Exception:  # pylint: disable=broad-except
-                        errors.append(traceback.format_exc())
+        finally:
+            for action in actions:
+                try:
+                    action._start_odoo(logsio=logsio)
+                except Exception:  # pylint: disable=broad-except
+                    errors.append(traceback.format_exc())
 
-                for action in actions:
-                    try:
-                        action._exec_shellscripts(logsio, "after")
-                    except Exception:  # pylint: disable=broad-except
-                        errors.append(traceback.format_exc())
-            return errors
+            for action in actions:
+                try:
+                    action._exec_shellscripts(logsio, "after")
+                except Exception:  # pylint: disable=broad-except
+                    errors.append(traceback.format_exc())
+        return errors
 
     @contextmanager
     def _contact_machine(self, logsio):
@@ -137,10 +134,26 @@ class CicdReleaseAction(models.Model):
             with rec._contact_machine(logsio) as shell:
                 path = shell.cwd
                 home_dir = shell._get_home_dir()
-                breakpoint()
                 # dest path not required to exist
                 with shell.clone(cwd=home_dir) as shell2:
-                    shell2.extract_zip(zip_content, path)
+                    temppath = path.parent / (path.name + ("." + str(uuid.uuid4())))
+                    oldpath = path.parent / (
+                        path.name + ("." + str(uuid.uuid4())) + ".old"
+                    )
+                    try:
+                        breakpoint()
+                        shell2.extract_zip(zip_content, temppath)
+                        with shell2.clone(cwd=temppath) as shell3:
+                            if shell3.git_is_dirty():
+                                stdout = shell3.X(["git", "status"])["stdout"]
+                                raise Exception(
+                                    f"Unzipped zip should not be dirty: {stdout}"
+                                )
+                        shell2.safe_move_directory(path, oldpath)
+                        shell2.safe_move_directory(temppath, path)
+                        shell2.remove(oldpath)
+                    finally:
+                        shell2.remove(temppath)
 
     def _update_images(self, logsio):
         breakpoint()
@@ -173,7 +186,7 @@ class CicdReleaseAction(models.Model):
         logsio.info("Uploading settings file")
         with self._extra_env() as x_self:
             for rec in x_self:
-                if not rec.settings and not rec.release_id.common_settings:
+                if not rec.effective_settings:
                     continue
                 with rec._contact_machine(logsio) as shell:
                     settings = rec.effective_settings

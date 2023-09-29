@@ -9,6 +9,12 @@ from contextlib import contextmanager, closing
 from odoo import registry
 
 
+def lstrip(x, y):
+    if x.startswith(y):
+        x = x[len(y) :]
+    return x
+
+
 class Database(models.Model):
     _inherit = ["cicd.mixin.size"]
     _name = "cicd.database"
@@ -21,6 +27,7 @@ class Database(models.Model):
     matching_branch_ids = fields.Many2many(
         "cicd.git.branch", string="Matching Branches", compute="_compute_branches"
     )
+    show_revive = fields.Boolean(compute="_compute_show_revive")
 
     _sql_constraints = [
         (
@@ -29,6 +36,12 @@ class Database(models.Model):
             _("Only one unique entry allowed."),
         ),
     ]
+
+    def _compute_show_revive(self):
+        from .postgres_server import PREFIX_TODELETE
+
+        for rec in self:
+            rec.show_revive = PREFIX_TODELETE in rec.name
 
     @api.depends("name", "size_human")
     def _compute_display_name(self):
@@ -63,6 +76,20 @@ class Database(models.Model):
                 cr.execute((f"DROP DATABASE IF EXISTS {rec.name}"))
             rec.sudo().unlink()
 
+    def revive(self):
+        breakpoint()
+        from .postgres_server import PREFIX_TODELETE
+
+        for rec in self:
+            with rec._dropconnections() as cr:
+                original_name = rec.name.strip(PREFIX_TODELETE)
+                # remove the _20220101
+                original_name = "".join(
+                    reversed(("".join(reversed(original_name))).split("_", 1)[1])
+                )
+                cr.execute((f"ALTER DATABASE {rec.name} RENAME TO {original_name}"))
+                rec.sudo().name = original_name
+
     @api.model
     def _cron_update(self):
         for machine in self.env["cicd.machine"].sudo().search([]):
@@ -79,18 +106,29 @@ class Database(models.Model):
             rec.machine_id = machines[0] if machines else False
 
     def _compute_branches(self):
-        breakpoint()
+        def formatname(x):
+            x = (x or '').replace("-", "_").lower()
+            return x
+
         for rec in self:
             project_name = os.getenv("PROJECT_NAME", "")
             rec.matching_branch_ids = self.env["cicd.git.branch"]
             for repo in self.env["cicd.git.repo"].search([]):
                 name = rec.name.lower()
-                name = name.replace(project_name.lower(), "")
-                name = name.replace(repo.short.lower(), "")
-                while name.startswith("_"):
-                    name = name[1:]
-                name = name.replace("_", ".*")
+                if 'fsc' in name:
+                    breakpoint()
+                name = lstrip(name, formatname(project_name))
+                name = name.lstrip("_")
+                name = lstrip(name, formatname(repo.short))
+                name = name.lstrip("_")
+                if not name:
+                    continue
                 for branch in repo.branch_ids:
-                    for f in ["name", "technical_branch_name"]:
-                        if re.findall(name, (branch[f] or "").lower()):
-                            rec.matching_branch_ids += branch
+                    branch_name = formatname(branch.name)
+                    if 'fsc' in branch_name:
+                        breakpoint()
+                    if (
+                        branch_name == name
+                        or branch.technical_branch_name.lower() == name
+                    ):
+                        rec.matching_branch_ids = [[6, 0, branch.ids]]

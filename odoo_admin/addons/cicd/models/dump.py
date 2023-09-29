@@ -78,7 +78,7 @@ class Dump(models.Model):
                                 "1",
                                 "-printf",
                                 f"%f{splitter}%TY%Tm%Td %TH%TM%TS{splitter}%s\\n",
-                            ]
+                            ], retry=10, retry_wait=30,
                         )["stdout"]
                         .strip()
                         .splitlines()

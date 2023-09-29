@@ -240,6 +240,7 @@ class ShellExecutor(BaseShellExecutor):
         logoutput=True,
         timeout=None,
         retry=None,
+        retry_wait=10,
     ):
         retry = retry or 0
         effective_env = deepcopy(self.env)
@@ -254,7 +255,7 @@ class ShellExecutor(BaseShellExecutor):
                     break
             else:
                 break
-            time.sleep(10)
+            time.sleep(retry_wait)
 
         if not allow_error:
             if res["exit_code"] is None:
@@ -284,6 +285,9 @@ class ShellExecutor(BaseShellExecutor):
                 filename.unlink()
 
     def put(self, content, dest):
+        if "~" in str(dest):
+            dest = str(dest).replace("~", self._get_home_dir())
+        dest = self.cwd / Path(dest)
         filename = Path(tempfile.mktemp(suffix="."))
         if isinstance(content, str):
             content = content.encode("utf-8")
@@ -339,7 +343,8 @@ class ShellExecutor(BaseShellExecutor):
                         "rsync",
                         str(temppath) + "/",
                         str(dest_path) + "/",
-                        "-r",
+                        # a requierd; otherwise some files were missed to transfer
+                        "-ar",
                         "--delete-after",
                     ]
                 )

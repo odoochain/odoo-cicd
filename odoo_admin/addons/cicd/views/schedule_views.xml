@@ -10,7 +10,6 @@
 						<group>
 							<field name="name"/>
 							<field name="schedule"/>
-							<field name="human_name"/>
 						</group>
 					</sheet>
 				</form>
@@ -23,7 +22,6 @@
 				<tree string="Schedules" editable="bottom">
 					<field name="name"/>
 					<field name="schedule"/>
-					<field name="human_name"/>
 				</tree>
 			</field>
 		</record>
