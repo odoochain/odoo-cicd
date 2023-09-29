@@ -19,7 +19,7 @@ ${RELEASE_SETTINGS}=                SEPARATOR=\n
 ...                                 RUN_POSTGRES=1
 ...                                 RUN_ODOO_QUEUEJOBS=0
 ...                                 RUN_ODOO_CRONJOBS=0
-...                                 ODOO_PYTHON_VERSION=3.9.12
+...                                 ODOO_PYTHON_VERSION=3.10.8
 
 
 *** Keywords ***

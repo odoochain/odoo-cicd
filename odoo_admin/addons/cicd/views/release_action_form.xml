@@ -33,7 +33,7 @@ HUB_URL (if registry is configured) REGISTRY=1 (if registry is configured) RESTA
 						<group>
 							<div style="white-space: pre; font-family: monospace;">
 Example: PROXY_PORT=80 PROJECT_NAME=e.g. myproject1 DEVMODE=0 DUMPS_PATH=/opt/dumps RUN_ROUNDCUBE=1 ODOO_QUEUEJOBS_CRON_IN_ONE_CONTAINER=1 ODOO_PYTHON_DEBUG_PORT=
-RUN_ODOO_QUEUEJOBS=0 RUN_ODOO_CRONJOBS=0 RUN_MAIL=1 RUN_CRONJOBS=1 RUN_PROXY_PUBLISHED=1 RUN_MONGODB=0 ODOO_QUEUEJOBS_CHANNELS="root:40,magento2:1,rendite:5,aldinord:1,productupdate:10,dailysync:3,oneshot:1,inventory:3,prices:1,observer:10,observer_complete:5,saleorder:1,logging:2,liefb:5,aldisued:1,freshdesk:1,weko:1" ODOO_PYTHON_VERSION=3.8.3
+RUN_ODOO_QUEUEJOBS=0 RUN_ODOO_CRONJOBS=0 RUN_MAIL=1 RUN_CRONJOBS=1 RUN_PROXY_PUBLISHED=1 RUN_MONGODB=0 ODOO_QUEUEJOBS_CHANNELS="root:40,magento2:1,rendite:5,aldinord:1,productupdate:10,dailysync:3,oneshot:1,inventory:3,prices:1,observer:10,observer_complete:5,saleorder:1,logging:2,liefb:5,aldisued:1,freshdesk:1,weko:1" ODOO_PYTHON_VERSION=3.10.8
 
 							</div>
 

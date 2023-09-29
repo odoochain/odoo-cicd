@@ -1,3 +1,5 @@
+# _*_ coding:utf_8 _*_
+
 """
 Used to demonstrate that it is possible to destroy a git folder by 
 checking in/out in two threads.
@@ -5,6 +7,7 @@ checking in/out in two threads.
 """
 #!/usr/bin/env python3
 import json
+import sys
 import time
 import inspect
 import os
@@ -24,8 +27,12 @@ print(f"Root is {ROOT}")
 print("Please observe log.txt during the test")
 time.sleep(5)
 
-GIT = "/usr/local/bin/git-cicd"
+if sys.platform == 'win32':  # "Windows XP", "Windows 7", etc.
+    GIT = current_dir.parent.parent / "bin/git-cicd"
+elif sys.platform.startswith(('linux', 'freebsd', 'openbsd')):  # "Mac OS X", etc.
+    GIT = "/usr/local/bin/git-cicd"
 
+print(GIT)
 
 flags = {}
 

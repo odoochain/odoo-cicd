@@ -64,9 +64,9 @@
 							</page>
 							<page string="Settings" name="settings">
 								<div>
-									<a href="https://github.com/marcwimmer/wodoo" target="_blank">Documentation Github</a>
+									<a href="https://github.com/odoochain/wodoo" target="_blank">Documentation Github</a>
 								</div>
-								<field name="common_settings" placeholder="ODOO_PYTHON_VERSION=3.8.2" />
+								<field name="common_settings" placeholder="ODOO_PYTHON_VERSION=3.10.8" />
 							</page>
 							<page string="Actions" name="actions">
 								<field name="action_ids">
@@ -81,8 +81,8 @@
 						</notebook>
 					</sheet>
 					<div class="oe_chatter">
-						<field name="message_follower_ids" widget="mail_followers"/>
-						<field name="message_ids" widget="mail_thread"/>
+						<field name="message_follower_ids" />
+						<field name="message_ids" />
 					</div>
 				</form>
 			</field>

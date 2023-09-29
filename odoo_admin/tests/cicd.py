@@ -116,7 +116,7 @@ class cicd(object):
             return res
 
     def _prepare_git(self):
-        check_call(["git", "config", "--global", "user.email", "testcicd@nowhere.com"])
+        check_call(["git", "config", "--global", "user.email", "testcicd@odoochain.com"])
         check_call(["git", "config", "--global", "user.name", "testcicd"])
 
     def make_odoo_repo(self, path, version):
